@@ -251,6 +251,18 @@ namespace Breeze.WebApi
             }
         }
 
+
+        /// <summary>
+        /// Configure the JsonFormatter.  Does nothing in this implementation but is available to derived classes.
+        /// </summary>
+        /// <param name="request">Used to retrieve the current JsonFormatter</param>
+        /// <param name="queryable">Used to obtain the ISession</param>
+        public virtual void ConfigureFormatter(HttpRequestMessage request, IQueryable queryable)
+        {
+            var jsonFormatter = request.GetConfiguration().Formatters.JsonFormatter;
+            ConfigureFormatter(jsonFormatter, queryable);
+        }
+
         /// <summary>
         /// Configure the JsonFormatter.  Does nothing in this implementation but is available to derived classes.
         /// </summary>

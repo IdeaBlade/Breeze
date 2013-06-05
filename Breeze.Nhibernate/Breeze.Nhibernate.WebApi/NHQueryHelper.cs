@@ -146,12 +146,5 @@ namespace Breeze.Nhibernate.WebApi
             settings.Converters.Add(new NHibernateProxyJsonConverter());
         }
 
-        //public override void WrapResult(HttpRequestMessage request, HttpResponseMessage response, object responseObject, object queryResult)
-        //{
-        //    var numer = responseObject as IEnumerable;
-        //    if (numer != null)
-        //        InitializeProxies(numer);
-        //    base.WrapResult(request, response, responseObject, queryResult);
-        //}
     }
 }

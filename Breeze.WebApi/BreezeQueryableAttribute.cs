@@ -101,8 +101,7 @@ namespace Breeze.WebApi {
           }
       }
 
-      var jsonFormatter = actionExecutedContext.Request.GetConfiguration().Formatters.JsonFormatter;
-      queryHelper.ConfigureFormatter(jsonFormatter, responseObject as IQueryable);
+      queryHelper.ConfigureFormatter(actionExecutedContext.Request, responseObject as IQueryable);
 
     }
 

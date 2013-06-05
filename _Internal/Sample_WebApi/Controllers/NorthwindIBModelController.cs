@@ -407,8 +407,22 @@ namespace Sample_WebApi.Controllers {
 
 
     [HttpGet]
+#if NHIBERNATE
+    public IQueryable<Object> CompanyInfoAndOrders(ODataQueryOptions options) {
+        // Need to handle this specially for NH, to prevent $top being applied to Orders
+        var query = ContextProvider.Context.Customers;
+        var queryHelper = new NHQueryHelper();
+        var query2 = queryHelper.ApplyQuery(query, options);
+
+        var r = query2.Cast<Customer>().ToList();
+        NHInitializer.InitializeList(r, "Orders");
+        var stuff = r.AsQueryable().Select(c => new { c.CompanyName, c.CustomerID, c.Orders });
+
+        queryHelper.ConfigureFormatter(Request, query);
+#else
     public IQueryable<Object> CompanyInfoAndOrders() {
       var stuff = ContextProvider.Context.Customers.Select(c => new { c.CompanyName, c.CustomerID, c.Orders });
+#endif
       return stuff;
     }
 

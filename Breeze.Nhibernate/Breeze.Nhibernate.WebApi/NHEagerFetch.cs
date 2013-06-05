@@ -71,9 +71,7 @@ namespace Breeze.Nhibernate.WebApi
                 var isInvoking = true;
 
                 // split on '/' or '.'
-                var segments = expand.Split('/');
-                if (segments.Length == 1 && expand.IndexOf('.') > 0)
-                    segments = expand.Split('.');
+                var segments = expand.Split('/', '.');
                 expandMap.Deepen(segments.Length);
                 foreach (string seg in segments)
                 {
@@ -155,6 +153,60 @@ namespace Breeze.Nhibernate.WebApi
             }
 
             return currentQueryable;
+        }
+
+        /// <summary>
+        /// Create an ExpandTypeMap populated according to the expandPaths.
+        /// </summary>
+        /// <param name="type">The type of the root element.</param>
+        /// <param name="expandPaths">The names of the properties to expand.  May include nested paths of the form "Property/SubProperty"</param>
+        /// <returns>expandMap</returns>
+        public static ExpandTypeMap MapExpansions(Type type, params string[] expandPaths)
+        {
+            return MapExpansions(type, expandPaths, null);
+        }
+
+        /// <summary>
+        /// Create an ExpandTypeMap populated according to the expandPaths.
+        /// </summary>
+        /// <param name="type">The type of the root element.</param>
+        /// <param name="expandPaths">The names of the properties to expand.  May include nested paths of the form "Property/SubProperty"</param>
+        /// <param name="expandMap">Will be populated with the names of the expanded properties for each type.  If null, a new one is created.</param>
+        /// <returns>expandMap</returns>
+        public static ExpandTypeMap MapExpansions(Type type, string[] expandPaths, ExpandTypeMap expandMap = null)
+        {
+            if (!expandPaths.Any()) throw new ArgumentException("Expansion Paths cannot be null");
+
+            if (expandMap == null) expandMap = new ExpandTypeMap();
+            foreach (string expand in expandPaths)
+            {
+                // We always start with the resulting element type
+                var currentType = type;
+
+                // split on '/' or '.'
+                var segments = expand.Split('/','.');
+                expandMap.Deepen(segments.Length);
+                foreach (string seg in segments)
+                {
+                    if (expandMap != null && !expandMap.map.ContainsKey(currentType))
+                        expandMap.map.Add(currentType, new List<string>());
+
+                    // Gather information about the property
+                    var propInfo = currentType.GetProperty(seg);
+                    if (propInfo == null)
+                    {
+                        throw new ArgumentException("Type '" + currentType.Name + "' does not have property '" + seg + "'");
+                    }
+                    if (expandMap != null && !expandMap.map[currentType].Contains(seg))
+                        expandMap.map[currentType].Add(seg);
+
+                    var propType = propInfo.PropertyType;
+
+                    currentType = propType;
+                }
+            }
+
+            return expandMap;
         }
 
         /// <summary>
