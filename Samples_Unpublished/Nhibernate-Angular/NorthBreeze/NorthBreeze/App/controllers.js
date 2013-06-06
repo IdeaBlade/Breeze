@@ -13,43 +13,76 @@ app.controller('HomeCtrl', [function () {
 
 app.controller('CustomerCtrl', ['$scope', function ($scope) {
 
-    var columnDefs = [{ field: '_backingStore.CompanyName', displayName: 'Company Name', width: 'auto' },
-                 { field: '_backingStore.ContactName', displayName: 'Contact Name', width: 'auto' },
-                 { field: '_backingStore.Country', displayName: 'Country', width: 'auto' }]
+    var columnDefs = [{ field: '_backingStore.CompanyName', displayName: 'Company Name', width: '50%' },
+                 { field: '_backingStore.ContactName', displayName: 'Contact Name', width: '30%' },
+                 { field: '_backingStore.Country', displayName: 'Country', width: '20%' }]
 
     $scope.customers = $scope.customers || [];
-    $scope.customerGrid = { data: 'customers', columnDefs: columnDefs, enableCellEdit: true };
 
-    /*
-Address: "24, place Kléber"
-City: "Strasbourg"
-CompanyName: "Blondesddsl père et fils"
-ContactName: "Frédérique Citeaux"
-ContactTitle: "Marketing Manager"
-Country: "France"
-CustomerID: "2477d007-f7f5-487e-945a-3dd466581813"
-CustomerID_OLD: "BLONP"
-Fax: "88.60.15.32"
-Orders: Array[0]
-Phone: "88.60.15.31"
-PostalCode: "67000"
-Region: null
-RowVersion: 0    */
+    $scope.filterOptions = {
+        filterText: "",
+        useExternalFilter: true
+    };
+    $scope.pagingOptions = {
+        pageSizes: [10, 20, 50],
+        pageSize: 10,
+        totalServerItems: 0,
+        currentPage: 1
+    };
 
-    var getAllCustomers = function () {
-        app.dataservice.getAllCustomers()
+    $scope.customerGrid = {
+        data: 'customers',
+        columnDefs: columnDefs,
+        enablePaging: true,
+        showFooter: true,
+        multiSelect: false,
+        pagingOptions: $scope.pagingOptions,
+        filterOptions: $scope.filterOptions
+    };
+
+    $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+        var skip = (page - 1) * pageSize;
+        var take = pageSize * 1;
+        app.dataservice.getCustomerPage(skip, take, searchText)
             .then(customersQuerySucceeded)
             .fail(queryFailed);
     };
 
-    getAllCustomers();
+    $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage);
+
+    $scope.$watch('pagingOptions', function (newVal, oldVal) {
+        if (newVal !== oldVal) {
+            if (newVal.pageSize !== oldVal.pageSize) {
+                $scope.pagingOptions.currentPage = 1;
+                $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
+            } else {
+                if (newVal.currentPage !== oldVal.currentPage) {
+                    $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
+                }
+            }
+        }
+    }, true);
+
+    $scope.$watch('filterOptions', function (newVal, oldVal) {
+        if (newVal !== oldVal) {
+            $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
+        }
+    }, true);
+
 
     //#region private functions
     function customersQuerySucceeded(data) {
         $scope.customers = data.results;
+        $scope.pagingOptions.totalServerItems = data.inlineCount;
         $scope.$apply();
         app.logger.info("Fetched " + data.results.length + " Customers ");
-        $scope.customerGrid = { data: 'customers' };
+        //$scope.customerGrid = {
+        //    data: 'customers',
+        //    enablePaging: true,
+        //    showFooter: true,
+        //    pagingOptions: $scope.pagingOptions,
+        //    filterOptions: $scope.filterOptions
+        //};
     }
 
     function queryFailed(error) {

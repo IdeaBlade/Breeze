@@ -9,6 +9,7 @@
 
     return {
         getAllCustomers: getAllCustomers,
+        getCustomerPage: getCustomerPage,
         getOrders: getOrders,
         createCustomer: createCustomer
     };
@@ -20,6 +21,18 @@
         var query = breeze.EntityQuery
                 .from("Customers")
                 .orderBy("CompanyName").take(10);
+
+        return manager.executeQuery(query);
+    }
+
+    function getCustomerPage(skip, take, searchText) {
+        var query = breeze.EntityQuery
+                .from("Customers")
+                .orderBy("CompanyName")
+                .skip(skip).take(take);
+        if (searchText) {
+            query = query.where("CompanyName", "contains", searchText);
+        }
 
         return manager.executeQuery(query);
     }
