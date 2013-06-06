@@ -130,7 +130,7 @@ breeze.makeComplexArray = function() {
 
     function processRemoves(complexArray, removes) {
         removes.forEach(function (a) {
-            detach(a);
+            detach(a, complexArray);
         });
         // this is referencing the name of the method on the relationArray not the name of the event
         publish(complexArray, "arrayChanged", { complexArray: complexArray, removed: removes });
@@ -172,9 +172,9 @@ breeze.makeComplexArray = function() {
     }
 
     function attach(co, arr) {
-        // if already attached - exit
-        if (co.parent === arr.parent) return;
         var aspect = co.complexAspect;
+        // if already attached - exit
+        if (aspect.parent === arr.parent) return;
         aspect.parent = arr.parent;
         aspect.parentProperty = arr.parentProperty;
         aspect.propertyPath = arr.propertyPath;
@@ -187,16 +187,17 @@ breeze.makeComplexArray = function() {
         } else {
             aspect._state = "A"
             arr._added.push(co);
-            if (aspect.entityAspect.entityState.isUnchanged()) {
-                aspect.entityAspect.setModified();
+            if (arr.entityAspect.entityState.isUnchanged()) {
+                arr.entityAspect.setModified();
             }
         }
     }
 
     function detach(co, arr) {
         // if not already attached - exit
-        if (co.parent !== arr.parent) return;
         var aspect = co.complexAspect;
+        if (aspect.parent !== arr.parent) return;
+
         aspect.parent = null;
         aspect.parentProperty = null;
         aspect.propertyPath = null;
@@ -210,8 +211,8 @@ breeze.makeComplexArray = function() {
         } else {
             aspect._state = "R"
             arr._removed.push(co);
-            if (aspect.entityAspect.entityState.isUnchanged()) {
-                aspect.entityAspect.setModified();
+            if (arr.entityAspect.entityState.isUnchanged()) {
+                arr.entityAspect.setModified();
             }
         }
     }

@@ -170,16 +170,20 @@ function __arrayIndexOf(array, predicate) {
     return -1;
 }
 
-function __arrayRemoveItem(array, predicateOrItem) {
+function __arrayRemoveItem(array, predicateOrItem, shouldRemoveMultiple) {
     var predicate = __isFunction(predicateOrItem) ? predicateOrItem : undefined;
-    var l = array.length;
-    for (var index = 0; index < l; index++) {
-        if (predicate ? predicate(array[index]) : (array[index] === predicateOrItem)) {
-            array.splice(index, 1);
-            return index;
+    var lastIx = array.length-1;
+    var removed = false;
+    for (var i = lastIx; i >= 0; i--) {
+        if (predicate ? predicate(array[i]) : (array[i] === predicateOrItem)) {
+            array.splice(i, 1);
+            removed = true;
+            if (!shouldRemoveMultiple) {
+                return removed;
+            }
         }
     }
-    return -1;
+    return removed;
 }
 
 function __arrayZip(a1, a2, callback) {
