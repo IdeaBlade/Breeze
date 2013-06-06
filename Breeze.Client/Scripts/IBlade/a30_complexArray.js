@@ -2,9 +2,18 @@
 breeze.makeComplexArray = function() {
     var complexArrayMixin = {};
 
+    // complexArray will have the following props
+    //    parent
+    //    propertyPath
+    //    parentProperty
+    //    addedItems  - only if modified
+    //    removedItems  - only if modified
+    //  each complexAspect of any entity within a complexArray
+    //  will have its own _complexState = "A/M";
+
     /**
-    Complex arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of 
-    complexTypes associated with a data property on a single entity. i.e. customer.orders or order.orderDetails.
+    Complex arrays are not actually classes, they are objects that mimic arrays. A complex array is collection of 
+    complexTypes associated with a data property on a single entity or other complex object. i.e. customer.orders or order.orderDetails.
     This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
     are all provided as well as several special purpose methods. 
     @class ↈ_complexArray_
@@ -81,11 +90,11 @@ breeze.makeComplexArray = function() {
 
   
     complexArrayMixin._getEventParent = function () {
-        return this.parentEntity.entityAspect;
+        return this.entityAspect;
     };
 
     complexArrayMixin._getPendingPubs = function () {
-        var em = this.parentEntity.entityAspect.entityManager;
+        var em = this.entityAspect.entityManager;
         return em && em._pendingPubs;
     };
 
@@ -99,18 +108,30 @@ breeze.makeComplexArray = function() {
     }
 
     function checkForDups(complexArray, adds) {
-        // don't allow dups in this array.
-        return adds;
-        
+        // don't check for real dups yet.
+        // remove any that are already added here
+        return adds.filter(function (a) {
+            return a.parent != complexArray.parent;
+        });
+
     }
 
     function processAdds(complexArray, adds) {
+        adds.forEach(function (a) {
+            if (a.parent != null) {
+                throw new Error("The complexObject is already attached. Either clone it or remove it from its current owner");
+            }
+            attach(a, complexArray);
+        });
         // this is referencing the name of the method on the complexArray not the name of the event
         publish(complexArray, "arrayChanged", { complexArray: complexArray, added: adds });
 
     }
 
     function processRemoves(complexArray, removes) {
+        removes.forEach(function (a) {
+            detach(a);
+        });
         // this is referencing the name of the method on the relationArray not the name of the event
         publish(complexArray, "arrayChanged", { complexArray: complexArray, removed: removes });
     }
@@ -150,14 +171,69 @@ breeze.makeComplexArray = function() {
         }
     }
 
- 
+    function attach(co, arr) {
+        // if already attached - exit
+        if (co.parent === arr.parent) return;
+        var aspect = co.complexAspect;
+        aspect.parent = arr.parent;
+        aspect.parentProperty = arr.parentProperty;
+        aspect.propertyPath = arr.propertyPath;
+        aspect.entityAspect = arr.entityAspect;
 
-    function makeComplexArray(arr, parentEntity, complexProperty) {
-        arr.parentEntity = parentEntity;
-        arr.complexProperty = complexProperty;
-        arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
+        if (aspect._state === "R") {
+            // unremove
+            __core.arrayRemove(arr._removed, co);
+            aspect._state = null;
+        } else {
+            aspect._state = "A"
+            arr._added.push(co);
+            if (aspect.entityAspect.entityState.isUnchanged()) {
+                aspect.entityAspect.setModified();
+            }
+        }
+    }
+
+    function detach(co, arr) {
+        // if not already attached - exit
+        if (co.parent !== arr.parent) return;
+        var aspect = co.complexAspect;
+        aspect.parent = null;
+        aspect.parentProperty = null;
+        aspect.propertyPath = null;
+        aspect.entityAspect = null;
+
+
+        if (aspect._state === "A") {
+            // unAdd
+            __core.arrayRemove(arr._added, co);
+            aspect._state = null;
+        } else {
+            aspect._state = "R"
+            arr._removed.push(co);
+            if (aspect.entityAspect.entityState.isUnchanged()) {
+                aspect.entityAspect.setModified();
+            }
+        }
+    }
+
+    function makeComplexArray(arr, parent, parentProperty) {
+
+        arr.parent = parent;
+        arr.parentProperty = parentProperty;
+        arr.propertyPath = parentProperty.name;
+        // get the final parent's entityAspect.
+        var nextParent = parent;
+        while (nextParent.complexType) {
+            arr.propertyPath = nextParent.complexAspect.propertyPath + "." + arr.propertyPath;
+            nextParent = nextParent.complexAspect.parent;
+        }
+        arr.entityAspect = nextParent.entityAspect;
+
+        arr.arrayChanged = new Event("arrayChanged_complexArray", arr);
         // array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
+        arr._added = [];
+        arr._removed = [];
         return __extend(arr, complexArrayMixin);
     }
 

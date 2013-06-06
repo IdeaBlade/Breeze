@@ -835,8 +835,8 @@
             {
                 "name":"productID",
                 "dataType":"Int32",
+                "defaultValue": 777,
                 "isNullable":false,
-                "defaultValue":0,
                 "isPartOfKey":true,
                 "validators":[
                     {
@@ -850,7 +850,6 @@
             {
                "name":"unitPrice",
                "dataType":"Decimal",
-               "isNullable":false,
                "defaultValue":0,
                "validators":[
                   {

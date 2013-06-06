@@ -28,7 +28,7 @@
         test("Skipping KO specific tests", function () {
             ok(true, "Skipped tests - ko specfic");
         });
-        return testFns;
+        return;
     };
     
     test("registerEntityType", function () {
