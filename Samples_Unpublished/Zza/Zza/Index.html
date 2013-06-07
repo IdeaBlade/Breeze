@@ -1,0 +1,45 @@
+<!DOCTYPE html data-ng-app>
+<html>
+<head>     
+    <title>Zza with AngularJs</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
+
+    <link href="Content/ie10mobile.css" rel="stylesheet" />
+    <link href="Content/bootstrap.css" rel="stylesheet" />
+    <link href="Content/bootstrap-responsive.css" rel="stylesheet" />
+    <link href="Content/font-awesome.css" rel="stylesheet" />
+    <link href="Content/toastr.css" rel="stylesheet" />
+    <link href="Content/styles.css" rel="stylesheet" />
+
+    <script>
+        // Must be first. IE10 mobile viewport fix
+        if (navigator.userAgent.match(/IEMobile\/10\.0/)) {
+            var msViewportStyle = document.createElement("style");
+            var mq = "@@-ms-viewport{width:auto!important}";
+            msViewportStyle.appendChild(document.createTextNode(mq));
+            document.getElementsByTagName("head")[0].appendChild(msViewportStyle);
+        }
+    </script>
+    <script src="Scripts/modernizr-2.6.2.js"></script>
+
+</head>
+    <body>
+        <h1>HELLO, ZZA!</h1>
+        <div id="applicationHost" class="ng-cloak">
+
+        </div>
+
+        <!-- 3rd party libraries -->
+        <script src="Scripts/jquery-2.0.2.min.js"></script>
+        <script src="Scripts/q.js"></script>
+        <script src="Scripts/breeze.debug.js"></script>
+        <script src="Scripts/toastr.js"></script>
+        <script src="Scripts/angular.js"></script>
+
+        <!-- App libraries -->
+
+
+    </body>
+</html>
