@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ZzaContext.cs" />
+    <Compile Include="ZzaEntitySaveGuard.cs" />
     <Compile Include="ZzaRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

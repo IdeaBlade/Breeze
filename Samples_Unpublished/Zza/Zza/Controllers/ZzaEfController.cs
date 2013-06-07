@@ -12,43 +12,38 @@ namespace Zza.Controllers
     public class ZzaEfController : ApiController
     {
         public ZzaEfController() : this(null){}
-        public ZzaEfController(ZzaRepository repository)
+        public ZzaEfController(IZzaRepository repository)
         {
             _repository = repository ?? new ZzaRepository();
-            _repository.UserStoreId = _guestStoreId;
-        }
-
-        private ZzaRepository Repository
-        {
-            get { return PrepareRepository(); }
+            _repository.GetUserStoreId = getUserStoreId;
         }
 
         // ~/breeze/ZzaEf/Metadata 
         [HttpGet]
         public string Metadata()
         {
-            return Repository.Metadata;
+            return _repository.Metadata;
         }
 
         // ~/breeze/ZzaEf/SaveChanges
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
-            return Repository.SaveChanges(saveBundle);
+            return _repository.SaveChanges(saveBundle);
         }
 
         // ~/breeze/ZzaEf/Customers
         [HttpGet]
         public IQueryable<Customer> Customers()
         {
-            return Repository.Customers;
+            return _repository.Customers;
         }
 
         // ~/breeze/ZzaEf/Orders
         [HttpGet]
         public IQueryable<Order> Orders()
         {
-            return Repository.Orders;
+            return _repository.Orders;
         }
 
         // ~/breeze/ZzaEf/Lookups
@@ -64,31 +59,30 @@ namespace Zza.Controllers
         [HttpGet]
         public object Lookups()
         {
-            return Repository.Lookups;
+            return _repository.Lookups;
         }
-        [HttpGet]
 
         #region Individual reference collections
         // Don't use. Should get all at once with Lookups
-
+        [HttpGet]
         public IQueryable<OrderStatus> OrderStatuses()
         {
-            return Repository.OrderStatuses;
+            return _repository.OrderStatuses;
         }
         [HttpGet]
         public IQueryable<Product> Products()
         {
-            return Repository.Products;
+            return _repository.Products;
         }
         [HttpGet]
         public IQueryable<ProductOption> ProductOptions()
         {
-            return Repository.ProductOptions;
+            return _repository.ProductOptions;
         }
         [HttpGet]
         public IQueryable<ProductSize> ProductSizes()
         {
-            return Repository.ProductSizes;
+            return _repository.ProductSizes;
         }
         #endregion
 
@@ -97,31 +91,25 @@ namespace Zza.Controllers
         [HttpPost]
         public string Reset(string options = "")
         {
-            return Repository.Reset(options);
+            return _repository.Reset(options);
         }
 
         /// <summary>
-        /// Prepare repository for the current request
+        /// Get the repository UserStoreId from the current request
         /// </summary>
-        /// <remarks>
-        /// Sets the repo's StoreId from value in the request header
-        /// </remarks>
-        private ZzaRepository PrepareRepository()
+        private Guid? getUserStoreId()
         {
             try
             {
                 var id = Request.Headers.GetValues("X-StoreId").First();
-                _repository.UserStoreId = Guid.Parse(id);
+                return Guid.Parse(id);
             }
-            // ReSharper disable EmptyGeneralCatchClause
-            catch { /* Let repository deal with it*/}
-            // ReSharper restore EmptyGeneralCatchClause
-
-            return _repository;
+            catch
+            {
+                return null;
+            }
         }
 
-        private readonly ZzaRepository _repository;
-        private const string _guestStoreIdName = "12345678-9ABC-DEF0-1234-56789ABCDEF0";
-        private static readonly Guid _guestStoreId = new Guid(_guestStoreIdName);
+        private readonly IZzaRepository _repository;
     }
 }

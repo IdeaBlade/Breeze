@@ -6,25 +6,54 @@ using Zza.Model;
 
 namespace Zza.DataAccess.EF
 {
+    public interface IZzaRepository
+    {
+        string Metadata { get; }
+        IQueryable<Customer> Customers { get; }
+        IQueryable<Order> Orders { get; }
+
+        /// <summary>
+        /// Get a reference object whose properties
+        /// are the Zza reference collections.
+        /// </summary>
+        /// <returns>
+        /// Returns one object, not an IQueryable, 
+        /// whose properties are "OrderStatuses", "Products", 
+        /// "ProductOptions", "ProductSizes".
+        /// </returns>
+        object Lookups { get; }
+
+        IQueryable<OrderStatus> OrderStatuses { get; }
+        IQueryable<Product> Products { get; }
+        IQueryable<ProductOption> ProductOptions { get; }
+        IQueryable<ProductSize> ProductSizes { get; }
+
+        /// <summary>
+        /// Get and set the function returning the current user's StoreId;
+        /// typically set by the controller
+        /// </summary>
+        Func<Guid?> GetUserStoreId { get; set; }
+
+        SaveResult SaveChanges(JObject saveBundle);
+        string Reset(string options);
+    }
+
     /// <summary>
     /// Repository (a "Unit of Work" really) of Zza models.
     /// </summary>
-    public class ZzaRepository
+    public class ZzaRepository : IZzaRepository
     {
-        private readonly EFContextProvider<ZzaContext> _contextProvider;
-
         public ZzaRepository()
         {
             _contextProvider = new EFContextProvider<ZzaContext>();
-            _contextProvider.BeforeSaveEntityDelegate += EntitySaveGuard;
-            UserStoreId = Guid.Empty;
+            _entitySaveGuard = new ZzaEntitySaveGuard();
+            _contextProvider.BeforeSaveEntityDelegate += _entitySaveGuard.BeforeSaveEntity;
+            GetUserStoreId = () => _guestStoreId;
         }
-
-        private ZzaContext Context { get { return _contextProvider.Context; } }
 
         public string Metadata
         {
-            get {return _contextProvider.Metadata();}
+            get { return _contextProvider.Metadata(); }
         }
 
         public SaveResult SaveChanges(JObject saveBundle)
@@ -84,6 +113,12 @@ namespace Zza.DataAccess.EF
 
         #endregion
 
+        /// <summary>
+        /// Get and set the function returning the current user's StoreId;
+        /// typically set by the controller
+        /// </summary>
+        public Func<Guid?> GetUserStoreId { get; set; }
+
         public string Reset(string options)
         {
             // If full reset, delete all additions to the database
@@ -104,151 +139,34 @@ namespace Zza.DataAccess.EF
             return "reset";
         }
 
-        /// <summary>
-        /// The current user's StoreId, typically set by the controller
-        /// </summary>
-        public Guid UserStoreId { get; set; }
+        private ZzaContext Context { get { return _contextProvider.Context; } }
 
         private IQueryable<T> ForCurrentUser<T>(IQueryable<T> query) where T : class, ISaveable
         {
             return query.Where(x => x.StoreId == null || x.StoreId == UserStoreId);
         }
 
-        #region Save guard logic
-
-        /// <summary>
-        /// True if can save this entity else throw exception
-        /// </summary>
-        /// <exception cref="System.InvalidOperationException"></exception>
-        private bool EntitySaveGuard(EntityInfo arg)
+        private Guid UserStoreId
         {
-            var typeName = arg.Entity.GetType().Name;
-            var saveError = string.Empty;
-            var saveable = arg.Entity as ISaveable;
-
-            if (UserStoreId == Guid.Empty) {
-                saveError = "you are not authorized to save.";
-
-            } else if (saveable == null) {
-                saveError = "changes to '" + typeName + "' are forbidden.";
-
-            } else {
-                switch (arg.EntityState)
+            get
+            {
+                if (!haveUserStoreId)
                 {
-                    case EntityState.Added:
-                        saveable.StoreId = UserStoreId;
-                        arg.OriginalValuesMap.Add("StoreId", UserStoreId);
-                        break;
-                    case EntityState.Modified:
-                    case EntityState.Deleted:
-                        saveError = canSaveExistingEntity(arg);
-                        break;
-                    default:
-                        var stateName = Enum.GetName(typeof (EntityState), arg.EntityState);
-                        saveError = " unexpected EntityState of " + stateName;
-                        break;
+                    _userStoreId = GetUserStoreId() ?? _guestStoreId;
+                    _entitySaveGuard.UserStoreId = _userStoreId;
+                    haveUserStoreId = true;
                 }
+                return _userStoreId;
             }
-
-            if (saveError != null)
-            {
-                throw new InvalidOperationException(
-                    "'" + arg.Entity.GetType().Name + "' may not be saved because " +
-                    saveError);
-            }
-            return true;
         }
 
-        /// <summary>
-        /// DbContext for reading entities from the database during validations
-        /// </summary>
-        /// <remarks>
-        /// Can't use the same context for reading and writing.
-        /// Lazy instantiated because only used in a few cases.
-        /// </remarks>
-        private ZzaContext readContext
-        {
-            get { return _readContext ?? (_readContext = new ZzaContext()); }
-        }
+        private bool haveUserStoreId;
+        private Guid _userStoreId;
 
-        private ZzaContext _readContext;
+        private readonly EFContextProvider<ZzaContext> _contextProvider;
+        private readonly ZzaEntitySaveGuard _entitySaveGuard;
 
-        #region Type-specific Entity Save Guards
-
-        private string canSaveExistingEntity(EntityInfo arg)
-        {
-            var type = arg.Entity.GetType();
-            if (type == typeof (Customer))
-            {
-                return ExistingCustomerSaveGuard(arg);
-            }
-            if (type == typeof (Order))
-            {
-                return ExistingOrderSaveGuard(arg);
-            }
-            if (type == typeof (OrderItem))
-            {
-                return ExistingOrderItemSaveGuard(arg);
-            }
-            if (type == typeof (OrderItemOption))
-            {
-                return ExistingOrderItemOptionSaveGuard(arg);
-            }
-
-            return "is not a saveable type";
-        }
-
-        private string ExistingEntityGuard(ISaveable entity, object id)
-        {
-            if (entity == null)
-            {
-                return "the record with key " + id + " was not found.";
-            }
-
-            var storeId = entity.StoreId;
-            if (storeId == null || storeId == Guid.Empty)
-            {
-                return "changes to an original record may not be saved.";
-            }
-            if (UserStoreId != storeId)
-            {
-                return "you may only change records created within your own user session.";
-            }
-            return null; // ok so far
-        }
-
-        private string ExistingCustomerSaveGuard(EntityInfo arg)
-        {
-            var entity = (Customer) arg.Entity;
-            var orig = readContext.Customers.SingleOrDefault(e => e.Id == entity.Id);
-            return ExistingEntityGuard(orig, entity.Id);
-        }
-
-        private string ExistingOrderSaveGuard(EntityInfo arg)
-        {
-            var entity = (Order) arg.Entity;
-            var orig = readContext.Orders.SingleOrDefault(e => e.Id == entity.Id);
-            return ExistingEntityGuard(orig, entity.Id);
-        }
-
-        private string ExistingOrderItemSaveGuard(EntityInfo arg)
-        {
-            var entity = (OrderItem) arg.Entity;
-            var orig = readContext.OrderItems.SingleOrDefault(e => e.Id == entity.Id);
-            return ExistingEntityGuard(orig, entity.Id);
-        }
-
-        private string ExistingOrderItemOptionSaveGuard(EntityInfo arg)
-        {
-            var entity = (OrderItemOption) arg.Entity;
-            var orig = readContext.OrderItemOptions.SingleOrDefault(e => e.Id == entity.Id);
-            return ExistingEntityGuard(orig, entity.Id);
-        }
-
-        #endregion
-
+        private const string _guestStoreIdName = "12345678-9ABC-DEF0-1234-56789ABCDEF0";
+        private static readonly Guid _guestStoreId = new Guid(_guestStoreIdName);
     }
-
-    #endregion
-
 }
