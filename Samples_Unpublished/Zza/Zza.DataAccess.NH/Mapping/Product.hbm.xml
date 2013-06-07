@@ -7,10 +7,10 @@
     <property name="Name" type="string" length="50" not-null="true" />
     <property name="Description" type="string" length="255" not-null="true" />
     <property name="Image" type="string" length="50" />
-    <property name="HasOption" column="`HasOptions`" type="bool" not-null="true" />
+    <property name="HasOptions" column="`HasOptions`" type="bool" not-null="true" />
     <property name="IsVegetarian" type="bool" />
     <property name="WithTomatoSauce" type="bool" />
-    <property name="SizeId" column="`SizeIds`" type="string" length="10" />
+    <property name="SizeIds" column="`SizeIds`" type="string" length="10" />
     <!--Foreign key to OrderItem (OrderItem)
     <bag name="OrderItemCollection" table="`OrderItem`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`ProductId`" foreign-key="FK_OrderItem_Product" />

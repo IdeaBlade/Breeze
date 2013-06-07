@@ -6,6 +6,10 @@
     <property name="StoreId" type="System.Guid" />
     <many-to-one name="OrderItem" column="`OrderItemId`" class="OrderItem" />
     <many-to-one name="ProductOption" column="`ProductOptionId`" class="ProductOption" />
+
+    <property name="OrderItemId" type="int" insert="false" update="false" />
+    <property name="ProductOptionId" type="int" insert="false" update="false" />
+
     <property name="Quantity" type="int" not-null="true" />
     <property name="Price" type="decimal" not-null="true" />
   </class>

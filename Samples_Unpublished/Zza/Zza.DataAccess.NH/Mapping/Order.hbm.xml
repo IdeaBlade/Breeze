@@ -5,7 +5,9 @@
     </id>
     <property name="StoreId" type="System.Guid" />
     <many-to-one name="Customer" column="`CustomerId`" class="Customer" />
-    <many-to-one name="OrderStatus" column="`OrderStatusId`" class="OrderStatus" />
+    <many-to-one name="Status" column="`OrderStatusId`" class="OrderStatus" />
+    <property name="CustomerId" type="System.Guid" insert="false" update="false" />
+    <property name="OrderStatusId" type="int" insert="false" update="false" />
     <property name="OrderDate" type="DateTime" not-null="true" />
     <property name="Phone" type="string" length="100" />
     <property name="DeliveryDate" type="DateTime" not-null="true" />
