@@ -2701,7 +2701,21 @@ breeze.makeComplexArray = function() {
         return em && em._pendingPubs;
     };
 
-    complexArrayMixin._clearAddedRemoved = function() {
+    complexArrayMixin._rejectAddedRemoved = function() {
+        var that = this;
+        this._added.forEach(function(co) {
+            __arrayRemoveItem(that, co);
+            clearAspect(co, that);
+        } );
+        this._removed.forEach(function(co) {
+            that.push(co);
+            setAspect(co, that);
+        } );
+        this._added = [];
+        this._removed = [];
+    }
+
+    complexArrayMixin._acceptAddedRemoved = function() {
         this._added.concat(this._removed).forEach(function(co) {
               co.complexAspect._state = null;
         } );
@@ -2783,17 +2797,13 @@ breeze.makeComplexArray = function() {
     }
 
     function attach(co, arr) {
-        var aspect = co.complexAspect;
+        var aspect = setAspect(co, arr);
         // if already attached - exit
-        if (aspect.parent === arr.parent) return;
-        aspect.parent = arr.parent;
-        aspect.parentProperty = arr.parentProperty;
-        aspect.propertyPath = arr.propertyPath;
-        aspect.entityAspect = arr.entityAspect;
+        if (!aspect) return;
 
         if (aspect._state === "R") {
             // unremove
-            __core.arrayRemoveItem(arr._removed, co);
+            __arrayRemoveItem(arr._removed, co);
             aspect._state = null;
         } else {
             aspect._state = "A"
@@ -2805,19 +2815,13 @@ breeze.makeComplexArray = function() {
     }
 
     function detach(co, arr) {
+        var aspect = clearAspect(co, arr);
         // if not already attached - exit
-        var aspect = co.complexAspect;
-        if (aspect.parent !== arr.parent) return;
-
-        aspect.parent = null;
-        aspect.parentProperty = null;
-        aspect.propertyPath = null;
-        aspect.entityAspect = null;
-
+        if (!aspect) return;
 
         if (aspect._state === "A") {
             // unAdd
-            __core.arrayRemoveItem(arr._added, co);
+            __arrayRemoveItem(arr._added, co);
             aspect._state = null;
         } else {
             aspect._state = "R"
@@ -2826,6 +2830,30 @@ breeze.makeComplexArray = function() {
                 arr.entityAspect.setModified();
             }
         }
+    }
+
+    function clearAspect(co, arr) {
+        var aspect = co.complexAspect;
+        // if not already attached - exit
+        if (aspect.parent !== arr.parent) return null;
+
+        aspect.parent = null;
+        aspect.parentProperty = null;
+        aspect.propertyPath = null;
+        aspect.entityAspect = null;
+        return aspect;
+    }
+
+    function setAspect(co, arr) {
+        var aspect = co.complexAspect;
+        // if already attached - exit
+        if (aspect.parent === arr.parent) return null;
+        aspect.parent = arr.parent;
+        aspect.parentProperty = arr.parentProperty;
+        aspect.propertyPath = arr.propertyPath;
+        aspect.entityAspect = arr.entityAspect;
+
+        return aspect;
     }
 
     function makeComplexArray(arr, parent, parentProperty) {
@@ -3228,11 +3256,12 @@ var EntityAspect = function() {
             target.setProperty(propName, originalValues[propName]);
         }
         stype.complexProperties.forEach(function(cp) {
-            var next = target.getProperty(cp.name);
+            var cos = target.getProperty(cp.name);
             if (cp.isScalar) {
-                rejectChangesCore(next);
+                rejectChangesCore(cos);
             } else {
-                next.forEach(function (t) { rejectChangesCore(t); });
+                cos._rejectAddedRemoved();
+                cos.forEach(function (co) { rejectChangesCore(co); });
             }
         });
     }
@@ -3261,7 +3290,7 @@ var EntityAspect = function() {
             if (cp.isScalar) {
                 clearOriginalValues(cos);
             } else {
-                cos._clearAddedRemoved();
+                cos._acceptAddedRemoved();
                 cos.forEach(function (co) { clearOriginalValues(co); });
             }
         });

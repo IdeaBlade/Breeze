@@ -239,11 +239,12 @@ var EntityAspect = function() {
             target.setProperty(propName, originalValues[propName]);
         }
         stype.complexProperties.forEach(function(cp) {
-            var next = target.getProperty(cp.name);
+            var cos = target.getProperty(cp.name);
             if (cp.isScalar) {
-                rejectChangesCore(next);
+                rejectChangesCore(cos);
             } else {
-                next.forEach(function (t) { rejectChangesCore(t); });
+                cos._rejectAddedRemoved();
+                cos.forEach(function (co) { rejectChangesCore(co); });
             }
         });
     }
@@ -272,7 +273,7 @@ var EntityAspect = function() {
             if (cp.isScalar) {
                 clearOriginalValues(cos);
             } else {
-                cos._clearAddedRemoved();
+                cos._acceptAddedRemoved();
                 cos.forEach(function (co) { clearOriginalValues(co); });
             }
         });
