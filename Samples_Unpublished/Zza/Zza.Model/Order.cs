@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace Zza.Model
 {
-    public class Order
+    public class Order : ISaveable
     {
         public Order()
         {
@@ -15,6 +16,7 @@ namespace Zza.Model
         }
         [Key]
         public virtual Int64 Id { get; set; }
+        [JsonIgnore]
         public virtual Guid? StoreId { get; set; }
         [Required]
         public virtual Guid CustomerId { get; set; }

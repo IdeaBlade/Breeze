@@ -12,7 +12,7 @@ namespace Zza.DataAccess.EF
             Database.SetInitializer<ZzaContext>(null);
         }
 
-        public static string ContextName { get { return "ZzaContext"; } }
+        public static string ContextName { get { return "ZzaContextEf"; } }
 
         public ZzaContext() : base(ContextName)
         {
@@ -33,6 +33,13 @@ namespace Zza.DataAccess.EF
         }
 
         public DbSet<Customer> Customers { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        internal DbSet<OrderItem> OrderItems { get; set; }
+        internal DbSet<OrderItemOption> OrderItemOptions { get; set; }
+        public DbSet<OrderStatus> OrderStatuses { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<ProductOption> ProductOptions { get; set; }
+        public DbSet<ProductSize> ProductSizes { get; set; }
     }
 }
 

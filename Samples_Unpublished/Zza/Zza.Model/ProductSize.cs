@@ -12,13 +12,13 @@ namespace Zza.Model
         [Key]
         public virtual Int32 Id { get; set; }
         [Required, MaxLength(20)]
-        public virtual string Type {get; set; }
+        public virtual string Type { get; set; }
         [Required, MaxLength(50)]
-        public virtual string Name {get; set; }
+        public virtual string Name { get; set; }
         [Required]
         public virtual decimal Price { get; set; }
-        public virtual decimal PremiumPrice { get; set; }
-        public virtual decimal ToppingPrice { get; set; }
+        public virtual decimal? PremiumPrice { get; set; }
+        public virtual decimal? ToppingPrice { get; set; }
         public virtual bool? IsGlutenFree { get; set; }
     } 
 }     
