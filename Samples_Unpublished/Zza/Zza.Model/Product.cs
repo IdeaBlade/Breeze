@@ -25,6 +25,6 @@ namespace Zza.Model
         public bool? IsVegetarian {get; set; }
         public bool? WithTomatoSauce {get; set; }
         [MaxLength(10)]
-        public string Sizes { get; set; }
+        public string SizeIds { get; set; }
     } 
 }     
