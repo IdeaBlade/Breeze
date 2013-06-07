@@ -66,11 +66,28 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-//    test("remove and save embedded orderDetails", function () {
-//        var em = newEm();
-//
-//        }).fail(testFns.handleFail).fin(start);
-//    });
+    test("remove and save embedded orderDetails", function () {
+        var em = newEm();
+        var order, ods, odsLength;
+        stop();
+        insertOneOrderDetail(em).then(function(sr) {
+            order = sr.entities[0];
+            ods = order.getProperty("orderDetails");
+            odsLength = ods.length;
+            breeze.core.arrayRemoveItem(ods, function(od) {
+                return od.getProperty("unitPrice") === 999;
+            })
+            return em.saveChanges();
+        }).then(function() {
+            var newQ = EntityQuery.fromEntities(order);
+            var em2 = newEm();
+            return newQ.using(em2).execute();
+        }).then(function(data2){
+            var sameOrder = data2.results[0];
+            ods = order.getProperty("orderDetails");
+            ok(odsLength === ods.length + 1, "one orderDetail should have been removed");
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     test("cleanup  test data", function() {
 

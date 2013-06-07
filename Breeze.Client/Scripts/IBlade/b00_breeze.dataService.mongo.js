@@ -94,6 +94,7 @@
         var entities = keys.map(function (key) {
             return em.getEntityByKey(key.entityTypeName, key._id);
         });
+
         return { entities: entities, keyMappings: data.keyMappings, XHR: data.XHR };
     }
 

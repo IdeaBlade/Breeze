@@ -268,11 +268,12 @@ var EntityAspect = function() {
         aspect.originalValues = {};
         var stype = target.entityType || target.complexType;
         stype.complexProperties.forEach(function (cp) {
-            var next = target.getProperty(cp.name);
+            var cos = target.getProperty(cp.name);
             if (cp.isScalar) {
-                clearOriginalValues(next);
+                clearOriginalValues(cos);
             } else {
-                next.forEach(function (t) { clearOriginalValues(t); });
+                cos._clearAddedRemoved();
+                cos.forEach(function (co) { clearOriginalValues(co); });
             }
         });
     }

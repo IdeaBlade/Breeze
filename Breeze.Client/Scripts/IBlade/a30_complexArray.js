@@ -98,6 +98,14 @@ breeze.makeComplexArray = function() {
         return em && em._pendingPubs;
     };
 
+    complexArrayMixin._clearAddedRemoved = function() {
+        this._added.concat(this._removed).forEach(function(co) {
+              co.complexAspect._state = null;
+        } );
+        this._added = [];
+        this._removed = [];
+    }
+
     function getGoodAdds(complexArray, adds) {
         var goodAdds = checkForDups(complexArray, adds);
         if (!goodAdds.length) {
@@ -182,7 +190,7 @@ breeze.makeComplexArray = function() {
 
         if (aspect._state === "R") {
             // unremove
-            __core.arrayRemove(arr._removed, co);
+            __core.arrayRemoveItem(arr._removed, co);
             aspect._state = null;
         } else {
             aspect._state = "A"
@@ -206,7 +214,7 @@ breeze.makeComplexArray = function() {
 
         if (aspect._state === "A") {
             // unAdd
-            __core.arrayRemove(arr._added, co);
+            __core.arrayRemoveItem(arr._added, co);
             aspect._state = null;
         } else {
             aspect._state = "R"
