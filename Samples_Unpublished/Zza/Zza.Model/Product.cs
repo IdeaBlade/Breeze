@@ -10,21 +10,21 @@ namespace Zza.Model
             HasOptions = true;
         }
         [Key]
-        public Int32 Id { get; set; }
-        public Guid? StoreId { get; set; }
+        public virtual Int32 Id { get; set; }
+        public virtual Guid? StoreId { get; set; }
         [Required, MaxLength(20)]
-        public string Type {get; set; }
+        public virtual string Type {get; set; }
         [Required, MaxLength(50)]
-        public string Name {get; set; }
+        public virtual string Name {get; set; }
         [Required, MaxLength(255)]
-        public string Description {get; set; }
+        public virtual string Description {get; set; }
         [MaxLength(50)]
-        public string Image {get; set; }
+        public virtual string Image {get; set; }
         [Required]
-        public bool HasOptions {get; set; }
-        public bool? IsVegetarian {get; set; }
-        public bool? WithTomatoSauce {get; set; }
+        public virtual bool HasOptions {get; set; }
+        public virtual bool? IsVegetarian {get; set; }
+        public virtual bool? WithTomatoSauce {get; set; }
         [MaxLength(10)]
-        public string SizeIds { get; set; }
+        public virtual string SizeIds { get; set; }
     } 
 }     

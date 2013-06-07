@@ -1,0 +1,20 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Zza.Model" assembly="Zza.Model">
+  <class name="Product" table="`Product`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="Id" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <property name="Type" type="string" length="20" not-null="true" />
+    <property name="Name" type="string" length="50" not-null="true" />
+    <property name="Description" type="string" length="255" not-null="true" />
+    <property name="Image" type="string" length="50" />
+    <property name="HasOptions" column="`HasOptions`" type="bool" not-null="true" />
+    <property name="IsVegetarian" type="bool" />
+    <property name="WithTomatoSauce" type="bool" />
+    <property name="SizeIds" column="`SizeIds`" type="string" length="10" />
+    <!--Foreign key to OrderItem (OrderItem)
+    <bag name="OrderItemCollection" table="`OrderItem`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
+      <key column="`ProductId`" foreign-key="FK_OrderItem_Product" />
+      <one-to-many class="OrderItem" />
+    </bag>-->
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,21 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Zza.Model" assembly="Zza.Model">
+  <class name="Customer" table="`Customer`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="Id" type="System.Guid">
+      <generator class="guid.comb" />
+    </id>
+    <property name="StoreId" type="System.Guid" />
+    <property name="FirstName" type="string" length="50" />
+    <property name="LastName" type="string" length="50" />
+    <property name="Phone" type="string" length="100" />
+    <property name="Email" type="string" length="255" />
+    <property name="Street" type="string" length="100" />
+    <property name="City" type="string" length="100" />
+    <property name="State" type="string" length="2" />
+    <property name="Zip" type="string" length="10" />
+    <!--Foreign key to Order (Order)-->
+    <bag name="Orders" table="`Order`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
+      <key column="`CustomerId`" foreign-key="FK_Order_Customer" />
+      <one-to-many class="Order" />
+    </bag>
+  </class>
+</hibernate-mapping>
