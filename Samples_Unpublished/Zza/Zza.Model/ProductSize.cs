@@ -10,15 +10,15 @@ namespace Zza.Model
           IsGlutenFree = false;
         }
         [Key]
-        public Int32 Id { get; set; }
+        public virtual Int32 Id { get; set; }
         [Required, MaxLength(20)]
-        public string Type {get; set; }
+        public virtual string Type {get; set; }
         [Required, MaxLength(50)]
-        public string Name {get; set; }
+        public virtual string Name {get; set; }
         [Required]
-        public decimal Price { get; set; }
-        public decimal PremiumPrice { get; set; }
-        public decimal ToppingPrice { get; set; }
-        public bool? IsGlutenFree { get; set; }
+        public virtual decimal Price { get; set; }
+        public virtual decimal PremiumPrice { get; set; }
+        public virtual decimal ToppingPrice { get; set; }
+        public virtual bool? IsGlutenFree { get; set; }
     } 
 }     

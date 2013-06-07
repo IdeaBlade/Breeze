@@ -6,8 +6,8 @@ namespace Zza.Model
     public class OrderStatus
     {
         [Key]
-        public Int32 Id { get; set; }
+        public virtual Int32 Id { get; set; }
         [Required, MaxLength(50)]
-        public string Name { get; set; }
+        public virtual string Name { get; set; }
     }
 }
