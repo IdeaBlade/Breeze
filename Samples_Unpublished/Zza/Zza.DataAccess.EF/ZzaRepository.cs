@@ -17,7 +17,7 @@ namespace Zza.DataAccess.EF
         {
             _contextProvider = new EFContextProvider<ZzaContext>();
             _contextProvider.BeforeSaveEntityDelegate += EntitySaveGuard;
-            StoreId = Guid.Empty;
+            UserStoreId = Guid.Empty;
         }
 
         private ZzaContext Context { get { return _contextProvider.Context; } }
@@ -90,7 +90,7 @@ namespace Zza.DataAccess.EF
             // else delete additions made during this user's session
             var where = options.Contains("fullreset")
                 ? "IS NOT NULL"
-                : ("= '" + StoreId + "'");
+                : ("= '" + UserStoreId + "'");
 
             string deleteSql;
             deleteSql = "DELETE FROM [ORDERITEMOPTION] WHERE [STOREID] " + where;
@@ -107,11 +107,11 @@ namespace Zza.DataAccess.EF
         /// <summary>
         /// The current user's StoreId, typically set by the controller
         /// </summary>
-        public Guid StoreId { get; set; }
+        public Guid UserStoreId { get; set; }
 
         private IQueryable<T> ForCurrentUser<T>(IQueryable<T> query) where T : class, ISaveable
         {
-            return query.Where(x => x.StoreId == null || x.StoreId == StoreId);
+            return query.Where(x => x.StoreId == null || x.StoreId == UserStoreId);
         }
 
         #region Save guard logic
@@ -126,7 +126,7 @@ namespace Zza.DataAccess.EF
             var saveError = string.Empty;
             var saveable = arg.Entity as ISaveable;
 
-            if (StoreId == Guid.Empty) {
+            if (UserStoreId == Guid.Empty) {
                 saveError = "you are not authorized to save.";
 
             } else if (saveable == null) {
@@ -136,8 +136,8 @@ namespace Zza.DataAccess.EF
                 switch (arg.EntityState)
                 {
                     case EntityState.Added:
-                        saveable.StoreId = StoreId;
-                        arg.OriginalValuesMap.Add("StoreId", StoreId);
+                        saveable.StoreId = UserStoreId;
+                        arg.OriginalValuesMap.Add("StoreId", UserStoreId);
                         break;
                     case EntityState.Modified:
                     case EntityState.Deleted:
@@ -210,7 +210,7 @@ namespace Zza.DataAccess.EF
             {
                 return "changes to an original record may not be saved.";
             }
-            if (StoreId != storeId)
+            if (UserStoreId != storeId)
             {
                 return "you may only change records created within your own user session.";
             }
@@ -234,11 +234,8 @@ namespace Zza.DataAccess.EF
         private string ExistingOrderItemSaveGuard(EntityInfo arg)
         {
             var entity = (OrderItem) arg.Entity;
-            var orig = readContext.OrderItems
-                                  .SingleOrDefault(e => e.Id == entity.Id &&
-                                                        e.Id == entity.Id);
-            var key = "(" + entity.Id + "," + entity.Id + ")";
-            return ExistingEntityGuard(orig, key);
+            var orig = readContext.OrderItems.SingleOrDefault(e => e.Id == entity.Id);
+            return ExistingEntityGuard(orig, entity.Id);
         }
 
         private string ExistingOrderItemOptionSaveGuard(EntityInfo arg)

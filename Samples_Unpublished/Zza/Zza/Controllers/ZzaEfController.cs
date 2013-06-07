@@ -11,12 +11,11 @@ namespace Zza.Controllers
     [BreezeController]
     public class ZzaEfController : ApiController
     {
-        private readonly ZzaRepository _repository;
-
         public ZzaEfController() : this(null){}
         public ZzaEfController(ZzaRepository repository)
         {
             _repository = repository ?? new ZzaRepository();
+            _repository.UserStoreId = _guestStoreId;
         }
 
         private ZzaRepository Repository
@@ -112,12 +111,17 @@ namespace Zza.Controllers
             try
             {
                 var id = Request.Headers.GetValues("X-StoreId").First();
-                _repository.StoreId = Guid.Parse(id);
+                _repository.UserStoreId = Guid.Parse(id);
             }
             // ReSharper disable EmptyGeneralCatchClause
             catch { /* Let repository deal with it*/}
             // ReSharper restore EmptyGeneralCatchClause
+
             return _repository;
         }
+
+        private readonly ZzaRepository _repository;
+        private const string _guestStoreIdName = "12345678-9ABC-DEF0-1234-56789ABCDEF0";
+        private static readonly Guid _guestStoreId = new Guid(_guestStoreIdName);
     }
 }
