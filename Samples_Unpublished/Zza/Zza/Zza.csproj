@@ -71,6 +71,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Zza.DataAccess.NH\Zza.DataAccess.NH.csproj">
+      <Project>{a94398f2-b2dd-4eb0-8c6f-ac9d2c255f30}</Project>
+      <Name>Zza.DataAccess.NH</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Zza.Model\Zza.Model.csproj">
       <Project>{ad7b32de-5331-45b2-b9a5-9d26a2e8d8a5}</Project>
       <Name>Zza.Model</Name>

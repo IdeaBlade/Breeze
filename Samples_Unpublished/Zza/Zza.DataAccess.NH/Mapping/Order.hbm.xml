@@ -1,0 +1,24 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Zza.Model" assembly="Zza.Model">
+  <class name="Order" table="`Order`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="Id" type="long" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <property name="StoreId" type="System.Guid" />
+    <many-to-one name="Customer" column="`CustomerId`" class="Customer" />
+    <many-to-one name="OrderStatus" column="`OrderStatusId`" class="OrderStatus" />
+    <property name="OrderDate" type="DateTime" not-null="true" />
+    <property name="Phone" type="string" length="100" />
+    <property name="DeliveryDate" type="DateTime" not-null="true" />
+    <property name="DeliveryCharge" type="decimal" not-null="true" />
+    <property name="DeliveryStreet" type="string" length="100" />
+    <property name="DeliveryCity" type="string" length="100" />
+    <property name="DeliveryState" type="string" length="2" />
+    <property name="DeliveryZip" type="string" length="10" />
+    <property name="ItemsTotal" type="decimal" not-null="true" />
+    <!--Foreign key to OrderItem (OrderItem)-->
+    <bag name="OrderItemCollection" table="`OrderItem`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
+      <key column="`OrderId`" foreign-key="FK_OrderItem_Order" />
+      <one-to-many class="OrderItem" />
+    </bag>
+  </class>
+</hibernate-mapping>

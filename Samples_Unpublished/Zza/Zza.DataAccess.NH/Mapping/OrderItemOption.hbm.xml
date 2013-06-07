@@ -1,0 +1,12 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Zza.Model" assembly="Zza.Model">
+  <class name="OrderItemOption" table="`OrderItemOption`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="Id" type="long" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <property name="StoreId" type="System.Guid" />
+    <many-to-one name="OrderItem" column="`OrderItemId`" class="OrderItem" />
+    <many-to-one name="ProductOption" column="`ProductOptionId`" class="ProductOption" />
+    <property name="Quantity" type="int" not-null="true" />
+    <property name="Price" type="decimal" not-null="true" />
+  </class>
+</hibernate-mapping>

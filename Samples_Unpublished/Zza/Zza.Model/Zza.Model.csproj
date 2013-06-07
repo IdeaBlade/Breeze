@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AD7B32DE-5331-45B2-B9A5-9D26A2E8D8A5}</ProjectGuid>
+    <ProjectGuid>{6ACA9B3E-7352-4E6C-B557-B79578672FB8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Zza.Model</RootNamespace>
