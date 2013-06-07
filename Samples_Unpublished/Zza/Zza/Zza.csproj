@@ -111,6 +111,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="app\app.js" />
+    <Content Include="app\controllers.js" />
+    <Content Include="app\dataservice.js" />
+    <Content Include="app\directives.js" />
+    <Content Include="app\filters.js" />
+    <Content Include="app\images\logo.png" />
+    <Content Include="app\logger.js" />
+    <Content Include="app\services.js" />
+    <Content Include="app\views\home.html" />
+    <Content Include="app\views\customers.html" />
+    <Content Include="app\views\orders.html" />
     <Content Include="App_Data\Zza-20130602100112.mdf" />
     <Content Include="App_Data\Zza-20130602100112_log.ldf">
       <DependentUpon>Zza-20130602100112.mdf</DependentUpon>
@@ -180,9 +191,7 @@
       <Name>Zza.Model</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="app\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

@@ -1,5 +1,5 @@
 <!DOCTYPE html data-ng-app>
-<html>
+<html lang="en" ng-app="Zza">
 <head>     
     <title>Zza with AngularJs</title>
     <meta charset="utf-8" />
@@ -25,20 +25,44 @@
     <script src="Scripts/modernizr-2.6.2.js"></script>
 
 </head>
-    <body>
-        <h1>HELLO, ZZA!</h1>
-        <div id="applicationHost" class="ng-cloak">
+<body>
 
+    <nav class="navbar navbar-fixed-top">
+        <div class="navbar-inner" ng-controller="RouteCtrl">
+            <a class="brand" href="#/">
+                <span class="title">Zza!</span> 
+            </a>
+            <div class="btn-group">
+                <a ng-repeat="link in links" class="btn btn-info" ng-class="{active: $route.current.templateUrl == link.templateUrl}" href="#{{link.path}}">{{link.name}}</a>
+            </div>
         </div>
+    </nav>
 
-        <!-- 3rd party libraries -->
-        <script src="Scripts/jquery-2.0.2.min.js"></script>
-        <script src="Scripts/q.js"></script>
-        <script src="Scripts/breeze.debug.js"></script>
-        <script src="Scripts/toastr.js"></script>
-        <script src="Scripts/angular.js"></script>
+    <div ng-view style="margin-top: 50px"></div>
 
-        <!-- App libraries -->
+    <nav class="navbar navbar-fixed-bottom">
+        <div class="navbar-inner navbar-content-center" >
+            <span class="pull-left"><a href="http://www.breezejs.com" target="_blank">Zza Pizza Company, Little Italy</a></span>
+            <span class="pull-right">"Una Fetta di Paradiso" ("A Slice of Paradise")</span>
+        </div>
+    </nav>
+
+
+    <!-- 3rd party libraries -->
+    <script src="Scripts/jquery-2.0.2.min.js"></script>
+    <script src="Scripts/q.js"></script>
+    <script src="Scripts/breeze.debug.js"></script>
+    <script src="Scripts/toastr.js"></script>
+    <script src="Scripts/angular.js"></script>
+
+    <!-- App libraries -->
+  <script src="app/app.js"></script>
+  <script src="app/logger.js"></script>
+  <script src="app/dataservice.js"></script>
+  <script src="app/services.js"></script>
+  <script src="app/controllers.js"></script>
+  <script src="app/filters.js"></script>
+  <script src="app/directives.js"></script>
 
 
     </body>
