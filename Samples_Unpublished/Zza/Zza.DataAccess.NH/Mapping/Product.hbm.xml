@@ -11,10 +11,10 @@
     <property name="IsVegetarian" type="bool" />
     <property name="WithTomatoSauce" type="bool" />
     <property name="SizeId" column="`SizeIds`" type="string" length="10" />
-    <!--Foreign key to OrderItem (OrderItem)-->
+    <!--Foreign key to OrderItem (OrderItem)
     <bag name="OrderItemCollection" table="`OrderItem`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`ProductId`" foreign-key="FK_OrderItem_Product" />
       <one-to-many class="OrderItem" />
-    </bag>
+    </bag>-->
   </class>
 </hibernate-mapping>

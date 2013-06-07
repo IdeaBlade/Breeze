@@ -1,7 +1,7 @@
 ﻿using NHibernate;
 using NHibernate.Cfg;
 
-namespace Zza.DataAccess
+namespace Zza.DataAccess.NH
 {
     public static class NHConfig
     {
@@ -15,9 +15,9 @@ namespace Zza.DataAccess
 
             // Configure NHibernate
             _configuration = new Configuration();
+            _configuration.Configure();  //configure from the app.config
             _configuration.AddAssembly(modelAssembly);
             _configuration.AddAssembly(mappingAssembly);
-            _configuration.Configure();  //configure from the app.config
 
             _sessionFactory = _configuration.BuildSessionFactory();
         }

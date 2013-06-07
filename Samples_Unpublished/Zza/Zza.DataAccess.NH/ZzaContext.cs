@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Breeze.Nhibernate.WebApi;
+﻿using Breeze.Nhibernate.WebApi;
 using Zza.Model;
 
-namespace Zza.DataAccess
+namespace Zza.DataAccess.NH
 {
     public class ZzaContext : NHContext
     {

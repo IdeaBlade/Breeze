@@ -40,6 +40,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Breeze.Nhibernate.WebApi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Breeze.Nhibernate\Breeze.Nhibernate.WebApi\bin\Debug\Breeze.Nhibernate.WebApi.dll</HintPath>
+    </Reference>
     <Reference Include="Breeze.WebApi">
       <HintPath>..\packages\Breeze.WebApi.1.3.5\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
@@ -140,6 +144,7 @@
   <ItemGroup>
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\ZzaNhController.cs" />
     <Compile Include="Controllers\ZzaEfController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

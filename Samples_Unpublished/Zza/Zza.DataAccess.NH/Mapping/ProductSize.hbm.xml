@@ -9,10 +9,10 @@
     <property name="PremiumPrice" type="decimal" />
     <property name="ToppingPrice" type="decimal" />
     <property name="IsGlutenFree" type="bool" />
-    <!--Foreign key to OrderItem (OrderItem)-->
+    <!--Foreign key to OrderItem (OrderItem)
     <bag name="OrderItemCollection" table="`OrderItem`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`ProductSizeId`" foreign-key="FK_OrderItem_ProductSize" />
       <one-to-many class="OrderItem" />
-    </bag>
+    </bag>-->
   </class>
 </hibernate-mapping>

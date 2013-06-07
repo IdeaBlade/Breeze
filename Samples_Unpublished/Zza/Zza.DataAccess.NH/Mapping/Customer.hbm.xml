@@ -13,7 +13,7 @@
     <property name="State" type="string" length="2" />
     <property name="Zip" type="string" length="10" />
     <!--Foreign key to Order (Order)-->
-    <bag name="OrderCollection" table="`Order`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
+    <bag name="Orders" table="`Order`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`CustomerId`" foreign-key="FK_Order_Customer" />
       <one-to-many class="Order" />
     </bag>

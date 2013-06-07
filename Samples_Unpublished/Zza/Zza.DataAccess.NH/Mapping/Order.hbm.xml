@@ -16,7 +16,7 @@
     <property name="DeliveryZip" type="string" length="10" />
     <property name="ItemsTotal" type="decimal" not-null="true" />
     <!--Foreign key to OrderItem (OrderItem)-->
-    <bag name="OrderItemCollection" table="`OrderItem`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
+    <bag name="OrderItems" table="`OrderItem`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`OrderId`" foreign-key="FK_OrderItem_Order" />
       <one-to-many class="OrderItem" />
     </bag>

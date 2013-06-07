@@ -4,10 +4,10 @@
       <generator class="native" />
     </id>
     <property name="Name" type="string" length="50" not-null="true" />
-    <!--Foreign key to Order (Order)-->
+    <!--Foreign key to Order (Order)
     <bag name="OrderCollection" table="`Order`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`OrderStatusId`" foreign-key="FK_Order_OrderStatus" />
       <one-to-many class="Order" />
-    </bag>
+    </bag>-->
   </class>
 </hibernate-mapping>
