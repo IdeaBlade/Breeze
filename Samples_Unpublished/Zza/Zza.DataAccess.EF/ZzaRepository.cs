@@ -2,42 +2,11 @@
 using System.Linq;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
+using Zza.Interfaces;
 using Zza.Model;
 
 namespace Zza.DataAccess.EF
 {
-    public interface IZzaRepository
-    {
-        string Metadata { get; }
-        IQueryable<Customer> Customers { get; }
-        IQueryable<Order> Orders { get; }
-
-        /// <summary>
-        /// Get a reference object whose properties
-        /// are the Zza reference collections.
-        /// </summary>
-        /// <returns>
-        /// Returns one object, not an IQueryable, 
-        /// whose properties are "OrderStatuses", "Products", 
-        /// "ProductOptions", "ProductSizes".
-        /// </returns>
-        object Lookups { get; }
-
-        IQueryable<OrderStatus> OrderStatuses { get; }
-        IQueryable<Product> Products { get; }
-        IQueryable<ProductOption> ProductOptions { get; }
-        IQueryable<ProductSize> ProductSizes { get; }
-
-        /// <summary>
-        /// Get and set the function returning the current user's StoreId;
-        /// typically set by the controller
-        /// </summary>
-        Func<Guid?> GetUserStoreId { get; set; }
-
-        SaveResult SaveChanges(JObject saveBundle);
-        string Reset(string options);
-    }
-
     /// <summary>
     /// Repository (a "Unit of Work" really) of Zza models.
     /// </summary>
@@ -48,7 +17,6 @@ namespace Zza.DataAccess.EF
             _contextProvider = new EFContextProvider<ZzaContext>();
             _entitySaveGuard = new ZzaEntitySaveGuard();
             _contextProvider.BeforeSaveEntityDelegate += _entitySaveGuard.BeforeSaveEntity;
-            GetUserStoreId = () => _guestStoreId;
         }
 
         public string Metadata
@@ -56,9 +24,10 @@ namespace Zza.DataAccess.EF
             get { return _contextProvider.Metadata(); }
         }
 
-        public SaveResult SaveChanges(JObject saveBundle)
+        // Todo: we need a better way to do this signature
+        public object SaveChanges(object saveBundle)
         {
-            return _contextProvider.SaveChanges(saveBundle);
+            return _contextProvider.SaveChanges(saveBundle as JObject);
         }
 
         public IQueryable<Customer> Customers
@@ -114,10 +83,17 @@ namespace Zza.DataAccess.EF
         #endregion
 
         /// <summary>
-        /// Get and set the function returning the current user's StoreId;
+        /// Get and set current user's StoreId;
         /// typically set by the controller
         /// </summary>
-        public Func<Guid?> GetUserStoreId { get; set; }
+        public Guid UserStoreId
+        {
+            get { return _userStoreId; }
+            set {
+                _userStoreId = (value == Guid.Empty) ? _guestStoreId : value;
+            }
+        }
+        private Guid _userStoreId = _guestStoreId;
 
         public string Reset(string options)
         {
@@ -145,23 +121,6 @@ namespace Zza.DataAccess.EF
         {
             return query.Where(x => x.StoreId == null || x.StoreId == UserStoreId);
         }
-
-        private Guid UserStoreId
-        {
-            get
-            {
-                if (!haveUserStoreId)
-                {
-                    _userStoreId = GetUserStoreId() ?? _guestStoreId;
-                    _entitySaveGuard.UserStoreId = _userStoreId;
-                    haveUserStoreId = true;
-                }
-                return _userStoreId;
-            }
-        }
-
-        private bool haveUserStoreId;
-        private Guid _userStoreId;
 
         private readonly EFContextProvider<ZzaContext> _contextProvider;
         private readonly ZzaEntitySaveGuard _entitySaveGuard;

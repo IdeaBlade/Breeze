@@ -4,6 +4,7 @@ using System.Web.Http;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
 using Zza.DataAccess.EF;
+using Zza.Interfaces;
 using Zza.Model;
 
 namespace Zza.Controllers 
@@ -15,7 +16,11 @@ namespace Zza.Controllers
         public ZzaEfController(IZzaRepository repository)
         {
             _repository = repository ?? new ZzaRepository();
-            _repository.GetUserStoreId = getUserStoreId;
+        }
+
+        protected override void Initialize(System.Web.Http.Controllers.HttpControllerContext controllerContext)
+        {
+            _repository.UserStoreId = getUserStoreId();
         }
 
         // ~/breeze/ZzaEf/Metadata 
@@ -29,7 +34,7 @@ namespace Zza.Controllers
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
-            return _repository.SaveChanges(saveBundle);
+            return _repository.SaveChanges(saveBundle) as SaveResult;
         }
 
         // ~/breeze/ZzaEf/Customers
@@ -97,16 +102,13 @@ namespace Zza.Controllers
         /// <summary>
         /// Get the repository UserStoreId from the current request
         /// </summary>
-        private Guid? getUserStoreId()
+        private Guid getUserStoreId()
         {
-            try
-            {
+            try {
                 var id = Request.Headers.GetValues("X-StoreId").First();
                 return Guid.Parse(id);
-            }
-            catch
-            {
-                return null;
+            } catch {
+                return Guid.Empty;
             }
         }
 
