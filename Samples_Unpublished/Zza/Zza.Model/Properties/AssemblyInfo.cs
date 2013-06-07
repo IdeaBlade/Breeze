@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Zza.Model")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("IdeaBlade")]
 [assembly: AssemblyProduct("Zza.Model")]
 [assembly: AssemblyCopyright("Copyright © IdeaBlade 2013")]
 [assembly: AssemblyTrademark("")]
