@@ -4427,7 +4427,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     oldValue.setProperty(pn, nv);
                 });
             } else {
-                throw new Error(__formatString("You cannot set a non-scalar complex property: '%1'", property.name));
+                throw new Error(__formatString("You cannot set the non-scalar complex property: '%1' on the type: '%2'."
+                    + "Instead get the property and use array functions like 'push' or 'splice' to change its contents."
+                    , property.name, property.parentType.name));
             }
 
         } else if (property.isDataProperty) {
