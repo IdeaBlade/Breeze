@@ -32,8 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.Nhibernate.WebApi">
-      <HintPath>..\..\..\Breeze.Nhibernate\Breeze.Nhibernate.WebApi\bin\Debug\Breeze.Nhibernate.WebApi.dll</HintPath>
+    <Reference Include="Breeze.Nhibernate.WebApi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Breeze.Nhibernate.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="Breeze.WebApi, Version=1.2.9.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -113,6 +114,8 @@ GOTO :done
 :breezeSourceExists
 echo Copying breeze.webapi.dll from '$(ProjectDir)..\..\..\Breeze.WebApi\' to $(ProjectDir)
 COPY "$(ProjectDir)..\..\..\Breeze.WebApi\breeze.webapi.dll" "$(ProjectDir)" /Y
+echo Copying breeze.nhibernate.webapi.dll from '$(ProjectDir)..\..\..\Breeze.Nhibernate\Breeze.Nhibernate.WebApi\' to $(ProjectDir)
+COPY "$(ProjectDir)..\..\..\Breeze.Nhibernate\Breeze.Nhibernate.WebApi\Breeze.Nhibernate.WebApi.dll" "$(ProjectDir)" /Y
  :done
 </PreBuildEvent>
   </PropertyGroup>
