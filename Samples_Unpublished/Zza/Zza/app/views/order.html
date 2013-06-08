@@ -4,15 +4,14 @@
 
             <div class="well sidebar-nav">
                 <ul class="nav nav-list">
-                    <li class="nav-header">Food</li>
-                    <li ng-class="{active: tag == 'pizza'}"><a href="#/order/pizza">Pizza</a></li>
-                    <li ng-class="{active: tag == 'pasta'}"><a href="#/order/pasta">Pasta</a></li>
-                    <li class="nav-header">Drinks</li>
-                    <li ng-class="{active: tag == 'drinks'}"><a href="#/order/drinks">Drinks</a></li>
+                    <li ng-repeat="link in links" ng-class="{active: tag == link.tag}">
+                        <a href="#{{link.path}}">{{link.name}}</a>
+                    </li>
+
                 </ul>
             </div>
             <!--/.well -->
-            <div>
+            <div class="well">
                 Order Summary
             </div>
         </div>

@@ -34,7 +34,7 @@
             </a>
             <div class="nav-collapse collapse">
                 <ul class="nav">
-                    <li ng-repeat="link in links" ng-class="{active: $route.current.templateUrl == link.templateUrl}">
+                    <li ng-repeat="link in links" ng-class="{active: current.templateUrl == link.templateUrl}">
                         <a href="#{{link.path}}">{{link.name}}</a>
                     </li>
                 </ul>

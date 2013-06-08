@@ -15,6 +15,14 @@ app.routes = [
     { path: '/cart', templateUrl: 'App/views/cart.html', controller: 'CartCtrl' }
 ];
 
+// Routes within the order view
+app.orderroutes = [
+    { tag: 'pizza', path: '/order/pizza', name: 'Pizza', templateUrl: 'App/views/orderpizza.html' },
+    { tag: 'pasta', path: '/order/pasta', name: 'Pasta', templateUrl: 'App/views/orderpasta.html' },
+    { tag: 'drinks', path: '/order/drinks', name: 'Drinks', templateUrl: 'App/views/orderdrinks.html' },
+];
+
+
 app.config(['$routeProvider', function ($routeProvider) {
 
     var len = app.routes.length;
