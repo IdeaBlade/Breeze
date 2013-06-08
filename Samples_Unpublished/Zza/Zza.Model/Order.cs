@@ -44,5 +44,7 @@ namespace Zza.Model
         public virtual Customer Customer { get; set; }
         public virtual OrderStatus Status { get; set; }
         public virtual ICollection<OrderItem> OrderItems { get; set; }
+
+        public string CanAdd() { return null; }
     } 
 }     

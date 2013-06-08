@@ -22,6 +22,8 @@ namespace Zza.Model
         [MaxLength(100)]
         public virtual string Phone { get; set; }
         [MaxLength(255)]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$",
+            ErrorMessage = "Email address is not valid")]
         public virtual string Email { get; set; }
         [MaxLength(100)]
         public virtual string Street { get; set; }
@@ -33,5 +35,10 @@ namespace Zza.Model
         public virtual string Zip { get; set; }
 
         public virtual ICollection<Order> Orders { get; set; }
+
+        public string CanAdd()
+        {
+            return (Id == Guid.Empty) ? " you must provide an Id" : null;
+        }
     }
 }

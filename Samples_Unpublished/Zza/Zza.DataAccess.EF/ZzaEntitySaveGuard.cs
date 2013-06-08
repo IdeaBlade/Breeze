@@ -39,10 +39,11 @@ namespace Zza.DataAccess.EF
                     case EntityState.Added:
                         saveable.StoreId = UserStoreId;
                         arg.OriginalValuesMap.Add("StoreId", UserStoreId);
+                        saveError = saveable.CanAdd();
                         break;
                     case EntityState.Modified:
                     case EntityState.Deleted:
-                        saveError = canSaveExistingEntity(arg);
+                        saveError = CanSaveExistingEntity(arg);
                         break;
                     default:
                         var stateName = Enum.GetName(typeof(EntityState), arg.EntityState);
@@ -76,7 +77,7 @@ namespace Zza.DataAccess.EF
 
         #region Type-specific Entity Save Guards
 
-        private string canSaveExistingEntity(EntityInfo arg)
+        private string CanSaveExistingEntity(EntityInfo arg)
         {
             var type = arg.Entity.GetType();
             if (type == typeof(Customer))
