@@ -119,9 +119,14 @@
     <Content Include="app\images\logo.png" />
     <Content Include="app\logger.js" />
     <Content Include="app\services.js" />
+    <Content Include="app\views\about.html" />
+    <Content Include="app\views\orderpizza.html" />
+    <Content Include="app\views\orderpasta.html" />
+    <Content Include="app\views\orderdrinks.html" />
+    <Content Include="app\views\menu.html" />
     <Content Include="app\views\home.html" />
-    <Content Include="app\views\customers.html" />
-    <Content Include="app\views\orders.html" />
+    <Content Include="app\views\cart.html" />
+    <Content Include="app\views\order.html" />
     <Content Include="App_Data\Zza-20130602100112.mdf" />
     <Content Include="App_Data\Zza-20130602100112_log.ldf">
       <DependentUpon>Zza-20130602100112.mdf</DependentUpon>
@@ -134,6 +139,8 @@
     <Content Include="content\font-awesome.css" />
     <Content Include="content\font-awesome.min.css" />
     <Content Include="content\ie10mobile.css" />
+    <Content Include="content\images\glyphicons-halflings-white.png" />
+    <Content Include="content\images\glyphicons-halflings.png" />
     <Content Include="content\styles.css" />
     <Content Include="content\toastr.css" />
     <Content Include="content\toastr.less" />

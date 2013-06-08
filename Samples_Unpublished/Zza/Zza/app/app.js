@@ -4,10 +4,15 @@
 // Declare app level module which depends on filters, and services
 var app = angular.module('Zza', []);
 
+// Declare all the routes.  Those with a name will be visible in the navigation bar.
+// Those with a :tag are used for sub-navigation within a view.
 app.routes = [
     { path: '/', name: 'Home', templateUrl: 'App/views/home.html', controller: 'HomeCtrl' },
-    { path: '/customers', name: 'Customers', templateUrl: 'App/views/customers.html', controller: 'CustomerCtrl' },
-    { path: '/orders', name: 'Orders', templateUrl: 'App/views/orders.html', controller: 'OrderCtrl' }
+    { path: '/order', name: 'Order', templateUrl: 'App/views/order.html', controller: 'OrderCtrl' },
+    { path: '/order/:tag', templateUrl: 'App/views/order.html', controller: 'OrderCtrl' },
+    { path: '/menu', name: 'Menu', templateUrl: 'App/views/menu.html' },
+    { path: '/about', name: 'About', templateUrl: 'App/views/about.html' },
+    { path: '/cart', templateUrl: 'App/views/cart.html', controller: 'CartCtrl' }
 ];
 
 app.config(['$routeProvider', function ($routeProvider) {

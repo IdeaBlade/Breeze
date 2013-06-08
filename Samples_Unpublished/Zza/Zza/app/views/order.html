@@ -1,0 +1,24 @@
+﻿<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span3">
+
+            <div class="well sidebar-nav">
+                <ul class="nav nav-list">
+                    <li class="nav-header">Food</li>
+                    <li ng-class="{active: tag == 'pizza'}"><a href="#/order/pizza">Pizza</a></li>
+                    <li ng-class="{active: tag == 'pasta'}"><a href="#/order/pasta">Pasta</a></li>
+                    <li class="nav-header">Drinks</li>
+                    <li ng-class="{active: tag == 'drinks'}"><a href="#/order/drinks">Drinks</a></li>
+                </ul>
+            </div>
+            <!--/.well -->
+        </div>
+        <!--/span-->
+        <div class="span9">
+            <div>
+                <div ng-include="view"></div>
+            </div>
+        </div>
+    </div>
+
+</div>

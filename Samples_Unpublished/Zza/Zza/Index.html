@@ -7,9 +7,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
 
     <link href="Content/ie10mobile.css" rel="stylesheet" />
+    <link href="Content/font-awesome.css" rel="stylesheet" />
     <link href="Content/bootstrap.css" rel="stylesheet" />
     <link href="Content/bootstrap-responsive.css" rel="stylesheet" />
-    <link href="Content/font-awesome.css" rel="stylesheet" />
     <link href="Content/toastr.css" rel="stylesheet" />
     <link href="Content/styles.css" rel="stylesheet" />
 
@@ -27,13 +27,20 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-fixed-top">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="navbar-inner" ng-controller="RouteCtrl">
             <a class="brand" href="#/">
                 <span class="title">Zza!</span> 
             </a>
-            <div class="btn-group">
-                <a ng-repeat="link in links" class="btn btn-info" ng-class="{active: $route.current.templateUrl == link.templateUrl}" href="#{{link.path}}">{{link.name}}</a>
+            <div class="nav-collapse collapse">
+                <ul class="nav">
+                    <li ng-repeat="link in links" ng-class="{active: $route.current.templateUrl == link.templateUrl}">
+                        <a href="#{{link.path}}">{{link.name}}</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="btn-group pull-right">
+                <a class="btn btn-warning" href="#/cart"><i class="icon-shopping-cart"></i> Cart</a>
             </div>
         </div>
     </nav>
@@ -42,11 +49,10 @@
 
     <nav class="navbar navbar-fixed-bottom">
         <div class="navbar-inner navbar-content-center" >
-            <span class="pull-left"><a href="http://www.breezejs.com" target="_blank">Zza Pizza Company, Little Italy</a></span>
+            <span class="pull-left"><a href="http://www.breezejs.com" target="_blank">Zza! Pizza Company, Little Italy</a></span>
             <span class="pull-right">"Una Fetta di Paradiso" ("A Slice of Paradise")</span>
         </div>
     </nav>
-
 
     <!-- 3rd party libraries -->
     <script src="Scripts/jquery-2.0.2.min.js"></script>
