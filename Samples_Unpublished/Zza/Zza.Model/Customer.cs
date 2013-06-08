@@ -22,6 +22,8 @@ namespace Zza.Model
         [MaxLength(100)]
         public virtual string Phone { get; set; }
         [MaxLength(255)]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$",
+            ErrorMessage = "Email address is not valid")]
         public virtual string Email { get; set; }
         [MaxLength(100)]
         public virtual string Street { get; set; }
