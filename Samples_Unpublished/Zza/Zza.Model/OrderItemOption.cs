@@ -10,6 +10,7 @@ namespace Zza.Model
         public virtual Int64 Id { get; set; }
         [JsonIgnore]
         public virtual Guid? StoreId { get; set; }
+
         [Required]
         public virtual Int64 OrderItemId { get; set; }
         [Required]
@@ -21,5 +22,7 @@ namespace Zza.Model
 
         public virtual OrderItem OrderItem { get; set; }
         public virtual ProductOption ProductOption { get; set; }
+
+        public string CanAdd() { return null; }
     } 
 }     

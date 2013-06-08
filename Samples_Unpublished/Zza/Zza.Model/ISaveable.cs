@@ -8,5 +8,6 @@ namespace Zza.Model
     public interface ISaveable
     {
         Guid? StoreId { get; set; }
+        string CanAdd();
     }
 }

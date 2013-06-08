@@ -35,5 +35,10 @@ namespace Zza.Model
         public virtual string Zip { get; set; }
 
         public virtual ICollection<Order> Orders { get; set; }
+
+        public string CanAdd()
+        {
+            return (Id == Guid.Empty) ? " you must provide an Id" : null;
+        }
     }
 }

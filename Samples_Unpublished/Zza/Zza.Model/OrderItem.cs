@@ -28,5 +28,7 @@ namespace Zza.Model
         public virtual Order Order { get; set; }
         public virtual Product Product { get; set; }
         public virtual ProductSize ProductSize { get; set; }
+
+        public string CanAdd() { return null; }
     } 
 }     
