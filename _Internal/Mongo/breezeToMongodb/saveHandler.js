@@ -1,10 +1,8 @@
 var mongodb = require('mongodb');
 var ObjectID = require('mongodb').ObjectID;
 
-exports.saveChanges = function(db, req, callback) {
-    var body = req.body;
-
-    var saveHandler = new SaveHandler(db, body.entities, body.saveOptions, body.metadata, callback);
+exports.saveChanges = function(db, reqBody, callback) {
+    var saveHandler = new SaveHandler(db, reqBody.entities, reqBody.saveOptions, reqBody.metadata, callback);
     saveHandler.save();
 } ;
 

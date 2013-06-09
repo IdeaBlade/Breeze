@@ -2,8 +2,8 @@ var mongodb = require('mongodb');
 var fs = require('fs');
 var breezeMongo = require('breezeToMongodb');
 
-var MongoQuery = breezeMongo.MongoQuery;
-var saveChanges = breezeMongo.saveChanges;
+//var MongoQuery = breezeMongo.MongoQuery;
+//var saveChanges = breezeMongo.saveChanges;
 
 var host = 'localhost';
 var port = 27017;
@@ -23,21 +23,22 @@ exports.getMetadata = function(req, res, next) {
     res.sendfile(filename);
 }
 
-exports.saveChanges = function(req, res, next) {
-    saveChanges(db, req, processResults(res, next));
-}
-
 exports.get = function (req, res, next) {
+    var query = new breezeMongo.MongoQuery(req.query);
     var collectionName = req.params.slug;
-    var query = new MongoQuery(db, collectionName, req.query);
-    query.execute(processResults(res, next));
+    query.execute(db, collectionName, processResults(res, next));
 };
 
 exports.getProducts = function(req, res, next) {
-    var query = new MongoQuery(db, "Products", req.query);
+    var query = new breezeMongo.MongoQuery(req.query);
     // add your own filters here
-    query.execute(processResults(res, next));
+    query.execute(db, "Products", processResults(res, next));
 }
+
+exports.saveChanges = function(req, res, next) {
+    breezeMongo.saveChanges(db, req.body, processResults(res, next));
+}
+
 
 function processResults(res, next) {
 

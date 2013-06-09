@@ -14,60 +14,58 @@ var boolOpMap = {
     ne: { mongoOp: "$ne",  jsOp: "!=" }
 }
 
-function MongoQuery(db, collectionName, urlQuery) {
-    this.db = db;
-    this.collectionName = collectionName;
+function MongoQuery(reqQuery) {
     this.query = {};
     this.select= {};
     this.options= {};
-    this._parseUrl(urlQuery);
+    this._parseUrl(reqQuery);
 }
 
-MongoQuery.prototype._parseUrl = function(urlQuery) {
+MongoQuery.prototype._parseUrl = function(reqQuery) {
     var section;
 
-    section = urlQuery.$filter;
+    section = reqQuery.$filter;
     if (section) {
         var filterTree = parse(section, "filterExpr");
         this.query = toQueryExpr(filterTree);
     }
 
-    section = urlQuery.$select;
+    section = reqQuery.$select;
     if (section) {
         var selectItems = parse(section, "selectExpr");
         this.select = toSelectExpr(selectItems);
     }
 
-    section = urlQuery.$expand;
+    section = reqQuery.$expand;
     if (section) {
         throw new Error("Breeze's Mongo library does not YET support 'expand'");
     }
 
-    section = urlQuery.$orderby;
+    section = reqQuery.$orderby;
     if (section) {
         var orderbyItems = parse(section, "orderbyExpr");
         sortClause = toOrderbyExpr(orderbyItems);
         extend(this.options, sortClause)
     }
 
-    section = urlQuery.$top;
+    section = reqQuery.$top;
     if (section) {
         extend(this.options, { limit: parseInt(section, 10)});
     }
 
-    section = urlQuery.$skip;
+    section = reqQuery.$skip;
     if (section) {
         extend(this.options, { skip: parseInt(section, 10)});
     }
 
-    section = urlQuery.$inlinecount;
+    section = reqQuery.$inlinecount;
     this.inlineCount = !!(section && section !== "none");
 
 }
 
-MongoQuery.prototype.execute = function(fn) {
+MongoQuery.prototype.execute = function(db, collectionName, fn) {
     var that = this;
-    this.db.collection(this.collectionName, {strict: true} , function (err, collection) {
+    db.collection(collectionName, {strict: true} , function (err, collection) {
         if (err) {
             err = { status: 404, message: "Unable to locate: " + that.collectionName, error: err };
             fn(err, null);
