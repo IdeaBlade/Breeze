@@ -67,7 +67,7 @@ SaveHandler.prototype._prepareCollection = function(resourceName, entities) {
                 if (keyDataType === "Guid") {
                     e._id = createGuid();
                 } else if (keyDataType == "MongoObjectId") {
-                    // instead of omitting the _id and having mongo update it, we wnat to set it ourselves so that we can do
+                    // instead of omitting the _id and having mongo update it, we want to set it ourselves so that we can do
                     // fk fixup before going async
                     e._id = new ObjectID();
                 } else {
