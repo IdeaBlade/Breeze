@@ -1,9 +1,9 @@
 var mongodb = require('mongodb');
 var fs = require('fs');
-var breezeMongo = require("./breezeMongo");
-var MongoQuery = breezeMongo.MongoQuery;
+var breezeMongo = require('breezeToMongodb');
 
-var saveBuilder = require("./saveBuilder");
+var MongoQuery = breezeMongo.MongoQuery;
+var saveChanges = breezeMongo.saveChanges;
 
 var host = 'localhost';
 var port = 27017;
@@ -24,7 +24,7 @@ exports.getMetadata = function(req, res, next) {
 }
 
 exports.saveChanges = function(req, res, next) {
-    saveBuilder.saveChanges(db, req, processResults(res, next));
+    saveChanges(db, req, processResults(res, next));
 }
 
 exports.get = function (req, res, next) {
@@ -35,7 +35,7 @@ exports.get = function (req, res, next) {
 
 exports.getProducts = function(req, res, next) {
     var query = new MongoQuery(db, "Products", req.query);
-    // add addit own filters here
+    // add your own filters here
     query.execute(processResults(res, next));
 }
 

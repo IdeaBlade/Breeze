@@ -1,9 +1,11 @@
-var odataParser = require("./odataParser");
-// var uuidHelpers = require("./uuidHelpers");
 var mongodb = require('mongodb');
 var ObjectId = require('mongodb').ObjectID;
 
+var odataParser = require("./odataParser");
+var saveBuilder = require("./saveBuilder");
+
 exports.MongoQuery = MongoQuery;
+exports.saveChanges = saveBuilder.saveChanges;
 
 var boolOpMap = {
     eq: { jsOp: "==="},

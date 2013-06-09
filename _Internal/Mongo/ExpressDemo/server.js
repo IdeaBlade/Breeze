@@ -1,7 +1,8 @@
+var fs = require("fs");
 var express = require('express');
 var app = express();
+
 var routes = require('./routes');
-var fs = require("fs");
 
 app.use(express.bodyParser());
 // app.use(express.methodOverride());
@@ -9,10 +10,7 @@ app.use(app.router);
 app.use(logErrors);
 app.use(errorHandler);
 
-
-
 var testCaseDir = "c:/GitHub/Breeze/Breeze.Client/"
-
 
 app.get('/', function(req,res) {
     res.sendfile(testCaseDir + 'mongo_index.html');
