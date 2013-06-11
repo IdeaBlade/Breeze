@@ -40,42 +40,6 @@ namespace Zza.Interfaces
         public abstract void Execute(object targetObject, EntityState operationType, object userData, ICollection<RuleResult> ruleResults);
     }
 
-    public class AuthorizeTypeRule : Rule
-    {
-        private readonly Type[] _authorizedTypes;
-        private readonly RuleType _ruleType;
-
-        public AuthorizeTypeRule(Type[] authorizedTypes, RuleType ruleType)
-        {
-            _authorizedTypes = authorizedTypes;
-            _ruleType = ruleType;
-        }
-
-        public override RuleType RuleType
-        {
-            get { return _ruleType; }
-        }
-
-        public override Type ObjectType
-        {
-            get { return null; }
-        }
-
-        public override void Execute(object targetObject, EntityState operationType, object userData, ICollection<RuleResult> ruleResults)
-        {
-            var objectType = targetObject.GetType();
-            if (_authorizedTypes.Contains(objectType))
-            {
-                ruleResults.Add(new RuleResult(this, RuleResultType.Info, "Type is authorized"));
-                return;
-            }
-
-            const string message = "not authorized to save a '{0}' type.";
-            ruleResults.Add(new RuleResult(this, RuleResultType.Error,
-                                               string.Format(message, objectType)));
-        }
-    }
-
     public class DelegateRule<T> : Rule
     {
         private readonly Action<Rule, T, EntityState, object, ICollection<RuleResult>> _action;
@@ -169,5 +133,5 @@ namespace Zza.Interfaces
         QueryRule,
         SaveRule
     }
-
+   
 }

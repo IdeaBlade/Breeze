@@ -10,11 +10,15 @@ namespace Zza.Interfaces
     {
         private readonly RulesEngine _rulesEngine;
         private readonly Func<IValidationDataProvider> _dataProviderFactory;
+        private readonly Type[] _saveableTypes;
 
         public ZzaSaveRules(Func<IValidationDataProvider> dataProviderFactory)
         {
             _rulesEngine = new RulesEngine();
-            _dataProviderFactory = dataProviderFactory;
+            _dataProviderFactory = dataProviderFactory; 
+            _saveableTypes = new[] {
+                    typeof(Customer), typeof(Order), typeof(OrderItem), typeof(OrderItemOption) 
+                };
             AddRules();
         }
 
@@ -22,13 +26,20 @@ namespace Zza.Interfaces
         {
             var dataProvider = _dataProviderFactory();
             dataProvider.SaveMap = saveMap;
+
+            foreach (var key in saveMap.Keys)
+            {
+                if (_saveableTypes.Contains(key)) continue;
+                const string message = "not authorized to save a '{0}' type.";
+                throw new SaveException(string.Format(message, key));
+            }
+
             foreach (var entityInfo in saveMap.Values.SelectMany(x => x))
             {
                 var results = _rulesEngine.ExecuteRules(entityInfo, RuleType.SaveRule, dataProvider).ToList();
-                if (results.Ok())
-                    continue;
+                if (results.Ok()) continue;
 
-                throw new Exception(results.Errors().First().Message);
+                throw new SaveException(results.Errors());
             }
 
             return saveMap;
@@ -36,12 +47,6 @@ namespace Zza.Interfaces
 
         private void AddRules()
         {
-            var authorizedTypes = new[]
-                {
-                    typeof(Customer), typeof(Order), typeof(OrderItem), typeof(OrderItemOption)
-                };
-            _rulesEngine.AddRule(new AuthorizeTypeRule(authorizedTypes, RuleType.SaveRule));
-
             // EXAMPLE
             //_rulesEngine.AddRule(new DelegateRule<Order>((rule, order, userData, results) =>
             //    {
@@ -65,5 +70,26 @@ namespace Zza.Interfaces
             //    }, RuleType.SaveRule));
 
         }
+    }
+
+    public class SaveException : Exception
+    {
+        public SaveException(IEnumerable<RuleResult> errors)
+            : this(errors.First())
+        {
+            Errors = errors;
+        }
+
+        public SaveException(RuleResult error)
+            : this(error.Message)
+        {
+            FirstError = error;
+            if (Errors == null) { Errors = new[] { error }; }
+        }
+
+        public SaveException(string errorMessage) : base(errorMessage) { }
+
+        public IEnumerable<RuleResult> Errors { get; private set; }
+        public RuleResult FirstError { get; private set; }
     }
 }
