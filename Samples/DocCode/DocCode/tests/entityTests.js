@@ -1,5 +1,5 @@
 // ReSharper disable InconsistentNaming
-(function (testFns) {
+(function(testFns) {
     "use strict";
 
     /*********************************************************
@@ -13,19 +13,19 @@
     /*********************************************************
     * Add a Customer using preferred EntityManager.createEntity method
     *********************************************************/
-    test("add Customer with manager.CreateEntity", 1, function () {
+    test("add Customer with manager.CreateEntity", 1, function() {
         var em = newEm();
-        var newCust = em.createEntity("Customer", {CustomerID: testFns.newGuidComb()});
+        var newCust = em.createEntity("Customer", { CustomerID: testFns.newGuidComb() });
         ok(newCust.entityAspect.entityState.isAdded(), "newCust should be 'added'");
     });
-    
+
     /*********************************************************
     * Add a Customer with the EntityType and confirm its EntityState
     * Most of the tests in this file are still use this
     * older, less preferred, more verbose approach using the EntityType
     * Todo: update these tests to use EntityManager.CreateEntity
     *********************************************************/
-    test("add Customer with the EntityType", 1, function () {
+    test("add Customer with the EntityType", 1, function() {
         var em = newEm();
         var customerType = em.metadataStore.getEntityType("Customer");
         var newCust = customerType.createEntity();
@@ -34,20 +34,20 @@
 
         ok(newCust.entityAspect.entityState.isAdded(), "newCust should be 'added'");
     });
-    
+
 
     /*********************************************************
     * Add an Order with initializer that set its parent Customer by Id
     *********************************************************/
-    test("add Customer created using initializer with parent Customer Id", 4, function () {
+    test("add Customer created using initializer with parent Customer Id", 4, function() {
         var em = newEm();
 
         // create a new parent Customer
         var parentCustomer = em.createEntity("Customer", {
-             CustomerID: breeze.core.getUuid(),
-             CompanyName: 'TestCo'
+            CustomerID: breeze.core.getUuid(),
+            CompanyName: 'TestCo'
         });
-        
+
         // a new Order which is a child of the parent Customer
         var newOrder = em.createEntity("Order", { CustomerID: parentCustomer.CustomerID() });
 
@@ -58,18 +58,18 @@
         ok(orderCustomer === parentCustomer,
             "newOrder's parent Customer should be " + parentCustomer.CompanyName());
     });
-    
+
     /*********************************************************
     * Add an OrderDetail with initializer that set its composite key with ids
     * Interesting because client must supply the composite key
     * and both parts of that key are ids of parent entities, Order and Product
     *********************************************************/
-    test("add OrderDetail created using initializer with parent ids", 1, function () {
+    test("add OrderDetail created using initializer with parent ids", 1, function() {
         var em = newEm();
         var newDetail = em.createEntity("OrderDetail", { OrderID: 1, ProductID: 1 });
         ok(newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
     });
-    
+
     /*********************************************************
     * Add an OrderDetail with initializer that set its composite key via related entities
     * This does not work as of v.1.3.0. See Feature Request #2155
@@ -83,15 +83,16 @@
         try {
             // Can't initialize with related entity. Feature request to make this possible         
             newDetail = em.createEntity("OrderDetail", { Order: parentOrder, Product: parentProduct });
-        } catch (ex) {/* test will fail */}
+        } catch(ex) { /* test will fail */
+        }
         ok(newDetail && newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
     });
-    
+
     /*********************************************************
     * entityAspect.rejectChanges of added entity detaches it
     *********************************************************/
 
-    test("rejectChanges of added entity detaches it", function () {
+    test("rejectChanges of added entity detaches it", function() {
         var em = newEm();
 
         var typeInfo = em.metadataStore.getEntityType("Order");
@@ -118,7 +119,7 @@
     * local query does not return added entity after rejectChanges
     *********************************************************/
 
-    test("local query does not return added entity after rejectChanges", 2, function () {
+    test("local query does not return added entity after rejectChanges", 2, function() {
         var em = newEm();
 
         var typeInfo = em.metadataStore.getEntityType("Order");
@@ -134,12 +135,12 @@
         equal(orders.length, 0,
             "Local query should return no orders");
     });
-    
+
     /*********************************************************
     * can find deleted entity in cache with getEntities()
     *********************************************************/
 
-    test("find deleted entity in cache with getEntities()", 1, function () {
+    test("find deleted entity in cache with getEntities()", 1, function() {
 
         var em = newEm();
         var customer = getFakeDeletedcustomer(em);
@@ -156,7 +157,7 @@
     * can find deleted entity in cache by key
     *********************************************************/
 
-    test("find deleted entity in cache by key", 1, function () {
+    test("find deleted entity in cache by key", 1, function() {
 
         var em = newEm();
         var customer = getFakeDeletedcustomer(em);
@@ -174,7 +175,7 @@
     * does not return deleted entity in cache when queryLocally
     *********************************************************/
 
-    test("does not return deleted entity in cache when queryLocally", 1, function () {
+    test("does not return deleted entity in cache when queryLocally", 1, function() {
 
         var em = newEm();
         var customer = getFakeDeletedcustomer(em);
@@ -188,7 +189,7 @@
             var queriedcustomer = queryResults[0];
             ok(false,
                 "query unexpectedly returned customer '{0}' in state={1}"
-                    .format(queriedcustomer.CompanyName(), 
+                    .format(queriedcustomer.CompanyName(),
                         queriedcustomer.entityAspect.entityState));
         }
 
@@ -197,13 +198,13 @@
     /*********************************************************
     * original values are tracked after attached
     *********************************************************/
-    test("original values are tracked after entity is attached", 5, function () {
+    test("original values are tracked after entity is attached", 5, function() {
 
         var em = newEm(); // new empty EntityManager
         var empType = em.metadataStore.getEntityType("Employee");
 
         // created but not attached
-        var employee = empType.createEntity({ EmployeeID: 1 }); 
+        var employee = empType.createEntity({ EmployeeID: 1 });
 
         employee.LastName("Smith"); // set value before attached
         employee.LastName("Jones"); // change value before attaching 
@@ -211,7 +212,7 @@
         var origValuePropNames = getOriginalValuesPropertyNames(employee);
         equal(origValuePropNames.length, 0,
             "No original values tracked for a detached entity.");
-        
+
         // attach as Unchanged. 
         em.attachEntity(employee);
 
@@ -221,60 +222,62 @@
         ok(originalValuesLastName === "Jones",
             "New LastName is '{0}', original value is '{1}' "
                 .format(employee.LastName(), originalValuesLastName));
-        
+
         employee.entityAspect.rejectChanges(); //reverts to original values
         //em.rejectChanges(); // this works too ... for all changed entities in cache
 
         ok(employee.entityAspect.entityState.isUnchanged(),
             'employee should be "Unchanged" after calling rejectChanges');
-        
+
         equal(employee.LastName(), originalValuesLastName,
             "LastName should be restored to " + originalValuesLastName);
 
         equal(origValuePropNames.length, 0,
             "After rejectChanges, 'entityAspect.originalValues' should be empty; it is: " +
-            origValuePropNames.toString());
+                origValuePropNames.toString());
     });
     /*********************************************************
     * originalValues is a new object after the entity returns to Unchanged state
     *********************************************************/
     test("entityAspect.originalValues is a new object after the entity returns to Unchanged state", 3,
-        function () {
+        function() {
 
             var em = newEm(); // new empty EntityManager
 
-            var employee = em.createEntity('Employee',{
-                EmployeeID: 1, LastName: "Jones"
+            var employee = em.createEntity('Employee', {
+                EmployeeID: 1,
+                LastName: "Jones"
             }, breeze.EntityState.Unchanged); // attach as Unchanged. 
 
             // After next change, should be tracking original value, 'Jones'
-            employee.LastName("Black"); 
+            employee.LastName("Black");
 
             var originalValues1 = employee.entityAspect.originalValues;
-            
+
             employee.entityAspect.rejectChanges();
 
             ok(employee.entityAspect.entityState.isUnchanged(),
                 'employee should be "Unchanged" after calling rejectChanges');
 
             var originalValues2 = employee.entityAspect.originalValues;
-            
+
             notStrictEqual(originalValues1, originalValues2,
                 "entityAspect.originalValues is a new object after rejectChanges");
 
             equal(originalValues1.LastName, "Jones",
                 "The 'original' LastName, 'Jones', should still be on the first originalValues object.");
         });
-   /*********************************************************
+    /*********************************************************
    * Setting an entity property value to itself doesn't trigger entityState change
    *********************************************************/
     test("Setting an entity property value to itself doesn't trigger entityState change", 1,
-        function () {
+        function() {
             var em = newEm();
-            
+
             var employee = em.createEntity('Employee', {
-                    EmployeeID: 1, FirstName: "Bob"
-                }, breeze.EntityState.Unchanged); // attach as Unchanged.
+                EmployeeID: 1,
+                FirstName: "Bob"
+            }, breeze.EntityState.Unchanged); // attach as Unchanged.
 
             employee.FirstName(employee.FirstName());
 
@@ -288,22 +291,24 @@
     * in both directions (order -> employee, employee -> orders
     *********************************************************/
     test("manager.rejectChanges undoes a bi-directional navigation property change", 4,
-        function () {
+        function() {
             var em = newEm();
 
             var employee1 = em.createEntity('Employee', {
-                EmployeeID: 1, FirstName: "Bob"
+                EmployeeID: 1,
+                FirstName: "Bob"
             }, breeze.EntityState.Unchanged); // attach as Unchanged.
-            
+
             var employee2 = em.createEntity('Employee', {
-                EmployeeID: 2, FirstName: "Sally"
+                EmployeeID: 2,
+                FirstName: "Sally"
             }, breeze.EntityState.Unchanged); // attach as Unchanged.
-                    
-            var orderType = em.metadataStore.getEntityType("Order");     
+
+            var orderType = em.metadataStore.getEntityType("Order");
             var order = orderType.createEntity();
             order.EmployeeID(42);
             order.Employee(employee1);
-            
+
             // Setting navigation property pulled the order into Employee's manager
             order.entityAspect.setUnchanged();
 
@@ -315,15 +320,15 @@
             em.rejectChanges();
 
             ok(!em.hasChanges(), "manager should not have changes");
-        
+
             entityState = order.entityAspect.entityState;
             ok(entityState.isUnchanged(),
                 "order should be Unchanged after rejectChanges; is " + entityState);
             ok(order.Employee() === employee1,
-                "order.Employee should be employee1 after rejectChanges; is " + 
+                "order.Employee should be employee1 after rejectChanges; is " +
                     order.Employee().EmployeeID()
             );
-    });
+        });
     /*********************************************************
     * manager.rejectChanges undoes a uni-directional navigation property change 
     * Considers an association in which only the dependent (scalar) navigation property exists 
@@ -332,11 +337,11 @@
     * If you need that information, use a query.
     *********************************************************/
     test("manager.rejectChanges undoes a uni-directional navigation property change", 5,
-        function () {
+        function() {
             var em = newEm();
 
             var productType = em.metadataStore.getEntityType("Product");
-            
+
             var odProperty = productType.getProperty("OrderDetails");
             ok(odProperty === null,
                 "Product should not have an OrderDetails navigation property");
@@ -353,7 +358,7 @@
             var orderDetail = orderDetailType.createEntity();
             orderDetail.OrderID(42);
             orderDetail.Product(product1); // pulls orderDetail into Product's manager
-            
+
             orderDetail.entityAspect.setUnchanged();
 
             orderDetail.Product(product2);
@@ -379,7 +384,7 @@
     test("rejectChanges of a child entity restores it to its parent", 8,
         function() {
             var em = newEm();
-            
+
             var orderType = em.metadataStore.getEntityType("Order");
             var parent = orderType.createEntity();
             parent.OrderID(1);
@@ -390,13 +395,13 @@
             child.OrderID(42);
             child.Order(parent); // adds child to parent's manager
             child.entityAspect.setUnchanged();
-            
+
             // parent and child are now unchanged ... as if freshly queried
             ok(!em.hasChanges(),
                 "manager should not have unsaved changes before delete");
 
             child.entityAspect.setDeleted();
-            
+
             equal(parent.OrderID(), child.OrderID(),
                 "child's still has parent's FK Id after delete");
             ok(null === child.Order(), // Deleted child no longer has a parent
@@ -405,12 +410,12 @@
                 "parent no longer has the chile after child delete");
 
             em.rejectChanges();
-            
+
             ok(!em.hasChanges(),
-               "manager should not have unsaved changes after rejectChanges");
+                "manager should not have unsaved changes after rejectChanges");
             equal(parent.OrderID(), child.OrderID(),
                 "child's still has parent's FK Id after rejectChanges");
-            ok(parent === child.Order(), 
+            ok(parent === child.Order(),
                 "child can navigate to parent after rejectChanges");
             ok(parent.OrderDetails()[0] === child,
                 "parent has child after rejectChanges");
@@ -421,13 +426,14 @@
     * setUnchanged() does not restore property values
     * but it does clear the originalValues hash
     *********************************************************/
-    test("setUnchanged() does not restore property values", 4, function () {
+    test("setUnchanged() does not restore property values", 4, function() {
 
         var em = newEm(); // new empty EntityManager
         var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = em.createEntity('Employee', {
-            EmployeeID: 1, LastName: "Jones"
+            EmployeeID: 1,
+            LastName: "Jones"
         }, breeze.EntityState.Unchanged); // attach as Unchanged.
 
         var changedName = "Black";
@@ -451,7 +457,7 @@
 
         equal(origValuePropNames.length, 0,
             "After setUnchanged(), 'entityAspect.originalValues' should be empty; it is: " +
-            origValuePropNames.toString());
+                origValuePropNames.toString());
     });
     /*********************************************************
     * entityState is Unchanged after calling acceptChanges on added entity
@@ -459,7 +465,7 @@
     * Beware of the key, especially if the key should have been store generated
     *********************************************************/
     test("entityState is Unchanged after calling acceptChanges on added entity", 2,
-        function () {
+        function() {
 
             var em = newEm(); // new empty EntityManager
             var empType = em.metadataStore.getEntityType("Employee");
@@ -473,7 +479,7 @@
             //em.acceptChanges(); // this works too ... for all changed entities in cache
             ok(employee.entityAspect.entityState.isUnchanged(),
                 'employee should be "Unchanged" after calling acceptChanges');
-        
+
             equal(employee.EmployeeID(), tempId,
                 'employeeID should still be the tempId, ' + tempId +
                     ', a dubious choice.');
@@ -483,61 +489,94 @@
     * Beware of acceptChanges; it makes an entity look like it was saved
     *********************************************************/
     test("entityState is Unchanged after calling acceptChanges on modified entity", 4,
-    function () {
+        function() {
 
-        var em = newEm(); // new empty EntityManager
-        var empType = em.metadataStore.getEntityType("Employee");
+            var em = newEm(); // new empty EntityManager
+            var empType = em.metadataStore.getEntityType("Employee");
 
-        var employee = empType.createEntity(); // created but not attached
-        employee.EmployeeID(1);
-        employee.FirstName("Sally");
-        em.attachEntity(employee); // simulate existing employee
+            var employee = empType.createEntity(); // created but not attached
+            employee.EmployeeID(1);
+            employee.FirstName("Sally");
+            em.attachEntity(employee); // simulate existing employee
 
-        var changedFirstName = "Bob";
-        employee.FirstName(changedFirstName);
+            var changedFirstName = "Bob";
+            employee.FirstName(changedFirstName);
 
-        var originalValuesFirstName = employee.entityAspect.originalValues.FirstName;
-        ok(originalValuesFirstName === "Sally",
-            "New FirstName is '{0}', original value is '{1}' "
-                .format(employee.FirstName(), originalValuesFirstName));
-        
-        employee.entityAspect.acceptChanges(); // simulate post-save state
-        //em.acceptChanges(); // this works too ... for all changed entities in cache
+            var originalValuesFirstName = employee.entityAspect.originalValues.FirstName;
+            ok(originalValuesFirstName === "Sally",
+                "New FirstName is '{0}', original value is '{1}' "
+                    .format(employee.FirstName(), originalValuesFirstName));
 
-        ok(employee.entityAspect.entityState.isUnchanged(),
-            'employee should be "Unchanged" after calling acceptChanges');
+            employee.entityAspect.acceptChanges(); // simulate post-save state
+            //em.acceptChanges(); // this works too ... for all changed entities in cache
 
-        equal(employee.FirstName(), changedFirstName,
-            "FirstName should be the changed name, " + changedFirstName);
-        
-        var origValuePropNames = getOriginalValuesPropertyNames(employee);
-        
-        equal(origValuePropNames.length, 0,
-            "After acceptChanges, 'entityAspect.originalValues' should be empty; it is: "+
-            origValuePropNames.toString());
+            ok(employee.entityAspect.entityState.isUnchanged(),
+                'employee should be "Unchanged" after calling acceptChanges');
 
-    });
+            equal(employee.FirstName(), changedFirstName,
+                "FirstName should be the changed name, " + changedFirstName);
+
+            var origValuePropNames = getOriginalValuesPropertyNames(employee);
+
+            equal(origValuePropNames.length, 0,
+                "After acceptChanges, 'entityAspect.originalValues' should be empty; it is: " +
+                    origValuePropNames.toString());
+
+        });
     /*********************************************************
     * entityState is Detached after calling acceptChanges on deleted entity
     * Beware of acceptChanges; it makes an entity look like it was saved
     *********************************************************/
     test("entityState is Detached after calling acceptChanges on deleted entity", 1,
-    function () {
+        function() {
 
-        var em = newEm(); // new empty EntityManager
-        var empType = em.metadataStore.getEntityType("Employee");
+            var em = newEm(); // new empty EntityManager
+            var empType = em.metadataStore.getEntityType("Employee");
 
-        var employee = empType.createEntity(); // created but not attached
-        employee.EmployeeID(1);
-        em.attachEntity(employee); // simulate existing employee
+            var employee = empType.createEntity(); // created but not attached
+            employee.EmployeeID(1);
+            em.attachEntity(employee); // simulate existing employee
 
-        employee.entityAspect.setDeleted();
-        employee.entityAspect.acceptChanges(); // simulate post-save state
-        //em.acceptChanges(); // this works too ... for all changed entities in cache
+            employee.entityAspect.setDeleted();
+            employee.entityAspect.acceptChanges(); // simulate post-save state
+            //em.acceptChanges(); // this works too ... for all changed entities in cache
 
-        ok(employee.entityAspect.entityState.isDetached(),
-            'employee should be "Detached" after calling acceptChanges');
-    });
+            ok(employee.entityAspect.entityState.isDetached(),
+                'employee should be "Detached" after calling acceptChanges');
+        });
+    /*********************************************************
+     * detaching parent entity has no effect on in-cache children
+     *********************************************************/
+    test("detaching parent entity has no effect on in-cache children", 5,
+        function () {
+            var unchanged = breeze.EntityState.Unchanged;
+            var em = newEm(); // new empty EntityManager
+            var order = em.createEntity('Order', {
+                 OrderID: 1
+            }, unchanged);
+            var detail = em.createEntity('OrderDetail', {
+                OrderID: 1,
+                ProductID: 1,
+                Quantity: 1,
+                UnitPrice: 1
+            }, unchanged);
+            
+            equal(detail.Order(), order,
+                "'detail' should have expected parent 'order'");
+
+            em.detachEntity(order); // THE MOMENT OF TRUTH
+ 
+            var orderStateName = order.entityAspect.entityState.name;
+            equal(orderStateName, breeze.EntityState.Detached.name,
+                 "parent 'order' should be detached");
+            var detailStateName = detail.entityAspect.entityState.name;
+            equal(detailStateName, unchanged.name,
+                "child 'detail' should be unchanged by detach of parent 'order'");
+            equal(detail.OrderID(), order.OrderID(),
+                "'detail.OrderID' (FK) should equal 'order.OrderID' (Parent ID)");
+            equal(detail.Order(), null,
+                "'detail.Order' should be null");
+        });
     /*********************************************************
      * changing a property raises propertyChanged 
      *********************************************************/
