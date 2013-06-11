@@ -19,13 +19,12 @@ namespace Zza.DataAccess.EF
         public bool BeforeSaveEntity(EntityInfo arg)
         {
             var typeName = arg.Entity.GetType().Name;
-            var saveError = string.Empty;
+            string saveError;
             var saveable = arg.Entity as ISaveable;
 
             if (UserStoreId == Guid.Empty)
             {
                 saveError = "you are not authorized to save.";
-
             }
             else if (saveable == null)
             {
@@ -52,7 +51,7 @@ namespace Zza.DataAccess.EF
                 }
             }
 
-            if (saveError != null)
+            if (String.IsNullOrEmpty(saveError))
             {
                 throw new InvalidOperationException(
                     "'" + arg.Entity.GetType().Name + "' may not be saved because " +
