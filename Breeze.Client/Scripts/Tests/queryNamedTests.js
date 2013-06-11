@@ -38,6 +38,39 @@
         return;
     }
 
+    test("with 0 value parameter", function () {
+        var em = newEm();
+        var q = EntityQuery.from("EmployeesMultipleParams")
+            .withParameters({ employeeID: 0, city: "Emeryville" });
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("with null parameter", function () {
+        var em = newEm();
+        var q = EntityQuery.from("EmployeesMultipleParams")
+            .withParameters({ employeeID: 1, city: null });
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("with empty string parameter", function () {
+        var em = newEm();
+        var q = EntityQuery.from("EmployeesMultipleParams")
+            .withParameters({ employeeID: 1, city: "" });
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("scalar server query ", function () {
         var em = newEm();
 
