@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Web.Http;
+using System.Web.Http.Controllers;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
 using DocCode.DataAccess;
@@ -12,62 +13,65 @@ namespace DocCode.Controllers
     public class NorthwindController : ApiController
     {
         private readonly NorthwindRepository _repository;
-        public NorthwindController()
-        {
-            // Todo: inject via an interface rather than "new" the concrete class
-            _repository = new NorthwindRepository();
+
+        public NorthwindController() : this(null){}
+
+        // Todo: inject via an interface rather than "new" the concrete class
+        public NorthwindController(NorthwindRepository repository)
+        {         
+            _repository = repository ?? new NorthwindRepository();
         }
 
-        private NorthwindRepository Repository
+        protected override void Initialize(HttpControllerContext controllerContext)
         {
-            get { return PrepareRepository(); }
+            _repository.UserSessionId = getUserSessionId();
         }
 
         // ~/breeze/northwind/Metadata 
         [HttpGet]
         public string Metadata()
         {
-            return Repository.Metadata;
+            return _repository.Metadata;
         }
 
         // ~/breeze/northwind/SaveChanges
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
-            return Repository.SaveChanges(saveBundle);
+            return _repository.SaveChanges(saveBundle);
         }
 
         [HttpGet]
         public IQueryable<Customer> Customers() {
-            return Repository.Customers;
+            return _repository.Customers;
         }
 
         [HttpGet]
         public IQueryable<Customer> CustomersAndOrders()
         {
-            return Repository.CustomersAndOrders;
+            return _repository.CustomersAndOrders;
         }
 
         [HttpGet]
         public IQueryable<Order> OrdersForProduct(int productID = 0)
         {
-            return Repository.OrdersForProduct(productID);
+            return _repository.OrdersForProduct(productID);
         }
 
         [HttpGet]
         public IQueryable<Customer> CustomersStartingWithA()
         {
-            return Repository.CustomersStartingWithA;
+            return _repository.CustomersStartingWithA;
         }
 
         [HttpGet]
         public IQueryable<Order> Orders() {
-            return Repository.Orders;
+            return _repository.Orders;
         }
 
         [HttpGet]
         public IQueryable<Order> OrdersAndCustomers() {
-            return Repository.OrdersAndCustomers;
+            return _repository.OrdersAndCustomers;
         }
 
         [HttpGet]
@@ -75,32 +79,32 @@ namespace DocCode.Controllers
         //[Queryable(MaxTop = 10)]
         public IQueryable<Order> OrdersAndDetails()
         {
-            return Repository.OrdersAndDetails;
+            return _repository.OrdersAndDetails;
         }
 
         [HttpGet]
         public IQueryable<Employee> Employees() {
-            return Repository.Employees;
+            return _repository.Employees;
         }
 
         [HttpGet]
         public IQueryable<OrderDetail> OrderDetails() {
-            return Repository.OrderDetails;
+            return _repository.OrderDetails;
         }
 
         [HttpGet]
         public IQueryable<Product> Products() {
-            return Repository.Products;
+            return _repository.Products;
         }
 
         [HttpGet]
         public IQueryable<Region> Regions() {
-            return Repository.Regions;
+            return _repository.Regions;
         }
 
         [HttpGet]
         public IQueryable<Territory> Territories() {
-            return Repository.Territories;
+            return _repository.Territories;
         }
 
         // Demonstrate a "View Entity" a selection of "safe" entity properties
@@ -109,7 +113,7 @@ namespace DocCode.Controllers
         [HttpGet]
         public IQueryable<UserPartial> UserPartials()
         {
-            return Repository.UserPartials;
+            return _repository.UserPartials;
         }
 
         // Useful when need ONE user and its roles
@@ -117,7 +121,7 @@ namespace DocCode.Controllers
         [HttpGet]
         public UserPartial GetUserById(int id)
         {
-            return Repository.GetUserById(id);
+            return _repository.GetUserById(id);
         }
 
         /*********************************************************
@@ -143,9 +147,9 @@ namespace DocCode.Controllers
         [HttpGet]
         public object LookupsArray()
         {
-            var regions = Repository.Regions;
-            var territories = Repository.Territories;
-            var categories = Repository.Categories;
+            var regions = _repository.Regions;
+            var territories = _repository.Territories;
+            var categories = _repository.Categories;
 
             var lookups = new object[] { regions, territories, categories };
             return lookups;
@@ -167,9 +171,9 @@ namespace DocCode.Controllers
         [HttpGet]
         public object Lookups()
         {
-            var regions = Repository.Regions;
-            var territories = Repository.Territories;
-            var categories = Repository.Categories;
+            var regions = _repository.Regions;
+            var territories = _repository.Territories;
+            var categories = _repository.Categories;
 
             var lookups = new { regions, territories, categories };
             return lookups;
@@ -180,29 +184,22 @@ namespace DocCode.Controllers
         [HttpPost]
         public string Reset(string options = "")
         {
-            return Repository.Reset(options);
+            return _repository.Reset(options);
         }
 
-
         /// <summary>
-        /// Prepare repository for the current request
+        /// Get the repo's UserSessionId from value in the request header
         /// </summary>
-        /// <remarks>
-        /// Sets the repo's UserSessionId from value in the request header
-        /// </remarks>
-        private NorthwindRepository PrepareRepository()
+        private Guid getUserSessionId()
         {
-            var userSessionId = Guid.Empty;
             try
             {
-                var usi = Request.Headers.GetValues("X-UserSessionId").FirstOrDefault();
-                userSessionId = Guid.Parse(usi ?? String.Empty);
+                var id = Request.Headers.GetValues("X-UserSessionId").First();
+                return Guid.Parse(id);
             }
-            // ReSharper disable EmptyGeneralCatchClause
-            catch (Exception e) { /* Let repository deal with it*/}
-            // ReSharper restore EmptyGeneralCatchClause
-            _repository.UserSessionId = userSessionId;
-            return _repository;
+            catch  {
+                return Guid.Empty;
+            }
         }
     }
 }

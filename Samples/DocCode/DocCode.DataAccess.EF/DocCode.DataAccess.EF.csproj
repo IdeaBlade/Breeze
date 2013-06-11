@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="FooBarRepository.cs" />
     <Compile Include="FoosMetadataProvider.cs" />
+    <Compile Include="NorthwindEntitySaveGuard.cs" />
     <Compile Include="NorthwindMetadataContext.cs" />
     <Compile Include="InheritanceContext.cs" />
     <Compile Include="InheritanceDbInitializer.cs" />
