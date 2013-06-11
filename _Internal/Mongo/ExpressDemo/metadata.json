@@ -305,6 +305,7 @@
                   }
                ]
             }
+
          ],
          "navigationProperties":[
             {
@@ -403,6 +404,12 @@
                      "name":"date"
                   }
                ]
+            },
+            {
+                "name": "hobbies",
+                "dataType": "String",
+                "isScalar": false
+
             },
             {
                "name":"address",

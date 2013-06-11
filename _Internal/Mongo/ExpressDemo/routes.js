@@ -1,6 +1,6 @@
 var mongodb = require('mongodb');
 var fs = require('fs');
-var breezeMongo = require('breezeToMongodb');
+var breezeMongo = require('breeze-mongodb');
 
 //var MongoQuery = breezeMongo.MongoQuery;
 //var saveChanges = breezeMongo.saveChanges;

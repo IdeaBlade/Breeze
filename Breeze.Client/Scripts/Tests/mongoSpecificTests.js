@@ -32,6 +32,39 @@
         return;
     };
 
+    test("get employee hobbies", function() {
+        var em = newEm();
+        var q = EntityQuery.from("Employees").take(5);
+        stop();
+        var emps, emp;
+        em.executeQuery(q).then(function(data) {
+            emps = data.results;
+            emp = emps[0];
+            var hobbies = emp.getProperty("hobbies");
+            emp.setProperty("hobbies", ["tennis", "swimming"]);
+            var h = emp.getProperty("hobbies");
+//            if (hobbies == null) {
+//
+//            } else {
+//                hobbies.push("rock climbing");
+//                emp.setProperty("hobbies", hobbies);
+//            }
+            return em.saveChanges();
+        }).then(function(sr) {
+            ok(sr.entities.length === 1, "should have saved 1 rec");
+            ok(sr.entities[0] === emp);
+            var q2 = EntityQuery.fromEntities(emp);
+            var em2 = newEm();
+            return em2.executeQuery(q2);
+        }).then(function(data2){
+            var sameEmp = data2.results[0];
+            sameHobbies = sameEmp.getProperty("hobbies");
+            ok(sameHobbies != null && Array.isArray(sameHobbies) && sameHobbies.length > 0, "should have saved hobbies");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    })
+
     test("get embedded orderDetails", function () {
         var em = newEm();
         var q = EntityQuery.from("Orders").where("shipCity", "==", "Stuttgart");
