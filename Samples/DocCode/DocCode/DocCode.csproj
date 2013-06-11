@@ -162,6 +162,13 @@
     <Compile Include="Controllers\FoosController.cs" />
     <Compile Include="Controllers\FoosMetadataController.cs" />
     <Compile Include="Controllers\InheritanceController.cs" />
+    <Compile Include="Controllers\MultiControllers\EmployeesController.cs" />
+    <Compile Include="Controllers\MultiControllers\OrderProcess.cs" />
+    <Compile Include="Controllers\MultiControllers\SearchController.cs" />
+    <Compile Include="Controllers\MultiControllers\OrdersController.cs" />
+    <Compile Include="Controllers\MultiControllers\MultiBaseController.cs" />
+    <Compile Include="Controllers\MultiControllers\CustomersController.cs" />
+    <Compile Include="Controllers\MultiControllers\MultiController.cs" />
     <Compile Include="Controllers\NorthwindController.cs" />
     <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Global.asax.cs">

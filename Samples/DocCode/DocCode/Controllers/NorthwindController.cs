@@ -188,7 +188,7 @@ namespace DocCode.Controllers
         }
 
         /// <summary>
-        /// Get the repo's UserSessionId from value in the request header
+        /// Get the UserSessionId from value in the request header
         /// </summary>
         private Guid getUserSessionId()
         {
