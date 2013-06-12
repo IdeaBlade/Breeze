@@ -577,6 +577,44 @@
             equal(detail.Order(), null,
                 "'detail.Order' should be null");
         });
+    
+    /*********************************************************
+    * Can detach parent and children in one step
+    *********************************************************/
+    test("Can detach parent and children in one step", 3,
+        function () {
+            var unchanged = breeze.EntityState.Unchanged;
+            var detached = breeze.EntityState.Detached;
+            
+            var em = newEm(); // new empty EntityManager
+            var order = em.createEntity('Order', {
+                OrderID: 1
+            }, unchanged);
+            
+            // Add two details to the order (re)
+            var details = [
+                em.createEntity('OrderDetail', {
+                    OrderID: 1, ProductID: 1, Quantity: 1, UnitPrice: 1
+                }, unchanged),
+                em.createEntity('OrderDetail', {
+                    OrderID: 1, ProductID: 2, Quantity: 1, UnitPrice: 1
+                }, unchanged)
+            ];
+
+            // THE MOMENT OF TRUTH
+            [].concat(order.OrderDetails(), order).forEach(function(item) {
+                em.detachEntity(item);
+            });
+
+            var orderStateName = order.entityAspect.entityState.name;
+            var detailStateName = details[0].entityAspect.entityState.name;
+            equal(orderStateName, detached.name,
+                 "parent 'order' should be detached");           
+            equal(detailStateName, detached.name,
+                "first child 'detail' should be detached");
+            ok(!em.hasChanges(),
+                "EntityManager should NOT have pending changes.");
+        });
     /*********************************************************
      * changing a property raises propertyChanged 
      *********************************************************/
