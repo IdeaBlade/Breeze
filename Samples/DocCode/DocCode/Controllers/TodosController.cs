@@ -13,14 +13,14 @@ namespace DocCode.Controllers
         // Todo: inject via an interface rather than "new" the concrete class
         readonly TodosRepository _repository = new TodosRepository();
 
-        // ~/breeze/inheritance/Metadata 
+        // ~/breeze/todos/Metadata 
         [HttpGet]
         public string Metadata()
         {
             return _repository.Metadata;
         }
 
-        // ~/breeze/inheritance/SaveChanges
+        // ~/breeze/todos/SaveChanges
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
