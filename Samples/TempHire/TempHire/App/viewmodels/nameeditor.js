@@ -26,7 +26,7 @@
                         self.lastName(data.lastName());
                     })
                     .fail(self.handleError)
-                    .finally(function() { ref.release(); });
+                    .fin(function() { ref.release(); });
             };
 
             ctor.prototype.canDeactivate = function (close) {
