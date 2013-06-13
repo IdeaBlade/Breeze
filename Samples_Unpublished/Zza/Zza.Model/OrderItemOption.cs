@@ -4,19 +4,19 @@ using Newtonsoft.Json;
 
 namespace Zza.Model
 {
-    public class OrderItemOption : ISaveable
+    public class OrderItemOption : ISaveable, IHasIntId
     {
         [Key]
-        public virtual Int64 Id { get; set; }
+        public virtual long Id { get; set; }
         [JsonIgnore]
         public virtual Guid? StoreId { get; set; }
 
         [Required]
-        public virtual Int64 OrderItemId { get; set; }
+        public virtual long OrderItemId { get; set; }
         [Required]
-        public virtual Int32 ProductOptionId { get; set; }
+        public virtual int ProductOptionId { get; set; }
         [Required]
-        public virtual Int32 Quantity { get; set; }
+        public virtual int Quantity { get; set; }
         [Required]
         public virtual decimal Price { get; set; }
 

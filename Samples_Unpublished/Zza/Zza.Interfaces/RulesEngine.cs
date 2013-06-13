@@ -9,11 +9,16 @@ namespace Zza.Interfaces
     {
         private readonly List<Rule> _rules = new List<Rule>();
 
-        public void AddRule(Rule rule)
+        public Rule AddRule(Rule rule)
         {
             _rules.Add(rule);
+            return rule;
         }
-
+        public DelegateRule<T> AddRule<T>(Action<Rule, T, EntityState, object, ICollection<RuleResult>> action, RuleType ruleType = RuleType.SaveRule)
+        {
+            var rule = new DelegateRule<T>(action, ruleType);
+            return AddRule(rule) as DelegateRule<T>;
+        }
         public bool RemoveRule(Rule rule)
         {
             return _rules.Remove(rule);
@@ -45,7 +50,7 @@ namespace Zza.Interfaces
         private readonly Action<Rule, T, EntityState, object, ICollection<RuleResult>> _action;
         private readonly RuleType _ruleType;
 
-        public DelegateRule(Action<Rule, T, EntityState, object, ICollection<RuleResult>> action, RuleType ruleType)
+        public DelegateRule(Action<Rule, T, EntityState, object, ICollection<RuleResult>> action, RuleType ruleType = RuleType.SaveRule)
         {
             _action = action;
             _ruleType = ruleType;
@@ -63,7 +68,7 @@ namespace Zza.Interfaces
             _action(this, (T)targetObject, operationType, userData, ruleResults);
         }
     }
-
+     
     public class RuleResult
     {
         public RuleResult(Rule rule, RuleResultType resultType, string message)

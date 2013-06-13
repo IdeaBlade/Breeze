@@ -16,7 +16,9 @@ namespace Zza.DataAccess.EF
         {
             _contextProvider = new EFContextProvider<ZzaContext>();
             _entitySaveGuard = new ZzaEntitySaveGuard();
-            _contextProvider.BeforeSaveEntityDelegate += _entitySaveGuard.BeforeSaveEntity;
+            _saveRules = new ZzaSaveRules(saveMap => new SaveDataProvider(saveMap));
+            _contextProvider.BeforeSaveEntitiesDelegate += _saveRules.BeforeSaveEntities;
+            //_contextProvider.BeforeSaveEntityDelegate += _entitySaveGuard.BeforeSaveEntity;
         }
 
         public string Metadata
@@ -125,7 +127,11 @@ namespace Zza.DataAccess.EF
         private readonly EFContextProvider<ZzaContext> _contextProvider;
         private readonly ZzaEntitySaveGuard _entitySaveGuard;
 
+        private readonly ZzaSaveRules _saveRules =
+            new ZzaSaveRules(saveMap => new SaveDataProvider(saveMap));
+
         private const string _guestStoreIdName = "12345678-9ABC-DEF0-1234-56789ABCDEF0";
         private static readonly Guid _guestStoreId = new Guid(_guestStoreIdName);
+
     }
 }

@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Breeze.WebApi;
 using Zza.Model;
+using SaveMap = System.Collections.Generic.Dictionary<
+                System.Type, 
+                System.Collections.Generic.List<Breeze.WebApi.EntityInfo>>;
 
 namespace Zza.Interfaces
 {
     public class ZzaSaveRules
     {
-        private readonly RulesEngine _rulesEngine;
-        private readonly Func<IValidationDataProvider> _dataProviderFactory;
+        private RulesEngine _rulesEngine;
+        private readonly Func<SaveMap, ISaveDataProvider> _dataProviderFactory;
         private readonly Type[] _saveableTypes;
 
-        public ZzaSaveRules(Func<IValidationDataProvider> dataProviderFactory)
+        public ZzaSaveRules(Func<SaveMap, ISaveDataProvider> dataProviderFactory)
         {
-            _rulesEngine = new RulesEngine();
             _dataProviderFactory = dataProviderFactory; 
             _saveableTypes = new[] {
                     typeof(Customer), typeof(Order), typeof(OrderItem), typeof(OrderItemOption) 
@@ -22,14 +23,15 @@ namespace Zza.Interfaces
             AddRules();
         }
 
-        public Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap)
+        public SaveMap BeforeSaveEntities(SaveMap saveMap)
         {
-            var dataProvider = _dataProviderFactory();
-            dataProvider.SaveMap = saveMap;
+            AddRules();
+            var dataProvider = _dataProviderFactory(saveMap);
 
             foreach (var key in saveMap.Keys)
             {
-                if (_saveableTypes.Contains(key)) continue;
+                if (typeof (ISaveable).IsAssignableFrom(key)) continue;
+                //if (_saveableTypes.Contains(key)) continue;
                 const string message = "not authorized to save a '{0}' type.";
                 throw new SaveException(string.Format(message, key));
             }
@@ -47,6 +49,10 @@ namespace Zza.Interfaces
 
         private void AddRules()
         {
+            if (_rulesWereAdded) return;
+            _rulesWereAdded = true; // doing it now
+            _rulesEngine = new RulesEngine();
+
             // EXAMPLE
             //_rulesEngine.AddRule(new DelegateRule<Order>((rule, order, userData, results) =>
             //    {
@@ -69,7 +75,9 @@ namespace Zza.Interfaces
             //                                       "Order total does not match the sum of orderItems"));
             //    }, RuleType.SaveRule));
 
+
         }
+        private bool _rulesWereAdded;
     }
 
     public class SaveException : Exception

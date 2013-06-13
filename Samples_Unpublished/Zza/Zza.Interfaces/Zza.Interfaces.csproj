@@ -38,8 +38,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ISaveDataProvider.cs" />
     <Compile Include="EntityStateExtensions.cs" />
-    <Compile Include="IValidationDataProvider.cs" />
+    <Compile Include="IHasSaveMap.cs" />
     <Compile Include="IZzaRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RulesEngine.cs" />

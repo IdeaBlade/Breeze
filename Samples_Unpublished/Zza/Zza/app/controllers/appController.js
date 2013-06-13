@@ -19,7 +19,7 @@
         });
         
         $rootScope.$on('$routeUpdate', function (event) {
-            console.log("Reloading the route, keeping the same controller instance");
+            console.log("Reloading the route with different query params, keeping the same controller instance");
         });
     }]);
 })();

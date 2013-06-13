@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace Zza.Model
 {
-    public class Customer : ISaveable
+    public class Customer : ISaveable, IHasGuidId
     {
         public Customer()
         {

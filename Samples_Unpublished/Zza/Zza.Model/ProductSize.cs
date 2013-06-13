@@ -1,16 +1,15 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Zza.Model
 {
-    public class ProductSize
+    public class ProductSize : IHasIntId
     {
         public ProductSize()
         {
           IsGlutenFree = false;
         }
         [Key]
-        public virtual Int32 Id { get; set; }
+        public virtual int Id { get; set; }
         [Required, MaxLength(20)]
         public virtual string Type { get; set; }
         [Required, MaxLength(50)]
@@ -20,5 +19,7 @@ namespace Zza.Model
         public virtual decimal? PremiumPrice { get; set; }
         public virtual decimal? ToppingPrice { get; set; }
         public virtual bool? IsGlutenFree { get; set; }
+
+        long IHasIntId.Id { get { return Id; } }
     } 
 }     
