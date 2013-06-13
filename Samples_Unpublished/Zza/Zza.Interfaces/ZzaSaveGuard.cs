@@ -8,11 +8,11 @@ using SaveMap = System.Collections.Generic.Dictionary<
 
 namespace Zza.Interfaces
 {
-    public class ZzaSaveRules
+    public class ZzaSaveGuard
     {
-        public ZzaSaveRules(Func<SaveMap, ISaveDataProvider> dataProviderFactory)
+        public ZzaSaveGuard(Func<SaveMap, ISaveDataProvider> dataProviderFactory)
         {
-            _dataProviderFactory = dataProviderFactory; 
+            _dataProviderFactory = dataProviderFactory;
         }
 
         public SaveMap BeforeSaveEntities(SaveMap saveMap)
@@ -25,7 +25,7 @@ namespace Zza.Interfaces
                 throw new SaveException(string.Format(message, key));
             }
 
-            var rulesEngine = RulesEngine;
+            var rulesEngine = ZzaRulesEngine.Instance;
             var dataProvider = _dataProviderFactory(saveMap);
 
             foreach (var entityInfo in saveMap.Values.SelectMany(x => x))
@@ -39,38 +39,6 @@ namespace Zza.Interfaces
             return saveMap;
         }
 
-        private RulesEngine RulesEngine {
-            get {
-               
-                if (_rulesEngine != null) return _rulesEngine;
-                _rulesEngine = new RulesEngine();
-
-                // EXAMPLE FROM MARCEL
-                //_rulesEngine.AddRule(new DelegateRule<Order>((rule, order, userData, results) =>
-                //    {
-                //        var dataProvider = (ValidationDataProvider) userData;
-                //        if (!dataProvider.CurrentPatient.Eligibility)
-                //        {
-                //            results.Add(new RuleResult(rule, RuleResultType.Error,
-                //                                       "Access denied: Current patient is ineligible"));
-                //            return;
-                //        }
-
-                //        order.OrderDate = DateTime.Today;
-
-                //        if (order.PatientId != UserContext.CurrentPatientId)
-                //            results.Add(new RuleResult(rule, RuleResultType.Error,
-                //                                       "Access denied: Order is not associated with current patient"));
-
-                //        if (order.TotalCost != dataProvider.GetOrderTotal(order.Id))
-                //            results.Add(new RuleResult(rule, RuleResultType.Error,
-                //                                       "Order total does not match the sum of orderItems"));
-                //    }, RuleType.SaveRule));
-                return _rulesEngine;
-            }
-        }
-
-        private RulesEngine _rulesEngine;
         private readonly Func<SaveMap, ISaveDataProvider> _dataProviderFactory;
     }
 

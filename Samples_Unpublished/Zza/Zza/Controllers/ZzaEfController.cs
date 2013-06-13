@@ -20,7 +20,7 @@ namespace Zza.Controllers
 
         protected override void Initialize(System.Web.Http.Controllers.HttpControllerContext controllerContext)
         {
-            _repository.UserStoreId = getUserStoreId();
+            _repository.UserStoreId = GetUserStoreId();
         }
 
         // ~/breeze/ZzaEf/Metadata 
@@ -102,7 +102,7 @@ namespace Zza.Controllers
         /// <summary>
         /// Get the repository UserStoreId from the current request
         /// </summary>
-        private Guid getUserStoreId()
+        private Guid GetUserStoreId()
         {
             try {
                 var id = Request.Headers.GetValues("X-StoreId").First();

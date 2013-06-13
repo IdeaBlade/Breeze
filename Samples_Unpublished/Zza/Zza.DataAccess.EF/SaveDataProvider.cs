@@ -8,9 +8,10 @@ namespace Zza.DataAccess.EF
 {
     internal class SaveDataProvider : ISaveDataProvider
     {
-        public SaveDataProvider(Dictionary<Type, List<EntityInfo>> saveMap)
+        public SaveDataProvider(Dictionary<Type, List<EntityInfo>> saveMap, Guid storeId)
         {
             SaveMap = saveMap;
+            StoreId = storeId;
         }
         private ZzaContext _readContext;
 
@@ -21,6 +22,7 @@ namespace Zza.DataAccess.EF
 
         public Dictionary<Type, List<EntityInfo>> SaveMap { get; set; }
 
+        public Guid StoreId { get; private set; }
 
         public T GetExisting<T>(long id) where T : class, Model.ISaveable, Model.IHasIntId
         {

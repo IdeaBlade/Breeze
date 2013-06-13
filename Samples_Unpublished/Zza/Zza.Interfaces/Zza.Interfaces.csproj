@@ -44,7 +44,8 @@
     <Compile Include="IZzaRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RulesEngine.cs" />
-    <Compile Include="ZzaSaveRules.cs" />
+    <Compile Include="ZzaRulesEngine.cs" />
+    <Compile Include="ZzaSaveGuard.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Zza.Model\Zza.Model.csproj">

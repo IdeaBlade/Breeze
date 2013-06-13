@@ -15,10 +15,6 @@ namespace Zza.DataAccess.EF
         public ZzaRepository()
         {
             _contextProvider = new EFContextProvider<ZzaContext>();
-            _entitySaveGuard = new ZzaEntitySaveGuard();
-            _saveRules = new ZzaSaveRules(saveMap => new SaveDataProvider(saveMap));
-            _contextProvider.BeforeSaveEntitiesDelegate += _saveRules.BeforeSaveEntities;
-            //_contextProvider.BeforeSaveEntityDelegate += _entitySaveGuard.BeforeSaveEntity;
         }
 
         public string Metadata
@@ -29,7 +25,16 @@ namespace Zza.DataAccess.EF
         // Todo: we need a better way to do this signature
         public object SaveChanges(object saveBundle)
         {
+            prepSaveChanges();
             return _contextProvider.SaveChanges(saveBundle as JObject);
+        }
+
+        private void prepSaveChanges()
+        {
+            var saveGuard = new ZzaSaveGuard(saveMap => new SaveDataProvider(saveMap, UserStoreId));
+            _contextProvider.BeforeSaveEntitiesDelegate += saveGuard.BeforeSaveEntities;
+            //var guard = new ZzaEntitySaveGuard();
+            //_contextProvider.BeforeSaveEntityDelegate += guard.BeforeSaveEntity;
         }
 
         public IQueryable<Customer> Customers
@@ -125,10 +130,6 @@ namespace Zza.DataAccess.EF
         }
 
         private readonly EFContextProvider<ZzaContext> _contextProvider;
-        private readonly ZzaEntitySaveGuard _entitySaveGuard;
-
-        private readonly ZzaSaveRules _saveRules =
-            new ZzaSaveRules(saveMap => new SaveDataProvider(saveMap));
 
         private const string _guestStoreIdName = "12345678-9ABC-DEF0-1234-56789ABCDEF0";
         private static readonly Guid _guestStoreId = new Guid(_guestStoreIdName);

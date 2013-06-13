@@ -37,6 +37,7 @@ namespace Zza.DataAccess.EF
                 {
                     case EntityState.Added:
                         saveable.StoreId = UserStoreId;
+                        // SHOULD NOT HAVE TO DO THIS AS ORIG VMAP IS IGNORED ON ADD
                         arg.OriginalValuesMap.Add("StoreId", UserStoreId);
                         saveError = saveable.CanAdd();
                         break;
