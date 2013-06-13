@@ -10,74 +10,68 @@ namespace Zza.Interfaces
 {
     public class ZzaSaveRules
     {
-        private RulesEngine _rulesEngine;
-        private readonly Func<SaveMap, ISaveDataProvider> _dataProviderFactory;
-        private readonly Type[] _saveableTypes;
-
         public ZzaSaveRules(Func<SaveMap, ISaveDataProvider> dataProviderFactory)
         {
             _dataProviderFactory = dataProviderFactory; 
-            _saveableTypes = new[] {
-                    typeof(Customer), typeof(Order), typeof(OrderItem), typeof(OrderItemOption) 
-                };
-            AddRules();
         }
 
         public SaveMap BeforeSaveEntities(SaveMap saveMap)
         {
-            AddRules();
-            var dataProvider = _dataProviderFactory(saveMap);
-
             foreach (var key in saveMap.Keys)
             {
                 if (typeof (ISaveable).IsAssignableFrom(key)) continue;
-                //if (_saveableTypes.Contains(key)) continue;
+                //if (_saveableTypes.Contains(key)) continue; // if varied for some reason
                 const string message = "not authorized to save a '{0}' type.";
                 throw new SaveException(string.Format(message, key));
             }
 
+            var rulesEngine = RulesEngine;
+            var dataProvider = _dataProviderFactory(saveMap);
+
             foreach (var entityInfo in saveMap.Values.SelectMany(x => x))
             {
-                var results = _rulesEngine.ExecuteRules(entityInfo, RuleType.SaveRule, dataProvider).ToList();
-                if (results.Ok()) continue;
-
-                throw new SaveException(results.Errors());
+                var results = rulesEngine.ExecuteSaveRules(entityInfo, dataProvider).ToList();
+                if (!results.Ok()) {
+                    throw new SaveException(results.Errors()); 
+                }
             }
 
             return saveMap;
         }
 
-        private void AddRules()
-        {
-            if (_rulesWereAdded) return;
-            _rulesWereAdded = true; // doing it now
-            _rulesEngine = new RulesEngine();
+        private RulesEngine RulesEngine {
+            get {
+               
+                if (_rulesEngine != null) return _rulesEngine;
+                _rulesEngine = new RulesEngine();
 
-            // EXAMPLE
-            //_rulesEngine.AddRule(new DelegateRule<Order>((rule, order, userData, results) =>
-            //    {
-            //        var dataProvider = (ValidationDataProvider) userData;
-            //        if (!dataProvider.CurrentPatient.Eligibility)
-            //        {
-            //            results.Add(new RuleResult(rule, RuleResultType.Error,
-            //                                       "Access denied: Current patient is ineligible"));
-            //            return;
-            //        }
+                // EXAMPLE FROM MARCEL
+                //_rulesEngine.AddRule(new DelegateRule<Order>((rule, order, userData, results) =>
+                //    {
+                //        var dataProvider = (ValidationDataProvider) userData;
+                //        if (!dataProvider.CurrentPatient.Eligibility)
+                //        {
+                //            results.Add(new RuleResult(rule, RuleResultType.Error,
+                //                                       "Access denied: Current patient is ineligible"));
+                //            return;
+                //        }
 
-            //        order.OrderDate = DateTime.Today;
+                //        order.OrderDate = DateTime.Today;
 
-            //        if (order.PatientId != UserContext.CurrentPatientId)
-            //            results.Add(new RuleResult(rule, RuleResultType.Error,
-            //                                       "Access denied: Order is not associated with current patient"));
+                //        if (order.PatientId != UserContext.CurrentPatientId)
+                //            results.Add(new RuleResult(rule, RuleResultType.Error,
+                //                                       "Access denied: Order is not associated with current patient"));
 
-            //        if (order.TotalCost != dataProvider.GetOrderTotal(order.Id))
-            //            results.Add(new RuleResult(rule, RuleResultType.Error,
-            //                                       "Order total does not match the sum of orderItems"));
-            //    }, RuleType.SaveRule));
-
-
+                //        if (order.TotalCost != dataProvider.GetOrderTotal(order.Id))
+                //            results.Add(new RuleResult(rule, RuleResultType.Error,
+                //                                       "Order total does not match the sum of orderItems"));
+                //    }, RuleType.SaveRule));
+                return _rulesEngine;
+            }
         }
-        private bool _rulesWereAdded;
+
+        private RulesEngine _rulesEngine;
+        private readonly Func<SaveMap, ISaveDataProvider> _dataProviderFactory;
     }
 
     public class SaveException : Exception

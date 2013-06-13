@@ -296,17 +296,30 @@ function __requireLib(libNames, errMessage) {
         var lib = __requireLibCore(arrNames[i]);
         if (lib) return lib;
     }
-    throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
+    if (errMessage) {
+        throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
+    }
 }
     
 function __requireLibCore(libName) {
-    var lib = window[libName];
-    if (lib) return lib;
-    if (window.require) {
-        lib = window.require(libName);
+    var lib;
+    try {
+        if (this.window) {
+            var window = this.window;
+            var lib = window[libName];
+            if (lib) return lib;
+            if (window.require) {
+                lib = window.require(libName);
+            }
+            if (lib) return lib;
+        }
+        if (require) {
+            lib = require(libName);
+        }
+    } catch(e) {
+
     }
-    if (lib) return lib;
-    return null;
+    return lib;
 }
 
 function __using(obj, property, tempValue, fn) {
@@ -1745,6 +1758,169 @@ var __modelLibraryDef = __config.interfaceRegistry.modelLibrary;
 core.config = __config;
 
 breeze.config = __config;
+
+var observableArray = function() {
+
+    var mixin = {};
+    mixin.push = function() {
+        if (this._inProgress) {
+            return -1;
+        }
+
+        var goodAdds = this._getGoodAdds(__arraySlice(arguments));
+        if (!goodAdds.length) {
+            return this.length;
+        }
+        this._beforeChange();
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    };
+
+    mixin._push = function () {
+        if (this._inProgress) {
+            return -1;
+        }
+        var goodAdds = __arraySlice(arguments);
+        this._beforeChange();
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    }
+
+    mixin.unshift = function () {
+        var goodAdds = this._getGoodAdds( __arraySlice(arguments));
+        if (!goodAdds.length) {
+            return this.length;
+        }
+        this._beforeChange();
+        var result = Array.prototype.unshift.apply(this, goodAdds);
+        processAdds(this, __arraySlice(goodAdds));
+        return result;
+    };
+
+    mixin.pop = function () {
+        this._beforeChange();
+        var result = Array.prototype.pop.apply(this);
+        processRemoves(this, [result]);
+        return result;
+    };
+
+    mixin.shift = function () {
+        this._beforeChange();
+        var result = Array.prototype.shift.apply(this);
+        processRemoves(this, [result]);
+        return result;
+    };
+
+    mixin.splice = function () {
+        var goodAdds = this._getGoodAdds( __arraySlice(arguments, 2));
+        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
+        this._beforeChange();
+        var result = Array.prototype.splice.apply(this, newArgs);
+        processRemoves(this, result);
+
+        if (goodAdds.length) {
+            processAdds(this, goodAdds);
+        }
+        return result;
+    };
+
+    mixin._getEventParent = function () {
+        return this.entityAspect;
+    };
+
+    mixin._getPendingPubs = function () {
+        var em = this.entityAspect.entityManager;
+        return em && em._pendingPubs;
+    };
+
+    mixin._beforeChange = function() {
+        // default is to do nothing
+    }
+
+    function updateEntityState(obsArray) {
+        var entityAspect = obsArray.entityAspect;
+        if (entityAspect.entityState.isUnchanged()) {
+            entityAspect.setModified();
+        }
+        if (entityAspect.entityState.isModified() && !obsArray._origValues) {
+            obsArray._origValues = obsArray.slice(0);
+        }
+    }
+
+    function processAdds(obsArray, adds) {
+        obsArray._processAdds(adds);
+        // this is referencing the name of the method on the complexArray not the name of the event
+        //var args = { added: adds };
+        //args[obsArray._typeName] = obsArray;
+        publish(obsArray, "arrayChanged", { array: obsArray, added: adds });
+    }
+
+    function processRemoves(obsArray, removes) {
+        obsArray._processRemoves(removes);
+        // this is referencing the name of the method on the array not the name of the event
+        publish(obsArray, "arrayChanged", { array: obsArray, removed: removes });
+    }
+
+    function publish(publisher, eventName, eventArgs) {
+        var pendingPubs = publisher._getPendingPubs();
+        if (pendingPubs) {
+            if (!publisher._pendingArgs) {
+                publisher._pendingArgs = eventArgs;
+                pendingPubs.push(function() {
+                    publisher[eventName].publish(publisher._pendingArgs);
+                    publisher._pendingArgs = null;
+                });
+            } else {
+                combineArgs(publisher._pendingArgs, eventArgs);
+            }
+        } else {
+            publisher[eventName].publish(eventArgs);
+        }
+    }
+
+    function combineArgs(target, source) {
+        for (var key in source) {
+            if (key !== "array" && target.hasOwnProperty(key)) {
+                var sourceValue = source[key];
+                var targetValue = target[key];
+                if (targetValue) {
+                    if (!Array.isArray(targetValue)) {
+                        throw new Error("Cannot combine non array args");
+                    }
+                    Array.prototype.push.apply(targetValue, sourceValue);
+                } else {
+                    target[key] = sourceValue;
+                }
+            }
+        }
+    }
+
+    function initializeParent(obsArray, parent, parentProperty) {
+        obsArray.parent = parent;
+        obsArray.parentProperty = parentProperty;
+        obsArray.propertyPath = parentProperty.name;
+        // get the final parent's entityAspect.
+        var nextParent = parent;
+        while (nextParent.complexType) {
+            obsArray.propertyPath = nextParent.complexAspect.propertyPath + "." + obsArray.propertyPath;
+            nextParent = nextParent.complexAspect.parent;
+        }
+        obsArray.entityAspect = nextParent.entityAspect;
+    }
+
+
+    return {
+        mixin: mixin,
+        publish: publish,
+        updateEntityState: updateEntityState,
+        initializeParent: initializeParent
+    };
+
+
+
+}();
 /**
 @module breeze
 **/
@@ -2640,105 +2816,49 @@ breeze.makeComplexArray = function() {
     @readOnly
     **/
 
-    complexArrayMixin.push = function() {
-        if (this._inProgress) {
-            return -1;
-        }
+    // virtual impls 
+    complexArrayMixin._getGoodAdds = function (adds) {
+        return getGoodAdds(this, adds);
+    }
 
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
-    };
+    complexArrayMixin._beforeChange = function() {
+        observableArray.updateEntityState(this);
+    }
 
+    complexArrayMixin._processAdds = function (adds) {
+        processAdds(this, adds);
+    }
 
-    complexArrayMixin.unshift = function () {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
+    complexArrayMixin._processRemoves = function (removes) {
+        processRemoves(this, removes);
+    }
+    //
 
-        var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, __arraySlice(goodAdds));
-        return result;
-    };
-
-    complexArrayMixin.pop = function () {
-        var result = Array.prototype.pop.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    complexArrayMixin.shift = function () {
-        var result = Array.prototype.shift.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    complexArrayMixin.splice = function () {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
-        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
-
-        var result = Array.prototype.splice.apply(this, newArgs);
-        processRemoves(this, result);
-
-        if (goodAdds.length) {
-            processAdds(this, goodAdds);
-        }
-        return result;
-    };
-
-  
-    complexArrayMixin._getEventParent = function () {
-        return this.entityAspect;
-    };
-
-    complexArrayMixin._getPendingPubs = function () {
-        var em = this.entityAspect.entityManager;
-        return em && em._pendingPubs;
-    };
-
-    complexArrayMixin._rejectAddedRemoved = function() {
+    complexArrayMixin._rejectChanges = function() {
+        if (!this._origValues) return;
         var that = this;
-        this._added.forEach(function(co) {
-            __arrayRemoveItem(that, co);
+        this.forEach(function(co) {
             clearAspect(co, that);
-        } );
-        this._removed.forEach(function(co) {
+        });
+        this.length = 0;
+        this._origValues.forEach(function(co) {
             that.push(co);
-            setAspect(co, that);
-        } );
-        this._added = [];
-        this._removed = [];
+        });
+        Array.prototype.push.apply(this, this._origValues);
     }
 
-    complexArrayMixin._acceptAddedRemoved = function() {
-        this._added.concat(this._removed).forEach(function(co) {
-              co.complexAspect._state = null;
-        } );
-        this._added = [];
-        this._removed = [];
+    complexArrayMixin._acceptChanges = function() {
+        this._origValues = null;
     }
+
+    // local functions
+
 
     function getGoodAdds(complexArray, adds) {
-        var goodAdds = checkForDups(complexArray, adds);
-        if (!goodAdds.length) {
-            return goodAdds;
-        }
-     
-        return goodAdds;
-    }
-
-    function checkForDups(complexArray, adds) {
-        // don't check for real dups yet.
         // remove any that are already added here
         return adds.filter(function (a) {
             return a.parent != complexArray.parent;
         });
-
     }
 
     function processAdds(complexArray, adds) {
@@ -2746,134 +2866,45 @@ breeze.makeComplexArray = function() {
             if (a.parent != null) {
                 throw new Error("The complexObject is already attached. Either clone it or remove it from its current owner");
             }
-            attach(a, complexArray);
+            setAspect(a, complexArray);
         });
-        // this is referencing the name of the method on the complexArray not the name of the event
-        publish(complexArray, "arrayChanged", { complexArray: complexArray, added: adds });
-
     }
 
     function processRemoves(complexArray, removes) {
         removes.forEach(function (a) {
-            detach(a, complexArray);
+            clearAspect(a, complexArray);
         });
-        // this is referencing the name of the method on the relationArray not the name of the event
-        publish(complexArray, "arrayChanged", { complexArray: complexArray, removed: removes });
-    }
-
-
-    function publish(publisher, eventName, eventArgs) {
-        var pendingPubs = publisher._getPendingPubs();
-        if (pendingPubs) {
-            if (!publisher._pendingArgs) {
-                publisher._pendingArgs = eventArgs;
-                pendingPubs.push(function() {
-                    publisher[eventName].publish(publisher._pendingArgs);
-                    publisher._pendingArgs = null;
-                });
-            } else {
-                combineArgs(publisher._pendingArgs, eventArgs);
-            }
-        } else {
-            publisher[eventName].publish(eventArgs);
-        }
-    }
-
-    function combineArgs(target, source) {
-        for (var key in source) {
-            if (key !== "complexArray" && target.hasOwnProperty(key)) {
-                var sourceValue = source[key];
-                var targetValue = target[key];
-                if (targetValue) {
-                    if (!Array.isArray(targetValue)) {
-                        throw new Error("Cannot combine non array args");
-                    }
-                    Array.prototype.push.apply(targetValue, sourceValue);
-                } else {
-                    target[key] = sourceValue;
-                }
-            }
-        }
-    }
-
-    function attach(co, arr) {
-        var aspect = setAspect(co, arr);
-        // if already attached - exit
-        if (!aspect) return;
-
-        if (aspect._state === "R") {
-            // unremove
-            __arrayRemoveItem(arr._removed, co);
-            aspect._state = null;
-        } else {
-            aspect._state = "A"
-            arr._added.push(co);
-            if (arr.entityAspect.entityState.isUnchanged()) {
-                arr.entityAspect.setModified();
-            }
-        }
-    }
-
-    function detach(co, arr) {
-        var aspect = clearAspect(co, arr);
-        // if not already attached - exit
-        if (!aspect) return;
-
-        if (aspect._state === "A") {
-            // unAdd
-            __arrayRemoveItem(arr._added, co);
-            aspect._state = null;
-        } else {
-            aspect._state = "R"
-            arr._removed.push(co);
-            if (arr.entityAspect.entityState.isUnchanged()) {
-                arr.entityAspect.setModified();
-            }
-        }
     }
 
     function clearAspect(co, arr) {
-        var aspect = co.complexAspect;
+        var coAspect = co.complexAspect;
         // if not already attached - exit
-        if (aspect.parent !== arr.parent) return null;
+        if (coAspect.parent !== arr.parent) return null;
 
-        aspect.parent = null;
-        aspect.parentProperty = null;
-        aspect.propertyPath = null;
-        aspect.entityAspect = null;
-        return aspect;
+        coAspect.parent = null;
+        coAspect.parentProperty = null;
+        coAspect.propertyPath = null;
+        coAspect.entityAspect = null;
+        return coAspect;
     }
 
     function setAspect(co, arr) {
-        var aspect = co.complexAspect;
+        var coAspect = co.complexAspect;
         // if already attached - exit
-        if (aspect.parent === arr.parent) return null;
-        aspect.parent = arr.parent;
-        aspect.parentProperty = arr.parentProperty;
-        aspect.propertyPath = arr.propertyPath;
-        aspect.entityAspect = arr.entityAspect;
+        if (coAspect.parent === arr.parent) return null;
+        coAspect.parent = arr.parent;
+        coAspect.parentProperty = arr.parentProperty;
+        coAspect.propertyPath = arr.propertyPath;
+        coAspect.entityAspect = arr.entityAspect;
 
-        return aspect;
+        return coAspect;
     }
 
     function makeComplexArray(arr, parent, parentProperty) {
 
-        arr.parent = parent;
-        arr.parentProperty = parentProperty;
-        arr.propertyPath = parentProperty.name;
-        // get the final parent's entityAspect.
-        var nextParent = parent;
-        while (nextParent.complexType) {
-            arr.propertyPath = nextParent.complexAspect.propertyPath + "." + arr.propertyPath;
-            nextParent = nextParent.complexAspect.parent;
-        }
-        arr.entityAspect = nextParent.entityAspect;
-
+        observableArray.initializeParent(arr, parent, parentProperty);
         arr.arrayChanged = new Event("arrayChanged_complexArray", arr);
-        // array of pushes currently in process on this relation array - used to prevent recursion.
-        arr._addsInProcess = [];
-        arr._added = [];
-        arr._removed = [];
+        __extend(arr, observableArray.mixin);
         return __extend(arr, complexArrayMixin);
     }
 
@@ -3260,7 +3291,7 @@ var EntityAspect = function() {
             if (cp.isScalar) {
                 rejectChangesCore(cos);
             } else {
-                cos._rejectAddedRemoved();
+                cos._rejectChanges();
                 cos.forEach(function (co) { rejectChangesCore(co); });
             }
         });
@@ -3290,7 +3321,7 @@ var EntityAspect = function() {
             if (cp.isScalar) {
                 clearOriginalValues(cos);
             } else {
-                cos._acceptAddedRemoved();
+                cos._acceptChanges();
                 cos.forEach(function (co) { clearOriginalValues(co); });
             }
         });
@@ -4099,7 +4130,93 @@ var EntityState = (function () {
    
 breeze.EntityState= EntityState;
 
+breeze.makePrimitiveArray = function() {
+    var primitiveArrayMixin = {};
+
+    // complexArray will have the following props
+    //    parent
+    //    propertyPath
+    //    parentProperty
+    //    addedItems  - only if modified
+    //    removedItems  - only if modified
+    //  each complexAspect of any entity within a complexArray
+    //  will have its own _complexState = "A/M";
+
+    /**
+    Primitive arrays are not actually classes, they are objects that mimic arrays. A primitive array is collection of
+    primitive types associated with a data property on a single entity or complex object. i.e. customer.invoiceNumbers.
+    This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
+    are all provided as well as several special purpose methods. 
+    @class ↈ_primitiveArray_
+    **/
+
+    /**
+    An {{#crossLink "Event"}}{{/crossLink}} that fires whenever the contents of this array changed.  This event
+    is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
+    Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
+    collections are collected into a single notification event for each relation array.
+    @example
+        // assume order is an order entity attached to an EntityManager.
+        orders.arrayChanged.subscribe(
+            function (arrayChangedArgs) {
+                var addedEntities = arrayChangedArgs.added;
+                var removedEntities = arrayChanged.removed;
+            });
+    @event arrayChanged 
+    @param added {Array of Primitives} An array of all of the items added to this collection.
+    @param removed {Array of Primitives} An array of all of the items removed from this collection.
+    @readOnly
+    **/
+
+    // virtual impls 
+    primitiveArrayMixin._getGoodAdds = function (adds) {
+        return adds;
+    }
+
+    primitiveArrayMixin._beforeChange = function() {
+        var entityAspect = this.entityAspect;
+        if (entityAspect.entityState.isUnchanged()) {
+            entityAspect.setModified();
+        }
+        if (entityAspect.entityState.isModified() && !this._origValues) {
+            this._origValues = this.slice(0);
+        }
+    }
+
+    primitiveArrayMixin._processAdds = function (adds) {
+        // nothing needed
+    }
+
+    primitiveArrayMixin._processRemoves = function (removes) {
+        // nothing needed;
+    }
+    //
+
+    primitiveArrayMixin._rejectChanges = function() {
+        if (!this._origValues) return;
+        this.length = 0;
+        Array.prototype.push.apply(this, this._origValues);
+    }
+
+    primitiveArrayMixin._acceptChanges = function() {
+        this._origValues = null;
+    }
+
+    // local functions
+
+    function makePrimitiveArray(arr, parent, parentProperty) {
+
+        observableArray.initializeParent(arr, parent, parentProperty);
+        arr.arrayChanged = new Event("arrayChanged_primitiveArray", arr);
+        __extend(arr, observableArray.mixin);
+        return __extend(arr, primitiveArrayMixin);
+    }
+
+    return makePrimitiveArray;
+}();
+
 breeze.makeRelationArray = function() {
+
     var relationArrayMixin = {};
 
     /**
@@ -4128,67 +4245,6 @@ breeze.makeRelationArray = function() {
     @readOnly
     **/
 
-    relationArrayMixin.push = function() {
-        if (this._inProgress) {
-            return -1;
-        }
-
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
-    };
-
-    relationArrayMixin._push = function () {
-        if (this._inProgress) {
-            return -1;
-        }
-        var goodAdds = __arraySlice(arguments);
-
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
-    }
-
-
-    relationArrayMixin.unshift = function() {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-
-        var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, __arraySlice(goodAdds));
-        return result;
-    };
-
-    relationArrayMixin.pop = function() {
-        var result = Array.prototype.pop.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    relationArrayMixin.shift = function() {
-        var result = Array.prototype.shift.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    relationArrayMixin.splice = function() {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
-        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
-
-        var result = Array.prototype.splice.apply(this, newArgs);
-        processRemoves(this, result);
-
-        if (goodAdds.length) {
-            processAdds(this, goodAdds);
-        }
-        return result;
-    };
 
     /**
     Performs an asynchronous load of all other the entities associated with this relationArray.
@@ -4217,6 +4273,20 @@ breeze.makeRelationArray = function() {
         return em && em._pendingPubs;
     };
 
+    // virtual impls 
+    relationArrayMixin._getGoodAdds = function(adds) {
+        return getGoodAdds(this, adds);
+    }
+
+    relationArrayMixin._processAdds = function(adds) {
+        processAdds(this, adds);
+    }
+
+    relationArrayMixin._processRemoves = function(removes)  {
+        processRemoves(this, removes);
+    }
+    //
+
     function getGoodAdds(relationArray, adds) {
         var goodAdds = checkForDups(relationArray, adds);
         if (!goodAdds.length) {
@@ -4227,7 +4297,7 @@ breeze.makeRelationArray = function() {
         // we do not want to attach an entity during loading
         // because these will all be 'attached' at a later step.
         if (entityManager && !entityManager.isLoading) {
-            goodAdds.forEach(function(add) {
+            goodAdds.forEach(function (add) {
                 if (add.entityAspect.entityState.isDetached()) {
                     relationArray._inProgress = true;
                     try {
@@ -4239,6 +4309,42 @@ breeze.makeRelationArray = function() {
             });
         }
         return goodAdds;
+    }
+
+    function processAdds(relationArray, adds) {
+        var parentEntity = relationArray.parentEntity;
+        var np = relationArray.navigationProperty;
+        var addsInProcess = relationArray._addsInProcess;
+
+        var invNp = np.inverse;
+        var startIx = addsInProcess.length;
+        try {
+            adds.forEach(function (childEntity) {
+                addsInProcess.push(childEntity);
+                if (invNp) {
+                    childEntity.setProperty(invNp.name, parentEntity);
+                } else {
+                    // This occurs with a unidirectional 1-n navigation - in this case
+                    // we need to update the fks instead of the navProp
+                    var pks = parentEntity.entityType.keyProperties;
+                    np.invForeignKeyNames.forEach(function (fk, i) {
+                        childEntity.setProperty(fk, parentEntity.getProperty(pks[i].name));
+                    });
+                }
+            });
+        } finally {
+            addsInProcess.splice(startIx, adds.length);
+        }
+
+    }
+
+    function processRemoves(relationArray, removes) {
+        var inp = relationArray.navigationProperty.inverse;
+        if (inp) {
+            removes.forEach(function (childEntity) {
+                childEntity.setProperty(inp.name, null);
+            });
+        }
     }
 
     function checkForDups(relationArray, adds) {
@@ -4270,89 +4376,9 @@ breeze.makeRelationArray = function() {
                     return keyVal !== fkVal;
                 });
             });
-            // unidirectional navigation defined where 1->N but NOT N->1 ( fairly rare use case)
-            // TODO: This is not complete. We really do need to elim dups.
-            // throw new Error("Breeze does not YET support unidirectional navigation where navigation is only defined in the 1 -> n direction.  Unidirectional navigation in the opposite direction is supported.");
         }
         return goodAdds;
     }
-
-
-    function processAdds(relationArray, adds) {
-        var parentEntity = relationArray.parentEntity;
-        var np = relationArray.navigationProperty;
-        var invNp = np.inverse;
-        
-        var addsInProcess = relationArray._addsInProcess;
-        var startIx = addsInProcess.length;
-        try {
-            adds.forEach(function(childEntity) {
-                addsInProcess.push(childEntity);
-                if (invNp) {
-                    childEntity.setProperty(invNp.name, parentEntity);
-                } else {
-                    // This occurs with a unidirectional 1-n navigation - in this case
-                    // we need to update the fks instead of the navProp
-                    var pks = parentEntity.entityType.keyProperties;
-                    np.invForeignKeyNames.forEach(function (fk, i) {
-                        childEntity.setProperty(fk, parentEntity.getProperty(pks[i].name));
-                    });
-                }
-            });
-        } finally {
-            addsInProcess.splice(startIx, adds.length);
-        }
-        
-        // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { relationArray: relationArray, added: adds });
-
-    }
-
-    function publish(publisher, eventName, eventArgs) {
-        var pendingPubs = publisher._getPendingPubs();
-        if (pendingPubs) {
-            if (!publisher._pendingArgs) {
-                publisher._pendingArgs = eventArgs;
-                pendingPubs.push(function() {
-                    publisher[eventName].publish(publisher._pendingArgs);
-                    publisher._pendingArgs = null;
-                });
-            } else {
-                combineArgs(publisher._pendingArgs, eventArgs);
-            }
-        } else {
-            publisher[eventName].publish(eventArgs);
-        }
-    }
-
-    function combineArgs(target, source) {
-        for (var key in source) {
-            if (key !== "relationArray" && target.hasOwnProperty(key)) {
-                var sourceValue = source[key];
-                var targetValue = target[key];
-                if (targetValue) {
-                    if (!Array.isArray(targetValue)) {
-                        throw new Error("Cannot combine non array args");
-                    }
-                    Array.prototype.push.apply(targetValue, sourceValue);
-                } else {
-                    target[key] = sourceValue;
-                }
-            }
-        }
-    }
-
-    function processRemoves(relationArray, removes) {
-        var inp = relationArray.navigationProperty.inverse;
-        if (inp) {
-            removes.forEach(function(childEntity) {
-                childEntity.setProperty(inp.name, null);
-            });
-        }
-        // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { relationArray: relationArray, removed: removes });
-    }
-
 
     function makeRelationArray(arr, parentEntity, navigationProperty) {
         arr.parentEntity = parentEntity;
@@ -4360,6 +4386,8 @@ breeze.makeRelationArray = function() {
         arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
         // array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
+        // need to use mixins here instead of inheritance because we are starting from an existing array object.
+        __extend(arr, observableArray.mixin);
         return __extend(arr, relationArrayMixin);
     }
 
@@ -4375,7 +4403,11 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     var dataType = property.dataType;
     if (dataType && dataType.parse) {
         // attempts to coerce a value to the correct type - if this fails return the value unchanged
-        newValue = dataType.parse(newValue, typeof newValue);
+        if (Array.isArray(newValue) && !property.isScalar) {
+            newValue = newValue.map(function(nv) { return dataType.parse(nv, typeof nv); });
+        } else {
+            newValue = dataType.parse(newValue, typeof newValue);
+        }
     }
 
     // exit if no change - extra cruft is because dateTimes don't compare cleanly.
@@ -4401,7 +4433,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     } else {
         localAspect = this.complexAspect;
         entityAspect = localAspect.entityAspect;
-        // if complexType is standalone - i.e. doesn't have a pareent - don't try to calc a fullPropName;
+        // if complexType is standalone - i.e. doesn't have a parent - don't try to calc a fullPropName;
         propPath = (localAspect.parent) ?
             localAspect.propertyPath + "." + propName :
             propName;
@@ -5641,12 +5673,13 @@ var MetadataStore = (function () {
     proto.importMetadata = function (exportedMetadata) {
 
         this._deferredTypes = {};
+        var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
 
-        if (exportedMetadata.schema) {
-            return CsdlMetadataParser.parse(this, exportedMetadata.schema);
+        if (json.schema) {
+            return CsdlMetadataParser.parse(this, json.schema);
         } 
 
-        var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
+
         if (json.metadataVersion && json.metadataVersion !== breeze.metadataVersion) {
             var msg = __formatString("Cannot import metadata with a different 'metadataVersion' (%1) than the current 'breeze.metadataVersion' (%2) ",
                 json.metadataVersion, breeze.metadataVersion);
@@ -13646,20 +13679,14 @@ breeze.AbstractDataServiceAdapter = (function () {
 // needs JQuery
 (function(factory) {
     // Module systems magic dance.
-
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"]) {
         // AMD anonymous module with hard-coded dependency on "breeze"
-        if (breeze) {
-            factory(breeze);
-        } else {
-            define(["breeze"], factory);
-        }
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
+        define(["breeze"], factory);
     }
 }(function(breeze) {
     var core = breeze.core;
@@ -13672,10 +13699,15 @@ breeze.AbstractDataServiceAdapter = (function () {
     };
 
     ctor.prototype.initialize = function () {
-        jQuery = core.requireLib("jQuery", "needed for 'ajax_jQuery' pluggin");
+        // jQuery = core.requireLib("jQuery", "needed for 'ajax_jQuery' pluggin", true);
+        // for the time being don't fail if not found
+        jQuery = core.requireLib("jQuery");
     };
 
     ctor.prototype.ajax = function (settings) {
+        if (!jQuery) {
+            throw new Error("Unable to locate jQuery");
+        }
         if (! core.isEmpty(this.defaultSettings)) {
             var compositeSettings = core.extend({}, this.defaultSettings);
             core.extend(compositeSettings, settings);
@@ -13691,16 +13723,15 @@ breeze.AbstractDataServiceAdapter = (function () {
     
 }));
 (function(factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
-    }    
+    }
 }(function(breeze) {
        
     var core = breeze.core;
@@ -13820,100 +13851,101 @@ breeze.AbstractDataServiceAdapter = (function () {
      * Javascript class that mimics how WCF serializes a object of type MongoDB.Bson.ObjectId
      * and converts between that format and the standard 24 character representation.
     */
-    var ObjectId = (function () {
-        var increment = 0;
-        var pid = Math.floor(Math.random() * (32767));
-        var machine = Math.floor(Math.random() * (16777216));
+    if (this.document) {
+        var ObjectId = (function () {
+            var increment = 0;
+            var pid = Math.floor(Math.random() * (32767));
+            var machine = Math.floor(Math.random() * (16777216));
 
-        if (typeof (localStorage) != 'undefined') {
-            var mongoMachineId = parseInt(localStorage['mongoMachineId']);
-            if (mongoMachineId >= 0 && mongoMachineId <= 16777215) {
-                machine = Math.floor(localStorage['mongoMachineId']);
-            }
-            // Just always stick the value in.
-            localStorage['mongoMachineId'] = machine;
-            document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT'
-        }
-        else {
-            var cookieList = document.cookie.split('; ');
-            for (var i in cookieList) {
-                var cookie = cookieList[i].split('=');
-                if (cookie[0] == 'mongoMachineId' && cookie[1] >= 0 && cookie[1] <= 16777215) {
-                    machine = cookie[1];
-                    break;
+            if (typeof (localStorage) != 'undefined') {
+                var mongoMachineId = parseInt(localStorage['mongoMachineId']);
+                if (mongoMachineId >= 0 && mongoMachineId <= 16777215) {
+                    machine = Math.floor(localStorage['mongoMachineId']);
                 }
+                // Just always stick the value in.
+                localStorage['mongoMachineId'] = machine;
+                document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT'
             }
-            document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT';
+            else if (document) {
+                var cookieList = document.cookie.split('; ');
+                for (var i in cookieList) {
+                    var cookie = cookieList[i].split('=');
+                    if (cookie[0] == 'mongoMachineId' && cookie[1] >= 0 && cookie[1] <= 16777215) {
+                        machine = cookie[1];
+                        break;
+                    }
+                }
+                document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT';
 
+            }
+
+            return function () {
+                if (!(this instanceof ObjectId)) {
+                    return new ObjectId(arguments[0], arguments[1], arguments[2], arguments[3]).toString();
+                }
+
+                if (typeof (arguments[0]) == 'object') {
+                    this.timestamp = arguments[0].timestamp;
+                    this.machine = arguments[0].machine;
+                    this.pid = arguments[0].pid;
+                    this.increment = arguments[0].increment;
+                }
+                else if (typeof (arguments[0]) == 'string' && arguments[0].length == 24) {
+                    this.timestamp = Number('0x' + arguments[0].substr(0, 8)),
+                    this.machine = Number('0x' + arguments[0].substr(8, 6)),
+                    this.pid = Number('0x' + arguments[0].substr(14, 4)),
+                    this.increment = Number('0x' + arguments[0].substr(18, 6))
+                }
+                else if (arguments.length == 4 && arguments[0] != null) {
+                    this.timestamp = arguments[0];
+                    this.machine = arguments[1];
+                    this.pid = arguments[2];
+                    this.increment = arguments[3];
+                }
+                else {
+                    this.timestamp = Math.floor(new Date().valueOf() / 1000);
+                    this.machine = machine;
+                    this.pid = pid;
+                    if (increment > 0xffffff) {
+                        increment = 0;
+                    }
+                    this.increment = increment++;
+
+                }
+            };
+        })();
+
+        ObjectId.prototype.getDate = function () {
+            return new Date(this.timestamp * 1000);
         }
 
-        return function () {
-            if (!(this instanceof ObjectId)) {
-                return new ObjectId(arguments[0], arguments[1], arguments[2], arguments[3]).toString();
-            }
-
-            if (typeof (arguments[0]) == 'object') {
-                this.timestamp = arguments[0].timestamp;
-                this.machine = arguments[0].machine;
-                this.pid = arguments[0].pid;
-                this.increment = arguments[0].increment;
-            }
-            else if (typeof (arguments[0]) == 'string' && arguments[0].length == 24) {
-                this.timestamp = Number('0x' + arguments[0].substr(0, 8)),
-                this.machine = Number('0x' + arguments[0].substr(8, 6)),
-                this.pid = Number('0x' + arguments[0].substr(14, 4)),
-                this.increment = Number('0x' + arguments[0].substr(18, 6))
-            }
-            else if (arguments.length == 4 && arguments[0] != null) {
-                this.timestamp = arguments[0];
-                this.machine = arguments[1];
-                this.pid = arguments[2];
-                this.increment = arguments[3];
-            }
-            else {
-                this.timestamp = Math.floor(new Date().valueOf() / 1000);
-                this.machine = machine;
-                this.pid = pid;
-                if (increment > 0xffffff) {
-                    increment = 0;
-                }
-                this.increment = increment++;
-
-            }
-        };
-    })();
-
-    ObjectId.prototype.getDate = function () {
-        return new Date(this.timestamp * 1000);
-    }
-
-    /**
-    * Turns a WCF representation of a BSON ObjectId into a 24 character string representation.
-    */
-    ObjectId.prototype.toString = function () {
-        var timestamp = this.timestamp.toString(16);
-        var machine = this.machine.toString(16);
-        var pid = this.pid.toString(16);
-        var increment = this.increment.toString(16);
-        return '00000000'.substr(0, 6 - timestamp.length) + timestamp +
-               '000000'.substr(0, 6 - machine.length) + machine +
-               '0000'.substr(0, 4 - pid.length) + pid +
-               '000000'.substr(0, 6 - increment.length) + increment;
+        /**
+        * Turns a WCF representation of a BSON ObjectId into a 24 character string representation.
+        */
+        ObjectId.prototype.toString = function () {
+            var timestamp = this.timestamp.toString(16);
+            var machine = this.machine.toString(16);
+            var pid = this.pid.toString(16);
+            var increment = this.increment.toString(16);
+            return '00000000'.substr(0, 6 - timestamp.length) + timestamp +
+                   '000000'.substr(0, 6 - machine.length) + machine +
+                   '0000'.substr(0, 4 - pid.length) + pid +
+                   '000000'.substr(0, 6 - increment.length) + increment;
+        }
     }
     
     breeze.config.registerAdapter("dataService", ctor);
 
 }));
 (function (factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
     }
 }(function(breeze) {
     
@@ -14170,16 +14202,15 @@ breeze.AbstractDataServiceAdapter = (function () {
 }));
 
 (function(factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
-    }    
+    }
 }(function(breeze) {
     
     var core = breeze.core;
@@ -14264,15 +14295,14 @@ breeze.AbstractDataServiceAdapter = (function () {
 }));
 "use strict";
 (function (factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
     }
 }(function(breeze) {
     
@@ -14466,15 +14496,14 @@ breeze.AbstractDataServiceAdapter = (function () {
 }));
 "use strict";
 (function (factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
     }
 }(function(breeze) {
     
@@ -14680,15 +14709,14 @@ breeze.AbstractDataServiceAdapter = (function () {
 }));
 "use strict";
 (function (factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
     }
 }(function(breeze) {
     
@@ -14858,22 +14886,21 @@ breeze.AbstractDataServiceAdapter = (function () {
 }));
 
 // set defaults
-breeze.config.initializeAdapterInstances({
-    ajax: "jQuery",
-    dataService: "webApi"
-});
+// will no longer fail at initialization time if jQuery is not found.
+breeze.config.initializeAdapterInstances( { dataService: "webApi", ajax: "jQuery" });
 
-// don't initialize with ko unless it exists.
-var ko = window.ko;
-if ((!ko) && window.require) {
-    ko = window.require("ko");
-}
+var ko = __requireLibCore("ko");
+
 if (ko) {
     breeze.config.initializeAdapterInstance("modelLibrary", "ko");
 } else {
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore");
 }
 
-this.window.breeze = breeze;
+if (this.window) {
+    this.window.breeze = breeze;
+}
+
+
 return breeze;
 });
