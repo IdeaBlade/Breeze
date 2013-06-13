@@ -1,8 +1,22 @@
 var fs = require("fs");
 var express = require('express');
 var app = express();
-
 var routes = require('./routes');
+
+//var breeze = require("breeze");
+//var filename = "metadata.csdl.json";
+//var filenameOut = "metadata.native.json";
+//if (!fs.existsSync(filename)) {
+//    next(new Error("Unable to locate file: " + filename));
+//}
+//var metadata = fs.readFileSync(filename, 'utf8');
+//breeze.NamingConvention.camelCase.setAsDefault();
+//// var metadataStore = new breeze.MetadataStore( { namingConvention: breeze.NamingConvention.camelCase });
+//var metadataStore = new breeze.MetadataStore();
+//metadataStore.importMetadata(metadata);
+//exportedMetadata = metadataStore.exportMetadata();
+//fs.writeFileSync(filenameOut, exportedMetadata);
+
 
 app.use(express.bodyParser());
 // app.use(express.methodOverride());

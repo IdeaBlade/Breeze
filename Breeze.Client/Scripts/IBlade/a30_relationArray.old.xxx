@@ -1,6 +1,5 @@
 ﻿
 breeze.makeRelationArray = function() {
-
     var relationArrayMixin = {};
 
     /**
@@ -29,6 +28,67 @@ breeze.makeRelationArray = function() {
     @readOnly
     **/
 
+    relationArrayMixin.push = function() {
+        if (this._inProgress) {
+            return -1;
+        }
+
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
+        if (!goodAdds.length) {
+            return this.length;
+        }
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    };
+
+    relationArrayMixin._push = function () {
+        if (this._inProgress) {
+            return -1;
+        }
+        var goodAdds = __arraySlice(arguments);
+
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    }
+
+
+    relationArrayMixin.unshift = function() {
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
+        if (!goodAdds.length) {
+            return this.length;
+        }
+
+        var result = Array.prototype.unshift.apply(this, goodAdds);
+        processAdds(this, __arraySlice(goodAdds));
+        return result;
+    };
+
+    relationArrayMixin.pop = function() {
+        var result = Array.prototype.pop.apply(this);
+        processRemoves(this, [result]);
+        return result;
+    };
+
+    relationArrayMixin.shift = function() {
+        var result = Array.prototype.shift.apply(this);
+        processRemoves(this, [result]);
+        return result;
+    };
+
+    relationArrayMixin.splice = function() {
+        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
+        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
+
+        var result = Array.prototype.splice.apply(this, newArgs);
+        processRemoves(this, result);
+
+        if (goodAdds.length) {
+            processAdds(this, goodAdds);
+        }
+        return result;
+    };
 
     /**
     Performs an asynchronous load of all other the entities associated with this relationArray.
@@ -57,20 +117,6 @@ breeze.makeRelationArray = function() {
         return em && em._pendingPubs;
     };
 
-    // virtual impls 
-    relationArrayMixin._getGoodAdds = function(adds) {
-        return getGoodAdds(this, adds);
-    }
-
-    relationArrayMixin._processAdds = function(adds) {
-        processAdds(this, adds);
-    }
-
-    relationArrayMixin._processRemoves = function(removes)  {
-        processRemoves(this, removes);
-    }
-    //
-
     function getGoodAdds(relationArray, adds) {
         var goodAdds = checkForDups(relationArray, adds);
         if (!goodAdds.length) {
@@ -81,7 +127,7 @@ breeze.makeRelationArray = function() {
         // we do not want to attach an entity during loading
         // because these will all be 'attached' at a later step.
         if (entityManager && !entityManager.isLoading) {
-            goodAdds.forEach(function (add) {
+            goodAdds.forEach(function(add) {
                 if (add.entityAspect.entityState.isDetached()) {
                     relationArray._inProgress = true;
                     try {
@@ -93,42 +139,6 @@ breeze.makeRelationArray = function() {
             });
         }
         return goodAdds;
-    }
-
-    function processAdds(relationArray, adds) {
-        var parentEntity = relationArray.parentEntity;
-        var np = relationArray.navigationProperty;
-        var addsInProcess = relationArray._addsInProcess;
-
-        var invNp = np.inverse;
-        var startIx = addsInProcess.length;
-        try {
-            adds.forEach(function (childEntity) {
-                addsInProcess.push(childEntity);
-                if (invNp) {
-                    childEntity.setProperty(invNp.name, parentEntity);
-                } else {
-                    // This occurs with a unidirectional 1-n navigation - in this case
-                    // we need to update the fks instead of the navProp
-                    var pks = parentEntity.entityType.keyProperties;
-                    np.invForeignKeyNames.forEach(function (fk, i) {
-                        childEntity.setProperty(fk, parentEntity.getProperty(pks[i].name));
-                    });
-                }
-            });
-        } finally {
-            addsInProcess.splice(startIx, adds.length);
-        }
-
-    }
-
-    function processRemoves(relationArray, removes) {
-        var inp = relationArray.navigationProperty.inverse;
-        if (inp) {
-            removes.forEach(function (childEntity) {
-                childEntity.setProperty(inp.name, null);
-            });
-        }
     }
 
     function checkForDups(relationArray, adds) {
@@ -160,9 +170,89 @@ breeze.makeRelationArray = function() {
                     return keyVal !== fkVal;
                 });
             });
+            // unidirectional navigation defined where 1->N but NOT N->1 ( fairly rare use case)
+            // TODO: This is not complete. We really do need to elim dups.
+            // throw new Error("Breeze does not YET support unidirectional navigation where navigation is only defined in the 1 -> n direction.  Unidirectional navigation in the opposite direction is supported.");
         }
         return goodAdds;
     }
+
+
+    function processAdds(relationArray, adds) {
+        var parentEntity = relationArray.parentEntity;
+        var np = relationArray.navigationProperty;
+        var invNp = np.inverse;
+        
+        var addsInProcess = relationArray._addsInProcess;
+        var startIx = addsInProcess.length;
+        try {
+            adds.forEach(function(childEntity) {
+                addsInProcess.push(childEntity);
+                if (invNp) {
+                    childEntity.setProperty(invNp.name, parentEntity);
+                } else {
+                    // This occurs with a unidirectional 1-n navigation - in this case
+                    // we need to update the fks instead of the navProp
+                    var pks = parentEntity.entityType.keyProperties;
+                    np.invForeignKeyNames.forEach(function (fk, i) {
+                        childEntity.setProperty(fk, parentEntity.getProperty(pks[i].name));
+                    });
+                }
+            });
+        } finally {
+            addsInProcess.splice(startIx, adds.length);
+        }
+        
+        // this is referencing the name of the method on the relationArray not the name of the event
+        publish(relationArray, "arrayChanged", { relationArray: relationArray, added: adds });
+
+    }
+
+    function publish(publisher, eventName, eventArgs) {
+        var pendingPubs = publisher._getPendingPubs();
+        if (pendingPubs) {
+            if (!publisher._pendingArgs) {
+                publisher._pendingArgs = eventArgs;
+                pendingPubs.push(function() {
+                    publisher[eventName].publish(publisher._pendingArgs);
+                    publisher._pendingArgs = null;
+                });
+            } else {
+                combineArgs(publisher._pendingArgs, eventArgs);
+            }
+        } else {
+            publisher[eventName].publish(eventArgs);
+        }
+    }
+
+    function combineArgs(target, source) {
+        for (var key in source) {
+            if (key !== "relationArray" && target.hasOwnProperty(key)) {
+                var sourceValue = source[key];
+                var targetValue = target[key];
+                if (targetValue) {
+                    if (!Array.isArray(targetValue)) {
+                        throw new Error("Cannot combine non array args");
+                    }
+                    Array.prototype.push.apply(targetValue, sourceValue);
+                } else {
+                    target[key] = sourceValue;
+                }
+            }
+        }
+    }
+
+    function processRemoves(relationArray, removes) {
+        var inp = relationArray.navigationProperty.inverse;
+        if (inp) {
+            removes.forEach(function(childEntity) {
+                childEntity.setProperty(inp.name, null);
+            });
+        }
+        // this is referencing the name of the method on the relationArray not the name of the event
+        publish(relationArray, "arrayChanged", { relationArray: relationArray, removed: removes });
+    }
+
 
     function makeRelationArray(arr, parentEntity, navigationProperty) {
         arr.parentEntity = parentEntity;
@@ -170,8 +260,6 @@ breeze.makeRelationArray = function() {
         arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
         // array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
-        // need to use mixins here instead of inheritance because we are starting from an existing array object.
-        __extend(arr, observableArray.mixin);
         return __extend(arr, relationArrayMixin);
     }
 

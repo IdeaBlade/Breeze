@@ -67,7 +67,7 @@ MongoQuery.prototype.execute = function(db, collectionName, fn) {
     var that = this;
     db.collection(collectionName, {strict: true} , function (err, collection) {
         if (err) {
-            err = { status: 404, message: "Unable to locate: " + that.collectionName, error: err };
+            err = { statusCode: 404, message: "Unable to locate: " + collectionName, error: err };
             fn(err, null);
             return;
         }

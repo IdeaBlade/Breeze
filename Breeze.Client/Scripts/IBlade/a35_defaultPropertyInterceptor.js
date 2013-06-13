@@ -38,7 +38,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     } else {
         localAspect = this.complexAspect;
         entityAspect = localAspect.entityAspect;
-        // if complexType is standalone - i.e. doesn't have a pareent - don't try to calc a fullPropName;
+        // if complexType is standalone - i.e. doesn't have a parent - don't try to calc a fullPropName;
         propPath = (localAspect.parent) ?
             localAspect.propertyPath + "." + propName :
             propName;

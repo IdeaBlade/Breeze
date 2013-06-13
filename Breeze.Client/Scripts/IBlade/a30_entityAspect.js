@@ -243,7 +243,7 @@ var EntityAspect = function() {
             if (cp.isScalar) {
                 rejectChangesCore(cos);
             } else {
-                cos._rejectAddedRemoved();
+                cos._rejectChanges();
                 cos.forEach(function (co) { rejectChangesCore(co); });
             }
         });
@@ -273,7 +273,7 @@ var EntityAspect = function() {
             if (cp.isScalar) {
                 clearOriginalValues(cos);
             } else {
-                cos._acceptAddedRemoved();
+                cos._acceptChanges();
                 cos.forEach(function (co) { clearOriginalValues(co); });
             }
         });

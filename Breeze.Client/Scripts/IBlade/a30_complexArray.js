@@ -37,105 +37,49 @@ breeze.makeComplexArray = function() {
     @readOnly
     **/
 
-    complexArrayMixin.push = function() {
-        if (this._inProgress) {
-            return -1;
-        }
+    // virtual impls 
+    complexArrayMixin._getGoodAdds = function (adds) {
+        return getGoodAdds(this, adds);
+    }
 
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
-    };
+    complexArrayMixin._beforeChange = function() {
+        observableArray.updateEntityState(this);
+    }
 
+    complexArrayMixin._processAdds = function (adds) {
+        processAdds(this, adds);
+    }
 
-    complexArrayMixin.unshift = function () {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
+    complexArrayMixin._processRemoves = function (removes) {
+        processRemoves(this, removes);
+    }
+    //
 
-        var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, __arraySlice(goodAdds));
-        return result;
-    };
-
-    complexArrayMixin.pop = function () {
-        var result = Array.prototype.pop.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    complexArrayMixin.shift = function () {
-        var result = Array.prototype.shift.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    complexArrayMixin.splice = function () {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
-        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
-
-        var result = Array.prototype.splice.apply(this, newArgs);
-        processRemoves(this, result);
-
-        if (goodAdds.length) {
-            processAdds(this, goodAdds);
-        }
-        return result;
-    };
-
-  
-    complexArrayMixin._getEventParent = function () {
-        return this.entityAspect;
-    };
-
-    complexArrayMixin._getPendingPubs = function () {
-        var em = this.entityAspect.entityManager;
-        return em && em._pendingPubs;
-    };
-
-    complexArrayMixin._rejectAddedRemoved = function() {
+    complexArrayMixin._rejectChanges = function() {
+        if (!this._origValues) return;
         var that = this;
-        this._added.forEach(function(co) {
-            __arrayRemoveItem(that, co);
+        this.forEach(function(co) {
             clearAspect(co, that);
-        } );
-        this._removed.forEach(function(co) {
+        });
+        this.length = 0;
+        this._origValues.forEach(function(co) {
             that.push(co);
-            setAspect(co, that);
-        } );
-        this._added = [];
-        this._removed = [];
+        });
+        Array.prototype.push.apply(this, this._origValues);
     }
 
-    complexArrayMixin._acceptAddedRemoved = function() {
-        this._added.concat(this._removed).forEach(function(co) {
-              co.complexAspect._state = null;
-        } );
-        this._added = [];
-        this._removed = [];
+    complexArrayMixin._acceptChanges = function() {
+        this._origValues = null;
     }
+
+    // local functions
+
 
     function getGoodAdds(complexArray, adds) {
-        var goodAdds = checkForDups(complexArray, adds);
-        if (!goodAdds.length) {
-            return goodAdds;
-        }
-     
-        return goodAdds;
-    }
-
-    function checkForDups(complexArray, adds) {
-        // don't check for real dups yet.
         // remove any that are already added here
         return adds.filter(function (a) {
             return a.parent != complexArray.parent;
         });
-
     }
 
     function processAdds(complexArray, adds) {
@@ -143,134 +87,45 @@ breeze.makeComplexArray = function() {
             if (a.parent != null) {
                 throw new Error("The complexObject is already attached. Either clone it or remove it from its current owner");
             }
-            attach(a, complexArray);
+            setAspect(a, complexArray);
         });
-        // this is referencing the name of the method on the complexArray not the name of the event
-        publish(complexArray, "arrayChanged", { complexArray: complexArray, added: adds });
-
     }
 
     function processRemoves(complexArray, removes) {
         removes.forEach(function (a) {
-            detach(a, complexArray);
+            clearAspect(a, complexArray);
         });
-        // this is referencing the name of the method on the relationArray not the name of the event
-        publish(complexArray, "arrayChanged", { complexArray: complexArray, removed: removes });
-    }
-
-
-    function publish(publisher, eventName, eventArgs) {
-        var pendingPubs = publisher._getPendingPubs();
-        if (pendingPubs) {
-            if (!publisher._pendingArgs) {
-                publisher._pendingArgs = eventArgs;
-                pendingPubs.push(function() {
-                    publisher[eventName].publish(publisher._pendingArgs);
-                    publisher._pendingArgs = null;
-                });
-            } else {
-                combineArgs(publisher._pendingArgs, eventArgs);
-            }
-        } else {
-            publisher[eventName].publish(eventArgs);
-        }
-    }
-
-    function combineArgs(target, source) {
-        for (var key in source) {
-            if (key !== "complexArray" && target.hasOwnProperty(key)) {
-                var sourceValue = source[key];
-                var targetValue = target[key];
-                if (targetValue) {
-                    if (!Array.isArray(targetValue)) {
-                        throw new Error("Cannot combine non array args");
-                    }
-                    Array.prototype.push.apply(targetValue, sourceValue);
-                } else {
-                    target[key] = sourceValue;
-                }
-            }
-        }
-    }
-
-    function attach(co, arr) {
-        var aspect = setAspect(co, arr);
-        // if already attached - exit
-        if (!aspect) return;
-
-        if (aspect._state === "R") {
-            // unremove
-            __arrayRemoveItem(arr._removed, co);
-            aspect._state = null;
-        } else {
-            aspect._state = "A"
-            arr._added.push(co);
-            if (arr.entityAspect.entityState.isUnchanged()) {
-                arr.entityAspect.setModified();
-            }
-        }
-    }
-
-    function detach(co, arr) {
-        var aspect = clearAspect(co, arr);
-        // if not already attached - exit
-        if (!aspect) return;
-
-        if (aspect._state === "A") {
-            // unAdd
-            __arrayRemoveItem(arr._added, co);
-            aspect._state = null;
-        } else {
-            aspect._state = "R"
-            arr._removed.push(co);
-            if (arr.entityAspect.entityState.isUnchanged()) {
-                arr.entityAspect.setModified();
-            }
-        }
     }
 
     function clearAspect(co, arr) {
-        var aspect = co.complexAspect;
+        var coAspect = co.complexAspect;
         // if not already attached - exit
-        if (aspect.parent !== arr.parent) return null;
+        if (coAspect.parent !== arr.parent) return null;
 
-        aspect.parent = null;
-        aspect.parentProperty = null;
-        aspect.propertyPath = null;
-        aspect.entityAspect = null;
-        return aspect;
+        coAspect.parent = null;
+        coAspect.parentProperty = null;
+        coAspect.propertyPath = null;
+        coAspect.entityAspect = null;
+        return coAspect;
     }
 
     function setAspect(co, arr) {
-        var aspect = co.complexAspect;
+        var coAspect = co.complexAspect;
         // if already attached - exit
-        if (aspect.parent === arr.parent) return null;
-        aspect.parent = arr.parent;
-        aspect.parentProperty = arr.parentProperty;
-        aspect.propertyPath = arr.propertyPath;
-        aspect.entityAspect = arr.entityAspect;
+        if (coAspect.parent === arr.parent) return null;
+        coAspect.parent = arr.parent;
+        coAspect.parentProperty = arr.parentProperty;
+        coAspect.propertyPath = arr.propertyPath;
+        coAspect.entityAspect = arr.entityAspect;
 
-        return aspect;
+        return coAspect;
     }
 
     function makeComplexArray(arr, parent, parentProperty) {
 
-        arr.parent = parent;
-        arr.parentProperty = parentProperty;
-        arr.propertyPath = parentProperty.name;
-        // get the final parent's entityAspect.
-        var nextParent = parent;
-        while (nextParent.complexType) {
-            arr.propertyPath = nextParent.complexAspect.propertyPath + "." + arr.propertyPath;
-            nextParent = nextParent.complexAspect.parent;
-        }
-        arr.entityAspect = nextParent.entityAspect;
-
+        observableArray.initializeParent(arr, parent, parentProperty);
         arr.arrayChanged = new Event("arrayChanged_complexArray", arr);
-        // array of pushes currently in process on this relation array - used to prevent recursion.
-        arr._addsInProcess = [];
-        arr._added = [];
-        arr._removed = [];
+        __extend(arr, observableArray.mixin);
         return __extend(arr, complexArrayMixin);
     }
 

@@ -55,6 +55,7 @@
     <Content Include="Scripts\IBlade\a05_enum.js" />
     <Content Include="Scripts\IBlade\a10_event.js" />
     <Content Include="Scripts\IBlade\a20_config.js" />
+    <Content Include="Scripts\IBlade\a25_observableArray.js" />
     <Content Include="Scripts\IBlade\a40_dataType.js" />
     <Content Include="Scripts\IBlade\a25_validate.js" />
     <Content Include="Scripts\IBlade\a30_entityAspect.js" />

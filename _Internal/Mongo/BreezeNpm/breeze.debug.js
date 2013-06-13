@@ -1759,7 +1759,7 @@ core.config = __config;
 
 breeze.config = __config;
 
-var observableArray = function() {
+var observableArrayMixin = function() {
 
     var mixin = {};
     mixin.push = function() {
@@ -1771,7 +1771,6 @@ var observableArray = function() {
         if (!goodAdds.length) {
             return this.length;
         }
-        this._beforeChange();
         var result = Array.prototype.push.apply(this, goodAdds);
         processAdds(this, goodAdds);
         return result;
@@ -1782,7 +1781,7 @@ var observableArray = function() {
             return -1;
         }
         var goodAdds = __arraySlice(arguments);
-        this._beforeChange();
+
         var result = Array.prototype.push.apply(this, goodAdds);
         processAdds(this, goodAdds);
         return result;
@@ -1793,21 +1792,19 @@ var observableArray = function() {
         if (!goodAdds.length) {
             return this.length;
         }
-        this._beforeChange();
+
         var result = Array.prototype.unshift.apply(this, goodAdds);
         processAdds(this, __arraySlice(goodAdds));
         return result;
     };
 
     mixin.pop = function () {
-        this._beforeChange();
         var result = Array.prototype.pop.apply(this);
         processRemoves(this, [result]);
         return result;
     };
 
     mixin.shift = function () {
-        this._beforeChange();
         var result = Array.prototype.shift.apply(this);
         processRemoves(this, [result]);
         return result;
@@ -1816,7 +1813,7 @@ var observableArray = function() {
     mixin.splice = function () {
         var goodAdds = this._getGoodAdds( __arraySlice(arguments, 2));
         var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
-        this._beforeChange();
+
         var result = Array.prototype.splice.apply(this, newArgs);
         processRemoves(this, result);
 
@@ -1825,6 +1822,7 @@ var observableArray = function() {
         }
         return result;
     };
+
 
     mixin._getEventParent = function () {
         return this.entityAspect;
@@ -1835,19 +1833,6 @@ var observableArray = function() {
         return em && em._pendingPubs;
     };
 
-    mixin._beforeChange = function() {
-        // default is to do nothing
-    }
-
-    function updateEntityState(obsArray) {
-        var entityAspect = obsArray.entityAspect;
-        if (entityAspect.entityState.isUnchanged()) {
-            entityAspect.setModified();
-        }
-        if (entityAspect.entityState.isModified() && !obsArray._origValues) {
-            obsArray._origValues = obsArray.slice(0);
-        }
-    }
 
     function processAdds(obsArray, adds) {
         obsArray._processAdds(adds);
@@ -1862,6 +1847,7 @@ var observableArray = function() {
         // this is referencing the name of the method on the array not the name of the event
         publish(obsArray, "arrayChanged", { array: obsArray, removed: removes });
     }
+
 
     function publish(publisher, eventName, eventArgs) {
         var pendingPubs = publisher._getPendingPubs();
@@ -1897,27 +1883,7 @@ var observableArray = function() {
         }
     }
 
-    function initializeParent(obsArray, parent, parentProperty) {
-        obsArray.parent = parent;
-        obsArray.parentProperty = parentProperty;
-        obsArray.propertyPath = parentProperty.name;
-        // get the final parent's entityAspect.
-        var nextParent = parent;
-        while (nextParent.complexType) {
-            obsArray.propertyPath = nextParent.complexAspect.propertyPath + "." + obsArray.propertyPath;
-            nextParent = nextParent.complexAspect.parent;
-        }
-        obsArray.entityAspect = nextParent.entityAspect;
-    }
-
-
-    return {
-        mixin: mixin,
-        publish: publish,
-        updateEntityState: updateEntityState,
-        initializeParent: initializeParent
-    };
-
+    return mixin;
 
 
 }();
@@ -2821,10 +2787,6 @@ breeze.makeComplexArray = function() {
         return getGoodAdds(this, adds);
     }
 
-    complexArrayMixin._beforeChange = function() {
-        observableArray.updateEntityState(this);
-    }
-
     complexArrayMixin._processAdds = function (adds) {
         processAdds(this, adds);
     }
@@ -2835,20 +2797,15 @@ breeze.makeComplexArray = function() {
     //
 
     complexArrayMixin._rejectChanges = function() {
-        if (!this._origValues) return;
-        var that = this;
-        this.forEach(function(co) {
-            clearAspect(co, that);
-        });
-        this.length = 0;
-        this._origValues.forEach(function(co) {
-            that.push(co);
-        });
-        Array.prototype.push.apply(this, this._origValues);
+        this._
     }
 
-    complexArrayMixin._acceptChanges = function() {
-        this._origValues = null;
+    complexArrayMixin._acceAddedRemoved = function() {
+        this._added.concat(this._removed).forEach(function(co) {
+              co.complexAspect._state = null;
+        } );
+        this._added = [];
+        this._removed = [];
     }
 
     // local functions
@@ -2902,9 +2859,21 @@ breeze.makeComplexArray = function() {
 
     function makeComplexArray(arr, parent, parentProperty) {
 
-        observableArray.initializeParent(arr, parent, parentProperty);
+        arr.parent = parent;
+        arr.parentProperty = parentProperty;
+        arr.propertyPath = parentProperty.name;
+        // get the final parent's entityAspect.
+        var nextParent = parent;
+        while (nextParent.complexType) {
+            arr.propertyPath = nextParent.complexAspect.propertyPath + "." + arr.propertyPath;
+            nextParent = nextParent.complexAspect.parent;
+        }
+        arr.entityAspect = nextParent.entityAspect;
+
         arr.arrayChanged = new Event("arrayChanged_complexArray", arr);
-        __extend(arr, observableArray.mixin);
+        // array of pushes currently in process on this relation array - used to prevent recursion.
+        arr._addsInProcess = [];
+        __extend(arr, observableArrayMixin);
         return __extend(arr, complexArrayMixin);
     }
 
@@ -4130,91 +4099,6 @@ var EntityState = (function () {
    
 breeze.EntityState= EntityState;
 
-breeze.makePrimitiveArray = function() {
-    var primitiveArrayMixin = {};
-
-    // complexArray will have the following props
-    //    parent
-    //    propertyPath
-    //    parentProperty
-    //    addedItems  - only if modified
-    //    removedItems  - only if modified
-    //  each complexAspect of any entity within a complexArray
-    //  will have its own _complexState = "A/M";
-
-    /**
-    Primitive arrays are not actually classes, they are objects that mimic arrays. A primitive array is collection of
-    primitive types associated with a data property on a single entity or complex object. i.e. customer.invoiceNumbers.
-    This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
-    are all provided as well as several special purpose methods. 
-    @class ↈ_primitiveArray_
-    **/
-
-    /**
-    An {{#crossLink "Event"}}{{/crossLink}} that fires whenever the contents of this array changed.  This event
-    is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
-    Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
-    collections are collected into a single notification event for each relation array.
-    @example
-        // assume order is an order entity attached to an EntityManager.
-        orders.arrayChanged.subscribe(
-            function (arrayChangedArgs) {
-                var addedEntities = arrayChangedArgs.added;
-                var removedEntities = arrayChanged.removed;
-            });
-    @event arrayChanged 
-    @param added {Array of Primitives} An array of all of the items added to this collection.
-    @param removed {Array of Primitives} An array of all of the items removed from this collection.
-    @readOnly
-    **/
-
-    // virtual impls 
-    primitiveArrayMixin._getGoodAdds = function (adds) {
-        return adds;
-    }
-
-    primitiveArrayMixin._beforeChange = function() {
-        var entityAspect = this.entityAspect;
-        if (entityAspect.entityState.isUnchanged()) {
-            entityAspect.setModified();
-        }
-        if (entityAspect.entityState.isModified() && !this._origValues) {
-            this._origValues = this.slice(0);
-        }
-    }
-
-    primitiveArrayMixin._processAdds = function (adds) {
-        // nothing needed
-    }
-
-    primitiveArrayMixin._processRemoves = function (removes) {
-        // nothing needed;
-    }
-    //
-
-    primitiveArrayMixin._rejectChanges = function() {
-        if (!this._origValues) return;
-        this.length = 0;
-        Array.prototype.push.apply(this, this._origValues);
-    }
-
-    primitiveArrayMixin._acceptChanges = function() {
-        this._origValues = null;
-    }
-
-    // local functions
-
-    function makePrimitiveArray(arr, parent, parentProperty) {
-
-        observableArray.initializeParent(arr, parent, parentProperty);
-        arr.arrayChanged = new Event("arrayChanged_primitiveArray", arr);
-        __extend(arr, observableArray.mixin);
-        return __extend(arr, primitiveArrayMixin);
-    }
-
-    return makePrimitiveArray;
-}();
-
 breeze.makeRelationArray = function() {
 
     var relationArrayMixin = {};
@@ -4387,7 +4271,7 @@ breeze.makeRelationArray = function() {
         // array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
         // need to use mixins here instead of inheritance because we are starting from an existing array object.
-        __extend(arr, observableArray.mixin);
+        __extend(arr, observableArrayMixin);
         return __extend(arr, relationArrayMixin);
     }
 
@@ -5673,13 +5557,12 @@ var MetadataStore = (function () {
     proto.importMetadata = function (exportedMetadata) {
 
         this._deferredTypes = {};
-        var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
 
-        if (json.schema) {
-            return CsdlMetadataParser.parse(this, json.schema);
+        if (exportedMetadata.schema) {
+            return CsdlMetadataParser.parse(this, exportedMetadata.schema);
         } 
 
-
+        var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
         if (json.metadataVersion && json.metadataVersion !== breeze.metadataVersion) {
             var msg = __formatString("Cannot import metadata with a different 'metadataVersion' (%1) than the current 'breeze.metadataVersion' (%2) ",
                 json.metadataVersion, breeze.metadataVersion);
@@ -13851,7 +13734,7 @@ breeze.AbstractDataServiceAdapter = (function () {
      * Javascript class that mimics how WCF serializes a object of type MongoDB.Bson.ObjectId
      * and converts between that format and the standard 24 character representation.
     */
-    if (this.document) {
+    if (document) {
         var ObjectId = (function () {
             var increment = 0;
             var pid = Math.floor(Math.random() * (32767));
