@@ -4494,7 +4494,10 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             }
 
         } else if (property.isDataProperty) {
-            
+            if (!property.isScalar) {
+                throw new Error("Nonscalar data properties are readonly - items may be added or removed but the collection may not be changed.");
+            }
+
             // if we are changing the key update our internal entityGroup indexes.
             if (property.isPartOfKey && (!this.complexAspect) && entityManager && !entityManager.isLoading) {
                 var keyProps = this.entityType.keyProperties;
@@ -5678,7 +5681,6 @@ var MetadataStore = (function () {
         if (json.schema) {
             return CsdlMetadataParser.parse(this, json.schema);
         } 
-
 
         if (json.metadataVersion && json.metadataVersion !== breeze.metadataVersion) {
             var msg = __formatString("Cannot import metadata with a different 'metadataVersion' (%1) than the current 'breeze.metadataVersion' (%2) ",
@@ -7528,6 +7530,7 @@ var DataProperty = (function () {
             .whereParam("dataType").isEnumOf(DataType).isOptional().or().isString().or().isInstanceOf(ComplexType)
             .whereParam("complexTypeName").isOptional()
             .whereParam("isNullable").isBoolean().isOptional().withDefault(true)
+            .whereParam("isScalar").isOptional().withDefault(true)// will be false for some NoSQL databases.
             .whereParam("defaultValue").isOptional()
             .whereParam("isPartOfKey").isBoolean().isOptional()
             .whereParam("isUnmapped").isBoolean().isOptional()
@@ -7536,7 +7539,7 @@ var DataProperty = (function () {
             .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
             .whereParam("enumType").isOptional()
             .whereParam("rawTypeName").isOptional() // occurs with undefined datatypes
-            .whereParam("isScalar").isOptional() // only occurs with complex datatypes
+
             .applyAll(this);
         var hasName = !!(this.name || this.nameOnServer);
         if (!hasName) {
@@ -7717,7 +7720,7 @@ var DataProperty = (function () {
             validators: null,
             enumType: null,
             rawTypeName: null,
-            isScalar: null
+            isScalar: true
         });
         
         
@@ -12991,32 +12994,43 @@ var EntityManager = (function () {
     // target and source will be either entities or complex types
     function updateTargetPropertyFromRaw(target, raw, dp, isClient) {
         
-        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
         var rawVal = fn(raw, dp);
         if (rawVal === undefined) return;
-        var val = parseRawValue(dp, rawVal);
-        
+        var oldVal;
         if (dp.isComplexProperty) {
             oldVal = target.getProperty(dp.name);
             var cdataProps = dp.dataType.dataProperties;
             if (dp.isScalar) {
-                updateTargetFromRaw(oldVal, val, cdataProps, isClient);
+                updateTargetFromRaw(oldVal, rawVal, cdataProps, isClient);
             } else {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                val.forEach(function (rawCo) {
+                rawVal.forEach(function (rawCo) {
                     var newCo = dp.dataType._createInstanceCore(target, dp.name);
                     updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
                     oldVal.push(newCo);
                 });
             }
         } else {
-            target.setProperty(dp.name, val);
+            var val;
+            if (dp.isScalar) {
+                val = parseRawValue(dp, rawVal);
+                target.setProperty(dp.name, val);
+            } else {
+                oldVal = target.getProperty(dp.name);
+                // clear the old array and push new complex objects into it.
+                oldVal.length = 0;
+                rawVal.forEach(function (rv) {
+                    val = parseRawValue(dp, rv);
+                    oldVal.push(val);
+                });
+            }
         }
     }
 
     function getEntityKeyFromRawEntity(rawEntity, entityType, isClient) {
-        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
         var keyValues = entityType.keyProperties.map(function (dp) {
             return parseRawValue(dp, fn(rawEntity, dp));
         });

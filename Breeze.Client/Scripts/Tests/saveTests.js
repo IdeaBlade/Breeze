@@ -1174,11 +1174,11 @@
         ok(region2.getProperty("territories").length === 2, "should have two terrs");
 
         stop();
-        var terrs1x, terrs2x, region1ID, region1y, terrs1y;
+        var terrs1x, terrs2x, region1y, terrs1y;
         var em2 = newEm();
         em.saveChanges().then(function (data) {
             ok(!em.hasChanges());
-            region1ID = region1.getProperty("regionID");
+
             ok(data.entities.length === 6);
             ok(!region1.entityAspect.getKey().equals(k1));
             terrs1x = region1.getProperty("territories");

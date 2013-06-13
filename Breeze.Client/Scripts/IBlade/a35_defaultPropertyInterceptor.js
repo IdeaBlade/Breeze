@@ -99,7 +99,10 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             }
 
         } else if (property.isDataProperty) {
-            
+            if (!property.isScalar) {
+                throw new Error("Nonscalar data properties are readonly - items may be added or removed but the collection may not be changed.");
+            }
+
             // if we are changing the key update our internal entityGroup indexes.
             if (property.isPartOfKey && (!this.complexAspect) && entityManager && !entityManager.isLoading) {
                 var keyProps = this.entityType.keyProperties;

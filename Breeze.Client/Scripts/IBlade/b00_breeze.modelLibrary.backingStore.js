@@ -111,14 +111,16 @@
                 if (prop.isComplexProperty) {
                     // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                     if (prop.isScalar) {
-                        var co = prop.dataType._createInstanceCore(entity, prop.name);
+                        val = prop.dataType._createInstanceCore(entity, prop.name);
                     } else {
-                        var co = breeze.makeComplexArray([], entity, prop);
+                        val = breeze.makeComplexArray([], entity, prop);
                     }
-                    bs[propName] = co;
+                } else if (!prop.isScalar) {
+                    val = breeze.makePrimitiveArray([], entity, prop);
                 } else if (val === undefined) {
-                    bs[propName] = prop.defaultValue;
+                    val = prop.defaultValue;
                 }
+                bs[propName] = val;
             } else if (prop.isNavigationProperty) {
                 if (val !== undefined) {
                     throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);

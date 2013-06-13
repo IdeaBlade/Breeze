@@ -126,7 +126,7 @@
         manager.metadataStore.importMetadata(jsonMetadata)
 
         var person = manager.createEntity('person', { id: 1 });
-        person.address.street = "Sample Street";
+        person.getProperty("address").setProperty("street", "Sample Street");
 
         // console.log("Complex property is a circular datatype, cannot convert to JSON - that's fine")
         // JSON.stringify(person.address); // fails with error

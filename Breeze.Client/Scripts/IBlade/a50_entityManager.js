@@ -2062,32 +2062,43 @@ var EntityManager = (function () {
     // target and source will be either entities or complex types
     function updateTargetPropertyFromRaw(target, raw, dp, isClient) {
         
-        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
         var rawVal = fn(raw, dp);
         if (rawVal === undefined) return;
-        var val = parseRawValue(dp, rawVal);
-        
+        var oldVal;
         if (dp.isComplexProperty) {
             oldVal = target.getProperty(dp.name);
             var cdataProps = dp.dataType.dataProperties;
             if (dp.isScalar) {
-                updateTargetFromRaw(oldVal, val, cdataProps, isClient);
+                updateTargetFromRaw(oldVal, rawVal, cdataProps, isClient);
             } else {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                val.forEach(function (rawCo) {
+                rawVal.forEach(function (rawCo) {
                     var newCo = dp.dataType._createInstanceCore(target, dp.name);
                     updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
                     oldVal.push(newCo);
                 });
             }
         } else {
-            target.setProperty(dp.name, val);
+            var val;
+            if (dp.isScalar) {
+                val = parseRawValue(dp, rawVal);
+                target.setProperty(dp.name, val);
+            } else {
+                oldVal = target.getProperty(dp.name);
+                // clear the old array and push new complex objects into it.
+                oldVal.length = 0;
+                rawVal.forEach(function (rv) {
+                    val = parseRawValue(dp, rv);
+                    oldVal.push(val);
+                });
+            }
         }
     }
 
     function getEntityKeyFromRawEntity(rawEntity, entityType, isClient) {
-        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
         var keyValues = entityType.keyProperties.map(function (dp) {
             return parseRawValue(dp, fn(rawEntity, dp));
         });

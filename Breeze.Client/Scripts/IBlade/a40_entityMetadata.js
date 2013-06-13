@@ -2042,6 +2042,7 @@ var DataProperty = (function () {
             .whereParam("dataType").isEnumOf(DataType).isOptional().or().isString().or().isInstanceOf(ComplexType)
             .whereParam("complexTypeName").isOptional()
             .whereParam("isNullable").isBoolean().isOptional().withDefault(true)
+            .whereParam("isScalar").isOptional().withDefault(true)// will be false for some NoSQL databases.
             .whereParam("defaultValue").isOptional()
             .whereParam("isPartOfKey").isBoolean().isOptional()
             .whereParam("isUnmapped").isBoolean().isOptional()
@@ -2050,7 +2051,7 @@ var DataProperty = (function () {
             .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
             .whereParam("enumType").isOptional()
             .whereParam("rawTypeName").isOptional() // occurs with undefined datatypes
-            .whereParam("isScalar").isOptional() // only occurs with complex datatypes
+
             .applyAll(this);
         var hasName = !!(this.name || this.nameOnServer);
         if (!hasName) {
@@ -2231,7 +2232,7 @@ var DataProperty = (function () {
             validators: null,
             enumType: null,
             rawTypeName: null,
-            isScalar: null
+            isScalar: true
         });
         
         

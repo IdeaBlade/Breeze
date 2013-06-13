@@ -102,9 +102,11 @@
                         } else {
                             val = breeze.makeComplexArray([], entity, prop);
                         }
+                    } else if (!prop.isScalar) {
+                        val = breeze.makePrimitiveArray([], entity, prop);
                     } else if (val === undefined) {
                         val = prop.defaultValue;
-                    }
+                     }
                     koObj = ko.observable(val);
                 } else if (prop.isNavigationProperty) {
                     if (val !== undefined) {
@@ -164,7 +166,7 @@
     }
     
     function onArrayChanged(args) {
-        var koObj = args.relationArray._koObj;
+        var koObj = args.array._koObj;
         if (koObj._suppressBreeze) {
             koObj._suppressBreeze = false;
         } else {

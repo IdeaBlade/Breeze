@@ -12874,13 +12874,13 @@ var EntityManager = (function () {
     // target and source will be either entities or complex types
     function updateTargetPropertyFromRaw(target, raw, dp, isClient) {
         
-        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
         var rawVal = fn(raw, dp);
         if (rawVal === undefined) return;
         var val = parseRawValue(dp, rawVal);
         
         if (dp.isComplexProperty) {
-            oldVal = target.getProperty(dp.name);
+            var oldVal = target.getProperty(dp.name);
             var cdataProps = dp.dataType.dataProperties;
             if (dp.isScalar) {
                 updateTargetFromRaw(oldVal, val, cdataProps, isClient);
@@ -12899,7 +12899,7 @@ var EntityManager = (function () {
     }
 
     function getEntityKeyFromRawEntity(rawEntity, entityType, isClient) {
-        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
         var keyValues = entityType.keyProperties.map(function (dp) {
             return parseRawValue(dp, fn(rawEntity, dp));
         });
