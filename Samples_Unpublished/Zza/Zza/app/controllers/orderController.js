@@ -1,7 +1,7 @@
 ﻿(function() {
     'use strict';
 
-    angular.module('app').controller('OrderCtrl',
+    angular.module('app').controller('orderCtrl',
     ['$scope', '$routeParams', 'routes',
     function ($scope, $routeParams, routes) {
  

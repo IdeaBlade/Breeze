@@ -1,7 +1,7 @@
 ﻿(function() {
     'use strict';
 
-    angular.module('app').controller('RouteCtrl',
+    angular.module('app').controller('routeCtrl',
     ['$scope', '$route', 'routes',
     function ($scope, $route, routes) {
     

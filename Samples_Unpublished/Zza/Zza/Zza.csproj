@@ -112,6 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app\app.js" />
+    <Content Include="app\controllers\testController.js" />
     <Content Include="app\controllers\emptyControllers.js" />
     <Content Include="app\controllers\routeController.js" />
     <Content Include="app\controllers\orderController.js" />
@@ -124,6 +125,7 @@
     <Content Include="app\services\logger.js" />
     <Content Include="app\services\model.js" />
     <Content Include="app\views\about.html" />
+    <Content Include="app\views\test.html" />
     <Content Include="app\views\orderpizza.html" />
     <Content Include="app\views\ordersalad.html" />
     <Content Include="app\views\orderdrinks.html" />
@@ -157,36 +159,36 @@
     <Content Include="Global.asax" />
     <Content Include="Index.html" />
     <Content Include="Scripts\angular.js" />
-    <Content Include="Scripts\angular.min.js" >
+    <Content Include="Scripts\angular.min.js">
       <DependentUpon>angular.js</DependentUpon>
     </Content>
     <Content Include="Scripts\breeze.debug.js" />
-    <Content Include="Scripts\breeze.min.js" >
+    <Content Include="Scripts\breeze.min.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </Content>
-    <Content Include="Scripts\breeze.savequeuing.js" >
+    <Content Include="Scripts\breeze.savequeuing.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </Content>
-    <None Include="Scripts\breeze.intellisense.js" >
+    <None Include="Scripts\breeze.intellisense.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </None>
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\q.js" />
-    <Content Include="Scripts\q.min.js" >
+    <Content Include="Scripts\q.min.js">
       <DependentUpon>q.js</DependentUpon>
     </Content>
     <Content Include="Scripts\toastr.js" />
-    <Content Include="Scripts\toastr.min.js" >
+    <Content Include="Scripts\toastr.min.js">
       <DependentUpon>toastr.js</DependentUpon>
     </Content>
     <Content Include="Scripts\jquery-2.0.2.js" />
-    <Content Include="Scripts\jquery-2.0.2.min.js" >
+    <Content Include="Scripts\jquery-2.0.2.min.js">
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
     </Content>
     <Content Include="Scripts\jquery.min.js.map">
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
     </Content>
-    <Content Include="Scripts\jquery-2.0.2.min.map" >
+    <Content Include="Scripts\jquery-2.0.2.min.map">
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
     </Content>
     <Content Include="Web.config" />
