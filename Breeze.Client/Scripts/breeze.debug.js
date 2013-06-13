@@ -14451,20 +14451,21 @@ breeze.AbstractDataServiceAdapter = (function () {
         var attributes = entity.attributes;
         // Update so that every data and navigation property has a value. 
         stype.dataProperties.forEach(function (dp) {
-            var val;
+            var propName = dp.name;
+            var val = attributes[propName];
             if (dp.isComplexProperty) {
                 // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                 if (dp.isScalar) {
-                    val = dp.dataType._createInstanceCore(entity, dp.name);
+                    val = dp.dataType._createInstanceCore(entity, propName);
                 } else {
                     val = breeze.makeComplexArray([], entity, dp);
                 }
             } else if (!dp.isScalar) {
                 val = breeze.makePrimitiveArray([], entity, dp);
-            } else {
+            } else if (val === undefined) {
                 val = dp.defaultValue;
             }
-            bbSet.call(entity, dp.name, val)
+            bbSet.call(entity, propName, val)
         });
         
         if (stype.navigationProperties) {
@@ -14813,7 +14814,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             if (ko.isObservable(val)) {
                 // if so
                 if (prop.isNavigationProperty) {
-                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
+                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + propName);
                 }
                 koObj = val;
             } else {
@@ -14822,7 +14823,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                     if (prop.isComplexProperty) {
                         // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                         if (prop.isScalar) {
-                            val = prop.dataType._createInstanceCore(entity, prop.name);
+                            val = prop.dataType._createInstanceCore(entity, propName);
                         } else {
                             val = breeze.makeComplexArray([], entity, prop);
                         }
@@ -14834,7 +14835,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                     koObj = ko.observable(val);
                 } else if (prop.isNavigationProperty) {
                     if (val !== undefined) {
-                        throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
+                        throw new Error("Cannot assign a navigation property in an entity ctor.: " + propName);
                     }
                     if (prop.isScalar) {
                         // TODO: change this to nullEntity later.

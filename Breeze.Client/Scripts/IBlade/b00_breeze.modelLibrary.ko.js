@@ -89,7 +89,7 @@
             if (ko.isObservable(val)) {
                 // if so
                 if (prop.isNavigationProperty) {
-                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
+                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + propName);
                 }
                 koObj = val;
             } else {
@@ -98,7 +98,7 @@
                     if (prop.isComplexProperty) {
                         // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                         if (prop.isScalar) {
-                            val = prop.dataType._createInstanceCore(entity, prop.name);
+                            val = prop.dataType._createInstanceCore(entity, propName);
                         } else {
                             val = breeze.makeComplexArray([], entity, prop);
                         }
@@ -110,7 +110,7 @@
                     koObj = ko.observable(val);
                 } else if (prop.isNavigationProperty) {
                     if (val !== undefined) {
-                        throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
+                        throw new Error("Cannot assign a navigation property in an entity ctor.: " + propName);
                     }
                     if (prop.isScalar) {
                         // TODO: change this to nullEntity later.
