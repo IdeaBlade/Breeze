@@ -112,6 +112,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app\app.js" />
+    <Content Include="app\controllers\appController.js" />
     <Content Include="app\controllers\testController.js" />
     <Content Include="app\controllers\emptyControllers.js" />
     <Content Include="app\controllers\routeController.js" />
@@ -125,6 +126,8 @@
     <Content Include="app\services\logger.js" />
     <Content Include="app\services\model.js" />
     <Content Include="app\views\about.html" />
+    <Content Include="app\views\shellFooter.html" />
+    <Content Include="app\views\shellHeader.html" />
     <Content Include="app\views\test.html" />
     <Content Include="app\views\orderpizza.html" />
     <Content Include="app\views\ordersalad.html" />

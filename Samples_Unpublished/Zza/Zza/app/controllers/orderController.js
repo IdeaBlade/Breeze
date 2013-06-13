@@ -1,9 +1,11 @@
 ﻿(function() {
     'use strict';
 
-    angular.module('app').controller('orderCtrl',
-    ['$scope', '$routeParams', 'routes',
-    function ($scope, $routeParams, routes) {
+    var ctrlName = 'orderCtrl';
+    var app = angular.module('app').controller(ctrlName,
+    ['$scope', '$routeParams', 'routes', orderCtrl]);
+    
+    function orderCtrl($scope, $routeParams, routes) {
  
         // tag comes from nav url; get the current route
         var route = setTaggedRoute($routeParams.tag);
@@ -19,6 +21,19 @@
             return routes.orderRoutes.filter(
                 function (item) { return item.tag === tag; })[0];
         }
-    }]);
-
+    }
+    
+    var alert = function (q, timeout, window) {
+        var deferred = q.defer();
+        timeout(function () {
+            window.alert("waiting for " + ctrlName);
+            deferred.resolve("done");
+        }, 0);
+        return deferred.promise;
+    };
+    alert.$inject = ['$q', '$timeout', '$window'];
+    
+    app.routeResolve[ctrlName] = {
+        alert: alert
+    };
 })();

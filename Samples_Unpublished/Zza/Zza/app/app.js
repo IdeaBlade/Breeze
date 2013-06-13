@@ -7,4 +7,10 @@
     app.value('breeze', window.breeze);
     app.value('toastr', window.toastr);
 
+    app.routeResolve = {};
+    
+    app.run(['dataservice', function (dataservice) {
+        console.log("app module is loaded; inside the run method");
+    }]);
+
 })();
