@@ -194,7 +194,6 @@ var MetadataStore = (function () {
             return CsdlMetadataParser.parse(this, json.schema);
         } 
 
-
         if (json.metadataVersion && json.metadataVersion !== breeze.metadataVersion) {
             var msg = __formatString("Cannot import metadata with a different 'metadataVersion' (%1) than the current 'breeze.metadataVersion' (%2) ",
                 json.metadataVersion, breeze.metadataVersion);
