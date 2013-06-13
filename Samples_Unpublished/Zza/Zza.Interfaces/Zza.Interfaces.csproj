@@ -30,12 +30,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Breeze.WebApi, Version=1.2.9.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Breeze.WebApi.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EntityStateExtensions.cs" />
+    <Compile Include="IValidationDataProvider.cs" />
     <Compile Include="IZzaRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RulesEngine.cs" />
+    <Compile Include="ZzaSaveRules.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Zza.Model\Zza.Model.csproj">
@@ -43,7 +51,22 @@
       <Name>Zza.Model</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Breeze.WebApi.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi\breeze.webapi.dll" GOTO breezeSourceExists
+echo Source breeze.webapi.dll was not found in '$(ProjectDir)..\..\..\Breeze.WebApi\' and was not copied
+GOTO :done
+:breezeSourceExists
+echo Copying breeze.webapi.dll from '$(ProjectDir)..\..\..\Breeze.WebApi\' to $(ProjectDir)
+COPY "$(ProjectDir)..\..\..\Breeze.WebApi\breeze.webapi.dll" "$(ProjectDir)" /Y
+ :done
+</PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

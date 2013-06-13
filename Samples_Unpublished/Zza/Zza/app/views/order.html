@@ -4,8 +4,8 @@
 
             <div class="well sidebar-nav">
                 <ul class="nav nav-list">
-                    <li ng-repeat="link in links" ng-class="{active: tag == link.tag}">
-                        <a href="#{{link.path}}">{{link.name}}</a>
+                    <li ng-repeat="link in links" ng-class="{active: activeTag == link.tag}">
+                        <a ng-href="#{{link.path}}">{{link.name}}</a>
                     </li>
 
                 </ul>

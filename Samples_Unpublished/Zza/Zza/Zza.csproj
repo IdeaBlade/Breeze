@@ -112,16 +112,22 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app\app.js" />
-    <Content Include="app\controllers.js" />
-    <Content Include="app\dataservice.js" />
-    <Content Include="app\directives.js" />
-    <Content Include="app\filters.js" />
+    <Content Include="app\controllers\testController.js" />
+    <Content Include="app\controllers\emptyControllers.js" />
+    <Content Include="app\controllers\routeController.js" />
+    <Content Include="app\controllers\orderController.js" />
+    <Content Include="app\services\config.js" />
+    <Content Include="app\services\routes.js" />
+    <Content Include="app\services\dataservice.js" />
+    <Content Include="app\directives\directives.js" />
+    <Content Include="app\filters\filters.js" />
     <Content Include="app\images\logo.png" />
-    <Content Include="app\logger.js" />
-    <Content Include="app\services.js" />
+    <Content Include="app\services\logger.js" />
+    <Content Include="app\services\model.js" />
     <Content Include="app\views\about.html" />
+    <Content Include="app\views\test.html" />
     <Content Include="app\views\orderpizza.html" />
-    <Content Include="app\views\orderpasta.html" />
+    <Content Include="app\views\ordersalad.html" />
     <Content Include="app\views\orderdrinks.html" />
     <Content Include="app\views\menu.html" />
     <Content Include="app\views\home.html" />
@@ -138,27 +144,53 @@
     <Content Include="content\font-awesome-ie7.min.css" />
     <Content Include="content\font-awesome.css" />
     <Content Include="content\font-awesome.min.css" />
+    <Content Include="content\font\fontawesome-webfont.svg" />
     <Content Include="content\ie10mobile.css" />
     <Content Include="content\images\glyphicons-halflings-white.png" />
     <Content Include="content\images\glyphicons-halflings.png" />
     <Content Include="content\styles.css" />
     <Content Include="content\toastr.css" />
     <Content Include="content\toastr.less" />
-    <None Include="Scripts\breeze.intellisense.js" />
+    <Content Include="content\font\fontawesome-webfont.eot" />
+    <Content Include="content\font\fontawesome-webfont.ttf" />
+    <Content Include="content\font\fontawesome-webfont.woff" />
+    <Content Include="content\font\FontAwesome.otf" />
     <Content Include="content\toastr.min.css" />
     <Content Include="Global.asax" />
     <Content Include="Index.html" />
     <Content Include="Scripts\angular.js" />
-    <Content Include="Scripts\angular.min.js" />
+    <Content Include="Scripts\angular.min.js">
+      <DependentUpon>angular.js</DependentUpon>
+    </Content>
     <Content Include="Scripts\breeze.debug.js" />
-    <Content Include="Scripts\breeze.min.js" />
+    <Content Include="Scripts\breeze.min.js">
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </Content>
+    <Content Include="Scripts\breeze.savequeuing.js">
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </Content>
+    <None Include="Scripts\breeze.intellisense.js">
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </None>
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\q.js" />
-    <Content Include="Scripts\q.min.js" />
+    <Content Include="Scripts\q.min.js">
+      <DependentUpon>q.js</DependentUpon>
+    </Content>
     <Content Include="Scripts\toastr.js" />
-    <Content Include="Scripts\toastr.min.js" />
+    <Content Include="Scripts\toastr.min.js">
+      <DependentUpon>toastr.js</DependentUpon>
+    </Content>
     <Content Include="Scripts\jquery-2.0.2.js" />
-    <Content Include="Scripts\jquery-2.0.2.min.js" />
+    <Content Include="Scripts\jquery-2.0.2.min.js">
+      <DependentUpon>jquery-2.0.2.js</DependentUpon>
+    </Content>
+    <Content Include="Scripts\jquery.min.js.map">
+      <DependentUpon>jquery-2.0.2.js</DependentUpon>
+    </Content>
+    <Content Include="Scripts\jquery-2.0.2.min.map">
+      <DependentUpon>jquery-2.0.2.js</DependentUpon>
+    </Content>
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -173,10 +205,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
-    <Content Include="Scripts\jquery.min.js.map">
-      <DependentUpon>jquery-2.0.2.js</DependentUpon>
-    </Content>
-    <Content Include="Scripts\jquery-2.0.2.min.map" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -229,6 +257,18 @@
     </VisualStudio>
   </ProjectExtensions>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <PropertyGroup>
+    <PreBuildEvent>
+      IF EXIST "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" GOTO breezeExists
+      echo Source breeze.debug.js was not found in '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' and was not copied
+      GOTO :done
+      :breezeExists
+      echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Experimental\breeze.savequeuing.js" "$(ProjectDir)Scripts" /Y</PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

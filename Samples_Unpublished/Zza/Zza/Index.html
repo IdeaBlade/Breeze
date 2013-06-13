@@ -1,5 +1,5 @@
 <!DOCTYPE html data-ng-app>
-<html lang="en" ng-app="Zza">
+<html lang="en" data-ng-app="app">
 <head>     
     <title>Zza with AngularJs</title>
     <meta charset="utf-8" />
@@ -25,16 +25,17 @@
     <script src="Scripts/modernizr-2.6.2.js"></script>
 
 </head>
-<body>
+<body class="ng-cloak">
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="navbar-inner" ng-controller="RouteCtrl">
+        <div class="navbar-inner" data-ng-controller="routeCtrl">
             <a class="brand" href="#/">
                 <span class="title">Zza!</span> 
             </a>
             <div class="nav-collapse collapse">
                 <ul class="nav">
-                    <li ng-repeat="link in links" ng-class="{active: current.templateUrl == link.templateUrl}">
+                    <li data-ng-repeat="link in links" 
+                        data-ng-class="{active: current.templateUrl == link.templateUrl}">
                         <a href="#{{link.path}}">{{link.name}}</a>
                     </li>
                 </ul>
@@ -45,11 +46,14 @@
         </div>
     </nav>
 
-    <div ng-view style="margin-top: 50px"></div>
+    <div data-ng-view style="margin-top: 50px"></div>
 
     <nav class="navbar navbar-fixed-bottom">
         <div class="navbar-inner navbar-content-center" >
-            <span class="pull-left"><a href="http://www.breezejs.com" target="_blank">Zza! Pizza Company, Little Italy</a></span>
+            <span class="pull-left">
+                <a href="http://www.breezejs.com" target="_blank">Zza! Pizza Company, Little Italy 
+                 v.<span app-version></span></a>
+            </span>
             <span class="pull-right">"Una Fetta di Paradiso" ("A Slice of Paradise")</span>
         </div>
     </nav>
@@ -62,14 +66,20 @@
     <script src="Scripts/angular.js"></script>
 
     <!-- App libraries -->
-  <script src="app/app.js"></script>
-  <script src="app/logger.js"></script>
-  <script src="app/dataservice.js"></script>
-  <script src="app/services.js"></script>
-  <script src="app/controllers.js"></script>
-  <script src="app/filters.js"></script>
-  <script src="app/directives.js"></script>
+    <script src="app/app.js"></script>
 
+    <script src="app/controllers/emptyControllers.js"></script>
+    <script src="app/controllers/orderController.js"></script>
+    <script src="app/controllers/routeController.js"></script>
+    <script src="app/controllers/testController.js"></script>
 
+    <script src="app/directives/directives.js"></script>
+    <script src="app/filters/filters.js"></script>
+
+    <script src="app/services/config.js"></script>
+    <script src="app/services/dataservice.js"></script>
+    <script src="app/services/logger.js"></script>
+    <script src="app/services/model.js"></script>
+    <script src="app/services/routes.js"></script>
     </body>
 </html>
