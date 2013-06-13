@@ -9,25 +9,39 @@ namespace Zza.Interfaces
     {
         private readonly List<Rule> _rules = new List<Rule>();
 
-        public void AddRule(Rule rule)
+        public Rule AddRule(Rule rule)
         {
             _rules.Add(rule);
+            return rule;
         }
-
+        public DelegateRule<T> AddRule<T>(Action<Rule, T, OperationType, object, ICollection<RuleResult>> action, RuleType ruleType = RuleType.SaveRule)
+        {
+            var rule = new DelegateRule<T>(action, ruleType);
+            return AddRule(rule) as DelegateRule<T>;
+        }
         public bool RemoveRule(Rule rule)
         {
             return _rules.Remove(rule);
         }
 
-        public IEnumerable<RuleResult> ExecuteRules(EntityInfo entityInfo, RuleType ruleType, object userData)
-        {
-            var ruleResults = new List<RuleResult>();
+        public IEnumerable<RuleResult> ExecuteSaveRules(EntityInfo entityInfo, object context)
+        {  
             var targetObject = entityInfo.Entity;
             var objectType = targetObject.GetType();
+            var ruleResults = new List<RuleResult>(); 
+            OperationType op;
+            switch (entityInfo.EntityState)
+            {
+                case EntityState.Added:    op = OperationType.Add; break;
+                case EntityState.Modified: op = OperationType.Update; break;
+                case EntityState.Deleted:  op = OperationType.Delete; break;
+                default: throw new InvalidOperationException("No operation for this state");
+            }
+
             foreach (var rule in _rules
-                .Where(r => r.RuleType == ruleType &&
+                .Where(r => r.RuleType == RuleType.SaveRule &&
                     (r.ObjectType == null || r.ObjectType == objectType)))
-                rule.Execute(targetObject, entityInfo.EntityState, userData, ruleResults);
+                rule.Execute(targetObject, op, context, ruleResults);
 
             return ruleResults;
         }
@@ -37,15 +51,15 @@ namespace Zza.Interfaces
     {
         public abstract RuleType RuleType { get; }
         public abstract Type ObjectType { get; }
-        public abstract void Execute(object targetObject, EntityState operationType, object userData, ICollection<RuleResult> ruleResults);
+        public abstract void Execute(object targetObject, OperationType op, object context, ICollection<RuleResult> ruleResults);
     }
 
     public class DelegateRule<T> : Rule
     {
-        private readonly Action<Rule, T, EntityState, object, ICollection<RuleResult>> _action;
+        private readonly Action<Rule, T, OperationType, object, ICollection<RuleResult>> _action;
         private readonly RuleType _ruleType;
 
-        public DelegateRule(Action<Rule, T, EntityState, object, ICollection<RuleResult>> action, RuleType ruleType)
+        public DelegateRule(Action<Rule, T, OperationType, object, ICollection<RuleResult>> action, RuleType ruleType = RuleType.SaveRule)
         {
             _action = action;
             _ruleType = ruleType;
@@ -58,12 +72,12 @@ namespace Zza.Interfaces
         {
             get { return typeof(T); }
         }
-        public override void Execute(object targetObject, EntityState operationType, object userData, ICollection<RuleResult> ruleResults)
+        public override void Execute(object targetObject, OperationType op, object context, ICollection<RuleResult> ruleResults)
         {
-            _action(this, (T)targetObject, operationType, userData, ruleResults);
+            _action(this, (T)targetObject, op, context, ruleResults);
         }
     }
-
+     
     public class RuleResult
     {
         public RuleResult(Rule rule, RuleResultType resultType, string message)
@@ -132,6 +146,14 @@ namespace Zza.Interfaces
     {
         QueryRule,
         SaveRule
+    }
+
+    public enum OperationType
+    {
+        Query,
+        Add,
+        Update,
+        Delete
     }
    
 }

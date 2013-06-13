@@ -16,7 +16,7 @@
         }
     
         function registerCustomer(metadataStore) {
-            metadataStore.registerCtor('Customer', CustomerCtor);
+            metadataStore.registerEntityTypeCtor('Customer', CustomerCtor);
         
             function CustomerCtor() { }
             CustomerCtor.prototype.fullName = function () {

@@ -32,10 +32,12 @@
         orderRoutes: orderRoutes
     };
 
-    angular.module('app')
+    var app = angular.module('app')
         .value('routes', routes)
         .config(['$routeProvider', function ($routeProvider) {
-            navRoutes.forEach(function(route) {
+            navRoutes.forEach(function (route) {
+                var resolve = app.routeResolve[route.controller];
+                if (resolve) { route.resolve = resolve; }
                 $routeProvider.when(route.path, route);
             });
         $routeProvider.otherwise({ redirectTo: '/' });

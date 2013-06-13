@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace Zza.Model
 {
-    public class Order : ISaveable
+    public class Order : ISaveable, IHasIntId
     {
         public Order()
         {
@@ -15,13 +15,13 @@ namespace Zza.Model
             ItemsTotal = 0;
         }
         [Key]
-        public virtual Int64 Id { get; set; }
+        public virtual long Id { get; set; }
         [JsonIgnore]
         public virtual Guid? StoreId { get; set; }
         [Required]
         public virtual Guid CustomerId { get; set; }
         [Required]
-        public virtual Int32 OrderStatusId { get; set; }
+        public virtual int OrderStatusId { get; set; }
         [Required]
         public virtual DateTime OrderDate { get; set; }
         [MaxLength(100)]

@@ -1,16 +1,15 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Zza.Model
 {
-    public class Product
+    public class Product : IHasIntId
     {
         public Product()
         {
             HasOptions = true;
         }
         [Key]
-        public virtual Int32 Id { get; set; }
+        public virtual int Id { get; set; }
         [Required, MaxLength(20)]
         public virtual string Type { get; set; }
         [Required, MaxLength(50)]
@@ -25,5 +24,7 @@ namespace Zza.Model
         public virtual bool? WithTomatoSauce { get; set; }
         [MaxLength(10)]
         public virtual string SizeIds { get; set; }
+
+        long IHasIntId.Id { get { return Id; } }
     } 
 }     
