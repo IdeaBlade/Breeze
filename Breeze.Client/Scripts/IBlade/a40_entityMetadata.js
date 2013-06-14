@@ -873,7 +873,7 @@ var CsdlMetadataParser = (function () {
         var constraint = association.referentialConstraint;
         if (!constraint) {
             // TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
-            return;
+            //return;
             // Think about adding this back later.
             //if (association.end[0].multiplicity == "*" && association.end[1].multiplicity == "*") {
             //    // many to many relation
@@ -890,17 +890,19 @@ var CsdlMetadataParser = (function () {
             associationName: association.name,
         };
 
-        var principal = constraint.principal;
-        var dependent = constraint.dependent;
-        var propRefs;
-        if (csdlProperty.fromRole === principal.role) {
-            propRefs = __toArray(principal.propertyRef);
-            cfg.invForeignKeyNamesOnServer = propRefs.map(__pluck("name"));
-        } else {
-            propRefs = __toArray(dependent.propertyRef);
-            // will be used later by np._update
-            cfg.foreignKeyNamesOnServer = propRefs.map(__pluck("name"));
-        }
+        if (constraint) {
+			var principal = constraint.principal;
+			var dependent = constraint.dependent;
+			var propRefs;
+			if (csdlProperty.fromRole === principal.role) {
+				propRefs = __toArray(principal.propertyRef);
+				cfg.invForeignKeyNamesOnServer = propRefs.map(__pluck("name"));
+			} else {
+				propRefs = __toArray(dependent.propertyRef);
+				// will be used later by np._update
+				cfg.foreignKeyNamesOnServer = propRefs.map(__pluck("name"));
+			}
+		}
 
         var np = new NavigationProperty(cfg);
         entityType.addProperty(np);
