@@ -9,8 +9,10 @@
 
     app.routeResolve = {};
     
-    app.run(['dataservice', function (dataservice) {
-        console.log("app module is loaded; inside the run method");
+    app.run(['dataservice', 'logger',
+        function (dataservice, logger) {
+            dataservice.initialize();
+            logger.log("app module is loaded; inside the run method");
     }]);
 
 })();

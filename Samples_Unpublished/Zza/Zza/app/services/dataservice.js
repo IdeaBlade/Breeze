@@ -2,17 +2,27 @@
     'use strict';
     angular.module('app').factory('dataservice',
     
-    ['breeze', 'model', 'config', 'logger', '$timeout',
-    function (breeze, model, config, logger, $timeout) {
-                
+    ['breeze', 'model', 'config', 'logger', '$rootScope', '$q', '$timeout',
+    function (breeze, model, config, logger, $rootScope, $q, $timeout) {
+
         var EntityQuery = breeze.EntityQuery,
-            afterInit,
+            products = [],
+            productOptions = [],
+            orderStatuses = [],
+            productSizes = [],
+            afterInitDeferred = $q.defer(),
+            afterInit = afterInitDeferred.promise,
             manager;
         
         configureBreeze();
 
         var dataservice = {
+            afterInit: afterInit,
             initialize: initialize,
+            orderStatuses: orderStatuses,
+            products: products,
+            productOptions: productOptions, 
+            productSizes: productSizes, 
             getAllCustomers: getAllCustomers,
             getOrders: getOrders,
             saveChanges: saveChanges
@@ -21,8 +31,21 @@
 
         //#region main application operations
         function initialize() {
-            afterInit = EntityQuery.from('Lookups').using(manager)
-                .execute.then(gotLookups).fail(initFailed);
+            EntityQuery.from('Lookups').using(manager)
+                .execute().then(gotLookups).fail(initFailed);
+            function gotLookups(data) {
+                var result = data.results[0];
+                logger.success("Got lookups");
+                orderStatuses = result.orderStatuses;
+                products = result.products;
+                productOptions = result.productOptions;
+                productSizes = result.productSizes;
+                $rootScope.$apply(afterInitDeferred.resolve);
+            }
+            function initFailed(error) {
+                logger.error(error.message, "Data initialization failed");
+                $rootScope.$apply(afterInitDeferred.reject);
+            }
         }
         
         function getAllCustomers() {
