@@ -31,7 +31,7 @@ namespace Zza.DataAccess.EF
 
         private void prepSaveChanges()
         {
-            var saveGuard = new ZzaSaveGuard(saveMap => new SaveDataProvider(saveMap, UserStoreId));
+            var saveGuard = new ZzaSaveGuard(saveMap => new ZzaSaveDataProvider(saveMap), UserStoreId);
             _contextProvider.BeforeSaveEntitiesDelegate += saveGuard.BeforeSaveEntities;
             //var guard = new ZzaEntitySaveGuard();
             //_contextProvider.BeforeSaveEntityDelegate += guard.BeforeSaveEntity;

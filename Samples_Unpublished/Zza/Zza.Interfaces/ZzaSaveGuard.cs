@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
+using System.Security.Authentication;
+using Breeze.WebApi;
 using Zza.Model;
 using SaveMap = System.Collections.Generic.Dictionary<
                 System.Type, 
@@ -10,13 +13,18 @@ namespace Zza.Interfaces
 {
     public class ZzaSaveGuard
     {
-        public ZzaSaveGuard(Func<SaveMap, ISaveDataProvider> dataProviderFactory)
+        public ZzaSaveGuard(Func<SaveMap, ISaveDataProvider> dataProviderFactory, Guid storeId)
         {
             _dataProviderFactory = dataProviderFactory;
+            _storeId = storeId;
         }
 
         public SaveMap BeforeSaveEntities(SaveMap saveMap)
         {
+            if (_storeId == Guid.Empty)
+            {
+               throw new InvalidOperationException("Invalid save attempt"); 
+            }
             foreach (var key in saveMap.Keys)
             {
                 if (typeof (ISaveable).IsAssignableFrom(key)) continue;
@@ -27,10 +35,12 @@ namespace Zza.Interfaces
 
             var rulesEngine = ZzaRulesEngine.Instance;
             var dataProvider = _dataProviderFactory(saveMap);
+            var context = new ZzaSaveContext(_storeId, dataProvider);
 
             foreach (var entityInfo in saveMap.Values.SelectMany(x => x))
             {
-                var results = rulesEngine.ExecuteSaveRules(entityInfo, dataProvider).ToList();
+                context.EntityInfo = entityInfo;
+                var results = rulesEngine.ExecuteSaveRules(entityInfo, context).ToList();
                 if (!results.Ok()) {
                     throw new SaveException(results.Errors()); 
                 }
@@ -39,7 +49,20 @@ namespace Zza.Interfaces
             return saveMap;
         }
 
+        private readonly Guid _storeId;
         private readonly Func<SaveMap, ISaveDataProvider> _dataProviderFactory;
+    }
+
+    public class ZzaSaveContext
+    {
+        public ZzaSaveContext(Guid storeId, ISaveDataProvider context)
+        {
+            UserStoreId = storeId;
+            DataProvider = context;
+        }
+        public EntityInfo EntityInfo { get; internal set; }
+        public Guid UserStoreId { get; private set; }
+        public ISaveDataProvider DataProvider { get; private set; }
     }
 
     public class SaveException : Exception

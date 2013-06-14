@@ -14,7 +14,7 @@ namespace Zza.Interfaces
     public static class IHasSaveMapExtensions
     {
         public static EntityInfo GetCurrent<T>(this IHasSaveMap provider, long id) 
-            where T : class, ISaveable, IHasIntId
+            where T : class, ISaveable, ISaveableWithIntId
         {
             var type = typeof(T);
             List<EntityInfo> infos;
@@ -25,7 +25,7 @@ namespace Zza.Interfaces
         }
 
         public static EntityInfo GetCurrent<T>(this IHasSaveMap provider, Guid id) 
-            where T : class, ISaveable, IHasGuidId
+            where T : class, ISaveable, ISaveableWithGuidId
         {
             var type = typeof(T);
             List<EntityInfo> infos;

@@ -1,16 +1,11 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using Newtonsoft.Json;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Zza.Model
 {
-    public class OrderItemOption : ISaveable, IHasIntId
+    public class OrderItemOption : Saveable, ISaveableWithIntId
     {
         [Key]
         public virtual long Id { get; set; }
-        [JsonIgnore]
-        public virtual Guid? StoreId { get; set; }
-
         [Required]
         public virtual long OrderItemId { get; set; }
         [Required]
@@ -23,6 +18,5 @@ namespace Zza.Model
         public virtual OrderItem OrderItem { get; set; }
         public virtual ProductOption ProductOption { get; set; }
 
-        public string CanAdd() { return null; }
     } 
 }     

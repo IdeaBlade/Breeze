@@ -49,9 +49,8 @@
     <Reference Include="System.Data.Entity" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SaveDataProvider.cs" />
+    <Compile Include="ZzaSaveDataProvider.cs" />
     <Compile Include="ZzaContext.cs" />
-    <Compile Include="ZzaEntitySaveGuard.cs" />
     <Compile Include="ZzaRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
