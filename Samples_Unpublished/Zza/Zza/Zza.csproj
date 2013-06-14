@@ -117,6 +117,7 @@
     <Content Include="app\controllers\emptyControllers.js" />
     <Content Include="app\controllers\routeController.js" />
     <Content Include="app\controllers\orderController.js" />
+    <Content Include="app\appRun.js" />
     <Content Include="app\services\config.js" />
     <Content Include="app\services\util.js" />
     <Content Include="app\services\routes.js" />

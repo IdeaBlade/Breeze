@@ -1,4 +1,8 @@
-﻿(function() {
+﻿/* 
+   This script must run before all others.
+   The load order of the other scripts is immaterial
+*/
+(function () {
     'use strict';
     // Declare app level module which depends on filters, and services
     var app = angular.module('app', []);
@@ -8,11 +12,4 @@
     app.value('toastr', window.toastr);
 
     app.routeResolve = {};
-    
-    app.run(['dataservice', 'logger',
-        function (dataservice, logger) {
-            dataservice.initialize();
-            logger.log("app module is loaded; inside the run method");
-    }]);
-
 })();

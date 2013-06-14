@@ -12,11 +12,10 @@
             $timeout = util.$timeout;
 
         var EntityQuery = breeze.EntityQuery,
-            afterInitDeferred = $q.defer(),
+            initPromise,
             manager;
 
-        var afterInit = afterInitDeferred.promise,
-            products = [],
+        var products = [],
             productOptions = [],
             orderStatuses = [],
             productSizes = [];
@@ -24,7 +23,6 @@
         configureBreeze();
 
         var service = {
-            afterInit: afterInit,
             initialize: initialize,
             orderStatuses: orderStatuses,
             products: products,
@@ -39,9 +37,15 @@
         //#region main application operations
 
         function initialize() {
+            if (initPromise) return initPromise; // already initialized/ing
+
+            var initDeferred = $q.defer();
+            
             EntityQuery.from('Lookups').using(manager)
                 .execute().then(gotLookups).fail(initFailed);
-
+            
+            return initPromise = initDeferred.promise;
+            
             function gotLookups(data) {
                 var result = data.results[0];
                 logger.success("Got lookups");
@@ -49,13 +53,14 @@
                 products = result.products;
                 productOptions = result.productOptions;
                 productSizes = result.productSizes;
-                $apply(afterInitDeferred.resolve);
+                $apply(initDeferred.resolve);
             }
 
             function initFailed(error) {
                 logger.error(error.message, "Data initialization failed");
-                $apply(afterInitDeferred.reject);
-            }
+                $apply(initDeferred.reject);
+            }           
+
         }
 
         function getAllCustomers() {

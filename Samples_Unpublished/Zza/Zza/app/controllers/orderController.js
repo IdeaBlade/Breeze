@@ -25,7 +25,7 @@
     
     function dataServiceInit(dataservice, logger) {
         logger.log(ctrlName + " is waiting for dataservice init");
-        return dataservice.afterInit;
+        return dataservice.initialize();
     };
     dataServiceInit.$inject = ['dataservice','logger'];
     
