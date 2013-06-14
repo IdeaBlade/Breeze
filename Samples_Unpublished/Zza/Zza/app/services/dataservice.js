@@ -9,6 +9,7 @@
             logger = util.logger,
             $apply = util.$apply,
             $q = util.$q,
+            to$q = util.to$q,
             $timeout = util.$timeout;
 
         var EntityQuery = breeze.EntityQuery,
@@ -38,13 +39,11 @@
 
         function initialize() {
             if (initPromise) return initPromise; // already initialized/ing
-
-            var initDeferred = $q.defer();
             
-            EntityQuery.from('Lookups').using(manager)
+            var p = EntityQuery.from('Lookups').using(manager)
                 .execute().then(gotLookups).fail(initFailed);
             
-            return initPromise = initDeferred.promise;
+            return initPromise = p.to$q();
             
             function gotLookups(data) {
                 var result = data.results[0];
@@ -53,14 +52,11 @@
                 products = result.products;
                 productOptions = result.productOptions;
                 productSizes = result.productSizes;
-                $apply(initDeferred.resolve);
             }
 
             function initFailed(error) {
                 logger.error(error.message, "Data initialization failed");
-                $apply(initDeferred.reject);
             }           
-
         }
 
         function getAllCustomers() {
