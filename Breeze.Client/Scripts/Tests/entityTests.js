@@ -1044,15 +1044,19 @@
             if (p.isUnmapped) {
                 // do nothing
             } else if (p.isDataProperty) {
-                if (p.isComplexProperty) {
-                    ok(v !== null, core.formatString("'%1': prop: '%2' - was null",
-                        structType.name, p.name));
-                } else if (p.defaultValue != null) {
-                    ok(v === p.defaultValue, core.formatString("'%1': prop: '%2' - was: '%3' - should be defaultValue: '%4'",
-                        structType.name, p.name, v, p.defaultValue));
-                } else if (p.isNullable) {
-                    ok(v === null, core.formatString("'%1': prop: '%2' - was: '%3' - should be null",
-                        structType.name, p.name, v));
+                if (p.isScalar) {
+                    if (p.isComplexProperty) {
+                        ok(v !== null, core.formatString("'%1': prop: '%2' - was null",
+                            structType.name, p.name));
+                    } else if (p.defaultValue != null) {
+                        ok(v === p.defaultValue, core.formatString("'%1': prop: '%2' - was: '%3' - should be defaultValue: '%4'",
+                            structType.name, p.name, v, p.defaultValue));
+                    } else if (p.isNullable) {
+                        ok(v === null, core.formatString("'%1': prop: '%2' - was: '%3' - should be null",
+                            structType.name, p.name, v));
+                    }
+                } else {
+                    ok(v.arrayChanged, "value should be a complex array or primitive array");
                 }
             } else {
                 if (p.isScalar) {

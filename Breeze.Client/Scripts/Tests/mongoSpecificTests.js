@@ -32,7 +32,7 @@
         return;
     };
 
-    test("get employee hobbies", function() {
+    test("get/save employee hobbies", function() {
         var em = newEm();
         var q = EntityQuery.from("Employees").take(5);
         stop();
@@ -41,14 +41,18 @@
             emps = data.results;
             emp = emps[0];
             var hobbies = emp.getProperty("hobbies");
-            emp.setProperty("hobbies", ["tennis", "swimming"]);
-            var h = emp.getProperty("hobbies");
-//            if (hobbies == null) {
-//
-//            } else {
-//                hobbies.push("rock climbing");
-//                emp.setProperty("hobbies", hobbies);
-//            }
+            try {
+                emp.setProperty("hobbies", ["tennis", "swimming"]);
+                ok(false, "should not get here");
+            } catch (e) {
+                ok(true, "should get here");
+            }
+            if (hobbies.indexOf("tennis") === -1) {
+                hobbies.push("tennis");
+                hobbies.push("swimming");
+            } else {
+                hobbies.splice(0,hobbies.length, "rock climbing", "reading" );
+            }
             return em.saveChanges();
         }).then(function(sr) {
             ok(sr.entities.length === 1, "should have saved 1 rec");
@@ -59,11 +63,41 @@
         }).then(function(data2){
             var sameEmp = data2.results[0];
             sameHobbies = sameEmp.getProperty("hobbies");
-            ok(sameHobbies != null && Array.isArray(sameHobbies) && sameHobbies.length > 0, "should have saved hobbies");
+            // sameHobbies will either be of length 2 or 4 now.
+            ok(sameHobbies != null && Array.isArray(sameHobbies) && sameHobbies.length >= 2, "should have saved hobbies");
 
         }).fail(testFns.handleFail).fin(start);
 
-    })
+    });
+
+    test("arrayChanged on employee hobbies", function() {
+        var em = newEm();
+        var q = EntityQuery.from("Employees").take(5);
+        stop();
+        var emps, emp;
+        em.executeQuery(q).then(function(data) {
+            emps = data.results;
+            emp = emps[0];
+            var hobbies = emp.getProperty("hobbies");
+            var addedCount = 0;
+            var removedCount = 0;
+            hobbies.arrayChanged.subscribe(function(args) {
+                addedCount+= args.added ? args.added.length : 0;
+                removedCount += args.removed ? args.removed.length : 0;
+            });
+            if (hobbies.indexOf("tennis") === -1) {
+                hobbies.push("tennis");
+                hobbies.push("swimming");
+                ok(addedCount === 2, "addCount should be 2");
+                ok(removedCount === 0, "removed count should be 0");
+            } else {
+                hobbies.splice(0,hobbies.length, "rock climbing", "reading" );
+                ok(addedCount === 2, "addCount should be 2");
+                ok(removedCount === 4, "removed count should be 4");
+            }
+
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     test("get embedded orderDetails", function () {
         var em = newEm();
