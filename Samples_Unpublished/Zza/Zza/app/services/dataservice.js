@@ -14,6 +14,7 @@
 
         var EntityQuery = breeze.EntityQuery,
             initPromise,
+            initFailed,
             manager;
 
         var products = [],
@@ -38,24 +39,29 @@
         //#region main application operations
 
         function initialize() {
-            if (initPromise) return initPromise; // already initialized/ing
+            if (initPromise && !initFailed) {
+                return initPromise; // already initialized/ing
+            }
+            initFailed = false;
+            return initPromise = EntityQuery.from('Lookups')
+                .using(manager).execute()
+                .then(success).fail(failure)
+                .to$q(); // convert Q.js promise to $q promise
             
-            var p = EntityQuery.from('Lookups').using(manager)
-                .execute().then(gotLookups).fail(initFailed);
-            
-            return initPromise = p.to$q();
-            
-            function gotLookups(data) {
+            function success(data) {
                 var result = data.results[0];
                 logger.success("Got lookups");
                 orderStatuses = result.orderStatuses;
                 products = result.products;
                 productOptions = result.productOptions;
                 productSizes = result.productSizes;
+                return true;
             }
 
-            function initFailed(error) {
+            function failure(error) {
+                initFailed = true;
                 logger.error(error.message, "Data initialization failed");
+                throw error; // so downstream fail handlers hear it too
             }           
         }
 

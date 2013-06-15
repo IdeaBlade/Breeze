@@ -32,28 +32,54 @@
  
         /*********************************************************
         * @method $apply {Void} easy access to $rootScope.$apply
+        * @param [func]{function} optional niladic function to call
         * Todo?: guard against calling $apply within a $digest cycle
         *********************************************************/
         function $apply() {
-            $rootScope.$apply.apply($rootScope, arguments);
+            if ($rootScope.$$phase) {
+                // from http://docs.angularjs.org/api/ng.$rootScope.Scope
+                if (arguments[0]) {
+                    try {
+                        $rootScope.$eval.apply(arguments[0]);
+                    } catch(e) {
+                        $rootScope.$exceptionHandler.apply(e);
+                    }
+                }
+            } else {
+                $rootScope.$apply.apply($rootScope, arguments);
+            }           
         }
         
         /*********************************************************
         * @method to$q {Promise} Convert a Q.js promise into an angular $q
         * @param promiseQ {Promise} the Q.js promise to convert
-        * @param [no$apply] {Boolean} disable automatic call to $apply
+        * @param [should$apply] {Boolean} should automatic call $apply
+        *        @default true
+        * The Q promise must return some value when they succeed or
+        * rethrow the error if they fail. Else this method logs a warning.
         *********************************************************/
-        function to$q(promiseQ, no$apply) {
+        function to$q(promiseQ, should$apply) {
             var d = $q.defer();
-            var pQ = promiseQ
-                .then(function (data) { d.resolve(data); })
-                .fail(function (error) { d.reject(error); });
-            // Todo: guard against calling $apply within a $digest cycle
-            if (!no$apply) pQ.fin($apply);
+            promiseQ
+                .then(function (data) {
+                    if (data === undefined) {
+                        logger.warning("Programming error: no data. "+
+                        "Perhaps success callback didn't return a value or " +
+                         "fail callback didn't re-throw error");
+                    }
+                    d.resolve(data);
+                })
+               .fail(function (error) {
+                    d.reject(error);
+                });
+            
+            if (should$apply === undefined || should$apply) promiseQ.fin($apply);
             return d.promise;
         }
+        // monkey patch this method into Q.js' promise prototype
         function extendQ() {
             var fn = Q.defer().promise.__proto__;
+            if (fn.to$q) return; // exists; don't reset
             fn.to$q = function(no$apply) { return to$q(this, no$apply); };
         }
         /*********************************************************
