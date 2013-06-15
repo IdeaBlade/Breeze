@@ -203,7 +203,7 @@
             ajaxAdapter.defaultSettings = {
                 headers: {
                     "X-UserSessionId": userSessionId
-                },
+                }
             };
         }
 
