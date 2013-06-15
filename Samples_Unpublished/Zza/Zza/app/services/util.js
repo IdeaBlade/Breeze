@@ -77,7 +77,8 @@
         }
         // monkey patch this method into Q.js' promise prototype
         function extendQ() {
-            var fn = Q.defer().promise.__proto__;
+            var promise = Q.defer().promise;
+            var fn = Object.getPrototypeOf(promise);
             if (fn.to$q) return; // exists; don't reset
             fn.to$q = function(no$apply) { return to$q(this, no$apply); };
         }
