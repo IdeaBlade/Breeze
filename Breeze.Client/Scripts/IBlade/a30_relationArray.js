@@ -1,5 +1,5 @@
 ﻿
-breeze.makeRelationArray = function() {
+breeze.makeRelationArray = (function() {
 
     var relationArrayMixin = {};
 
@@ -60,15 +60,15 @@ breeze.makeRelationArray = function() {
     // virtual impls 
     relationArrayMixin._getGoodAdds = function(adds) {
         return getGoodAdds(this, adds);
-    }
+    };
 
     relationArrayMixin._processAdds = function(adds) {
         processAdds(this, adds);
-    }
+    };
 
     relationArrayMixin._processRemoves = function(removes)  {
         processRemoves(this, removes);
-    }
+    };
     //
 
     function getGoodAdds(relationArray, adds) {
@@ -136,8 +136,9 @@ breeze.makeRelationArray = function() {
         var parentEntity = relationArray.parentEntity;
         var navProp = relationArray.navigationProperty;
         var inverseProp = navProp.inverse;
+        var goodAdds;
         if (inverseProp) {
-            var goodAdds = adds.filter(function (a) {
+            goodAdds = adds.filter(function (a) {
                 if (relationArray._addsInProcess.indexOf(a) >= 0) {
                     return false;
                 }
@@ -149,7 +150,7 @@ breeze.makeRelationArray = function() {
             // in this case we compare fks.
             var fkPropNames = navProp.invForeignKeyNames;
             var keyProps = parentEntity.entityType.keyProperties;
-            var goodAdds = adds.filter(function (a) {
+            goodAdds = adds.filter(function (a) {
                 if (relationArray._addsInProcess.indexOf(a) >= 0) {
                     return false;
                 }
@@ -176,4 +177,4 @@ breeze.makeRelationArray = function() {
     }
 
     return makeRelationArray;
-}();
+})();

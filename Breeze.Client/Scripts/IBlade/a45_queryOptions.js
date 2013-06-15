@@ -161,14 +161,14 @@ var QueryOptions = (function () {
     proto.toJSON = function () {
         return __toJson(this, {
             fetchStrategy: null,
-            mergeStrategy: null,
+            mergeStrategy: null
         });
     };
 
     ctor.fromJSON = function (json) {
         return new QueryOptions({
             fetchStrategy: FetchStrategy.fromName(json.fetchStrategy),
-            mergeStrategy: MergeStrategy.fromName(json.mergeStrategy),
+            mergeStrategy: MergeStrategy.fromName(json.mergeStrategy)
         });       
     };
         

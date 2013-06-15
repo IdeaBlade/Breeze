@@ -1,5 +1,5 @@
 ﻿
-breeze.makeComplexArray = function() {
+breeze.makeComplexArray = (function() {
     var complexArrayMixin = {};
 
     // complexArray will have the following props
@@ -40,19 +40,19 @@ breeze.makeComplexArray = function() {
     // virtual impls 
     complexArrayMixin._getGoodAdds = function (adds) {
         return getGoodAdds(this, adds);
-    }
+    };
 
     complexArrayMixin._beforeChange = function() {
         observableArray.updateEntityState(this);
-    }
+    };
 
     complexArrayMixin._processAdds = function (adds) {
         processAdds(this, adds);
-    }
+    };
 
     complexArrayMixin._processRemoves = function (removes) {
         processRemoves(this, removes);
-    }
+    };
     //
 
     complexArrayMixin._rejectChanges = function() {
@@ -66,11 +66,11 @@ breeze.makeComplexArray = function() {
             that.push(co);
         });
         Array.prototype.push.apply(this, this._origValues);
-    }
+    };
 
     complexArrayMixin._acceptChanges = function() {
         this._origValues = null;
-    }
+    } ;
 
     // local functions
 
@@ -78,7 +78,7 @@ breeze.makeComplexArray = function() {
     function getGoodAdds(complexArray, adds) {
         // remove any that are already added here
         return adds.filter(function (a) {
-            return a.parent != complexArray.parent;
+            return a.parent !== complexArray.parent;
         });
     }
 
@@ -130,4 +130,4 @@ breeze.makeComplexArray = function() {
     }
 
     return makeComplexArray;
-}();
+})();

@@ -2,7 +2,7 @@
 @module breeze
 **/
 
-var Validator = function () {
+var Validator = (function () {
 
     var INT16_MIN = -32768;
     var INT16_MAX = 32767;
@@ -219,7 +219,7 @@ var Validator = function () {
             var context = this.currentContext;
             var message = context.message;
             if (message) {
-                if (typeof (message) == "function") {
+                if (typeof (message) === "function") {
                     return message(context);
                 } else {
                     return message;
@@ -342,7 +342,7 @@ var Validator = function () {
     ctor.maxLength = function (context) {
         var valFn = function (v, ctx) {
             if (v == null) return true;
-            if (typeof (v) != "string") return false;
+            if (typeof (v) !== "string") return false;
             return v.length <= ctx.maxLength;
         };
         return new ctor("maxLength", valFn, context);
@@ -367,7 +367,7 @@ var Validator = function () {
     ctor.stringLength = function (context) {
         var valFn = function (v, ctx) {
             if (v == null) return true;
-            if (typeof (v) != "string") return false;
+            if (typeof (v) !== "string") return false;
             if (ctx.minLength != null && v.length < ctx.minLength) return false;
             if (ctx.maxLength != null && v.length > ctx.maxLength) return false;
             return true;
@@ -652,9 +652,9 @@ var Validator = function () {
     }
 
     return ctor;
-} ();
+}) ();
 
-var ValidationError = function () {
+var ValidationError = (function () {
         /**
     A ValidatationError is used to describe a failed validation.
 
@@ -722,7 +722,7 @@ var ValidationError = function () {
     };
 
     return ctor;
-}();
+})();
     
 breeze.Validator = Validator;
 breeze.ValidationError = ValidationError;

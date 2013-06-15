@@ -23,15 +23,14 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     var that = this;
     // need 2 propNames here because of complexTypes;
     var propName = property.name;
-    var propPath;
 
+    var propPath, localAspect, key, relatedEntity;
     // CANNOT DO NEXT LINE because it has the possibility of creating a new property
     // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
     // var entityAspect = new EntityAspect(this);
 
     var entityAspect = this.entityAspect;
-    var localAspect;
-        
+
     if (entityAspect) {
         localAspect = entityAspect;
         propPath = propName;
@@ -93,9 +92,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     oldValue.setProperty(pn, nv);
                 });
             } else {
-                throw new Error(__formatString("You cannot set the non-scalar complex property: '%1' on the type: '%2'."
-                    + "Instead get the property and use array functions like 'push' or 'splice' to change its contents."
-                    , property.name, property.parentType.name));
+                throw new Error(__formatString("You cannot set the non-scalar complex property: '%1' on the type: '%2'." +
+                    "Instead get the property and use array functions like 'push' or 'splice' to change its contents.",
+                    property.name, property.parentType.name));
             }
 
         } else if (property.isDataProperty) {
@@ -107,7 +106,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
             if (property.isPartOfKey && (!this.complexAspect) && entityManager && !entityManager.isLoading) {
                 var keyProps = this.entityType.keyProperties;
                 var values = keyProps.map(function (p) {
-                    if (p == property) {
+                    if (p === property) {
                         return newValue;
                     } else {
                         return this.getProperty(p.name);
@@ -138,8 +137,8 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 //    ==> (see set navProp above)
                 
                 if (newValue != null) {
-                    var key = new EntityKey(relatedNavProp.entityType, [newValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
+                    key = new EntityKey(relatedNavProp.entityType, [newValue]);
+                    relatedEntity = entityManager.findEntityByKey(key);
 
                     if (relatedEntity) {
                         this.setProperty(relatedNavProp.name, relatedEntity);
@@ -170,8 +169,8 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 var invNavProp = property.inverseNavigationProperty;
 
                 if (oldValue != null) {
-                    var key = new EntityKey(invNavProp.parentType, [oldValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
+                    key = new EntityKey(invNavProp.parentType, [oldValue]);
+                    relatedEntity = entityManager.findEntityByKey(key);
                     if (relatedEntity) {
                         if (invNavProp.isScalar) {
                             relatedEntity.setProperty(invNavProp.name, null);
@@ -185,8 +184,8 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 }
 
                 if (newValue != null) {
-                    var key = new EntityKey(invNavProp.parentType, [newValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
+                    key = new EntityKey(invNavProp.parentType, [newValue]);
+                    relatedEntity = entityManager.findEntityByKey(key);
 
                     if (relatedEntity) {
                         if (invNavProp.isScalar) {

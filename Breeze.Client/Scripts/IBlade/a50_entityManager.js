@@ -728,7 +728,7 @@ var EntityManager = (function () {
         var groups = findOrCreateEntityGroups(this, entityType);
         // filter then order then skip then take
         var filterFunc = query._toFilterFunction(entityType);
-        
+
         if (filterFunc) {
             var newFilterFunc = function(entity) {
                 return entity && (!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity);
@@ -872,7 +872,7 @@ var EntityManager = (function () {
         var saveContext = {
             entityManager: this,
             dataService: dataService,
-            resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges",
+            resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges"
         };
         var queryOptions = {
             mergeStrategy: MergeStrategy.OverwriteChanges
@@ -2304,7 +2304,7 @@ var EntityManager = (function () {
                 if (dp.isScalar) {
                     rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
                 } else {
-                    complexObjs = structObj.getProperty(dp.name);
+                    var complexObjs = structObj.getProperty(dp.name);
                     rawObject[dp.nameOnServer] = complexObjs.map(function(co) { return unwrapInstance(co, isOData) });
                 }
             } else {

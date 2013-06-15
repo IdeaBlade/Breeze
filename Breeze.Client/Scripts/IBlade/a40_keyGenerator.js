@@ -73,10 +73,12 @@ var KeyGenerator = (function () {
 
     proto.getTempKeys = function () {
         var results = [];
+        //noinspection JSHint
         for (var key in this._tempIdMap) {
             var propEntry = this._tempIdMap[key];
             var entityType = propEntry.entityType;
             // var propName = propEntry.propertyName;
+            //noinspection JSHint
             for (var keyValue in propEntry.keyMap) {
                 results.push(new EntityKey(entityType, [keyValue]));
             }
@@ -99,8 +101,6 @@ var KeyGenerator = (function () {
         return (propEntry.keyMap[entityKey.values[0].toString()] !== undefined);
     };
 
-
-
     function getPropEntry(that, keyProp, createIfMissing) {
         var key = keyProp.name + ".." + keyProp.parentType.name;
         var propEntry = that._tempIdMap[key];
@@ -112,10 +112,6 @@ var KeyGenerator = (function () {
         }
         return propEntry;
     }
-
-    
-
-    
 
     __config.registerType(ctor, "KeyGenerator");
 

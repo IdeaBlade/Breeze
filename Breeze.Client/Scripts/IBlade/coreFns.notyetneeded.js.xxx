@@ -1,5 +1,5 @@
 ﻿
-define(function () {
+var x = function() {
     "use strict";
 
     // Not yet needed 
@@ -142,3 +142,4 @@ define(function () {
         String.prototype.trim = function () { return this.replace(/^\s\s*/, '').replace(/\s\s*$/, ''); };
     }
 
+});

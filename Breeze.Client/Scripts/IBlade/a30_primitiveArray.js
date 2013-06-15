@@ -1,5 +1,5 @@
 ﻿
-breeze.makePrimitiveArray = function() {
+breeze.makePrimitiveArray = (function() {
     var primitiveArrayMixin = {};
 
     // complexArray will have the following props
@@ -40,7 +40,7 @@ breeze.makePrimitiveArray = function() {
     // virtual impls 
     primitiveArrayMixin._getGoodAdds = function (adds) {
         return adds;
-    }
+    };
 
     primitiveArrayMixin._beforeChange = function() {
         var entityAspect = this.entityAspect;
@@ -50,26 +50,26 @@ breeze.makePrimitiveArray = function() {
         if (entityAspect.entityState.isModified() && !this._origValues) {
             this._origValues = this.slice(0);
         }
-    }
+    };
 
     primitiveArrayMixin._processAdds = function (adds) {
         // nothing needed
-    }
+    };
 
     primitiveArrayMixin._processRemoves = function (removes) {
         // nothing needed;
-    }
+    };
     //
 
     primitiveArrayMixin._rejectChanges = function() {
         if (!this._origValues) return;
         this.length = 0;
         Array.prototype.push.apply(this, this._origValues);
-    }
+    };
 
     primitiveArrayMixin._acceptChanges = function() {
         this._origValues = null;
-    }
+    };
 
     // local functions
 
@@ -82,4 +82,4 @@ breeze.makePrimitiveArray = function() {
     }
 
     return makePrimitiveArray;
-}();
+})();

@@ -271,7 +271,7 @@ function __requireLibCore(libName) {
     try {
         if (this.window) {
             var window = this.window;
-            var lib = window[libName];
+            lib = window[libName];
             if (lib) return lib;
             if (window.require) {
                 lib = window.require(libName);

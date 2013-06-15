@@ -53,7 +53,7 @@
         saveBundle.saveOptions = { tag: saveBundle.saveOptions.tag };
 
         return saveBundle;
-    }
+    };
 
     ctor.prototype._prepareSaveResult = function (saveContext, data) {
         // HACK: need to change the 'case' of properties in the saveResult
@@ -63,7 +63,7 @@
             return { entityTypeName: entityTypeName, tempValue: km.TempValue, realValue: km.RealValue };
         });
         return { entities: data.Entities, keyMappings: keyMappings, XHR: data.XHR };
-    }
+    };
     
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         
@@ -82,7 +82,7 @@
                 nodeRefId: node.$ref,
                 ignore: ignore
             };
-        },
+        }
         
     });
     

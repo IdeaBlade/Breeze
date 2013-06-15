@@ -2,7 +2,7 @@
   @module breeze
   **/
 
-var DataType = function () {
+var DataType = (function () {
   
     /**
     DataType is an 'Enum' containing all of the supported data types.
@@ -29,7 +29,7 @@ var DataType = function () {
         stringPrefix: "K_",
         nextNumber: -1,
         nextNumberIncrement: -1
-    }
+    };
 
     var getNextString = function () {
         return constants.stringPrefix + getNextNumber().toString();
@@ -77,13 +77,14 @@ var DataType = function () {
     };
 
     var coerceToDate = function (source, sourceTypeName) {
+        var val;
         if (sourceTypeName === "string") {
             var src = source.trim();
             if (src === "") return null;
-            var val = new Date(Date.parse(src));
+            val = new Date(Date.parse(src));
             return __isDate(val) ? val : source;
         } else if (sourceTypeName === "number") {
-            var val = new Date(source);
+            val = new Date(source);
             return __isDate(val) ? val : source;
         }
         return source;
@@ -108,7 +109,7 @@ var DataType = function () {
     };
 
     var fmtInt = function (val) {
-        return val == null ? null : ((typeof val === "string") ? parseInt(val) : val);
+        return val == null ? null : ((typeof val === "string") ? parseInt(val, 10) : val);
     };
 
     var makeFloatFmt = function (fmtSuffix) {
@@ -339,7 +340,7 @@ var DataType = function () {
             if (simpleName === "image") {
                 // hack
                 dt = DataType.Byte;
-            } else if (parts.length == 2) {
+            } else if (parts.length === 2) {
                 dt = DataType.fromName(simpleName) || DataType.Undefined;
             } else {
                 // enum
@@ -434,11 +435,11 @@ var DataType = function () {
             case DataType.Undefined:
                 return Validator.none;
         }
-    };
+    }
 
     return DataType;
 
-}();
+})();
 
 breeze.DataType = DataType;
 

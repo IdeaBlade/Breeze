@@ -163,7 +163,7 @@
                 // EntityKey properties can be produced by EDMX models
                 (propertyName === "EntityKey" && node.$type && core.stringStartsWith(node.$type, "System.Data"));
             return result;
-        },        
+        }
         
     });
 

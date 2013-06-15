@@ -166,7 +166,7 @@
         
         visitNode: function (node, mappingContext, nodeContext) {
             return {};
-        },
+        }
 
     });
    
@@ -178,7 +178,7 @@
         deferred.reject(err);
         XHR.onreadystatechange = null;
         XHR.abort = null;
-    }
+    };
 
     ctor.prototype._createError = function(XHR) {
         var err = new Error();

@@ -165,7 +165,7 @@ var MetadataStore = (function () {
             "localQueryComparisonOptions": this.localQueryComparisonOptions.name,
             "dataServices": this.dataServices,
             "structuralTypes": __objectMapToArray(this._structuralTypeMap),
-            "resourceEntityTypeMap": this._resourceEntityTypeMap,
+            "resourceEntityTypeMap": this._resourceEntityTypeMap
         }, __config.stringifyPad);
         return result;
     };
@@ -203,7 +203,7 @@ var MetadataStore = (function () {
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
         if (this.isEmpty()) {
-            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance
+            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance;
             this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || LocalQueryComparisonOptions.defaultInstance;
         } else {
             if (ncName && this.namingConvention.name !== ncName) {
@@ -215,7 +215,8 @@ var MetadataStore = (function () {
         }
         
         var that = this;
-        
+
+        //noinspection JSHint
         json.dataServices && json.dataServices.forEach(function (ds) {
             ds = DataService.fromJSON(ds);
             that.addDataService(ds, true);
@@ -344,7 +345,7 @@ var MetadataStore = (function () {
         }).fail(function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
-        })
+        });
     };
 
 
@@ -417,7 +418,7 @@ var MetadataStore = (function () {
         } else {
             throw new Error("unable to recognize query parameter as either a string or an EntityQuery");
         }
-    }
+    };
              
     /**
     Returns whether this MetadataStore contains any metadata yet.
@@ -432,7 +433,6 @@ var MetadataStore = (function () {
     proto.isEmpty = function () {
         return __isEmpty(this._structuralTypeMap);
     };
-
 
     /**
     Returns an  {{#crossLink "EntityType"}}{{/crossLink}} or a {{#crossLink "ComplexType"}}{{/crossLink}} given its name.
@@ -460,7 +460,7 @@ var MetadataStore = (function () {
         var type = this._structuralTypeMap[qualTypeName];
         if (!type) {
             if (okIfNotFound) return null;
-            var msg = __formatString("Unable to locate a 'Type' by the name: '%1'. Be sure to execute a query or call fetchMetadata first.", typeName)
+            var msg = __formatString("Unable to locate a 'Type' by the name: '%1'. Be sure to execute a query or call fetchMetadata first.", typeName);
             throw new Error(msg);
             
         }
@@ -625,6 +625,7 @@ var MetadataStore = (function () {
         
         var isEntityType = !json.isComplexType;
         if (isEntityType) {
+            //noinspection JSHint
             json.navigationProperties && json.navigationProperties.forEach(function(np) {
                 stype.addProperty(NavigationProperty.fromJSON(np));
             });
@@ -636,11 +637,11 @@ var MetadataStore = (function () {
         var deferrals = deferredTypes[stype.name];
         if (deferrals) {
             deferrals.forEach(function (d) {
-                completeStructuralTypeFromJson(metadataStore, d.json, d.stype, stype)
+                completeStructuralTypeFromJson(metadataStore, d.json, d.stype, stype);
             });
             delete deferredTypes[stype.name];
         }
-    };
+    }
         
     function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
         if (isQualifiedTypeName(structTypeName)) return structTypeName;
@@ -699,9 +700,9 @@ var CsdlMetadataParser = (function () {
             throw new Error("Bad nav properties");
         }
         return metadataStore;
-    };
+    }
 
-   function parseCsdlEntityType(csdlEntityType, schema, metadataStore) {
+    function parseCsdlEntityType(csdlEntityType, schema, metadataStore) {
         var shortName = csdlEntityType.name;
         var ns = getNamespaceFor(shortName, schema);
         var entityType = new EntityType({
@@ -767,7 +768,7 @@ var CsdlMetadataParser = (function () {
         var deferrals = deferredTypes[entityType.name];
         if (deferrals) {
             deferrals.forEach(function (d) {
-                completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, metadataStore, entityType)
+                completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, metadataStore, entityType);
             });
             delete deferredTypes[entityType.name];
         }
@@ -793,7 +794,7 @@ var CsdlMetadataParser = (function () {
     function parseCsdlDataProperty(parentType, csdlProperty, schema, keyNamesOnServer) {
         var dp;
         var typeParts = csdlProperty.type.split(".");
-        if (typeParts.length == 2) {
+        if (typeParts.length === 2) {
             dp = parseCsdlSimpleProperty(parentType, csdlProperty, keyNamesOnServer);
         } else {
             if (isEnumType(csdlProperty, schema)) {
@@ -821,14 +822,14 @@ var CsdlMetadataParser = (function () {
         var isNullable = csdlProperty.nullable === 'true' || csdlProperty.nullable == null;
         // var fixedLength = csdlProperty.fixedLength ? csdlProperty.fixedLength === true : undefined;
         var isPartOfKey = keyNamesOnServer != null && keyNamesOnServer.indexOf(csdlProperty.name) >= 0;
-        if (isPartOfKey && parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
+        if (isPartOfKey && parentType.autoGeneratedKeyType === AutoGeneratedKeyType.None) {
             if (isIdentityProperty(csdlProperty)) {
                 parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
             }
         }
         // TODO: nit - don't set maxLength if null;
         var maxLength = csdlProperty.maxLength;
-        maxLength = (maxLength == null || maxLength === "Max") ? null : parseInt(maxLength);
+        maxLength = (maxLength == null || maxLength === "Max") ? null : parseInt(maxLength,10);
         // can't set the name until we go thru namingConventions and these need the dp.
         var dp = new DataProperty({
             nameOnServer: csdlProperty.name,
@@ -867,9 +868,9 @@ var CsdlMetadataParser = (function () {
             return assocEnd.role === csdlProperty.toRole;
         });
 
-        var isScalar = !(toEnd.multiplicity === "*");
+        var isScalar = toEnd.multiplicity !== "*";
         var dataType = parseTypeName(toEnd.type, schema).typeName;
-        var fkNamesOnServer = [];
+
         var constraint = association.referentialConstraint;
         if (!constraint) {
             // TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
@@ -887,7 +888,7 @@ var CsdlMetadataParser = (function () {
             nameOnServer: csdlProperty.name,
             entityTypeName: dataType,
             isScalar: isScalar,
-            associationName: association.name,
+            associationName: association.name
         };
 
         var principal = constraint.principal;
@@ -1048,7 +1049,7 @@ var CsdlMetadataParser = (function () {
     return {
         parse: parse,
         normalizeTypeName: normalizeTypeName
-    }
+    };
 
 })();
 
@@ -1081,7 +1082,7 @@ var EntityType = (function () {
         }
         if  (config._$typeName === "MetadataStore") {
             this.metadataStore = config;
-            this.shortName = "Anon_" + ++__nextAnonIx;
+            this.shortName = "Anon_" + (++__nextAnonIx);
             this.namespace = "";
             this.isAnonymous = true;
         } else {
@@ -1117,10 +1118,7 @@ var EntityType = (function () {
     };
     var proto = ctor.prototype;
     proto._$typeName = "EntityType";
-        
-    
 
-        
     /**
     The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
 
@@ -1276,7 +1274,7 @@ var EntityType = (function () {
             baseType = baseType.baseEntityType;
         } while (baseType);
         return false;
-    }
+    };
 
     /**
     Returns an array containing this type and any/all subtypes of this type down thru the hierarchy.
@@ -1287,10 +1285,10 @@ var EntityType = (function () {
         var result = [this];
         this.subtypes.forEach(function(st) {
             var subtypes = st.getSelfAndSubtypes();
-            result.push.apply(result, subtypes )
-        })
+            result.push.apply(result, subtypes );
+        });
         return result;
-    }
+    };
 
     /**
     Adds a  {{#crossLink "DataProperty"}}{{/crossLink}} or a {{#crossLink "NavigationProperty"}}{{/crossLink}} to this EntityType.
@@ -1322,8 +1320,6 @@ var EntityType = (function () {
         }
         return this;
     };
-        
-
 
     /**
     Create a new entity of this type.
@@ -1388,7 +1384,7 @@ var EntityType = (function () {
         var instance = new aCtor();
         var proto = aCtor.prototype;
             
-        if (this._$typeName == "EntityType") {
+        if (this._$typeName === "EntityType") {
             // insure that all of the properties are on the 'template' instance before watching the class.
             calcUnmappedProperties(this, instance);
             proto.entityType = this;
@@ -1596,7 +1592,7 @@ var EntityType = (function () {
 
     proto._updateNames = function (property) {
         var nc = this.metadataStore.namingConvention;
-        updateClientServerNames(nc, property, "name")
+        updateClientServerNames(nc, property, "name");
                    
         if (property.isNavigationProperty) {
             updateClientServerNames(nc, property, "foreignKeyNames");
@@ -1612,7 +1608,7 @@ var EntityType = (function () {
     };
 
     function updateClientServerNames(nc, parent, clientPropName) {
-        serverPropName = clientPropName + "OnServer";
+        var serverPropName = clientPropName + "OnServer";
         var clientName = parent[clientPropName];
         if (clientName && clientName.length) {
             if (parent.isUnmapped) return;
@@ -1626,8 +1622,8 @@ var EntityType = (function () {
             });
             parent[serverPropName] = Array.isArray(clientName) ? serverNames : serverNames[0];
         } else {            
-            serverName = parent[serverPropName];
-            if ((!serverName) || serverName.length == 0) return;
+            var serverName = parent[serverPropName];
+            if ((!serverName) || serverName.length === 0) return;
             var clientNames = __toArray(serverName).map(function (sName) {
                 var cName = nc.serverPropertyNameToClient(sName, parent);
                 var testName = nc.clientPropertyNameToServer(cName, parent);
@@ -1642,7 +1638,7 @@ var EntityType = (function () {
 
     proto._checkNavProperty = function (navigationProperty) {
         if (navigationProperty.isNavigationProperty) {
-            if (navigationProperty.parentType != this) {
+            if (navigationProperty.parentType !== this) {
                 throw new Error(__formatString("The navigationProperty '%1' is not a property of entity type '%2'",
                         navigationProperty.name, this.name));
             }
@@ -1662,7 +1658,7 @@ var EntityType = (function () {
             
         if (dp.isPartOfKey) {
             this.keyProperties.push(dp);
-        };
+        }
             
         if (dp.isComplexProperty) {
             this.complexProperties.push(dp);
@@ -1670,7 +1666,7 @@ var EntityType = (function () {
 
         if (dp.concurrencyMode && dp.concurrencyMode !== "None") {
             this.concurrencyProperties.push(dp);
-        };
+        }
 
         if (dp.isUnmapped) {
             this.unmappedProperties.push(dp);
@@ -1731,7 +1727,7 @@ var EntityType = (function () {
         });
 
         delete incompleteMap[this.name];
-    }
+    };
 
     function resolveNp(np, metadataStore) {
         var entityType = metadataStore._getEntityType(np.entityTypeName, true);
@@ -1742,8 +1738,8 @@ var EntityType = (function () {
             //return altNp.associationName === np.associationName
             //    && altNp !== np;
             // So use this instead.
-            return altNp.associationName === np.associationName
-                && (altNp.name != np.name || altNp.entityTypeName != np.entityTypeName);
+            return altNp.associationName === np.associationName &&
+                (altNp.name !== np.name || altNp.entityTypeName !== np.entityTypeName);
         });
         np.inverse = invNp;
         if (!invNp) {
@@ -1782,14 +1778,14 @@ var EntityType = (function () {
                 np.relatedDataProperties = [dp];
             }
         });
-    };
+    }
 
    
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
         trackablePropNames.forEach(function (pn) {
-            if (metadataPropNames.indexOf(pn) == -1) {
+            if (metadataPropNames.indexOf(pn) === -1) {
                 var newProp = new DataProperty({
                     name: pn,
                     dataType: DataType.Undefined,
@@ -2062,7 +2058,7 @@ var DataProperty = (function () {
         if (this.complexTypeName) {
             this.isComplexProperty = true;
             this.dataType = null;
-        } else if (typeof(this.dataType) == "string" ) {
+        } else if (typeof(this.dataType) === "string" ) {
             var dt = DataType.fromName(this.dataType);
             if (!dt) {
                 throw new Error("Unable to find a DataType enumeration by the name of: " + this.dataType);
@@ -2096,8 +2092,6 @@ var DataProperty = (function () {
     };
     var proto = ctor.prototype;
     proto._$typeName = "DataProperty";
-
-    
 
     /**
     The name of this property
@@ -2234,8 +2228,6 @@ var DataProperty = (function () {
             rawTypeName: null,
             isScalar: true
         });
-        
-        
     };
 
     ctor.fromJSON = function(json) {
@@ -2252,7 +2244,6 @@ var DataProperty = (function () {
         return new DataProperty(json);
     };
 
-    
     return ctor;
 })();
   

@@ -1,5 +1,5 @@
 ﻿
-var observableArray = function() {
+var observableArray = (function() {
 
     var mixin = {};
     mixin.push = function() {
@@ -26,7 +26,7 @@ var observableArray = function() {
         var result = Array.prototype.push.apply(this, goodAdds);
         processAdds(this, goodAdds);
         return result;
-    }
+    };
 
     mixin.unshift = function () {
         var goodAdds = this._getGoodAdds( __arraySlice(arguments));
@@ -77,7 +77,7 @@ var observableArray = function() {
 
     mixin._beforeChange = function() {
         // default is to do nothing
-    }
+    };
 
     function updateEntityState(obsArray) {
         var entityAspect = obsArray.entityAspect;
@@ -160,4 +160,4 @@ var observableArray = function() {
 
 
 
-}();
+})();
