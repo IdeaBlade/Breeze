@@ -24,17 +24,9 @@
 
     //TODO: Add server ping test because a common cause of failure is that
     //      I forgot to start the server first.
-    var initialized = zzaMetadataStore.fetchMetadata(zzaServiceName)
-        .then(function(){
-            console.log("got metadata") ;
-            return true;
-        }).fail(function(error){
-            console.log("failed to get metadata: "+error.message) ;
-            throw error;
-        });
 
-    var testFns = {
-        initialized: initialized,
+    var fns = {
+        initialize: initialize,
         userSessionId: userSessionId,
         serviceName: zzaServiceName,
         metadataStore: zzaMetadataStore,
@@ -46,10 +38,41 @@
     }
 
     var _nextIntId = 10000; // seed for getNextIntId()
+    var _isInitialized;
 
-    return testFns;
+    return fns;
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
+    /*********************************************************
+     * Zza test initialization
+     *********************************************************/
+    function initialize (done){
+        try {
+            if (_isInitialized) { return Q.resolve(true); }
+            return fetchMetadata().then(function(){ _isInitialized = true;});
+        } catch(e){
+            done();
+            _isInitialized = false;
+            expect().toFail("initialize failed: "+e) ;
+        }
+    }
+
+    function fetchMetadata(){
+        if (fns.metadataStore.hasMetadataFor(fns.serviceName)) {
+            console.log("already has metadata for "+fns.serviceName);
+            return Q.resolve(true);
+        }
+
+        return fns.metadataStore.fetchMetadata(fns.serviceName)
+            .then(function(){
+                console.log("got metadata for "+fns.serviceName);
+                return true;
+            }).fail(function(error){
+                console.log("failed to get "+fns.serviceName+" metadata: "+error.message) ;
+                throw error;
+            });
+    }
+
     /*********************************************************
      * EntityManager factory
      *********************************************************/
@@ -59,18 +82,21 @@
             metadataStore: zzaMetadataStore
         });
     }
+
     /*********************************************************
      * Generate the next new integer Id
      *********************************************************/
     function getNextIntId() {
         return _nextIntId++;
     }
+
     /*********************************************************
      * Generate a new Guid Id
      *********************************************************/
     function newGuid() {
         return breeze.core.getUuid();
     }
+
     /*********************************************************
      * Generate a new GuidCOMB Id (for MS SQL Server byte order)
      * @method newGuidComb {String}
@@ -103,6 +129,7 @@
 
         return deferred.promise;
     }
+
     /*********************************************************
      * Make a good error message from jQuery Ajax failure
      *********************************************************/
@@ -119,6 +146,7 @@
         }
         return message;
     }
+
     /*********************************************************
      * Configure Breeze
      *********************************************************/
