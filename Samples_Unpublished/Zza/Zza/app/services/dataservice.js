@@ -43,6 +43,7 @@
                 return initPromise; // already initialized/ing
             }
             initFailed = false;
+
             return initPromise = EntityQuery.from('Lookups')
                 .using(manager).execute()
                 .then(success).fail(failure)

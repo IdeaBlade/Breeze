@@ -33,16 +33,15 @@
         /*********************************************************
         * @method $apply {Void} easy access to $rootScope.$apply
         * @param [func]{function} optional niladic function to call
-        * Todo?: guard against calling $apply within a $digest cycle
         *********************************************************/
         function $apply() {
             if ($rootScope.$$phase) {
                 // from http://docs.angularjs.org/api/ng.$rootScope.Scope
                 if (arguments[0]) {
                     try {
-                        $rootScope.$eval.apply(arguments[0]);
+                        $rootScope.$eval(arguments[0]);
                     } catch(e) {
-                        $rootScope.$exceptionHandler.apply(e);
+                        logger.error(e);
                     }
                 }
             } else {
