@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Breeze.WebApi;
 using Zza.Model;
@@ -19,16 +20,16 @@ namespace Zza.DataAccess.EF
         public bool BeforeSaveEntity(EntityInfo arg)
         {
             var typeName = arg.Entity.GetType().Name;
-            string saveError;
+            ICollection<string> emsg = new List<string>();
             var saveable = arg.Entity as ISaveable;
 
             if (UserStoreId == Guid.Empty)
             {
-                saveError = "you are not authorized to save.";
+                emsg.Add("you are not authorized to save.");
             }
             else if (saveable == null)
             {
-                saveError = "changes to '" + typeName + "' are forbidden.";
+                emsg.Add("changes to '" + typeName + "' are forbidden.");
 
             }
             else
@@ -39,24 +40,24 @@ namespace Zza.DataAccess.EF
                         saveable.StoreId = UserStoreId;
                         // SHOULD NOT HAVE TO DO THIS AS ORIG VMAP IS IGNORED ON ADD
                         arg.OriginalValuesMap.Add("StoreId", UserStoreId);
-                        saveError = saveable.CanAdd();
+                        emsg = saveable.CanAdd(emsg);
                         break;
                     case EntityState.Modified:
                     case EntityState.Deleted:
-                        saveError = CanSaveExistingEntity(arg);
+                        emsg.Add(CanSaveExistingEntity(arg));
                         break;
                     default:
                         var stateName = Enum.GetName(typeof(EntityState), arg.EntityState);
-                        saveError = " unexpected EntityState of " + stateName;
+                        emsg.Add(" unexpected EntityState of " + stateName);
                         break;
                 }
             }
 
-            if (String.IsNullOrEmpty(saveError))
+            if (emsg.Count > 0)
             {
                 throw new InvalidOperationException(
-                    "'" + arg.Entity.GetType().Name + "' may not be saved because " +
-                    saveError);
+                    GetEntityName(arg.Entity) + "may not be saved because " +
+                    String.Join("; ", emsg));
             }
             return true;
         }
@@ -147,6 +148,24 @@ namespace Zza.DataAccess.EF
             return ExistingEntityGuard(orig, entity.Id);
         }
 
+        private static string GetEntityName<T>(T entity)
+        {
+            var id = String.Empty;
+            var intEntity = entity as IHasIntId;
+            if (intEntity != null)
+            {
+                id = " (" + intEntity.Id + ")";
+            }
+            else
+            {
+                var guidEntity = entity as IHasGuidId;
+                if (guidEntity != null)
+                {
+                    id = " (" + guidEntity.Id + ")";
+                }
+            }
+            return "'" + typeof(T).Name + id + "' ";
+        }
         #endregion
     }
 }

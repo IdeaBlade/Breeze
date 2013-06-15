@@ -1,30 +1,70 @@
 ﻿(function () {
     'use strict';
-    angular.module('app').factory('dataservice',
+    angular.module('app').factory(
+        'dataservice', ['model', 'util', dataservice]);
     
-    ['breeze', 'model', 'config', 'logger', '$timeout',
-    function (breeze, model, config, logger, $timeout) {
-                
+    function dataservice(model, util) {
+        var breeze = util.breeze,
+            config = util.config,
+            logger = util.logger,
+            $apply = util.$apply,
+            $q = util.$q,
+            to$q = util.to$q,
+            $timeout = util.$timeout;
+
         var EntityQuery = breeze.EntityQuery,
-            afterInit,
+            initPromise,
+            initFailed,
             manager;
-        
+
+        var products = [],
+            productOptions = [],
+            orderStatuses = [],
+            productSizes = [];
+
         configureBreeze();
 
-        var dataservice = {
+        var service = {
             initialize: initialize,
+            orderStatuses: orderStatuses,
+            products: products,
+            productOptions: productOptions,
+            productSizes: productSizes,
             getAllCustomers: getAllCustomers,
             getOrders: getOrders,
             saveChanges: saveChanges
         };
-        return dataservice;
+        return service;
 
         //#region main application operations
+
         function initialize() {
-            afterInit = EntityQuery.from('Lookups').using(manager)
-                .execute.then(gotLookups).fail(initFailed);
+            if (initPromise && !initFailed) {
+                return initPromise; // already initialized/ing
+            }
+            initFailed = false;
+            return initPromise = EntityQuery.from('Lookups')
+                .using(manager).execute()
+                .then(success).fail(failure)
+                .to$q(); // convert Q.js promise to $q promise
+            
+            function success(data) {
+                var result = data.results[0];
+                logger.success("Got lookups");
+                orderStatuses = result.orderStatuses;
+                products = result.products;
+                productOptions = result.productOptions;
+                productSizes = result.productSizes;
+                return true;
+            }
+
+            function failure(error) {
+                initFailed = true;
+                logger.error(error.message, "Data initialization failed");
+                throw error; // so downstream fail handlers hear it too
+            }           
         }
-        
+
         function getAllCustomers() {
             var query = EntityQuery
                 .from("Customers")
@@ -36,13 +76,11 @@
         function getOrders(customer) {
             return customer.entityAspect.loadNavigationProperty("Orders");
         }
-        
-        //#region saveChanges
-        
+
+
         function saveChanges() {
             return manager.saveChanges()
-                .then(saveSucceeded)
-                .fail(saveFailed);
+                .then(saveSucceeded).fail(saveFailed);
 
             function saveSucceeded(saveResult) {
                 logger.success("# of entities saved = " + saveResult.entities.length);
@@ -50,54 +88,32 @@
             }
 
             function saveFailed(error) {
-                var reason = error.message;
-                var detail = error.detail;
+                var msg = 'Save failed: ' + util.getSaveErrorMessages(error);
+                error.message = msg;
 
-                if (reason === "Validation error") {
-                    reason = handleSaveValidationError(error);
-                } else if (detail && detail.ExceptionType &&
-                    detail.ExceptionType.indexOf('OptimisticConcurrencyException') !== -1) {
-                    // Concurrency error 
-                    reason =
-                        "Another user, perhaps the server, " +
-                        "may have deleted some or all of the changed data." +
-                        " You may have to restart the app.";
-                } else {
-                    reason = "Failed to save changes: " + reason +
-                             " You may have to restart the app.";
-                }
-
-                logger.error(error, reason);
+                logger.error(error, msg);
                 // DEMO ONLY: discard all pending changes
                 // Let them see the error for a second before rejecting changes
-                $timeout(function () {
+                $timeout(function() {
                     manager.rejectChanges();
                 }, 1000);
                 throw error; // so caller can see it
             }
         }
 
-        function handleSaveValidationError(error) {
-            var message = "Not saved due to validation error";
-            try { // fish out the first error
-                var firstErr = error.entitiesWithErrors[0].entityAspect.getValidationErrors()[0];
-                message += ": " + firstErr.errorMessage;
-            } catch (e) { /* eat it for now */ }
-            return message;
-        }
-        //#endregion
-        
         function configureBreeze() {
             breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
             breeze.NamingConvention.camelCase.setAsDefault();
-            
-            var serviceName = config.serviceName; 
+
+            var serviceName = config.serviceName;
             manager = new breeze.EntityManager(serviceName);
             manager.enableSaveQueuing(true);
             model.configureMetadataStore(manager.metadataStore);
             return manager;
         }
-        //#endregion
-    }]);
+
+
+//#endregion
+    }
 
 })();

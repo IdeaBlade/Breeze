@@ -40,6 +40,7 @@
         <script src="Scripts/angular.js"></script>
 
         <!-- App libraries -->
+        <!-- Must load app.js first; the others can load in any order -->
         <script src="app/app.js"></script>
 
         <script src="app/controllers/appController.js"></script>
@@ -56,5 +57,9 @@
         <script src="app/services/logger.js"></script>
         <script src="app/services/model.js"></script>
         <script src="app/services/routes.js"></script>
+        <script src="app/services/util.js"></script>
+
+        <!-- omit appRun.js in tests -->
+        <script src="app/appRun.js"></script> 
     </body>
 </html>

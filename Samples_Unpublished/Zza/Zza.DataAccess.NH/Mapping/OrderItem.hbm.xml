@@ -16,10 +16,10 @@
     <property name="UnitPrice" type="decimal" not-null="true" />
     <property name="TotalPrice" type="decimal" not-null="true" />
     <property name="Instructions" column="`Instructions`" type="string" length="255" />
-    <!--Foreign key to OrderItemOption (OrderItemOption)
-    <bag name="OrderItemOptionCollection" table="`OrderItemOption`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
+    <!--Foreign key to OrderItemOption (OrderItemOption)-->
+    <bag name="OrderItemOptions" table="`OrderItemOption`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`OrderItemId`" foreign-key="FK_OrderItemOption_OrderItem" />
       <one-to-many class="OrderItemOption" />
-    </bag>-->
+    </bag>
   </class>
 </hibernate-mapping>

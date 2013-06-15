@@ -117,7 +117,9 @@
     <Content Include="app\controllers\emptyControllers.js" />
     <Content Include="app\controllers\routeController.js" />
     <Content Include="app\controllers\orderController.js" />
+    <Content Include="app\appRun.js" />
     <Content Include="app\services\config.js" />
+    <Content Include="app\services\util.js" />
     <Content Include="app\services\routes.js" />
     <Content Include="app\services\dataservice.js" />
     <Content Include="app\directives\directives.js" />
@@ -194,6 +196,7 @@
     <Content Include="Scripts\jquery-2.0.2.min.map">
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
     </Content>
+    <Content Include="Scripts\_references.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
