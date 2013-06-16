@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Zza.Model
 {
-    public class OrderItem : Saveable, ISaveableWithIntId
+    public class OrderItem : Saveable
     {
         public OrderItem()
         {

@@ -1,5 +1,5 @@
 /* Zza/Breeze Web API queries */
-describe('Zza/Breeze web api', function(){
+xdescribe('Zza/Breeze web api', function(){
     'use strict';
     var testFns = zzaTestFns;
     var breezeTest = testFns.breezeTest;

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Zza.Model
 {
-    public class Customer : Saveable, ISaveableWithGuidId
+    public class Customer : Saveable
     {
         public Customer()
         {

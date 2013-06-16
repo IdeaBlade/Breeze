@@ -41,10 +41,6 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IHasGuidId.cs" />
-    <Compile Include="IHasIntId.cs" />
-    <Compile Include="ISaveableWithGuidId.cs" />
-    <Compile Include="ISaveableWithIntId.cs" />
     <Compile Include="ISaveable.cs" />
     <Compile Include="OrderItemOption.cs" />
     <Compile Include="OrderItem.cs" />
