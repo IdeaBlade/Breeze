@@ -56,6 +56,11 @@
                 products = result.products;
                 productOptions = result.productOptions;
                 productSizes = result.productSizes;
+
+                service.orderStatuses = orderStatuses;
+                service.products = products;
+                service.productOptions = productOptions;
+                service.productSizes = productSizes;
                 return true;
             }
 
