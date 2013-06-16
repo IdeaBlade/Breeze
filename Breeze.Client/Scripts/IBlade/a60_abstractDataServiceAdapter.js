@@ -120,7 +120,7 @@
     ctor.prototype.saveChanges = function (saveContext, saveBundle) {
         
         var deferred = Q.defer();
-        var saveBundle = this._prepareSaveBundle(saveBundle, saveContext);
+        saveBundle = this._prepareSaveBundle(saveBundle, saveContext);
         var bundle = JSON.stringify(saveBundle);
         
         var url = saveContext.dataService.makeUrl(saveContext.resourceName);
@@ -155,11 +155,11 @@
 
     ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
         throw new Error("Need a concrete implementation of _prepareSaveBundle");
-    }
+    };
 
     ctor.prototype._prepareSaveResult = function (saveContext, data) {
         throw new Error("Need a concrete implementation of _prepareSaveResult");
-    }
+    };
     
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter( {
         name: "noop",
@@ -199,7 +199,7 @@
             }
         }
         return err;
-    }
+    };
     
     return ctor;
 

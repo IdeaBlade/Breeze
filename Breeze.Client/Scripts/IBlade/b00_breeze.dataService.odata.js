@@ -210,7 +210,7 @@
 
     function updateDeleteMergeRequest(request, aspect, prefix) {
         var extraMetadata = aspect.extraMetadata;
-        uri = extraMetadata.uri;
+        var uri = extraMetadata.uri;
         if (__stringStartsWith(uri, prefix)) {
             uri = uri.substring(prefix.length);
         }

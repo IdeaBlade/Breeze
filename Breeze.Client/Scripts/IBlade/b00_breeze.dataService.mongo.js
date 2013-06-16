@@ -84,7 +84,7 @@
         saveBundle.saveOptions = { tag: saveBundle.saveOptions.tag };
 
         return saveBundle;
-    }
+    };
 
     ctor.prototype._prepareSaveResult = function (saveContext, data) {
         
@@ -95,7 +95,7 @@
         });
 
         return { entities: entities, keyMappings: data.keyMappings, XHR: data.XHR };
-    }
+    };
 
 
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
@@ -193,7 +193,7 @@
 
         ObjectId.prototype.getDate = function () {
             return new Date(this.timestamp * 1000);
-        }
+        };
 
         /**
         * Turns a WCF representation of a BSON ObjectId into a 24 character string representation.

@@ -1316,8 +1316,8 @@ var EntityManager = (function () {
 
                     if (np.inverse) {
                         // bidirectional
-                        var childToParentNp = np;
-                        var parentToChildNp = np.inverse;
+                        childToParentNp = np;
+                        parentToChildNp = np.inverse;
 
                         if (parentToChildNp.isScalar) {
                             var onlyChild = unattachedChildren[0];

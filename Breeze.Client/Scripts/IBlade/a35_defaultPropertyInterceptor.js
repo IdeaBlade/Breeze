@@ -164,7 +164,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 //                and
                 // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
                 // internationalOrder.orderId <- null
-                //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
+                //    ==> lookupOrder(internationalOrder.oldOrderId).internationalOrder = null;
 
                 var invNavProp = property.inverseNavigationProperty;
 
@@ -277,7 +277,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 if (inverseProp.isScalar) {
                     // Example: bidirectional navProperty: 1->1: order -> internationalOrder
                     // order.internationalOrder <- internationalOrder || null
-                    //    ==> (oldInternationOrder.order = null)
+                    //    ==> (oldInternationalOrder.order = null)
                     //    ==> internationalOrder.order = order
                     if (oldValue != null) {
                         // TODO: null -> NullEntity later
@@ -327,7 +327,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     // orderDetail.order <-xxx newOrder
                     //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
                     if (oldValue != null) {
-                        invForeignKeyNames.forEach(function (fkName, i) {
+                        invForeignKeyNames.forEach(function (fkName) {
                             var fkProp = oldValue.entityType.getProperty(fkName);
                             if (!fkProp.isPartOfKey) {
                                 // don't update with null if fk is part of the key

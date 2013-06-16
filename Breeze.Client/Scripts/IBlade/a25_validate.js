@@ -119,7 +119,7 @@ var Validator = (function () {
             
     validatorFn(value, context)
     @param validatorFn.value {Object} Value to be validated
-    @param validatorFn.context {Object} The same context object passed into the constructor with the following additonal properties if not 
+    @param validatorFn.context {Object} The same context object passed into the constructor with the following additional properties if not
     otherwise specified.
     @param validatorFn.context.value {Object} The value being validated.
     @param validatorFn.context.name {String} The name of the validator being executed.
@@ -655,8 +655,8 @@ var Validator = (function () {
 }) ();
 
 var ValidationError = (function () {
-        /**
-    A ValidatationError is used to describe a failed validation.
+    /**
+    A ValidationError is used to describe a failed validation.
 
     @class ValidationError
     **/

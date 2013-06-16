@@ -5954,8 +5954,7 @@ var MetadataStore = (function () {
             if (baseEntityType) {
                 completeStructuralTypeFromJson(metadataStore, json, stype, baseEntityType);
             } else {
-                __getArray(metadataStore.deferredTypes, baseTypeName).push({ json: json, stype: stype });
-                
+                __getArray(metadataStore.deferredTypes, json.baseTypeName).push({ json: json, stype: stype });
             }
         } else {
             completeStructuralTypeFromJson(metadataStore, json, stype, null);
