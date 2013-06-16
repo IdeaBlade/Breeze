@@ -1,3 +1,19 @@
 ﻿<div>
     <h1>Order Pizza</h1>
+    Handcrafted in the Italian style, our pizzas are so good you'll say "Mamma Mia!"
+    <div>
+        <div class="row-fluid" ng-repeat="product in products" >
+            <div class="span3">
+                <img class="img-polaroid" src="app/images/products/{{product.image}}" />
+            </div>
+            <div class="span9">
+                <h3>{{product.name}}
+                <img src="app/images/vegetarian.gif" ng-class="{hide: !product.isVegetarian}" alt="Vegetarian"/>
+                <img src="app/images/tomatosauce.gif" ng-class="{hide: !product.withTomatoSauce}" alt="Has Tomato Sauce"/>
+                </h3>
+                <p>{{product.description}}</p>
+            </div>
+            <hr />
+        </div>
+    </div>
 </div>

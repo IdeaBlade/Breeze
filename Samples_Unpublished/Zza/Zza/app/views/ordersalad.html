@@ -1,3 +1,15 @@
 ﻿<div>
     <h1>Order Salad</h1>
+    <div>
+        <div class="row-fluid" ng-repeat="product in products" >
+            <div class="span3">
+                <img class="img-polaroid" src="app/images/products/{{product.image}}" />
+            </div>
+            <div class="span9">
+                <h3>{{product.name}}</h3>
+                <p>{{product.description}}</p>
+            </div>
+            <hr />
+        </div>
+    </div>
 </div>
