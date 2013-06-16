@@ -210,7 +210,7 @@
     <Content Include="content\toastr.min.css" />
     <Content Include="Global.asax" />
     <Content Include="Index.html" />
-    <Content Include="config\karma.conf.js" />
+    <Content Include="test\config\karma.conf.js" />
     <Content Include="Scripts\angular.js" />
     <Content Include="Scripts\angular.min.js">
       <DependentUpon>angular.js</DependentUpon>
@@ -245,15 +245,22 @@
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
     </Content>
     <Content Include="Scripts\_references.js" />
-    <Content Include="test\jasmineTestFns.js" />
+    <Content Include="test\helpers\jasmineTestFns.js" />
+    <Content Include="test\helpers\testData.js" />
+    <Content Include="test\helpers\testFns.js" />
     <Content Include="test\lib\angular-mocks.js" />
     <Content Include="test\lib\jasmine-async.js" />
     <Content Include="test\lib\jasmine-async.min.js" />
+    <Content Include="test\lib\jasmine-html.js" />
+    <Content Include="test\lib\jasmine.css" />
+    <Content Include="test\lib\jasmine.js" />
     <Content Include="test\lib\sinon-1.7.1.js" />
-    <Content Include="test\testFns.js" />
+    <Content Include="test\config\jasmineTestRunnerConfig.js" />
+    <Content Include="test\jasmineTestRunner.html" />
     <Content Include="test\unit\firstspec.js" />
     <Content Include="test\unit\TestControllerSpec.js" />
     <Content Include="test\webapi\queryspec.js" />
+    <Content Include="test\webapi\savespec.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

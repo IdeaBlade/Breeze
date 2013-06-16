@@ -1,9 +1,9 @@
-﻿xdescribe("first spec", function() {
+﻿describe("first spec", function() {
 
-    it('should ~fail', function() {
+    it('should fail', function() {
         console.log('first');
         var myObj = { method: function (){return 4; } };
-        expect(myObj.method()).toBe(4);
+        expect(myObj.method()).toBe(1);
     });
 
     it('should succeed', function () {

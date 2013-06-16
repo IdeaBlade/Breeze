@@ -1,8 +1,8 @@
 // Karma configuration
 // Generated on Fri Jun 14 2013 19:41:33 GMT-0700 (Pacific Daylight Time)
 
-// base path, that will be used to resolve files and exclude
-basePath = '../app';
+// application base path, that will be used to resolve files and exclude others
+basePath = '../../app';
 
 // list of files / patterns to load in the browser
 files = [
@@ -19,14 +19,14 @@ files = [
   '../test/lib/angular-mocks.js',
   '../test/lib/sinon-1.7.1.js',
   '../test/lib/jasmine-async.min.js',
-    
+
   /* app */
   '**/*.js',
 
   /* test support */
-  '../test/testFns.js',
-  '../test/jasmineTestFns.js',
-  '../test/testData.js',
+  '../test/helpers/testFns.js',
+  '../test/helpers/jasmineTestFns.js',
+  '../test/helpers/testData.js',
 
     /* unit tests */
   '../test/unit/**/*.js',
@@ -37,7 +37,8 @@ files = [
 
 // list of files to exclude
 exclude = [
-  'appRun.js'
+  'appRun.js',
+  '../test/unit/firstspec.js'
 ];
 
 
