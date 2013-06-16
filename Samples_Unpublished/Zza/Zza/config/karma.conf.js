@@ -23,9 +23,12 @@ files = [
   /* app */
   '**/*.js',
 
-  /* app tests */
+  /* test support */
   '../test/testFns.js',
   '../test/jasmineTestFns.js',
+  '../test/testData.js',
+
+    /* unit tests */
   '../test/unit/**/*.js',
 
    /* Async web api tests */

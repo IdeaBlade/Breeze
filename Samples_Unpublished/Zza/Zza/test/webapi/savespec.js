@@ -1,14 +1,14 @@
 /* Zza/Breeze Web API save */
 describe('Zza/Breeze web api', function(){
     'use strict';
-    var testFns = zzaTestFns;
-    var breezeTest = testFns.breezeTest;
-    var newEm = testFns.newEm;
-    var reset = testFns.zzaReset;
+    var fns = zzaTestFns;
+    var breezeTest = fns.breezeTest;
+    var newEm = fns.newEm;
+    var reset = fns.zzaReset;
     var EntityQuery = breeze.EntityQuery;
 
     var async = new AsyncSpec(this);
-    var xasync = testFns.xasync;
+    var xasync = fns.xasync;
 
     describe('when unauthorized to save type', function() {
 
@@ -165,7 +165,7 @@ describe('Zza/Breeze web api', function(){
     });
 
     describe('when saving own instances', function() {
-        var customerId =  testFns.newGuidComb();
+        var customerId =  fns.newGuidComb();
 
         async.it("can save new Customer", function (done){
             var customer;
@@ -207,6 +207,27 @@ describe('Zza/Breeze web api', function(){
             function modSuccess(saveResult){
                 var stateName = customer.entityAspect.entityState.name;
                 expect(stateName).toEqual('Unchanged');
+            }
+        });
+
+        async.it("can save new Customer and complete order", function (done){
+            var customer;
+            var order;
+            var em;
+            breezeTest(test, done);
+
+            function test(){
+                em = newEm();
+                customer = em.createEntity('Customer', {
+                    id: customerId, firstName: 'TEST', lastName:'Dude' });
+                order = fns.createSmallOrder(em, customer);
+                return em.saveChanges().then(createSuccess).then(reset);
+            }
+
+            function createSuccess(saveResult){
+                var saved = saveResult.entities;
+                var expectedCount = 2 + order.orderItems.length + order.orderItemOptions.length;
+                expect(saved.length).toBe(expectedCount);
             }
         });
     }) ;
