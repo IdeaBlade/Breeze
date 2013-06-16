@@ -99,12 +99,14 @@
     }
 
     /*********************************************************
-     * Zza database reset
+     * Zza database reset - full by default, optionally just this session
      *********************************************************/
-    function zzaReset() {
+    function zzaReset(fullReset) {
+        var fullReset = (fullReset === undefined)||fullReset;
+        var options = fullReset ? "/?options=fullreset" : "";
         var deferred = Q.defer();
 
-        $.post(zzaServiceName + '/reset',
+        $.post(zzaServiceName + '/reset'+options,
             function (data, textStatus, xhr) {
                 deferred.resolve(
                     "Reset svc returned '" + xhr.status + "' with message: " + data);

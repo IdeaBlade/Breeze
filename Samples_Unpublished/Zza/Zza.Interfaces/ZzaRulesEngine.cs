@@ -58,10 +58,13 @@ namespace Zza.Interfaces
             {
                 emsg.Add("changes to an original entity may not be saved");
             }
-            if (origStoreId != userStoreId || current.StoreId != origStoreId)
+            if (origStoreId != userStoreId)
             {
                 emsg.Add("you may only change entities created within your own user session");
             }
+            // current.StoreId would be null because not serialized from client
+            // Set it to userStoreId in case there is monkey business
+            current.StoreId = userStoreId;
             return emsg;
         }
 
