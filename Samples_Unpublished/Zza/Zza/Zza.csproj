@@ -126,14 +126,14 @@
     <Content Include="app\images\products\asianchicken.jpg" />
     <Content Include="app\images\products\beverage.jpg" />
     <Content Include="app\images\products\bigcountrysalad.jpg" />
-    <Content Include="app\images\products\caesersalad.jpg" />
+    <Content Include="app\images\products\caesarsalad.jpg" />
     <Content Include="app\images\products\cascadefog.jpg" />
     <Content Include="app\images\products\chefsalad.jpg" />
-    <Content Include="app\images\products\chickencaesersalad.jpg" />
+    <Content Include="app\images\products\chickencaesarsalad.jpg" />
     <Content Include="app\images\products\chickencoolness.jpg" />
     <Content Include="app\images\products\cola.jpg" />
     <Content Include="app\images\products\dietcola.jpg" />
-    <Content Include="app\images\products\drpopper.jpg" />
+    <Content Include="app\images\products\dr.popper.jpg" />
     <Content Include="app\images\products\energade.jpg" />
     <Content Include="app\images\products\farmersalad.jpg" />
     <Content Include="app\images\products\gardengallop.jpg" />
