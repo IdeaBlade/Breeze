@@ -5,7 +5,7 @@
         <div class="row-fluid" ng-repeat="product in products" >
             <div class="span3">
                 <a href="#/order/pizzadetail/{{product.id}}">
-                    <img class="img-polaroid" src="app/images/products/{{product.image}}" title="{{product.name}}"/>
+                    <img class="img-polaroid" data-ng-src="app/images/products/{{product.image}}" title="{{product.name}}"/>
                 </a>
             </div>
             <div class="span9">

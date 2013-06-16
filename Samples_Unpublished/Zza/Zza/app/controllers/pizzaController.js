@@ -15,7 +15,7 @@
             return;
         }
 
-        var product = dataservice.productsById[id];
+        var product = dataservice.products.byId(id);
 
         $scope.product = product;
 

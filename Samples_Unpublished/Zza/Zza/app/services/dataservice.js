@@ -2,7 +2,7 @@
     'use strict';
     angular.module('app').factory(
         'dataservice', ['model', 'util', dataservice]);
-    
+
     function dataservice(model, util) {
         var breeze = util.breeze,
             config = util.config,
@@ -17,28 +17,18 @@
             initFailed,
             manager;
 
-        var products = [],
-            productOptions = [],
-            orderStatuses = [],
-            productSizes = [],
-            productsById = {};
-
         configureBreeze();
 
         var service = {
+            // more members added by initialization
             initialize: initialize,
-            orderStatuses: orderStatuses,
-            products: products,
-            productOptions: productOptions,
-            productSizes: productSizes,
-            productsById: productsById,
             getAllCustomers: getAllCustomers,
             getOrders: getOrders,
             saveChanges: saveChanges
         };
         return service;
 
-        //#region main application operations
+        //#region implementation
 
         function initialize() {
             if (initPromise && !initFailed) {
@@ -50,23 +40,16 @@
                 .using(manager).execute()
                 .then(success).fail(failure)
                 .to$q(); // convert Q.js promise to $q promise
-            
+
             function success(data) {
                 var result = data.results[0];
                 logger.success("Got lookups");
-                orderStatuses = result.orderStatuses;
-                products = result.products;
-                productOptions = result.productOptions;
-                productSizes = result.productSizes;
-                for (var i = 0, len = products.length; i < len; i++) {
-                    productsById[products[i].id] = products[i];
-                }
-
-                service.orderStatuses = orderStatuses;
-                service.products = products;
-                service.productOptions = productOptions;
-                service.productSizes = productSizes;
-                service.productsById = productsById;
+                service.OrderStatus = {};
+                service.OrderStatus.statuses = result.orderStatuses;
+                service.products = result.products;
+                service.productOptions = result.productOptions;
+                service.productSizes = result.productSizes;
+                extendLookups();
                 return true;
             }
 
@@ -74,7 +57,29 @@
                 initFailed = true;
                 logger.error(error.message, "Data initialization failed");
                 throw error; // so downstream fail handlers hear it too
-            }           
+            }
+        }
+
+        function extendLookups() {
+            var u = util, s = service, os = s.OrderStatus; // for brevity
+
+            os.byId = u.filterById(os.statuses);
+            os.byName = u.filterByName(os.statuses);
+
+            // OrderStatus enums               
+            os.Ordered = os.byName(/Ordered/i);
+            os.PickedUp = os.byName(/PickedUp/i);
+            os.Delivered = os.byName(/Delivered/i);
+            os.Cancelled = os.byName(/Cancelled/i);
+            os.Pending = os.byName(/Pending/i);
+
+            s.products.byId = u.filterById(s.products);
+            s.products.byType = u.filterByType(s.products);
+            s.products.byName = u.filterByName(s.products);
+            s.productSizes.byId = u.filterById(s.productSizes);
+            s.productSizes.byType = u.filterByType(s.productSizes);
+            s.productOptions.byId = u.filterById(s.productOptions);
+            s.productOptions.byType = u.filterByType(s.productOptions);
         }
 
         function getAllCustomers() {
@@ -88,7 +93,6 @@
         function getOrders(customer) {
             return customer.entityAspect.loadNavigationProperty("Orders");
         }
-
 
         function saveChanges() {
             return manager.saveChanges()
@@ -125,7 +129,7 @@
         }
 
 
-//#endregion
-    }
+        //#endregion
 
+    }
 })();

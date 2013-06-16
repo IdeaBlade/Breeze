@@ -22,6 +22,9 @@
             $apply: $apply,
             to$q: to$q,
             newGuidComb: newGuidComb,
+            filterById: filterById,
+            filterByName: filterByName,
+            filterByType: filterByType,
             getSaveErrorMessages: getSaveErrorMessages,
             getEntityValidationErrMsgs: getEntityValidationErrMsgs,
             
@@ -106,7 +109,29 @@
                 return v.toString(16);
             }) + timePart;
         }
-
+        /*********************************************************
+        * Array filter factories
+        *********************************************************/
+        function filterById(array) {
+            return function (id) {
+                var item = array.filter(function (x) { return x.id == id; });//"==" ok; want coercion
+                return item[0] || null;
+            };
+        }
+        function filterByName(array) {
+            // name is either a regExp or a string which is converted to a regex ignore case
+            return function (name) {
+                var re = (typeof name === 'string') ? new RegExp(name, 'i') : name;
+                return array.filter(function (x) { return re.test(x.name); });
+            };
+        }
+        function filterByType(array) {
+            return function (type) {
+                // type is either a regExp or a string which is converted to a regex ignore case
+                var re = (typeof type === 'string') ? new RegExp(type, 'i') : type;
+                return array.filter(function (x) { return re.test(x.type); });
+            };
+        }
         /*********************************************************
         * Handle save error messages
         *********************************************************/
