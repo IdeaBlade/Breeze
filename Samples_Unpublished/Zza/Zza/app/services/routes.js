@@ -10,12 +10,13 @@
         
         { name: 'Home', path: '/', templateUrl: viewBase+'home.html', controller: 'homeCtrl' },
         { name: 'Order', path: '/order', templateUrl: viewBase + 'order.html', controller: 'orderCtrl' },
-            { path: '/order/:tag', templateUrl: viewBase + 'order.html', controller: 'orderCtrl' },
+        { path: '/order/:tag', templateUrl: viewBase + 'order.html', controller: 'orderCtrl' },
+        { path: '/order/:tag/:id', templateUrl: viewBase + 'order.html', controller: 'orderCtrl' },
         { name: 'Menu', path: '/menu', templateUrl: viewBase + 'menu.html' },
         { name: 'About', path: '/about', templateUrl: viewBase + 'about.html' },
         
         { path: '/test/', templateUrl: viewBase + 'test.html', controller: 'testCtrl' },
-            { path: '/test/:id', templateUrl: viewBase + 'test.html', controller: 'testCtrl' },
+        { path: '/test/:id', templateUrl: viewBase + 'test.html', controller: 'testCtrl' },
         { path: '/cart', templateUrl: viewBase + 'cart.html', controller: 'cartCtrl' }
 
     ];
@@ -24,7 +25,8 @@
     var orderRoutes = [
         { tag: 'pizza', path: '/order/pizza', name: 'Pizza', templateUrl: viewBase + 'orderpizza.html' },
         { tag: 'salad', path: '/order/salad', name: 'Salad', templateUrl: viewBase + 'ordersalad.html' },
-        { tag: 'drinks', path: '/order/drinks', name: 'Drinks', templateUrl: viewBase + 'orderdrinks.html'}
+        { tag: 'drinks', path: '/order/drinks', name: 'Drinks', templateUrl: viewBase + 'orderdrinks.html' },
+        { tag: 'pizzadetail', path: '/order/pizzadetail', templateUrl: viewBase + 'orderpizzadetail.html' }
     ];
     
     var routes = {

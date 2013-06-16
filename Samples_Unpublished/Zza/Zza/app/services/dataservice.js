@@ -20,7 +20,8 @@
         var products = [],
             productOptions = [],
             orderStatuses = [],
-            productSizes = [];
+            productSizes = [],
+            productsById = {};
 
         configureBreeze();
 
@@ -30,6 +31,7 @@
             products: products,
             productOptions: productOptions,
             productSizes: productSizes,
+            productsById: productsById,
             getAllCustomers: getAllCustomers,
             getOrders: getOrders,
             saveChanges: saveChanges
@@ -56,11 +58,15 @@
                 products = result.products;
                 productOptions = result.productOptions;
                 productSizes = result.productSizes;
+                for (var i = 0, len = products.length; i < len; i++) {
+                    productsById[products[i].id] = products[i];
+                }
 
                 service.orderStatuses = orderStatuses;
                 service.products = products;
                 service.productOptions = productOptions;
                 service.productSizes = productSizes;
+                service.productsById = productsById;
                 return true;
             }
 
