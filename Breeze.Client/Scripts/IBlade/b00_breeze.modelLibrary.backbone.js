@@ -99,14 +99,17 @@
                         if (prop == null) {
                             throw new Error("Unknown property: " + key);
                         }
-                        var pName = propName;
-                        this._$interceptor(prop, attrs[propName], function(pvalue) {
-                            if (arguments.length === 0) {
-                                return bbGet.call(that, pName);
-                            } else {
-                                return bbSet.call(that, pName, pvalue, options);
+                        // avoiding mutable variable inside of closure.
+                        var fn = (function(pName) {
+                            return function(pValue) {
+                                if (arguments.length === 0) {
+                                    return bbGet.call(that, pName);
+                                } else {
+                                    return bbSet.call(that, pName, pValue, options);
+                                }
                             }
-                        });
+                        })(propName);
+                        this._$interceptor(prop, attrs[propName], fn);
                     }
                 }
             } else {
