@@ -1,25 +1,22 @@
-xdescribe('breeze web api queries', function(){
+/* Zza/Breeze Web API queries */
+describe('Zza/Breeze web api', function(){
     'use strict';
     var testFns = zzaTestFns;
     var breezeTest = testFns.breezeTest;
-    var initialize = testFns.initialize;
-    var failed = testFns.failed;
-    var toFail = testFns.toFail;
     var newEm = testFns.newEm;
-    testFns.addTestMatchers();
-
     var EntityQuery = breeze.EntityQuery;
 
     var async = new AsyncSpec(this);
     var xasync = testFns.xasync;
 
-    describe('Simple queries', function() {
+    describe('simple queries', function() {
         async.it("should have lookups", function (done){
             breezeTest(lookupsQuery, done);
-            var manager = newEm();
+
             function lookupsQuery(){
+                var em = newEm();
                 return EntityQuery.from('Lookups')
-                    .using(manager).execute().then(success);
+                    .using(em).execute().then(success);
             }
             function success(data) {
                 var result = data.results[0];
@@ -45,10 +42,11 @@ xdescribe('breeze web api queries', function(){
 
         async.it("should have customers", function (done){
             breezeTest(customersQuery, done);
-            var manager = newEm();
+
             function customersQuery(){
+                var em = newEm();
                 return EntityQuery.from('Customers')
-                    .using(manager).execute().then(success);
+                    .using(em).execute().then(success);
             }
             function success(data) {
                 var results = data.results;
@@ -59,10 +57,11 @@ xdescribe('breeze web api queries', function(){
 
         async.it("should have at least 3 orders", function (done){
             breezeTest(ordersQuery, done);
-            var manager = newEm();
+
             function ordersQuery(){
+                var em = newEm();
                 return EntityQuery.from('Orders').take(3)
-                    .using(manager).execute().then(success);
+                    .using(em).execute().then(success);
             }
             function success(data) {
                 expect(data.results.length).toBeGreaterThan(2);
@@ -73,17 +72,38 @@ xdescribe('breeze web api queries', function(){
     describe('Order queries', function() {
         async.it("an order should have items", function (done){
             breezeTest(orderOrderItemsQuery, done);
-            var manager = newEm();
+
             function orderOrderItemsQuery(){
+                var em = newEm();
                 return EntityQuery.from('Orders').expand('orderItems').take(1)
-                    .using(manager).execute().then(success);
+                    .using(em).execute().then(success);
             }
             function success(data) {
-                expect(data.results.length).toBeGreaterThan(0);
                 var order = data.results[0];
-                if (!order) return;
                 var items = order.orderItems;
                 expect(items.length).toBeGreaterThan(0);
+            }
+        });
+
+        async.it("can navigate from order to cached parent customer", function (done){
+            var em;
+            breezeTest(test, done);
+
+            function test(){
+                em = newEm();
+                return customersQuery().then(orderQuery).then(testTheOrder);
+            }
+            function customersQuery(){
+                //return Q(true);  // will fail if we don't get customers first
+                return EntityQuery.from('Customers').using(em).execute();
+            }
+            function orderQuery(){
+                return EntityQuery.from('Orders').take(1).using(em).execute();
+            }
+            function testTheOrder(data) {
+                var order = data.results[0];
+                var customer = order.customer;
+                expect(customer).toBeTruthy();
             }
         });
     });

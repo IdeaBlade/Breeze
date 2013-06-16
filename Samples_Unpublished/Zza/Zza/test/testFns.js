@@ -26,7 +26,7 @@
     //      I forgot to start the server first.
 
     var fns = {
-        initialize: initialize,
+        fetchMetadata: fetchMetadata,
         userSessionId: userSessionId,
         serviceName: zzaServiceName,
         metadataStore: zzaMetadataStore,
@@ -38,29 +38,14 @@
     }
 
     var _nextIntId = 10000; // seed for getNextIntId()
-    var _isInitialized;
 
     return fns;
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
-    /*********************************************************
-     * Zza test initialization
-     *********************************************************/
-    function initialize (done){
-        try {
-            if (_isInitialized) { return Q.resolve(true); }
-            return fetchMetadata().then(function(){ _isInitialized = true;});
-        } catch(e){
-            done();
-            _isInitialized = false;
-            expect().toFail("initialize failed: "+e) ;
-        }
-    }
-
     function fetchMetadata(){
         if (fns.metadataStore.hasMetadataFor(fns.serviceName)) {
             console.log("already has metadata for "+fns.serviceName);
-            return Q.resolve(true);
+            return Q(true);
         }
 
         return fns.metadataStore.fetchMetadata(fns.serviceName)
@@ -69,6 +54,7 @@
                 return true;
             }).fail(function(error){
                 console.log("failed to get "+fns.serviceName+" metadata: "+error.message) ;
+                console.log("*** CONFIRM THAT ZZA SERVER IS RUNNING ON EXPECTED PORT ***");
                 throw error;
             });
     }
