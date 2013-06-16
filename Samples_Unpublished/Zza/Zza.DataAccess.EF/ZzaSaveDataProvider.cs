@@ -1,41 +1,71 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using Breeze.WebApi;
 using Zza.Interfaces;
 using Zza.Model;
 
 namespace Zza.DataAccess.EF
 {
-    internal class ZzaSaveDataProvider : ISaveDataProvider
+    internal class ZzaSaveDataProvider : IZzaSaveDataProvider
     {
-        public ZzaSaveDataProvider(Dictionary<Type, List<EntityInfo>> saveMap)
-        {
-            SaveMap = saveMap;
-        }
-        private ZzaContext _readContext;
+        private ZzaContext context = new ZzaContext();
 
-        private ZzaContext ReadContext
+        public object GetExisting(object o, bool cacheOk=true)
         {
-            get { return _readContext ?? (_readContext = new ZzaContext()); }
-        }
-
-        public Dictionary<Type, List<EntityInfo>> SaveMap { get; set; }
-
-        public T GetExisting<T>(long id) where T : class, IHasIntId
-        {
-            var cached =
-                ReadContext.ChangeTracker.Entries<T>().SingleOrDefault(e => e.Entity.Id == id);
-            return (cached != null) ? cached.Entity :
-                   ReadContext.Set<T>().SingleOrDefault(e => e.Id == id);
+            if (o == null) return null;
+            if (o is Customer) return GetCustomerById(((Customer)o).Id, cacheOk);
+            if (o is Order) return GetOrderById(((Order)o).Id, cacheOk);
+            if (o is OrderItem) return GetOrderItemById(((OrderItem)o).Id, cacheOk);
+            if (o is OrderItemOption) return GetOrderItemOptionById(((OrderItemOption)o).Id, cacheOk);
+            return null;
         }
 
-        public T GetExisting<T>(Guid id) where T : class, IHasGuidId
+        #region GetByIdFns
+
+        public Customer GetCustomerById(Guid id, bool cacheOk = true)
         {
-            var cached =
-                 ReadContext.ChangeTracker.Entries<T>().SingleOrDefault(e => e.Entity.Id == id);
-            return (cached != null) ? cached.Entity :
-                   ReadContext.Set<T>().SingleOrDefault(e => e.Id == id);
+            Customer o = null;
+            if (cacheOk)
+            {
+                o = context.ChangeTracker.Entries<Customer>().Select(e => e.Entity)
+                           .SingleOrDefault(e => e.Id == id);
+            }
+            return o ?? context.Set<Customer>().SingleOrDefault(e => e.Id == id);
         }
+
+        public Order GetOrderById(long id, bool cacheOk = true)
+        {
+            Order o = null;
+            if (cacheOk)
+            {
+                o = context.ChangeTracker.Entries<Order>().Select(e => e.Entity)
+                           .SingleOrDefault(e => e.Id == id);
+            }
+            return o ?? context.Set<Order>().SingleOrDefault(e => e.Id == id);
+        }
+
+        public OrderItem GetOrderItemById(long id, bool cacheOk = true)
+        {
+            OrderItem o = null;
+            if (cacheOk)
+            {
+                o = context.ChangeTracker.Entries<OrderItem>().Select(e => e.Entity)
+                           .SingleOrDefault(e => e.Id == id);
+            }
+            return o ?? context.Set<OrderItem>().SingleOrDefault(e => e.Id == id);
+        }
+
+        public OrderItemOption GetOrderItemOptionById(long id, bool cacheOk = true)
+        {
+            OrderItemOption o = null;
+            if (cacheOk)
+            {
+                o = context.ChangeTracker.Entries<OrderItemOption>().Select(e => e.Entity)
+                           .SingleOrDefault(e => e.Id == id);
+            }
+            return o ?? context.Set<OrderItemOption>().SingleOrDefault(e => e.Id == id);
+        }
+
+        #endregion
+
     }
 }

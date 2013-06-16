@@ -2,7 +2,7 @@
 
 namespace Zza.Model
 {
-    public class OrderItemOption : Saveable, ISaveableWithIntId
+    public class OrderItemOption : Saveable
     {
         [Key]
         public virtual long Id { get; set; }

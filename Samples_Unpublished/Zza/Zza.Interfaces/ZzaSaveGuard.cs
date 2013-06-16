@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security;
-using System.Security.Authentication;
 using Breeze.WebApi;
 using Zza.Model;
 using SaveMap = System.Collections.Generic.Dictionary<
@@ -13,7 +11,7 @@ namespace Zza.Interfaces
 {
     public class ZzaSaveGuard
     {
-        public ZzaSaveGuard(Func<SaveMap, ISaveDataProvider> dataProviderFactory, Guid storeId)
+        public ZzaSaveGuard(Func<IZzaSaveDataProvider> dataProviderFactory, Guid storeId)
         {
             _dataProviderFactory = dataProviderFactory;
             _storeId = storeId;
@@ -34,8 +32,8 @@ namespace Zza.Interfaces
             }
 
             var rulesEngine = ZzaRulesEngine.Instance;
-            var dataProvider = _dataProviderFactory(saveMap);
-            var context = new ZzaSaveContext(_storeId, dataProvider);
+            var dataProvider = _dataProviderFactory();
+            var context = new ZzaSaveContext(_storeId, dataProvider, saveMap);
 
             foreach (var entityInfo in saveMap.Values.SelectMany(x => x))
             {
@@ -50,19 +48,21 @@ namespace Zza.Interfaces
         }
 
         private readonly Guid _storeId;
-        private readonly Func<SaveMap, ISaveDataProvider> _dataProviderFactory;
+        private readonly Func<IZzaSaveDataProvider> _dataProviderFactory;
     }
 
     public class ZzaSaveContext
     {
-        public ZzaSaveContext(Guid storeId, ISaveDataProvider context)
+        public ZzaSaveContext(Guid storeId, IZzaSaveDataProvider dataProvider, SaveMap saveMap)
         {
             UserStoreId = storeId;
-            DataProvider = context;
+            DataProvider = dataProvider;
+            SaveMap = saveMap;
         }
         public EntityInfo EntityInfo { get; internal set; }
+        public SaveMap SaveMap { get; private set; }
         public Guid UserStoreId { get; private set; }
-        public ISaveDataProvider DataProvider { get; private set; }
+        public IZzaSaveDataProvider DataProvider { get; private set; }
     }
 
     public class SaveException : Exception

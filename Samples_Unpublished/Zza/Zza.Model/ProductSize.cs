@@ -2,7 +2,7 @@
 
 namespace Zza.Model
 {
-    public class ProductSize : IHasIntId
+    public class ProductSize 
     {
         public ProductSize()
         {
@@ -19,7 +19,5 @@ namespace Zza.Model
         public virtual decimal? PremiumPrice { get; set; }
         public virtual decimal? ToppingPrice { get; set; }
         public virtual bool? IsGlutenFree { get; set; }
-
-        long IHasIntId.Id { get { return Id; } }
     } 
 }     

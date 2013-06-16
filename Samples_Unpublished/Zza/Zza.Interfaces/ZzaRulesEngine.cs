@@ -19,62 +19,31 @@ namespace Zza.Interfaces
 
         public static ZzaRulesEngine AddRules(ZzaRulesEngine rulesEngine)
         {
-            rulesEngine.AddRule(new DelegateRule<ISaveableWithIntId>(ValidateSaveableWithIntId));
-            rulesEngine.AddRule(new DelegateRule<ISaveableWithGuidId>(ValidateSaveableWithGuidId));
-            // Could add more type specific rules here
+            rulesEngine.AddRule(new DelegateRule<ISaveable>(ValidateSaveable));
+            // Add type specific rules as needed
             return rulesEngine;
         }
-
-        private static void ValidateSaveableWithIntId<T>(
+        private static void ValidateSaveable<T>(
             Rule rule, T current, OperationType op, object context, ICollection<RuleResult> results)
-            where T : class, ISaveableWithIntId
+            where T : ISaveable
         {
             var saveContext = (ZzaSaveContext)context;
+            var dataProvider = saveContext.DataProvider;
             ICollection<string> emsg = new List<string>();
             if (op.IsAdded())
             {
-                if (current.Id == 0)
-                {
-                    emsg.Add("new entity must have a valid, non-zero id");
-                }
                 current.StoreId = saveContext.UserStoreId;
                 emsg = current.CanAdd(emsg);
                 results.AddErrors(current, rule, emsg);
             }
             else
             {
-                var existing = saveContext.DataProvider.GetExisting<T>(current.Id);
-                emsg = ExistingEntityGuard(current, existing, saveContext.UserStoreId, emsg); 
                 emsg = (op.IsUpdated()) ? current.CanUpdate(emsg) : current.CanDelete(emsg);
-                results.AddErrors(current, rule, emsg);
-            }
-        }
-
-        private static void ValidateSaveableWithGuidId<T>(
-            Rule rule, T current, OperationType op, object context, ICollection<RuleResult> results)
-            where T : class, ISaveableWithGuidId
-        {
-            var saveContext = (ZzaSaveContext)context;
-            ICollection<string> emsg = new List<string>();
-            if (op.IsAdded())
-            {
-                if (current.Id == Guid.Empty)
-                {
-                    emsg.Add("new entity must have a valid Guid id");
-                }
-                current.StoreId = saveContext.UserStoreId;
-                emsg = current.CanAdd(emsg);
-                results.AddErrors(current, rule, emsg);
-            }
-            else
-            {
-                var existing = saveContext.DataProvider.GetExisting<T>(current.Id);
+                var existing = (ISaveable) dataProvider.GetExisting(current);
                 emsg = ExistingEntityGuard(current, existing, saveContext.UserStoreId, emsg);
-                emsg = (op.IsUpdated()) ? current.CanUpdate(emsg) : current.CanDelete(emsg);
                 results.AddErrors(current, rule, emsg);
             }
         }
-
 
         private static ICollection<string> ExistingEntityGuard(
             ISaveable current, ISaveable existing, Guid userStoreId, ICollection<string> emsg)
@@ -96,30 +65,16 @@ namespace Zza.Interfaces
             return emsg;
         }
 
-        internal static ICollection<RuleResult> AddErrors<T>(
-            this ICollection<RuleResult> results, T entity, Rule rule, ICollection<string> messages)
+        internal static ICollection<RuleResult> AddErrors(
+            this ICollection<RuleResult> results, object entity, Rule rule, ICollection<string> messages)
         {
             return (messages.Count == 0 ) ? results :
                 results.AddError(rule, GetEntityName(entity) + String.Join("; ", messages));
         }
 
-        private static string GetEntityName<T>(T entity)
+        private static string GetEntityName(object entity)
         {
-            var id = String.Empty;
-            var intEntity = entity as ISaveableWithIntId;
-            if (intEntity != null)
-            {
-                id = " (" + intEntity.Id + ")";
-            }
-            else
-            {
-                var guidEntity = entity as ISaveableWithGuidId;
-                if (guidEntity != null)
-                {
-                    id = " (" + guidEntity.Id + ")";
-                }
-            }
-            return "'" + typeof(T).Name + id + "' ";
+            return "'" + entity.GetType().Name + "' ";
         }
     }
 }

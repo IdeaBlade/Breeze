@@ -2,7 +2,7 @@
 
 namespace Zza.Model
 {
-    public class ProductOption : IHasIntId
+    public class ProductOption
     {
         public ProductOption()
         {
@@ -20,7 +20,5 @@ namespace Zza.Model
         public virtual int Factor { get; set; }
         public virtual bool? IsPizzaOption { get; set; }
         public virtual bool? IsSaladOption { get; set; }
-
-        long IHasIntId.Id { get { return Id; } }
     } 
 }     
