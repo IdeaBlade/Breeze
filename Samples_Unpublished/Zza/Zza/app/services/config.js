@@ -3,7 +3,8 @@
     
     angular.module('app').value('config', {    
         version: '0.1',
-        serviceName: 'breeze/ZzaEf'
+        serviceName: 'breeze/ZzaEf',
+        imageBase: 'app/images/products/'
     });
 
 })();
