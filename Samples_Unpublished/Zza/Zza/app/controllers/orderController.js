@@ -33,7 +33,7 @@
 
         }
         function pickedProduct(product) {
-            $location.url('/order/pizzadetail/'+product.id);
+            $location.url('/order/pizzadetail/' + product.id);
         }
     }
     
