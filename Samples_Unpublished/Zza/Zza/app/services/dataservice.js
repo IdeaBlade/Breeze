@@ -50,6 +50,7 @@
                 service.productOptions = result.productOptions;
                 service.productSizes = result.productSizes;
                 extendLookups();
+                createDraftAndCartOrders();
                 return true;
             }
 
@@ -128,7 +129,31 @@
             return manager;
         }
 
-
+        // Reset the manager to its base state
+        // Clears the manager, re-populates with the lookups
+        // Creates a new draftOrder and cartOrder
+        function resetManager() {
+            manager.clear(); // detaches everything
+            attachEntities(service.OrderStatus.statuses);
+            attachEntities(service.products);
+            attachEntities(service.productOptions);
+            attachEntities(service.productSizes);
+            createDraftAndCartOrders();
+        }
+        function createDraftAndCartOrders() {
+            var orderInit = {
+                customerId: util.emptyGuid,
+                orderStatusId: service.OrderStatus.Pending,
+                orderDate: new Date(),
+                deliveryDate: new Date()
+            };
+            service.cartOrder = manager.createEntity('Order', orderInit);
+            service.draftOrder = manager.createEntity('Order', orderInit);
+        }
+        // Should be in Breeze itself
+        function attachEntities(entities, entityState) {
+            entities.forEach(function (entity) { manager.attachEntity(entity, entityState); });
+        }
         //#endregion
 
     }

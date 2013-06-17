@@ -21,6 +21,7 @@
             // actual utilities
             $apply: $apply,
             to$q: to$q,
+            emptyGuid: '00000000-0000-0000-0000-000000000000',
             newGuidComb: newGuidComb,
             filterById: filterById,
             filterByName: filterByName,
