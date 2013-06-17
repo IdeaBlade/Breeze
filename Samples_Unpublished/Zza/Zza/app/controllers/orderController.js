@@ -3,9 +3,9 @@
 
     var ctrlName = 'orderCtrl';
     var app = angular.module('app').controller(
-        ctrlName, ['$scope', '$routeParams', 'routes', 'dataservice', orderCtrl]);
+        ctrlName, ['$scope', '$routeParams', '$location', 'routes', 'dataservice', orderCtrl]);
     
-    function orderCtrl($scope, $routeParams, routes, dataservice) {
+    function orderCtrl($scope, $routeParams, $location, routes, dataservice) {
  
         // tag comes from nav url; get the current route
         var tag = ($routeParams.tag || 'pizza').toLowerCase();
@@ -14,6 +14,7 @@
             route = setTaggedRoute('pizza');
         }
         setProducts(tag);
+        $scope.pickedProduct = pickedProduct;
         $scope.view = route.templateUrl; // view is used in ng-include
         $scope.links = routes.orderRoutes;
 
@@ -27,9 +28,12 @@
         function setProducts(tag) {
             if (tag == 'drinks') tag = 'beverage';
             var products = dataservice.products.filter(
-                function (product) { return product.type == tag });
+                function (product) { return product.type == tag; });
             $scope.products = products;
 
+        }
+        function pickedProduct(product) {
+            $location.url('/order/pizzadetail/'+product.id);
         }
     }
     

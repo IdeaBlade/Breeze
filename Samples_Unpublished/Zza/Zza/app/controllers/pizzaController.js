@@ -3,19 +3,17 @@
 
     var ctrlName = 'pizzaCtrl';
     var app = angular.module('app').controller(
-        ctrlName, ['$scope', '$routeParams', 'routes', 'dataservice', pizzaCtrl]);
+        ctrlName, ['$scope', '$routeParams', '$location','routes', 'dataservice', pizzaCtrl]);
     
-    function pizzaCtrl($scope, $routeParams, routes, dataservice) {
+    function pizzaCtrl($scope, $routeParams, $location, routes, dataservice) {
  
         // tag comes from nav url; get the current route
         var id = $routeParams.id;
-        if (!id) {
-            // we shouldn't be here
-            window.location.hash = '/order/pizza';
+        var product = dataservice.products.byId(id);
+        if (!product) {
+            $location.url('/order/pizza');// we shouldn't be here
             return;
         }
-
-        var product = dataservice.products.byId(id);
 
         $scope.product = product;
 
