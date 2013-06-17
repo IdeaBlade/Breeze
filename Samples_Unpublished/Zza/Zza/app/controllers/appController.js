@@ -5,7 +5,9 @@
         'appCtrl', ['$rootScope', 'logger', appCtrl]);
     
     function appCtrl($rootScope, logger) {
-
+        $rootScope.name = "app";
+   
+        //#region route change event handlers
         $rootScope.$on('$routeChangeError', function (event, current, previous, rejection) {
             var reason = rejection || "failed to change routes";
             logger.log(reason);
@@ -23,5 +25,6 @@
         $rootScope.$on('$routeUpdate', function (event) {
             logger.log("Reloading the route with different query params, keeping the same controller instance");
         });
+        //#endregion
     }
 })();

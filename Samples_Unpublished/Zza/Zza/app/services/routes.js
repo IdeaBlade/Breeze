@@ -7,8 +7,7 @@
     // Those with a name will be visible in the navigation bar.
     // Those with a :tag are used for sub-navigation within a view.
     var navRoutes = [
-        
-        { name: 'Home', path: '/', templateUrl: viewBase+'home.html', controller: 'homeCtrl' },
+        { name: 'Home', path: '/', templateUrl: viewBase + 'home.html' },//, controller: 'homeCtrl' },
         { name: 'Order', path: '/order', templateUrl: viewBase + 'order.html', controller: 'orderCtrl' },
         { path: '/order/:tag', templateUrl: viewBase + 'order.html', controller: 'orderCtrl' },
         { path: '/order/:tag/:id', templateUrl: viewBase + 'order.html', controller: 'orderCtrl' },

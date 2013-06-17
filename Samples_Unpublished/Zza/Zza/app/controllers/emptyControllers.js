@@ -1,6 +1,6 @@
 ﻿(function() {
     'use strict';
     angular.module('app')
-        .controller('homeCtrl', function () {})
-        .controller('cartCtrl', function () {});
+        .controller('homeCtrl', function($scope) { $scope.name = "home"; })
+        .controller('cartCtrl', function($scope) { $scope.name = "cart"; });
 })();
