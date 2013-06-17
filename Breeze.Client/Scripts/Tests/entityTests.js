@@ -25,6 +25,8 @@
         }
     });
 
+
+
     test("Event token is the same for different entities", function () {
         var em = newEm();
 
@@ -871,6 +873,7 @@
 
         var em = newEm();
         var order = createOrderAndDetails(em);
+        var orderId = order.getProperty(testFns.orderKeyName);
         var details = order.getProperty("orderDetails");
         var copyDetails = details.slice(0);
         ok(details.length > 0, "order should have details");
@@ -881,9 +884,8 @@
 
         copyDetails.forEach(function (od) {
             ok(od.getProperty("order") === null, "orderDetail.order should not be set");
-            var defaultOrderId = od.entityType.getProperty("orderID").defaultValue;
-            ok(od.getProperty("orderID") === defaultOrderId, "orderDetail.orderId should not be set");
-            ok(od.entityAspect.entityState.isModified(), "orderDetail should be 'modified");
+            ok(od.getProperty(testFns.orderKeyName) === orderId, "orderDetail.orderId should not have changed");
+            ok(od.entityAspect.entityState.isUnchanged(), "orderDetail should be 'modified");
         });
     });
 

@@ -312,16 +312,40 @@ var EntityAspect = (function() {
     **/
     proto.setDeleted = function() {
         var em = this.entityManager;
+        var entity = this.entity;
         if (this.entityState.isAdded()) {
-            em.detachEntity(this.entity);
-            em._notifyStateChange(this.entity, false);
+            em.detachEntity(entity);
+            em._notifyStateChange(entity, false);
         } else {
             this.entityState = EntityState.Deleted;
-            this._removeFromRelations();
-            em._notifyStateChange(this.entity, true);
+            removeFromRelations(entity, EntityState.Deleted);
+            em._notifyStateChange(entity, true);
         }
         // TODO: think about cascade deletes
     };
+
+
+    /**
+    Sets the entity to an EntityState of 'Detached'.  This removes the entity from all of its related entities, but does NOT change the EntityState of any existing entities. 
+    @example
+        // assume order is an order entity attached to an EntityManager.
+        order.entityAspect.setDetached();
+        // The 'order' entity will now be in a 'Detached' state and it will no longer have any 'related' entities. 
+    @method setDetached
+    **/
+    proto.setDetached = function () {
+        var group = this.entityGroup;
+        if (!group) {
+            // no group === already detached.
+            return false;
+        }
+        var entity = this.entity;
+        group.detachEntity(entity);
+        removeFromRelations(entity, EntityState.Detached);
+        this.entityManager.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
+        this._detach();
+        return true;
+    }
 
     /**
     Performs a query for the value of a specified {{#crossLink "NavigationProperty"}}{{/crossLink}}.
@@ -563,43 +587,7 @@ var EntityAspect = (function() {
         this.validationErrorsChanged.clear();
         this.propertyChanged.clear();
     };
-
-    proto._removeFromRelations = function () {
-        var entity = this.entity;
-
-        // remove this entity from any collections.
-        // mark the entity deleted
-        entity.entityType.navigationProperties.forEach(function (np) {
-            var inverseNp = np.inverse;
-            if (!inverseNp) return;
-            var npValue = entity.getProperty(np.name);
-            if (np.isScalar) {
-                if (npValue) {
-                    if (inverseNp.isScalar) {
-                        npValue.setProperty(inverseNp.name, null);
-                    } else {
-                        var collection = npValue.getProperty(inverseNp.name);
-                        if (collection.length) {
-                            __arrayRemoveItem(collection, entity);
-                        }
-                    }
-                    entity.setProperty(np.name, null);
-                }
-            } else {
-                // npValue is a live list so we need to copy it first.
-                npValue.slice(0).forEach(function (v) {
-                    if (inverseNp.isScalar) {
-                        v.setProperty(inverseNp.name, null);
-                    } else {
-                        // TODO: many to many - not yet handled.
-                    }
-                });
-                // now clear it.
-                npValue.length = 0;
-            }
-        });
-
-    };
+    
 
     // called from defaultInterceptor.
     proto._validateProperty = function (value, context) {
@@ -642,6 +630,77 @@ var EntityAspect = (function() {
             this._pendingValidationResult.removed.push(valError);
         }
     };
+
+    function removeFromRelations(entity, entityState) {
+        // remove this entity from any collections.
+        // mark the entity deleted or detached
+
+        var isDeleted = entityState.isDeleted();
+        if (isDeleted) {
+            removeFromRelationsCore(entity, true);
+        } else {
+            __using(entity.entityAspect.entityManager, "isLoading", true, function () {
+                removeFromRelationsCore(entity, false)
+            });
+        }
+    }
+
+    function removeFromRelationsCore(entity, isDeleted) {
+        entity.entityType.navigationProperties.forEach(function (np) {
+            var inverseNp = np.inverse;
+            if (!inverseNp) return;
+            var npValue = entity.getProperty(np.name);
+            if (np.isScalar) {
+                if (npValue) {
+                    if (inverseNp.isScalar) {
+                        clearNp(npValue, inverseNp, isDeleted);
+                    } else {
+                        var collection = npValue.getProperty(inverseNp.name);
+                        if (collection.length) {
+                            __arrayRemoveItem(collection, entity);
+                        }
+                    }
+                    entity.setProperty(np.name, null);
+                }
+            } else {
+                // npValue is a live list so we need to copy it first.
+                npValue.slice(0).forEach(function (v) {
+                    if (inverseNp.isScalar) {
+                        clearNp(v, inverseNp, isDeleted);
+                    } else {
+                        // TODO: many to many - not yet handled.
+                    }
+                });
+                // now clear it.
+                npValue.length = 0;
+            }
+        });
+
+    };
+
+    function clearNp(entity, np, relatedIsDeleted) {
+        if (relatedIsDeleted) {
+            entity.setProperty(np.name, null);
+        } else {
+            // relatedEntity was detached.
+            // need to clear child np without clearing child fk or changing the entityState of the child
+            var em = entity.entityAspect.entityManager;
+
+            var fkNames = np.foreignKeyNames;
+            if (fkNames) {
+                var fkVals = fkNames.map(function (fkName) {
+                    return entity.getProperty(fkName);
+                });
+            }
+            entity.setProperty(np.name, null);
+            if (fkNames) {
+                fkNames.forEach(function (fkName, i) {
+                    entity.setProperty(fkName, fkVals[i])
+                });
+            }
+
+        }
+    }
 
     function validate(aspect, validator, value, context) {
         var ve = validator.validate(value, context);

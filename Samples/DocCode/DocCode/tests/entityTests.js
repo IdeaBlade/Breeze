@@ -606,14 +606,21 @@
                 em.detachEntity(item);
             });
 
-            var orderStateName = order.entityAspect.entityState.name;
-            var detailStateName = details[0].entityAspect.entityState.name;
-            equal(orderStateName, detached.name,
-                 "parent 'order' should be detached");           
-            equal(detailStateName, detached.name,
-                "first child 'detail' should be detached");
+            var orderState = order.entityAspect.entityState
+            var detailState = details[0].entityAspect.entityState
+            ok(orderState.isDetached(),  "parent 'order' should be detached");
+            ok(detailState.isDetached(), "first child 'detail' should be detached");
             ok(!em.hasChanges(),
                 "EntityManager should NOT have pending changes.");
+
+            //var orderStateName = order.entityAspect.entityState.name;
+            //var detailStateName = details[0].entityAspect.entityState.name;
+            //equal(orderStateName, detached.name,
+            //     "parent 'order' should be detached");           
+            //equal(detailStateName, detached.name,
+            //    "first child 'detail' should be detached");
+            //ok(!em.hasChanges(),
+            //    "EntityManager should NOT have pending changes.");
         });
     /*********************************************************
      * changing a property raises propertyChanged 

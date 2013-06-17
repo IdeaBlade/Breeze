@@ -512,7 +512,6 @@ var EntityManager = (function () {
         return entity;
     };
         
-        
 
     /**
     Detaches an entity from this EntityManager.
@@ -533,19 +532,11 @@ var EntityManager = (function () {
             // no aspect means in couldn't appear in any group
             return false;
         }
-        var group = aspect.entityGroup;
-        if (!group) {
-            // no group === already detached.
-            return false;
-        }
-        if (group.entityManager !== this) {
+        
+        if (aspect.entityManager !== this) {
             throw new Error("This entity does not belong to this EntityManager.");
         }
-        group.detachEntity(entity);
-        aspect._removeFromRelations();
-        this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
-        aspect._detach();
-        return true;
+        return aspect.setDetached();
     };
 
     /**

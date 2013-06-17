@@ -185,42 +185,41 @@
        
     });
 
-    // NOT YET WORKING
 
-    //test("unidirectional attach - 1->n", function () {
-    //    var em = newEm();
+    test("unidirectional attach - 1->n", function () {
+        var em = newEm();
 
-    //    var tl1 = em.createEntity("TimeLimit");
-    //    var tl2 = em.createEntity("TimeLimit");
-    //    var tg1 = em.createEntity("TimeGroup");
-    //    var id = tg1.getProperty("id");
-    //    tl1.setProperty("timeGroupId", id);
-    //    var timeLimits = tg1.getProperty("timeLimits");
-    //    ok(timeLimits.length === 1, "should be 1 timelimit");
-    //    tl2.setProperty("timeGroupId", id);
-    //    ok(timeLimits.length === 2, "should be 2 timelimit2");
+        var tl1 = em.createEntity("TimeLimit");
+        var tl2 = em.createEntity("TimeLimit");
+        var tg1 = em.createEntity("TimeGroup");
+        var id = tg1.getProperty("id");
+        tl1.setProperty("timeGroupId", id);
+        var timeLimits = tg1.getProperty("timeLimits");
+        ok(timeLimits.length === 1, "should be 1 timelimit");
+        tl2.setProperty("timeGroupId", id);
+        ok(timeLimits.length === 2, "should be 2 timelimit2");
 
-    //});
+    });
 
-    //test("unidirectional attach - 1->n - part 2", function () {
-    //    var em = newEm();
+    test("unidirectional attach - 1->n - part 2", function () {
+        var em = newEm();
 
-    //    var tl1 = em.createEntity("TimeLimit");
-    //    var tl2 = em.createEntity("TimeLimit");
-    //    var tg1 = em.createEntity("TimeGroup");
-    //    var timeLimits = tg1.getProperty("timeLimits");
-    //    ok(timeLimits.length === 0, "should be 1 timelimit");
-    //    timeLimits.push(tl1);
-    //    ok(timeLimits.length === 1, "should be 1 timelimit");
-    //    timeLimits.push(tl2);
-    //    ok(timeLimits.length === 2, "should be 2 timelimit2");
-    //    var timeLimits2 = tg1.getProperty("timeLimits");
-    //    ok(timeLimit1 === timeLimits2);
-    //    // add one that is already there
-    //    timeLimits.push(tl1);
-    //    ok(timeLimits.length === 2, "length should not change when adding a dup");
+        var tl1 = em.createEntity("TimeLimit");
+        var tl2 = em.createEntity("TimeLimit");
+        var tg1 = em.createEntity("TimeGroup");
+        var timeLimits = tg1.getProperty("timeLimits");
+        ok(timeLimits.length === 0, "should be 1 timelimit");
+        timeLimits.push(tl1);
+        ok(timeLimits.length === 1, "should be 1 timelimit");
+        timeLimits.push(tl2);
+        ok(timeLimits.length === 2, "should be 2 timelimit2");
+        var timeLimits2 = tg1.getProperty("timeLimits");
+        ok(timeLimits === timeLimits2);
+        // add one that is already there
+        timeLimits.push(tl1);
+        ok(timeLimits.length === 2, "length should not change when adding a dup");
 
-    //});
+    });
 
     test("primary key fixup", function () {
         var em = newEm();
@@ -697,6 +696,29 @@
         ok(order1.getProperty("customer") === cust1, "inverse relationship not setPropertiesd");
     });
 
+    test("graph attach (1-n) - parent detach", function () {
+        var em = newEm();
+        var custType = em.metadataStore.getEntityType("Customer");
+        var orderType = em.metadataStore.getEntityType("Order");
+        var cust1 = custType.createEntity();
+        var order1 = orderType.createEntity();
+
+        var cust1Orders = cust1.getProperty("orders");
+        cust1Orders.push(order1);
+        ok(cust1Orders.length === 1, "There should be exactly one order in cust1Orders");
+        em.attachEntity(order1);
+        ok(order1.entityAspect.entityState === EntityState.Unchanged, "order entityState should be unchanged");
+        ok(cust1.entityAspect.entityState === EntityState.Unchanged, "customer entityState should be unchanged");
+        ok(order1.getProperty("customer") === cust1, "inverse relationship not setProperties");
+        var orderCustId =  order1.getProperty(testFns.customerKeyName);
+        em.detachEntity(cust1);
+        ok(cust1.entityAspect.entityState.isDetached(), "should be detached");
+        ok(order1.entityAspect.entityState.isUnchanged(), "should be unchanged");
+        var orderCustId2 = order1.getProperty(testFns.customerKeyName);
+        ok(orderCustId === orderCustId2, "custId should not have changed");
+
+
+    });
 
     test("graph attach (1-n) - piecewise", function () {
         if (testFns.DEBUG_MONGO) {
