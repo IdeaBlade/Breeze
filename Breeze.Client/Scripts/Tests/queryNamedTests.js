@@ -31,12 +31,7 @@
         return;
     }
 
-    if (testFns.DEBUG_MONGO) {
-        test("Not yet available for Mongo", function () {
-            ok(true);
-        });
-        return;
-    }
+
 
     test("with 0 value parameter", function () {
         var em = newEm();
@@ -73,13 +68,14 @@
 
     test("scalar server query ", function () {
         var em = newEm();
-
+        var custType = em.metadataStore.getEntityType("Customer");
         var query = EntityQuery.from("CustomerWithScalarResult")
             .using(em);
         stop();
 
         query.execute().then(function (data) {
             ok(data.results.length === 1, "should be 1 result");
+            ok(data.results[0].entityType === custType, "should be a cust type");
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -99,6 +95,10 @@
     });
 
     test("with parameter and count", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("CustomerCountsByCountry")
             .withParameters({ companyName: "C" });
@@ -165,7 +165,11 @@
         em.executeQuery(q).then(function (data) {
             ok(false, "should not get here");
         }).fail(function(e) {
-            ok(e.message.indexOf("foo") >= 0, "foo should have been in message");
+            if (testFns.DEBUG_MONGO) {
+                ok(e.message.indexOf("companyName") >= 0, "companyName should have been in message");
+            } else {
+                ok(e.message.indexOf("foo") >= 0, "foo should have been in message");
+            }
         }).fin(start);
     });
     
@@ -193,9 +197,14 @@
             .using(em);
         stop();
         query.execute().then(function (data) {
-            var names = data.results[0];
+            var names = data.results;
             ok(names.length > 0);
-            ok(typeof names[0] === 'string');
+            if (testFns.DEBUG_MONGO) {
+                var cname = names[0].companyName;
+                ok(typeof cname === "string", "companyName should be a string");
+            } else {
+                ok(typeof names[0] === 'string', "should be a string");
+            }
         }).fail(testFns.handleFail).fin(start);
     });
     
@@ -210,12 +219,17 @@
             var results = data.results;
             ok(results.length === 5);
             ok(results[0].companyName, results[0].companyName);
-            ok(results[0].customerID, results[0].customerID);
+            ok(results[0][testFns.customerKeyName], results[0][testFns.customerKeyName]);
         }).fail(testFns.handleFail).fin(start);
     });
     
 
     test("project enumerables", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - .NET specific test");
+            return;
+        }
+
         var em = newEm();
         var query = EntityQuery.from("TypeEnvelopes")
             .take(5)
@@ -231,6 +245,11 @@
     });
     
     test("project enumerables with filter", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - .NET specific test");
+            return;
+        }
+
         var em = newEm();
         var query = EntityQuery.from("TypeEnvelopes")
             // .where("name.length",">", 10)   // OData filtering on nested anon props seem to work
@@ -262,12 +281,16 @@
             ok(results.length > 0);
             results.forEach(function(r) {
                 ok(r.companyName.substr(0, 1) === "A", "should start with an 'A'");
-                ok(r.customerID, "should have a customerId");
+                ok(r[testFns.customerKeyName], "should have a customerId");
             });
         }).fail(testFns.handleFail).fin(start);
     });
     
     test("project filtered collection", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - no support for expands YET");
+            return;
+        }
         var em = newEm();
 
         var query = EntityQuery.from("CustomersWithBigOrders")
@@ -287,6 +310,11 @@
 
     
     test("project objects containing entities", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - no support for expands YET");
+            return;
+        }
+
         var em = newEm();
 
         var query = EntityQuery.from("CompanyInfoAndOrders").take(5)
@@ -321,6 +349,11 @@
     });
 
     test("server side include many with filter - customers and orders", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - no support for expands YET");
+            return;
+        }
+
         stop();
         var em = newEm();
 
@@ -353,7 +386,11 @@
     });
 
     test("server side include many with take - customers and orders", function () {
-       
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - no support for expands YET");
+            return;
+        }
+
         expect(5);
         var em = newEm();
 
@@ -394,7 +431,11 @@
     });
 
     test("server side include, followed by local query", function () {
-       
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - no support for expands YET");
+            return;
+        }
+
         stop();
         var em = newEm();
 
@@ -428,6 +469,10 @@
     });
 
     test("select scalar anon with two collection props", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - no support for expands YET");
+            return;
+        }
 
         var em = newEm();
         var query = EntityQuery

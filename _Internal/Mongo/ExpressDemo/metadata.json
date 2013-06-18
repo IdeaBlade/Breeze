@@ -2061,6 +2061,11 @@
       "UserRoles":"UserRole:#Models.NorthwindIB.Mongo",
       "Roles":"Role:#Models.NorthwindIB.Mongo",
       "TimeLimits":"TimeLimit:#Models.NorthwindIB.Mongo",
-      "Comments":"Comment:#Models.NorthwindIB.Mongo"
+      "Comments":"Comment:#Models.NorthwindIB.Mongo",
+      "EmployeesMultipleParams": "Employee:#Models.NorthwindIB.Mongo",
+      "EmployeesFilteredByCountryAndBirthdate" : "Employee:#Models.NorthwindIB.Mongo",
+      "CustomersStartingWithA": "Customer:#Models.NorthwindIB.Mongo",
+      "CustomersStartingWith": "Customer:#Models.NorthwindIB.Mongo",
+      "xxxCustomerWithScalarResult": "Customer:#Models.NorthwindIB.Mongo"
    }
 }

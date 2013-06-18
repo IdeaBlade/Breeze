@@ -15,7 +15,7 @@ var boolOpMap = {
 }
 
 function MongoQuery(reqQuery) {
-    this.query = {};
+    this.filter = {};
     this.select= {};
     this.options= {};
     this._parseUrl(reqQuery);
@@ -27,7 +27,7 @@ MongoQuery.prototype._parseUrl = function(reqQuery) {
     section = reqQuery.$filter;
     if (section) {
         var filterTree = parse(section, "filterExpr");
-        this.query = toQueryExpr(filterTree);
+        this.filter = toQueryExpr(filterTree);
     }
 
     section = reqQuery.$select;
@@ -74,22 +74,31 @@ MongoQuery.prototype.execute = function(db, collectionName, fn) {
         var src;
 
         if (that.inlineCount) {
-            collection.count(that.query, function(err, count) {
-                src = collection.find(that.query, that.select, that.options);
-                src.toArray(function (err, items) {
-                    var results =  { Results: items || [], InlineCount: count };
-                    fn(null, results);
+            collection.count(that.filter, function(err, count) {
+                src = collection.find(that.filter, that.select, that.options);
+                src.toArray(function (err, results) {
+                    results = processResults(results, that.resultEntityType);
+                    var resultsWith =  { Results: results, InlineCount: count };
+                    fn(null, resultsWith);
                 });
             });
         } else {
-            src = collection.find(that.query, that.select, that.options);
+            src = collection.find(that.filter, that.select, that.options);
             src.toArray(function (err, results) {
-                fn(null, results || []);
+                results = processResults(results, that.resultEntityType);
+                fn(null, results);
             });
         }
     });
+};
 
-}  ;
+function processResults(results, resultEntityType) {
+    results == results || [];
+    if (resultEntityType) {
+        results.forEach(function(r) { r.$type = resultEntityType} )
+    }
+    return results;
+}
 
 
 function parse(text, sectionName) {
