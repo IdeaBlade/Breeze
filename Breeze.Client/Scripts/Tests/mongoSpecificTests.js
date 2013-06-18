@@ -138,17 +138,17 @@
         var lastModType = em.metadataStore.getEntityType("LastMod");
         var noteType = em.metadataStore.getEntityType("Note");
         stop();
-        var order, ods, newQ, newDate;
+        var order, ods, newQ, newDate, em2, sameOrder;
         insertOneOrderDetail(em).then(function(sr) {
             order = sr.entities[0];
             ods = order.getProperty("orderDetails");
-            var newQ = EntityQuery.fromEntities(order);
-            var em2 = newEm();
+            newQ = EntityQuery.fromEntities(order);
+            em2 = newEm();
             return newQ.using(em2).execute();
         }).then(function(data2){
-            var sameOrder = data2.results[0];
+            sameOrder = data2.results[0];
             var sameOds = sameOrder.getProperty("orderDetails");
-            var newDate = new Date();
+            newDate = new Date();
             sameOds.forEach(function(od) {
                 var lastMod = od.getProperty("lastModification");
                 var notes = od.getProperty("notes");
@@ -164,7 +164,7 @@
                 lastMod.setProperty("modBy", "WRB");
                 lastMod.setProperty("modOn", newDate);
             });
-            return em.saveChanges();
+            return em2.saveChanges();
         }).then(function(sr) {
             var orders = sr.entities;
             ok(orders.length === 1, "should have saved 1");
@@ -176,10 +176,11 @@
             var sameOds = sameOrder2.getProperty("orderDetails");
             sameOds.forEach(function(od) {
                 var lastMod = od.getProperty("lastModification");
-                ok(lastMod.getProperty("modOn") === newDate, "last mod should be the same date");
+                var lastModDt = lastMod.getProperty("modOn");
+                ok(lastModDt.getTime() === newDate.getTime(), "last mod should be the same date");
                 var notes = od.getProperty("notes");
                 ok(notes.length === 2, "should be 2 notes");
-                ok(notes[0].getProperty("createdOn") === newDate, "note should have the same date");
+                ok(notes[0].getProperty("createdOn").getTime() === newDate.getTime(), "note should have the same date");
             });
         }).fail(testFns.handleFail).fin(start);
     });

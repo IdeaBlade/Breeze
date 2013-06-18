@@ -72,6 +72,7 @@ var EntityManager = (function () {
         this.clear();
             
     };
+
     var proto = ctor.prototype;
     proto._$typeName = "EntityManager";
     Event.bubbleEvent(proto, null);

@@ -43,7 +43,7 @@ breeze.makePrimitiveArray = (function() {
     };
 
     primitiveArrayMixin._beforeChange = function() {
-        var entityAspect = this.entityAspect;
+        var entityAspect = this.getEntityAspect();
         if (entityAspect.entityState.isUnchanged()) {
             entityAspect.setModified();
         }

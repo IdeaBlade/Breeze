@@ -404,7 +404,7 @@ var EntityAspect = (function() {
         var ok = true;
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
-        var entityAspect = target.entityAspect || target.complexAspect.entityAspect;
+        var entityAspect = target.entityAspect || target.complexAspect.getEntityAspect();
             
         stype.getProperties().forEach(function (p) {
             var value = target.getProperty(p.name);
@@ -757,18 +757,9 @@ var ComplexAspect = (function() {
         this.originalValues = {};
 
         // if a standalone complexObject
-        if (parent == null) {
-            this.entityAspect = new EntityAspect(null);
-        } else {
+        if (parent != null) {
             this.parent = parent;
             this.parentProperty = parentProperty;
-
-            var nextParent = parent;
-            while (nextParent && !nextParent.entityAspect) {
-                nextParent = nextParent.complexAspect.parent;
-            }
-
-            this.entityAspect = nextParent && nextParent.entityAspect;
         }
 
         var complexType = complexObject.complexType;
@@ -830,6 +821,17 @@ var ComplexAspect = (function() {
     @property originalValues {Object}
     **/
 
+    proto.getEntityAspect = function() {
+        var parent = this.parent;
+        if (!parent) return new EntityAspect(null);
+        var entityAspect = parent.entityAspect;
+        while (parent && !entityAspect) {
+            parent = parent.complexAspect && parent.complexAspect.parent;
+            entityAspect = parent && parent.entityAspect;
+        }
+        return entityAspect || new EntityAspect(null);
+    }
+
     proto.getPropertyPath = function(propName) {
         var parent = this.parent;
         if (!parent) return null;
@@ -853,6 +855,7 @@ var ComplexAspect = (function() {
     return ctor;
 
 })();
+
 
 breeze.EntityAspect= EntityAspect;
 breeze.ComplexAspect= ComplexAspect;

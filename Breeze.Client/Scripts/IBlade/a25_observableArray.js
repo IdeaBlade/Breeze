@@ -66,12 +66,16 @@ var observableArray = (function() {
         return result;
     };
 
+    mixin.getEntityAspect = function() {
+        return this.parent.entityAspect || this.parent.complexAspect.getEntityAspect();
+    }
+
     mixin._getEventParent = function () {
-        return this.entityAspect;
+        return this.getEntityAspect();
     };
 
     mixin._getPendingPubs = function () {
-        var em = this.entityAspect.entityManager;
+        var em = this.getEntityAspect().entityManager;
         return em && em._pendingPubs;
     };
 
@@ -80,7 +84,7 @@ var observableArray = (function() {
     };
 
     function updateEntityState(obsArray) {
-        var entityAspect = obsArray.entityAspect;
+        var entityAspect = obsArray.getEntityAspect();
         if (entityAspect.entityState.isUnchanged()) {
             entityAspect.setModified();
         }
@@ -140,7 +144,6 @@ var observableArray = (function() {
     function initializeParent(obsArray, parent, parentProperty) {
         obsArray.parent = parent;
         obsArray.parentProperty = parentProperty;
-        obsArray.entityAspect = parent.entityAspect;
     }
 
 

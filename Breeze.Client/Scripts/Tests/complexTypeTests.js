@@ -44,7 +44,7 @@
             var city = location.getProperty("city");
             ok(city.length > 0, "city should exist");
             ok(location.complexAspect != null, "location.complexAspect should exist");
-            ok(location.complexAspect.entityAspect === supplier0.entityAspect, "location.complexAspect should exist");
+            ok(location.complexAspect.getEntityAspect() === supplier0.entityAspect, "location.complexAspect should exist");
 
             var supplierType = em.metadataStore.getEntityType("Supplier");
             ok(supplierType instanceof EntityType, "locationType should be instanceof ComplexType");
