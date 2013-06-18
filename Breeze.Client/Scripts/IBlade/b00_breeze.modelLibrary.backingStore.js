@@ -110,7 +110,7 @@
                 if (prop.isComplexProperty) {
                     // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                     if (prop.isScalar) {
-                        val = prop.dataType._createInstanceCore(entity, prop.name);
+                        val = prop.dataType._createInstanceCore(entity, prop);
                     } else {
                         val = breeze.makeComplexArray([], entity, prop);
                     }

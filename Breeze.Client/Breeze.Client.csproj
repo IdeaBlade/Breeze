@@ -56,6 +56,7 @@
     <Content Include="Scripts\IBlade\a10_event.js" />
     <Content Include="Scripts\IBlade\a20_config.js" />
     <Content Include="Scripts\IBlade\a25_observableArray.js" />
+    <Content Include="Scripts\IBlade\a30_primitiveArray.js" />
     <Content Include="Scripts\IBlade\a40_dataType.js" />
     <Content Include="Scripts\IBlade\a25_validate.js" />
     <Content Include="Scripts\IBlade\a30_entityAspect.js" />
@@ -83,7 +84,7 @@
     <Content Include="Scripts\IBlade\a50_entityGroup.js" />
     <Content Include="Scripts\IBlade\a30_complexArray.js" />
     <Content Include="Scripts\IBlade\a60_abstractDataServiceAdapter.js" />
-    <Content Include="Scripts\IBlade\b00_breeze.dataService.mongo.js" />
+    <Content Include="Scripts\IBlade\breeze.dataService.mongo.js" />
     <Content Include="Scripts\IBlade\iface.keyGeneratorInterface.js" />
     <Content Include="Scripts\IBlade\iface.promise.js" />
     <Content Include="Scripts\IBlade\node_modules\uglify-js\lib\ast.js" />

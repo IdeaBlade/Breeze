@@ -1902,14 +1902,7 @@ var observableArray = (function() {
     function initializeParent(obsArray, parent, parentProperty) {
         obsArray.parent = parent;
         obsArray.parentProperty = parentProperty;
-        obsArray.propertyPath = parentProperty.name;
-        // get the final parent's entityAspect.
-        var nextParent = parent;
-        while (nextParent.complexType) {
-            obsArray.propertyPath = nextParent.complexAspect.propertyPath + "." + obsArray.propertyPath;
-            nextParent = nextParent.complexAspect.parent;
-        }
-        obsArray.entityAspect = nextParent.entityAspect;
+        obsArray.entityAspect = parent.entityAspect;
     }
 
 
@@ -2885,7 +2878,6 @@ breeze.makeComplexArray = (function() {
 
         coAspect.parent = null;
         coAspect.parentProperty = null;
-        coAspect.propertyPath = null;
         coAspect.entityAspect = null;
         return coAspect;
     }
@@ -2896,7 +2888,6 @@ breeze.makeComplexArray = (function() {
         if (coAspect.parent === arr.parent) return null;
         coAspect.parent = arr.parent;
         coAspect.parentProperty = arr.parentProperty;
-        coAspect.propertyPath = arr.propertyPath;
         coAspect.entityAspect = arr.entityAspect;
 
         return coAspect;
@@ -3299,6 +3290,10 @@ var EntityAspect = (function() {
         });
     }
 
+    proto.getPropertyPath = function(propName) {
+        return propName;
+    }
+
     /**
     Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}
         @example
@@ -3454,7 +3449,7 @@ var EntityAspect = (function() {
             
         stype.getProperties().forEach(function (p) {
             var value = target.getProperty(p.name);
-            var propName = aspect.propertyPath ? aspect.propertyPath + "." + p.name : p.name;
+            var propName = aspect.getPropertyPath(p.name);
             if (p.validators.length > 0) {
                 var context = { entity: entityAspect.entity, property: p, propertyName: propName };
                 ok = entityAspect._validateProperty(value, context) && ok;
@@ -3808,14 +3803,13 @@ var ComplexAspect = (function() {
         } else {
             this.parent = parent;
             this.parentProperty = parentProperty;
-            this.propertyPath = parentProperty;
-            // get the final parent's entityAspect.
+
             var nextParent = parent;
-            while (nextParent.complexType) {
-                this.propertyPath = nextParent.complexAspect.propertyPath + "." + this.propertyPath;
+            while (nextParent && !nextParent.entityAspect) {
                 nextParent = nextParent.complexAspect.parent;
             }
-            this.entityAspect = nextParent.entityAspect;
+
+            this.entityAspect = nextParent && nextParent.entityAspect;
         }
 
         var complexType = complexObject.complexType;
@@ -3832,7 +3826,8 @@ var ComplexAspect = (function() {
 
     };
     var proto = ctor.prototype;
-        
+
+
     /**
     The complex object that this aspect is associated with.
 
@@ -3875,6 +3870,13 @@ var ComplexAspect = (function() {
     __readOnly__
     @property originalValues {Object}
     **/
+
+    proto.getPropertyPath = function(propName) {
+        var parent = this.parent;
+        if (!parent) return null;
+        var aspect = parent.complexAspect || parent.entityAspect;
+        return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
+    }
 
     proto._postInitialize = function() {
         var co = this.complexObject;
@@ -4483,25 +4485,19 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     // need 2 propNames here because of complexTypes;
     var propName = property.name;
 
-    var propPath, localAspect, key, relatedEntity;
+    var localAspect, key, relatedEntity;
     // CANNOT DO NEXT LINE because it has the possibility of creating a new property
     // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
     // var entityAspect = new EntityAspect(this);
 
     var entityAspect = this.entityAspect;
-
     if (entityAspect) {
         localAspect = entityAspect;
-        propPath = propName;
     } else {
         localAspect = this.complexAspect;
         entityAspect = localAspect.entityAspect;
-        // if complexType is standalone - i.e. doesn't have a parent - don't try to calc a fullPropName;
-        propPath = (localAspect.parent) ?
-            localAspect.propertyPath + "." + propName :
-            propName;
     }
-        
+    var propPath = localAspect.getPropertyPath(propName);
         
     // Note that we need to handle multiple properties in process, not just one in order to avoid recursion. 
     // ( except in the case of null propagation with fks where null -> 0 in some cases.)
@@ -8484,6 +8480,13 @@ var EntityQuery = (function () {
     **/
 
     /**
+    The entityType that will be returned by this query. This property will only be set if the 'toType' method was called. 
+
+    __readOnly__
+    @property resultEntityType {EntityType}
+    **/
+
+    /**
     The 'where' predicate used by this query.
 
     __readOnly__
@@ -8593,7 +8596,7 @@ var EntityQuery = (function () {
     proto.toType = function(entityType) {
         assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
         var eq = this._clone();
-        eq.toEntityType = entityType;
+        eq.resultEntityType = entityType;
         return eq;
     };
 
@@ -9191,16 +9194,16 @@ var EntityQuery = (function () {
 
     proto._getToEntityType = function (metadataStore, skipFromCheck) {
         // skipFromCheck is to avoid recursion if called from _getFromEntityType;
-        if (this.toEntityType instanceof EntityType) {
-            return this.toEntityType;
-        } else if (this.toEntityType) {
-            // toEntityType is a string
-            this.toEntityType = metadataStore._getEntityType(this.toEntityType, false);
-            return this.toEntityType;
+        if (this.resultEntityType instanceof EntityType) {
+            return this.resultEntityType;
+        } else if (this.resultEntityType) {
+            // resultEntityType is a string
+            this.resultEntityType = metadataStore._getEntityType(this.resultEntityType, false);
+            return this.resultEntityType;
         } else {
             // resolve it, if possible, via the resourceName
             // do not cache this value in this case
-            // cannot determine the toEntityType if a selectClause is present.
+            // cannot determine the resultEntityType if a selectClause is present.
             
             return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
         }
@@ -9222,7 +9225,7 @@ var EntityQuery = (function () {
         copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
         copy.dataService = this.dataService;
-        copy.toEntityType = this.toEntityType;
+        copy.resultEntityType = this.resultEntityType;
 
         return copy;
     };
@@ -9944,11 +9947,11 @@ var Predicate = (function () {
         var p1 = Predicate.create("OrderDate", "ne", dt);
         var p2 = Predicate.create("ShipCity", "startsWith", "C");
         var p3 = Predicate.create("Freight", ">", 100);
-        var newPred = p1.and(p2, p3);
+        var newPred = p1.or(p2, p3);
     or
     @example
         var preds = [p2, p3];
-        var newPred = p1.and(preds);
+        var newPred = p1.or(preds);
     The 'or' method is also used to write "fluent" expressions
     @example
         var p4 = Predicate.create("ShipCity", "startswith", "F")
@@ -13039,7 +13042,7 @@ var EntityManager = (function () {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
                 rawVal.forEach(function (rawCo) {
-                    var newCo = dp.dataType._createInstanceCore(target, dp.name);
+                    var newCo = dp.dataType._createInstanceCore(target, dp);
                     updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
                     oldVal.push(newCo);
                 });

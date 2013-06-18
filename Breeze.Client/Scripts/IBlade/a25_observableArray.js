@@ -140,14 +140,7 @@ var observableArray = (function() {
     function initializeParent(obsArray, parent, parentProperty) {
         obsArray.parent = parent;
         obsArray.parentProperty = parentProperty;
-        obsArray.propertyPath = parentProperty.name;
-        // get the final parent's entityAspect.
-        var nextParent = parent;
-        while (nextParent.complexType) {
-            obsArray.propertyPath = nextParent.complexAspect.propertyPath + "." + obsArray.propertyPath;
-            nextParent = nextParent.complexAspect.parent;
-        }
-        obsArray.entityAspect = nextParent.entityAspect;
+        obsArray.entityAspect = parent.entityAspect;
     }
 
 

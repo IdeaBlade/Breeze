@@ -11,6 +11,41 @@
       }
    ],
    "structuralTypes":[
+       {
+           "shortName":"Note",
+           "namespace":"Models.NorthwindIB.Mongo",
+           "isComplexType":true,
+           "dataProperties":[
+               {
+                   "name":"note",
+                   "dataType":"String"
+               },
+               {
+                   "name":"createdBy",
+                   "dataType":"String"
+               },
+               {
+                   "name":"createdOn",
+                   "dataType":"DateTime"
+               }
+           ]
+       },
+       {
+           "shortName":"LastMod",
+           "namespace":"Models.NorthwindIB.Mongo",
+           "isComplexType":true,
+           "dataProperties":[
+               {
+                   "name":"modBy",
+                   "dataType":"String"
+               },
+               {
+                   "name":"modOn",
+                   "dataType":"DateTime"
+               }
+           ]
+       },
+
       {
          "shortName":"Location",
          "namespace":"Models.NorthwindIB.Mongo",
@@ -907,6 +942,15 @@
                      "name":"int32"
                   }
                ]
+            },
+            {
+               "name": "notes",
+               "complexTypeName":"Note:#Models.NorthwindIB.Mongo",
+               "isScalar" : false
+            },
+            {
+               "name":"lastModification",
+               "complexTypeName":"LastMod:#Models.NorthwindIB.Mongo"
             }
          ],
          "navigationProperties":[

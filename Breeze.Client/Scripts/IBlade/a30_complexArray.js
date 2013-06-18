@@ -104,7 +104,6 @@ breeze.makeComplexArray = (function() {
 
         coAspect.parent = null;
         coAspect.parentProperty = null;
-        coAspect.propertyPath = null;
         coAspect.entityAspect = null;
         return coAspect;
     }
@@ -115,7 +114,6 @@ breeze.makeComplexArray = (function() {
         if (coAspect.parent === arr.parent) return null;
         coAspect.parent = arr.parent;
         coAspect.parentProperty = arr.parentProperty;
-        coAspect.propertyPath = arr.propertyPath;
         coAspect.entityAspect = arr.entityAspect;
 
         return coAspect;

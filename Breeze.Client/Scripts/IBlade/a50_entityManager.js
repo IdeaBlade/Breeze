@@ -2066,7 +2066,7 @@ var EntityManager = (function () {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
                 rawVal.forEach(function (rawCo) {
-                    var newCo = dp.dataType._createInstanceCore(target, dp.name);
+                    var newCo = dp.dataType._createInstanceCore(target, dp);
                     updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
                     oldVal.push(newCo);
                 });

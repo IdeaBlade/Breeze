@@ -249,6 +249,10 @@ var EntityAspect = (function() {
         });
     }
 
+    proto.getPropertyPath = function(propName) {
+        return propName;
+    }
+
     /**
     Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}
         @example
@@ -404,7 +408,7 @@ var EntityAspect = (function() {
             
         stype.getProperties().forEach(function (p) {
             var value = target.getProperty(p.name);
-            var propName = aspect.propertyPath ? aspect.propertyPath + "." + p.name : p.name;
+            var propName = aspect.getPropertyPath(p.name);
             if (p.validators.length > 0) {
                 var context = { entity: entityAspect.entity, property: p, propertyName: propName };
                 ok = entityAspect._validateProperty(value, context) && ok;
@@ -758,14 +762,13 @@ var ComplexAspect = (function() {
         } else {
             this.parent = parent;
             this.parentProperty = parentProperty;
-            this.propertyPath = parentProperty;
-            // get the final parent's entityAspect.
+
             var nextParent = parent;
-            while (nextParent.complexType) {
-                this.propertyPath = nextParent.complexAspect.propertyPath + "." + this.propertyPath;
+            while (nextParent && !nextParent.entityAspect) {
                 nextParent = nextParent.complexAspect.parent;
             }
-            this.entityAspect = nextParent.entityAspect;
+
+            this.entityAspect = nextParent && nextParent.entityAspect;
         }
 
         var complexType = complexObject.complexType;
@@ -782,7 +785,8 @@ var ComplexAspect = (function() {
 
     };
     var proto = ctor.prototype;
-        
+
+
     /**
     The complex object that this aspect is associated with.
 
@@ -825,6 +829,13 @@ var ComplexAspect = (function() {
     __readOnly__
     @property originalValues {Object}
     **/
+
+    proto.getPropertyPath = function(propName) {
+        var parent = this.parent;
+        if (!parent) return null;
+        var aspect = parent.complexAspect || parent.entityAspect;
+        return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
+    }
 
     proto._postInitialize = function() {
         var co = this.complexObject;

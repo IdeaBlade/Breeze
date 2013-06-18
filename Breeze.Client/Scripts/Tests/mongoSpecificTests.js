@@ -133,6 +133,66 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
+    test("add and save orderDetails, notes and lastMod", function () {
+        var em = newEm();
+        var lastModType = em.metadataStore.getEntityType("LastMod");
+        var noteType = em.metadataStore.getEntityType("Note");
+        stop();
+        var order, ods, newQ, newDate;
+        insertOneOrderDetail(em).then(function(sr) {
+            order = sr.entities[0];
+            ods = order.getProperty("orderDetails");
+            var newQ = EntityQuery.fromEntities(order);
+            var em2 = newEm();
+            return newQ.using(em2).execute();
+        }).then(function(data2){
+            var sameOrder = data2.results[0];
+            var sameOds = sameOrder.getProperty("orderDetails");
+            var newDate = new Date();
+            sameOds.forEach(function(od) {
+                var lastMod = od.getProperty("lastModification");
+                var notes = od.getProperty("notes");
+                if (notes.length >= 2) {
+                    notes.pop();
+                    notes.pop();
+                }
+                var note1 = createNote(em, newDate);
+                var note2 = createNote(em, newDate);
+                notes.push(note1);
+                notes.push(note2);
+                ok(notes.length === 2, "should be 2 notes");
+                lastMod.setProperty("modBy", "WRB");
+                lastMod.setProperty("modOn", newDate);
+            });
+            return em.saveChanges();
+        }).then(function(sr) {
+            var orders = sr.entities;
+            ok(orders.length === 1, "should have saved 1");
+            ok(sameOrder === orders[0], "should be the same order");
+            var em3 = newEm();
+            return newQ.using(em3).execute();
+        }).then(function(data3) {
+            var sameOrder2 = data3.results[0];
+            var sameOds = sameOrder2.getProperty("orderDetails");
+            sameOds.forEach(function(od) {
+                var lastMod = od.getProperty("lastModification");
+                ok(lastMod.getProperty("modOn") === newDate, "last mod should be the same date");
+                var notes = od.getProperty("notes");
+                ok(notes.length === 2, "should be 2 notes");
+                ok(notes[0].getProperty("createdOn") === newDate, "note should have the same date");
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    function createNote(em, newDate) {
+        var noteType = em.metadataStore.getEntityType("Note");
+        var newNote = noteType.createInstance();
+        newNote.setProperty("note", "just another note");
+        newNote.setProperty("createdBy", newDate.second);
+        newNote.setProperty("createdOn", newDate);
+        return newNote;
+    }
+
     test("remove and save embedded orderDetails", function () {
         var em = newEm();
         var order, ods, odsLength;
@@ -333,7 +393,6 @@
             ok(ods.length === origLength+1, "length should have grown by 1");
             ok(newOd.complexAspect.parent === order, "parent should be order");
             ok(newOd.complexAspect.parentProperty === odProperty, "parent prop should be orderDetails");
-            ok(newOd.complexAspect.propertyPath === "orderDetails", "parent prop should be orderDetails");
             return em.saveChanges();
         }).then(function(sr) {
            var ents = sr.entities;

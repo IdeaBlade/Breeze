@@ -1902,14 +1902,7 @@ var observableArray = (function() {
     function initializeParent(obsArray, parent, parentProperty) {
         obsArray.parent = parent;
         obsArray.parentProperty = parentProperty;
-        obsArray.propertyPath = parentProperty.name;
-        // get the final parent's entityAspect.
-        var nextParent = parent;
-        while (nextParent.complexType) {
-            obsArray.propertyPath = nextParent.complexAspect.propertyPath + "." + obsArray.propertyPath;
-            nextParent = nextParent.complexAspect.parent;
-        }
-        obsArray.entityAspect = nextParent.entityAspect;
+        obsArray.entityAspect = parent.entityAspect;
     }
 
 
@@ -2885,7 +2878,6 @@ breeze.makeComplexArray = (function() {
 
         coAspect.parent = null;
         coAspect.parentProperty = null;
-        coAspect.propertyPath = null;
         coAspect.entityAspect = null;
         return coAspect;
     }
@@ -2896,7 +2888,6 @@ breeze.makeComplexArray = (function() {
         if (coAspect.parent === arr.parent) return null;
         coAspect.parent = arr.parent;
         coAspect.parentProperty = arr.parentProperty;
-        coAspect.propertyPath = arr.propertyPath;
         coAspect.entityAspect = arr.entityAspect;
 
         return coAspect;
@@ -3299,6 +3290,10 @@ var EntityAspect = (function() {
         });
     }
 
+    proto.getPropertyPath = function(propName) {
+        return propName;
+    }
+
     /**
     Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}
         @example
@@ -3454,7 +3449,7 @@ var EntityAspect = (function() {
             
         stype.getProperties().forEach(function (p) {
             var value = target.getProperty(p.name);
-            var propName = aspect.propertyPath ? aspect.propertyPath + "." + p.name : p.name;
+            var propName = aspect.getPropertyPath(p.name);
             if (p.validators.length > 0) {
                 var context = { entity: entityAspect.entity, property: p, propertyName: propName };
                 ok = entityAspect._validateProperty(value, context) && ok;
@@ -3808,14 +3803,13 @@ var ComplexAspect = (function() {
         } else {
             this.parent = parent;
             this.parentProperty = parentProperty;
-            this.propertyPath = parentProperty;
-            // get the final parent's entityAspect.
+
             var nextParent = parent;
-            while (nextParent.complexType) {
-                this.propertyPath = nextParent.complexAspect.propertyPath + "." + this.propertyPath;
+            while (nextParent && !nextParent.entityAspect) {
                 nextParent = nextParent.complexAspect.parent;
             }
-            this.entityAspect = nextParent.entityAspect;
+
+            this.entityAspect = nextParent && nextParent.entityAspect;
         }
 
         var complexType = complexObject.complexType;
@@ -3832,7 +3826,8 @@ var ComplexAspect = (function() {
 
     };
     var proto = ctor.prototype;
-        
+
+
     /**
     The complex object that this aspect is associated with.
 
@@ -3875,6 +3870,13 @@ var ComplexAspect = (function() {
     __readOnly__
     @property originalValues {Object}
     **/
+
+    proto.getPropertyPath = function(propName) {
+        var parent = this.parent;
+        if (!parent) return null;
+        var aspect = parent.complexAspect || parent.entityAspect;
+        return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
+    }
 
     proto._postInitialize = function() {
         var co = this.complexObject;
@@ -4483,25 +4485,19 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     // need 2 propNames here because of complexTypes;
     var propName = property.name;
 
-    var propPath, localAspect, key, relatedEntity;
+    var localAspect, key, relatedEntity;
     // CANNOT DO NEXT LINE because it has the possibility of creating a new property
     // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
     // var entityAspect = new EntityAspect(this);
 
     var entityAspect = this.entityAspect;
-
     if (entityAspect) {
         localAspect = entityAspect;
-        propPath = propName;
     } else {
         localAspect = this.complexAspect;
         entityAspect = localAspect.entityAspect;
-        // if complexType is standalone - i.e. doesn't have a parent - don't try to calc a fullPropName;
-        propPath = (localAspect.parent) ?
-            localAspect.propertyPath + "." + propName :
-            propName;
     }
-        
+    var propPath = localAspect.getPropertyPath(propName);
         
     // Note that we need to handle multiple properties in process, not just one in order to avoid recursion. 
     // ( except in the case of null propagation with fks where null -> 0 in some cases.)
@@ -8484,6 +8480,13 @@ var EntityQuery = (function () {
     **/
 
     /**
+    The entityType that will be returned by this query. This property will only be set if the 'toType' method was called. 
+
+    __readOnly__
+    @property resultEntityType {EntityType}
+    **/
+
+    /**
     The 'where' predicate used by this query.
 
     __readOnly__
@@ -8593,7 +8596,7 @@ var EntityQuery = (function () {
     proto.toType = function(entityType) {
         assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
         var eq = this._clone();
-        eq.toEntityType = entityType;
+        eq.resultEntityType = entityType;
         return eq;
     };
 
@@ -9191,16 +9194,16 @@ var EntityQuery = (function () {
 
     proto._getToEntityType = function (metadataStore, skipFromCheck) {
         // skipFromCheck is to avoid recursion if called from _getFromEntityType;
-        if (this.toEntityType instanceof EntityType) {
-            return this.toEntityType;
-        } else if (this.toEntityType) {
-            // toEntityType is a string
-            this.toEntityType = metadataStore._getEntityType(this.toEntityType, false);
-            return this.toEntityType;
+        if (this.resultEntityType instanceof EntityType) {
+            return this.resultEntityType;
+        } else if (this.resultEntityType) {
+            // resultEntityType is a string
+            this.resultEntityType = metadataStore._getEntityType(this.resultEntityType, false);
+            return this.resultEntityType;
         } else {
             // resolve it, if possible, via the resourceName
             // do not cache this value in this case
-            // cannot determine the toEntityType if a selectClause is present.
+            // cannot determine the resultEntityType if a selectClause is present.
             
             return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
         }
@@ -9222,7 +9225,7 @@ var EntityQuery = (function () {
         copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
         copy.dataService = this.dataService;
-        copy.toEntityType = this.toEntityType;
+        copy.resultEntityType = this.resultEntityType;
 
         return copy;
     };
@@ -9944,11 +9947,11 @@ var Predicate = (function () {
         var p1 = Predicate.create("OrderDate", "ne", dt);
         var p2 = Predicate.create("ShipCity", "startsWith", "C");
         var p3 = Predicate.create("Freight", ">", 100);
-        var newPred = p1.and(p2, p3);
+        var newPred = p1.or(p2, p3);
     or
     @example
         var preds = [p2, p3];
-        var newPred = p1.and(preds);
+        var newPred = p1.or(preds);
     The 'or' method is also used to write "fluent" expressions
     @example
         var p4 = Predicate.create("ShipCity", "startswith", "F")
@@ -13039,7 +13042,7 @@ var EntityManager = (function () {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
                 rawVal.forEach(function (rawCo) {
-                    var newCo = dp.dataType._createInstanceCore(target, dp.name);
+                    var newCo = dp.dataType._createInstanceCore(target, dp);
                     updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
                     oldVal.push(newCo);
                 });
@@ -13768,221 +13771,6 @@ breeze.AbstractDataServiceAdapter = (function () {
     breeze.config.registerAdapter("ajax", ctor);
     
 }));
-(function(factory) {
-    if (breeze) {
-        factory(breeze);
-    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
-        // CommonJS or Node: hard-coded dependency on "breeze"
-        factory(require("breeze"));
-    } else if (typeof define === "function" && define["amd"] && !breeze) {
-        // AMD anonymous module with hard-coded dependency on "breeze"
-        define(["breeze"], factory);
-    }
-}(function(breeze) {
-       
-    var core = breeze.core;
-
-    var MetadataStore = breeze.MetadataStore;
-    var JsonResultsAdapter = breeze.JsonResultsAdapter;
-    var AbstractDataServiceAdapter = breeze.AbstractDataServiceAdapter;
-
-    var ajaxImpl;
-
-    function fmtOData(val) {
-        return val == null ? null : "'" + val + "'" ; 
-    } 
-
-    function getNextObjectId() {
-        return new ObjectId().toString();
-    }
-
-    var ctor = function () {
-        this.name = "mongo";
-        breeze.DataType.MongoObjectId = breeze.DataType.addSymbol({
-            defaultValue: "",
-            fmtOData: fmtOData,
-            getNext: getNextObjectId
-        });
-    };
-
-    ctor.prototype = new AbstractDataServiceAdapter();
-    
-    ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
-        var em = saveContext.entityManager;
-        var metadataStore = em.metadataStore;
-        var helper = em.helper;
-        var metadata = {};
-        
-        saveBundle.entities = saveBundle.entities.map(function (e) {
-            var rawEntity = helper.unwrapInstance(e);
-            var entityTypeName = e.entityType.name;
-            var etInfo = metadata[entityTypeName];
-            if (!etInfo) {
-                etInfo = {};
-                var entityType = e.entityType;
-                etInfo.dataProperties = entityType.dataProperties.map(function(dp) {
-                    var p = { name: dp.nameOnServer, dataType: dp.dataType.name };
-                    if (dp.relatedNavigationProperty != null) {
-                        p.isFk = true;
-                    }
-                    if (dp.concurrencyMode && dp.concurrencyMode === "Fixed") {
-                        p.isConcurrencyProp = true;
-                    }
-                    return p;
-                });
-                if (entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
-                    etInfo.autoGeneratedKey = {
-                        propertyName: entityType.keyProperties[0].nameOnServer,
-                        autoGeneratedKeyType: entityType.autoGeneratedKeyType.name
-                    };
-                }
-                metadata[entityTypeName] = etInfo;
-            }
-            var originalValuesOnServer = helper.unwrapOriginalValues(e, metadataStore);
-            var rawAspect = {
-                entityTypeName: e.entityType.name,
-                defaultResourceName: e.entityType.defaultResourceName,
-                entityState: e.entityAspect.entityState.name,
-                originalValuesMap: originalValuesOnServer
-            };           
-                
-            rawEntity.entityAspect = rawAspect;
-            return rawEntity;
-        });
-
-        saveBundle.metadata = metadata;
-        saveBundle.saveOptions = { tag: saveBundle.saveOptions.tag };
-
-        return saveBundle;
-    };
-
-    ctor.prototype._prepareSaveResult = function (saveContext, data) {
-        
-        var em = saveContext.entityManager;
-        var keys = data.insertedKeys.concat(data.updatedKeys, data.deletedKeys);
-        var entities = keys.map(function (key) {
-            return em.getEntityByKey(key.entityTypeName, key._id);
-        });
-
-        return { entities: entities, keyMappings: data.keyMappings, XHR: data.XHR };
-    };
-
-
-    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
-        name: "mongo",
-
-        visitNode: function (node, mappingContext, nodeContext) {
-            if (node == null) return {};
-            var result = {};
-            // this will only be set on saveResults and projections.
-            if (node.$type) {
-                result.entityType = mappingContext.entityManager.metadataStore._getEntityType(node.$type, true);
-            }
-            return result;
-        }
-    });
-
-    /*
-    *
-    * Copyright (c) 2011 Justin Dearing (zippy1981@gmail.com)
-    * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
-    * and GPL (http://www.opensource.org/licenses/gpl-license.php) version 2 licenses.
-    * This software is not distributed under version 3 or later of the GPL.
-    *
-    * Version 1.0.0
-    *
-    */
-
-    /**
-     * Javascript class that mimics how WCF serializes a object of type MongoDB.Bson.ObjectId
-     * and converts between that format and the standard 24 character representation.
-    */
-    if (this.document) {
-        var ObjectId = (function () {
-            var increment = 0;
-            var pid = Math.floor(Math.random() * (32767));
-            var machine = Math.floor(Math.random() * (16777216));
-
-            if (typeof (localStorage) != 'undefined') {
-                var mongoMachineId = parseInt(localStorage['mongoMachineId']);
-                if (mongoMachineId >= 0 && mongoMachineId <= 16777215) {
-                    machine = Math.floor(localStorage['mongoMachineId']);
-                }
-                // Just always stick the value in.
-                localStorage['mongoMachineId'] = machine;
-                document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT'
-            }
-            else if (document) {
-                var cookieList = document.cookie.split('; ');
-                for (var i in cookieList) {
-                    var cookie = cookieList[i].split('=');
-                    if (cookie[0] == 'mongoMachineId' && cookie[1] >= 0 && cookie[1] <= 16777215) {
-                        machine = cookie[1];
-                        break;
-                    }
-                }
-                document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT';
-
-            }
-
-            return function () {
-                if (!(this instanceof ObjectId)) {
-                    return new ObjectId(arguments[0], arguments[1], arguments[2], arguments[3]).toString();
-                }
-
-                if (typeof (arguments[0]) == 'object') {
-                    this.timestamp = arguments[0].timestamp;
-                    this.machine = arguments[0].machine;
-                    this.pid = arguments[0].pid;
-                    this.increment = arguments[0].increment;
-                }
-                else if (typeof (arguments[0]) == 'string' && arguments[0].length == 24) {
-                    this.timestamp = Number('0x' + arguments[0].substr(0, 8)),
-                    this.machine = Number('0x' + arguments[0].substr(8, 6)),
-                    this.pid = Number('0x' + arguments[0].substr(14, 4)),
-                    this.increment = Number('0x' + arguments[0].substr(18, 6))
-                }
-                else if (arguments.length == 4 && arguments[0] != null) {
-                    this.timestamp = arguments[0];
-                    this.machine = arguments[1];
-                    this.pid = arguments[2];
-                    this.increment = arguments[3];
-                }
-                else {
-                    this.timestamp = Math.floor(new Date().valueOf() / 1000);
-                    this.machine = machine;
-                    this.pid = pid;
-                    if (increment > 0xffffff) {
-                        increment = 0;
-                    }
-                    this.increment = increment++;
-
-                }
-            };
-        })();
-
-        ObjectId.prototype.getDate = function () {
-            return new Date(this.timestamp * 1000);
-        };
-
-        /**
-        * Turns a WCF representation of a BSON ObjectId into a 24 character string representation.
-        */
-        ObjectId.prototype.toString = function () {
-            var timestamp = this.timestamp.toString(16);
-            var machine = this.machine.toString(16);
-            var pid = this.pid.toString(16);
-            var increment = this.increment.toString(16);
-            return '00000000'.substr(0, 6 - timestamp.length) + timestamp +
-                   '000000'.substr(0, 6 - machine.length) + machine +
-                   '0000'.substr(0, 4 - pid.length) + pid +
-                   '000000'.substr(0, 6 - increment.length) + increment;
-        }
-    }
-    
-    breeze.config.registerAdapter("dataService", ctor);
-
-}));
 (function (factory) {
     if (breeze) {
         factory(breeze);
@@ -14492,7 +14280,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             if (dp.isComplexProperty) {
                 // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                 if (dp.isScalar) {
-                    val = dp.dataType._createInstanceCore(entity, propName);
+                    val = dp.dataType._createInstanceCore(entity, dp);
                 } else {
                     val = breeze.makeComplexArray([], entity, dp);
                 }
@@ -14656,7 +14444,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                 if (prop.isComplexProperty) {
                     // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                     if (prop.isScalar) {
-                        val = prop.dataType._createInstanceCore(entity, prop.name);
+                        val = prop.dataType._createInstanceCore(entity, prop);
                     } else {
                         val = breeze.makeComplexArray([], entity, prop);
                     }
@@ -14858,7 +14646,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                     if (prop.isComplexProperty) {
                         // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                         if (prop.isScalar) {
-                            val = prop.dataType._createInstanceCore(entity, propName);
+                            val = prop.dataType._createInstanceCore(entity, prop);
                         } else {
                             val = breeze.makeComplexArray([], entity, prop);
                         }

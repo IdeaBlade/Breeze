@@ -187,6 +187,10 @@
 
 
     test("unidirectional attach - 1->n", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - TimeList and Timegroup not yet added");
+            return;
+        }
         var em = newEm();
 
         var tl1 = em.createEntity("TimeLimit");
@@ -202,6 +206,10 @@
     });
 
     test("unidirectional attach - 1->n - part 2", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - TimeList and Timegroup not yet added");
+            return;
+        }
         var em = newEm();
 
         var tl1 = em.createEntity("TimeLimit");
