@@ -89,7 +89,7 @@
         function () {
             var timeoutMs = 1; // ridiculously short ... should time out
             allCustomerTimeoutQuery(timeoutMs, true);
-    });
+        });
     /*********************************************************
    * 'all customers' query completes before custom timeout
    *********************************************************/
@@ -97,7 +97,7 @@
         function () {
             var timeoutMs = 100000; // ridiculously long ... should succeed
             allCustomerTimeoutQuery(timeoutMs, false);
-    });
+        });
     function allCustomerTimeoutQuery (timeoutMs, shouldTimeout) {
 
         var expectTimeoutMsg = shouldTimeout ?
@@ -337,15 +337,57 @@
 
         var query = EntityQuery.from("Customers")
             .where("CompanyName", FilterQueryOp.Contains, 'market');           
-            //.where("CompanyName", "contains", 'market'); // Alternative to FilterQueryOp
-            //.where("substringof(CompanyName,'market')", "eq", true); // becomes in OData
-            //.where("indexOf(toLower(CompanyName),'market')", "ne", -1); // equivalent to
+        //.where("CompanyName", "contains", 'market'); // Alternative to FilterQueryOp
+        //.where("substringof(CompanyName,'market')", "eq", true); // becomes in OData
+        //.where("indexOf(toLower(CompanyName),'market')", "ne", -1); // equivalent to
 
         verifyQuery(newEm, query, "customer query",
             showCustomerResults);
     });
 
 
+    /*********************************************************
+    * Query using withParameters
+    *********************************************************/
+    asyncTest("can query 'withParameters'", 2, function () {
+
+        var em = newEm();
+        var query = EntityQuery.from("CustomersStartingWith")
+            .withParameters({ companyName: "qu"});
+
+        em.executeQuery(query).then(success).fail(handleFail).fin(start);
+
+        function success(data) {
+            var results = data.results, len = results.length;
+            ok(len, "should have customers; got " + len);
+            var qu = 0;
+            results.forEach(function (c) { qu += /qu.*/i.test(c.CompanyName()); });
+            ok(len === qu, "all of them should begin 'Qu'");
+        }
+    });
+    /*********************************************************
+    * Combination of IQueryable and withParameters
+    *********************************************************/
+    asyncTest("can query combining 'withParameters' and filter", 3, function () {
+
+        var em = newEm();
+        var query = EntityQuery.from("CustomersStartingWith")
+            .where('Country', 'eq', 'Brazil')
+            .withParameters({ companyName: "qu" });
+
+        em.executeQuery(query).then(success).fail(handleFail).fin(start);
+
+        function success(data) {
+            var results = data.results, len = results.length;
+            ok(len, "should have customers; got " + len);
+            var qu = 0;
+            results.forEach(function (c) { qu += /qu.*/i.test(c.CompanyName()); });
+            ok(len === qu, "all of them should begin 'Qu'");
+            var brazil = 0;
+            results.forEach(function (c) { brazil += c.Country() === "Brazil"; });
+            ok(len === brazil, "all of them should be in Brazil");
+        }
+    });
     /*** PREDICATES ***/
 
     module("queryTests (predicates)", testFns.getModuleOptions(newEm));
@@ -504,10 +546,7 @@
         var p2 = new Predicate("Freight", ">", 100);
         return p1.and(p2);
     }
-
-
-
-
+    
     /***  RELATED PROPERTY / NESTED QUERY ***/
 
     module("queryTests (related property conditions)", testFns.getModuleOptions(newEm));

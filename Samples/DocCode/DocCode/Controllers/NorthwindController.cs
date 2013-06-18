@@ -64,6 +64,14 @@ namespace DocCode.Controllers
             return _repository.CustomersStartingWithA;
         }
 
+        // "withParameters" example
+        [HttpGet]
+        public IQueryable<Customer> CustomersStartingWith(string companyName)
+        {
+            var custs = _repository.Customers.Where(c => c.CompanyName.StartsWith(companyName));
+            return custs;
+        }
+
         [HttpGet]
         public IQueryable<Order> Orders() {
             return _repository.Orders;
