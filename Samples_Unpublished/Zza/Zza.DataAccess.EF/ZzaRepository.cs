@@ -22,7 +22,6 @@ namespace Zza.DataAccess.EF
             get { return _contextProvider.Metadata(); }
         }
 
-        // Todo: we need a better way to do this signature
         public object SaveChanges(object saveBundle)
         {
             prepSaveChanges();
@@ -33,8 +32,6 @@ namespace Zza.DataAccess.EF
         {
             var saveGuard = new ZzaSaveGuard(() => new ZzaSaveDataProvider(), UserStoreId);
             _contextProvider.BeforeSaveEntitiesDelegate += saveGuard.BeforeSaveEntities;
-            //var guard = new ZzaEntitySaveGuard();
-            //_contextProvider.BeforeSaveEntityDelegate += guard.BeforeSaveEntity;
         }
 
         public IQueryable<Customer> Customers
