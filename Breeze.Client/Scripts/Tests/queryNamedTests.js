@@ -31,7 +31,7 @@
         return;
     }
 
-    test("named query not returning resuls in same order as in server", function () {
+    test("named query not returning results in same order as in server", function () {
         var em = newEm();
 
         var query = EntityQuery.from("CustomersOrderedStartingWith")
