@@ -388,6 +388,13 @@ namespace Sample_WebApi.Controllers {
     #region named queries
 
     [HttpGet]
+    public IQueryable<Customer> CustomersOrderedStartingWith(string companyName) {
+      var customers = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith(companyName)).OrderBy(cust => cust.CompanyName);
+      var list = customers.ToList();
+      return customers;
+    }
+
+    [HttpGet]
     public IQueryable<Employee> EmployeesMultipleParams(int employeeID, string city) {
       var emps = ContextProvider.Context.Employees.Where(emp => emp.EmployeeID == employeeID || emp.City.Equals(city));
       return emps;

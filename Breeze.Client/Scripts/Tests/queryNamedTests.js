@@ -31,7 +31,21 @@
         return;
     }
 
+    test("named query not returning resuls in same order as in server", function () {
+        var em = newEm();
 
+        var query = EntityQuery.from("CustomersOrderedStartingWith")
+            .skip(2)
+            .take(5)
+            .inlineCount(true)
+            .withParameters({ companyName: "C" });
+
+        em.executeQuery(query, function (data) {
+            var results = data.results;
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+
+    });
 
     test("with 0 value parameter", function () {
         var em = newEm();
