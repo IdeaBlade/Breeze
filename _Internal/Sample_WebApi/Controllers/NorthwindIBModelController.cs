@@ -174,6 +174,26 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.SaveChanges(saveBundle);
     }
 
+    [HttpPost]
+    public SaveResult SaveCheckInitializer(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntitiesDelegate = AddOrder;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
+    private Dictionary<Type, List<EntityInfo>> AddOrder(Dictionary<Type, List<EntityInfo>> saveMap) {
+      var order = new Order();
+      order.OrderDate = DateTime.Today;
+      var ei = ContextProvider.CreateEntityInfo(order);
+      List<EntityInfo> orderInfos;
+      if (!saveMap.TryGetValue(typeof(Order), out orderInfos)) {
+        orderInfos = new List<EntityInfo>();
+        saveMap.Add(typeof(Order), orderInfos);
+      }
+      orderInfos.Add(ei);
+
+      return saveMap;
+    }
+
     private Dictionary<Type, List<EntityInfo>> CheckFreightOnOrders(Dictionary<Type, List<EntityInfo>> saveMap) {
       List<EntityInfo> entityInfos;
       if (saveMap.TryGetValue(typeof(Order), out entityInfos)) {
