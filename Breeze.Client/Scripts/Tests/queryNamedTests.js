@@ -39,7 +39,7 @@
             .take(5)
             .inlineCount(true)
             .withParameters({ companyName: "C" });
-
+        stop();
         em.executeQuery(query, function (data) {
             var results = data.results;
             ok(true);
