@@ -32,7 +32,7 @@
         teardown: function () { }
     });
 
-    test("silviotest", function () {
+    test("check initializer is hit for entities added/saved on server", function () {
         var em = newEm();
 
         var ordInitializer = function (ord) {
