@@ -23,12 +23,26 @@ app.controller('CustomerCtrl', ['$scope', function ($scope) {
         filterText: "",
         useExternalFilter: true
     };
+
     $scope.pagingOptions = {
         pageSizes: [10, 20, 50],
         pageSize: 10,
         totalServerItems: 0,
         currentPage: 1
     };
+
+    $scope.afterSelectionChange = function (rowitem, event) {
+        $scope.customer = rowitem.entity;
+    }
+
+    $scope.reset = function (customer) {
+        customer.entityAspect.rejectChanges();
+    }
+
+    $scope.update = function (customer) {
+        app.dataservice.saveChanges();
+    }
+
 
     $scope.customerGrid = {
         data: 'customers',
@@ -37,7 +51,8 @@ app.controller('CustomerCtrl', ['$scope', function ($scope) {
         showFooter: true,
         multiSelect: false,
         pagingOptions: $scope.pagingOptions,
-        filterOptions: $scope.filterOptions
+        filterOptions: $scope.filterOptions,
+        afterSelectionChange: $scope.afterSelectionChange
     };
 
     $scope.getPagedDataAsync = function (pageSize, page, searchText) {
@@ -76,13 +91,6 @@ app.controller('CustomerCtrl', ['$scope', function ($scope) {
         $scope.pagingOptions.totalServerItems = data.inlineCount;
         $scope.$apply();
         app.logger.info("Fetched " + data.results.length + " Customers ");
-        //$scope.customerGrid = {
-        //    data: 'customers',
-        //    enablePaging: true,
-        //    showFooter: true,
-        //    pagingOptions: $scope.pagingOptions,
-        //    filterOptions: $scope.filterOptions
-        //};
     }
 
     function queryFailed(error) {

@@ -1,4 +1,24 @@
 ﻿<div>
-    Customers
+    <h2>Customers</h2>
     <div class="gridStyle" style="width: 600px; height: 400px;" ng-grid="customerGrid"></div>
+
+
+    <div>
+        <h3>Edit Customer</h3>
+        <form class="simple-form">
+            Company Name: <input type="text" ng-model="customer.CompanyName" /><br />
+            Contact Name: <input type="text" ng-model="customer.ContactName" />
+            Contact Title: <input type="text" ng-model="customer.ContactTitle" /><br />
+            Address: <input type="text" ng-model="customer.Address" /><br />
+            City: <input type="text" ng-model="customer.City" />
+            Region: <input type="text" ng-model="customer.Region" />
+            PoastalCode: <input type="text" ng-model="customer.PostalCode" /><br />
+            Country: <input type="text" ng-model="customer.Country" /><br />
+            Phone: <input type="text" ng-model="customer.Phone" />
+            Fax: <input type="text" ng-model="customer.Fax" /><br />
+            <button class="btn" ng-click="reset(customer)">RESET</button>
+            <button class="btn" ng-click="update(customer)">SAVE</button>
+        </form>
+    </div>
 </div>
+

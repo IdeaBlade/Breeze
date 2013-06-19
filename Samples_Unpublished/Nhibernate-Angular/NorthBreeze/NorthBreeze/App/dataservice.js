@@ -1,6 +1,7 @@
 ﻿app.dataservice = (function (breeze, logger) {
 
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
+    //breeze.NamingConvention.camelCase.setAsDefault();
 
     var serviceName = 'breeze/NorthBreeze'; // route to the same origin Web Api controller
 
@@ -11,7 +12,8 @@
         getAllCustomers: getAllCustomers,
         getCustomerPage: getCustomerPage,
         getOrders: getOrders,
-        createCustomer: createCustomer
+        createCustomer: createCustomer,
+        saveChanges: saveChanges
     };
 
     /*** implementation details ***/
@@ -62,7 +64,7 @@
     }
 
     function saveSucceeded(saveResult) {
-        logger.success("# of Todos saved = " + saveResult.entities.length);
+        logger.success("# of entities saved = " + saveResult.entities.length);
         logger.log(saveResult);
     }
 
@@ -78,7 +80,7 @@
             detail.ExceptionType.indexOf('OptimisticConcurrencyException') !== -1) {
             // Concurrency error 
             reason =
-                "Another user, perhaps the server, may have deleted one or all of the todos.";
+                "Another user, perhaps the server, may have deleted one or all of the same entities.";
             manager.rejectChanges(); // DEMO ONLY: discard all pending changes
         }
 
