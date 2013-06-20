@@ -6,68 +6,25 @@
     <div>
         <h3>Edit Customer</h3>
         <form class="form-horizontal">
-              <div class="control-group">
+            <div class="control-group" ng-class="{ error: customer.entityAspect.getValidationErrors('CompanyName').length }">
                 <label class="control-label" for="CompanyName">Company Name</label>
                 <div class="controls">
-                  <input type="text" id="CompanyName" ng-model="customer.CompanyName">
+                    <input type="text" id="CompanyName" ng-model="customer.CompanyName">
                 </div>
-              </div>
-              <div class="control-group" ng-class="{ error: customer.entityAspect.getValidationErrors('ContactName').length }">
-                <label class="control-label" for="ContactName">Contact Name</label>
-                <div class="controls">
-                  <input type="text" id="ContactName" ng-model="customer.ContactName">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="ContactTitle">Contact Title</label>
-                <div class="controls">
-                  <input type="text" id="ContactTitle" ng-model="customer.ContactTitle">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="Address">Address</label>
-                <div class="controls">
-                  <input type="text" id="Address" ng-model="customer.Address">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="City">City</label>
-                <div class="controls">
-                  <input type="text" id="City" ng-model="customer.City">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="Region">Region</label>
-                <div class="controls">
-                  <input type="text" id="Region" ng-model="customer.Region">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="PostalCode">Postal Code</label>
-                <div class="controls">
-                  <input type="text" id="PostalCode" ng-model="customer.PostalCode">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="Country">Country</label>
-                <div class="controls">
-                  <input type="text" id="Country" ng-model="customer.Country">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="Phone">Phone</label>
-                <div class="controls">
-                  <input type="text" id="Phone" ng-model="customer.Phone">
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label" for="Fax">Fax</label>
-                <div class="controls">
-                  <input type="text" id="Fax" ng-model="customer.Fax">
-                </div>
-              </div>
-                <button class="btn" ng-click="reset(customer)">RESET</button>
-                <button class="btn" ng-click="update(customer)">SAVE</button>
+            </div>
+            <breezeinput label="Company Name" ng-model="customer.CompanyName"></breezeinput>
+            <breezeinput label="Contact Name" ng-model="customer.ContactName"></breezeinput>
+            <breezeinput label="Contact Title" ng-model="customer.ContactTitle"></breezeinput>
+            <breezeinput label="Address" ng-model="customer.Address"></breezeinput>
+            <breezeinput label="City" ng-model="customer.City"></breezeinput>
+            <breezeinput label="Region" ng-model="customer.Region"></breezeinput>
+            <breezeinput label="Postal Code" ng-model="customer.PostalCode"></breezeinput>
+            <breezeinput label="Country" ng-model="customer.Country"></breezeinput>
+            <breezeinput label="Phone" ng-model="customer.Phone"></breezeinput>
+            <breezeinput label="Fax" ng-model="customer.Fax"></breezeinput>
+
+            <button class="btn" ng-click="reset(customer)">RESET</button>
+            <button class="btn" ng-click="update(customer)">SAVE</button>
         </form>
     </div>
 </div>
