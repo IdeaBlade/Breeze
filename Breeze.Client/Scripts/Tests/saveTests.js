@@ -32,6 +32,31 @@
         teardown: function () { }
     });
 
+    test("check unmapped property on server", function () {
+        // this test does not fail. Must debug server and 'dig' to find unmapped property value since it's not available in the interceptors
+        var em = newEm();
+
+        var customerType = em.metadataStore.getEntityType("Customer");
+
+        var Customer = function () {
+            this.myUnmappedProperty = "anything22";
+        };
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+
+        var cust = customerType.createEntity();
+        cust.setProperty("companyName", "compName");
+        em.addEntity(cust);
+
+        var entitiesToSave = new Array(cust);
+        var saveOptions = new SaveOptions({ resourceName: "SaveCheckUnmappedProperty" });
+        stop();
+
+        em.saveChanges(entitiesToSave, saveOptions).then(function (sr) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("check initializer is hit for entities added/saved on server", function () {
         var em = newEm();
 

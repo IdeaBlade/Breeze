@@ -180,6 +180,12 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.SaveChanges(saveBundle);
     }
 
+    [HttpPost]
+    public SaveResult SaveCheckUnmappedProperty(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntityDelegate = CheckUnmappedProperty;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
     private Dictionary<Type, List<EntityInfo>> AddOrder(Dictionary<Type, List<EntityInfo>> saveMap) {
       var order = new Order();
       order.OrderDate = DateTime.Today;
@@ -222,6 +228,10 @@ namespace Sample_WebApi.Controllers {
       return saveMap;
     }
 
+    private bool CheckUnmappedProperty(EntityInfo entityInfo) {
+      Customer cust = entityInfo.Entity as Customer;
+      return false;
+    }
 
     private bool CheckFreight(EntityInfo entityInfo) {
       if ((ContextProvider.SaveOptions.Tag as String) == "freight update") {
