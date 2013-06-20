@@ -92,7 +92,7 @@ app.directive('breezeinput', function () {
                         element.addClass('error');
                         var messages = errors.map(function (el) { return el.errorMessage; }).join("; ");  // convert to string
                         aspect[errorProp] = messages;
-                    } else if (aspect[errorProp]) {
+                    } else {
                         element.removeClass('error');
                         aspect[errorProp] = null;
                     }
