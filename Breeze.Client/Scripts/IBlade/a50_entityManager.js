@@ -2316,7 +2316,30 @@ var EntityManager = (function () {
             }
         });
         
-        return rawObject;
+		rawObject.changedIndependentAssociations = [];
+
+		stype.navigationProperties.forEach(function (np) {
+			if (np.isUnmapped && isOData) return;
+			if (np.relatedDataProperties) return;
+			if (structObj.entityAspect.entityState !== EntityState.Added && (structObj.entityAspect.changedProperties.indexOf(np.name) < 0)) return;
+			if (np.isScalar && !np.isComplexProperty) {
+				var val = structObj.getProperty(np.name);
+				if (val !== undefined && val.entityAspect !== undefined) {
+					var key = val.entityAspect.getKey();
+					rawObject.changedIndependentAssociations.push({
+						propertyName: np.name,
+						entityTypeName: key.entityType.name,
+					});
+					var npKey = {};
+					val.entityType.keyProperties.forEach(function (kp, i) {
+						npKey[kp.name] = key.values[i];
+					});
+					rawObject[np.nameOnServer] = npKey;
+				}
+			}
+		});
+
+		return rawObject;
     }
     
     function unwrapOriginalValues(target, metadataStore, isOData) {

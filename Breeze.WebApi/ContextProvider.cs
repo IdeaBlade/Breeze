@@ -137,6 +137,7 @@ namespace Breeze.WebApi {
     protected EntityInfo CreateEntityInfoFromJson(dynamic jo, Type entityType, JsonSerializer jsonSerializer) {
       var entityInfo = CreateEntityInfo();
       entityInfo.Entity = jsonSerializer.Deserialize(new JTokenReader(jo), entityType);
+      entityInfo.ChangedIndependentAssociations = (IEnumerable<NavigationProperty>)jsonSerializer.Deserialize(new JTokenReader((JToken)jo.changedIndependentAssociations), typeof(IEnumerable<NavigationProperty>));
       entityInfo.EntityState = (EntityState)Enum.Parse(typeof(EntityState), (String)jo.entityAspect.entityState);
 
       var jprops = ((System.Collections.IEnumerable)jo.entityAspect.originalValuesMap).Cast<JProperty>();
@@ -234,11 +235,18 @@ namespace Breeze.WebApi {
     Modified = 16,
   }
 
+  public class NavigationProperty
+  {
+      public string PropertyName { get; set; }
+      public string EntityTypeName { get; set; }
+  }
+
   public class EntityInfo {
     internal EntityInfo() {
     }
 
     public Object Entity { get; internal set; }
+    public IEnumerable<NavigationProperty> ChangedIndependentAssociations { get; internal set; }
     public EntityState EntityState { get; internal set; }
     public Dictionary<String, Object> OriginalValuesMap { get; internal set; }
     public bool ForceUpdate { get; set; }

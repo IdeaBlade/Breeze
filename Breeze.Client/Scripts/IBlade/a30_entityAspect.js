@@ -41,7 +41,8 @@ var EntityAspect = function() {
         this.entityState = EntityState.Detached;
         this.isBeingSaved = false;
         this.originalValues = {};
-        this._validationErrors = {};
+		this.changedProperties = [];
+		this._validationErrors = {};
         this.validationErrorsChanged = new Event("validationErrorsChanged_entityAspect", this);
         this.propertyChanged = new Event("propertyChanged_entityAspect", this);
         // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
@@ -247,6 +248,7 @@ var EntityAspect = function() {
                 cos.forEach(function (co) { rejectChangesCore(co); });
             }
         });
+		aspect.changedProperties = [];
     }
 
     /**
@@ -262,6 +264,7 @@ var EntityAspect = function() {
         delete this.hasTempKey;
         this.entityState = EntityState.Unchanged;
         this.entityManager._notifyStateChange(this.entity, false);
+		this.changedProperties = [];
     };
 
     function clearOriginalValues(target) {
@@ -559,6 +562,7 @@ var EntityAspect = function() {
         this.entityManager = null;
         this.entityState = EntityState.Detached;
         this.originalValues = {};
+		this.changedProperties = [];
         this._validationErrors = {};
         this.validationErrorsChanged.clear();
         this.propertyChanged.clear();
@@ -692,6 +696,8 @@ var ComplexAspect = function() {
 
         // TODO: keep public or not?
         this.originalValues = {};
+
+		this.changedProperties = [];
 
         // if a standalone complexObject
         if (parent == null) {

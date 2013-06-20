@@ -381,7 +381,16 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         } else {
             entityAspect.propertyChanged.publish(propChangedArgs);
         }
-    } finally {
+
+		if (entityManager && !entityManager.isLoading) {
+			if (localAspect.changedProperties) {
+				if (localAspect.changedProperties.indexOf(propName) < 0)
+					localAspect.changedProperties.push(propName);
+			} else {
+				localAspect.changedProperties = [propName];
+			}
+		}
+	} finally {
         inProcess.pop();
     }
 }
