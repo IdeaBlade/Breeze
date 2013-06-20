@@ -32,6 +32,29 @@
         teardown: function () { }
     });
 
+    test("check initializer is hit for entities added/saved on server", function () {
+        var em = newEm();
+
+        var ordInitializer = function (ord) {
+            ord.setProperty("shipCountry", "Brazil");
+        };
+
+        em.metadataStore.registerEntityTypeCtor("Order", null, ordInitializer);
+
+        var emp = em.createEntity("Employee");
+        emp.setProperty("firstName", "Test fn");
+        emp.setProperty("lastName", "Test ln");
+        emp.setProperty("fullName", "foo");
+        em.addEntity(emp);
+        var so = new SaveOptions({ resourceName: "SaveCheckInitializer" });
+        stop();
+        em.saveChanges(null, so).then(function (sr) {
+            var ents = sr.entities;
+            ok(ents.length === 2, "since an Order was created/saved in the interceptor, length should be 2");
+            ok(ents[1].getProperty("shipCountry") === "Brazil", "initializer was not 'hit'");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("entities modified on server being saved as new entities", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "N/A for MONGO - server side interceptors have not yet been written.");
