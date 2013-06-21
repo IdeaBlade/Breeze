@@ -7,8 +7,6 @@
 
         extendString();
         extendQ();
-        config.userSessionId = newGuidComb();
-        initAjaxAdapter(config.userSessionId);
         
         var service = {
             // bundle these so util clients don't have to get them
@@ -27,9 +25,7 @@
             filterByName: filterByName,
             filterByType: filterByType,
             getSaveErrorMessages: getSaveErrorMessages,
-            getEntityValidationErrMsgs: getEntityValidationErrMsgs,
-            
-            databaseReset: databaseReset
+            getEntityValidationErrMsgs: getEntityValidationErrMsgs
         };
         
         return service;
@@ -183,55 +179,6 @@
             return errs.length ?
                 errs.map(function (err) { return err.errorMessage; }).join(", ") :
                 "no errors";
-        }
-
-        /*********************************************************
-        * Reset
-        *********************************************************/
-        function databaseReset() {
-            stop(); // pause test runner while we reset
-            var deferred = $q.defer();
-
-            $.post(confirm.serviceName + '/reset',
-                function (data, textStatus, xhr) {
-                    deferred.resolve(
-                       "Reset svc returned '" + xhr.status + "' with message: " + data);
-                })
-            .error(function (xhr, textStatus, errorThrown) {
-                deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
-            });
-
-            return deferred.promise;
-        }
-
-        /*********************************************************
-        * Make a good error message from jQuery Ajax failure
-        *********************************************************/
-        function getjQueryError(xhr, textStatus, errorThrown) {
-            if (!xhr) {
-                return errorThrown;
-            }
-            var message = xhr.status + "-" + xhr.statusText;
-            try {
-                var reason = JSON.parse(xhr.responseText).Message;
-                message += "\n" + reason;
-            } catch (ex) {
-                message += "\n" + xhr.responseText;
-            }
-            return message;
-        }
-    
-        /*********************************************************
-        * Ajax Adapter setup
-        *********************************************************/
-        function initAjaxAdapter(userSessionId) {
-            // get the current default Breeze AJAX adapter
-            var ajaxAdapter = breeze.config.getAdapterInstance("ajax");
-            ajaxAdapter.defaultSettings = {
-                headers: {
-                    "X-UserSessionId": userSessionId
-                }
-            };
         }
 
         /*******************************************************

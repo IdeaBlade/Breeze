@@ -165,6 +165,8 @@
     <Content Include="app\images\products\thaichickensalad.jpg" />
     <Content Include="app\images\products\tomterrific.jpg" />
     <Content Include="app\services\config.js" />
+    <Content Include="app\services\databaseReset.js" />
+    <Content Include="app\services\entityManagerProvider.js" />
     <Content Include="app\services\util.js" />
     <Content Include="app\services\routes.js" />
     <Content Include="app\services\dataservice.js" />
@@ -257,8 +259,10 @@
     <Content Include="test\lib\sinon-1.7.1.js" />
     <Content Include="test\config\jasmineTestRunnerConfig.js" />
     <Content Include="test\jasmineTestRunner.html" />
+    <Content Include="test\unit\configSpec.js" />
+    <Content Include="test\unit\dataserviceSpec.js" />
     <Content Include="test\unit\firstspec.js" />
-    <Content Include="test\unit\TestControllerSpec.js" />
+    <Content Include="test\unit\testControllerSpec.js" />
     <Content Include="test\webapi\queryspec.js" />
     <Content Include="test\webapi\savespec.js" />
     <Content Include="Web.config" />

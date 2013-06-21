@@ -1,9 +1,10 @@
-﻿(function () {
+﻿// ReSharper disable AssignedValueIsNeverUsed
+(function () {
     'use strict';
     angular.module('app').factory(
-        'dataservice', ['model', 'util', dataservice]);
+        'dataservice', ['entityManagerProvider', 'util', dataservice]);
 
-    function dataservice(model, util) {
+    function dataservice(entityManagerProvider, util) {
         var breeze = util.breeze,
             config = util.config,
             logger = util.logger,
@@ -14,17 +15,17 @@
 
         var EntityQuery = breeze.EntityQuery,
             initPromise,
-            initFailed,
-            manager;
+            initFailed;
 
-        configureBreeze();
+        var manager = entityManagerProvider.manager;
 
         var service = {
             // more members added by initialization
             initialize: initialize,
             getAllCustomers: getAllCustomers,
             getOrders: getOrders,
-            saveChanges: saveChanges
+            saveChanges: saveChanges,
+            resetManager: resetManager
         };
         return service;
 
@@ -118,17 +119,6 @@
             }
         }
 
-        function configureBreeze() {
-            breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
-            breeze.NamingConvention.camelCase.setAsDefault();
-
-            var serviceName = config.serviceName;
-            manager = new breeze.EntityManager(serviceName);
-            manager.enableSaveQueuing(true);
-            model.configureMetadataStore(manager.metadataStore);
-            return manager;
-        }
-
         // Reset the manager to its base state
         // Clears the manager, re-populates with the lookups
         // Creates a new draftOrder and cartOrder
@@ -150,6 +140,7 @@
             service.cartOrder = manager.createEntity('Order', orderInit);
             service.draftOrder = manager.createEntity('Order', orderInit);
         }
+        
         // Should be in Breeze itself
         function attachEntities(entities, entityState) {
             entities.forEach(function (entity) { manager.attachEntity(entity, entityState); });

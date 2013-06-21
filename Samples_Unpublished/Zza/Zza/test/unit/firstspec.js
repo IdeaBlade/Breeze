@@ -1,4 +1,4 @@
-﻿describe("first spec", function() {
+﻿xdescribe("first spec", function() {
 
     it('should fail', function() {
         console.log('first');
