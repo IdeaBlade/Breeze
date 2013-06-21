@@ -384,9 +384,10 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
 
 		if (entityManager && !entityManager.isLoading) {
 			var cp = {
-				name: propName,
-				oldKey: oldValue.entityAspect.unwrapKey()
+				name: propName
 			};
+			if (oldValue.entityAspect)
+			    cp['oldKey'] = oldValue.entityAspect.unwrapKey();
 			if (localAspect.changedProperties) {
 				if (!__arrayFirst(localAspect.changedProperties, function (c) { return c.name === propName }))
 					localAspect.changedProperties.push(cp);
