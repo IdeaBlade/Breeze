@@ -24,7 +24,7 @@
             };
 
             function ProductCtor() { // in ctor so we can serialize it to local storage
-               this.img = ''
+                this.img = '';
             }
             function ProductInitializer(self) {
                 self.img = imageBase+self.image; // handle null/bad images with placeholder

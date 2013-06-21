@@ -271,6 +271,7 @@
     <Compile Include="App_Start\BreezeSimpleCorsHandler.cs" />
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="App_Start\MetadataScriptWriter.cs" />
     <Compile Include="Controllers\ZzaEfController.cs" />
     <Compile Include="Controllers\ZzaNhController.cs" />
     <Compile Include="Global.asax.cs">
