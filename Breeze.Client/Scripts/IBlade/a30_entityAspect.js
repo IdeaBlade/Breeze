@@ -41,7 +41,8 @@ var EntityAspect = (function() {
         this.entityState = EntityState.Detached;
         this.isBeingSaved = false;
         this.originalValues = {};
-        this._validationErrors = {};
+		this.changedProperties = [];
+		this._validationErrors = {};
         this.validationErrorsChanged = new Event("validationErrorsChanged_entityAspect", this);
         this.propertyChanged = new Event("propertyChanged_entityAspect", this);
         // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
@@ -180,7 +181,20 @@ var EntityAspect = (function() {
         return this._entityKey;
     };
 
-    /**
+	proto.unwrapKey = function (forceRefresh) {
+		forceRefresh = assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
+		if (forceRefresh || !this._unwrappedKey) {
+			key = {};
+			var entity = this.entity;
+			entity.entityType.keyProperties.forEach(function (kp) {
+				key[kp.name] = entity.getProperty(kp.name);
+			});
+			this._unwrappedKey = key;
+		}
+		return this._unwrappedKey;
+	};
+
+	/**
     Returns the entity to an {{#crossLink "EntityState"}}{{/crossLink}} of 'Unchanged' by committing all changes made since the entity was last queried 
     had 'acceptChanges' called on it. 
     @example
@@ -247,6 +261,7 @@ var EntityAspect = (function() {
                 cos.forEach(function (co) { rejectChangesCore(co); });
             }
         });
+		aspect.changedProperties = [];
     }
 
     proto.getPropertyPath = function(propName) {
@@ -266,6 +281,7 @@ var EntityAspect = (function() {
         delete this.hasTempKey;
         this.entityState = EntityState.Unchanged;
         this.entityManager._notifyStateChange(this.entity, false);
+		this.changedProperties = [];
     };
 
     function clearOriginalValues(target) {
@@ -587,6 +603,7 @@ var EntityAspect = (function() {
         this.entityManager = null;
         this.entityState = EntityState.Detached;
         this.originalValues = {};
+		this.changedProperties = [];
         this._validationErrors = {};
         this.validationErrorsChanged.clear();
         this.propertyChanged.clear();
@@ -755,6 +772,8 @@ var ComplexAspect = (function() {
 
         // TODO: keep public or not?
         this.originalValues = {};
+
+		this.changedProperties = [];
 
         // if a standalone complexObject
         if (parent != null) {
