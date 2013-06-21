@@ -2321,20 +2321,19 @@ var EntityManager = (function () {
 		stype.navigationProperties.forEach(function (np) {
 			if (np.isUnmapped && isOData) return;
 			if (np.relatedDataProperties) return;
-			if (structObj.entityAspect.entityState !== EntityState.Added && (structObj.entityAspect.changedProperties.indexOf(np.name) < 0)) return;
+			var changedProp = __arrayFirst(structObj.entityAspect.changedProperties, function (cp) { return cp.name === np.name })
+			if (structObj.entityAspect.entityState !== EntityState.Added && !changedProp) return;
 			if (np.isScalar && !np.isComplexProperty) {
 				var val = structObj.getProperty(np.name);
 				if (val !== undefined && val.entityAspect !== undefined) {
-					var key = val.entityAspect.getKey();
-					rawObject.changedIndependentAssociations.push({
-						propertyName: np.name,
-						entityTypeName: key.entityType.name,
-					});
-					var npKey = {};
-					val.entityType.keyProperties.forEach(function (kp, i) {
-						npKey[kp.name] = key.values[i];
-					});
-					rawObject[np.nameOnServer] = npKey;
+					var assoc = {
+						propertyName: np.nameOnServer,
+						entityTypeName: val.entityType.name,
+					};
+					if (changedProp && changedProp.oldKey)
+						assoc['oldKey'] = changedProp.oldKey;
+					rawObject.changedIndependentAssociations.push(assoc);
+					rawObject[np.nameOnServer] = val.entityAspect.unwrapKey();
 				}
 			}
 		});

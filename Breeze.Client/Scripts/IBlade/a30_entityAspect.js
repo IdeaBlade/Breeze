@@ -181,7 +181,20 @@ var EntityAspect = function() {
         return this._entityKey;
     };
 
-    /**
+	proto.unwrapKey = function (forceRefresh) {
+		forceRefresh = assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
+		if (forceRefresh || !this._unwrappedKey) {
+			key = {};
+			var entity = this.entity;
+			entity.entityType.keyProperties.forEach(function (kp) {
+				key[kp.name] = entity.getProperty(kp.name);
+			});
+			this._unwrappedKey = key;
+		}
+		return this._unwrappedKey;
+	};
+
+	/**
     Returns the entity to an {{#crossLink "EntityState"}}{{/crossLink}} of 'Unchanged' by committing all changes made since the entity was last queried 
     had 'acceptChanges' called on it. 
     @example

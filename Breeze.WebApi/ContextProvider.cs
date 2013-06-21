@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
+using System.Threading;
 
 namespace Breeze.WebApi {
   // Base for EFContextProvider
@@ -137,7 +138,17 @@ namespace Breeze.WebApi {
     protected EntityInfo CreateEntityInfoFromJson(dynamic jo, Type entityType, JsonSerializer jsonSerializer) {
       var entityInfo = CreateEntityInfo();
       entityInfo.Entity = jsonSerializer.Deserialize(new JTokenReader(jo), entityType);
-      entityInfo.ChangedIndependentAssociations = (IEnumerable<NavigationProperty>)jsonSerializer.Deserialize(new JTokenReader((JToken)jo.changedIndependentAssociations), typeof(IEnumerable<NavigationProperty>));
+      //entityInfo.ChangedIndependentAssociations = (IEnumerable<NavigationProperty>)jsonSerializer.Deserialize(new JTokenReader((JToken)jo.changedIndependentAssociations), typeof(IEnumerable<NavigationProperty>));
+      entityInfo.ChangedIndependentAssociations = new List<NavigationProperty>();
+      foreach (JToken jToken in ((System.Collections.IEnumerable)jo.changedIndependentAssociations).Cast<JToken>())
+      {
+          NavigationProperty navigationProperty = (NavigationProperty)jsonSerializer.Deserialize(new JTokenReader(jToken), typeof(NavigationProperty));
+          navigationProperty.EntityType = LookupEntityType(navigationProperty.EntityTypeName);
+          JToken oldKey = ((dynamic)jToken).oldKey as JToken;
+          if (oldKey != null)
+            navigationProperty.OldEntity = jsonSerializer.Deserialize(new JTokenReader(oldKey), navigationProperty.EntityType);
+          entityInfo.ChangedIndependentAssociations.Add(navigationProperty);
+      }
       entityInfo.EntityState = (EntityState)Enum.Parse(typeof(EntityState), (String)jo.entityAspect.entityState);
 
       var jprops = ((System.Collections.IEnumerable)jo.entityAspect.originalValuesMap).Cast<JProperty>();
@@ -239,6 +250,8 @@ namespace Breeze.WebApi {
   {
       public string PropertyName { get; set; }
       public string EntityTypeName { get; set; }
+      public Type EntityType { get; set; }
+      public object OldEntity { get; set; }
   }
 
   public class EntityInfo {
@@ -246,7 +259,7 @@ namespace Breeze.WebApi {
     }
 
     public Object Entity { get; internal set; }
-    public IEnumerable<NavigationProperty> ChangedIndependentAssociations { get; internal set; }
+    public List<NavigationProperty> ChangedIndependentAssociations { get; internal set; }
     public EntityState EntityState { get; internal set; }
     public Dictionary<String, Object> OriginalValuesMap { get; internal set; }
     public bool ForceUpdate { get; set; }

@@ -383,11 +383,15 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         }
 
 		if (entityManager && !entityManager.isLoading) {
+			var cp = {
+				name: propName,
+				oldKey: oldValue.entityAspect.unwrapKey()
+			};
 			if (localAspect.changedProperties) {
-				if (localAspect.changedProperties.indexOf(propName) < 0)
-					localAspect.changedProperties.push(propName);
+				if (!__arrayFirst(localAspect.changedProperties, function (c) { return c.name === propName }))
+					localAspect.changedProperties.push(cp);
 			} else {
-				localAspect.changedProperties = [propName];
+				localAspect.changedProperties = [cp];
 			}
 		}
 	} finally {
