@@ -9,34 +9,38 @@
   <script src="lib/jasmine-html.js"></script>
 
 </head>
-  <body>
+    <body>
+        <!-- Libs -->
+        <script src="../Scripts/jquery-2.0.2.min.js"></script>
+        <script src="../Scripts/q.js"></script>
+        <script src="../Scripts/breeze.debug.js"></script>
+        <script src="../Scripts/breeze.savequeuing.js"></script>
+        <script src="../Scripts/toastr.js"></script>
+        <script src="../Scripts/angular.js"></script>
 
-    <!-- Libs -->
-    <script src="../Scripts/jquery-2.0.2.min.js"></script>
-    <script src="../Scripts/q.js"></script>
-    <script src="../Scripts/breeze.debug.js"></script>
-    <script src="../Scripts/breeze.savequeuing.js"></script>
-    <script src="../Scripts/toastr.js"></script>
-    <script src="../Scripts/angular.js"></script>
+        <!--  <script src="../Scripts/angular-*.js"></script>-->
+        <script src="../test/lib/angular-mocks.js"></script>
+        <script src="../test/lib/sinon-1.7.1.js"></script>
+        <script src="../test/lib/jasmine-async.min.js"></script>
 
-    <!--  <script src="../Scripts/angular-*.js"></script>-->
-    <script src="../test/lib/angular-mocks.js"></script>
-    <script src="../test/lib/sinon-1.7.1.js"></script>
-    <script src="../test/lib/jasmine-async.min.js"></script>
+        <!-- source -->
+        <script src="../app/app.js"></script> 
+        <script src="../app/services/config.js"></script>
+        <script src="../app/controllers/testController.js"></script>
 
-    <!-- source -->
-      
-    <!-- test support -->     
-    <script src="../test/helpers/testFns.js"></script>
-    <script src="../test/helpers/jasmineTestFns.js"></script>
-    <script src="../test/helpers/testData.js"></script>
+        <!-- test support -->     
+        <script src="../test/helpers/testFns.js"></script>
+        <script src="../test/helpers/jasmineTestFns.js"></script>
+        <script src="../test/helpers/testData.js"></script>
 
-    <!-- tests -->
-    <script src="unit/firstspec.js"></script>
-    <script src="webapi/savespec.js"></script>
-    <script src="webapi/queryspec.js"></script>
+        <!-- tests -->
+        <script src="unit/firstspec.js"></script>
+        <script src="webapi/savespec.js"></script>
+        <script src="webapi/queryspec.js"></script>
+        <script src="unit/configSpec.js"></script>
+        <script src="unit/testControllerSpec.js"></script>
 
-    <script src="config/jasmineTestRunnerConfig.js"></script>
+        <script src="config/jasmineTestRunnerConfig.js"></script>
 
-  </body>
+    </body>
 </html>
