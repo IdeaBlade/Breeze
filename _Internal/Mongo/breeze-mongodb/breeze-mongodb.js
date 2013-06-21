@@ -1,6 +1,6 @@
-var mongoQuery = require("./mongoQuery");
-var saveHandler = require("./saveHandler");
+var queryModule = require("./mongoQuery");
+var saveModule = require("./mongoSaveHandler");
 
-exports.MongoQuery = mongoQuery.MongoQuery;
-exports.saveChanges = saveHandler.saveChanges;
+exports.MongoQuery = queryModule.MongoQuery;
+exports.MongoSaveHandler = saveModule.MongoSaveHandler;
 
