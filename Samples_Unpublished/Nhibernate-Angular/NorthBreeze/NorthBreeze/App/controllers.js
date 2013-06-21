@@ -101,22 +101,22 @@ app.controller('CustomerCtrl', ['$scope', function ($scope) {
 
 app.controller('OrderCtrl', function ($scope) {
 
-    var columnDefs = [{ field: 'name', displayName: 'Name' },
-                 { field: 'age', displayName: 'Age' }];
+    $scope.orders = $scope.orders || [];
 
-    $scope.myData = [{ name: "Moroni", age: 50 },
-             { name: "Tiancum", age: 43 },
-             { name: "Jacob", age: 27 },
-             { name: "Nephi", age: 29 },
-             { name: "Enos", age: 34 }];
+    app.dataservice.getOrdersTimes100()
+        .then(querySucceeded)
+        .fail(queryFailed);
 
-    $scope.gridOptions = {
-        data: 'myData',
-        enableCellSelection: false,
-        enableCellEdit: true,
-        enableRowSelection: false,
-        columnDefs: columnDefs
-    };
+    //#region private functions
+    function querySucceeded(data) {
+        $scope.orders = data.results;
+        $scope.$apply();
+        app.logger.info("Fetched " + data.results.length + " Orders ");
+    }
+
+    function queryFailed(error) {
+        logger.error(error.message, "Query failed");
+    }
 
 
 });

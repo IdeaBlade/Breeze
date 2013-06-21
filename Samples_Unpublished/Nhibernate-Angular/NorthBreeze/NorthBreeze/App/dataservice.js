@@ -12,6 +12,7 @@
         getAllCustomers: getAllCustomers,
         getCustomerPage: getCustomerPage,
         getOrders: getOrders,
+        getOrdersTimes100: getOrdersTimes100,
         createCustomer: createCustomer,
         saveChanges: saveChanges
     };
@@ -41,6 +42,13 @@
 
     function getOrders(customer) {
         return customer.entityAspect.loadNavigationProperty("Orders");
+    }
+
+    function getOrdersTimes100() {
+        var query = breeze.EntityQuery
+                .from("OrdersTimes100");
+
+        return manager.executeQuery(query);
     }
 
     function createCustomer() {
