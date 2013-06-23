@@ -20,7 +20,7 @@
         var manager = entityManagerProvider.manager;
 
         var service = {
-            // more members added by initialization
+            // more members added during initialization
             initialize: initialize,
             getAllCustomers: getAllCustomers,
             getOrders: getOrders,
@@ -37,20 +37,12 @@
             }
             initFailed = false;
 
-            return initPromise = EntityQuery.from('Lookups')
-                .using(manager).execute()
+            return initPromise = fetchLookups()
                 .then(success).fail(failure)
                 .to$q(); // convert Q.js promise to $q promise
 
-            function success(data) {
-                var result = data.results[0];
-                logger.success("Got lookups");
-                service.OrderStatus = {};
-                service.OrderStatus.statuses = result.orderStatuses;
-                service.products = result.products;
-                service.productOptions = result.productOptions;
-                service.productSizes = result.productSizes;
-                extendLookups();
+            function success() {
+                setServiceLookups();
                 createDraftAndCartOrders();
                 return true;
             }
@@ -61,7 +53,27 @@
                 throw error; // so downstream fail handlers hear it too
             }
         }
-
+        
+        function fetchLookups() {
+            // if OrderStatuses in cache -> assume all lookups in cache
+            if (manager.metadataStore.hasMetadataFor(config.serviceName) &&
+                manager.getEntities('OrderStatus').length) { return Q(true); }
+            // have to get them from the server
+            return EntityQuery.from('Lookups').using(manager).execute();
+        }
+        
+        function setServiceLookups() {
+            if (service.OrderStatus) { return; } // already set
+            
+            // set service lookups from  lookup data in cache         
+            service.OrderStatus = {};
+            service.OrderStatus.statuses = manager.getEntities('OrderStatus');
+            service.products = manager.getEntities('Product');
+            service.productOptions = manager.getEntities('ProductOption');
+            service.productSizes = manager.getEntities('ProductSize');
+            extendLookups(); // with functions
+        }
+        
         function extendLookups() {
             var u = util, s = service, os = s.OrderStatus; // for brevity
 

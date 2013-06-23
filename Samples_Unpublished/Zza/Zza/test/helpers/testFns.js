@@ -19,6 +19,7 @@
     var userSessionId = newGuid();
     configureBreeze();
 
+    var devServiceName = 'http://localhost:5452/breeze/dev';
     var zzaServiceName = 'http://localhost:5452/breeze/ZzaEf' ;
     var zzaMetadataStore = new breeze.MetadataStore();
 
@@ -32,10 +33,10 @@
         metadataStore: zzaMetadataStore,
         newEm: newEm,
         getNextIntId: getNextIntId,
-        newGuid:newGuid,
-        newGuidComb:newGuid,
+        newGuid: newGuid,
+        newGuidComb: newGuid,
         zzaReset: zzaReset
-    }
+    };
 
     var _nextIntId = 10000; // seed for getNextIntId()
 
@@ -102,11 +103,11 @@
      * Zza database reset - full by default, optionally just this session
      *********************************************************/
     function zzaReset(fullReset) {
-        var fullReset = (fullReset === undefined)||fullReset;
+        fullReset = (fullReset === undefined)||fullReset;
         var options = fullReset ? "/?options=fullreset" : "";
         var deferred = Q.defer();
 
-        $.post(zzaServiceName + '/reset'+options,
+        $.post(devServiceName + '/reset' + options,
             function (data, textStatus, xhr) {
                 deferred.resolve(
                     "Reset svc returned '" + xhr.status + "' with message: " + data);

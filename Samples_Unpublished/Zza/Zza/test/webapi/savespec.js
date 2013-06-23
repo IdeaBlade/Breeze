@@ -23,7 +23,7 @@ describe('Zza/Breeze web api', function(){
                     name: 'The Gordo',
                     description: 'Too much pizza for anyone',
                     hasOptions: true
-                })
+                });
 
                 return em.saveChanges().then(success).fail(fail);
             }

@@ -4,6 +4,7 @@
     var config = {
         version: '0.1',
         serviceName: 'breeze/ZzaEf',
+        devServiceName: 'breeze/Dev',
         imageBase: 'app/images/products/',
         userSessionId: breeze.core.getUuid()
     };

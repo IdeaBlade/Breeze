@@ -164,6 +164,7 @@
     <Content Include="app\images\products\tajmahal.jpg" />
     <Content Include="app\images\products\thaichickensalad.jpg" />
     <Content Include="app\images\products\tomterrific.jpg" />
+    <Content Include="app\metadata.js" />
     <Content Include="app\services\config.js" />
     <Content Include="app\services\databaseReset.js" />
     <Content Include="app\services\entityManagerProvider.js" />
@@ -247,6 +248,7 @@
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
     </Content>
     <Content Include="Scripts\_references.js" />
+    <Content Include="test\prepareTestData.html" />
     <Content Include="test\helpers\jasmineTestFns.js" />
     <Content Include="test\helpers\testData.js" />
     <Content Include="test\helpers\testFns.js" />
@@ -271,7 +273,8 @@
     <Compile Include="App_Start\BreezeSimpleCorsHandler.cs" />
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="App_Start\MetadataScriptWriter.cs" />
+    <Compile Include="App_Start\ScriptWriter.cs" />
+    <Compile Include="Controllers\DevController.cs" />
     <Compile Include="Controllers\ZzaEfController.cs" />
     <Compile Include="Controllers\ZzaNhController.cs" />
     <Compile Include="Global.asax.cs">

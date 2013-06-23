@@ -13,7 +13,7 @@ namespace Zza
                 new Breeze.WebApi.BreezeSimpleCorsHandler());
 
             WebApiConfig.Register(GlobalConfiguration.Configuration);
-            MetadataScriptWriter.WriteFile();
+            ScriptWriter.WriteMetadataFile();
         }
     }
 }

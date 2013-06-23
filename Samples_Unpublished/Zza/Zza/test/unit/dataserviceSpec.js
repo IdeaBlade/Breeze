@@ -5,7 +5,7 @@
     beforeEach(module('app'));
     
     beforeEach(function () {
-        fakeLogger = sinon.stub();
+        fakeLogger = sinon.stub() ;
         
         // replace the application 'logger' with the fake.
         module(function($provide) {
