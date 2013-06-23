@@ -57,9 +57,15 @@
         function fetchLookups() {
             // if OrderStatuses in cache -> assume all lookups in cache
             if (manager.metadataStore.hasMetadataFor(config.serviceName) &&
-                manager.getEntities('OrderStatus').length) { return Q(true); }
+                manager.getEntities('OrderStatus').length) {
+                    logger.info("Lookups loaded from cache.");
+                    return Q(true);
+            }
             // have to get them from the server
-            return EntityQuery.from('Lookups').using(manager).execute();
+            return EntityQuery.from('Lookups').using(manager).execute()
+                .then(function() {
+                    logger.info("Lookups loaded from server.");
+                });
         }
         
         function setServiceLookups() {

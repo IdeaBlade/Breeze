@@ -52,12 +52,12 @@
         /*********************************************************
         * @method to$q {Promise} Convert a Q.js promise into an angular $q
         * @param promiseQ {Promise} the Q.js promise to convert
-        * @param [should$apply] {Boolean} should automatic call $apply
-        *        @default true
+        * @param [skipApply] {Boolean} should not call $apply right now
+        *        @default false
         * The Q promise must return some value when they succeed or
         * rethrow the error if they fail. Else this method logs a warning.
         *********************************************************/
-        function to$q(promiseQ, should$apply) {
+        function to$q(promiseQ, skipApply) {
             var d = $q.defer();
             promiseQ
                 .then(function (data) {
@@ -72,7 +72,7 @@
                     d.reject(error);
                 });
             
-            if (should$apply === undefined || should$apply) promiseQ.fin($apply);
+            if (!skipApply) promiseQ.fin($apply);
             return d.promise;
         }
         // monkey patch this method into Q.js' promise prototype
