@@ -18,7 +18,7 @@ namespace Zza.Controllers
 
         protected override void Initialize(System.Web.Http.Controllers.HttpControllerContext controllerContext)
         {
-            Request = controllerContext.Request;// HUH? Why necessary?
+            base.Initialize(controllerContext);
             _repository.UserStoreId = GetUserStoreId();
         }
 
