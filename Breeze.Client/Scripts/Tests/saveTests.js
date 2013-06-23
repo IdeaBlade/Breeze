@@ -34,8 +34,8 @@
 
     test("check unmapped property on server", function () {
         // this test does not fail. Must debug server and 'dig' to find unmapped property value since it's not available in the interceptors
-        var em = newEm();
-
+        // var em = newEm();
+        var em = newEm(testFns.newMs());
         var customerType = em.metadataStore.getEntityType("Customer");
 
         var Customer = function () {
@@ -58,7 +58,8 @@
     });
 
     test("check initializer is hit for entities added/saved on server", function () {
-        var em = newEm();
+        // var em = newEm();
+        var em = newEm(testFns.newMs());
 
         var ordInitializer = function (ord) {
             ord.setProperty("shipCountry", "Brazil");
@@ -82,7 +83,7 @@
 
     test("entities modified on server being saved as new entities", function () {
         if (testFns.DEBUG_MONGO) {
-            ok(true, "N/A for MONGO - server side interceptors have not yet been written.");
+            ok(true, "N/A for Mongo - test not yet implemented - requires server side async call");
             return;
         }
         var em = newEm();
@@ -157,10 +158,6 @@
             return;
         };
 
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "Skipped test - Mongo does not YET support server interception or alt resources");
-            return;
-        };
 
         var em = newEm();
 
@@ -178,6 +175,9 @@
             return em.saveChanges(null, so);
         }).then(function (sr) {
             ok(sr.entities.length == 2, "should have saved two entities");
+            sr.entities.forEach(function(e) {
+                ok(e.entityAspect, "entities should have an entityAspect after save");
+            });
             var q2 = EntityQuery.fromEntities(order);
             return q2.using(em).execute();
         }).then(function (data2) {
@@ -336,10 +336,6 @@
             return;
         };
 
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "Skipped test - OData does not YET support server interception");
-            return;
-        };
 
         var em = newEm();
 
@@ -363,11 +359,6 @@
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
         }
-
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "Skipped test - OData does not YET support server interception");
-            return;
-        };
 
         var em = newEm();
 
@@ -400,10 +391,6 @@
             return;
         };
 
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "Skipped test - OData does not YET support server interception");
-            return;
-        };
 
         var em = newEm();
 
@@ -431,11 +418,6 @@
     test("save data with server update - original values fixup", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception");
-            return;
-        };
-
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "Skipped test - OData does not YET support server interception");
             return;
         };
 
@@ -468,10 +450,6 @@
             return;
         };
 
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "Skipped test - OData does not YET support server interception");
-            return;
-        };
 
         var em = newEm();
         var zzz = createParentAndChildren(em);
@@ -491,7 +469,7 @@
         };
 
         if (testFns.DEBUG_MONGO) {
-            ok(true, "Skipped test - OData does not YET support server interception");
+            ok(true, "Skipped test - Mongo does not YET support server side validation");
             return;
         };
 
@@ -597,7 +575,7 @@
         var dt2 = new Date(dt.getTime() + offset);
         var ms = dt.getUTCMilliseconds();
         ok(ms === 690);
-        var q = new EntityQuery("Orders").take(1);
+        var q = new EntityQuery("Orders").where("shippedDate", "!=", dt).take(1);
         stop();
         var order;
         q.using(em).execute().then(function(data) {

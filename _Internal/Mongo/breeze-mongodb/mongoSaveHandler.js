@@ -40,9 +40,12 @@ MongoSaveHandler.prototype.save = function() {
 
     this.saveMap = groupBy(this.entities, function(e) {
         if (beforeSaveEntity) {
-            beforeSaveEntity(e);
+            if (beforeSaveEntity(e)) {
+                return e.entityAspect.entityTypeName;
+            }
+        } else {
+            return e.entityAspect.entityTypeName;
         }
-        return e.entityAspect.entityTypeName;
     });
 
     var beforeSaveEntities = this.beforeSaveEntities && this.beforeSaveEntities.bind(this);
@@ -97,13 +100,17 @@ MongoSaveHandler.prototype.qualifyTypeName = function(entityTypeName) {
 // will be bound to MongoSaveHandler instance at runtime.
 function saveCore() {
 
-    this._pendingCollections = objectMap(this.saveMap, this._prepareCollection.bind(this));
-    this._fixupFks(this._pendingCollections);
+    var pendingCollections = objectMap(this.saveMap, this._prepareCollection.bind(this));
+    this._fixupFks(pendingCollections);
     var that = this;
-    this._pendingCollections.forEach(function(pc) {
-        that._saveCollection(pc);
-    });
-    this._allCallsCompleted = true;
+    if (pendingCollections.length === 0) {
+        this._invokeCompletedCallback();
+    } else {
+        pendingCollections.forEach(function(pc) {
+            that._saveCollection(pc);
+        });
+        this._allCallsCompleted = true;
+    }
 };
 
 
@@ -169,10 +176,19 @@ MongoSaveHandler.prototype._prepareCollection = function(entityTypeName, entitie
                 var propName = entityType.concurrencyProp.name;
                 criteria[propName] = entityAspect.originalValuesMap[propName];
             }
-            setMap = {};
-            Object.keys(entityAspect.originalValuesMap).forEach(function(k) {
-                setMap[k] = e[k];
-            });
+            var setMap;
+            if (entityAspect.forceUpdate) {
+                setMap = extend({}, e);
+                // remove fields that we don't want to 'set'
+                delete setMap.entityAspect;
+                delete setMap._id;
+            } else {
+                setMap = {};
+                Object.keys(entityAspect.originalValuesMap).forEach(function(k) {
+                    setMap[k] = e[k];
+                });
+            }
+
             var updateDoc = {
                 criteria: criteria,
                 setOps: { $set: setMap },
@@ -373,8 +389,11 @@ MongoSaveHandler.prototype._checkIfCompleted = function() {
     this._saveCountPending -= 1;
     if (this._saveCountPending > 0) return;
     if (!this._allCallsCompleted) return;
-    this._isAllDone = true;
+    this._invokeCompletedCallback();
+};
 
+MongoSaveHandler.prototype._invokeCompletedCallback=function() {
+    this._isAllDone = true;
     this.callback(null, {
         insertedKeys: this._insertedKeys,
         updatedKeys:  this._updatedKeys,
@@ -382,10 +401,20 @@ MongoSaveHandler.prototype._checkIfCompleted = function() {
         keyMappings:  this._keyMappings,
         entitiesCreatedOnServer: this._entitiesCreatedOnServer
     });
-};
+}
 
 function formatEntityKey(ek) {
     return ek.entityTypeName + ": " + ek._id;
+}
+
+function extend(target, source) {
+    if (!source) return target;
+    for (var name in source) {
+        if (source.hasOwnProperty(name)) {
+            target[name] = source[name];
+        }
+    }
+    return target;
 }
 
 // returns an array with each item corresponding to the kvFn eval'd against each prop.
@@ -404,12 +433,14 @@ function groupBy(arr, keyFn) {
     var groups = {};
     arr.forEach(function (v) {
         var key = keyFn(v);
-        var group = groups[key];
-        if (!group) {
-            group = [];
-            groups[key] = group;
+        if (key !== undefined) {
+            var group = groups[key];
+            if (!group) {
+                group = [];
+                groups[key] = group;
+            }
+            group.push(v);
         }
-        group.push(v);
     })
     return groups;
 }

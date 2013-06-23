@@ -211,6 +211,22 @@ namespace Sample_WebApi.Controllers {
       return saveMap;
     }
 
+    private bool CheckFreight(EntityInfo entityInfo) {
+      if ((ContextProvider.SaveOptions.Tag as String) == "freight update") {
+        var order = entityInfo.Entity as Order;
+        order.Freight = order.Freight + 1;
+      } else if ((ContextProvider.SaveOptions.Tag as String) == "freight update-ov") {
+        var order = entityInfo.Entity as Order;
+        order.Freight = order.Freight + 1;
+        entityInfo.OriginalValuesMap["Freight"] = null;
+      } else if ((ContextProvider.SaveOptions.Tag as String) == "freight update-force") {
+        var order = entityInfo.Entity as Order;
+        order.Freight = order.Freight + 1;
+        entityInfo.ForceUpdate = true;
+      }
+      return true;
+    }
+
     private Dictionary<Type, List<EntityInfo>> AddComment(Dictionary<Type, List<EntityInfo>> saveMap) {
       var comment = new Comment();
       var tag = ContextProvider.SaveOptions.Tag;
@@ -233,21 +249,7 @@ namespace Sample_WebApi.Controllers {
       return false;
     }
 
-    private bool CheckFreight(EntityInfo entityInfo) {
-      if ((ContextProvider.SaveOptions.Tag as String) == "freight update") {
-        var order = entityInfo.Entity as Order;
-        order.Freight = order.Freight + 1;
-      } else if ((ContextProvider.SaveOptions.Tag as String) == "freight update-ov") {
-        var order = entityInfo.Entity as Order;
-        order.Freight = order.Freight + 1;
-        entityInfo.OriginalValuesMap["Freight"] = null;
-      } else if ((ContextProvider.SaveOptions.Tag as String) == "freight update-force") {
-        var order = entityInfo.Entity as Order;
-        order.Freight = order.Freight + 1;
-        entityInfo.ForceUpdate = true;
-      }
-      return true;
-    }
+
 
 
     #region standard queries

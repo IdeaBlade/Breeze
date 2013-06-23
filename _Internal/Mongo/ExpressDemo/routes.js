@@ -42,22 +42,32 @@ exports.getProducts = function(req, res, next) {
 
 exports.saveChanges = function(req, res, next) {
     var saveHandler = new breezeMongo.MongoSaveHandler(db, req.body, processResults(res, next));
+    saveHandler.beforeSaveEntity = beforeSaveEntity;
     saveHandler.beforeSaveEntities = beforeSaveEntities;
     saveHandler.save();
 };
+
+function beforeSaveEntity(entity) {
+    if ( entity.entityAspect.entityTypeName.indexOf("Region") >= 0 && entity.entityAspect.entityState == "Added") {
+        if (entity.RegionDescription.toLowerCase().indexOf("error") === 0) return false;
+    }
+    return true;
+}
 
 function beforeSaveEntities(callback) {
     var tag = this.saveOptions.tag;
     if (tag === "increaseProductPrice") {
         this.registerEntityType("Product", "Products", "Identity");
     }
-    var categories = this.saveMap["Category"];
-    if (categories) {
+    var categories = this.saveMap["Category"] || [];
+    categories.forEach(function(cat) {
+       // NOT YET IMPLEMENTED
 
-    }
+    });
     callback();
 }
 
+// C# version
 //protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
 //    if ((string)SaveOptions.Tag == "increaseProductPrice") {
 //        Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
@@ -95,6 +105,56 @@ function beforeSaveEntities(callback) {
 //    return base.BeforeSaveEntities(saveMap);
 
 
+
+
+exports.saveWithFreight = function(req, res, next) {
+    var saveHandler = new breezeMongo.MongoSaveHandler(db, req.body, processResults(res, next));
+    saveHandler.beforeSaveEntity = checkFreightOnOrder;
+    saveHandler.save(db, req.body, processResults(res,next));
+}
+
+exports.saveWithFreight2 = function(req, res, next) {
+    var saveHandler = new breezeMongo.MongoSaveHandler(db, req.body, processResults(res, next));
+    saveHandler.beforeSaveEntities = checkFreightOnOrders;
+    saveHandler.save(db, req.body, processResults(res,next));
+}
+
+exports.saveWithExit = function(req, res, next) {
+    res.setHeader("Content-Type:", "application/json");
+    results = {
+        insertedKeys: [],
+        deletedKeys: [],
+        updatedKeys: [],
+        keyMappings: [],
+        entitiesCreatedOnServer: []
+    }
+    res.send(results);
+}
+
+
+function checkFreightOnOrder(order) {
+    if (this.saveOptions.tag === "freight update") {
+        order.Freight = order.Freight + 1;
+    } else if (this.saveOptions.tag === "freight update-ov") {
+        order.Freight = order.Freight + 1;
+        order.entityAspect.originalValuesMap["Freight"] = null;
+    } else if (this.saveOptions.tag === "freight update-force") {
+        order.Freight = order.Freight + 1;
+        order.entityAspect.forceUpdate = true;
+    }
+    return true;
+}
+
+function checkFreightOnOrders(callback) {
+    var orderTypeName = this.qualifyTypeName("Order");
+    var orders = this.saveMap[orderTypeName] || [];
+    var fn = checkFreightOnOrder.bind(this);
+    orders.forEach(function(order) {
+        fn(order);
+    });
+    callback();
+}
+
 exports.saveWithComment = function(req, res, next) {
     var saveHandler = new breezeMongo.MongoSaveHandler(db, req.body, processResults(res, next));
     var dataProperties = [ {
@@ -116,6 +176,8 @@ exports.saveWithComment = function(req, res, next) {
     saveHandler.save(db, req.body, processResults(res,next));
 
 }
+
+
 
 var namedQuery = {};
 
