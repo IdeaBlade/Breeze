@@ -1,13 +1,13 @@
 'use strict';
 
 describe('testController', function () {
-    var scope, $vmFactory, logger, ctorArgs;
+    var scope, $controllerFactory, logger, ctorArgs;
 
     beforeEach(module('app'));
     
     beforeEach(inject(function($controller, $rootScope) {
         scope = $rootScope.$new();
-        $vmFactory = $controller;
+        $controllerFactory = $controller;
     }));
 
     beforeEach(function () {
@@ -30,27 +30,27 @@ describe('testController', function () {
     });
 
     it ('"orderId" should be "<no id>" when no id in routeParams', function() {
-        var vm = $vmFactory("testCtrl", ctorArgs);
+        $controllerFactory("testCtrl", ctorArgs);
         expect(scope.orderId).toBe('<no id>');
     });
     
     it('"orderId" should be same as id in routeParams', function () {
         ctorArgs.$routeParams.id ='42';
-        var vm = $vmFactory("testCtrl",ctorArgs);
+        $controllerFactory("testCtrl",ctorArgs);
         expect(scope.orderId).toEqual('42');
     });
     
     it('should expose products from the dataservice', function () {
         var products = ['some', 'thing'];
         ctorArgs.dataservice = {products: products};
-        var vm = $vmFactory("testCtrl",ctorArgs);
+        $controllerFactory("testCtrl",ctorArgs);
         expect(scope.products).toBe(products);
     });
 
     it('should report something to the logger', function() {
-        var vm = $vmFactory("testCtrl", ctorArgs);
-        expect(logger.log.calledOnce).toBeTruthy();
-        expect(logger.log.calledWithMatch(/created/i)).toBeTruthy();
+        $controllerFactory("testCtrl", ctorArgs);
+        sinon.assert.calledOnce(logger.log);
+        sinon.assert.calledWithMatch(logger.log, /created/i);
     });
 });
 

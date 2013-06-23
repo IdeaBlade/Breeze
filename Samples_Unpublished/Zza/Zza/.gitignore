@@ -1,2 +1,3 @@
 metadata.js
 test/testdata/*.*
+!smallOrderTestData.js
