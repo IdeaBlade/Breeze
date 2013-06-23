@@ -5,6 +5,9 @@
 
     <link rel="shortcut icon" type="image/png" href="../app/images/logo.png">
     <link href="../content/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .error {color:red;font-weight: bold;}
+    </style>
 </head>
     <body>
         <h1>Zza Test Data Loader</h1>
@@ -17,80 +20,8 @@
         <script src="../Scripts/breeze.savequeuing.js"></script>
         <script src="../Scripts/toastr.js"></script>
 
-        <script>
-            (function () {
-
-
-                breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
-                breeze.NamingConvention.camelCase.setAsDefault();
-
-                var EntityQuery = breeze.EntityQuery;
-                
-                var devServiceName = '../breeze/Dev';
-                var serviceName = '../breeze/ZzaEf';
-
-                var logger = getLogger();
-                var metadataStore = new breeze.MetadataStore();
-                var masterEm, masterEmCache;
-
-                $(doit); // DO IT!
-                
-                function doit() {
-                    logger.log("<h2>Zza Test Data loader begins.</h2>");
-                    logger.log("<h3>Get metadata</h3>");
-                    metadataStore.fetchMetadata(serviceName)
-                     .then(gotMetadata)
-                     .fail(failed)
-                     .fin(function () {
-                         logger.log("<h2>Zza Test Data loader is done.</h2>");
-                     });
-                }
-                
-                function gotMetadata() {
-                    logger.log("Got metadata.");
-                    return loadMasterManager();
-                }
-                              
-                function loadMasterManager() {
-                    masterEm = new breeze.EntityManager({
-                        serviceName: serviceName,
-                        metadataStore: metadataStore
-                    });
-                    logger.log("<h3>Get lookups</h3>");
-                    return EntityQuery.from("Lookups")
-                        .using(masterEm).execute()
-                        .then(loadTestData);
-                }
-                
-                function loadTestData() {
-                    logger.log("Got lookups.");
-                    masterEmCache = masterEm.exportEntities();
-                    // Todo: write this baseline to a test js file
-                    return Q.resolve(true);
-                }
-                
-                function newEm() {
-                    var em = masterEm.createEmptyCopy();
-                    em.importEntities(masterEmCache);
-                }
-                
-                function getLogger() {
-                    return {
-                        log: function(message) {
-                            $("<p>" + message + "</p>").appendTo($("#log"));
-                        },
-                        error: function(error) {
-                            console.log(error);
-                            var message = error.message || error;
-                            $("<p><b>ERROR:</b> " + message + "</p>").appendTo($("#log"));
-                        }
-                    };
-                }
-               
-                function failed(error) { logger.error(error); }
-
-            })();          
-        </script>
+        <!-- prepare test data -->
+        <script src="helpers/prepareTestData.js"></script>
 
     </body>
 </html>

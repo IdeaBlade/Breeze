@@ -1,12 +1,15 @@
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Hosting;
 using System.Web.Http;
 using Breeze.WebApi;
+using Newtonsoft.Json.Linq;
 using Zza.DataAccess.EF;
 
 namespace Zza.Controllers 
 {
-    [BreezeController]
     public class DevController : ApiController
     {
         public DevController() {
@@ -27,6 +30,19 @@ namespace Zza.Controllers
             return _repository.Reset(options);
         }
 
+        [HttpPost]
+        public HttpResponseMessage TestDataFile(string filename, JObject body)
+        {
+            if (_devUserId != GetUserStoreId().ToString().ToUpper())
+            {
+                return Request.CreateResponse(HttpStatusCode.Forbidden);   
+            }
+            var scriptFilename = HostingEnvironment.MapPath("~/test/testdata/" + filename + ".js");
+            App_Start.ScriptWriter.WriteFile(scriptFilename, body.ToString());
+
+            return Request.CreateResponse(HttpStatusCode.OK, scriptFilename);
+        }
+
         /// <summary>
         /// Get the repository UserStoreId from the current request
         /// </summary>
@@ -40,6 +56,7 @@ namespace Zza.Controllers
             }
         }
 
+        private const string _devUserId = "A5844F4B-CAC6-47F3-91B1-A94D53CF6000";
         private readonly DevRepository _repository;
     }
 }

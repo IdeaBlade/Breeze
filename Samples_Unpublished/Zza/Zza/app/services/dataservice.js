@@ -71,7 +71,7 @@
             service.products = manager.getEntities('Product');
             service.productOptions = manager.getEntities('ProductOption');
             service.productSizes = manager.getEntities('ProductSize');
-            extendLookups(); // with functions
+            extendLookups();
         }
         
         function extendLookups() {

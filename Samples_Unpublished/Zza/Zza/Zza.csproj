@@ -248,6 +248,7 @@
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
     </Content>
     <Content Include="Scripts\_references.js" />
+    <Content Include="test\helpers\prepareTestData.js" />
     <Content Include="test\prepareTestData.html" />
     <Content Include="test\helpers\jasmineTestFns.js" />
     <Content Include="test\helpers\testData.js" />
@@ -260,7 +261,9 @@
     <Content Include="test\lib\jasmine.js" />
     <Content Include="test\lib\sinon-1.7.1.js" />
     <Content Include="test\config\jasmineTestRunnerConfig.js" />
-    <Content Include="test\jasmineTestRunner.html" />
+    <Content Include="test\zzaTestRunner.html" />
+    <Content Include="test\testdata\master.js" />
+    <Content Include="test\testdata\testData.js" />
     <Content Include="test\unit\configSpec.js" />
     <Content Include="test\unit\dataserviceSpec.js" />
     <Content Include="test\unit\firstspec.js" />
