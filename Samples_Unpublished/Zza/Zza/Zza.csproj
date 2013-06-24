@@ -264,11 +264,11 @@
     <Content Include="test\zzaTestRunner.html" />
     <Content Include="test\testdata\lookups.js" />
     <Content Include="test\unit\configSpec.js" />
-    <Content Include="test\unit\dataserviceSpec.js" />
+    <Content Include="test\midway\dataserviceSpec.js" />
     <Content Include="test\unit\firstspec.js" />
-    <Content Include="test\unit\testControllerSpec.js" />
-    <Content Include="test\webapi\queryspec.js" />
-    <Content Include="test\webapi\savespec.js" />
+    <Content Include="test\midway\testControllerSpec.js" />
+    <Content Include="test\async\queryspec.js" />
+    <Content Include="test\async\savespec.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

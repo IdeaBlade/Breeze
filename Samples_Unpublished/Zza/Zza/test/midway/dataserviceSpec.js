@@ -3,6 +3,7 @@
     var ds, loggerStub, manager;
     var fns = zzaTestFns;
     var FakeLogger = fns.FakeLogger;
+    var EntityState = breeze.EntityState;
     var async = new AsyncSpec(this);
     
     beforeEach(module('app'));
@@ -39,11 +40,11 @@
         expect(ds).toBeTruthy();
     });
     
-    it('should not have `Products` lookup until initialized', function () {
+    it('should NOT have `Products` lookup UNTIL initialized', function () {
         expect(ds.products).toBeFalsy();
     });
     
-    async.it('should have `Products` lookup after initialized', function (done) {
+    async.it('should have `Products` lookup after initialized()', function (done) {
         // note must use async test even though it only takes one tick
         ds.initialize().then(function () {
             assertDataServiceHasLookups();
@@ -57,12 +58,26 @@
         }, failed);       
     });
 
-    
-    it('should have `Products` lookup after initialized synchronously', function () {
+    it('should have `Products` lookup after initializedSynchronously()', function () {
         ds.initializeSynchronously();
         assertDataServiceHasLookups();
     });
 
+    it('should have empty cartOrder after init', function () {
+        ds.initializeSynchronously();
+        var order = ds.cartOrder;
+        expect(order).toBeTruthy();
+        expect(order.entityAspect.entityState).toBe(EntityState.Added);
+        expect(order.orderItems.length).toEqual(0);
+    });
+
+    it('should have empty draftOrder after init', function () {
+        ds.initializeSynchronously();
+        var order = ds.draftOrder;
+        expect(order).toBeTruthy();
+        expect(order.entityAspect.entityState).toBe(EntityState.Added);
+        expect(order.orderItems.length).toEqual(0);
+    });
 
     function assertDataServiceHasLookups() {
         expect(ds.products).toBeTruthy();
