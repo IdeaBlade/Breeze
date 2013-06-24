@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
             </ul>
@@ -929,7 +931,7 @@ errors will be eaten.</p>
 salaryEvent.publish( { eventType: "payRaise", amount: 100 });
 </code></pre>
 
-<p>This event can also be published asychonously</p><pre class="code prettyprint"><code>salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true);
+<p>This event can also be published asychronously</p><pre class="code prettyprint"><code>salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true);
 </code></pre>
 
 <p>And we can add a handler in case the subscriber 'mishandles' the event.</p><pre class="code prettyprint"><code>salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true, function(error) {

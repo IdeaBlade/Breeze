@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>a30_complexArray.js - The Breeze API</title>
+    <title>ↈ_primitiveArray_ - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -183,140 +183,190 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1 class="file-heading">File: a30_complexArray.js</h1>
+                        <h1>ↈ_primitiveArray_ Class</h1>
+<div class="box meta">
+    
 
-<div class="file">
-    <pre class="code prettyprint linenums">
-﻿
-breeze.makeComplexArray = (function() {
-    var complexArrayMixin = {};
+    
 
-    &#x2F;&#x2F; complexArray will have the following props
-    &#x2F;&#x2F;    parent
-    &#x2F;&#x2F;    propertyPath
-    &#x2F;&#x2F;    parentProperty
-    &#x2F;&#x2F;    addedItems  - only if modified
-    &#x2F;&#x2F;    removedItems  - only if modified
-    &#x2F;&#x2F;  each complexAspect of any entity within a complexArray
-    &#x2F;&#x2F;  will have its own _complexState = &quot;A&#x2F;M&quot;;
+    
+        <div class="foundat">
+            Defined in: <a href="..&#x2F;files&#x2F;a30_primitiveArray.js.html#l14"><code>a30_primitiveArray.js:14</code></a>
+        </div>
+    
 
-    &#x2F;**
-    Complex arrays are not actually classes, they are objects that mimic arrays. A complex array is collection of 
-    complexTypes associated with a data property on a single entity or other complex object. i.e. customer.orders or order.orderDetails.
-    This collection looks like an array in that the basic methods on arrays such as &#x27;push&#x27;, &#x27;pop&#x27;, &#x27;shift&#x27;, &#x27;unshift&#x27;, &#x27;splice&#x27;
-    are all provided as well as several special purpose methods. 
-    @class ↈ_complexArray_
-    **&#x2F;
+    
+        
+            Module: <a href="../modules/breeze.html">breeze</a>
+        
+    
 
-    &#x2F;**
-    An {{#crossLink &quot;Event&quot;}}{{&#x2F;crossLink}} that fires whenever the contents of this array changed.  This event
-    is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
-    Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
-    collections are collected into a single notification event for each relation array.
-    @example
-        &#x2F;&#x2F; assume order is an order entity attached to an EntityManager.
-        orders.arrayChanged.subscribe(
-            function (arrayChangedArgs) {
-                var addedEntities = arrayChangedArgs.added;
-                var removedEntities = arrayChanged.removed;
-            });
-    @event arrayChanged 
-    @param added {Array of Entity} An array of all of the entities added to this collection.
-    @param removed {Array of Entity} An array of all of the removed from this collection.
-    @readOnly
-    **&#x2F;
-
-    &#x2F;&#x2F; virtual impls 
-    complexArrayMixin._getGoodAdds = function (adds) {
-        return getGoodAdds(this, adds);
-    };
-
-    complexArrayMixin._beforeChange = function() {
-        observableArray.updateEntityState(this);
-    };
-
-    complexArrayMixin._processAdds = function (adds) {
-        processAdds(this, adds);
-    };
-
-    complexArrayMixin._processRemoves = function (removes) {
-        processRemoves(this, removes);
-    };
-    &#x2F;&#x2F;
-
-    complexArrayMixin._rejectChanges = function() {
-        if (!this._origValues) return;
-        var that = this;
-        this.forEach(function(co) {
-            clearAspect(co, that);
-        });
-        this.length = 0;
-        this._origValues.forEach(function(co) {
-            that.push(co);
-        });
-        Array.prototype.push.apply(this, this._origValues);
-    };
-
-    complexArrayMixin._acceptChanges = function() {
-        this._origValues = null;
-    } ;
-
-    &#x2F;&#x2F; local functions
+    
+</div>
 
 
-    function getGoodAdds(complexArray, adds) {
-        &#x2F;&#x2F; remove any that are already added here
-        return adds.filter(function (a) {
-            return a.parent !== complexArray.parent;
-        });
-    }
 
-    function processAdds(complexArray, adds) {
-        adds.forEach(function (a) {
-            if (a.parent != null) {
-                throw new Error(&quot;The complexObject is already attached. Either clone it or remove it from its current owner&quot;);
-            }
-            setAspect(a, complexArray);
-        });
-    }
+<div class="box intro">
+    <p>Primitive arrays are not actually classes, they are objects that mimic arrays. A primitive array is collection of
+primitive types associated with a data property on a single entity or complex object. i.e. customer.invoiceNumbers.
+This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
+are all provided as well as several special purpose methods.</p>
+</div>
 
-    function processRemoves(complexArray, removes) {
-        removes.forEach(function (a) {
-            clearAspect(a, complexArray);
-        });
-    }
 
-    function clearAspect(co, arr) {
-        var coAspect = co.complexAspect;
-        &#x2F;&#x2F; if not already attached - exit
-        if (coAspect.parent !== arr.parent) return null;
 
-        coAspect.parent = null;
-        coAspect.parentProperty = null;
-        return coAspect;
-    }
+<div id="classdocs" class="tabview">
+    <ul class="api-class-tabs">
+        <li class="api-class-tab index"><a href="#index">Index</a></li>
 
-    function setAspect(co, arr) {
-        var coAspect = co.complexAspect;
-        &#x2F;&#x2F; if already attached - exit
-        if (coAspect.parent === arr.parent) return null;
-        coAspect.parent = arr.parent;
-        coAspect.parentProperty = arr.parentProperty;
+        
+        
+        
+        
+            <li class="api-class-tab events"><a href="#events">Events</a></li>
+        
+    </ul>
 
-        return coAspect;
-    }
+    <div>
+        <div id="index" class="api-class-tabpanel index">
+            <h2 class="off-left">Item Index</h2>
 
-    function makeComplexArray(arr, parent, parentProperty) {
+            
 
-        observableArray.initializeParent(arr, parent, parentProperty);
-        arr.arrayChanged = new Event(&quot;arrayChanged_complexArray&quot;, arr);
-        __extend(arr, observableArray.mixin);
-        return __extend(arr, complexArrayMixin);
-    }
+            
 
-    return makeComplexArray;
-})();
-    </pre>
+            
+
+            
+                <div class="index-section events">
+                    <h3>Events</h3>
+
+                    <ul class="index-list events">
+                        
+                            <li class="index-item event">
+                                <a href="#event_arrayChanged">arrayChanged</a>
+
+                                
+                                
+                            </li>
+                        
+                    </ul>
+                </div>
+            
+        </div>
+
+        
+
+        
+
+        
+
+        
+            <div id="events" class="api-class-tabpanel">
+                <h2 class="off-left">Events</h2>
+
+                
+                    <div id="event_arrayChanged" class="events item">
+    <h3 class="name"><code>arrayChanged</code></h3>
+    <span class="type"></span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a30_primitiveArray.js.html#l22"><code>a30_primitiveArray.js:22</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>An <a href="..\classes\Event.html" class="crosslink">Event</a> that fires whenever the contents of this array changed.  This event
+is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
+Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
+collections are collected into a single notification event for each relation array.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Event Payload:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">added</code>
+                        <span class="type">Array of Primitives</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>An array of all of the items added to this collection.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">removed</code>
+                        <span class="type">Array of Primitives</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>An array of all of the items removed from this collection.</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
+orders.arrayChanged.subscribe(
+    function (arrayChangedArgs) {
+        var addedEntities = arrayChangedArgs.added;
+        var removedEntities = arrayChanged.removed;
+    });
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+            </div>
+        
+    </div>
 </div>
 
                     </div>

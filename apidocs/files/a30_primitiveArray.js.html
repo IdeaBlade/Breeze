@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>a30_complexArray.js - The Breeze API</title>
+    <title>a30_primitiveArray.js - The Breeze API</title>
     <link rel="stylesheet" href="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;3.5.1&#x2F;build&#x2F;cssgrids&#x2F;cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -183,13 +183,13 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1 class="file-heading">File: a30_complexArray.js</h1>
+                        <h1 class="file-heading">File: a30_primitiveArray.js</h1>
 
 <div class="file">
     <pre class="code prettyprint linenums">
 ﻿
-breeze.makeComplexArray = (function() {
-    var complexArrayMixin = {};
+breeze.makePrimitiveArray = (function() {
+    var primitiveArrayMixin = {};
 
     &#x2F;&#x2F; complexArray will have the following props
     &#x2F;&#x2F;    parent
@@ -201,11 +201,11 @@ breeze.makeComplexArray = (function() {
     &#x2F;&#x2F;  will have its own _complexState = &quot;A&#x2F;M&quot;;
 
     &#x2F;**
-    Complex arrays are not actually classes, they are objects that mimic arrays. A complex array is collection of 
-    complexTypes associated with a data property on a single entity or other complex object. i.e. customer.orders or order.orderDetails.
+    Primitive arrays are not actually classes, they are objects that mimic arrays. A primitive array is collection of
+    primitive types associated with a data property on a single entity or complex object. i.e. customer.invoiceNumbers.
     This collection looks like an array in that the basic methods on arrays such as &#x27;push&#x27;, &#x27;pop&#x27;, &#x27;shift&#x27;, &#x27;unshift&#x27;, &#x27;splice&#x27;
     are all provided as well as several special purpose methods. 
-    @class ↈ_complexArray_
+    @class ↈ_primitiveArray_
     **&#x2F;
 
     &#x2F;**
@@ -221,100 +221,56 @@ breeze.makeComplexArray = (function() {
                 var removedEntities = arrayChanged.removed;
             });
     @event arrayChanged 
-    @param added {Array of Entity} An array of all of the entities added to this collection.
-    @param removed {Array of Entity} An array of all of the removed from this collection.
+    @param added {Array of Primitives} An array of all of the items added to this collection.
+    @param removed {Array of Primitives} An array of all of the items removed from this collection.
     @readOnly
     **&#x2F;
 
     &#x2F;&#x2F; virtual impls 
-    complexArrayMixin._getGoodAdds = function (adds) {
-        return getGoodAdds(this, adds);
+    primitiveArrayMixin._getGoodAdds = function (adds) {
+        return adds;
     };
 
-    complexArrayMixin._beforeChange = function() {
-        observableArray.updateEntityState(this);
+    primitiveArrayMixin._beforeChange = function() {
+        var entityAspect = this.getEntityAspect();
+        if (entityAspect.entityState.isUnchanged()) {
+            entityAspect.setModified();
+        }
+        if (entityAspect.entityState.isModified() &amp;&amp; !this._origValues) {
+            this._origValues = this.slice(0);
+        }
     };
 
-    complexArrayMixin._processAdds = function (adds) {
-        processAdds(this, adds);
+    primitiveArrayMixin._processAdds = function (adds) {
+        &#x2F;&#x2F; nothing needed
     };
 
-    complexArrayMixin._processRemoves = function (removes) {
-        processRemoves(this, removes);
+    primitiveArrayMixin._processRemoves = function (removes) {
+        &#x2F;&#x2F; nothing needed;
     };
     &#x2F;&#x2F;
 
-    complexArrayMixin._rejectChanges = function() {
+    primitiveArrayMixin._rejectChanges = function() {
         if (!this._origValues) return;
-        var that = this;
-        this.forEach(function(co) {
-            clearAspect(co, that);
-        });
         this.length = 0;
-        this._origValues.forEach(function(co) {
-            that.push(co);
-        });
         Array.prototype.push.apply(this, this._origValues);
     };
 
-    complexArrayMixin._acceptChanges = function() {
+    primitiveArrayMixin._acceptChanges = function() {
         this._origValues = null;
-    } ;
+    };
 
     &#x2F;&#x2F; local functions
 
-
-    function getGoodAdds(complexArray, adds) {
-        &#x2F;&#x2F; remove any that are already added here
-        return adds.filter(function (a) {
-            return a.parent !== complexArray.parent;
-        });
-    }
-
-    function processAdds(complexArray, adds) {
-        adds.forEach(function (a) {
-            if (a.parent != null) {
-                throw new Error(&quot;The complexObject is already attached. Either clone it or remove it from its current owner&quot;);
-            }
-            setAspect(a, complexArray);
-        });
-    }
-
-    function processRemoves(complexArray, removes) {
-        removes.forEach(function (a) {
-            clearAspect(a, complexArray);
-        });
-    }
-
-    function clearAspect(co, arr) {
-        var coAspect = co.complexAspect;
-        &#x2F;&#x2F; if not already attached - exit
-        if (coAspect.parent !== arr.parent) return null;
-
-        coAspect.parent = null;
-        coAspect.parentProperty = null;
-        return coAspect;
-    }
-
-    function setAspect(co, arr) {
-        var coAspect = co.complexAspect;
-        &#x2F;&#x2F; if already attached - exit
-        if (coAspect.parent === arr.parent) return null;
-        coAspect.parent = arr.parent;
-        coAspect.parentProperty = arr.parentProperty;
-
-        return coAspect;
-    }
-
-    function makeComplexArray(arr, parent, parentProperty) {
+    function makePrimitiveArray(arr, parent, parentProperty) {
 
         observableArray.initializeParent(arr, parent, parentProperty);
-        arr.arrayChanged = new Event(&quot;arrayChanged_complexArray&quot;, arr);
+        arr.arrayChanged = new Event(&quot;arrayChanged_primitiveArray&quot;, arr);
         __extend(arr, observableArray.mixin);
-        return __extend(arr, complexArrayMixin);
+        return __extend(arr, primitiveArrayMixin);
     }
 
-    return makeComplexArray;
+    return makePrimitiveArray;
 })();
     </pre>
 </div>

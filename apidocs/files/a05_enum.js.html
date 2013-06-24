@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
             </ul>
@@ -189,7 +191,7 @@
  @module core
  **&#x2F;
 
-var Enum = function() {
+var Enum = (function() {
 
     &#x2F;&#x2F; TODO: think about CompositeEnum (flags impl).
 
@@ -375,7 +377,7 @@ var Enum = function() {
         var result = [];
         for (var key in this) {
             if (this.hasOwnProperty(key)) {
-                if (key != &quot;name&quot; &amp;&amp; key.substr(0, 1) !== &quot;_&quot; &amp;&amp; !__isFunction(this[key])) {
+                if (key !== &quot;name&quot; &amp;&amp; key.substr(0, 1) !== &quot;_&quot; &amp;&amp; !__isFunction(this[key])) {
                     result.push(key);
                 }
             }
@@ -455,7 +457,7 @@ var Enum = function() {
     };
 
     return ctor;
-}();
+})();
 core.Enum = Enum;
 
 

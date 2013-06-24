@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
             </ul>
@@ -352,7 +354,7 @@ var MetadataStore = (function () {
             &quot;localQueryComparisonOptions&quot;: this.localQueryComparisonOptions.name,
             &quot;dataServices&quot;: this.dataServices,
             &quot;structuralTypes&quot;: __objectMapToArray(this._structuralTypeMap),
-            &quot;resourceEntityTypeMap&quot;: this._resourceEntityTypeMap,
+            &quot;resourceEntityTypeMap&quot;: this._resourceEntityTypeMap
         }, __config.stringifyPad);
         return result;
     };
@@ -375,12 +377,12 @@ var MetadataStore = (function () {
     proto.importMetadata = function (exportedMetadata) {
 
         this._deferredTypes = {};
+        var json = (typeof (exportedMetadata) === &quot;string&quot;) ? JSON.parse(exportedMetadata) : exportedMetadata;
 
-        if (exportedMetadata.schema) {
-            return CsdlMetadataParser.parse(this, exportedMetadata.schema);
+        if (json.schema) {
+            return CsdlMetadataParser.parse(this, json.schema);
         } 
 
-        var json = (typeof (exportedMetadata) === &quot;string&quot;) ? JSON.parse(exportedMetadata) : exportedMetadata;
         if (json.metadataVersion &amp;&amp; json.metadataVersion !== breeze.metadataVersion) {
             var msg = __formatString(&quot;Cannot import metadata with a different &#x27;metadataVersion&#x27; (%1) than the current &#x27;breeze.metadataVersion&#x27; (%2) &quot;,
                 json.metadataVersion, breeze.metadataVersion);
@@ -390,7 +392,7 @@ var MetadataStore = (function () {
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
         if (this.isEmpty()) {
-            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance
+            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance;
             this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || LocalQueryComparisonOptions.defaultInstance;
         } else {
             if (ncName &amp;&amp; this.namingConvention.name !== ncName) {
@@ -402,7 +404,8 @@ var MetadataStore = (function () {
         }
         
         var that = this;
-        
+
+        &#x2F;&#x2F;noinspection JSHint
         json.dataServices &amp;&amp; json.dataServices.forEach(function (ds) {
             ds = DataService.fromJSON(ds);
             that.addDataService(ds, true);
@@ -531,7 +534,7 @@ var MetadataStore = (function () {
         }).fail(function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
-        })
+        });
     };
 
 
@@ -604,7 +607,7 @@ var MetadataStore = (function () {
         } else {
             throw new Error(&quot;unable to recognize query parameter as either a string or an EntityQuery&quot;);
         }
-    }
+    };
              
     &#x2F;**
     Returns whether this MetadataStore contains any metadata yet.
@@ -619,7 +622,6 @@ var MetadataStore = (function () {
     proto.isEmpty = function () {
         return __isEmpty(this._structuralTypeMap);
     };
-
 
     &#x2F;**
     Returns an  {{#crossLink &quot;EntityType&quot;}}{{&#x2F;crossLink}} or a {{#crossLink &quot;ComplexType&quot;}}{{&#x2F;crossLink}} given its name.
@@ -647,7 +649,7 @@ var MetadataStore = (function () {
         var type = this._structuralTypeMap[qualTypeName];
         if (!type) {
             if (okIfNotFound) return null;
-            var msg = __formatString(&quot;Unable to locate a &#x27;Type&#x27; by the name: &#x27;%1&#x27;. Be sure to execute a query or call fetchMetadata first.&quot;, typeName)
+            var msg = __formatString(&quot;Unable to locate a &#x27;Type&#x27; by the name: &#x27;%1&#x27;. Be sure to execute a query or call fetchMetadata first.&quot;, typeName);
             throw new Error(msg);
             
         }
@@ -718,15 +720,7 @@ var MetadataStore = (function () {
     };
 
     &#x2F;&#x2F; protected methods
- 
 
-    proto._getCtorRegistration = function(structuralType) {
-        var r = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
-        if (!r.ctor) {
-            structuralType.getEntityCtor();
-        }
-    };
-        
     proto._checkEntityType = function(entity) {
         if (entity.entityType) return;
         var typeName = entity.prototype._$typeName;
@@ -812,6 +806,7 @@ var MetadataStore = (function () {
         
         var isEntityType = !json.isComplexType;
         if (isEntityType) {
+            &#x2F;&#x2F;noinspection JSHint
             json.navigationProperties &amp;&amp; json.navigationProperties.forEach(function(np) {
                 stype.addProperty(NavigationProperty.fromJSON(np));
             });
@@ -823,11 +818,11 @@ var MetadataStore = (function () {
         var deferrals = deferredTypes[stype.name];
         if (deferrals) {
             deferrals.forEach(function (d) {
-                completeStructuralTypeFromJson(metadataStore, d.json, d.stype, stype)
+                completeStructuralTypeFromJson(metadataStore, d.json, d.stype, stype);
             });
             delete deferredTypes[stype.name];
         }
-    };
+    }
         
     function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
         if (isQualifiedTypeName(structTypeName)) return structTypeName;
@@ -886,9 +881,9 @@ var CsdlMetadataParser = (function () {
             throw new Error(&quot;Bad nav properties&quot;);
         }
         return metadataStore;
-    };
+    }
 
-   function parseCsdlEntityType(csdlEntityType, schema, metadataStore) {
+    function parseCsdlEntityType(csdlEntityType, schema, metadataStore) {
         var shortName = csdlEntityType.name;
         var ns = getNamespaceFor(shortName, schema);
         var entityType = new EntityType({
@@ -954,7 +949,7 @@ var CsdlMetadataParser = (function () {
         var deferrals = deferredTypes[entityType.name];
         if (deferrals) {
             deferrals.forEach(function (d) {
-                completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, metadataStore, entityType)
+                completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, metadataStore, entityType);
             });
             delete deferredTypes[entityType.name];
         }
@@ -980,7 +975,7 @@ var CsdlMetadataParser = (function () {
     function parseCsdlDataProperty(parentType, csdlProperty, schema, keyNamesOnServer) {
         var dp;
         var typeParts = csdlProperty.type.split(&quot;.&quot;);
-        if (typeParts.length == 2) {
+        if (typeParts.length === 2) {
             dp = parseCsdlSimpleProperty(parentType, csdlProperty, keyNamesOnServer);
         } else {
             if (isEnumType(csdlProperty, schema)) {
@@ -1008,14 +1003,14 @@ var CsdlMetadataParser = (function () {
         var isNullable = csdlProperty.nullable === &#x27;true&#x27; || csdlProperty.nullable == null;
         &#x2F;&#x2F; var fixedLength = csdlProperty.fixedLength ? csdlProperty.fixedLength === true : undefined;
         var isPartOfKey = keyNamesOnServer != null &amp;&amp; keyNamesOnServer.indexOf(csdlProperty.name) &gt;= 0;
-        if (isPartOfKey &amp;&amp; parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
+        if (isPartOfKey &amp;&amp; parentType.autoGeneratedKeyType === AutoGeneratedKeyType.None) {
             if (isIdentityProperty(csdlProperty)) {
                 parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
             }
         }
         &#x2F;&#x2F; TODO: nit - don&#x27;t set maxLength if null;
         var maxLength = csdlProperty.maxLength;
-        maxLength = (maxLength == null || maxLength === &quot;Max&quot;) ? null : parseInt(maxLength);
+        maxLength = (maxLength == null || maxLength === &quot;Max&quot;) ? null : parseInt(maxLength,10);
         &#x2F;&#x2F; can&#x27;t set the name until we go thru namingConventions and these need the dp.
         var dp = new DataProperty({
             nameOnServer: csdlProperty.name,
@@ -1054,9 +1049,9 @@ var CsdlMetadataParser = (function () {
             return assocEnd.role === csdlProperty.toRole;
         });
 
-        var isScalar = !(toEnd.multiplicity === &quot;*&quot;);
+        var isScalar = toEnd.multiplicity !== &quot;*&quot;;
         var dataType = parseTypeName(toEnd.type, schema).typeName;
-        var fkNamesOnServer = [];
+
         var constraint = association.referentialConstraint;
         if (!constraint) {
             &#x2F;&#x2F; TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
@@ -1074,7 +1069,7 @@ var CsdlMetadataParser = (function () {
             nameOnServer: csdlProperty.name,
             entityTypeName: dataType,
             isScalar: isScalar,
-            associationName: association.name,
+            associationName: association.name
         };
 
         var principal = constraint.principal;
@@ -1235,7 +1230,7 @@ var CsdlMetadataParser = (function () {
     return {
         parse: parse,
         normalizeTypeName: normalizeTypeName
-    }
+    };
 
 })();
 
@@ -1268,7 +1263,7 @@ var EntityType = (function () {
         }
         if  (config._$typeName === &quot;MetadataStore&quot;) {
             this.metadataStore = config;
-            this.shortName = &quot;Anon_&quot; + ++__nextAnonIx;
+            this.shortName = &quot;Anon_&quot; + (++__nextAnonIx);
             this.namespace = &quot;&quot;;
             this.isAnonymous = true;
         } else {
@@ -1304,10 +1299,7 @@ var EntityType = (function () {
     };
     var proto = ctor.prototype;
     proto._$typeName = &quot;EntityType&quot;;
-        
-    
 
-        
     &#x2F;**
     The {{#crossLink &quot;MetadataStore&quot;}}{{&#x2F;crossLink}} that contains this EntityType
 
@@ -1375,7 +1367,7 @@ var EntityType = (function () {
     **&#x2F;
 
     &#x2F;**
-    The fully qualifed name of this EntityType.
+    The fully qualified name of this EntityType.
 
     __readOnly__
     @property name {String} 
@@ -1463,7 +1455,7 @@ var EntityType = (function () {
             baseType = baseType.baseEntityType;
         } while (baseType);
         return false;
-    }
+    };
 
     &#x2F;**
     Returns an array containing this type and any&#x2F;all subtypes of this type down thru the hierarchy.
@@ -1474,10 +1466,10 @@ var EntityType = (function () {
         var result = [this];
         this.subtypes.forEach(function(st) {
             var subtypes = st.getSelfAndSubtypes();
-            result.push.apply(result, subtypes )
-        })
+            result.push.apply(result, subtypes );
+        });
         return result;
-    }
+    };
 
     &#x2F;**
     Adds a  {{#crossLink &quot;DataProperty&quot;}}{{&#x2F;crossLink}} or a {{#crossLink &quot;NavigationProperty&quot;}}{{&#x2F;crossLink}} to this EntityType.
@@ -1509,8 +1501,6 @@ var EntityType = (function () {
         }
         return this;
     };
-        
-
 
     &#x2F;**
     Create a new entity of this type.
@@ -1575,7 +1565,7 @@ var EntityType = (function () {
         var instance = new aCtor();
         var proto = aCtor.prototype;
             
-        if (this._$typeName == &quot;EntityType&quot;) {
+        if (this._$typeName === &quot;EntityType&quot;) {
             &#x2F;&#x2F; insure that all of the properties are on the &#x27;template&#x27; instance before watching the class.
             calcUnmappedProperties(this, instance);
             proto.entityType = this;
@@ -1783,7 +1773,7 @@ var EntityType = (function () {
 
     proto._updateNames = function (property) {
         var nc = this.metadataStore.namingConvention;
-        updateClientServerNames(nc, property, &quot;name&quot;)
+        updateClientServerNames(nc, property, &quot;name&quot;);
                    
         if (property.isNavigationProperty) {
             updateClientServerNames(nc, property, &quot;foreignKeyNames&quot;);
@@ -1799,7 +1789,7 @@ var EntityType = (function () {
     };
 
     function updateClientServerNames(nc, parent, clientPropName) {
-        serverPropName = clientPropName + &quot;OnServer&quot;;
+        var serverPropName = clientPropName + &quot;OnServer&quot;;
         var clientName = parent[clientPropName];
         if (clientName &amp;&amp; clientName.length) {
             if (parent.isUnmapped) return;
@@ -1813,8 +1803,8 @@ var EntityType = (function () {
             });
             parent[serverPropName] = Array.isArray(clientName) ? serverNames : serverNames[0];
         } else {            
-            serverName = parent[serverPropName];
-            if ((!serverName) || serverName.length == 0) return;
+            var serverName = parent[serverPropName];
+            if ((!serverName) || serverName.length === 0) return;
             var clientNames = __toArray(serverName).map(function (sName) {
                 var cName = nc.serverPropertyNameToClient(sName, parent);
                 var testName = nc.clientPropertyNameToServer(cName, parent);
@@ -1829,7 +1819,7 @@ var EntityType = (function () {
 
     proto._checkNavProperty = function (navigationProperty) {
         if (navigationProperty.isNavigationProperty) {
-            if (navigationProperty.parentType != this) {
+            if (navigationProperty.parentType !== this) {
                 throw new Error(__formatString(&quot;The navigationProperty &#x27;%1&#x27; is not a property of entity type &#x27;%2&#x27;&quot;,
                         navigationProperty.name, this.name));
             }
@@ -1849,7 +1839,7 @@ var EntityType = (function () {
             
         if (dp.isPartOfKey) {
             this.keyProperties.push(dp);
-        };
+        }
             
         if (dp.isComplexProperty) {
             this.complexProperties.push(dp);
@@ -1857,7 +1847,7 @@ var EntityType = (function () {
 
         if (dp.concurrencyMode &amp;&amp; dp.concurrencyMode !== &quot;None&quot;) {
             this.concurrencyProperties.push(dp);
-        };
+        }
 
         if (dp.isUnmapped) {
             this.unmappedProperties.push(dp);
@@ -1918,7 +1908,7 @@ var EntityType = (function () {
         });
 
         delete incompleteMap[this.name];
-    }
+    };
 
     function resolveNp(np, metadataStore) {
         var entityType = metadataStore._getEntityType(np.entityTypeName, true);
@@ -1929,8 +1919,8 @@ var EntityType = (function () {
             &#x2F;&#x2F;return altNp.associationName === np.associationName
             &#x2F;&#x2F;    &amp;&amp; altNp !== np;
             &#x2F;&#x2F; So use this instead.
-            return altNp.associationName === np.associationName
-                &amp;&amp; (altNp.name != np.name || altNp.entityTypeName != np.entityTypeName);
+            return altNp.associationName === np.associationName &amp;&amp;
+                (altNp.name !== np.name || altNp.entityTypeName !== np.entityTypeName);
         });
         np.inverse = invNp;
         if (!invNp) {
@@ -1969,14 +1959,14 @@ var EntityType = (function () {
                 np.relatedDataProperties = [dp];
             }
         });
-    };
+    }
 
    
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
         trackablePropNames.forEach(function (pn) {
-            if (metadataPropNames.indexOf(pn) == -1) {
+            if (metadataPropNames.indexOf(pn) === -1) {
                 var newProp = new DataProperty({
                     name: pn,
                     dataType: DataType.Undefined,
@@ -2229,6 +2219,7 @@ var DataProperty = (function () {
             .whereParam(&quot;dataType&quot;).isEnumOf(DataType).isOptional().or().isString().or().isInstanceOf(ComplexType)
             .whereParam(&quot;complexTypeName&quot;).isOptional()
             .whereParam(&quot;isNullable&quot;).isBoolean().isOptional().withDefault(true)
+            .whereParam(&quot;isScalar&quot;).isOptional().withDefault(true)&#x2F;&#x2F; will be false for some NoSQL databases.
             .whereParam(&quot;defaultValue&quot;).isOptional()
             .whereParam(&quot;isPartOfKey&quot;).isBoolean().isOptional()
             .whereParam(&quot;isUnmapped&quot;).isBoolean().isOptional()
@@ -2237,7 +2228,7 @@ var DataProperty = (function () {
             .whereParam(&quot;validators&quot;).isInstanceOf(Validator).isArray().isOptional().withDefault([])
             .whereParam(&quot;enumType&quot;).isOptional()
             .whereParam(&quot;rawTypeName&quot;).isOptional() &#x2F;&#x2F; occurs with undefined datatypes
-            .whereParam(&quot;isScalar&quot;).isOptional() &#x2F;&#x2F; only occurs with complex datatypes
+
             .applyAll(this);
         var hasName = !!(this.name || this.nameOnServer);
         if (!hasName) {
@@ -2248,7 +2239,7 @@ var DataProperty = (function () {
         if (this.complexTypeName) {
             this.isComplexProperty = true;
             this.dataType = null;
-        } else if (typeof(this.dataType) == &quot;string&quot; ) {
+        } else if (typeof(this.dataType) === &quot;string&quot; ) {
             var dt = DataType.fromName(this.dataType);
             if (!dt) {
                 throw new Error(&quot;Unable to find a DataType enumeration by the name of: &quot; + this.dataType);
@@ -2282,8 +2273,6 @@ var DataProperty = (function () {
     };
     var proto = ctor.prototype;
     proto._$typeName = &quot;DataProperty&quot;;
-
-    
 
     &#x2F;**
     The name of this property
@@ -2418,10 +2407,8 @@ var DataProperty = (function () {
             validators: null,
             enumType: null,
             rawTypeName: null,
-            isScalar: null
+            isScalar: true
         });
-        
-        
     };
 
     ctor.fromJSON = function(json) {
@@ -2438,7 +2425,6 @@ var DataProperty = (function () {
         return new DataProperty(json);
     };
 
-    
     return ctor;
 })();
   

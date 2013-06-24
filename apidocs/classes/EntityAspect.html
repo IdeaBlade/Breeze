@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
             </ul>
@@ -306,6 +308,13 @@ var currentState = aspect.entityState;
                         
                             <li class="index-item method">
                                 <a href="#method_setDeleted">setDeleted</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_setDetached">setDetached</a>
 
                                 
                                 
@@ -528,7 +537,7 @@ had 'acceptChanges' called on it.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l474"><code>a30_entityAspect.js:474</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l504"><code>a30_entityAspect.js:504</code></a>
         
         </p>
 
@@ -605,7 +614,7 @@ had 'acceptChanges' called on it.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l500"><code>a30_entityAspect.js:500</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l530"><code>a30_entityAspect.js:530</code></a>
         
         </p>
 
@@ -788,7 +797,7 @@ var entityKey = order.entityAspect.getKey();
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l441"><code>a30_entityAspect.js:441</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l471"><code>a30_entityAspect.js:471</code></a>
         
         </p>
 
@@ -926,7 +935,7 @@ var orderDateErrors = order.entityAspect.getValidationErrors(orderDateProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l324"><code>a30_entityAspect.js:324</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l354"><code>a30_entityAspect.js:354</code></a>
         
         </p>
 
@@ -1147,7 +1156,7 @@ had 'rejectChanges' called on it.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l486"><code>a30_entityAspect.js:486</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l516"><code>a30_entityAspect.js:516</code></a>
         
         </p>
 
@@ -1240,7 +1249,7 @@ had 'rejectChanges' called on it.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l302"><code>a30_entityAspect.js:302</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l308"><code>a30_entityAspect.js:308</code></a>
         
         </p>
 
@@ -1267,6 +1276,71 @@ but also removes the entity from all of its related entities.</p>
                 <pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
 order.entityAspect.setDeleted();
 // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities. 
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_setDetached" class="method item">
+    <h3 class="name"><code>setDetached</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l332"><code>a30_entityAspect.js:332</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Sets the entity to an EntityState of 'Detached'.  This removes the entity from all of its related entities, but does NOT change the EntityState of any existing entities.</p>
+    </div>
+
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>// assume order is an order entity attached to an EntityManager.
+order.entityAspect.setDetached();
+// The 'order' entity will now be in a 'Detached' state and it will no longer have any 'related' entities. 
 </code></pre>
             </div>
         </div>
@@ -1306,7 +1380,7 @@ order.entityAspect.setDeleted();
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l289"><code>a30_entityAspect.js:289</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l295"><code>a30_entityAspect.js:295</code></a>
         
         </p>
 
@@ -1371,7 +1445,7 @@ order.entityAspect.setModified();
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l251"><code>a30_entityAspect.js:251</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l256"><code>a30_entityAspect.js:256</code></a>
         
         </p>
 
@@ -1440,7 +1514,7 @@ order.entityAspect.setModified();
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l351"><code>a30_entityAspect.js:351</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l381"><code>a30_entityAspect.js:381</code></a>
         
         </p>
 
@@ -1543,7 +1617,7 @@ if (!isOk) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l404"><code>a30_entityAspect.js:404</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l434"><code>a30_entityAspect.js:434</code></a>
         
         </p>
 

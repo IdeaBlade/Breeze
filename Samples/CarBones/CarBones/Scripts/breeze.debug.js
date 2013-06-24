@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.3.5",
+        version: "1.3.6",
         metadataVersion: "1.0.5"
     };
 
@@ -205,16 +205,20 @@ function __arrayIndexOf(array, predicate) {
     return -1;
 }
 
-function __arrayRemoveItem(array, predicateOrItem) {
+function __arrayRemoveItem(array, predicateOrItem, shouldRemoveMultiple) {
     var predicate = __isFunction(predicateOrItem) ? predicateOrItem : undefined;
-    var l = array.length;
-    for (var index = 0; index < l; index++) {
-        if (predicate ? predicate(array[index]) : (array[index] === predicateOrItem)) {
-            array.splice(index, 1);
-            return index;
+    var lastIx = array.length-1;
+    var removed = false;
+    for (var i = lastIx; i >= 0; i--) {
+        if (predicate ? predicate(array[i]) : (array[i] === predicateOrItem)) {
+            array.splice(i, 1);
+            removed = true;
+            if (!shouldRemoveMultiple) {
+                return removed;
+            }
         }
     }
-    return -1;
+    return removed;
 }
 
 function __arrayZip(a1, a2, callback) {
@@ -292,17 +296,30 @@ function __requireLib(libNames, errMessage) {
         var lib = __requireLibCore(arrNames[i]);
         if (lib) return lib;
     }
-    throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
+    if (errMessage) {
+        throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
+    }
 }
     
 function __requireLibCore(libName) {
-    var lib = window[libName];
-    if (lib) return lib;
-    if (window.require) {
-        lib = window.require(libName);
+    var lib;
+    try {
+        if (this.window) {
+            var window = this.window;
+            lib = window[libName];
+            if (lib) return lib;
+            if (window.require) {
+                lib = window.require(libName);
+            }
+            if (lib) return lib;
+        }
+        if (require) {
+            lib = require(libName);
+        }
+    } catch(e) {
+
     }
-    if (lib) return lib;
-    return null;
+    return lib;
 }
 
 function __using(obj, property, tempValue, fn) {
@@ -355,7 +372,9 @@ function __memoize(fn) {
 }
 
 function __getUuid() {
+
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        //noinspection NonShortCircuitBooleanExpressionJS
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
@@ -493,7 +512,7 @@ core.propEq = __propEq;
 core.pluck  = __pluck;
 
 core.arrayEquals = __arrayEquals;
-// core.arrayDistint = __arrayDistinct;
+// core.arrayDistinct = __arrayDistinct;
 core.arrayFirst = __arrayFirst;
 core.arrayIndexOf = __arrayIndexOf;
 core.arrayRemoveItem = __arrayRemoveItem;
@@ -888,7 +907,7 @@ core.assertConfig = assertConfig;
  @module core
  **/
 
-var Enum = function() {
+var Enum = (function() {
 
     // TODO: think about CompositeEnum (flags impl).
 
@@ -1074,7 +1093,7 @@ var Enum = function() {
         var result = [];
         for (var key in this) {
             if (this.hasOwnProperty(key)) {
-                if (key != "name" && key.substr(0, 1) !== "_" && !__isFunction(this[key])) {
+                if (key !== "name" && key.substr(0, 1) !== "_" && !__isFunction(this[key])) {
                     result.push(key);
                 }
             }
@@ -1154,7 +1173,7 @@ var Enum = function() {
     };
 
     return ctor;
-}();
+})();
 core.Enum = Enum;
 
 
@@ -1203,7 +1222,7 @@ var Event = (function() {
     @example
         // Assume 'salaryEvent' is previously constructed Event
         salaryEvent.publish( { eventType: "payRaise", amount: 100 });
-    This event can also be published asychonously
+    This event can also be published asychronously
     @example
         salaryEvent.publish( { eventType: "payRaise", amount: 100 }, true);
     And we can add a handler in case the subscriber 'mishandles' the event.
@@ -1500,8 +1519,8 @@ var __config = (function () {
 
     __config.interfaceRegistry.modelLibrary.getDefaultInstance = function() {
         if (!this.defaultInstance) {
-            throw new Error("Unable to locate the default implementation of the '" + this.name
-                + "' interface.  Possible options are 'ko', 'backingStore' or 'backbone'. See the breeze.config.initializeAdapterInstances method.");
+            throw new Error("Unable to locate the default implementation of the '" + this.name +
+                "' interface.  Possible options are 'ko', 'backingStore' or 'backbone'. See the breeze.config.initializeAdapterInstances method.");
         }
         return this.defaultInstance;
     };
@@ -1741,11 +1760,170 @@ var __modelLibraryDef = __config.interfaceRegistry.modelLibrary;
 core.config = __config;
 
 breeze.config = __config;
+
+var observableArray = (function() {
+
+    var mixin = {};
+    mixin.push = function() {
+        if (this._inProgress) {
+            return -1;
+        }
+
+        var goodAdds = this._getGoodAdds(__arraySlice(arguments));
+        if (!goodAdds.length) {
+            return this.length;
+        }
+        this._beforeChange();
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    };
+
+    mixin._push = function () {
+        if (this._inProgress) {
+            return -1;
+        }
+        var goodAdds = __arraySlice(arguments);
+        this._beforeChange();
+        var result = Array.prototype.push.apply(this, goodAdds);
+        processAdds(this, goodAdds);
+        return result;
+    };
+
+    mixin.unshift = function () {
+        var goodAdds = this._getGoodAdds( __arraySlice(arguments));
+        if (!goodAdds.length) {
+            return this.length;
+        }
+        this._beforeChange();
+        var result = Array.prototype.unshift.apply(this, goodAdds);
+        processAdds(this, __arraySlice(goodAdds));
+        return result;
+    };
+
+    mixin.pop = function () {
+        this._beforeChange();
+        var result = Array.prototype.pop.apply(this);
+        processRemoves(this, [result]);
+        return result;
+    };
+
+    mixin.shift = function () {
+        this._beforeChange();
+        var result = Array.prototype.shift.apply(this);
+        processRemoves(this, [result]);
+        return result;
+    };
+
+    mixin.splice = function () {
+        var goodAdds = this._getGoodAdds( __arraySlice(arguments, 2));
+        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
+        this._beforeChange();
+        var result = Array.prototype.splice.apply(this, newArgs);
+        processRemoves(this, result);
+
+        if (goodAdds.length) {
+            processAdds(this, goodAdds);
+        }
+        return result;
+    };
+
+    mixin.getEntityAspect = function() {
+        return this.parent.entityAspect || this.parent.complexAspect.getEntityAspect();
+    }
+
+    mixin._getEventParent = function () {
+        return this.getEntityAspect();
+    };
+
+    mixin._getPendingPubs = function () {
+        var em = this.getEntityAspect().entityManager;
+        return em && em._pendingPubs;
+    };
+
+    mixin._beforeChange = function() {
+        // default is to do nothing
+    };
+
+    function updateEntityState(obsArray) {
+        var entityAspect = obsArray.getEntityAspect();
+        if (entityAspect.entityState.isUnchanged()) {
+            entityAspect.setModified();
+        }
+        if (entityAspect.entityState.isModified() && !obsArray._origValues) {
+            obsArray._origValues = obsArray.slice(0);
+        }
+    }
+
+    function processAdds(obsArray, adds) {
+        obsArray._processAdds(adds);
+        // this is referencing the name of the method on the complexArray not the name of the event
+        //var args = { added: adds };
+        //args[obsArray._typeName] = obsArray;
+        publish(obsArray, "arrayChanged", { array: obsArray, added: adds });
+    }
+
+    function processRemoves(obsArray, removes) {
+        obsArray._processRemoves(removes);
+        // this is referencing the name of the method on the array not the name of the event
+        publish(obsArray, "arrayChanged", { array: obsArray, removed: removes });
+    }
+
+    function publish(publisher, eventName, eventArgs) {
+        var pendingPubs = publisher._getPendingPubs();
+        if (pendingPubs) {
+            if (!publisher._pendingArgs) {
+                publisher._pendingArgs = eventArgs;
+                pendingPubs.push(function() {
+                    publisher[eventName].publish(publisher._pendingArgs);
+                    publisher._pendingArgs = null;
+                });
+            } else {
+                combineArgs(publisher._pendingArgs, eventArgs);
+            }
+        } else {
+            publisher[eventName].publish(eventArgs);
+        }
+    }
+
+    function combineArgs(target, source) {
+        for (var key in source) {
+            if (key !== "array" && target.hasOwnProperty(key)) {
+                var sourceValue = source[key];
+                var targetValue = target[key];
+                if (targetValue) {
+                    if (!Array.isArray(targetValue)) {
+                        throw new Error("Cannot combine non array args");
+                    }
+                    Array.prototype.push.apply(targetValue, sourceValue);
+                } else {
+                    target[key] = sourceValue;
+                }
+            }
+        }
+    }
+
+    function initializeParent(obsArray, parent, parentProperty) {
+        obsArray.parent = parent;
+        obsArray.parentProperty = parentProperty;
+    }
+
+
+    return {
+        mixin: mixin,
+        publish: publish,
+        updateEntityState: updateEntityState,
+        initializeParent: initializeParent
+    };
+
+
+
+})();
 /**
 @module breeze
 **/
 
-var Validator = function () {
+var Validator = (function () {
 
     var INT16_MIN = -32768;
     var INT16_MAX = 32767;
@@ -1862,7 +2040,7 @@ var Validator = function () {
             
     validatorFn(value, context)
     @param validatorFn.value {Object} Value to be validated
-    @param validatorFn.context {Object} The same context object passed into the constructor with the following additonal properties if not 
+    @param validatorFn.context {Object} The same context object passed into the constructor with the following additional properties if not
     otherwise specified.
     @param validatorFn.context.value {Object} The value being validated.
     @param validatorFn.context.name {String} The name of the validator being executed.
@@ -1962,7 +2140,7 @@ var Validator = function () {
             var context = this.currentContext;
             var message = context.message;
             if (message) {
-                if (typeof (message) == "function") {
+                if (typeof (message) === "function") {
                     return message(context);
                 } else {
                     return message;
@@ -2085,7 +2263,7 @@ var Validator = function () {
     ctor.maxLength = function (context) {
         var valFn = function (v, ctx) {
             if (v == null) return true;
-            if (typeof (v) != "string") return false;
+            if (typeof (v) !== "string") return false;
             return v.length <= ctx.maxLength;
         };
         return new ctor("maxLength", valFn, context);
@@ -2110,7 +2288,7 @@ var Validator = function () {
     ctor.stringLength = function (context) {
         var valFn = function (v, ctx) {
             if (v == null) return true;
-            if (typeof (v) != "string") return false;
+            if (typeof (v) !== "string") return false;
             if (ctx.minLength != null && v.length < ctx.minLength) return false;
             if (ctx.maxLength != null && v.length > ctx.maxLength) return false;
             return true;
@@ -2395,11 +2573,11 @@ var Validator = function () {
     }
 
     return ctor;
-} ();
+}) ();
 
-var ValidationError = function () {
-        /**
-    A ValidatationError is used to describe a failed validation.
+var ValidationError = (function () {
+    /**
+    A ValidationError is used to describe a failed validation.
 
     @class ValidationError
     **/
@@ -2465,7 +2643,7 @@ var ValidationError = function () {
     };
 
     return ctor;
-}();
+})();
     
 breeze.Validator = Validator;
 breeze.ValidationError = ValidationError;
@@ -2598,12 +2776,21 @@ breeze.ValidationOptions = ValidationOptions;
 
 
 
-breeze.makeComplexArray = function() {
+breeze.makeComplexArray = (function() {
     var complexArrayMixin = {};
 
+    // complexArray will have the following props
+    //    parent
+    //    propertyPath
+    //    parentProperty
+    //    addedItems  - only if modified
+    //    removedItems  - only if modified
+    //  each complexAspect of any entity within a complexArray
+    //  will have its own _complexState = "A/M";
+
     /**
-    Complex arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of 
-    complexTypes associated with a data property on a single entity. i.e. customer.orders or order.orderDetails.
+    Complex arrays are not actually classes, they are objects that mimic arrays. A complex array is collection of 
+    complexTypes associated with a data property on a single entity or other complex object. i.e. customer.orders or order.orderDetails.
     This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
     are all provided as well as several special purpose methods. 
     @class ↈ_complexArray_
@@ -2627,141 +2814,96 @@ breeze.makeComplexArray = function() {
     @readOnly
     **/
 
-    complexArrayMixin.push = function() {
-        if (this._inProgress) {
-            return -1;
-        }
-
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
+    // virtual impls 
+    complexArrayMixin._getGoodAdds = function (adds) {
+        return getGoodAdds(this, adds);
     };
 
-
-    complexArrayMixin.unshift = function () {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-
-        var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, __arraySlice(goodAdds));
-        return result;
+    complexArrayMixin._beforeChange = function() {
+        observableArray.updateEntityState(this);
     };
 
-    complexArrayMixin.pop = function () {
-        var result = Array.prototype.pop.apply(this);
-        processRemoves(this, [result]);
-        return result;
+    complexArrayMixin._processAdds = function (adds) {
+        processAdds(this, adds);
     };
 
-    complexArrayMixin.shift = function () {
-        var result = Array.prototype.shift.apply(this);
-        processRemoves(this, [result]);
-        return result;
+    complexArrayMixin._processRemoves = function (removes) {
+        processRemoves(this, removes);
+    };
+    //
+
+    complexArrayMixin._rejectChanges = function() {
+        if (!this._origValues) return;
+        var that = this;
+        this.forEach(function(co) {
+            clearAspect(co, that);
+        });
+        this.length = 0;
+        this._origValues.forEach(function(co) {
+            that.push(co);
+        });
+        Array.prototype.push.apply(this, this._origValues);
     };
 
-    complexArrayMixin.splice = function () {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
-        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
+    complexArrayMixin._acceptChanges = function() {
+        this._origValues = null;
+    } ;
 
-        var result = Array.prototype.splice.apply(this, newArgs);
-        processRemoves(this, result);
+    // local functions
 
-        if (goodAdds.length) {
-            processAdds(this, goodAdds);
-        }
-        return result;
-    };
-
-  
-    complexArrayMixin._getEventParent = function () {
-        return this.parentEntity.entityAspect;
-    };
-
-    complexArrayMixin._getPendingPubs = function () {
-        var em = this.parentEntity.entityAspect.entityManager;
-        return em && em._pendingPubs;
-    };
 
     function getGoodAdds(complexArray, adds) {
-        var goodAdds = checkForDups(complexArray, adds);
-        if (!goodAdds.length) {
-            return goodAdds;
-        }
-     
-        return goodAdds;
-    }
-
-    function checkForDups(complexArray, adds) {
-        // don't allow dups in this array.
-        return adds;
-        
+        // remove any that are already added here
+        return adds.filter(function (a) {
+            return a.parent !== complexArray.parent;
+        });
     }
 
     function processAdds(complexArray, adds) {
-        // this is referencing the name of the method on the complexArray not the name of the event
-        publish(complexArray, "arrayChanged", { complexArray: complexArray, added: adds });
-
+        adds.forEach(function (a) {
+            if (a.parent != null) {
+                throw new Error("The complexObject is already attached. Either clone it or remove it from its current owner");
+            }
+            setAspect(a, complexArray);
+        });
     }
 
     function processRemoves(complexArray, removes) {
-        // this is referencing the name of the method on the relationArray not the name of the event
-        publish(complexArray, "arrayChanged", { complexArray: complexArray, removed: removes });
+        removes.forEach(function (a) {
+            clearAspect(a, complexArray);
+        });
     }
 
+    function clearAspect(co, arr) {
+        var coAspect = co.complexAspect;
+        // if not already attached - exit
+        if (coAspect.parent !== arr.parent) return null;
 
-    function publish(publisher, eventName, eventArgs) {
-        var pendingPubs = publisher._getPendingPubs();
-        if (pendingPubs) {
-            if (!publisher._pendingArgs) {
-                publisher._pendingArgs = eventArgs;
-                pendingPubs.push(function() {
-                    publisher[eventName].publish(publisher._pendingArgs);
-                    publisher._pendingArgs = null;
-                });
-            } else {
-                combineArgs(publisher._pendingArgs, eventArgs);
-            }
-        } else {
-            publisher[eventName].publish(eventArgs);
-        }
+        coAspect.parent = null;
+        coAspect.parentProperty = null;
+        return coAspect;
     }
 
-    function combineArgs(target, source) {
-        for (var key in source) {
-            if (key !== "complexArray" && target.hasOwnProperty(key)) {
-                var sourceValue = source[key];
-                var targetValue = target[key];
-                if (targetValue) {
-                    if (!Array.isArray(targetValue)) {
-                        throw new Error("Cannot combine non array args");
-                    }
-                    Array.prototype.push.apply(targetValue, sourceValue);
-                } else {
-                    target[key] = sourceValue;
-                }
-            }
-        }
+    function setAspect(co, arr) {
+        var coAspect = co.complexAspect;
+        // if already attached - exit
+        if (coAspect.parent === arr.parent) return null;
+        coAspect.parent = arr.parent;
+        coAspect.parentProperty = arr.parentProperty;
+
+        return coAspect;
     }
 
- 
+    function makeComplexArray(arr, parent, parentProperty) {
 
-    function makeComplexArray(arr, parentEntity, complexProperty) {
-        arr.parentEntity = parentEntity;
-        arr.complexProperty = complexProperty;
-        arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
-        // array of pushes currently in process on this relation array - used to prevent recursion.
-        arr._addsInProcess = [];
+        observableArray.initializeParent(arr, parent, parentProperty);
+        arr.arrayChanged = new Event("arrayChanged_complexArray", arr);
+        __extend(arr, observableArray.mixin);
         return __extend(arr, complexArrayMixin);
     }
 
     return makeComplexArray;
-}();
+})();
 /**
 @module breeze   
 **/
@@ -2902,7 +3044,7 @@ breeze.EntityAction= EntityAction;
 @module breeze   
 **/
 
-var EntityAspect = function() {
+var EntityAspect = (function() {
     /**
     An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property. 
         
@@ -3116,7 +3258,7 @@ var EntityAspect = function() {
             rejectChangesCore(entity);
         });
         if (this.entityState.isAdded()) {
-            // next line is needed becuase the following line will cause this.entityManager -> null;
+            // next line is needed because the following line will cause this.entityManager -> null;
             entityManager.detachEntity(entity);
             // need to tell em that an entity that needed to be saved no longer does.
             entityManager._notifyStateChange(entity, false);
@@ -3139,13 +3281,18 @@ var EntityAspect = function() {
             target.setProperty(propName, originalValues[propName]);
         }
         stype.complexProperties.forEach(function(cp) {
-            var next = target.getProperty(cp.name);
+            var cos = target.getProperty(cp.name);
             if (cp.isScalar) {
-                rejectChangesCore(next);
+                rejectChangesCore(cos);
             } else {
-                next.forEach(function (t) { rejectChangesCore(t); });
+                cos._rejectChanges();
+                cos.forEach(function (co) { rejectChangesCore(co); });
             }
         });
+    }
+
+    proto.getPropertyPath = function(propName) {
+        return propName;
     }
 
     /**
@@ -3168,11 +3315,12 @@ var EntityAspect = function() {
         aspect.originalValues = {};
         var stype = target.entityType || target.complexType;
         stype.complexProperties.forEach(function (cp) {
-            var next = target.getProperty(cp.name);
+            var cos = target.getProperty(cp.name);
             if (cp.isScalar) {
-                clearOriginalValues(next);
+                clearOriginalValues(cos);
             } else {
-                next.forEach(function (t) { clearOriginalValues(t); });
+                cos._acceptChanges();
+                cos.forEach(function (co) { clearOriginalValues(co); });
             }
         });
     }
@@ -3210,16 +3358,40 @@ var EntityAspect = function() {
     **/
     proto.setDeleted = function() {
         var em = this.entityManager;
+        var entity = this.entity;
         if (this.entityState.isAdded()) {
-            em.detachEntity(this.entity);
-            em._notifyStateChange(this.entity, false);
+            em.detachEntity(entity);
+            em._notifyStateChange(entity, false);
         } else {
             this.entityState = EntityState.Deleted;
-            this._removeFromRelations();
-            em._notifyStateChange(this.entity, true);
+            removeFromRelations(entity, EntityState.Deleted);
+            em._notifyStateChange(entity, true);
         }
         // TODO: think about cascade deletes
     };
+
+
+    /**
+    Sets the entity to an EntityState of 'Detached'.  This removes the entity from all of its related entities, but does NOT change the EntityState of any existing entities. 
+    @example
+        // assume order is an order entity attached to an EntityManager.
+        order.entityAspect.setDetached();
+        // The 'order' entity will now be in a 'Detached' state and it will no longer have any 'related' entities. 
+    @method setDetached
+    **/
+    proto.setDetached = function () {
+        var group = this.entityGroup;
+        if (!group) {
+            // no group === already detached.
+            return false;
+        }
+        var entity = this.entity;
+        group.detachEntity(entity);
+        removeFromRelations(entity, EntityState.Detached);
+        this.entityManager.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
+        this._detach();
+        return true;
+    }
 
     /**
     Performs a query for the value of a specified {{#crossLink "NavigationProperty"}}{{/crossLink}}.
@@ -3274,11 +3446,11 @@ var EntityAspect = function() {
         var ok = true;
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
-        var entityAspect = target.entityAspect || target.complexAspect.entityAspect;
+        var entityAspect = target.entityAspect || target.complexAspect.getEntityAspect();
             
         stype.getProperties().forEach(function (p) {
             var value = target.getProperty(p.name);
-            var propName = aspect.propertyPath ? aspect.propertyPath + "." + p.name : p.name;
+            var propName = aspect.getPropertyPath(p.name);
             if (p.validators.length > 0) {
                 var context = { entity: entityAspect.entity, property: p, propertyName: propName };
                 ok = entityAspect._validateProperty(value, context) && ok;
@@ -3442,7 +3614,7 @@ var EntityAspect = function() {
         } else {
             if (!(property.parentType instanceof EntityType)) {
                 throw new Error("The validateProperty method does not accept a 'property' parameter whose parentType is a ComplexType; " +
-                    "Pass a 'property path' string as the 'property' paramter instead ");
+                    "Pass a 'property path' string as the 'property' parameter instead ");
             }
             value = this.entity.getProperty(property.name);
         }
@@ -3461,43 +3633,7 @@ var EntityAspect = function() {
         this.validationErrorsChanged.clear();
         this.propertyChanged.clear();
     };
-
-    proto._removeFromRelations = function () {
-        var entity = this.entity;
-
-        // remove this entity from any collections.
-        // mark the entity deleted
-        entity.entityType.navigationProperties.forEach(function (np) {
-            var inverseNp = np.inverse;
-            if (!inverseNp) return;
-            var npValue = entity.getProperty(np.name);
-            if (np.isScalar) {
-                if (npValue) {
-                    if (inverseNp.isScalar) {
-                        npValue.setProperty(inverseNp.name, null);
-                    } else {
-                        var collection = npValue.getProperty(inverseNp.name);
-                        if (collection.length) {
-                            __arrayRemoveItem(collection, entity);
-                        }
-                    }
-                    entity.setProperty(np.name, null);
-                }
-            } else {
-                // npValue is a live list so we need to copy it first.
-                npValue.slice(0).forEach(function (v) {
-                    if (inverseNp.isScalar) {
-                        v.setProperty(inverseNp.name, null);
-                    } else {
-                        // TODO: many to many - not yet handled.
-                    }
-                });
-                // now clear it.
-                npValue.length = 0;
-            }
-        });
-
-    };
+    
 
     // called from defaultInterceptor.
     proto._validateProperty = function (value, context) {
@@ -3541,6 +3677,77 @@ var EntityAspect = function() {
         }
     };
 
+    function removeFromRelations(entity, entityState) {
+        // remove this entity from any collections.
+        // mark the entity deleted or detached
+
+        var isDeleted = entityState.isDeleted();
+        if (isDeleted) {
+            removeFromRelationsCore(entity, true);
+        } else {
+            __using(entity.entityAspect.entityManager, "isLoading", true, function () {
+                removeFromRelationsCore(entity, false)
+            });
+        }
+    }
+
+    function removeFromRelationsCore(entity, isDeleted) {
+        entity.entityType.navigationProperties.forEach(function (np) {
+            var inverseNp = np.inverse;
+            if (!inverseNp) return;
+            var npValue = entity.getProperty(np.name);
+            if (np.isScalar) {
+                if (npValue) {
+                    if (inverseNp.isScalar) {
+                        clearNp(npValue, inverseNp, isDeleted);
+                    } else {
+                        var collection = npValue.getProperty(inverseNp.name);
+                        if (collection.length) {
+                            __arrayRemoveItem(collection, entity);
+                        }
+                    }
+                    entity.setProperty(np.name, null);
+                }
+            } else {
+                // npValue is a live list so we need to copy it first.
+                npValue.slice(0).forEach(function (v) {
+                    if (inverseNp.isScalar) {
+                        clearNp(v, inverseNp, isDeleted);
+                    } else {
+                        // TODO: many to many - not yet handled.
+                    }
+                });
+                // now clear it.
+                npValue.length = 0;
+            }
+        });
+
+    };
+
+    function clearNp(entity, np, relatedIsDeleted) {
+        if (relatedIsDeleted) {
+            entity.setProperty(np.name, null);
+        } else {
+            // relatedEntity was detached.
+            // need to clear child np without clearing child fk or changing the entityState of the child
+            var em = entity.entityAspect.entityManager;
+
+            var fkNames = np.foreignKeyNames;
+            if (fkNames) {
+                var fkVals = fkNames.map(function (fkName) {
+                    return entity.getProperty(fkName);
+                });
+            }
+            entity.setProperty(np.name, null);
+            if (fkNames) {
+                fkNames.forEach(function (fkName, i) {
+                    entity.setProperty(fkName, fkVals[i])
+                });
+            }
+
+        }
+    }
+
     function validate(aspect, validator, value, context) {
         var ve = validator.validate(value, context);
         if (ve) {
@@ -3554,9 +3761,9 @@ var EntityAspect = function() {
 
     return ctor;
 
-}();
+})();
 
-var ComplexAspect = function() {
+var ComplexAspect = (function() {
         
     /**
     An ComplexAspect instance is associated with every complex object instance and is accessed via the complex object's 'complexAspect' property. 
@@ -3592,19 +3799,9 @@ var ComplexAspect = function() {
         this.originalValues = {};
 
         // if a standalone complexObject
-        if (parent == null) {
-            this.entityAspect = new EntityAspect(null);
-        } else {
+        if (parent != null) {
             this.parent = parent;
             this.parentProperty = parentProperty;
-            this.propertyPath = parentProperty;
-            // get the final parent's entityAspect.
-            var nextParent = parent;
-            while (nextParent.complexType) {
-                this.propertyPath = nextParent.complexAspect.propertyPath + "." + this.propertyPath;
-                nextParent = nextParent.complexAspect.parent;
-            }
-            this.entityAspect = nextParent.entityAspect;
         }
 
         var complexType = complexObject.complexType;
@@ -3621,7 +3818,8 @@ var ComplexAspect = function() {
 
     };
     var proto = ctor.prototype;
-        
+
+
     /**
     The complex object that this aspect is associated with.
 
@@ -3665,6 +3863,24 @@ var ComplexAspect = function() {
     @property originalValues {Object}
     **/
 
+    proto.getEntityAspect = function() {
+        var parent = this.parent;
+        if (!parent) return new EntityAspect(null);
+        var entityAspect = parent.entityAspect;
+        while (parent && !entityAspect) {
+            parent = parent.complexAspect && parent.complexAspect.parent;
+            entityAspect = parent && parent.entityAspect;
+        }
+        return entityAspect || new EntityAspect(null);
+    }
+
+    proto.getPropertyPath = function(propName) {
+        var parent = this.parent;
+        if (!parent) return null;
+        var aspect = parent.complexAspect || parent.entityAspect;
+        return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
+    }
+
     proto._postInitialize = function() {
         var co = this.complexObject;
         var aCtor = co.complexType.getCtor();
@@ -3680,7 +3896,8 @@ var ComplexAspect = function() {
 
     return ctor;
 
-}();
+})();
+
 
 breeze.EntityAspect= EntityAspect;
 breeze.ComplexAspect= ComplexAspect;
@@ -3827,6 +4044,8 @@ var EntityKey = (function () {
     proto._isEmpty = function () {
         return this.values.join("").length === 0;
     };
+
+    ctor.createKeyString = createKeyString;
 
     function createKeyString(keyValues) {
         return keyValues.join(ENTITY_KEY_DELIMITER);
@@ -3980,7 +4199,93 @@ var EntityState = (function () {
    
 breeze.EntityState= EntityState;
 
-breeze.makeRelationArray = function() {
+breeze.makePrimitiveArray = (function() {
+    var primitiveArrayMixin = {};
+
+    // complexArray will have the following props
+    //    parent
+    //    propertyPath
+    //    parentProperty
+    //    addedItems  - only if modified
+    //    removedItems  - only if modified
+    //  each complexAspect of any entity within a complexArray
+    //  will have its own _complexState = "A/M";
+
+    /**
+    Primitive arrays are not actually classes, they are objects that mimic arrays. A primitive array is collection of
+    primitive types associated with a data property on a single entity or complex object. i.e. customer.invoiceNumbers.
+    This collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'
+    are all provided as well as several special purpose methods. 
+    @class ↈ_primitiveArray_
+    **/
+
+    /**
+    An {{#crossLink "Event"}}{{/crossLink}} that fires whenever the contents of this array changed.  This event
+    is fired any time a new entity is attached or added to the EntityManager and happens to belong to this collection.
+    Adds that occur as a result of query or import operations are batched so that all of the adds or removes to any individual
+    collections are collected into a single notification event for each relation array.
+    @example
+        // assume order is an order entity attached to an EntityManager.
+        orders.arrayChanged.subscribe(
+            function (arrayChangedArgs) {
+                var addedEntities = arrayChangedArgs.added;
+                var removedEntities = arrayChanged.removed;
+            });
+    @event arrayChanged 
+    @param added {Array of Primitives} An array of all of the items added to this collection.
+    @param removed {Array of Primitives} An array of all of the items removed from this collection.
+    @readOnly
+    **/
+
+    // virtual impls 
+    primitiveArrayMixin._getGoodAdds = function (adds) {
+        return adds;
+    };
+
+    primitiveArrayMixin._beforeChange = function() {
+        var entityAspect = this.getEntityAspect();
+        if (entityAspect.entityState.isUnchanged()) {
+            entityAspect.setModified();
+        }
+        if (entityAspect.entityState.isModified() && !this._origValues) {
+            this._origValues = this.slice(0);
+        }
+    };
+
+    primitiveArrayMixin._processAdds = function (adds) {
+        // nothing needed
+    };
+
+    primitiveArrayMixin._processRemoves = function (removes) {
+        // nothing needed;
+    };
+    //
+
+    primitiveArrayMixin._rejectChanges = function() {
+        if (!this._origValues) return;
+        this.length = 0;
+        Array.prototype.push.apply(this, this._origValues);
+    };
+
+    primitiveArrayMixin._acceptChanges = function() {
+        this._origValues = null;
+    };
+
+    // local functions
+
+    function makePrimitiveArray(arr, parent, parentProperty) {
+
+        observableArray.initializeParent(arr, parent, parentProperty);
+        arr.arrayChanged = new Event("arrayChanged_primitiveArray", arr);
+        __extend(arr, observableArray.mixin);
+        return __extend(arr, primitiveArrayMixin);
+    }
+
+    return makePrimitiveArray;
+})();
+
+breeze.makeRelationArray = (function() {
+
     var relationArrayMixin = {};
 
     /**
@@ -4009,67 +4314,6 @@ breeze.makeRelationArray = function() {
     @readOnly
     **/
 
-    relationArrayMixin.push = function() {
-        if (this._inProgress) {
-            return -1;
-        }
-
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
-    };
-
-    relationArrayMixin._push = function () {
-        if (this._inProgress) {
-            return -1;
-        }
-        var goodAdds = __arraySlice(arguments);
-
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
-    }
-
-
-    relationArrayMixin.unshift = function() {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-
-        var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, __arraySlice(goodAdds));
-        return result;
-    };
-
-    relationArrayMixin.pop = function() {
-        var result = Array.prototype.pop.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    relationArrayMixin.shift = function() {
-        var result = Array.prototype.shift.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    relationArrayMixin.splice = function() {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
-        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
-
-        var result = Array.prototype.splice.apply(this, newArgs);
-        processRemoves(this, result);
-
-        if (goodAdds.length) {
-            processAdds(this, goodAdds);
-        }
-        return result;
-    };
 
     /**
     Performs an asynchronous load of all other the entities associated with this relationArray.
@@ -4098,6 +4342,20 @@ breeze.makeRelationArray = function() {
         return em && em._pendingPubs;
     };
 
+    // virtual impls 
+    relationArrayMixin._getGoodAdds = function(adds) {
+        return getGoodAdds(this, adds);
+    };
+
+    relationArrayMixin._processAdds = function(adds) {
+        processAdds(this, adds);
+    };
+
+    relationArrayMixin._processRemoves = function(removes)  {
+        processRemoves(this, removes);
+    };
+    //
+
     function getGoodAdds(relationArray, adds) {
         var goodAdds = checkForDups(relationArray, adds);
         if (!goodAdds.length) {
@@ -4108,7 +4366,7 @@ breeze.makeRelationArray = function() {
         // we do not want to attach an entity during loading
         // because these will all be 'attached' at a later step.
         if (entityManager && !entityManager.isLoading) {
-            goodAdds.forEach(function(add) {
+            goodAdds.forEach(function (add) {
                 if (add.entityAspect.entityState.isDetached()) {
                     relationArray._inProgress = true;
                     try {
@@ -4122,52 +4380,15 @@ breeze.makeRelationArray = function() {
         return goodAdds;
     }
 
-    function checkForDups(relationArray, adds) {
-        // don't allow dups in this array. - also prevents recursion 
-        var parentEntity = relationArray.parentEntity;
-        var navProp = relationArray.navigationProperty;
-        var inverseProp = navProp.inverse;
-        if (inverseProp) {
-            var goodAdds = adds.filter(function (a) {
-                if (relationArray._addsInProcess.indexOf(a) >= 0) {
-                    return false;
-                }
-                var inverseValue = a.getProperty(inverseProp.name);
-                return inverseValue !== parentEntity;
-            });
-        } else {
-            // This occurs with a unidirectional 1->N relation ( where there is no n -> 1)
-            // in this case we compare fks.
-            var fkPropNames = navProp.invForeignKeyNames;
-            var keyProps = parentEntity.entityType.keyProperties;
-            var goodAdds = adds.filter(function (a) {
-                if (relationArray._addsInProcess.indexOf(a) >= 0) {
-                    return false;
-                }
-                return fkPropNames.some(function (fk, i) {
-                    var keyProp = keyProps[i].name;
-                    var keyVal = parentEntity.getProperty(keyProp);
-                    var fkVal = a.getProperty(fk);
-                    return keyVal !== fkVal;
-                });
-            });
-            // unidirectional navigation defined where 1->N but NOT N->1 ( fairly rare use case)
-            // TODO: This is not complete. We really do need to elim dups.
-            // throw new Error("Breeze does not YET support unidirectional navigation where navigation is only defined in the 1 -> n direction.  Unidirectional navigation in the opposite direction is supported.");
-        }
-        return goodAdds;
-    }
-
-
     function processAdds(relationArray, adds) {
         var parentEntity = relationArray.parentEntity;
         var np = relationArray.navigationProperty;
-        var invNp = np.inverse;
-        
         var addsInProcess = relationArray._addsInProcess;
+
+        var invNp = np.inverse;
         var startIx = addsInProcess.length;
         try {
-            adds.forEach(function(childEntity) {
+            adds.forEach(function (childEntity) {
                 addsInProcess.push(childEntity);
                 if (invNp) {
                     childEntity.setProperty(invNp.name, parentEntity);
@@ -4183,57 +4404,51 @@ breeze.makeRelationArray = function() {
         } finally {
             addsInProcess.splice(startIx, adds.length);
         }
-        
-        // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { relationArray: relationArray, added: adds });
 
-    }
-
-    function publish(publisher, eventName, eventArgs) {
-        var pendingPubs = publisher._getPendingPubs();
-        if (pendingPubs) {
-            if (!publisher._pendingArgs) {
-                publisher._pendingArgs = eventArgs;
-                pendingPubs.push(function() {
-                    publisher[eventName].publish(publisher._pendingArgs);
-                    publisher._pendingArgs = null;
-                });
-            } else {
-                combineArgs(publisher._pendingArgs, eventArgs);
-            }
-        } else {
-            publisher[eventName].publish(eventArgs);
-        }
-    }
-
-    function combineArgs(target, source) {
-        for (var key in source) {
-            if (key !== "relationArray" && target.hasOwnProperty(key)) {
-                var sourceValue = source[key];
-                var targetValue = target[key];
-                if (targetValue) {
-                    if (!Array.isArray(targetValue)) {
-                        throw new Error("Cannot combine non array args");
-                    }
-                    Array.prototype.push.apply(targetValue, sourceValue);
-                } else {
-                    target[key] = sourceValue;
-                }
-            }
-        }
     }
 
     function processRemoves(relationArray, removes) {
         var inp = relationArray.navigationProperty.inverse;
         if (inp) {
-            removes.forEach(function(childEntity) {
+            removes.forEach(function (childEntity) {
                 childEntity.setProperty(inp.name, null);
             });
         }
-        // this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, "arrayChanged", { relationArray: relationArray, removed: removes });
     }
 
+    function checkForDups(relationArray, adds) {
+        // don't allow dups in this array. - also prevents recursion 
+        var parentEntity = relationArray.parentEntity;
+        var navProp = relationArray.navigationProperty;
+        var inverseProp = navProp.inverse;
+        var goodAdds;
+        if (inverseProp) {
+            goodAdds = adds.filter(function (a) {
+                if (relationArray._addsInProcess.indexOf(a) >= 0) {
+                    return false;
+                }
+                var inverseValue = a.getProperty(inverseProp.name);
+                return inverseValue !== parentEntity;
+            });
+        } else {
+            // This occurs with a unidirectional 1->N relation ( where there is no n -> 1)
+            // in this case we compare fks.
+            var fkPropNames = navProp.invForeignKeyNames;
+            var keyProps = parentEntity.entityType.keyProperties;
+            goodAdds = adds.filter(function (a) {
+                if (relationArray._addsInProcess.indexOf(a) >= 0) {
+                    return false;
+                }
+                return fkPropNames.some(function (fk, i) {
+                    var keyProp = keyProps[i].name;
+                    var keyVal = parentEntity.getProperty(keyProp);
+                    var fkVal = a.getProperty(fk);
+                    return keyVal !== fkVal;
+                });
+            });
+        }
+        return goodAdds;
+    }
 
     function makeRelationArray(arr, parentEntity, navigationProperty) {
         arr.parentEntity = parentEntity;
@@ -4241,11 +4456,13 @@ breeze.makeRelationArray = function() {
         arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
         // array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
+        // need to use mixins here instead of inheritance because we are starting from an existing array object.
+        __extend(arr, observableArray.mixin);
         return __extend(arr, relationArrayMixin);
     }
 
     return makeRelationArray;
-}();
+})();
 
 function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     // 'this' is the entity itself in this context.
@@ -4256,7 +4473,11 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     var dataType = property.dataType;
     if (dataType && dataType.parse) {
         // attempts to coerce a value to the correct type - if this fails return the value unchanged
-        newValue = dataType.parse(newValue, typeof newValue);
+        if (Array.isArray(newValue) && !property.isScalar) {
+            newValue = newValue.map(function(nv) { return dataType.parse(nv, typeof nv); });
+        } else {
+            newValue = dataType.parse(newValue, typeof newValue);
+        }
     }
 
     // exit if no change - extra cruft is because dateTimes don't compare cleanly.
@@ -4267,27 +4488,20 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     var that = this;
     // need 2 propNames here because of complexTypes;
     var propName = property.name;
-    var propPath;
 
+    var localAspect, key, relatedEntity;
     // CANNOT DO NEXT LINE because it has the possibility of creating a new property
     // 'entityAspect' on 'this'.  - Not permitted by IE inside of a defined property on a prototype.
     // var entityAspect = new EntityAspect(this);
 
     var entityAspect = this.entityAspect;
-    var localAspect;
-        
     if (entityAspect) {
         localAspect = entityAspect;
-        propPath = propName;
     } else {
         localAspect = this.complexAspect;
-        entityAspect = localAspect.entityAspect;
-        // if complexType is standalone - i.e. doesn't have a pareent - don't try to calc a fullPropName;
-        propPath = (localAspect.parent) ?
-            localAspect.propertyPath + "." + propName :
-            propName;
+        entityAspect = localAspect.getEntityAspect();
     }
-        
+    var propPath = localAspect.getPropertyPath(propName);
         
     // Note that we need to handle multiple properties in process, not just one in order to avoid recursion. 
     // ( except in the case of null propagation with fks where null -> 0 in some cases.)
@@ -4337,16 +4551,21 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     oldValue.setProperty(pn, nv);
                 });
             } else {
-                throw new Error(__formatString("You cannot set a non-scalar complex property: '%1'", property.name));
+                throw new Error(__formatString("You cannot set the non-scalar complex property: '%1' on the type: '%2'." +
+                    "Instead get the property and use array functions like 'push' or 'splice' to change its contents.",
+                    property.name, property.parentType.name));
             }
 
         } else if (property.isDataProperty) {
-            
+            if (!property.isScalar) {
+                throw new Error("Nonscalar data properties are readonly - items may be added or removed but the collection may not be changed.");
+            }
+
             // if we are changing the key update our internal entityGroup indexes.
             if (property.isPartOfKey && (!this.complexAspect) && entityManager && !entityManager.isLoading) {
                 var keyProps = this.entityType.keyProperties;
                 var values = keyProps.map(function (p) {
-                    if (p == property) {
+                    if (p === property) {
                         return newValue;
                     } else {
                         return this.getProperty(p.name);
@@ -4377,8 +4596,8 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 //    ==> (see set navProp above)
                 
                 if (newValue != null) {
-                    var key = new EntityKey(relatedNavProp.entityType, [newValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
+                    key = new EntityKey(relatedNavProp.entityType, [newValue]);
+                    relatedEntity = entityManager.findEntityByKey(key);
 
                     if (relatedEntity) {
                         this.setProperty(relatedNavProp.name, relatedEntity);
@@ -4404,13 +4623,13 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 //                and
                 // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
                 // internationalOrder.orderId <- null
-                //    ==> lookupOrder(internationOrder.oldOrderId).internationalOrder = null;
+                //    ==> lookupOrder(internationalOrder.oldOrderId).internationalOrder = null;
 
                 var invNavProp = property.inverseNavigationProperty;
 
                 if (oldValue != null) {
-                    var key = new EntityKey(invNavProp.parentType, [oldValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
+                    key = new EntityKey(invNavProp.parentType, [oldValue]);
+                    relatedEntity = entityManager.findEntityByKey(key);
                     if (relatedEntity) {
                         if (invNavProp.isScalar) {
                             relatedEntity.setProperty(invNavProp.name, null);
@@ -4424,8 +4643,8 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 }
 
                 if (newValue != null) {
-                    var key = new EntityKey(invNavProp.parentType, [newValue]);
-                    var relatedEntity = entityManager.findEntityByKey(key);
+                    key = new EntityKey(invNavProp.parentType, [newValue]);
+                    relatedEntity = entityManager.findEntityByKey(key);
 
                     if (relatedEntity) {
                         if (invNavProp.isScalar) {
@@ -4517,7 +4736,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 if (inverseProp.isScalar) {
                     // Example: bidirectional navProperty: 1->1: order -> internationalOrder
                     // order.internationalOrder <- internationalOrder || null
-                    //    ==> (oldInternationOrder.order = null)
+                    //    ==> (oldInternationalOrder.order = null)
                     //    ==> internationalOrder.order = order
                     if (oldValue != null) {
                         // TODO: null -> NullEntity later
@@ -4567,7 +4786,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                     // orderDetail.order <-xxx newOrder
                     //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
                     if (oldValue != null) {
-                        invForeignKeyNames.forEach(function (fkName, i) {
+                        invForeignKeyNames.forEach(function (fkName) {
                             var fkProp = oldValue.entityType.getProperty(fkName);
                             if (!fkProp.isPartOfKey) {
                                 // don't update with null if fk is part of the key
@@ -4751,7 +4970,7 @@ var DataService = (function () {
         ds.jsonResultsAdapter = ds.jsonResultsAdapter || ds.adapterInstance.jsonResultsAdapter;
 
         return ds;
-    }
+    };
 
     function updateWithConfig(obj, config) {
         if (config) {
@@ -4784,7 +5003,7 @@ var DataService = (function () {
             adapterName: null,
             hasServerMetadata: null,
             jsonResultsAdapter: function (v) { return v && v.name; },
-            useJsonp: null,
+            useJsonp: null
         });       
     };
 
@@ -4860,7 +5079,7 @@ var JsonResultsAdapter = (function () {
     @param config.visitNode {Function} A visitor method that will be called on each node of the returned payload. 
     **/
     var ctor = function (config) {
-        if (arguments.length != 1) {
+        if (arguments.length !== 1) {
             throw new Error("The JsonResultsAdapter ctor should be called with a single argument that is a configuration object.");
         }
 
@@ -4890,7 +5109,7 @@ breeze.JsonResultsAdapter = JsonResultsAdapter;
   @module breeze
   **/
 
-var DataType = function () {
+var DataType = (function () {
   
     /**
     DataType is an 'Enum' containing all of the supported data types.
@@ -4917,7 +5136,7 @@ var DataType = function () {
         stringPrefix: "K_",
         nextNumber: -1,
         nextNumberIncrement: -1
-    }
+    };
 
     var getNextString = function () {
         return constants.stringPrefix + getNextNumber().toString();
@@ -4965,13 +5184,14 @@ var DataType = function () {
     };
 
     var coerceToDate = function (source, sourceTypeName) {
+        var val;
         if (sourceTypeName === "string") {
             var src = source.trim();
             if (src === "") return null;
-            var val = new Date(Date.parse(src));
+            val = new Date(Date.parse(src));
             return __isDate(val) ? val : source;
         } else if (sourceTypeName === "number") {
-            var val = new Date(source);
+            val = new Date(source);
             return __isDate(val) ? val : source;
         }
         return source;
@@ -4996,7 +5216,7 @@ var DataType = function () {
     };
 
     var fmtInt = function (val) {
-        return val == null ? null : ((typeof val === "string") ? parseInt(val) : val);
+        return val == null ? null : ((typeof val === "string") ? parseInt(val, 10) : val);
     };
 
     var makeFloatFmt = function (fmtSuffix) {
@@ -5227,7 +5447,7 @@ var DataType = function () {
             if (simpleName === "image") {
                 // hack
                 dt = DataType.Byte;
-            } else if (parts.length == 2) {
+            } else if (parts.length === 2) {
                 dt = DataType.fromName(simpleName) || DataType.Undefined;
             } else {
                 // enum
@@ -5322,11 +5542,11 @@ var DataType = function () {
             case DataType.Undefined:
                 return Validator.none;
         }
-    };
+    }
 
     return DataType;
 
-}();
+})();
 
 breeze.DataType = DataType;
 
@@ -5497,7 +5717,7 @@ var MetadataStore = (function () {
             "localQueryComparisonOptions": this.localQueryComparisonOptions.name,
             "dataServices": this.dataServices,
             "structuralTypes": __objectMapToArray(this._structuralTypeMap),
-            "resourceEntityTypeMap": this._resourceEntityTypeMap,
+            "resourceEntityTypeMap": this._resourceEntityTypeMap
         }, __config.stringifyPad);
         return result;
     };
@@ -5520,12 +5740,12 @@ var MetadataStore = (function () {
     proto.importMetadata = function (exportedMetadata) {
 
         this._deferredTypes = {};
+        var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
 
-        if (exportedMetadata.schema) {
-            return CsdlMetadataParser.parse(this, exportedMetadata.schema);
+        if (json.schema) {
+            return CsdlMetadataParser.parse(this, json.schema);
         } 
 
-        var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
         if (json.metadataVersion && json.metadataVersion !== breeze.metadataVersion) {
             var msg = __formatString("Cannot import metadata with a different 'metadataVersion' (%1) than the current 'breeze.metadataVersion' (%2) ",
                 json.metadataVersion, breeze.metadataVersion);
@@ -5535,7 +5755,7 @@ var MetadataStore = (function () {
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
         if (this.isEmpty()) {
-            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance
+            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance;
             this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || LocalQueryComparisonOptions.defaultInstance;
         } else {
             if (ncName && this.namingConvention.name !== ncName) {
@@ -5547,7 +5767,8 @@ var MetadataStore = (function () {
         }
         
         var that = this;
-        
+
+        //noinspection JSHint
         json.dataServices && json.dataServices.forEach(function (ds) {
             ds = DataService.fromJSON(ds);
             that.addDataService(ds, true);
@@ -5676,7 +5897,7 @@ var MetadataStore = (function () {
         }).fail(function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
-        })
+        });
     };
 
 
@@ -5749,7 +5970,7 @@ var MetadataStore = (function () {
         } else {
             throw new Error("unable to recognize query parameter as either a string or an EntityQuery");
         }
-    }
+    };
              
     /**
     Returns whether this MetadataStore contains any metadata yet.
@@ -5764,7 +5985,6 @@ var MetadataStore = (function () {
     proto.isEmpty = function () {
         return __isEmpty(this._structuralTypeMap);
     };
-
 
     /**
     Returns an  {{#crossLink "EntityType"}}{{/crossLink}} or a {{#crossLink "ComplexType"}}{{/crossLink}} given its name.
@@ -5792,7 +6012,7 @@ var MetadataStore = (function () {
         var type = this._structuralTypeMap[qualTypeName];
         if (!type) {
             if (okIfNotFound) return null;
-            var msg = __formatString("Unable to locate a 'Type' by the name: '%1'. Be sure to execute a query or call fetchMetadata first.", typeName)
+            var msg = __formatString("Unable to locate a 'Type' by the name: '%1'. Be sure to execute a query or call fetchMetadata first.", typeName);
             throw new Error(msg);
             
         }
@@ -5863,15 +6083,7 @@ var MetadataStore = (function () {
     };
 
     // protected methods
- 
 
-    proto._getCtorRegistration = function(structuralType) {
-        var r = metadataStore._ctorRegistry[structuralType.name] || metadataStore._ctorRegistry[structuralType.shortName];
-        if (!r.ctor) {
-            structuralType.getEntityCtor();
-        }
-    };
-        
     proto._checkEntityType = function(entity) {
         if (entity.entityType) return;
         var typeName = entity.prototype._$typeName;
@@ -5957,6 +6169,7 @@ var MetadataStore = (function () {
         
         var isEntityType = !json.isComplexType;
         if (isEntityType) {
+            //noinspection JSHint
             json.navigationProperties && json.navigationProperties.forEach(function(np) {
                 stype.addProperty(NavigationProperty.fromJSON(np));
             });
@@ -5968,11 +6181,11 @@ var MetadataStore = (function () {
         var deferrals = deferredTypes[stype.name];
         if (deferrals) {
             deferrals.forEach(function (d) {
-                completeStructuralTypeFromJson(metadataStore, d.json, d.stype, stype)
+                completeStructuralTypeFromJson(metadataStore, d.json, d.stype, stype);
             });
             delete deferredTypes[stype.name];
         }
-    };
+    }
         
     function getQualifiedTypeName(metadataStore, structTypeName, throwIfNotFound) {
         if (isQualifiedTypeName(structTypeName)) return structTypeName;
@@ -6031,9 +6244,9 @@ var CsdlMetadataParser = (function () {
             throw new Error("Bad nav properties");
         }
         return metadataStore;
-    };
+    }
 
-   function parseCsdlEntityType(csdlEntityType, schema, metadataStore) {
+    function parseCsdlEntityType(csdlEntityType, schema, metadataStore) {
         var shortName = csdlEntityType.name;
         var ns = getNamespaceFor(shortName, schema);
         var entityType = new EntityType({
@@ -6099,7 +6312,7 @@ var CsdlMetadataParser = (function () {
         var deferrals = deferredTypes[entityType.name];
         if (deferrals) {
             deferrals.forEach(function (d) {
-                completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, metadataStore, entityType)
+                completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, metadataStore, entityType);
             });
             delete deferredTypes[entityType.name];
         }
@@ -6125,7 +6338,7 @@ var CsdlMetadataParser = (function () {
     function parseCsdlDataProperty(parentType, csdlProperty, schema, keyNamesOnServer) {
         var dp;
         var typeParts = csdlProperty.type.split(".");
-        if (typeParts.length == 2) {
+        if (typeParts.length === 2) {
             dp = parseCsdlSimpleProperty(parentType, csdlProperty, keyNamesOnServer);
         } else {
             if (isEnumType(csdlProperty, schema)) {
@@ -6153,14 +6366,14 @@ var CsdlMetadataParser = (function () {
         var isNullable = csdlProperty.nullable === 'true' || csdlProperty.nullable == null;
         // var fixedLength = csdlProperty.fixedLength ? csdlProperty.fixedLength === true : undefined;
         var isPartOfKey = keyNamesOnServer != null && keyNamesOnServer.indexOf(csdlProperty.name) >= 0;
-        if (isPartOfKey && parentType.autoGeneratedKeyType == AutoGeneratedKeyType.None) {
+        if (isPartOfKey && parentType.autoGeneratedKeyType === AutoGeneratedKeyType.None) {
             if (isIdentityProperty(csdlProperty)) {
                 parentType.autoGeneratedKeyType = AutoGeneratedKeyType.Identity;
             }
         }
         // TODO: nit - don't set maxLength if null;
         var maxLength = csdlProperty.maxLength;
-        maxLength = (maxLength == null || maxLength === "Max") ? null : parseInt(maxLength);
+        maxLength = (maxLength == null || maxLength === "Max") ? null : parseInt(maxLength,10);
         // can't set the name until we go thru namingConventions and these need the dp.
         var dp = new DataProperty({
             nameOnServer: csdlProperty.name,
@@ -6199,9 +6412,9 @@ var CsdlMetadataParser = (function () {
             return assocEnd.role === csdlProperty.toRole;
         });
 
-        var isScalar = !(toEnd.multiplicity === "*");
+        var isScalar = toEnd.multiplicity !== "*";
         var dataType = parseTypeName(toEnd.type, schema).typeName;
-        var fkNamesOnServer = [];
+
         var constraint = association.referentialConstraint;
         if (!constraint) {
             // TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
@@ -6219,7 +6432,7 @@ var CsdlMetadataParser = (function () {
             nameOnServer: csdlProperty.name,
             entityTypeName: dataType,
             isScalar: isScalar,
-            associationName: association.name,
+            associationName: association.name
         };
 
         var principal = constraint.principal;
@@ -6380,7 +6593,7 @@ var CsdlMetadataParser = (function () {
     return {
         parse: parse,
         normalizeTypeName: normalizeTypeName
-    }
+    };
 
 })();
 
@@ -6413,7 +6626,7 @@ var EntityType = (function () {
         }
         if  (config._$typeName === "MetadataStore") {
             this.metadataStore = config;
-            this.shortName = "Anon_" + ++__nextAnonIx;
+            this.shortName = "Anon_" + (++__nextAnonIx);
             this.namespace = "";
             this.isAnonymous = true;
         } else {
@@ -6449,10 +6662,7 @@ var EntityType = (function () {
     };
     var proto = ctor.prototype;
     proto._$typeName = "EntityType";
-        
-    
 
-        
     /**
     The {{#crossLink "MetadataStore"}}{{/crossLink}} that contains this EntityType
 
@@ -6520,7 +6730,7 @@ var EntityType = (function () {
     **/
 
     /**
-    The fully qualifed name of this EntityType.
+    The fully qualified name of this EntityType.
 
     __readOnly__
     @property name {String} 
@@ -6608,7 +6818,7 @@ var EntityType = (function () {
             baseType = baseType.baseEntityType;
         } while (baseType);
         return false;
-    }
+    };
 
     /**
     Returns an array containing this type and any/all subtypes of this type down thru the hierarchy.
@@ -6619,10 +6829,10 @@ var EntityType = (function () {
         var result = [this];
         this.subtypes.forEach(function(st) {
             var subtypes = st.getSelfAndSubtypes();
-            result.push.apply(result, subtypes )
-        })
+            result.push.apply(result, subtypes );
+        });
         return result;
-    }
+    };
 
     /**
     Adds a  {{#crossLink "DataProperty"}}{{/crossLink}} or a {{#crossLink "NavigationProperty"}}{{/crossLink}} to this EntityType.
@@ -6654,8 +6864,6 @@ var EntityType = (function () {
         }
         return this;
     };
-        
-
 
     /**
     Create a new entity of this type.
@@ -6720,7 +6928,7 @@ var EntityType = (function () {
         var instance = new aCtor();
         var proto = aCtor.prototype;
             
-        if (this._$typeName == "EntityType") {
+        if (this._$typeName === "EntityType") {
             // insure that all of the properties are on the 'template' instance before watching the class.
             calcUnmappedProperties(this, instance);
             proto.entityType = this;
@@ -6928,7 +7136,7 @@ var EntityType = (function () {
 
     proto._updateNames = function (property) {
         var nc = this.metadataStore.namingConvention;
-        updateClientServerNames(nc, property, "name")
+        updateClientServerNames(nc, property, "name");
                    
         if (property.isNavigationProperty) {
             updateClientServerNames(nc, property, "foreignKeyNames");
@@ -6944,7 +7152,7 @@ var EntityType = (function () {
     };
 
     function updateClientServerNames(nc, parent, clientPropName) {
-        serverPropName = clientPropName + "OnServer";
+        var serverPropName = clientPropName + "OnServer";
         var clientName = parent[clientPropName];
         if (clientName && clientName.length) {
             if (parent.isUnmapped) return;
@@ -6958,8 +7166,8 @@ var EntityType = (function () {
             });
             parent[serverPropName] = Array.isArray(clientName) ? serverNames : serverNames[0];
         } else {            
-            serverName = parent[serverPropName];
-            if ((!serverName) || serverName.length == 0) return;
+            var serverName = parent[serverPropName];
+            if ((!serverName) || serverName.length === 0) return;
             var clientNames = __toArray(serverName).map(function (sName) {
                 var cName = nc.serverPropertyNameToClient(sName, parent);
                 var testName = nc.clientPropertyNameToServer(cName, parent);
@@ -6974,7 +7182,7 @@ var EntityType = (function () {
 
     proto._checkNavProperty = function (navigationProperty) {
         if (navigationProperty.isNavigationProperty) {
-            if (navigationProperty.parentType != this) {
+            if (navigationProperty.parentType !== this) {
                 throw new Error(__formatString("The navigationProperty '%1' is not a property of entity type '%2'",
                         navigationProperty.name, this.name));
             }
@@ -6994,7 +7202,7 @@ var EntityType = (function () {
             
         if (dp.isPartOfKey) {
             this.keyProperties.push(dp);
-        };
+        }
             
         if (dp.isComplexProperty) {
             this.complexProperties.push(dp);
@@ -7002,7 +7210,7 @@ var EntityType = (function () {
 
         if (dp.concurrencyMode && dp.concurrencyMode !== "None") {
             this.concurrencyProperties.push(dp);
-        };
+        }
 
         if (dp.isUnmapped) {
             this.unmappedProperties.push(dp);
@@ -7063,7 +7271,7 @@ var EntityType = (function () {
         });
 
         delete incompleteMap[this.name];
-    }
+    };
 
     function resolveNp(np, metadataStore) {
         var entityType = metadataStore._getEntityType(np.entityTypeName, true);
@@ -7074,8 +7282,8 @@ var EntityType = (function () {
             //return altNp.associationName === np.associationName
             //    && altNp !== np;
             // So use this instead.
-            return altNp.associationName === np.associationName
-                && (altNp.name != np.name || altNp.entityTypeName != np.entityTypeName);
+            return altNp.associationName === np.associationName &&
+                (altNp.name !== np.name || altNp.entityTypeName !== np.entityTypeName);
         });
         np.inverse = invNp;
         if (!invNp) {
@@ -7114,14 +7322,14 @@ var EntityType = (function () {
                 np.relatedDataProperties = [dp];
             }
         });
-    };
+    }
 
    
     function calcUnmappedProperties(entityType, instance) {
         var metadataPropNames = entityType.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
         trackablePropNames.forEach(function (pn) {
-            if (metadataPropNames.indexOf(pn) == -1) {
+            if (metadataPropNames.indexOf(pn) === -1) {
                 var newProp = new DataProperty({
                     name: pn,
                     dataType: DataType.Undefined,
@@ -7374,6 +7582,7 @@ var DataProperty = (function () {
             .whereParam("dataType").isEnumOf(DataType).isOptional().or().isString().or().isInstanceOf(ComplexType)
             .whereParam("complexTypeName").isOptional()
             .whereParam("isNullable").isBoolean().isOptional().withDefault(true)
+            .whereParam("isScalar").isOptional().withDefault(true)// will be false for some NoSQL databases.
             .whereParam("defaultValue").isOptional()
             .whereParam("isPartOfKey").isBoolean().isOptional()
             .whereParam("isUnmapped").isBoolean().isOptional()
@@ -7382,7 +7591,7 @@ var DataProperty = (function () {
             .whereParam("validators").isInstanceOf(Validator).isArray().isOptional().withDefault([])
             .whereParam("enumType").isOptional()
             .whereParam("rawTypeName").isOptional() // occurs with undefined datatypes
-            .whereParam("isScalar").isOptional() // only occurs with complex datatypes
+
             .applyAll(this);
         var hasName = !!(this.name || this.nameOnServer);
         if (!hasName) {
@@ -7393,7 +7602,7 @@ var DataProperty = (function () {
         if (this.complexTypeName) {
             this.isComplexProperty = true;
             this.dataType = null;
-        } else if (typeof(this.dataType) == "string" ) {
+        } else if (typeof(this.dataType) === "string" ) {
             var dt = DataType.fromName(this.dataType);
             if (!dt) {
                 throw new Error("Unable to find a DataType enumeration by the name of: " + this.dataType);
@@ -7427,8 +7636,6 @@ var DataProperty = (function () {
     };
     var proto = ctor.prototype;
     proto._$typeName = "DataProperty";
-
-    
 
     /**
     The name of this property
@@ -7563,10 +7770,8 @@ var DataProperty = (function () {
             validators: null,
             enumType: null,
             rawTypeName: null,
-            isScalar: null
+            isScalar: true
         });
-        
-        
     };
 
     ctor.fromJSON = function(json) {
@@ -7583,7 +7788,6 @@ var DataProperty = (function () {
         return new DataProperty(json);
     };
 
-    
     return ctor;
 })();
   
@@ -7953,10 +8157,12 @@ var KeyGenerator = (function () {
 
     proto.getTempKeys = function () {
         var results = [];
+        //noinspection JSHint
         for (var key in this._tempIdMap) {
             var propEntry = this._tempIdMap[key];
             var entityType = propEntry.entityType;
             // var propName = propEntry.propertyName;
+            //noinspection JSHint
             for (var keyValue in propEntry.keyMap) {
                 results.push(new EntityKey(entityType, [keyValue]));
             }
@@ -7979,8 +8185,6 @@ var KeyGenerator = (function () {
         return (propEntry.keyMap[entityKey.values[0].toString()] !== undefined);
     };
 
-
-
     function getPropEntry(that, keyProp, createIfMissing) {
         var key = keyProp.name + ".." + keyProp.parentType.name;
         var propEntry = that._tempIdMap[key];
@@ -7992,10 +8196,6 @@ var KeyGenerator = (function () {
         }
         return propEntry;
     }
-
-    
-
-    
 
     __config.registerType(ctor, "KeyGenerator");
 
@@ -8284,6 +8484,13 @@ var EntityQuery = (function () {
     **/
 
     /**
+    The entityType that will be returned by this query. This property will only be set if the 'toType' method was called. 
+
+    __readOnly__
+    @property resultEntityType {EntityType}
+    **/
+
+    /**
     The 'where' predicate used by this query.
 
     __readOnly__
@@ -8393,7 +8600,7 @@ var EntityQuery = (function () {
     proto.toType = function(entityType) {
         assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
         var eq = this._clone();
-        eq.toEntityType = entityType;
+        eq.resultEntityType = entityType;
         return eq;
     };
 
@@ -8658,7 +8865,7 @@ var EntityQuery = (function () {
     @example
         var query = EntityQuery.from("EmployeesFilteredByCountryAndBirthdate")
             .withParameters({ BirthDate: "1/1/1960", Country: "USA" });
-    will call the 'EmployeesFilteredByCountryAndBirthdata' method on the server and pass in 2 parameters. This
+    will call the 'EmployeesFilteredByCountryAndBirthdate' method on the server and pass in 2 parameters. This
     query will be uri encoded as 
 
         {serviceApi}/EmployeesFilteredByCountryAndBirthdate?birthDate=1%2F1%2F1960&country=USA
@@ -8991,16 +9198,16 @@ var EntityQuery = (function () {
 
     proto._getToEntityType = function (metadataStore, skipFromCheck) {
         // skipFromCheck is to avoid recursion if called from _getFromEntityType;
-        if (this.toEntityType instanceof EntityType) {
-            return this.toEntityType;
-        } else if (this.toEntityType) {
-            // toEntityType is a string
-            this.toEntityType = metadataStore._getEntityType(this.toEntityType, false);
-            return this.toEntityType;
+        if (this.resultEntityType instanceof EntityType) {
+            return this.resultEntityType;
+        } else if (this.resultEntityType) {
+            // resultEntityType is a string
+            this.resultEntityType = metadataStore._getEntityType(this.resultEntityType, false);
+            return this.resultEntityType;
         } else {
             // resolve it, if possible, via the resourceName
             // do not cache this value in this case
-            // cannot determine the toEntityType if a selectClause is present.
+            // cannot determine the resultEntityType if a selectClause is present.
             
             return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
         }
@@ -9022,7 +9229,7 @@ var EntityQuery = (function () {
         copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
         copy.dataService = this.dataService;
-        copy.toEntityType = this.toEntityType;
+        copy.resultEntityType = this.resultEntityType;
 
         return copy;
     };
@@ -9052,7 +9259,7 @@ var EntityQuery = (function () {
 
         function toFilterString() {
             var clause = eq.wherePredicate;
-            if (!clause) return "";
+            if (!clause) return;
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
@@ -9060,13 +9267,13 @@ var EntityQuery = (function () {
         }
             
         function toInlineCountString() {
-            if (!eq.inlineCountEnabled) return "";
+            if (!eq.inlineCountEnabled) return;
             return eq.inlineCountEnabled ? "allpages" : "none";
         }
 
         function toOrderByString() {
             var clause = eq.orderByClause;
-            if (!clause) return "";
+            if (!clause) return;
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
@@ -9075,7 +9282,7 @@ var EntityQuery = (function () {
             
             function toSelectString() {
             var clause = eq.selectClause;
-            if (!clause) return "";
+            if (!clause) return;
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
@@ -9084,19 +9291,19 @@ var EntityQuery = (function () {
             
         function toExpandString() {
             var clause = eq.expandClause;
-            if (!clause) return "";
+            if (!clause) return;
             return clause.toOdataFragment(entityType);
         }
 
         function toSkipString() {
             var count = eq.skipCount;
-            if (!count) return "";
+            if (!count) return;
             return count.toString();
         }
 
         function toTopString() {
             var count = eq.takeCount;
-            if (!count) return "";
+            if (!count) return;
             return count.toString();
         }
 
@@ -9104,7 +9311,7 @@ var EntityQuery = (function () {
             var qoStrings = [];
             for (var qoName in queryOptions) {
                 var qoValue = queryOptions[qoName];
-                if (qoValue) {
+                if (qoValue !== undefined) {
                     qoStrings.push(qoName + "=" + encodeURIComponent(qoValue));
                 }
             }
@@ -9275,13 +9482,13 @@ var FnNode = (function() {
         if (entityType) {
             this.isValidated = true;
         }
-        if (parts.length == 1) {
+        if (parts.length === 1) {
             var value = parts[0].trim();
             this.value = value;
             // value is either a string, a quoted string, a number, a bool value, or a date
             // if a string ( not a quoted string) then this represents a property name.
             var firstChar = value.substr(0,1);
-            var quoted = firstChar == "'" || firstChar == '"';
+            var quoted = firstChar === "'" || firstChar === '"';
             if (quoted) {
                 var unquoted = value.substr(1, value.length - 2);
                 this.fn = function (entity) { return unquoted; };
@@ -9323,7 +9530,7 @@ var FnNode = (function() {
                     return val;
                 };
                 var argSource = tokens[parts[1]].trim();
-                if (argSource.substr(0, 1) == "(") {
+                if (argSource.substr(0, 1) === "(") {
                     argSource = argSource.substr(1, argSource.length - 2);
                 }
                 var commaMatchStr = source.indexOf("'") >= 0 ? RX_COMMA_DELIM1 : RX_COMMA_DELIM2;
@@ -9543,7 +9750,7 @@ var BooleanQueryOp = (function () {
     aEnum.Not = aEnum.addSymbol({ operator: "not", aliases: ["~", "!"] });
 
     aEnum.seal();
-    aEnum._map = function () {
+    aEnum._map = (function () {
         var map = {};
         aEnum.getSymbols().forEach(function (s) {
             map[s.name.toLowerCase()] = s;
@@ -9555,7 +9762,7 @@ var BooleanQueryOp = (function () {
             }
         });
         return map;
-    } ();
+    })();
     aEnum.from = function (op) {
         if (aEnum.contains(op)) {
             return op;
@@ -9744,11 +9951,11 @@ var Predicate = (function () {
         var p1 = Predicate.create("OrderDate", "ne", dt);
         var p2 = Predicate.create("ShipCity", "startsWith", "C");
         var p3 = Predicate.create("Freight", ">", 100);
-        var newPred = p1.and(p2, p3);
+        var newPred = p1.or(p2, p3);
     or
     @example
         var preds = [p2, p3];
-        var newPred = p1.and(preds);
+        var newPred = p1.or(preds);
     The 'or' method is also used to write "fluent" expressions
     @example
         var p4 = Predicate.create("ShipCity", "startswith", "F")
@@ -9979,7 +10186,7 @@ var SimplePredicate = (function () {
             a = (a || "").toLowerCase();
             b = (b || "").toLowerCase();
         }
-        return a == b;
+        return a === b;
     }
         
     function stringStartsWith(a, b, lqco) {
@@ -10015,18 +10222,18 @@ var SimplePredicate = (function () {
 var CompositePredicate = (function () {
 
     var ctor = function (booleanOperator, predicates) {
-        // if debug
+
         if (!Array.isArray(predicates)) {
             throw new Error("predicates parameter must be an array");
         }
-        // end debug
-        if ((this.symbol === "not") && (predicates.length !== 1)) {
-            throw new Error("Only a single predicate can be passed in with the 'Not' operator");
-        }
 
         this._booleanQueryOp = BooleanQueryOp.from(booleanOperator);
+
         if (!this._booleanQueryOp) {
             throw new Error("Unknown query operation: " + booleanOperator);
+        }
+        if ((this._booleanQueryOp === BooleanQueryOp.Not && predicates.length !== 1)) {
+            throw new Error("Only a single predicate can be passed in with the 'Not' operator");
         }
         this._predicates = predicates;
     };
@@ -10194,7 +10401,7 @@ var OrderByClause = (function () {
 var SimpleOrderByClause = (function () {
 
     var ctor = function (propertyPath, isDesc) {
-        if (!(typeof propertyPath == 'string')) {
+        if (!(typeof propertyPath === 'string')) {
             throw new Error("propertyPath is not a string");
         }
         propertyPath = propertyPath.trim();
@@ -10236,8 +10443,7 @@ var SimpleOrderByClause = (function () {
         }
         var propertyPath = this.propertyPath;
         var isDesc = this.isDesc;
-        var that = this;
-        
+
         return function (entity1, entity2) {
             var value1 = getPropertyPathValue(entity1, propertyPath);
             var value2 = getPropertyPathValue(entity2, propertyPath);
@@ -10255,7 +10461,7 @@ var SimpleOrderByClause = (function () {
                 value1 = normalize(value1);
                 value2 = normalize(value2);
             }
-            if (value1 == value2) {
+            if (value1 === value2) {
                 return 0;
             } else if (value1 > value2 || value2 === undefined) {
                 return isDesc ? -1 : 1;
@@ -10310,7 +10516,7 @@ var CompositeOrderByClause = (function () {
         return function (entity1, entity2) {
             for (var i = 0; i < orderByFuncs.length; i++) {
                 var result = orderByFuncs[i](entity1, entity2);
-                if (result != 0) {
+                if (result !== 0) {
                     return result;
                 }
             }
@@ -10541,7 +10747,7 @@ var QueryOptions = (function () {
 
     ctor.resolve = function (queryOptionsArray) {
         return new QueryOptions(__resolveProperties(queryOptionsArray, ["fetchStrategy", "mergeStrategy"]));
-    }
+    };
     
     /**
     The default value whenever QueryOptions are not specified.
@@ -10596,14 +10802,14 @@ var QueryOptions = (function () {
     proto.toJSON = function () {
         return __toJson(this, {
             fetchStrategy: null,
-            mergeStrategy: null,
+            mergeStrategy: null
         });
     };
 
     ctor.fromJSON = function (json) {
         return new QueryOptions({
             fetchStrategy: FetchStrategy.fromName(json.fetchStrategy),
-            mergeStrategy: MergeStrategy.fromName(json.mergeStrategy),
+            mergeStrategy: MergeStrategy.fromName(json.mergeStrategy)
         });       
     };
         
@@ -10706,8 +10912,7 @@ var EntityGroup = (function () {
 
     proto.getEntities = function (entityStates) {
         var filter = getFilter(entityStates);
-        var changes = this._entities.filter(filter);
-        return changes;
+        return this._entities.filter(filter);
     };
         
     // do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation
@@ -10847,6 +11052,7 @@ var EntityManager = (function () {
         this.clear();
             
     };
+
     var proto = ctor.prototype;
     proto._$typeName = "EntityManager";
     Event.bubbleEvent(proto, null);
@@ -11118,7 +11324,7 @@ var EntityManager = (function () {
         // em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
         // made modifications will not have been touched, but all other entities from em1 will have been imported.
     @method importEntities
-    @param exportedString {String} The result of a previous 'export' call.
+    @param exportedString {String|Json} The result of a previous 'export' call.
     @param [config] {Object} A configuration object.
         @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
         merging into an existing EntityManager.
@@ -11131,7 +11337,7 @@ var EntityManager = (function () {
             .applyAll(config);
         var that = this;
             
-        var json = JSON.parse(exportedString);
+        var json = (typeof exportedString === "string") ? JSON.parse(exportedString) : exportedString;
         this.metadataStore.importMetadata(json.metadataStore);
         // the || clause is for backwards compat with an earlier serialization format.           
         this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
@@ -11287,7 +11493,6 @@ var EntityManager = (function () {
         return entity;
     };
         
-        
 
     /**
     Detaches an entity from this EntityManager.
@@ -11308,19 +11513,11 @@ var EntityManager = (function () {
             // no aspect means in couldn't appear in any group
             return false;
         }
-        var group = aspect.entityGroup;
-        if (!group) {
-            // no group === already detached.
-            return false;
-        }
-        if (group.entityManager !== this) {
+        
+        if (aspect.entityManager !== this) {
             throw new Error("This entity does not belong to this EntityManager.");
         }
-        group.detachEntity(entity);
-        aspect._removeFromRelations();
-        this.entityChanged.publish({ entityAction: EntityAction.Detach, entity: entity });
-        aspect._detach();
-        return true;
+        return aspect.setDetached();
     };
 
     /**
@@ -11503,7 +11700,7 @@ var EntityManager = (function () {
         var groups = findOrCreateEntityGroups(this, entityType);
         // filter then order then skip then take
         var filterFunc = query._toFilterFunction(entityType);
-        
+
         if (filterFunc) {
             var newFilterFunc = function(entity) {
                 return entity && (!entity.entityAspect.entityState.isDeleted()) && filterFunc(entity);
@@ -11647,7 +11844,7 @@ var EntityManager = (function () {
         var saveContext = {
             entityManager: this,
             dataService: dataService,
-            resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges",
+            resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges"
         };
         var queryOptions = {
             mergeStrategy: MergeStrategy.OverwriteChanges
@@ -12091,8 +12288,8 @@ var EntityManager = (function () {
 
                     if (np.inverse) {
                         // bidirectional
-                        var childToParentNp = np;
-                        var parentToChildNp = np.inverse;
+                        childToParentNp = np;
+                        parentToChildNp = np.inverse;
 
                         if (parentToChildNp.isScalar) {
                             var onlyChild = unattachedChildren[0];
@@ -12469,6 +12666,9 @@ var EntityManager = (function () {
         em._inKeyFixup = true;
         keyMappings.forEach(function (km) {
             var group = em._entityGroupMap[km.entityTypeName];
+            if (!group) {
+                throw new Error("Unable to locate the following fully qualified EntityType name: " + km.entityTypeName);
+            }
             group._fixupKey(km.tempValue, km.realValue);
         });
         em._inKeyFixup = false;
@@ -12837,32 +13037,43 @@ var EntityManager = (function () {
     // target and source will be either entities or complex types
     function updateTargetPropertyFromRaw(target, raw, dp, isClient) {
         
-        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
         var rawVal = fn(raw, dp);
         if (rawVal === undefined) return;
-        var val = parseRawValue(dp, rawVal);
-        
+        var oldVal;
         if (dp.isComplexProperty) {
             oldVal = target.getProperty(dp.name);
             var cdataProps = dp.dataType.dataProperties;
             if (dp.isScalar) {
-                updateTargetFromRaw(oldVal, val, cdataProps, isClient);
+                updateTargetFromRaw(oldVal, rawVal, cdataProps, isClient);
             } else {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                val.forEach(function (rawCo) {
-                    var newCo = dp.dataType._createInstanceCore(target, dp.name);
+                rawVal.forEach(function (rawCo) {
+                    var newCo = dp.dataType._createInstanceCore(target, dp);
                     updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
                     oldVal.push(newCo);
                 });
             }
         } else {
-            target.setProperty(dp.name, val);
+            var val;
+            if (dp.isScalar) {
+                val = parseRawValue(dp, rawVal);
+                target.setProperty(dp.name, val);
+            } else {
+                oldVal = target.getProperty(dp.name);
+                // clear the old array and push new complex objects into it.
+                oldVal.length = 0;
+                rawVal.forEach(function (rv) {
+                    val = parseRawValue(dp, rv);
+                    oldVal.push(val);
+                });
+            }
         }
     }
 
     function getEntityKeyFromRawEntity(rawEntity, entityType, isClient) {
-        fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
+        var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
         var keyValues = entityType.keyProperties.map(function (dp) {
             return parseRawValue(dp, fn(rawEntity, dp));
         });
@@ -13063,13 +13274,21 @@ var EntityManager = (function () {
         var stype = structObj.entityType || structObj.complexType;
         
         stype.dataProperties.forEach(function (dp) {
-            if (dp.isUnmapped && isOData) return;
-            if (dp.isComplexProperty) {
+            if (dp.isUnmapped) {
+                if (isOData) return;
+                var val = structObj.getProperty(dp.name);
+                val = transformValue(val, dp, false);
+                if (val !== undefined) {
+                    rawObject.__unmapped = rawObject.__unmapped || {};
+                    // no name on server for unmapped props
+                    rawObject.__unmapped[dp.name] = val;
+                }
+            }  else if (dp.isComplexProperty) {
                 if (dp.isScalar) {
                     rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
                 } else {
-                    complexObjs = structObj.getProperty(dp.name);
-                    rawObject[dp.nameOnServer] = complexObjs.map(function(co) { return unwrapInstance(co, isOData) });
+                    var complexObjs = structObj.getProperty(dp.name);
+                    rawObject[dp.nameOnServer] = complexObjs.map(function (co) { return unwrapInstance(co, isOData) });
                 }
             } else {
                 var val = structObj.getProperty(dp.name);
@@ -13438,7 +13657,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     ctor.prototype.saveChanges = function (saveContext, saveBundle) {
         
         var deferred = Q.defer();
-        var saveBundle = this._prepareSaveBundle(saveBundle, saveContext);
+        saveBundle = this._prepareSaveBundle(saveBundle, saveContext);
         var bundle = JSON.stringify(saveBundle);
         
         var url = saveContext.dataService.makeUrl(saveContext.resourceName);
@@ -13473,18 +13692,18 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
         throw new Error("Need a concrete implementation of _prepareSaveBundle");
-    }
+    };
 
     ctor.prototype._prepareSaveResult = function (saveContext, data) {
         throw new Error("Need a concrete implementation of _prepareSaveResult");
-    }
+    };
     
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter( {
         name: "noop",
         
         visitNode: function (node, mappingContext, nodeContext) {
             return {};
-        },
+        }
 
     });
    
@@ -13496,7 +13715,7 @@ breeze.AbstractDataServiceAdapter = (function () {
         deferred.reject(err);
         XHR.onreadystatechange = null;
         XHR.abort = null;
-    }
+    };
 
     ctor.prototype._createError = function(XHR) {
         var err = new Error();
@@ -13517,7 +13736,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             }
         }
         return err;
-    }
+    };
     
     return ctor;
 
@@ -13525,20 +13744,14 @@ breeze.AbstractDataServiceAdapter = (function () {
 // needs JQuery
 (function(factory) {
     // Module systems magic dance.
-
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"]) {
         // AMD anonymous module with hard-coded dependency on "breeze"
-        if (breeze) {
-            factory(breeze);
-        } else {
-            define(["breeze"], factory);
-        }
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
+        define(["breeze"], factory);
     }
 }(function(breeze) {
     var core = breeze.core;
@@ -13551,10 +13764,15 @@ breeze.AbstractDataServiceAdapter = (function () {
     };
 
     ctor.prototype.initialize = function () {
-        jQuery = core.requireLib("jQuery", "needed for 'ajax_jQuery' pluggin");
+        // jQuery = core.requireLib("jQuery", "needed for 'ajax_jQuery' pluggin", true);
+        // for the time being don't fail if not found
+        jQuery = core.requireLib("jQuery");
     };
 
     ctor.prototype.ajax = function (settings) {
+        if (!jQuery) {
+            throw new Error("Unable to locate jQuery");
+        }
         if (! core.isEmpty(this.defaultSettings)) {
             var compositeSettings = core.extend({}, this.defaultSettings);
             core.extend(compositeSettings, settings);
@@ -13569,229 +13787,15 @@ breeze.AbstractDataServiceAdapter = (function () {
     breeze.config.registerAdapter("ajax", ctor);
     
 }));
-(function(factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
-        // CommonJS or Node: hard-coded dependency on "breeze"
-        factory(require("breeze"));
-    } else if (typeof define === "function" && define["amd"] && !breeze) {
-        // AMD anonymous module with hard-coded dependency on "breeze"
-        define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
-    }    
-}(function(breeze) {
-       
-    var core = breeze.core;
-
-    var MetadataStore = breeze.MetadataStore;
-    var JsonResultsAdapter = breeze.JsonResultsAdapter;
-    var AbstractDataServiceAdapter = breeze.AbstractDataServiceAdapter;
-
-    var ajaxImpl;
-
-    function fmtOData(val) {
-        return val == null ? null : "'" + val + "'" ; 
-    } 
-
-    function getNextObjectId() {
-        return new ObjectId().toString();
-    }
-
-    var ctor = function () {
-        this.name = "mongo";
-        breeze.DataType.MongoObjectId = breeze.DataType.addSymbol({
-            defaultValue: "",
-            fmtOData: fmtOData,
-            getNext: getNextObjectId
-        });
-    };
-
-    ctor.prototype = new AbstractDataServiceAdapter();
-    
-    ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
-        var em = saveContext.entityManager;
-        var metadataStore = em.metadataStore;
-        var helper = em.helper;
-        var metadata = {};
-        
-        saveBundle.entities = saveBundle.entities.map(function (e) {
-            var rawEntity = helper.unwrapInstance(e);
-            var entityTypeName = e.entityType.name;
-            var etInfo = metadata[entityTypeName];
-            if (!etInfo) {
-                etInfo = {};
-                var entityType = e.entityType;
-                etInfo.dataProperties = entityType.dataProperties.map(function(dp) {
-                    var p = { name: dp.nameOnServer, dataType: dp.dataType.name };
-                    if (dp.relatedNavigationProperty != null) {
-                        p.isFk = true;
-                    }
-                    if (dp.concurrencyMode && dp.concurrencyMode === "Fixed") {
-                        p.isConcurrencyProp = true;
-                    }
-                    return p;
-                });
-                if (entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
-                    etInfo.autoGeneratedKey = {
-                        propertyName: entityType.keyProperties[0].nameOnServer,
-                        autoGeneratedKeyType: entityType.autoGeneratedKeyType.name
-                    };
-                }
-                metadata[entityTypeName] = etInfo;
-            }
-            var originalValuesOnServer = helper.unwrapOriginalValues(e, metadataStore);
-            var rawAspect = {
-                entityTypeName: e.entityType.name,
-                defaultResourceName: e.entityType.defaultResourceName,
-                entityState: e.entityAspect.entityState.name,
-                originalValuesMap: originalValuesOnServer
-            };           
-                
-            rawEntity.entityAspect = rawAspect;
-            return rawEntity;
-        });
-
-        saveBundle.metadata = metadata;
-        saveBundle.saveOptions = { tag: saveBundle.saveOptions.tag };
-
-        return saveBundle;
-    }
-
-    ctor.prototype._prepareSaveResult = function (saveContext, data) {
-        
-        var em = saveContext.entityManager;
-        var keys = data.insertedKeys.concat(data.updatedKeys, data.deletedKeys);
-        var entities = keys.map(function (key) {
-            return em.getEntityByKey(key.entityTypeName, key._id);
-        });
-        return { entities: entities, keyMappings: data.keyMappings, XHR: data.XHR };
-    }
-
-
-    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
-        name: "mongo",
-
-        visitNode: function (node, mappingContext, nodeContext) {
-            if (node == null) return {};
-            var result = {};
-            // this will only be set on saveResults and projections.
-            if (node.$type) {
-                result.entityType = mappingContext.entityManager.metadataStore._getEntityType(node.$type, true);
-            }
-            return result;
-        }
-    });
-
-    /*
-    *
-    * Copyright (c) 2011 Justin Dearing (zippy1981@gmail.com)
-    * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
-    * and GPL (http://www.opensource.org/licenses/gpl-license.php) version 2 licenses.
-    * This software is not distributed under version 3 or later of the GPL.
-    *
-    * Version 1.0.0
-    *
-    */
-
-    /**
-     * Javascript class that mimics how WCF serializes a object of type MongoDB.Bson.ObjectId
-     * and converts between that format and the standard 24 character representation.
-    */
-    var ObjectId = (function () {
-        var increment = 0;
-        var pid = Math.floor(Math.random() * (32767));
-        var machine = Math.floor(Math.random() * (16777216));
-
-        if (typeof (localStorage) != 'undefined') {
-            var mongoMachineId = parseInt(localStorage['mongoMachineId']);
-            if (mongoMachineId >= 0 && mongoMachineId <= 16777215) {
-                machine = Math.floor(localStorage['mongoMachineId']);
-            }
-            // Just always stick the value in.
-            localStorage['mongoMachineId'] = machine;
-            document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT'
-        }
-        else {
-            var cookieList = document.cookie.split('; ');
-            for (var i in cookieList) {
-                var cookie = cookieList[i].split('=');
-                if (cookie[0] == 'mongoMachineId' && cookie[1] >= 0 && cookie[1] <= 16777215) {
-                    machine = cookie[1];
-                    break;
-                }
-            }
-            document.cookie = 'mongoMachineId=' + machine + ';expires=Tue, 19 Jan 2038 05:00:00 GMT';
-
-        }
-
-        return function () {
-            if (!(this instanceof ObjectId)) {
-                return new ObjectId(arguments[0], arguments[1], arguments[2], arguments[3]).toString();
-            }
-
-            if (typeof (arguments[0]) == 'object') {
-                this.timestamp = arguments[0].timestamp;
-                this.machine = arguments[0].machine;
-                this.pid = arguments[0].pid;
-                this.increment = arguments[0].increment;
-            }
-            else if (typeof (arguments[0]) == 'string' && arguments[0].length == 24) {
-                this.timestamp = Number('0x' + arguments[0].substr(0, 8)),
-                this.machine = Number('0x' + arguments[0].substr(8, 6)),
-                this.pid = Number('0x' + arguments[0].substr(14, 4)),
-                this.increment = Number('0x' + arguments[0].substr(18, 6))
-            }
-            else if (arguments.length == 4 && arguments[0] != null) {
-                this.timestamp = arguments[0];
-                this.machine = arguments[1];
-                this.pid = arguments[2];
-                this.increment = arguments[3];
-            }
-            else {
-                this.timestamp = Math.floor(new Date().valueOf() / 1000);
-                this.machine = machine;
-                this.pid = pid;
-                if (increment > 0xffffff) {
-                    increment = 0;
-                }
-                this.increment = increment++;
-
-            }
-        };
-    })();
-
-    ObjectId.prototype.getDate = function () {
-        return new Date(this.timestamp * 1000);
-    }
-
-    /**
-    * Turns a WCF representation of a BSON ObjectId into a 24 character string representation.
-    */
-    ObjectId.prototype.toString = function () {
-        var timestamp = this.timestamp.toString(16);
-        var machine = this.machine.toString(16);
-        var pid = this.pid.toString(16);
-        var increment = this.increment.toString(16);
-        return '00000000'.substr(0, 6 - timestamp.length) + timestamp +
-               '000000'.substr(0, 6 - machine.length) + machine +
-               '0000'.substr(0, 4 - pid.length) + pid +
-               '000000'.substr(0, 6 - increment.length) + increment;
-    }
-    
-    breeze.config.registerAdapter("dataService", ctor);
-
-}));
 (function (factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
     }
 }(function(breeze) {
     
@@ -13948,7 +13952,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                 // EntityKey properties can be produced by EDMX models
                 (propertyName === "EntityKey" && node.$type && core.stringStartsWith(node.$type, "System.Data"));
             return result;
-        },        
+        }
         
     });
 
@@ -13995,7 +13999,7 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     function updateDeleteMergeRequest(request, aspect, prefix) {
         var extraMetadata = aspect.extraMetadata;
-        uri = extraMetadata.uri;
+        var uri = extraMetadata.uri;
         if (__stringStartsWith(uri, prefix)) {
             uri = uri.substring(prefix.length);
         }
@@ -14048,16 +14052,15 @@ breeze.AbstractDataServiceAdapter = (function () {
 }));
 
 (function(factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
-    }    
+    }
 }(function(breeze) {
     
     var core = breeze.core;
@@ -14103,7 +14106,7 @@ breeze.AbstractDataServiceAdapter = (function () {
         saveBundle.saveOptions = { tag: saveBundle.saveOptions.tag };
 
         return saveBundle;
-    }
+    };
 
     ctor.prototype._prepareSaveResult = function (saveContext, data) {
         // HACK: need to change the 'case' of properties in the saveResult
@@ -14113,7 +14116,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             return { entityTypeName: entityTypeName, tempValue: km.TempValue, realValue: km.RealValue };
         });
         return { entities: data.Entities, keyMappings: keyMappings, XHR: data.XHR };
-    }
+    };
     
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
         
@@ -14132,7 +14135,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                 nodeRefId: node.$ref,
                 ignore: ignore
             };
-        },
+        }
         
     });
     
@@ -14142,15 +14145,14 @@ breeze.AbstractDataServiceAdapter = (function () {
 }));
 "use strict";
 (function (factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
     }
 }(function(breeze) {
     
@@ -14242,13 +14244,17 @@ breeze.AbstractDataServiceAdapter = (function () {
                         if (prop == null) {
                             throw new Error("Unknown property: " + key);
                         }
-                        this._$interceptor(prop, attrs[propName], function(pvalue) {
-                            if (arguments.length === 0) {
-                                return bbGet.call(that, propName);
-                            } else {
-                                return bbSet.call(that, propName, pvalue, options);
+                        // avoiding mutable variable inside of closure.
+                        var fn = (function(pName) {
+                            return function(pValue) {
+                                if (arguments.length === 0) {
+                                    return bbGet.call(that, pName);
+                                } else {
+                                    return bbSet.call(that, pName, pValue, options);
+                                }
                             }
-                        });
+                        })(propName);
+                        this._$interceptor(prop, attrs[propName], fn);
                     }
                 }
             } else {
@@ -14285,21 +14291,21 @@ breeze.AbstractDataServiceAdapter = (function () {
         var attributes = entity.attributes;
         // Update so that every data and navigation property has a value. 
         stype.dataProperties.forEach(function (dp) {
+            var propName = dp.name;
+            var val = attributes[propName];
             if (dp.isComplexProperty) {
                 // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                 if (dp.isScalar) {
-                    var co = dp.dataType._createInstanceCore(entity, dp.name);
+                    val = dp.dataType._createInstanceCore(entity, dp);
                 } else {
-                    var co = breeze.makeComplexArray([], entity, dp);
+                    val = breeze.makeComplexArray([], entity, dp);
                 }
-                bbSet.call(entity, dp.name, co);
-            } else if (dp.name in attributes) {
-                if (bbGet.call(entity, dp.name) === undefined && dp.defaultValue !== undefined) {
-                    bbSet.call(entity, dp.name, dp.defaultValue);
-                }
-            } else {
-                bbSet.call(entity, dp.name, dp.defaultValue);
+            } else if (!dp.isScalar) {
+                val = breeze.makePrimitiveArray([], entity, dp);
+            } else if (val === undefined) {
+                val = dp.defaultValue;
             }
+            bbSet.call(entity, propName, val)
         });
         
         if (stype.navigationProperties) {
@@ -14344,21 +14350,19 @@ breeze.AbstractDataServiceAdapter = (function () {
 }));
 "use strict";
 (function (factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
     }
 }(function(breeze) {
     
     var core = breeze.core;
-    var ComplexAspect = breeze.ComplexAspect;
-    
+
     var ctor = function() {
         this.name = "backingStore";
     };
@@ -14445,7 +14449,7 @@ breeze.AbstractDataServiceAdapter = (function () {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
         proto._pendingSets.process();
         var bs = movePropsToBackingStore(entity);
-        var that = this;
+
         // assign default values to the entity
         var stype = entity.entityType || entity.complexType;
         stype.getProperties().forEach(function(prop) {
@@ -14456,14 +14460,16 @@ breeze.AbstractDataServiceAdapter = (function () {
                 if (prop.isComplexProperty) {
                     // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                     if (prop.isScalar) {
-                        var co = prop.dataType._createInstanceCore(entity, prop.name);
+                        val = prop.dataType._createInstanceCore(entity, prop);
                     } else {
-                        var co = breeze.makeComplexArray([], entity, prop);
+                        val = breeze.makeComplexArray([], entity, prop);
                     }
-                    bs[propName] = co;
+                } else if (!prop.isScalar) {
+                    val = breeze.makePrimitiveArray([], entity, prop);
                 } else if (val === undefined) {
-                    bs[propName] = prop.defaultValue;
+                    val = prop.defaultValue;
                 }
+                bs[propName] = val;
             } else if (prop.isNavigationProperty) {
                 if (val !== undefined) {
                     throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
@@ -14558,15 +14564,14 @@ breeze.AbstractDataServiceAdapter = (function () {
 }));
 "use strict";
 (function (factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
     }
 }(function(breeze) {
     
@@ -14648,7 +14653,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             if (ko.isObservable(val)) {
                 // if so
                 if (prop.isNavigationProperty) {
-                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
+                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + propName);
                 }
                 koObj = val;
             } else {
@@ -14657,17 +14662,19 @@ breeze.AbstractDataServiceAdapter = (function () {
                     if (prop.isComplexProperty) {
                         // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                         if (prop.isScalar) {
-                            val = prop.dataType._createInstanceCore(entity, prop.name);
+                            val = prop.dataType._createInstanceCore(entity, prop);
                         } else {
                             val = breeze.makeComplexArray([], entity, prop);
                         }
+                    } else if (!prop.isScalar) {
+                        val = breeze.makePrimitiveArray([], entity, prop);
                     } else if (val === undefined) {
                         val = prop.defaultValue;
-                    }
+                     }
                     koObj = ko.observable(val);
                 } else if (prop.isNavigationProperty) {
                     if (val !== undefined) {
-                        throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
+                        throw new Error("Cannot assign a navigation property in an entity ctor.: " + propName);
                     }
                     if (prop.isScalar) {
                         // TODO: change this to nullEntity later.
@@ -14723,7 +14730,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     }
     
     function onArrayChanged(args) {
-        var koObj = args.relationArray._koObj;
+        var koObj = args.array._koObj;
         if (koObj._suppressBreeze) {
             koObj._suppressBreeze = false;
         } else {
@@ -14736,22 +14743,21 @@ breeze.AbstractDataServiceAdapter = (function () {
 }));
 
 // set defaults
-breeze.config.initializeAdapterInstances({
-    ajax: "jQuery",
-    dataService: "webApi"
-});
+// will no longer fail at initialization time if jQuery is not found.
+breeze.config.initializeAdapterInstances( { dataService: "webApi", ajax: "jQuery" });
 
-// don't initialize with ko unless it exists.
-var ko = window.ko;
-if ((!ko) && window.require) {
-    ko = window.require("ko");
-}
+var ko = __requireLibCore("ko");
+
 if (ko) {
     breeze.config.initializeAdapterInstance("modelLibrary", "ko");
 } else {
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore");
 }
 
-this.window.breeze = breeze;
+if (this.window) {
+    this.window.breeze = breeze;
+}
+
+
 return breeze;
 });
