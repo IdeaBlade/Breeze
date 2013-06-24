@@ -1,7 +1,7 @@
 'use strict';
 
 describe('testController', function () {
-    var scope, $controllerFactory, logger, ctorArgs;
+    var scope, $controllerFactory, logSpy, ctorArgs;
 
     beforeEach(module('app'));
     
@@ -11,15 +11,15 @@ describe('testController', function () {
     }));
 
     beforeEach(function () {
-        logger = sinon.stub({ log: function () { } });
+        var fakeLogger = { log: function (msg) { console.log(msg); } };
+        logSpy = sinon.spy(fakeLogger, "log");
         ctorArgs = {
             $scope: scope,
             $routeParams: {},
             dataservice: {},
-            logger: logger
+            logger: fakeLogger
         };
     }) ;
-
 
     it('breeze should be present', function () {
         expect(breeze).toBeDefined();
@@ -49,8 +49,8 @@ describe('testController', function () {
 
     it('should report something to the logger', function() {
         $controllerFactory("testCtrl", ctorArgs);
-        sinon.assert.calledOnce(logger.log);
-        sinon.assert.calledWithMatch(logger.log, /created/i);
+        sinon.assert.calledOnce(logSpy);
+        sinon.assert.calledWithMatch(logSpy, /created/i);
     });
 });
 

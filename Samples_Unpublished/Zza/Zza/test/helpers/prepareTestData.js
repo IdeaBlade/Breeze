@@ -10,7 +10,7 @@
 
     var logger = getLogger();
     var metadataStore = new breeze.MetadataStore();
-    var masterEm, masterEmCache;
+    var masterEm, lookupsEmCache;
 
     $(doit); // DO IT!
 
@@ -43,9 +43,9 @@
 
     function loadTestData() {
         logger.log("Got lookups.");
-        masterEmCache = masterEm.exportEntities();
+        lookupsEmCache = masterEm.exportEntities();
         
-        return Q.allSettled([writeMaster()]).then(done);
+        return Q.allSettled([writeLookups()]).then(done);
         
         function done(promises) {
             promises.forEach(function(promise) {
@@ -57,13 +57,13 @@
         }
     }
     
-    function writeMaster() {
-        return writeScriptFile('master', masterEmCache);
+    function writeLookups() {
+        return writeScriptFile('lookups', lookupsEmCache);
     }
     
     function newEm() {
         var em = masterEm.createEmptyCopy();
-        em.importEntities(masterEmCache);
+        em.importEntities(lookupsEmCache);
     }
     
     function writeScriptFile(filename, body) {

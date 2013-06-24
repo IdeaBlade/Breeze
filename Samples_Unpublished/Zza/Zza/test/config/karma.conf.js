@@ -26,7 +26,7 @@ files = [
   /* test support */
   '../test/helpers/testFns.js',
   '../test/helpers/jasmineTestFns.js',
-  '../test/helpers/testData.js',
+  '../test/testdata/**/*.js',
 
     /* unit tests */
   '../test/unit/**/*.js',

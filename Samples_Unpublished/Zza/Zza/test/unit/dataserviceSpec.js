@@ -7,10 +7,19 @@
     beforeEach(function () {
         fakeLogger = sinon.stub() ;
         
-        // replace the application 'logger' with the fake.
-        module(function($provide) {
+
+        module(function ($provide) {
+            // replace the application 'logger' with the fake.
             $provide.value('logger', fakeLogger);
+            
+            var manager = zzaTestFns.newTestManager();
+            // Todo: don't stringify after EntityManager.importEntities() accepts JSON
+            var lookups = JSON.stringify(zza.lookups);
+            manager.importEntities(lookups);
+            zzaTestFns.setManagerToFetchFromCache(manager);
+            $provide.value('entityManagerProvider', { manager: manager });
         });
+
     });
 
     it('should obtain a dataservice',

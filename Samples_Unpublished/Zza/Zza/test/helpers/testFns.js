@@ -27,6 +27,8 @@
     //      I forgot to start the server first.
 
     var fns = {
+        newTestManager: newTestManager,
+        setManagerToFetchFromCache: setManagerToFetchFromCache,
         fetchMetadata: fetchMetadata,
         userSessionId: userSessionId,
         serviceName: zzaServiceName,
@@ -43,6 +45,27 @@
     return fns;
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
+ 
+    /*********************************************************
+    * new instance of a test EntityManager, synchronously primed with metadata 
+    *********************************************************/
+    function newTestManager() {
+        var em = newEm();
+        var store = em.metadataStore;
+        if (!store.hasMetadataFor(fns.serviceName)) {
+            // Import metadata that were downloaded as a script file
+            store.importMetadata(zza.metadata);
+        }
+        return em;
+    }
+    function setManagerToFetchFromCache(manager) {
+        manager.setProperties({
+            queryOptions: new breeze.QueryOptions({
+                // query the cache by default
+                fetchStrategy: breeze.FetchStrategy.FromLocalCache,
+            })
+        });
+    }
     function fetchMetadata(){
         if (fns.metadataStore.hasMetadataFor(fns.serviceName)) {
             console.log("already has metadata for "+fns.serviceName);

@@ -262,7 +262,7 @@
     <Content Include="test\config\jasmineTestRunnerConfig.js" />
     <Content Include="test\testdata\smallOrderTestData.js" />
     <Content Include="test\zzaTestRunner.html" />
-    <Content Include="test\testdata\master.js" />
+    <Content Include="test\testdata\lookups.js" />
     <Content Include="test\unit\configSpec.js" />
     <Content Include="test\unit\dataserviceSpec.js" />
     <Content Include="test\unit\firstspec.js" />

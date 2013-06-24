@@ -16,7 +16,10 @@
         
         masterManager.enableSaveQueuing(true);
         
-        return { manager: createNewManager() };
+        return {
+            masterManager: masterManager, // mostly for testing
+            manager: createNewManager()
+        };
         
         // Todo: relocate to service? Async?
         function getMetadataStore() {
