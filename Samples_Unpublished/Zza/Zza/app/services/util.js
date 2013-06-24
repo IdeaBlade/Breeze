@@ -79,7 +79,7 @@
         function extendQ() {
             var promise = Q.defer().promise;
             var fn = Object.getPrototypeOf(promise);
-            if (fn.to$q) return; // exists; don't reset
+            if (fn.to$q) return; // already extended
             fn.to$q = function(no$apply) { return to$q(this, no$apply); };
         }
         /*********************************************************
@@ -189,6 +189,7 @@
         ********************************************************/
         function extendString() {
             var stringFn = String.prototype;
+            if (stringFn.format) { return; } // already extended
 
             // Ex: "{0} returned {1} item(s)".format(queryName, count));
             stringFn.format = stringFn.format || function () {

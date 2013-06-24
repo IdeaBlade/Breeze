@@ -29,6 +29,7 @@
     var fns = {
         newTestManager: newTestManager,
         setManagerToFetchFromCache: setManagerToFetchFromCache,
+        addLookupsToManager: addLookupsToManager,
         fetchMetadata: fetchMetadata,
         userSessionId: userSessionId,
         serviceName: zzaServiceName,
@@ -37,7 +38,8 @@
         getNextIntId: getNextIntId,
         newGuid: newGuid,
         newGuidComb: newGuid,
-        zzaReset: zzaReset
+        zzaReset: zzaReset,
+        FakeLogger: FakeLogger
     };
 
     var _nextIntId = 10000; // seed for getNextIntId()
@@ -45,7 +47,8 @@
     return fns;
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
- 
+    function noop() { }
+    
     /*********************************************************
     * new instance of a test EntityManager, synchronously primed with metadata 
     *********************************************************/
@@ -65,6 +68,11 @@
                 fetchStrategy: breeze.FetchStrategy.FromLocalCache,
             })
         });
+    }
+    function addLookupsToManager(manager) {
+        // Todo: don't stringify after EntityManager.importEntities() accepts JSON
+        var lookups = JSON.stringify(zza.lookups);
+        manager.importEntities(lookups);
     }
     function fetchMetadata(){
         if (fns.metadataStore.hasMetadataFor(fns.serviceName)) {
@@ -210,5 +218,14 @@
             return (this.indexOf(value) !== -1);
         };
     }
-
+    /*******************************************************
+     * Constructor for a null Logger. Matches logger.js API
+     ********************************************************/
+    function FakeLogger() {
+        this.error = noop;
+        this.info = noop;
+        this.success = noop;
+        this.warning = noop;
+        this.log = noop;
+    }
 });

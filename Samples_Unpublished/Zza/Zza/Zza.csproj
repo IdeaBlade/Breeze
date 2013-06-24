@@ -165,7 +165,7 @@
     <Content Include="app\images\products\thaichickensalad.jpg" />
     <Content Include="app\images\products\tomterrific.jpg" />
     <Content Include="app\metadata.js" />
-    <Content Include="app\services\config.js" />
+    <Content Include="app\config.js" />
     <Content Include="app\services\databaseReset.js" />
     <Content Include="app\services\entityManagerProvider.js" />
     <Content Include="app\services\util.js" />
