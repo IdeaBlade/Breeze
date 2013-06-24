@@ -70,9 +70,7 @@
         });
     }
     function addLookupsToManager(manager) {
-        // Todo: don't stringify after EntityManager.importEntities() accepts JSON
-        var lookups = JSON.stringify(zza.lookups);
-        manager.importEntities(lookups);
+        manager.importEntities(zza.lookups);
     }
     function fetchMetadata(){
         if (fns.metadataStore.hasMetadataFor(fns.serviceName)) {
