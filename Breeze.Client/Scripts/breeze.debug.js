@@ -11324,7 +11324,7 @@ var EntityManager = (function () {
         // em2 will now contain all of the entities from both em1 and em2.  Any em2 entities with previously 
         // made modifications will not have been touched, but all other entities from em1 will have been imported.
     @method importEntities
-    @param exportedString {String} The result of a previous 'export' call.
+    @param exportedString {String|Json} The result of a previous 'export' call.
     @param [config] {Object} A configuration object.
         @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
         merging into an existing EntityManager.
@@ -11337,7 +11337,7 @@ var EntityManager = (function () {
             .applyAll(config);
         var that = this;
             
-        var json = JSON.parse(exportedString);
+        var json = (typeof exportedString === "string") ? JSON.parse(exportedString) : exportedString;
         this.metadataStore.importMetadata(json.metadataStore);
         // the || clause is for backwards compat with an earlier serialization format.           
         this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
@@ -13274,13 +13274,21 @@ var EntityManager = (function () {
         var stype = structObj.entityType || structObj.complexType;
         
         stype.dataProperties.forEach(function (dp) {
-            if (dp.isUnmapped && isOData) return;
-            if (dp.isComplexProperty) {
+            if (dp.isUnmapped) {
+                if (isOData) return;
+                var val = structObj.getProperty(dp.name);
+                val = transformValue(val, dp, false);
+                if (val !== undefined) {
+                    rawObject.__unmapped = rawObject.__unmapped || {};
+                    // no name on server for unmapped props
+                    rawObject.__unmapped[dp.name] = val;
+                }
+            }  else if (dp.isComplexProperty) {
                 if (dp.isScalar) {
                     rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
                 } else {
                     var complexObjs = structObj.getProperty(dp.name);
-                    rawObject[dp.nameOnServer] = complexObjs.map(function(co) { return unwrapInstance(co, isOData) });
+                    rawObject[dp.nameOnServer] = complexObjs.map(function (co) { return unwrapInstance(co, isOData) });
                 }
             } else {
                 var val = structObj.getProperty(dp.name);

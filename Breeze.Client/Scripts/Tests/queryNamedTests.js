@@ -42,7 +42,9 @@
         stop();
         em.executeQuery(query, function (data) {
             var results = data.results;
-            ok(true);
+            var firstCustName = results[0].getProperty("companyName");
+
+            ok(firstCustName.indexOf("Chop-suey") === 0, "order is wrong");
         }).fail(testFns.handleFail).fin(start);
 
     });

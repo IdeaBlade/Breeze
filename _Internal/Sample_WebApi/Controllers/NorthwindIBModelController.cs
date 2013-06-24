@@ -245,6 +245,10 @@ namespace Sample_WebApi.Controllers {
     }
 
     private bool CheckUnmappedProperty(EntityInfo entityInfo) {
+      var unmappedValue = entityInfo.UnmappedValuesMap["myUnmappedProperty"];
+      if ((String) unmappedValue != "anything22") {
+        throw new Exception("wrong value for unmapped property:  " + unmappedValue);
+      }
       Customer cust = entityInfo.Entity as Customer;
       return false;
     }

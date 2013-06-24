@@ -35,7 +35,8 @@
     test("check unmapped property on server", function () {
         // this test does not fail. Must debug server and 'dig' to find unmapped property value since it's not available in the interceptors
         // var em = newEm();
-        var em = newEm(testFns.newMs());
+        
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var customerType = em.metadataStore.getEntityType("Customer");
 
         var Customer = function () {
@@ -59,8 +60,8 @@
 
     test("check initializer is hit for entities added/saved on server", function () {
         // var em = newEm();
-        var em = newEm(testFns.newMs());
 
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var ordInitializer = function (ord) {
             ord.setProperty("shipCountry", "Brazil");
         };
