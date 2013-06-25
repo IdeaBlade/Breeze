@@ -1,0 +1,4 @@
+metadata.js
+Zza/test/testdata/*.*
+!smallOrderTestData.js
+Zza.Interfaces/Breeze.WebApi.dll
