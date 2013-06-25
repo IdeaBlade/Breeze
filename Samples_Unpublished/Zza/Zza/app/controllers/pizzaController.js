@@ -16,11 +16,21 @@
         }
 
         $scope.product = product;
+        var orderItem = dataservice.createOrderItem();
+        orderItem.productId = product.productId;
 
         var sizes = dataservice.productSizes.byType('pizza');
         $scope.sizes = sizes;
-        $scope.selectedSizeId = sizes[0].id;
 
+        $scope.addToCart = function () {
+            var order = dataservice.cartOrder;
+            orderItem.orderId = order.id;
+            order.orderItems.push(orderItem);
+            $location.url('/cart');
+        }
+        $scope.cancel = function () {
+            $location.url('/order/pizza');
+        }
     }
     
     function dataServiceInit(dataservice, logger) {

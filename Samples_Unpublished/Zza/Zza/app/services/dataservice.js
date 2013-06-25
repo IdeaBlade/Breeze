@@ -25,7 +25,8 @@
             getAllCustomers: getAllCustomers,
             getOrders: getOrders,
             saveChanges: saveChanges,
-            resetManager: resetManager
+            resetManager: resetManager,
+            createOrderItem: createOrderItem
             /* These are added during initialization:
                cartOrder,
                draftOrder,
@@ -124,6 +125,10 @@
             };
             service.cartOrder = manager.createEntity('Order', orderInit);
             service.draftOrder = manager.createEntity('Order', orderInit);
+        }
+
+        function createOrderItem() {
+            return manager.createEntity('OrderItem');
         }
         
         function getAllCustomers() {
