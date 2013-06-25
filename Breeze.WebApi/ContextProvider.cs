@@ -33,17 +33,13 @@ namespace Breeze.WebApi {
       }
     }
 
-    public static String CsdlToJson(XDocument xDoc) {
+    public static String XDocToJson(XDocument xDoc) {
 
       var sw = new StringWriter();
       using (var jsonWriter = new JsonPropertyFixupWriter(sw)) {
         // jsonWriter.Formatting = Newtonsoft.Json.Formatting.Indented;
         var jsonSerializer = new JsonSerializer();
         var converter = new XmlNodeConverter();
-        // May need to put this back.
-        // converter.OmitRootObject = true;
-        // doesn't seem to do anything.
-        // converter.WriteArrayAttribute = true;
         jsonSerializer.Converters.Add(converter);
         jsonSerializer.Serialize(jsonWriter, xDoc);
       }
