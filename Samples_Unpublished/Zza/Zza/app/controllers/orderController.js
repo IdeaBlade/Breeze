@@ -14,6 +14,7 @@
         $scope.pickedProduct = pickedProduct;
         $scope.view = route.templateUrl; // view is used in ng-include
         $scope.links = routes.visibleOrderRoutes;
+        $scope.cartOrder = dataservice.cartOrder;
 
         function setTaggedRoute(t) {
             tag = (t || 'pizza').toLowerCase();

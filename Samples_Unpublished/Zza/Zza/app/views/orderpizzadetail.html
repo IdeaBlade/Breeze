@@ -9,11 +9,11 @@
         <hr />
         <form class="form-horizontal">
         <div>
-            <table style="width: 300px">
+            <table class="table-condensed">
                 <tr><th>Size</th><th>Price</th></tr>
                 <tr data-ng-repeat="size in sizes">
                     <td><label class="radio" for="size{{size.id}}">{{size.name}}</label> </td>
-                    <td ><label class="radio" for="size{{size.id}}"><input type="radio" data-ng-model="orderItem.productSizeId" value="{{size.id}}" name="selectedSize" id="size{{size.id}}"/>{{size.price | currency}}</label></td>
+                    <td><label class="radio" for="size{{size.id}}"><input type="radio" data-ng-model="orderItem.productSizeId" value="{{size.id}}" name="selectedSize" id="size{{size.id}}"/>{{size.price | currency}}</label></td>
                 </tr>
             </table>
         </div>
@@ -27,7 +27,7 @@
         <div class="control-group">
             <label class="control-label" for="instructions">Instructions</label>
             <div class="controls">
-                <textarea rows="3" id="instructions" data-ng-model="orderItem.instructions"></textarea>
+                <textarea rows="2" id="instructions" data-ng-model="orderItem.instructions"></textarea>
             </div>
         </div>
             <button class="btn" data-ng-click="cancel()">Cancel</button>

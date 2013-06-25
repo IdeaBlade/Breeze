@@ -6,7 +6,13 @@
         ctrlName, ['$scope', 'dataservice', cartCtrl]);
     
     function cartCtrl($scope, dataservice) {
-        $scope.cartOrder = dataservice.cartOrder;
+        var cartOrder = dataservice.cartOrder;
+        var draftOrder = dataservice.draftOrder;
+        $scope.cartOrder = cartOrder;
+
+        $scope.removeItem = function (orderItem) {
+            orderItem.order = draftOrder;
+        };
     }
 
     function dataServiceInit(dataservice, logger) {
