@@ -82,19 +82,7 @@ namespace Breeze.WebApi {
     #region Base implementation overrides
 
     protected override string BuildJsonMetadata() {
-
-      XDocument xDoc;
-      if (Context is DbContext) {
-        xDoc = GetCsdlFromDbContext(Context);
-      } else {
-        xDoc = GetCsdlFromObjectContext(Context);
-      }
-      var jsonText = CsdlToJson(xDoc);
-
-      /* Original version
-      var jsonText = JsonConvert.SerializeXmlNode(doc);
-      */
-      return jsonText;
+      return GetMetadataFromContext(Context);
     }
 
     protected override EntityInfo CreateEntityInfo() {
@@ -432,7 +420,23 @@ namespace Breeze.WebApi {
 
     #region Metadata methods
 
-    protected XDocument GetCsdlFromDbContext(Object context) {
+    public static String GetMetadataFromDbFirstAssembly(Assembly assembly, String resourcePrefix = "") {
+      var xDoc = GetEmbeddedXDoc(assembly, resourcePrefix + ".csdl" );
+      // This is needed because the raw edmx has a different namespace than the CLR types that it references.
+      xDoc  = UpdateCSpaceOSpaceMapping(xDoc, assembly, resourcePrefix);
+      
+      return XDocToJson(xDoc);
+    }
+
+    public static String GetMetadataFromContext(Object context) {
+      if (context is DbContext) {
+        return GetMetadataFromDbContext(context);
+      } else {
+        return GetMetadataFromObjectContext(context);
+      }
+    }
+
+    private static String GetMetadataFromDbContext(Object context) {
       var dbContext = (DbContext) context;
       XElement xele;
 
@@ -446,7 +450,7 @@ namespace Breeze.WebApi {
       } catch (Exception e) {
         if (e is NotSupportedException) {
           // DbContext that fails on WriteEdmx is likely a DataBase first DbContext.
-          return GetCsdlFromObjectContext(dbContext);
+          return GetMetadataFromObjectContext(dbContext);
         } else {
           throw;
         }
@@ -456,18 +460,28 @@ namespace Breeze.WebApi {
       var conceptualEle = xele.Descendants(ns + "ConceptualModels").First();
       var schemaEle = conceptualEle.Elements().First(ele => ele.Name.LocalName == "Schema");
       var xDoc = XDocument.Load(schemaEle.CreateReader());
-
-      // This is needed because the raw edmx has a different namespace than the CLR types that it references.
+            
       var objectContext = ((IObjectContextAdapter)dbContext).ObjectContext;
-      AddCSpaceOSpaceMapping(xDoc, objectContext);
-
-      return xDoc;
+      // This is needed because the raw edmx has a different namespace than the CLR types that it references.
+      xDoc = UpdateCSpaceOSpaceMapping(xDoc, objectContext);
+      return XDocToJson(xDoc);
     }
 
-    protected XDocument GetCsdlFromObjectContext(Object context) {
+    private static String GetMetadataFromObjectContext(Object context) {
 
       var ocAssembly = context.GetType().Assembly;
       var ocNamespace = context.GetType().Namespace;
+
+      var objectContext = GetObjectContext(context);
+      var normalizedResourceName = ExtractResourceName(objectContext);
+      var xDoc = GetEmbeddedXDoc(ocAssembly, normalizedResourceName);
+      
+      // This is needed because the raw edmx has a different namespace than the CLR types that it references.
+      xDoc = UpdateCSpaceOSpaceMapping(xDoc, objectContext);
+      return XDocToJson(xDoc);
+    }
+
+    private static ObjectContext GetObjectContext(Object context)   {
       ObjectContext objectContext;
       if (context is DbContext) {
         var dbContext = (DbContext) context;
@@ -475,7 +489,10 @@ namespace Breeze.WebApi {
       } else {
         objectContext = (ObjectContext) context;
       }
-      
+      return objectContext;
+    }
+
+    private static string ExtractResourceName(ObjectContext objectContext) {
       var ec = objectContext.Connection as EntityConnection;
       
       if (ec == null) {
@@ -502,38 +519,66 @@ namespace Breeze.WebApi {
 
       var parts = csdlResource.Split('/', '.');
       var normalizedResourceName = String.Join(".", parts.Skip(parts.Length - 2));
+      return normalizedResourceName;
+    }
+
+    private static XDocument GetEmbeddedXDoc(Assembly ocAssembly, String resourceSuffix) {
+      
       var resourceNames = ocAssembly.GetManifestResourceNames();
-      var manifestResourceName = resourceNames
-        .FirstOrDefault(n => n.EndsWith(normalizedResourceName));
+      var manifestResourceName = resourceNames.FirstOrDefault(n => n.EndsWith(resourceSuffix));
+
       if (manifestResourceName == null) {
-        manifestResourceName = resourceNames.FirstOrDefault(n => 
+        manifestResourceName = resourceNames.FirstOrDefault(n =>
           n == "System.Data.Resources.DbProviderServices.ConceptualSchemaDefinition.csdl"
         );
         if (manifestResourceName == null) {
           throw new Exception("Unable to locate an embedded resource with the name " +
                               "'System.Data.Resources.DbProviderServices.ConceptualSchemaDefinition.csdl'" +
-                              " or a resource that ends with: " + normalizedResourceName);
+                              " or a resource that ends with: " + resourceSuffix);
         }
       }
       XDocument xDoc;
       using (var mmxStream = ocAssembly.GetManifestResourceStream(manifestResourceName)) {
         xDoc = XDocument.Load(mmxStream);
       }
-      // This is needed because the raw edmx has a different namespace than the CLR types that it references.
-      AddCSpaceOSpaceMapping(xDoc, objectContext);
+     
       return xDoc;
     }
-
-    private void AddCSpaceOSpaceMapping(XDocument xDoc, ObjectContext oc) {
-      var tpls = GetCSpaceOSpaceMapping(oc);
-      var ocMapping = JsonConvert.SerializeObject(tpls);
-      xDoc.Root.SetAttributeValue("CSpaceOSpaceMapping", ocMapping);
-    }
   
-    private List<String[]> GetCSpaceOSpaceMapping(ObjectContext oc) {
+    private static XDocument UpdateCSpaceOSpaceMapping(XDocument xDoc, ObjectContext oc) {
       var metadataWs = oc.MetadataWorkspace;
+
+      // ForceOSpaceLoad
+      var asm = oc.GetType().Assembly;
+      metadataWs.LoadFromAssembly(asm);
+
+      return UpdateCSpaceOSpaceMappingCore(xDoc, metadataWs);
+      
+    }
+
+    private static XDocument UpdateCSpaceOSpaceMapping(XDocument xDoc, Assembly assembly, String resourcePrefix) {
+
+      String[] res;
+      if (resourcePrefix == "") {
+        res = new string[] { "res://*/" };
+      } else {
+        var pre = "res://*/" + resourcePrefix;
+        res = new String[] { pre + ".csdl" , pre + ".msl", pre + ".ssdl" };
+      }
+      var metadataWs = new MetadataWorkspace(
+        res,
+        new Assembly[] { assembly });
+
+      // force an OSpace load - UGH - this was hard to find.... need to create the object item collection before loading assembly
+      metadataWs.RegisterItemCollection(new ObjectItemCollection());  
+      metadataWs.LoadFromAssembly(assembly);
+
+      return UpdateCSpaceOSpaceMappingCore(xDoc, metadataWs);
+
+    }
+
+    private static XDocument UpdateCSpaceOSpaceMappingCore(XDocument xDoc, MetadataWorkspace metadataWs)  {
       var cspaceTypes = metadataWs.GetItems<System.Data.Metadata.Edm.StructuralType>(DataSpace.CSpace);
-      ForceOSpaceLoad(oc);
       var tpls = cspaceTypes
           .Where(st => !(st is AssociationType))
           .Select(st => {
@@ -541,18 +586,13 @@ namespace Breeze.WebApi {
             return new [] {st.FullName, ost.FullName};
           })
           .ToList();
-      return tpls;
+      var ocMapping = JsonConvert.SerializeObject(tpls);
+      xDoc.Root.SetAttributeValue("CSpaceOSpaceMapping", ocMapping);
+      return xDoc;
     }
+  
 
-    private void ForceOSpaceLoad(ObjectContext oc) {
-      var metadataWs = oc.MetadataWorkspace;
-      var asm = oc.GetType().Assembly;
-      metadataWs.LoadFromAssembly(asm);
-    }
-
-   
-
-    protected String GetConnectionStringFromConfig(String connectionName) {
+    protected static String GetConnectionStringFromConfig(String connectionName) {
       var item = ConfigurationManager.ConnectionStrings[connectionName];
       return item.ConnectionString;
     }
