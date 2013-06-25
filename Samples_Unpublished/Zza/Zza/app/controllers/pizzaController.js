@@ -17,12 +17,17 @@
 
         $scope.product = product;
         var orderItem = dataservice.createOrderItem();
-        orderItem.productId = product.productId;
+        orderItem.productId = product.id;
+        $scope.orderItem = orderItem;
 
         var sizes = dataservice.productSizes.byType('pizza');
         $scope.sizes = sizes;
 
         $scope.addToCart = function () {
+            var size = dataservice.productSizes.byId(orderItem.productSizeId);
+            orderItem.productSize = size;
+            orderItem.unitPrice = size.price;
+            orderItem.totalPrice = orderItem.quantity * size.price;
             var order = dataservice.cartOrder;
             orderItem.orderId = order.id;
             order.orderItems.push(orderItem);

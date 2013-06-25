@@ -113,6 +113,7 @@
   <ItemGroup>
     <Content Include="app\app.js" />
     <Content Include="app\controllers\appController.js" />
+    <Content Include="app\controllers\cartController.js" />
     <Content Include="app\controllers\pizzaController.js" />
     <Content Include="app\controllers\testController.js" />
     <Content Include="app\controllers\emptyControllers.js" />

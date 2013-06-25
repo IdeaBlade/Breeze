@@ -21,13 +21,13 @@
         <div class="control-group">
             <label class="control-label" for="quantity">Quantity</label>
             <div class="controls">
-                <input type="text" id="quantity" data-ng-bind="orderItem.quantity" class="input-mini">
+                <input type="text" id="quantity" data-ng-model="orderItem.quantity" class="input-mini">
             </div>
         </div>
         <div class="control-group">
             <label class="control-label" for="instructions">Instructions</label>
             <div class="controls">
-                <textarea rows="3" id="instructions" data-ng-bind="orderItem.instructions"></textarea>
+                <textarea rows="3" id="instructions" data-ng-model="orderItem.instructions"></textarea>
             </div>
         </div>
             <button class="btn" data-ng-click="cancel()">Cancel</button>
