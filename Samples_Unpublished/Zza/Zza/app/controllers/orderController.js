@@ -13,7 +13,7 @@
         setProducts();
         $scope.pickedProduct = pickedProduct;
         $scope.view = route.templateUrl; // view is used in ng-include
-        $scope.links = routes.orderRoutes;
+        $scope.links = routes.visibleOrderRoutes;
 
         function setTaggedRoute(t) {
             tag = (t || 'pizza').toLowerCase();

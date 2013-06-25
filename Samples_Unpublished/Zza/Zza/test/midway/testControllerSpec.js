@@ -1,8 +1,8 @@
 'use strict';
 
 describe('testController', function () {
-    var scope, $controllerFactory, logSpy, ctorArgs;
-
+    var scope, $controllerFactory, loggerStub, ctorArgs;
+    
     beforeEach(module('app'));
     
     beforeEach(inject(function($controller, $rootScope) {
@@ -11,13 +11,12 @@ describe('testController', function () {
     }));
 
     beforeEach(function () {
-        var fakeLogger = { log: function (msg) { console.log(msg); } };
-        logSpy = sinon.spy(fakeLogger, "log");
+        loggerStub = sinon.stub(new zzaTestFns.FakeLogger);
         ctorArgs = {
             $scope: scope,
             $routeParams: {},
             dataservice: {},
-            logger: fakeLogger
+            logger: loggerStub
         };
     }) ;
 
@@ -49,8 +48,8 @@ describe('testController', function () {
 
     it('should report something to the logger', function() {
         $controllerFactory("testCtrl", ctorArgs);
-        sinon.assert.calledOnce(logSpy);
-        sinon.assert.calledWithMatch(logSpy, /created/i);
+        sinon.assert.calledOnce(loggerStub.log);
+        sinon.assert.calledWithMatch(loggerStub.log, /created/i);
     });
 });
 

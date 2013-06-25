@@ -3,6 +3,7 @@ using Breeze.WebApi;
 using Models.NorthwindIB.NH;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
 
@@ -45,6 +46,44 @@ namespace NorthBreeze.Controllers
         {
             var orders = northwind.Orders;
             return orders;
+        }
+
+        [HttpGet]
+        public IQueryable<Order> OrdersTimes100()
+        {
+            var orders = northwind.Orders.ToList();
+            var list = new List<Order>(orders.Count * 100);
+            for (int i = 0; i < 2; i++)
+            {
+                foreach(var order in orders)
+                {
+                    list.Add(CloneOrder(order, i));
+                }
+            }
+            
+            return list.AsQueryable<Order>();
+        }
+
+        private Order CloneOrder(Order order, int i)
+        {
+            var str = ("00" + i);
+            str = str.Substring(str.Length - 2);
+            var clone = new Order();
+            clone.OrderID = order.OrderID * 100 + i;
+            clone.CustomerID = order.CustomerID;
+            clone.EmployeeID = order.EmployeeID;
+            clone.Freight = order.Freight;
+            clone.OrderDate = order.OrderDate;
+            clone.RequiredDate = order.RequiredDate;
+            clone.RowVersion = order.RowVersion;
+            clone.ShipAddress = order.ShipAddress + str;
+            clone.ShipCity = order.ShipCity + str;
+            clone.ShipCountry = order.ShipCountry + str;
+            clone.ShipName = order.ShipName + str;
+            clone.ShippedDate = order.ShippedDate;
+            clone.ShipPostalCode = order.ShipPostalCode + str;
+            clone.ShipRegion = order.ShipRegion + str;
+            return clone;
         }
 
         [HttpGet]

@@ -113,6 +113,7 @@
   <ItemGroup>
     <Content Include="app\app.js" />
     <Content Include="app\controllers\appController.js" />
+    <Content Include="app\controllers\cartController.js" />
     <Content Include="app\controllers\pizzaController.js" />
     <Content Include="app\controllers\testController.js" />
     <Content Include="app\controllers\emptyControllers.js" />
@@ -165,7 +166,7 @@
     <Content Include="app\images\products\thaichickensalad.jpg" />
     <Content Include="app\images\products\tomterrific.jpg" />
     <Content Include="app\metadata.js" />
-    <Content Include="app\services\config.js" />
+    <Content Include="app\config.js" />
     <Content Include="app\services\databaseReset.js" />
     <Content Include="app\services\entityManagerProvider.js" />
     <Content Include="app\services\util.js" />
@@ -264,11 +265,11 @@
     <Content Include="test\zzaTestRunner.html" />
     <Content Include="test\testdata\lookups.js" />
     <Content Include="test\unit\configSpec.js" />
-    <Content Include="test\unit\dataserviceSpec.js" />
+    <Content Include="test\midway\dataserviceSpec.js" />
     <Content Include="test\unit\firstspec.js" />
-    <Content Include="test\unit\testControllerSpec.js" />
-    <Content Include="test\webapi\queryspec.js" />
-    <Content Include="test\webapi\savespec.js" />
+    <Content Include="test\midway\testControllerSpec.js" />
+    <Content Include="test\async\queryspec.js" />
+    <Content Include="test\async\savespec.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

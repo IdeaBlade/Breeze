@@ -17,20 +17,28 @@
             initPromise,
             initFailed;
 
-        var manager = entityManagerProvider.manager;
+        var manager = entityManagerProvider.newManager();
 
         var service = {
-            // more members added during initialization
             initialize: initialize,
+            initializeSynchronously: initializeSynchronously, // testing only?
             getAllCustomers: getAllCustomers,
             getOrders: getOrders,
             saveChanges: saveChanges,
-            resetManager: resetManager
+            resetManager: resetManager,
+            createOrderItem: createOrderItem
+            /* These are added during initialization:
+               cartOrder,
+               draftOrder,
+               orderStatuses,
+               products,
+               productOptions,
+               productSizes
+             */
         };
         return service;
 
         //#region implementation
-
         function initialize() {
             if (initPromise && !initFailed) {
                 return initPromise; // already initialized/ing
@@ -42,8 +50,7 @@
                 .to$q(); // convert Q.js promise to $q promise
 
             function success() {
-                setServiceLookups();
-                createDraftAndCartOrders();
+                initializeSynchronously();
                 return true;
             }
 
@@ -58,19 +65,26 @@
             // if OrderStatuses in cache -> assume all lookups in cache
             if (manager.metadataStore.hasMetadataFor(config.serviceName) &&
                 manager.getEntities('OrderStatus').length) {
-                    logger.info("Lookups loaded from cache.");
-                    return Q(true);
+                logger.info("Lookups loaded from cache.");
+                return Q(true);
             }
             // have to get them from the server
             return EntityQuery.from('Lookups').using(manager).execute()
-                .then(function() {
+                .then(function () {
                     logger.info("Lookups loaded from server.");
                 });
         }
         
+        // Currently called only during testing
+        function initializeSynchronously() {
+            setServiceLookups();
+            createDraftAndCartOrders();
+            initPromise = Q(true).to$q();
+        }
+        
         function setServiceLookups() {
             if (service.OrderStatus) { return; } // already set
-            
+
             // set service lookups from  lookup data in cache         
             service.OrderStatus = {};
             service.OrderStatus.statuses = manager.getEntities('OrderStatus');
@@ -101,7 +115,22 @@
             s.productOptions.byId = u.filterById(s.productOptions);
             s.productOptions.byType = u.filterByType(s.productOptions);
         }
+        
+        function createDraftAndCartOrders() {
+            var orderInit = {
+                customerId: util.emptyGuid,
+                orderStatusId: service.OrderStatus.Pending,
+                orderDate: new Date(),
+                deliveryDate: new Date()
+            };
+            service.cartOrder = manager.createEntity('Order', orderInit);
+            service.draftOrder = manager.createEntity('Order', orderInit);
+        }
 
+        function createOrderItem() {
+            return manager.createEntity('OrderItem');
+        }
+        
         function getAllCustomers() {
             var query = EntityQuery
                 .from("Customers")
@@ -147,16 +176,6 @@
             attachEntities(service.productOptions);
             attachEntities(service.productSizes);
             createDraftAndCartOrders();
-        }
-        function createDraftAndCartOrders() {
-            var orderInit = {
-                customerId: util.emptyGuid,
-                orderStatusId: service.OrderStatus.Pending,
-                orderDate: new Date(),
-                deliveryDate: new Date()
-            };
-            service.cartOrder = manager.createEntity('Order', orderInit);
-            service.draftOrder = manager.createEntity('Order', orderInit);
         }
         
         // Should be in Breeze itself

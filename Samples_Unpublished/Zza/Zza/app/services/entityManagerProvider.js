@@ -4,29 +4,19 @@
         'entityManagerProvider', ['config', 'model', emProvider]);
 
     function emProvider(config, model) {
-        // todo: make async?
         var serviceName = config.serviceName;
-
         var metadataStore = getMetadataStore();
         
-        var masterManager = new breeze.EntityManager({
-            serviceName: serviceName,
-            metadataStore: metadataStore
-        });
-        
-        masterManager.enableSaveQueuing(true);
-        
         return {
-            masterManager: masterManager, // mostly for testing
-            manager: createNewManager()
+            newManager: newManager
         };
         
-        // Todo: relocate to service? Async?
         function getMetadataStore() {
             var store = new breeze.MetadataStore();
 
             // Import metadata that were downloaded as a script file
-            store.importMetadata(zza.metadata);
+            // Because of Breeze bug, must stringify it first.
+            store.importMetadata(JSON.stringify(zza.metadata));
 
             // Associate these metadata data with the service
             store.addDataService(
@@ -37,8 +27,11 @@
             return store;
         }
         
-        function createNewManager() {
-            var mgr = masterManager.createEmptyCopy();
+        function newManager() {
+            var mgr = new breeze.EntityManager({
+                serviceName: serviceName,
+                metadataStore: metadataStore
+            });
             mgr.enableSaveQueuing(true);
             return mgr;
         }

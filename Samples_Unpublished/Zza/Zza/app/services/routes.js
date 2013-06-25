@@ -25,12 +25,16 @@
         { tag: 'pizza', path: '/order/pizza', name: 'Pizza', templateUrl: viewBase + 'orderpizza.html' },
         { tag: 'salad', path: '/order/salad', name: 'Salad', templateUrl: viewBase + 'ordersalad.html' },
         { tag: 'drinks', path: '/order/drinks', name: 'Drinks', templateUrl: viewBase + 'orderdrinks.html' },
+        { tag: 'pizzadetail', path: '/order/pizzadetail', templateUrl: viewBase + 'orderpizzadetail.html' },
         { tag: 'pizzadetail', path: '/order/pizzadetail', templateUrl: viewBase + 'orderpizzadetail.html' }
     ];
     
     var routes = {
         navRoutes: navRoutes,
-        orderRoutes: orderRoutes
+        orderRoutes: orderRoutes,
+        // visible routes are those that have a display name
+        visibleNavRoutes: navRoutes.filter(function (item) { return item.name; }),
+        visibleOrderRoutes: orderRoutes.filter(function (item) { return item.name; })
     };
 
     var app = angular.module('app')
