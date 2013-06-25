@@ -17,6 +17,10 @@
 
         $scope.product = product;
 
+        var sizes = dataservice.productSizes.byType('pizza');
+        $scope.sizes = sizes;
+        $scope.selectedSizeId = sizes[0].id;
+
     }
     
     function dataServiceInit(dataservice, logger) {

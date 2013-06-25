@@ -1,8 +1,21 @@
 ﻿<div ng-controller="pizzaCtrl">
-    <h1>Pizza Detail</h1>
+    <h1>{{product.name}}
+                <img src="app/images/icon_vegetarian.png" ng-class="{hide: !product.isVegetarian}" alt="Vegetarian" title="Vegetarian"/>
+                <img src="app/images/icon_tomato.png" ng-class="{hide: !product.withTomatoSauce}" alt="Has Tomato Sauce" title="Has Tomato Sauce"/>
+    </h1>
     <div>
-        <p>{{product.id}}</p>
-        <p>{{product.name}}</p>
+        <img class="img-polaroid" data-ng-src="{{product.img}}" title="{{product.name}}"/>
         <p>{{product.description}}</p>
+        <hr />
+        <div class="row-fluid">
+            <table style="width: 300px">
+                <tr><th>Size</th><th>Price</th></tr>
+                <tr data-ng-repeat="size in sizes">
+                    <td><label for="size{{size.id}}"><input type="radio" data-ng-model="selectedSizeId" value="{{size.id}}" name="selectedSize" id="size{{size.id}}"/> {{size.name}}</label> </td>
+                    <td style="text-align: right"><label for="size{{size.id}}">{{size.price | currency}}</label></td>
+                </tr>
+            </table>
+        </div>
+
     </div>
 </div>
