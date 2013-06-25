@@ -8,8 +8,7 @@
         $scope.current = $route.current;
 
         // Show links only for routes that have a display name
-        $scope.links = routes.navRoutes
-            .filter(function (item) { return item.name; });
+        $scope.links = routes.visibleNavRoutes;
         
         $scope.$on('$routeChangeSuccess', function () {
             $scope.current = $route.current;
