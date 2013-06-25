@@ -161,6 +161,11 @@ var x = {
                     "type": "boolean",
                     "default": true
                 },
+                "isScalar": {
+                    "description": "Whether this property returns a single value or an array of values. Typically only used in conjunction with NoSQL databases.",
+                    "type": "boolean",
+                    "default": false
+                },
                 "defaultValue": {
                     "description": "The default value for this property if nothing is assigned to it.",
                     "type": "object"

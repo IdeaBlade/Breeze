@@ -25,7 +25,7 @@
         describe('when do not involve Q', function() {
 
             var async = new AsyncSpec(this);
-            var xasync = fns.xasync;
+            //var xasync = fns.xasync;
 
             it("'it' still works",function(){
                 console.log("'xit' is " + xit) ;
@@ -100,7 +100,9 @@
             done();
             console.log("**crashed in initialize**");
             _isInitialized = false;
-            expect().toFail("initialize failed: "+e) ;
+            var emsg = "initialize failed: " + e;
+            expect().toFail(emsg);
+            return Q.reject(new Error(emsg));
         }
     }
 
@@ -109,7 +111,7 @@
      *********************************************************/
     function extendAsyncSpec(){
         var fn = AsyncSpec.prototype;
-        if (!fn.xit) {fn.xit = xit}
+        if (!fn.xit) { fn.xit = xit;}
     }
 
     /*********************************************************
@@ -118,12 +120,12 @@
      * Todo: accept a hash arg to blend with ours
      *********************************************************/
     function addCustomMatchers() {
-        beforeEach( function(){
+        beforeEach(function() {
             this.addMatchers({
                 toFail: toFail,
                 toRegExMatch: toRegExMatch
             });
-        })
+        });
     }
 
     /*********************************************************
@@ -169,9 +171,9 @@
         var actual = this.actual;
         var notText = this.isNot ? "not " : "";
         template = template || 'expected "{0}" to {1}match "{2}"';
-        this.message = function(){
+        this.message = function() {
             return template.format(actual, notText, regex);
-        }
+        };
         return regex.test(actual);
     }
 

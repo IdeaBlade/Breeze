@@ -1,4 +1,4 @@
-﻿// Generated on: Tue Jun 04 2013 13:37:16 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Sun Jun 23 2013 18:35:52 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -237,7 +237,7 @@ intellisense.annotate(breeze.breeze, {
   'ValidationError': function() {
     /// <signature>
     ///   <summary>
-    ///   A ValidatationError is used to describe a failed validation.
+    ///   A ValidationError is used to describe a failed validation.
     ///   </summary>
     ///   <param name="validator" type="breeze.breeze.Validator" optional="true"></param>
     ///   <param name="context" type="Object" optional="true"></param>
@@ -889,6 +889,14 @@ intellisense.annotate(breeze.breeze.EntityAspect.prototype, {
     
     /// </signature>
   },
+  'setDetached': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Sets the entity to an EntityState of 'Detached'.  This removes the entity from all of its related entities, but does NOT change the EntityState of any existing entities.
+    ///   </summary>
+    
+    /// </signature>
+  },
   'loadNavigationProperty': function() {
     /// <signature>
     ///   <summary>
@@ -1536,7 +1544,7 @@ intellisense.annotate(breeze.breeze.EntityType.prototype, {
   /// <field name="defaultResourceName" type="String" >The default resource name associated with this EntityType.  An EntityType may be queried via a variety of 'resource names' but this one  is used as the default when no resource name is provided.  This will occur when calling  'EntityAspect/loadNavigationProperty' or when executing any  'EntityQuery' that was created via an  'EntityKey'.</field>
   'defaultResourceName': null,
   
-  /// <field name="name" type="String" >The fully qualifed name of this EntityType.</field>
+  /// <field name="name" type="String" >The fully qualified name of this EntityType.</field>
   'name': null,
   
   /// <field name="shortName" type="String" >The short, unqualified, name for this EntityType.</field>
@@ -1976,6 +1984,9 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   /// <field name="resourceName" type="String" >The resource name used by this query.</field>
   'resourceName': null,
   
+  /// <field name="resultEntityType" type="breeze.breeze.EntityType" >The entityType that will be returned by this query. This property will only be set if the 'toType' method was called. </field>
+  'resultEntityType': null,
+  
   /// <field name="wherePredicate" type="breeze.breeze.Predicate" >The 'where' predicate used by this query.</field>
   'wherePredicate': null,
   
@@ -2292,7 +2303,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   <summary>
     ///   Imports a previously exported result into this EntityManager.
     ///   </summary>
-    ///   <param name="exportedString" type="String" optional="true">The result of a previous 'export' call.</param>
+    ///   <param name="exportedString" type="String|Json" optional="true">The result of a previous 'export' call.</param>
     ///   <param name="config" type="Object" optional="true">A configuration object.</param>
     
     /// </signature>

@@ -324,6 +324,7 @@
 
         return EntityQuery.from(resourceName)
             .skip(skip).take(take)
+            .orderBy("Id")
             .using(em).execute().then(querySuccess);
 
         function querySuccess(data) {

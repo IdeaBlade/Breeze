@@ -49,6 +49,7 @@
     <Reference Include="System.Data.Entity" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DevRepository.cs" />
     <Compile Include="ZzaSaveDataProvider.cs" />
     <Compile Include="ZzaContext.cs" />
     <Compile Include="ZzaRepository.cs" />

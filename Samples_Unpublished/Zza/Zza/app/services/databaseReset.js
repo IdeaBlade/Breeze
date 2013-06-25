@@ -13,7 +13,7 @@
             var deferred = $q.defer();
 
             //See http://docs.angularjs.org/api/ng.$http
-            $http.post(config.serviceName + '/reset')
+            $http.post(config.devServiceName + '/reset')
                 .success(success).error(fail);
 
             function success(data) {

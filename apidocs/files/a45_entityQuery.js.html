@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
             </ul>
@@ -235,6 +237,13 @@ var EntityQuery = (function () {
 
     __readOnly__
     @property resourceName {String}
+    **&#x2F;
+
+    &#x2F;**
+    The entityType that will be returned by this query. This property will only be set if the &#x27;toType&#x27; method was called. 
+
+    __readOnly__
+    @property resultEntityType {EntityType}
     **&#x2F;
 
     &#x2F;**
@@ -347,7 +356,7 @@ var EntityQuery = (function () {
     proto.toType = function(entityType) {
         assertParam(entityType, &quot;entityType&quot;).isString().or().isInstanceOf(EntityType).check();
         var eq = this._clone();
-        eq.toEntityType = entityType;
+        eq.resultEntityType = entityType;
         return eq;
     };
 
@@ -612,7 +621,7 @@ var EntityQuery = (function () {
     @example
         var query = EntityQuery.from(&quot;EmployeesFilteredByCountryAndBirthdate&quot;)
             .withParameters({ BirthDate: &quot;1&#x2F;1&#x2F;1960&quot;, Country: &quot;USA&quot; });
-    will call the &#x27;EmployeesFilteredByCountryAndBirthdata&#x27; method on the server and pass in 2 parameters. This
+    will call the &#x27;EmployeesFilteredByCountryAndBirthdate&#x27; method on the server and pass in 2 parameters. This
     query will be uri encoded as 
 
         {serviceApi}&#x2F;EmployeesFilteredByCountryAndBirthdate?birthDate=1%2F1%2F1960&amp;country=USA
@@ -945,16 +954,16 @@ var EntityQuery = (function () {
 
     proto._getToEntityType = function (metadataStore, skipFromCheck) {
         &#x2F;&#x2F; skipFromCheck is to avoid recursion if called from _getFromEntityType;
-        if (this.toEntityType instanceof EntityType) {
-            return this.toEntityType;
-        } else if (this.toEntityType) {
-            &#x2F;&#x2F; toEntityType is a string
-            this.toEntityType = metadataStore._getEntityType(this.toEntityType, false);
-            return this.toEntityType;
+        if (this.resultEntityType instanceof EntityType) {
+            return this.resultEntityType;
+        } else if (this.resultEntityType) {
+            &#x2F;&#x2F; resultEntityType is a string
+            this.resultEntityType = metadataStore._getEntityType(this.resultEntityType, false);
+            return this.resultEntityType;
         } else {
             &#x2F;&#x2F; resolve it, if possible, via the resourceName
             &#x2F;&#x2F; do not cache this value in this case
-            &#x2F;&#x2F; cannot determine the toEntityType if a selectClause is present.
+            &#x2F;&#x2F; cannot determine the resultEntityType if a selectClause is present.
             
             return skipFromCheck ? null : (!this.selectClause) &amp;&amp; this._getFromEntityType(metadataStore, false);
         }
@@ -976,7 +985,7 @@ var EntityQuery = (function () {
         copy.queryOptions = this.queryOptions; &#x2F;&#x2F; safe because QueryOptions are immutable; 
         copy.entityManager = this.entityManager;
         copy.dataService = this.dataService;
-        copy.toEntityType = this.toEntityType;
+        copy.resultEntityType = this.resultEntityType;
 
         return copy;
     };
@@ -1006,7 +1015,7 @@ var EntityQuery = (function () {
 
         function toFilterString() {
             var clause = eq.wherePredicate;
-            if (!clause) return &quot;&quot;;
+            if (!clause) return;
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
@@ -1014,13 +1023,13 @@ var EntityQuery = (function () {
         }
             
         function toInlineCountString() {
-            if (!eq.inlineCountEnabled) return &quot;&quot;;
+            if (!eq.inlineCountEnabled) return;
             return eq.inlineCountEnabled ? &quot;allpages&quot; : &quot;none&quot;;
         }
 
         function toOrderByString() {
             var clause = eq.orderByClause;
-            if (!clause) return &quot;&quot;;
+            if (!clause) return;
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
@@ -1029,7 +1038,7 @@ var EntityQuery = (function () {
             
             function toSelectString() {
             var clause = eq.selectClause;
-            if (!clause) return &quot;&quot;;
+            if (!clause) return;
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
@@ -1038,19 +1047,19 @@ var EntityQuery = (function () {
             
         function toExpandString() {
             var clause = eq.expandClause;
-            if (!clause) return &quot;&quot;;
+            if (!clause) return;
             return clause.toOdataFragment(entityType);
         }
 
         function toSkipString() {
             var count = eq.skipCount;
-            if (!count) return &quot;&quot;;
+            if (!count) return;
             return count.toString();
         }
 
         function toTopString() {
             var count = eq.takeCount;
-            if (!count) return &quot;&quot;;
+            if (!count) return;
             return count.toString();
         }
 
@@ -1058,7 +1067,7 @@ var EntityQuery = (function () {
             var qoStrings = [];
             for (var qoName in queryOptions) {
                 var qoValue = queryOptions[qoName];
-                if (qoValue) {
+                if (qoValue !== undefined) {
                     qoStrings.push(qoName + &quot;=&quot; + encodeURIComponent(qoValue));
                 }
             }
@@ -1229,13 +1238,13 @@ var FnNode = (function() {
         if (entityType) {
             this.isValidated = true;
         }
-        if (parts.length == 1) {
+        if (parts.length === 1) {
             var value = parts[0].trim();
             this.value = value;
             &#x2F;&#x2F; value is either a string, a quoted string, a number, a bool value, or a date
             &#x2F;&#x2F; if a string ( not a quoted string) then this represents a property name.
             var firstChar = value.substr(0,1);
-            var quoted = firstChar == &quot;&#x27;&quot; || firstChar == &#x27;&quot;&#x27;;
+            var quoted = firstChar === &quot;&#x27;&quot; || firstChar === &#x27;&quot;&#x27;;
             if (quoted) {
                 var unquoted = value.substr(1, value.length - 2);
                 this.fn = function (entity) { return unquoted; };
@@ -1277,7 +1286,7 @@ var FnNode = (function() {
                     return val;
                 };
                 var argSource = tokens[parts[1]].trim();
-                if (argSource.substr(0, 1) == &quot;(&quot;) {
+                if (argSource.substr(0, 1) === &quot;(&quot;) {
                     argSource = argSource.substr(1, argSource.length - 2);
                 }
                 var commaMatchStr = source.indexOf(&quot;&#x27;&quot;) &gt;= 0 ? RX_COMMA_DELIM1 : RX_COMMA_DELIM2;
@@ -1497,7 +1506,7 @@ var BooleanQueryOp = (function () {
     aEnum.Not = aEnum.addSymbol({ operator: &quot;not&quot;, aliases: [&quot;~&quot;, &quot;!&quot;] });
 
     aEnum.seal();
-    aEnum._map = function () {
+    aEnum._map = (function () {
         var map = {};
         aEnum.getSymbols().forEach(function (s) {
             map[s.name.toLowerCase()] = s;
@@ -1509,7 +1518,7 @@ var BooleanQueryOp = (function () {
             }
         });
         return map;
-    } ();
+    })();
     aEnum.from = function (op) {
         if (aEnum.contains(op)) {
             return op;
@@ -1698,11 +1707,11 @@ var Predicate = (function () {
         var p1 = Predicate.create(&quot;OrderDate&quot;, &quot;ne&quot;, dt);
         var p2 = Predicate.create(&quot;ShipCity&quot;, &quot;startsWith&quot;, &quot;C&quot;);
         var p3 = Predicate.create(&quot;Freight&quot;, &quot;&gt;&quot;, 100);
-        var newPred = p1.and(p2, p3);
+        var newPred = p1.or(p2, p3);
     or
     @example
         var preds = [p2, p3];
-        var newPred = p1.and(preds);
+        var newPred = p1.or(preds);
     The &#x27;or&#x27; method is also used to write &quot;fluent&quot; expressions
     @example
         var p4 = Predicate.create(&quot;ShipCity&quot;, &quot;startswith&quot;, &quot;F&quot;)
@@ -1933,7 +1942,7 @@ var SimplePredicate = (function () {
             a = (a || &quot;&quot;).toLowerCase();
             b = (b || &quot;&quot;).toLowerCase();
         }
-        return a == b;
+        return a === b;
     }
         
     function stringStartsWith(a, b, lqco) {
@@ -1969,18 +1978,18 @@ var SimplePredicate = (function () {
 var CompositePredicate = (function () {
 
     var ctor = function (booleanOperator, predicates) {
-        &#x2F;&#x2F; if debug
+
         if (!Array.isArray(predicates)) {
             throw new Error(&quot;predicates parameter must be an array&quot;);
         }
-        &#x2F;&#x2F; end debug
-        if ((this.symbol === &quot;not&quot;) &amp;&amp; (predicates.length !== 1)) {
-            throw new Error(&quot;Only a single predicate can be passed in with the &#x27;Not&#x27; operator&quot;);
-        }
 
         this._booleanQueryOp = BooleanQueryOp.from(booleanOperator);
+
         if (!this._booleanQueryOp) {
             throw new Error(&quot;Unknown query operation: &quot; + booleanOperator);
+        }
+        if ((this._booleanQueryOp === BooleanQueryOp.Not &amp;&amp; predicates.length !== 1)) {
+            throw new Error(&quot;Only a single predicate can be passed in with the &#x27;Not&#x27; operator&quot;);
         }
         this._predicates = predicates;
     };
@@ -2148,7 +2157,7 @@ var OrderByClause = (function () {
 var SimpleOrderByClause = (function () {
 
     var ctor = function (propertyPath, isDesc) {
-        if (!(typeof propertyPath == &#x27;string&#x27;)) {
+        if (!(typeof propertyPath === &#x27;string&#x27;)) {
             throw new Error(&quot;propertyPath is not a string&quot;);
         }
         propertyPath = propertyPath.trim();
@@ -2190,8 +2199,7 @@ var SimpleOrderByClause = (function () {
         }
         var propertyPath = this.propertyPath;
         var isDesc = this.isDesc;
-        var that = this;
-        
+
         return function (entity1, entity2) {
             var value1 = getPropertyPathValue(entity1, propertyPath);
             var value2 = getPropertyPathValue(entity2, propertyPath);
@@ -2209,7 +2217,7 @@ var SimpleOrderByClause = (function () {
                 value1 = normalize(value1);
                 value2 = normalize(value2);
             }
-            if (value1 == value2) {
+            if (value1 === value2) {
                 return 0;
             } else if (value1 &gt; value2 || value2 === undefined) {
                 return isDesc ? -1 : 1;
@@ -2264,7 +2272,7 @@ var CompositeOrderByClause = (function () {
         return function (entity1, entity2) {
             for (var i = 0; i &lt; orderByFuncs.length; i++) {
                 var result = orderByFuncs[i](entity1, entity2);
-                if (result != 0) {
+                if (result !== 0) {
                     return result;
                 }
             }

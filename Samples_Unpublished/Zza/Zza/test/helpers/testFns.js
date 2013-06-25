@@ -19,6 +19,7 @@
     var userSessionId = newGuid();
     configureBreeze();
 
+    var devServiceName = 'http://localhost:5452/breeze/dev';
     var zzaServiceName = 'http://localhost:5452/breeze/ZzaEf' ;
     var zzaMetadataStore = new breeze.MetadataStore();
 
@@ -26,22 +27,51 @@
     //      I forgot to start the server first.
 
     var fns = {
+        newTestManager: newTestManager,
+        setManagerToFetchFromCache: setManagerToFetchFromCache,
+        addLookupsToManager: addLookupsToManager,
         fetchMetadata: fetchMetadata,
         userSessionId: userSessionId,
         serviceName: zzaServiceName,
         metadataStore: zzaMetadataStore,
         newEm: newEm,
         getNextIntId: getNextIntId,
-        newGuid:newGuid,
-        newGuidComb:newGuid,
-        zzaReset: zzaReset
-    }
+        newGuid: newGuid,
+        newGuidComb: newGuid,
+        zzaReset: zzaReset,
+        FakeLogger: FakeLogger
+    };
 
     var _nextIntId = 10000; // seed for getNextIntId()
 
     return fns;
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
+    function noop() { }
+    
+    /*********************************************************
+    * new instance of a test EntityManager, synchronously primed with metadata 
+    *********************************************************/
+    function newTestManager() {
+        var em = newEm();
+        var store = em.metadataStore;
+        if (!store.hasMetadataFor(fns.serviceName)) {
+            // Import metadata that were downloaded as a script file
+            store.importMetadata(zza.metadata);
+        }
+        return em;
+    }
+    function setManagerToFetchFromCache(manager) {
+        manager.setProperties({
+            queryOptions: new breeze.QueryOptions({
+                // query the cache by default
+                fetchStrategy: breeze.FetchStrategy.FromLocalCache,
+            })
+        });
+    }
+    function addLookupsToManager(manager) {
+        manager.importEntities(zza.lookups);
+    }
     function fetchMetadata(){
         if (fns.metadataStore.hasMetadataFor(fns.serviceName)) {
             console.log("already has metadata for "+fns.serviceName);
@@ -102,11 +132,11 @@
      * Zza database reset - full by default, optionally just this session
      *********************************************************/
     function zzaReset(fullReset) {
-        var fullReset = (fullReset === undefined)||fullReset;
+        fullReset = (fullReset === undefined)||fullReset;
         var options = fullReset ? "/?options=fullreset" : "";
         var deferred = Q.defer();
 
-        $.post(zzaServiceName + '/reset'+options,
+        $.post(devServiceName + '/reset' + options,
             function (data, textStatus, xhr) {
                 deferred.resolve(
                     "Reset svc returned '" + xhr.status + "' with message: " + data);
@@ -186,5 +216,14 @@
             return (this.indexOf(value) !== -1);
         };
     }
-
+    /*******************************************************
+     * Constructor for a null Logger. Matches logger.js API
+     ********************************************************/
+    function FakeLogger() {
+        this.error = noop;
+        this.info = noop;
+        this.success = noop;
+        this.warning = noop;
+        this.log = noop;
+    }
 });

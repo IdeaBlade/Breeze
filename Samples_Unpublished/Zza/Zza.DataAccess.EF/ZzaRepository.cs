@@ -94,30 +94,10 @@ namespace Zza.DataAccess.EF
         {
             get { return _userStoreId; }
             set {
-                _userStoreId = (value == Guid.Empty) ? _guestStoreId : value;
+                _userStoreId = (value == Guid.Empty) ? Config.GuestStoreId : value;
             }
         }
-        private Guid _userStoreId = _guestStoreId;
-
-        public string Reset(string options)
-        {
-            // If full reset, delete all additions to the database
-            // else delete additions made during this user's session
-            var where = options.Contains("fullreset")
-                ? "IS NOT NULL"
-                : ("= '" + UserStoreId + "'");
-
-            string deleteSql;
-            deleteSql = "DELETE FROM [ORDERITEMOPTION] WHERE [STOREID] " + where;
-            Context.Database.ExecuteSqlCommand(deleteSql);
-            deleteSql = "DELETE FROM [ORDERITEM] WHERE [STOREID] " + where;
-            Context.Database.ExecuteSqlCommand(deleteSql);
-            deleteSql = "DELETE FROM [ORDER] WHERE [STOREID] " + where;
-            Context.Database.ExecuteSqlCommand(deleteSql);
-            deleteSql = "DELETE FROM [CUSTOMER] WHERE [STOREID] " + where;
-            Context.Database.ExecuteSqlCommand(deleteSql);
-            return "reset";
-        }
+        private Guid _userStoreId = Config.GuestStoreId;
 
         private ZzaContext Context { get { return _contextProvider.Context; } }
 
@@ -127,9 +107,5 @@ namespace Zza.DataAccess.EF
         }
 
         private readonly EFContextProvider<ZzaContext> _contextProvider;
-
-        private const string _guestStoreIdName = "12345678-9ABC-DEF0-1234-56789ABCDEF0";
-        private static readonly Guid _guestStoreId = new Guid(_guestStoreIdName);
-
     }
 }

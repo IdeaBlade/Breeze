@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
             </ul>
@@ -186,12 +188,21 @@
 <div class="file">
     <pre class="code prettyprint linenums">
 ﻿
-breeze.makeComplexArray = function() {
+breeze.makeComplexArray = (function() {
     var complexArrayMixin = {};
 
+    &#x2F;&#x2F; complexArray will have the following props
+    &#x2F;&#x2F;    parent
+    &#x2F;&#x2F;    propertyPath
+    &#x2F;&#x2F;    parentProperty
+    &#x2F;&#x2F;    addedItems  - only if modified
+    &#x2F;&#x2F;    removedItems  - only if modified
+    &#x2F;&#x2F;  each complexAspect of any entity within a complexArray
+    &#x2F;&#x2F;  will have its own _complexState = &quot;A&#x2F;M&quot;;
+
     &#x2F;**
-    Complex arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of 
-    complexTypes associated with a data property on a single entity. i.e. customer.orders or order.orderDetails.
+    Complex arrays are not actually classes, they are objects that mimic arrays. A complex array is collection of 
+    complexTypes associated with a data property on a single entity or other complex object. i.e. customer.orders or order.orderDetails.
     This collection looks like an array in that the basic methods on arrays such as &#x27;push&#x27;, &#x27;pop&#x27;, &#x27;shift&#x27;, &#x27;unshift&#x27;, &#x27;splice&#x27;
     are all provided as well as several special purpose methods. 
     @class ↈ_complexArray_
@@ -215,141 +226,96 @@ breeze.makeComplexArray = function() {
     @readOnly
     **&#x2F;
 
-    complexArrayMixin.push = function() {
-        if (this._inProgress) {
-            return -1;
-        }
-
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
+    &#x2F;&#x2F; virtual impls 
+    complexArrayMixin._getGoodAdds = function (adds) {
+        return getGoodAdds(this, adds);
     };
 
-
-    complexArrayMixin.unshift = function () {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-
-        var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, __arraySlice(goodAdds));
-        return result;
+    complexArrayMixin._beforeChange = function() {
+        observableArray.updateEntityState(this);
     };
 
-    complexArrayMixin.pop = function () {
-        var result = Array.prototype.pop.apply(this);
-        processRemoves(this, [result]);
-        return result;
+    complexArrayMixin._processAdds = function (adds) {
+        processAdds(this, adds);
     };
 
-    complexArrayMixin.shift = function () {
-        var result = Array.prototype.shift.apply(this);
-        processRemoves(this, [result]);
-        return result;
+    complexArrayMixin._processRemoves = function (removes) {
+        processRemoves(this, removes);
+    };
+    &#x2F;&#x2F;
+
+    complexArrayMixin._rejectChanges = function() {
+        if (!this._origValues) return;
+        var that = this;
+        this.forEach(function(co) {
+            clearAspect(co, that);
+        });
+        this.length = 0;
+        this._origValues.forEach(function(co) {
+            that.push(co);
+        });
+        Array.prototype.push.apply(this, this._origValues);
     };
 
-    complexArrayMixin.splice = function () {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
-        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
+    complexArrayMixin._acceptChanges = function() {
+        this._origValues = null;
+    } ;
 
-        var result = Array.prototype.splice.apply(this, newArgs);
-        processRemoves(this, result);
+    &#x2F;&#x2F; local functions
 
-        if (goodAdds.length) {
-            processAdds(this, goodAdds);
-        }
-        return result;
-    };
-
-  
-    complexArrayMixin._getEventParent = function () {
-        return this.parentEntity.entityAspect;
-    };
-
-    complexArrayMixin._getPendingPubs = function () {
-        var em = this.parentEntity.entityAspect.entityManager;
-        return em &amp;&amp; em._pendingPubs;
-    };
 
     function getGoodAdds(complexArray, adds) {
-        var goodAdds = checkForDups(complexArray, adds);
-        if (!goodAdds.length) {
-            return goodAdds;
-        }
-     
-        return goodAdds;
-    }
-
-    function checkForDups(complexArray, adds) {
-        &#x2F;&#x2F; don&#x27;t allow dups in this array.
-        return adds;
-        
+        &#x2F;&#x2F; remove any that are already added here
+        return adds.filter(function (a) {
+            return a.parent !== complexArray.parent;
+        });
     }
 
     function processAdds(complexArray, adds) {
-        &#x2F;&#x2F; this is referencing the name of the method on the complexArray not the name of the event
-        publish(complexArray, &quot;arrayChanged&quot;, { complexArray: complexArray, added: adds });
-
+        adds.forEach(function (a) {
+            if (a.parent != null) {
+                throw new Error(&quot;The complexObject is already attached. Either clone it or remove it from its current owner&quot;);
+            }
+            setAspect(a, complexArray);
+        });
     }
 
     function processRemoves(complexArray, removes) {
-        &#x2F;&#x2F; this is referencing the name of the method on the relationArray not the name of the event
-        publish(complexArray, &quot;arrayChanged&quot;, { complexArray: complexArray, removed: removes });
+        removes.forEach(function (a) {
+            clearAspect(a, complexArray);
+        });
     }
 
+    function clearAspect(co, arr) {
+        var coAspect = co.complexAspect;
+        &#x2F;&#x2F; if not already attached - exit
+        if (coAspect.parent !== arr.parent) return null;
 
-    function publish(publisher, eventName, eventArgs) {
-        var pendingPubs = publisher._getPendingPubs();
-        if (pendingPubs) {
-            if (!publisher._pendingArgs) {
-                publisher._pendingArgs = eventArgs;
-                pendingPubs.push(function() {
-                    publisher[eventName].publish(publisher._pendingArgs);
-                    publisher._pendingArgs = null;
-                });
-            } else {
-                combineArgs(publisher._pendingArgs, eventArgs);
-            }
-        } else {
-            publisher[eventName].publish(eventArgs);
-        }
+        coAspect.parent = null;
+        coAspect.parentProperty = null;
+        return coAspect;
     }
 
-    function combineArgs(target, source) {
-        for (var key in source) {
-            if (key !== &quot;complexArray&quot; &amp;&amp; target.hasOwnProperty(key)) {
-                var sourceValue = source[key];
-                var targetValue = target[key];
-                if (targetValue) {
-                    if (!Array.isArray(targetValue)) {
-                        throw new Error(&quot;Cannot combine non array args&quot;);
-                    }
-                    Array.prototype.push.apply(targetValue, sourceValue);
-                } else {
-                    target[key] = sourceValue;
-                }
-            }
-        }
+    function setAspect(co, arr) {
+        var coAspect = co.complexAspect;
+        &#x2F;&#x2F; if already attached - exit
+        if (coAspect.parent === arr.parent) return null;
+        coAspect.parent = arr.parent;
+        coAspect.parentProperty = arr.parentProperty;
+
+        return coAspect;
     }
 
- 
+    function makeComplexArray(arr, parent, parentProperty) {
 
-    function makeComplexArray(arr, parentEntity, complexProperty) {
-        arr.parentEntity = parentEntity;
-        arr.complexProperty = complexProperty;
-        arr.arrayChanged = new Event(&quot;arrayChanged_entityCollection&quot;, arr);
-        &#x2F;&#x2F; array of pushes currently in process on this relation array - used to prevent recursion.
-        arr._addsInProcess = [];
+        observableArray.initializeParent(arr, parent, parentProperty);
+        arr.arrayChanged = new Event(&quot;arrayChanged_complexArray&quot;, arr);
+        __extend(arr, observableArray.mixin);
         return __extend(arr, complexArrayMixin);
     }
 
     return makeComplexArray;
-}();
+})();
     </pre>
 </div>
 

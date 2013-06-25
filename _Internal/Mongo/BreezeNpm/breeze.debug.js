@@ -11588,7 +11588,7 @@ var EntityManager = (function () {
         // This could include added, modified and deleted entities.
         em.saveChanges().then(function(saveResult) {
             var savedEntities = saveResult.entities;
-            var keyMappings = saveResult.keyMappings;
+            var _keyMappings = saveResult._keyMappings;
         }).fail(function (e) {
             // e is any exception that was thrown.
         });
@@ -11598,7 +11598,7 @@ var EntityManager = (function () {
         var saveOptions = new SaveOptions({ allowConcurrentSaves: true });
         em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
             var savedEntities = saveResult.entities;
-            var keyMappings = saveResult.keyMappings;
+            var _keyMappings = saveResult._keyMappings;
         }).fail(function (e) {
             // e is any exception that was thrown.
         });
@@ -11607,7 +11607,7 @@ var EntityManager = (function () {
         em.saveChanges(entitiesToSave, null, 
             function(saveResult) {
                 var savedEntities = saveResult.entities;
-                var keyMappings = saveResult.keyMappings;
+                var _keyMappings = saveResult._keyMappings;
             }, function (e) {
                 // e is any exception that was thrown.
             }
@@ -11625,7 +11625,7 @@ var EntityManager = (function () {
         @param [callback.saveResult.entities] {Array of Entity} The saved entities - with any temporary keys converted into 'real' keys.  
         These entities are actually references to entities in the EntityManager cache that have been updated as a result of the
         save.
-        @param [callback.saveResult.keyMappings] {Object} Map of OriginalEntityKey, NewEntityKey
+        @param [callback.saveResult._keyMappings] {Object} Map of OriginalEntityKey, NewEntityKey
         @param [callback.saveResult.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
     @param [errorCallback] {Function} Function called on failure.
@@ -11646,7 +11646,7 @@ var EntityManager = (function () {
         var entitiesToSave = getEntitiesToSave(this, entities);
             
         if (entitiesToSave.length === 0) {
-            var saveResult =  { entities: [], keyMappings: [] };
+            var saveResult =  { entities: [], _keyMappings: [] };
             if (callback) callback(saveResult);
             return Q.resolve(saveResult);
         }
@@ -11697,7 +11697,7 @@ var EntityManager = (function () {
         var that = this;
         return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
             
-            fixupKeys(that, saveResult.keyMappings);
+            fixupKeys(that, saveResult._keyMappings);
             
             var mappingContext = {
                 query: null, // tells visitAndMerge that this is a save instead of a query
@@ -13695,12 +13695,12 @@ breeze.AbstractDataServiceAdapter = (function () {
     ctor.prototype._prepareSaveResult = function (saveContext, data) {
         
         var em = saveContext.entityManager;
-        var keys = data.insertedKeys.concat(data.updatedKeys, data.deletedKeys);
+        var keys = data._insertedKeys.concat(data._updatedKeys, data._deletedKeys);
         var entities = keys.map(function (key) {
             return em.getEntityByKey(key.entityTypeName, key._id);
         });
 
-        return { entities: entities, keyMappings: data.keyMappings, XHR: data.XHR };
+        return { entities: entities, _keyMappings: data._keyMappings, XHR: data.XHR };
     }
 
 
@@ -13924,7 +13924,7 @@ breeze.AbstractDataServiceAdapter = (function () {
         }, function (data, response) {
             var entities = [];
             var keyMappings = [];
-            var saveResult = { entities: entities, keyMappings: keyMappings };
+            var saveResult = { entities: entities, _keyMappings: keyMappings };
             data.__batchResponses.forEach(function(br) {
                 br.__changeResponses.forEach(function (cr) {
                     var response = cr.response || cr;
@@ -14147,7 +14147,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             var entityTypeName = MetadataStore.normalizeTypeName(km.EntityTypeName);
             return { entityTypeName: entityTypeName, tempValue: km.TempValue, realValue: km.RealValue };
         });
-        return { entities: data.Entities, keyMappings: keyMappings, XHR: data.XHR };
+        return { entities: data.Entities, _keyMappings: keyMappings, XHR: data.XHR };
     }
     
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({

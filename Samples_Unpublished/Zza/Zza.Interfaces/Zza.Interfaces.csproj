@@ -38,6 +38,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config.cs" />
     <Compile Include="IZzaSaveDataProvider.cs" />
     <Compile Include="OperationType.cs" />
     <Compile Include="IZzaRepository.cs" />

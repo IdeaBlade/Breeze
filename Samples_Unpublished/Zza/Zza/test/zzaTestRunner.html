@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-  <title>Jasmine Spec Runner</title>
+  <title>Zza Test Runner</title>
 
   <link rel="shortcut icon" type="image/png" href="../app/images/logo.png">
   <link rel="stylesheet" type="text/css" href="lib/jasmine.css">
@@ -25,28 +25,33 @@
 
         <!-- source -->
         <script src="../app/app.js"></script> 
+        <script src="../app/config.js"></script>
+        <script src="../app/metadata.js"></script>
 
         <script src="../app/controllers/testController.js"></script>
 
-        <script src="../app/services/config.js"></script>
         <script src="../app/services/databaseReset.js"></script>
         <script src="../app/services/dataservice.js"></script>
         <script src="../app/services/entityManagerProvider.js"></script>
+        <script src="../app/services/logger.js"></script>
         <script src="../app/services/model.js"></script>
         <script src="../app/services/util.js"></script>
 
         <!-- test support -->     
         <script src="../test/helpers/testFns.js"></script>
         <script src="../test/helpers/jasmineTestFns.js"></script>
-        <script src="../test/helpers/testData.js"></script>
+        
+        <!-- test data --> 
+        <script src="testdata/lookups.js"></script>  
+        <script src="testdata/smallOrderTestData.js"></script>
 
         <!-- tests -->
         <script src="unit/firstspec.js"></script>
-        <script src="webapi/savespec.js"></script>
-        <script src="webapi/queryspec.js"></script>
         <script src="unit/configSpec.js"></script>
-        <script src="unit/testControllerSpec.js"></script>
-        <script src="unit/dataserviceSpec.js"></script>
+        <script src="midway/testControllerSpec.js"></script>
+        <script src="midway/dataserviceSpec.js"></script>
+        <script src="async/savespec.js"></script>
+        <script src="async/queryspec.js"></script>
 
         <script src="config/jasmineTestRunnerConfig.js"></script>
 

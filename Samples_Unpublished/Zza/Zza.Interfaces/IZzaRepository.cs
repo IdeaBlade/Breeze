@@ -33,6 +33,6 @@ namespace Zza.Interfaces
         Guid UserStoreId { get; set; }
 
         object SaveChanges(object saveBundle);
-        string Reset(string options);
+
     }
 }

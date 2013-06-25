@@ -13,22 +13,25 @@
         //#region implementation
         function configureMetadataStore(metadataStore) {
             registerCustomer(metadataStore);
+            registerProduct(metadataStore);
         }
     
         function registerCustomer(metadataStore) {
             metadataStore.registerEntityTypeCtor('Customer', CustomerCtor);
-            metadataStore.registerEntityTypeCtor('Product', ProductCtor, ProductInitializer);
-            function CustomerCtor() { }
-            CustomerCtor.prototype.fullName = function () {
-                return this.firstName + " " + this.lastName;
-            };
 
-            function ProductCtor() { // in ctor so we can serialize it to local storage
-               this.img = ''
-            }
-            function ProductInitializer(self) {
-                self.img = imageBase+self.image; // handle null/bad images with placeholder
-            }
+            function CustomerCtor() {/* nothing inside */ }
+            Object.defineProperty(CustomerCtor.prototype, "fullName", {
+                get: function () { return this.firstName + " " + this.lastName; }
+            });
+        }
+        
+        function registerProduct(metadataStore) {
+            metadataStore.registerEntityTypeCtor('Product', ProductCtor);
+            
+            function ProductCtor() { /* nothing inside */ }
+            Object.defineProperty(ProductCtor.prototype, "img", {
+                get: function () { return imageBase + this.image; }
+            });
         }
         //#endregion
    

@@ -18,16 +18,16 @@ describe('Zza/Breeze web api', function(){
 
             function test(){
                 var em = newEm();
-                var product = em.createEntity('Product', {
+                em.createEntity('Product', {
                     type: 'pizza',
                     name: 'The Gordo',
                     description: 'Too much pizza for anyone',
                     hasOptions: true
-                })
+                });
 
                 return em.saveChanges().then(success).fail(fail);
             }
-            function success(data){
+            function success(){
                 //console.log('** new product was saved?!');
                 expect().toFail('save of new product should not have succeeded');
             }
@@ -56,7 +56,7 @@ describe('Zza/Breeze web api', function(){
                 expect(stateName).toEqual('Deleted');
                 return em.saveChanges().then(success).fail(fail);
             }
-            function success(data){
+            function success(){
                 //console.log('** deleted product was saved?!');
                 expect().toFail('save of deleted product should not have succeeded');
             }
@@ -85,7 +85,7 @@ describe('Zza/Breeze web api', function(){
             expect(stateName).toEqual('Modified');
             return em.saveChanges().then(success).fail(fail);
         }
-        function success(data){
+        function success(){
             //console.log('** updated product was saved?!');
             expect().toFail('save of updated product should not have succeeded');
         }
@@ -119,7 +119,7 @@ describe('Zza/Breeze web api', function(){
                 expect(stateName).toEqual('Modified');
                 return em.saveChanges().then(success).fail(fail);
             }
-            function success(data){
+            function success(){
                 //console.log('** updated base customer was saved?!');
                 expect().toFail('save of updated base customer should not have succeeded');
             }
@@ -151,7 +151,7 @@ describe('Zza/Breeze web api', function(){
                 expect(stateName).toEqual('Deleted');
                 return em.saveChanges().then(success).fail(fail);
             }
-            function success(data){
+            function success(){
                 //console.log('** deleted base customer was saved?!');
                 expect().toFail('save of deleted base customer should not have succeeded');
             }
@@ -175,7 +175,10 @@ describe('Zza/Breeze web api', function(){
             function test(){
                 em = newEm();
                 customer = em.createEntity('Customer', {
-                    id: customerId, firstName: 'TEST', lastName:'Dude' })
+                    id: customerId,
+                    firstName: 'TEST',
+                    lastName: 'Dude'
+                });
                 return em.saveChanges().then(createSuccess).then(reset);
             }
             function createSuccess(saveResult){
@@ -195,16 +198,19 @@ describe('Zza/Breeze web api', function(){
             function test(){
                 em = newEm();
                 customer = em.createEntity('Customer', {
-                    id: customerId, firstName: 'TEST', lastName:'Dude' })
+                    id: customerId,
+                    firstName: 'TEST',
+                    lastName: 'Dude'
+                });
                 return em.saveChanges().then(createSuccess).fin(reset);
             }
-            function createSuccess(saveResult){
+            function createSuccess(){
                 customer.lastName = 'Sobchak';
                 var stateName = customer.entityAspect.entityState.name;
                 expect(stateName).toEqual('Modified');
                 return em.saveChanges().then(modSuccess);
             }
-            function modSuccess(saveResult){
+            function modSuccess(){
                 var stateName = customer.entityAspect.entityState.name;
                 expect(stateName).toEqual('Unchanged');
             }

@@ -164,7 +164,8 @@
     <Content Include="app\images\products\tajmahal.jpg" />
     <Content Include="app\images\products\thaichickensalad.jpg" />
     <Content Include="app\images\products\tomterrific.jpg" />
-    <Content Include="app\services\config.js" />
+    <Content Include="app\metadata.js" />
+    <Content Include="app\config.js" />
     <Content Include="app\services\databaseReset.js" />
     <Content Include="app\services\entityManagerProvider.js" />
     <Content Include="app\services\util.js" />
@@ -247,8 +248,9 @@
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
     </Content>
     <Content Include="Scripts\_references.js" />
+    <Content Include="test\helpers\prepareTestData.js" />
+    <Content Include="test\prepareTestData.html" />
     <Content Include="test\helpers\jasmineTestFns.js" />
-    <Content Include="test\helpers\testData.js" />
     <Content Include="test\helpers\testFns.js" />
     <Content Include="test\lib\angular-mocks.js" />
     <Content Include="test\lib\jasmine-async.js" />
@@ -258,19 +260,23 @@
     <Content Include="test\lib\jasmine.js" />
     <Content Include="test\lib\sinon-1.7.1.js" />
     <Content Include="test\config\jasmineTestRunnerConfig.js" />
-    <Content Include="test\jasmineTestRunner.html" />
+    <Content Include="test\testdata\smallOrderTestData.js" />
+    <Content Include="test\zzaTestRunner.html" />
+    <Content Include="test\testdata\lookups.js" />
     <Content Include="test\unit\configSpec.js" />
-    <Content Include="test\unit\dataserviceSpec.js" />
+    <Content Include="test\midway\dataserviceSpec.js" />
     <Content Include="test\unit\firstspec.js" />
-    <Content Include="test\unit\testControllerSpec.js" />
-    <Content Include="test\webapi\queryspec.js" />
-    <Content Include="test\webapi\savespec.js" />
+    <Content Include="test\midway\testControllerSpec.js" />
+    <Content Include="test\async\queryspec.js" />
+    <Content Include="test\async\savespec.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BreezeSimpleCorsHandler.cs" />
     <Compile Include="App_Start\BreezeWebApiConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="App_Start\ScriptWriter.cs" />
+    <Compile Include="Controllers\DevController.cs" />
     <Compile Include="Controllers\ZzaEfController.cs" />
     <Compile Include="Controllers\ZzaNhController.cs" />
     <Compile Include="Global.asax.cs">

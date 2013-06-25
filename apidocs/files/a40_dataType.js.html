@@ -136,6 +136,8 @@
             
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
             </ul>
@@ -189,7 +191,7 @@
   @module breeze
   **&#x2F;
 
-var DataType = function () {
+var DataType = (function () {
   
     &#x2F;**
     DataType is an &#x27;Enum&#x27; containing all of the supported data types.
@@ -216,7 +218,7 @@ var DataType = function () {
         stringPrefix: &quot;K_&quot;,
         nextNumber: -1,
         nextNumberIncrement: -1
-    }
+    };
 
     var getNextString = function () {
         return constants.stringPrefix + getNextNumber().toString();
@@ -264,13 +266,14 @@ var DataType = function () {
     };
 
     var coerceToDate = function (source, sourceTypeName) {
+        var val;
         if (sourceTypeName === &quot;string&quot;) {
             var src = source.trim();
             if (src === &quot;&quot;) return null;
-            var val = new Date(Date.parse(src));
+            val = new Date(Date.parse(src));
             return __isDate(val) ? val : source;
         } else if (sourceTypeName === &quot;number&quot;) {
-            var val = new Date(source);
+            val = new Date(source);
             return __isDate(val) ? val : source;
         }
         return source;
@@ -295,7 +298,7 @@ var DataType = function () {
     };
 
     var fmtInt = function (val) {
-        return val == null ? null : ((typeof val === &quot;string&quot;) ? parseInt(val) : val);
+        return val == null ? null : ((typeof val === &quot;string&quot;) ? parseInt(val, 10) : val);
     };
 
     var makeFloatFmt = function (fmtSuffix) {
@@ -526,7 +529,7 @@ var DataType = function () {
             if (simpleName === &quot;image&quot;) {
                 &#x2F;&#x2F; hack
                 dt = DataType.Byte;
-            } else if (parts.length == 2) {
+            } else if (parts.length === 2) {
                 dt = DataType.fromName(simpleName) || DataType.Undefined;
             } else {
                 &#x2F;&#x2F; enum
@@ -621,11 +624,11 @@ var DataType = function () {
             case DataType.Undefined:
                 return Validator.none;
         }
-    };
+    }
 
     return DataType;
 
-}();
+})();
 
 breeze.DataType = DataType;
 

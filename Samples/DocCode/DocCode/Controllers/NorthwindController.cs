@@ -24,6 +24,7 @@ namespace DocCode.Controllers
 
         protected override void Initialize(HttpControllerContext controllerContext)
         {
+            base.Initialize(controllerContext);
             _repository.UserSessionId = getUserSessionId();
         }
 

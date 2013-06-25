@@ -26,19 +26,21 @@ files = [
   /* test support */
   '../test/helpers/testFns.js',
   '../test/helpers/jasmineTestFns.js',
-  '../test/helpers/testData.js',
+  '../test/testdata/**/*.js',
+       
+   /* unit tests */
+   '../test/unit/**/*.js',
 
-    /* unit tests */
-  '../test/unit/**/*.js',
+   /* midway tests */
+   '../test/midway/**/*.js'
 
-   /* Async web api tests */
-   '../test/webapi/**/*.js'
+   /* Async tests - don't do in Karma*/
+   // '../test/async/**/*.js'
 ];
 
 // list of files to exclude
 exclude = [
-  'appRun.js',
-  '../test/unit/firstspec.js'
+  'appRun.js'
 ];
 
 

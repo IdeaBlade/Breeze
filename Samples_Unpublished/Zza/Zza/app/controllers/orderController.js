@@ -8,24 +8,21 @@
     function orderCtrl($scope, $routeParams, $location, routes, dataservice) {
  
         // tag comes from nav url; get the current route
-        var tag = ($routeParams.tag || 'pizza').toLowerCase();
-        var route = setTaggedRoute(tag);
-        if (!route) {
-            route = setTaggedRoute('pizza');
-        }
-        setProducts(tag);
+        var tag = $routeParams.tag;
+        var route = setTaggedRoute(tag) || setTaggedRoute();
+        setProducts();
         $scope.pickedProduct = pickedProduct;
         $scope.view = route.templateUrl; // view is used in ng-include
         $scope.links = routes.orderRoutes;
 
-        function setTaggedRoute(tag) {
-            tag = (tag || 'pizza').toLowerCase();
+        function setTaggedRoute(t) {
+            tag = (t || 'pizza').toLowerCase();
             $scope.activeTag = tag;
             return routes.orderRoutes.filter(
                 function (item) { return item.tag === tag; })[0];
         }
 
-        function setProducts(tag) {
+        function setProducts() {
             if (tag == 'drinks') tag = 'beverage';
             var products = dataservice.products.filter(
                 function (product) { return product.type == tag; });

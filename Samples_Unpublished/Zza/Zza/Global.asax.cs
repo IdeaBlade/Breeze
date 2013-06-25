@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Web.Http;
+using Zza.App_Start;
 
 namespace Zza
 {
@@ -12,6 +13,7 @@ namespace Zza
                 new Breeze.WebApi.BreezeSimpleCorsHandler());
 
             WebApiConfig.Register(GlobalConfiguration.Configuration);
+            ScriptWriter.WriteMetadataFile();
         }
     }
 }
