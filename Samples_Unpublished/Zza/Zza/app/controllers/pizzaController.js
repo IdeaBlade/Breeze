@@ -30,9 +30,12 @@
             return;
         }
 
+        var optionTypeList = getProductOptions(tag);
+
         $scope.sizes = sizes;
         $scope.product = product;
         $scope.orderItem = orderItem;
+        $scope.optionTypes = optionTypeList;
 
         // Exposed functions
         $scope.addToCart = function () {
@@ -54,6 +57,8 @@
         }
 
         // Private functions
+
+        // Try to find an orderItem on the draft order for the given product.  Create a new orderItem if existing one is not found.
         function getOrderItemByProductId(id) {
             var orderItem;
             var draftOrder = dataservice.draftOrder;
@@ -72,6 +77,7 @@
             return orderItem;
         }
 
+        // Get the order item by the order item id.  Returns null if not found.
         function getOrderItemById(id) {
             var orderItem;
             var cartOrder = dataservice.cartOrder;
@@ -86,6 +92,29 @@
                 orderItem = matching[0];
             }
             return orderItem;
+        }
+
+        // Get the product options, grouped by option type.
+        function getProductOptions(tag) {
+            if (tag == 'beverage') return [];
+            var options = dataservice.productOptions;
+
+            var isPizza = (tag == 'pizza');
+            var isSalad = (tag == 'salad');
+            var optionTypeMap = {};
+            var optionTypeList = [];
+            options.forEach(function (o) {
+                if ((o.isPizzaOption != isPizza) && (o.isSaladOption != isSalad)) return;
+                var type = o.type;
+                var optionTab = optionTypeMap[type];
+                if (!optionTab) {
+                    optionTab = { type: type, options: [] };
+                    optionTypeMap[type] = optionTab;
+                    optionTypeList.push(optionTab);
+                }
+                optionTab.options.push(o);
+            });
+            return optionTypeList;
         }
     }
     

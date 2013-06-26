@@ -26,6 +26,14 @@
                     <textarea rows="2" id="instructions" data-ng-model="orderItem.instructions"></textarea>
                 </div>
             </div>
+
+            <tabset>
+                <tab data-ng-repeat="tab in optionTypes" heading="{{tab.type}}" active="tab.active" disabled="tab.disabled">
+                    <ul>
+                        <li data-ng-repeat="option in tab.options">{{option.name}}</li>
+                    </ul>
+                </tab>
+            </tabset>
             <button class="btn" data-ng-click="cancel()">Cancel</button>
             <button class="btn" data-ng-click="addToCart()">Add to Cart</button>
         </form>

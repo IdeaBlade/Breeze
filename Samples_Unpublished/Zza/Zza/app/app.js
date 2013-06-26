@@ -6,7 +6,7 @@
     'use strict';
     
     // Create the 'app' module
-    var app = angular.module('app', []);
+    var app = angular.module('app', ['ui.bootstrap']);
 
     app.routeResolve = {};
 })();
