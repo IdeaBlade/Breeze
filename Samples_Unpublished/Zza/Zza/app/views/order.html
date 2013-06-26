@@ -13,7 +13,6 @@
             <!--/.well -->
             <div class="well">
                 Order Summary
-
                 <table class="table-condensed" style="font-size:small">
                     <tr><th>Item</th><th>Size</th><th>Qty</th></tr>
                     <tr data-ng-repeat="item in cartOrder.orderItems">
@@ -23,6 +22,17 @@
                     </tr>
                 </table>
                 <a href="#/cart">View Cart</a>
+            </div>
+            <div class="well">
+                Recently Viewed Items
+                <table class="table-condensed" style="font-size:small">
+                    <tr><th>Item</th><th>Size</th><th>Qty</th></tr>
+                    <tr data-ng-repeat="item in draftOrder.orderItems">
+                        <td>{{item.product.name}}</td>
+                        <td>{{item.productSize.name}}</td>
+                        <td>{{item.quantity}}</td>
+                    </tr>
+                </table>
             </div>
         </div>
         <!--/span-->

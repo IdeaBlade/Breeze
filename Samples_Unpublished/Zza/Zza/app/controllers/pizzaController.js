@@ -31,12 +31,13 @@
             orderItem.productSize = size;
             orderItem.unitPrice = size.price;
             orderItem.totalPrice = orderItem.quantity * size.price;
+
             var order = dataservice.cartOrder;
             orderItem.orderId = order.id;
             order.orderItems.push(orderItem);
             logger.info("Added item to cart");
 
-            $scope.orderItem = getOrderItem();  // old item is in cart, now operate on new item
+            $location.url('/order/pizza');
         }
         $scope.cancel = function () {
             $location.url('/order/pizza');
