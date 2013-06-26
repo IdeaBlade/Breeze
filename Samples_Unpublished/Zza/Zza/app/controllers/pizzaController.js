@@ -7,22 +7,30 @@
     
     function pizzaCtrl($scope, $routeParams, $location, routes, dataservice, logger) {
  
-        // tag comes from nav url; get the current route
+        // id may be productId or orderItemId, depending upon route tag
+        var tag = $routeParams.tag;
         var id = $routeParams.id;
-        var product = dataservice.products.byId(id);
+        var sizes = dataservice.productSizes.byType('pizza');
+        var orderItem;
+        var product;
+        if (tag == 'item') {
+            orderItem = getOrderItemById(id);
+            if (orderItem) {
+                product = orderItem.product;
+            }
+        } else if (tag == 'pizzadetail') {
+            product = dataservice.products.byId(id);
+            orderItem = getOrderItemByProductId(id);
+        }
+
         if (!product) {
             $location.url('/order/pizza');// we shouldn't be here
             return;
         }
 
-        var sizes = dataservice.productSizes.byType('pizza');
         $scope.sizes = sizes;
         $scope.product = product;
-
-        var cartOrder = dataservice.cartOrder;
-        var draftOrder = dataservice.draftOrder;
-
-        $scope.orderItem = getOrderItem();
+        $scope.orderItem = orderItem;
 
         // Exposed functions
         $scope.addToCart = function () {
@@ -44,8 +52,9 @@
         }
 
         // Private functions
-        function getOrderItem() {
+        function getOrderItemByProductId(id) {
             var orderItem;
+            var draftOrder = dataservice.draftOrder;
 
             // Use existing orderItem from draftOrder if available, else create one
             var matching = draftOrder.orderItems.filter(function (item) { return item.productId == id });
@@ -58,6 +67,22 @@
             }
             orderItem.quantity = orderItem.quantity || 1;
             orderItem.productSizeId = orderItem.productSizeId || sizes[1].id;
+            return orderItem;
+        }
+
+        function getOrderItemById(id) {
+            var orderItem;
+            var cartOrder = dataservice.cartOrder;
+            var draftOrder = dataservice.draftOrder;
+
+            // Try to find the orderItem in the cartOrder, then the draftOrder
+            var matching = cartOrder.orderItems.filter(function (item) { return item.id == id });
+            if (!matching.length) {
+                matching = draftOrder.orderItems.filter(function (item) { return item.id == id });
+            }
+            if (matching.length) {
+                orderItem = matching[0];
+            }
             return orderItem;
         }
     }

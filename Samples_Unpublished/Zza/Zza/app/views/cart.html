@@ -5,7 +5,7 @@
             <tr><th></th><th>Item</th><th>Size</th><th>Qty</th><th>Price</th></tr>
             <tr data-ng-repeat="item in cartOrder.orderItems">
                 <td><button class="btn" data-ng-click="removeItem(item)">Remove</button></td>
-                <td><strong>{{item.product.name}}</strong></td>
+                <td><a href="#/order/item/{{item.id}}"><strong>{{item.product.name}}</strong></a></td>
                 <td>{{item.productSize.name}}</td>
                 <td><input type="text" name="qty{{item.id}}" data-ng-model="item.quantity" class="input-mini" /></td>
                 <td>{{item.unitPrice * item.quantity | currency}}</td>

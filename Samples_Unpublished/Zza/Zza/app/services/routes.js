@@ -26,7 +26,7 @@
         { tag: 'salad', path: '/order/salad', name: 'Salad', templateUrl: viewBase + 'ordersalad.html' },
         { tag: 'drinks', path: '/order/drinks', name: 'Drinks', templateUrl: viewBase + 'orderdrinks.html' },
         { tag: 'pizzadetail', path: '/order/pizzadetail', templateUrl: viewBase + 'orderpizzadetail.html' },
-        { tag: 'pizzadetail', path: '/order/pizzadetail', templateUrl: viewBase + 'orderpizzadetail.html' }
+        { tag: 'item', path: '/order/item', templateUrl: viewBase + 'orderpizzadetail.html' }
     ];
     
     var routes = {

@@ -16,7 +16,7 @@
                 <table class="table-condensed" style="font-size:small">
                     <tr><th>Item</th><th>Size</th><th>Qty</th></tr>
                     <tr data-ng-repeat="item in cartOrder.orderItems">
-                        <td>{{item.product.name}}</td>
+                        <td><a href="#/order/item/{{item.id}}">{{item.product.name}}</a></td>
                         <td>{{item.productSize.name}}</td>
                         <td>{{item.quantity}}</td>
                     </tr>
@@ -28,7 +28,7 @@
                 <table class="table-condensed" style="font-size:small">
                     <tr><th>Item</th><th>Size</th><th>Qty</th></tr>
                     <tr data-ng-repeat="item in draftOrder.orderItems">
-                        <td>{{item.product.name}}</td>
+                        <td><a href="#/order/item/{{item.id}}">{{item.product.name}}</a></td>
                         <td>{{item.productSize.name}}</td>
                         <td>{{item.quantity}}</td>
                     </tr>
