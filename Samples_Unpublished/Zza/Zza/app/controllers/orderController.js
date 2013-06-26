@@ -3,36 +3,32 @@
 
     var ctrlName = 'orderCtrl';
     var app = angular.module('app').controller(
-        ctrlName, ['$scope', '$routeParams', '$location', 'routes', 'dataservice', orderCtrl]);
+        ctrlName, ['$scope', '$routeParams', '$route', 'routes', 'dataservice', orderCtrl]);
     
-    function orderCtrl($scope, $routeParams, $location, routes, dataservice) {
+    function orderCtrl($scope, $routeParams, $route, routes, dataservice) {
  
         // tag comes from nav url; get the current route
         var tag = $routeParams.tag;
-        var route = setTaggedRoute(tag) || setTaggedRoute();
-        setProducts();
-        $scope.pickedProduct = pickedProduct;
+        var hasId = !!$routeParams.id;
+        var route = setTaggedRoute(tag, hasId) || setTaggedRoute();
+        if (!hasId) setProducts();
         $scope.view = route.templateUrl; // view is used in ng-include
         $scope.links = routes.visibleOrderRoutes;
         $scope.cartOrder = dataservice.cartOrder;
         $scope.draftOrder = dataservice.draftOrder;
 
-        function setTaggedRoute(t) {
+        function setTaggedRoute(t, hasId) {
             tag = (t || 'pizza').toLowerCase();
             $scope.activeTag = tag;
-            return routes.orderRoutes.filter(
-                function (item) { return item.tag === tag; })[0];
+            var source = hasId ? routes.detailRoutes : routes.orderRoutes;
+            return source.filter(
+                function (item) { return item.tag === tag })[0];
         }
 
         function setProducts() {
-            if (tag == 'drinks') tag = 'beverage';
             var products = dataservice.products.filter(
                 function (product) { return product.type == tag; });
             $scope.products = products;
-
-        }
-        function pickedProduct(product) {
-            $location.url('/order/pizzadetail/' + product.id);
         }
     }
     

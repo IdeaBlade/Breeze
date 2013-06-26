@@ -178,7 +178,7 @@
     <Content Include="app\services\logger.js" />
     <Content Include="app\services\model.js" />
     <Content Include="app\views\about.html" />
-    <Content Include="app\views\orderpizzadetail.html" />
+    <Content Include="app\views\productdetail.html" />
     <Content Include="app\views\shellFooter.html" />
     <Content Include="app\views\shellHeader.html" />
     <Content Include="app\views\test.html" />

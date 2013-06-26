@@ -20,18 +20,25 @@
 
     ];
     
-    // Routes within the order view
+    // Routes within the order view that lead to list views
     var orderRoutes = [
         { tag: 'pizza', path: '/order/pizza', name: 'Pizza', templateUrl: viewBase + 'orderpizza.html' },
         { tag: 'salad', path: '/order/salad', name: 'Salad', templateUrl: viewBase + 'ordersalad.html' },
-        { tag: 'drinks', path: '/order/drinks', name: 'Drinks', templateUrl: viewBase + 'orderdrinks.html' },
-        { tag: 'pizzadetail', path: '/order/pizzadetail', templateUrl: viewBase + 'orderpizzadetail.html' },
-        { tag: 'item', path: '/order/item', templateUrl: viewBase + 'orderpizzadetail.html' }
+        { tag: 'beverage', path: '/order/beverage', name: 'Drinks', templateUrl: viewBase + 'orderdrinks.html' }
+    ];
+
+    // Routes within the order view that lead to detail views.  These expect an :id parameter.
+    var detailRoutes = [
+        { tag: 'pizza', path: '/order/pizza', templateUrl: viewBase + 'productdetail.html' },
+        { tag: 'salad', path: '/order/salad', templateUrl: viewBase + 'productdetail.html' },
+        { tag: 'beverage', path: '/order/beverage', templateUrl: viewBase + 'productdetail.html' },
+        { tag: 'item', path: '/order/item', templateUrl: viewBase + 'productdetail.html' }
     ];
     
     var routes = {
         navRoutes: navRoutes,
         orderRoutes: orderRoutes,
+        detailRoutes: detailRoutes,
         // visible routes are those that have a display name
         visibleNavRoutes: navRoutes.filter(function (item) { return item.name; }),
         visibleOrderRoutes: orderRoutes.filter(function (item) { return item.name; })

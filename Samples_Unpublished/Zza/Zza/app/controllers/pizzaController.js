@@ -10,16 +10,18 @@
         // id may be productId or orderItemId, depending upon route tag
         var tag = $routeParams.tag;
         var id = $routeParams.id;
-        var sizes = dataservice.productSizes.byType('pizza');
+        var sizes;
         var orderItem;
         var product;
         if (tag == 'item') {
             orderItem = getOrderItemById(id);
             if (orderItem) {
                 product = orderItem.product;
+                sizes = dataservice.productSizes.byType(product.type);
             }
-        } else if (tag == 'pizzadetail') {
+        } else {
             product = dataservice.products.byId(id);
+            sizes = dataservice.productSizes.byType(product.type);
             orderItem = getOrderItemByProductId(id);
         }
 
