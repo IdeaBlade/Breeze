@@ -4,8 +4,8 @@
 
             <div class="well sidebar-nav">
                 <ul class="nav nav-list">
-                    <li ng-repeat="link in links" ng-class="{active: activeTag == link.tag}">
-                        <a ng-href="#{{link.path}}">{{link.name}}</a>
+                    <li data-ng-repeat="link in links" data-ng-class="{active: activeTag == link.tag}">
+                        <a data-ng-href="#{{link.path}}">{{link.name}}</a>
                     </li>
 
                 </ul>
@@ -38,9 +38,8 @@
         <!--/span-->
         <div class="span9">
             <div style="margin-bottom: 30px">
-                <div ng-include="view"></div>
+                <div data-ng-include="view"></div>
             </div>
         </div>
     </div>
-
 </div>

@@ -2,7 +2,7 @@
     <h2>Order Drinks</h2>
     You'll get thirsty after eating a lot of pizza, so be sure to get plenty of cold drinks.
     <div>
-        <div class="row-fluid" ng-repeat="product in products" >
+        <div class="row-fluid" data-ng-repeat="product in products" >
             <div class="span3">
                 <a href="#/order/beverage/{{product.id}}">
                     <img data-ng-src="{{product.img}}" />

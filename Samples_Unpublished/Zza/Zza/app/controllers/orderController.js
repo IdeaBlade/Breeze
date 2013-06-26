@@ -12,7 +12,7 @@
         var hasId = !!$routeParams.id;
         var route = setTaggedRoute(tag, hasId) || setTaggedRoute();
         if (!hasId) setProducts();
-        $scope.view = route.templateUrl; // view is used in ng-include
+        $scope.view = route.templateUrl; // view is used in data-ng-include
         $scope.links = routes.visibleOrderRoutes;
         $scope.cartOrder = dataservice.cartOrder;
         $scope.draftOrder = dataservice.draftOrder;

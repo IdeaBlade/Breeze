@@ -1,7 +1,7 @@
-﻿<div ng-controller="pizzaCtrl">
+﻿<div data-ng-controller="pizzaCtrl">
     <h2>{{product.name}}
-        <img src="app/images/icon_vegetarian.png" ng-class="{hide: !product.isVegetarian}" alt="Vegetarian" title="Vegetarian"/>
-        <img src="app/images/icon_tomato.png" ng-class="{hide: !product.withTomatoSauce}" alt="Has Tomato Sauce" title="Has Tomato Sauce"/>
+        <img src="app/images/icon_vegetarian.png" data-ng-class="{hide: !product.isVegetarian}" alt="Vegetarian" title="Vegetarian"/>
+        <img src="app/images/icon_tomato.png" data-ng-class="{hide: !product.withTomatoSauce}" alt="Has Tomato Sauce" title="Has Tomato Sauce"/>
     </h2>
     <div>
         <img class="img-polaroid" data-ng-src="{{product.img}}" title="{{product.name}}"/>
