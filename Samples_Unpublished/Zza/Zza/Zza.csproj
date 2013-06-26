@@ -214,6 +214,7 @@
     <Content Include="content\toastr.min.css" />
     <Content Include="Global.asax" />
     <Content Include="Index.html" />
+    <Content Include="Scripts\ui-bootstrap-tpls-0.4.0.js" />
     <Content Include="test\config\karma.conf.js" />
     <Content Include="Scripts\angular.js" />
     <Content Include="Scripts\angular.min.js">
