@@ -29,9 +29,14 @@
 
             <tabset>
                 <tab data-ng-repeat="tab in optionTypes" heading="{{tab.type}}" active="tab.active" disabled="tab.disabled">
-                    <ul>
-                        <li data-ng-repeat="option in tab.options">{{option.name}}</li>
-                    </ul>
+                    {{tab.options.length}}
+                    {{tab.options[0].option.name}}
+                    <div data-ng-repeat="option in tab.options">
+                        <label class="checkbox" for="ck{{option.option.id}}">
+                            <input type="checkbox" id="ck{{option.option.id}}" data-ng-model="option.selected" class="input-mini">
+                            {{option.option.name}}
+                        </label>
+                    </div>
                 </tab>
             </tabset>
             <button class="btn" data-ng-click="cancel()">Cancel</button>

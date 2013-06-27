@@ -112,7 +112,7 @@
                     optionTypeMap[type] = optionTab;
                     optionTypeList.push(optionTab);
                 }
-                optionTab.options.push(o);
+                optionTab.options.push({ option: o, selected: false });
             });
             return optionTypeList;
         }
