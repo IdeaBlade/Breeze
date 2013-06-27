@@ -26,6 +26,19 @@
         }
     });
 
+    test("inlineCount null when ordering results by navigation property", function () {
+        var em = newEm();
+        var query = new breeze.EntityQuery.from("Orders")
+        .where("employeeID", "equals", 1)
+        .orderBy("customer.companyName")
+        .inlineCount();
+
+        stop();
+        em.executeQuery(query).then(function (data) {
+            ok(data.inlineCount != null, "inlineCount should not be null");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("getAlfred", function () {
         var em = newEm();
         var q = EntityQuery.from("Customers").where("companyName", "startsWith", "Alfreds");
