@@ -3,9 +3,9 @@
 
     var ctrlName = 'productCtrl';
     var app = angular.module('app').controller(
-        ctrlName, ['$scope', '$routeParams', '$location', 'routes', 'dataservice', 'logger', productCtrl]);
+        ctrlName, ['$scope', '$routeParams', '$location', 'routes', 'dataservice', 'logger', 'util', productCtrl]);
     
-    function productCtrl($scope, $routeParams, $location, routes, dataservice, logger) {
+    function productCtrl($scope, $routeParams, $location, routes, dataservice, logger, util) {
  
         // id may be productId or orderItemId, depending upon route tag
         var tag = $routeParams.tag;
@@ -36,6 +36,7 @@
         $scope.product = product;
         $scope.orderItem = orderItem;
         $scope.optionTypes = optionTypeList;
+        $scope.segment = util.segmentArray;
 
         // Exposed functions
         $scope.addToCart = function () {
@@ -55,6 +56,7 @@
         $scope.cancel = function () {
             $location.url('/order/pizza');
         }
+
 
         // Private functions
 
