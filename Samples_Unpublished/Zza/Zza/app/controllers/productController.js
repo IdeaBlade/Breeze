@@ -35,12 +35,14 @@
         var productOptions = dataservice.productOptions.byTag(tag);
         var selectableOptions = productOptions.map(function (o) { return { option: o, selected: (selectedOptionIds.indexOf(o.id) >= 0) } });
         var optionTypeList = util.groupArray(selectableOptions, function (so) { return so.option.type; }, 'type', 'options');
+        var isInCart = (orderItem.order == dataservice.cartOrder);
 
         $scope.sizes = sizes;
         $scope.product = product;
         $scope.orderItem = orderItem;
         $scope.optionTypes = optionTypeList;
         $scope.segment = util.segmentArray;
+        $scope.isInCart = isInCart;
 
         // Exposed functions
         $scope.addToCart = function () {
@@ -52,10 +54,14 @@
 
             setOrderItemOptions(orderItem, selectableOptions);
 
-            var order = dataservice.cartOrder;
-            orderItem.orderId = order.id;
-            order.orderItems.push(orderItem);
-            logger.info("Added item to cart");
+            if (isInCart) {
+                logger.info("Updated item in cart");
+            } else {
+                var order = dataservice.cartOrder;
+                orderItem.orderId = order.id;
+                order.orderItems.push(orderItem);
+                logger.info("Added item to cart");
+            }
 
             $location.url('/order/pizza');
         }

@@ -44,7 +44,7 @@
                 </tab>
             </tabset>
             <button class="btn" data-ng-click="cancel()">Cancel</button>
-            <button class="btn" data-ng-click="addToCart()">Add to Cart</button>
+            <button class="btn" data-ng-click="addToCart()">{{isInCart ? 'Update Cart' : 'Add to Cart'}}</button>
         </form>
     </div>
 </div>
