@@ -26,8 +26,9 @@
             orderItem = getOrderItemByProductId(id);
         }
 
+        var cancelUrl = '/order/' + tag;
         if (!product) {
-            $location.url('/order/pizza');// we shouldn't be here
+            $location.path(cancelUrl);// we shouldn't be here
             return;
         }
 
@@ -63,10 +64,10 @@
                 logger.info("Added item to cart");
             }
 
-            $location.url('/order/pizza');
+            $location.path(cancelUrl);
         }
         $scope.cancel = function () {
-            $location.url('/order/pizza');
+            $location.path(cancelUrl);
         }
 
 
