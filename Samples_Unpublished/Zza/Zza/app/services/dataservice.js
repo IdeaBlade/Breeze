@@ -26,8 +26,9 @@
             getOrders: getOrders,
             saveChanges: saveChanges,
             resetManager: resetManager,
-            createOrderItem: createOrderItem
-            /* These are added during initialization:
+            addOrderItem: addOrderItem,
+            addOrderItemOption: addOrderItemOption
+        /* These are added during initialization:
                cartOrder,
                draftOrder,
                orderStatuses,
@@ -114,8 +115,20 @@
             s.productSizes.byType = u.filterByType(s.productSizes);
             s.productOptions.byId = u.filterById(s.productOptions);
             s.productOptions.byType = u.filterByType(s.productOptions);
+            s.productOptions.byTag = filterByTag(s.productOptions);
         }
-        
+
+        function filterByTag(productOptions) {
+            return function (tag) {
+                if (tag == 'pizza') {
+                    return productOptions.filter(function (o) { return o.isPizzaOption; });
+                } else if (tag == 'salad') {
+                    return productOptions.filter(function (o) { return o.isSaladOption; });
+                }
+                return [];  // beverage tag has no options
+            };
+        }
+
         function createDraftAndCartOrders() {
             var orderInit = {
                 customerId: util.emptyGuid,
@@ -127,10 +140,20 @@
             service.draftOrder = manager.createEntity('Order', orderInit);
         }
 
-        function createOrderItem() {
-            return manager.createEntity('OrderItem');
+        function addOrderItem(order, productId) {
+            var orderItem = manager.createEntity('OrderItem');
+            orderItem.productId = productId;
+            order.orderItems.push(orderItem);
+            return orderItem;
         }
-        
+
+        function addOrderItemOption(orderItem, productOptionId) {
+            var orderItemOption = manager.createEntity('OrderItemOption');
+            orderItemOption.productOptionId = productOptionId;
+            orderItem.orderItemOptions.push(orderItemOption);
+            return orderItemOption;
+        }
+
         function getAllCustomers() {
             var query = EntityQuery
                 .from("Customers")

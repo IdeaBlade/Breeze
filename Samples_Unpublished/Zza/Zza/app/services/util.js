@@ -26,7 +26,8 @@
             filterByType: filterByType,
             getSaveErrorMessages: getSaveErrorMessages,
             getEntityValidationErrMsgs: getEntityValidationErrMsgs,
-            segmentArray: segmentArray
+            segmentArray: segmentArray,
+            groupArray: groupArray
         };
         
         return service;
@@ -231,5 +232,35 @@
             }
             return segments;
         }
+
+        /*********************************************************
+        // Group an array of objects by an object property. Each element of the returned array
+        // is a object { keyName: key, valueName: [...] }
+        // arr: array of objects
+        // keyfn: function to get the desired key from each object
+        // keyName: name of key property in resulting objects
+        // valueName: name of values property in resulting objects
+        // returns: e.g. [{'crust':[{ option: {...}, selected: false},...], {'cheese':[...]}]
+        *********************************************************/
+        function groupArray(arr, keyfn, keyName, valueName) {
+            keyName = keyName || 'key';
+            valueName = valueName || 'values';
+            var groupMap = {};
+            var groupList = [];
+            arr.forEach(function (o) {
+                var key = keyfn(o);
+                var group = groupMap[key];
+                if (!group) {
+                    group = {};
+                    group[keyName] = key;
+                    group[valueName] = [];
+                    groupMap[key] = group;
+                    groupList.push(group);
+                }
+                group[valueName].push(o);
+            });
+            return groupList;
+        }
+
     }
 })();

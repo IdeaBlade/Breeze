@@ -17,6 +17,7 @@
             orderItem = getOrderItemById(id);
             if (orderItem) {
                 product = orderItem.product;
+                tag = product.type;
                 sizes = dataservice.productSizes.byType(product.type);
             }
         } else {
@@ -30,7 +31,10 @@
             return;
         }
 
-        var optionTypeList = getProductOptions(tag);
+        var selectedOptionIds = orderItem.orderItemOptions.map(function (o) { return o.productOptionId; });
+        var productOptions = dataservice.productOptions.byTag(tag);
+        var selectableOptions = productOptions.map(function (o) { return { option: o, selected: (selectedOptionIds.indexOf(o.id) >= 0) } });
+        var optionTypeList = util.groupArray(selectableOptions, function (so) { return so.option.type; }, 'type', 'options');
 
         $scope.sizes = sizes;
         $scope.product = product;
@@ -45,6 +49,8 @@
             orderItem.productSize = size;
             orderItem.unitPrice = size.price;
             orderItem.totalPrice = orderItem.quantity * size.price;
+
+            setOrderItemOptions(orderItem, selectableOptions);
 
             var order = dataservice.cartOrder;
             orderItem.orderId = order.id;
@@ -70,9 +76,7 @@
             if (matching.length) {
                 orderItem = matching[0];
             } else {
-                orderItem = dataservice.createOrderItem();
-                orderItem.productId = product.id;
-                draftOrder.orderItems.push(orderItem);
+                orderItem = dataservice.addOrderItem(draftOrder, product.id);
             }
             orderItem.quantity = orderItem.quantity || 1;
             orderItem.productSizeId = orderItem.productSizeId || sizes[1].id;
@@ -96,27 +100,27 @@
             return orderItem;
         }
 
-        // Get the product options, grouped by option type.
-        function getProductOptions(tag) {
-            if (tag == 'beverage') return [];
-            var options = dataservice.productOptions;
+        // Add/remove orderItemOptions based on what is selected
+        function setOrderItemOptions(orderItem, selectableOptions)
+        {
+            var selectedOptions = selectableOptions.filter(function (so) { return so.selected; });
+            var selectedOptionIds = selectedOptions.map(function (so) { return so.option.id; });
+            var oldOptionIds = orderItem.orderItemOptions.map(function (o) { return o.productOptionId; });
 
-            var isPizza = (tag == 'pizza');
-            var isSalad = (tag == 'salad');
-            var optionTypeMap = {};
-            var optionTypeList = [];
-            options.forEach(function (o) {
-                if ((o.isPizzaOption != isPizza) && (o.isSaladOption != isSalad)) return;
-                var type = o.type;
-                var optionTab = optionTypeMap[type];
-                if (!optionTab) {
-                    optionTab = { type: type, options: [] };
-                    optionTypeMap[type] = optionTab;
-                    optionTypeList.push(optionTab);
+            // remove any unselected options
+            orderItem.orderItemOptions.forEach(function (io) {
+                if (selectedOptionIds.indexOf(io.id) < 0) {
+                    io.entityAspect.setDeleted();
                 }
-                optionTab.options.push({ option: o, selected: false });
             });
-            return optionTypeList;
+
+            // add any missing selected options
+            selectedOptionIds.forEach(function (id) {
+                if (oldOptionIds.indexOf(id) < 0) {
+                    dataservice.addOrderItemOption(orderItem, id);
+                }
+            });
+
         }
     }
     
