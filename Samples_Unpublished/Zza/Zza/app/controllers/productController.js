@@ -1,11 +1,11 @@
 ﻿(function() {
     'use strict';
 
-    var ctrlName = 'pizzaCtrl';
+    var ctrlName = 'productCtrl';
     var app = angular.module('app').controller(
-        ctrlName, ['$scope', '$routeParams', '$location','routes', 'dataservice', 'logger', pizzaCtrl]);
+        ctrlName, ['$scope', '$routeParams', '$location', 'routes', 'dataservice', 'logger', productCtrl]);
     
-    function pizzaCtrl($scope, $routeParams, $location, routes, dataservice, logger) {
+    function productCtrl($scope, $routeParams, $location, routes, dataservice, logger) {
  
         // id may be productId or orderItemId, depending upon route tag
         var tag = $routeParams.tag;

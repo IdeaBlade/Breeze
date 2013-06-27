@@ -114,7 +114,7 @@
     <Content Include="app\app.js" />
     <Content Include="app\controllers\appController.js" />
     <Content Include="app\controllers\cartController.js" />
-    <Content Include="app\controllers\pizzaController.js" />
+    <Content Include="app\controllers\productController.js" />
     <Content Include="app\controllers\testController.js" />
     <Content Include="app\controllers\emptyControllers.js" />
     <Content Include="app\controllers\routeController.js" />
