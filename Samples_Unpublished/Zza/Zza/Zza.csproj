@@ -263,6 +263,7 @@
     <Content Include="test\lib\sinon-1.7.1.js" />
     <Content Include="test\config\jasmineTestRunnerConfig.js" />
     <Content Include="test\testdata\smallOrderTestData.js" />
+    <Content Include="test\unit\utilSpec.js" />
     <Content Include="test\zzaTestRunner.html" />
     <Content Include="test\testdata\lookups.js" />
     <Content Include="test\unit\configSpec.js" />

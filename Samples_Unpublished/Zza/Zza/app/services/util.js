@@ -25,7 +25,8 @@
             filterByName: filterByName,
             filterByType: filterByType,
             getSaveErrorMessages: getSaveErrorMessages,
-            getEntityValidationErrMsgs: getEntityValidationErrMsgs
+            getEntityValidationErrMsgs: getEntityValidationErrMsgs,
+            segmentArray: segmentArray
         };
         
         return service;
@@ -213,6 +214,22 @@
             stringFn.contains = stringFn.contains || function (value) {
                 return (this.indexOf(value) !== -1);
             };
+        }
+
+        /*********************************************************
+        * Divide an array into segments, e.g. segmentArray([1,2,3,4,5,6,7], 3) -> [[1,4,7],[2,5],[3,6]]
+        *********************************************************/
+        function segmentArray(arr, numSegments) {
+            var segments = new Array(numSegments);
+            var i = 0, len = arr.length, seg;
+            for (i = 0; i < numSegments; i++) {
+                segments[i] = [];
+            }
+            for (i = 0; i < len; i++) {
+                seg = Math.ceil(i % numSegments);
+                segments[seg].push(arr[i]);
+            }
+            return segments;
         }
     }
 })();
