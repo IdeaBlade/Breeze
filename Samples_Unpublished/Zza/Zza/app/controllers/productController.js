@@ -109,7 +109,7 @@
 
             // remove any unselected options
             orderItem.orderItemOptions.forEach(function (io) {
-                if (selectedOptionIds.indexOf(io.id) < 0) {
+                if (selectedOptionIds.indexOf(io.productOptionId) < 0) {
                     io.entityAspect.setDeleted();
                 }
             });
