@@ -171,6 +171,7 @@
         function addOrderItemOption(orderItem, productOptionId) {
             var orderItemOption = manager.createEntity('OrderItemOption');
             orderItemOption.productOptionId = productOptionId;
+            orderItemOption.quantity = 1;
             orderItem.orderItemOptions.push(orderItemOption);
             return orderItemOption;
         }

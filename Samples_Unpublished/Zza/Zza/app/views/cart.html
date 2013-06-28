@@ -3,13 +3,38 @@
     <div>
         <table class="table" >
             <tr><th></th><th>Item</th><th>Size</th><th>Qty</th><th>Price</th></tr>
-            <tr data-ng-repeat="item in cartOrder.orderItems">
-                <td><button class="btn" data-ng-click="removeItem(item)">Remove</button></td>
-                <td><a href="#/order/item/{{item.id}}"><strong>{{item.product.name}}</strong></a></td>
-                <td>{{item.productSize.name}}</td>
-                <td><input type="text" name="qty{{item.id}}" data-ng-model="item.quantity" class="input-mini" /></td>
-                <td>{{item.unitPrice * item.quantity | currency}}</td>
-            </tr>
+            <tbody data-ng-repeat="item in cartOrder.orderItems">
+                <tr>
+                    <td><button class="btn" data-ng-click="removeItem(item)">Remove</button></td>
+                    <td><a href="#/order/item/{{item.id}}"><strong>{{item.product.name}}</strong></a></td>
+                    <td>{{item.productSize.name}}</td>
+                    <td><input type="text" name="qty{{item.id}}" data-ng-model="item.quantity" class="input-mini" /></td>
+                    <td>{{item.unitPrice * item.quantity | currency}}</td>
+                </tr> 
+                <tr class="narrow" data-ng-repeat="option in item.orderItemOptions">
+                    <td></td>
+                    <td>{{option.productOption.name}}</td>
+                    <td></td>
+                    <td><input type="text" name="qty{{option.id}}" data-ng-model="option.quantity" class="input-mini" /></td>
+                    <td>{{(option.price = item.productSize.toppingPrice * option.productOption.factor) * option.quantity * item.quantity | currency}}</td>
+                </tr> 
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>Item Total</td>
+                    <td>{{itemTotal(item) | currency}}</td>
+                </tr> 
+            </tbody>
+            <tbody>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>Order Total</td>
+                    <td>{{orderTotal() | currency}}</td>
+                </tr> 
+            </tbody>
         </table>
     </div>
 </div>

@@ -18,3 +18,8 @@ td .radio {
     min-height: 16px;
     max-height: 16px;
 }
+
+tr.narrow td {
+    padding-top: 2px;
+    padding-bottom: 0px;
+}

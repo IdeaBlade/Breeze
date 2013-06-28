@@ -141,6 +141,10 @@
                 }
             });
 
+            // update the price
+            orderItem.orderItemOptions.forEach(function (io) {
+                io.price = orderItem.productSize.toppingPrice * io.productOption.factor;
+            });
         }
     }
     
