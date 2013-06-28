@@ -19,12 +19,12 @@
             if (orderItem) {
                 product = orderItem.product;
                 tag = product.type;
-                sizes = dataservice.productSizes.byType(product.type);
+                sizes = dataservice.productSizes.byProduct(product);
             }
         } else {
             // reached here from product list page, so id is the productId
             product = dataservice.products.byId(id);
-            sizes = dataservice.productSizes.byType(product.type);
+            sizes = dataservice.productSizes.byProduct(product);
             orderItem = getOrderItemByProductId(id);
         }
 
@@ -99,7 +99,7 @@
                 orderItem = dataservice.addOrderItem(draftOrder, product.id);
             }
             orderItem.quantity = orderItem.quantity || 1;
-            orderItem.productSizeId = orderItem.productSizeId || sizes[1].id;
+            orderItem.productSizeId = orderItem.productSizeId || sizes[0].id;
             return orderItem;
         }
 

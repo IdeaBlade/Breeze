@@ -111,11 +111,32 @@
             s.products.byId = u.filterById(s.products);
             s.products.byType = u.filterByType(s.products);
             s.products.byName = u.filterByName(s.products);
+
             s.productSizes.byId = u.filterById(s.productSizes);
             s.productSizes.byType = u.filterByType(s.productSizes);
+            s.productSizes.byProduct = filterByProduct(s.productSizes);
+
             s.productOptions.byId = u.filterById(s.productOptions);
             s.productOptions.byType = u.filterByType(s.productOptions);
             s.productOptions.byTag = filterByTag(s.productOptions);
+
+        }
+
+        function filterByProduct(productSizes) {
+            return function (product) {
+                var sizeIds = product.sizeIds;
+                var type = product.type;
+                if (sizeIds) {
+                    // sizeIds is in the form "'10,11,12'"
+                    var sizeArr = sizeIds.slice(1, -1).split(',');
+                    var intArr = sizeArr.map(function (s) { return parseInt(s); });
+                    return productSizes.filter(function (o) {
+                        return (o.type == type) && (intArr.indexOf(o.id) >= 0);
+                    });
+                } else {
+                    return productSizes.filter(function (o) { return o.type == type; });
+                }
+            };
         }
 
         function filterByTag(productOptions) {
