@@ -73,8 +73,10 @@
         expect(segs[1][2]).toEqual(6);
     });
 
-    it('should groupArray 6 into 3 key:values groups', function () {
-        //[1,2,3,4,5,6], 2) -> [[1,3,5],[2,4,6]]
+    it('should groupArray 6 into 3 key,values groups', function () {
+        //arr -> [{key:'a', values:[{ name: 'a', val: 'a1' }, { name: 'a', val: 'a2' },  { name: 'a', val: 'a3' }]},
+        //        {key:'b', values:[{ name: 'b', val: 'b1' }]},
+        //        {key:'c', values:[{ name: 'c', val: 'c2' }, { name: 'c', val: 'c1' }]}]
         var arr = [
             { name: 'a', val: 'a1' },
             { name: 'b', val: 'b1' },
@@ -109,8 +111,10 @@
         expect(groups[2].values[1].val).toEqual('c1');
     });
 
-    it('should groupArray 6 into 3 group:stuff groups', function () {
-        //[1,2,3,4,5,6], 2) -> [[1,3,5],[2,4,6]]
+    it('should groupArray 6 into 3 group,stuff groups', function () {
+        //arr -> [{group:'a', stuff:[{ name: 'a', val: 'a1' }, { name: 'a', val: 'a2' },  { name: 'a', val: 'a3' }]},
+        //        {group:'b', stuff:[{ name: 'b', val: 'b1' }]},
+        //        {group:'c', stuff:[{ name: 'c', val: 'c2' }, { name: 'c', val: 'c1' }]}]
         var arr = [
             { name: 'a', val: 'a1' },
             { name: 'b', val: 'b1' },

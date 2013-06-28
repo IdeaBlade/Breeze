@@ -14,6 +14,7 @@
         var orderItem;
         var product;
         if (tag == 'item') {
+            // reached this page from cart, so id is the orderItemId
             orderItem = getOrderItemById(id);
             if (orderItem) {
                 product = orderItem.product;
@@ -21,6 +22,7 @@
                 sizes = dataservice.productSizes.byType(product.type);
             }
         } else {
+            // reached here from product list page, so id is the productId
             product = dataservice.products.byId(id);
             sizes = dataservice.productSizes.byType(product.type);
             orderItem = getOrderItemByProductId(id);
@@ -28,13 +30,18 @@
 
         var cancelUrl = '/order/' + tag;
         if (!product) {
-            $location.path(cancelUrl);// we shouldn't be here
+            // bad productId or orderItemId, so go back to list view
+            $location.path(cancelUrl); 
             return;
         }
 
         var selectedOptionIds = orderItem.orderItemOptions.map(function (o) { return o.productOptionId; });
         var productOptions = dataservice.productOptions.byTag(tag);
+
+        // wrap each productOption to provide a 'selected' flag
         var selectableOptions = productOptions.map(function (o) { return { option: o, selected: (selectedOptionIds.indexOf(o.id) >= 0) } });
+
+        // group the productOptions by type, so they can be displayed on the tabs
         var optionTypeList = util.groupArray(selectableOptions, function (so) { return so.option.type; }, 'type', 'options');
         var isInCart = (orderItem.order == dataservice.cartOrder);
 
@@ -55,6 +62,10 @@
 
             setOrderItemOptions(orderItem, selectableOptions);
 
+            // acceptChanges enables change tracking, to allow later canceling of changes to an item in the cart
+            // we must reset EntityState to 'Added' prior to saveChanges
+            orderItem.entityAspect.acceptChanges();
+
             if (isInCart) {
                 util.logger.info("Updated item in cart");
             } else {
@@ -67,6 +78,8 @@
             $location.path(cancelUrl);
         }
         $scope.cancel = function () {
+            // roll back any changes made 
+            orderItem.entityAspect.rejectChanges();
             $location.path(cancelUrl);
         }
 

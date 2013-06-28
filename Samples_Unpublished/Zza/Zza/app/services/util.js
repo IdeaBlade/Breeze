@@ -235,12 +235,13 @@
 
         /*********************************************************
         // Group an array of objects by an object property. Each element of the returned array
-        // is a object { keyName: key, valueName: [...] }
+        // is a object { keyName: key, valueName: [{...},...] }
         // arr: array of objects
-        // keyfn: function to get the desired key from each object
-        // keyName: name of key property in resulting objects
-        // valueName: name of values property in resulting objects
-        // returns: e.g. [{'crust':[{ option: {...}, selected: false},...], {'cheese':[...]}]
+        // keyfn: function to get the desired group key from each object
+        // keyName: name of key property in resulting objects (defaults to 'key')
+        // valueName: name of values property in resulting objects (defaults to 'values')
+        // returns: array of key,values objects, where the values are objects from the original array.
+        // See utilSpec.js for an example.
         *********************************************************/
         function groupArray(arr, keyfn, keyName, valueName) {
             keyName = keyName || 'key';
