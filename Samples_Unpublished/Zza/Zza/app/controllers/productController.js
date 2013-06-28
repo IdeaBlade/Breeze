@@ -3,9 +3,9 @@
 
     var ctrlName = 'productCtrl';
     var app = angular.module('app').controller(
-        ctrlName, ['$scope', '$routeParams', '$location', 'routes', 'dataservice', 'logger', 'util', productCtrl]);
+        ctrlName, ['$scope', '$routeParams', '$location', 'dataservice', 'util', productCtrl]);
     
-    function productCtrl($scope, $routeParams, $location, routes, dataservice, logger, util) {
+    function productCtrl($scope, $routeParams, $location, dataservice, util) {
  
         // id may be productId or orderItemId, depending upon route tag
         var tag = $routeParams.tag;
@@ -56,12 +56,12 @@
             setOrderItemOptions(orderItem, selectableOptions);
 
             if (isInCart) {
-                logger.info("Updated item in cart");
+                util.logger.info("Updated item in cart");
             } else {
                 var order = dataservice.cartOrder;
                 orderItem.orderId = order.id;
                 order.orderItems.push(orderItem);
-                logger.info("Added item to cart");
+                util.logger.info("Added item to cart");
             }
 
             $location.path(cancelUrl);
