@@ -23,6 +23,7 @@ var EntityGroup = (function () {
         ix = this._indexMap[keyInGroup];
         if (ix >= 0) {
             if (this._entities[ix] === entity) {
+                aspect.entityState = entityState;
                 return entity;
             }
             throw new Error("This key is already attached: " + aspect.getKey());
@@ -78,8 +79,7 @@ var EntityGroup = (function () {
 
     proto.getEntities = function (entityStates) {
         var filter = getFilter(entityStates);
-        var changes = this._entities.filter(filter);
-        return changes;
+        return this._entities.filter(filter);
     };
         
     // do not expose this method. It is doing a special purpose INCOMPLETE fast detach operation

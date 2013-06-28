@@ -20,7 +20,8 @@
     var FetchStrategy = breeze.FetchStrategy;
     var MergeStrategy = breeze.MergeStrategy;
 
-   
+    if (testFns.DEBUG_MONGO) return;
+
     module("queryNonEF", {
         setup: function () {
             testFns.setup();
@@ -29,8 +30,7 @@
         }
     });
 
-    
-    
+
     function newAltEm() {
         var altServiceName = "breeze/NonEFModel";
 

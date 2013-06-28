@@ -18,7 +18,7 @@ namespace Northwind.Models
     public interface ISaveable
     {
         Guid? UserSessionId { get; set; }
-        string canAdd();
+        string CanAdd();
     }
 
     #endregion
@@ -83,8 +83,10 @@ namespace Northwind.Models
 
     [JsonIgnore]
     public Guid? UserSessionId { get; set; }
-
-    public string canAdd() { return null; }
+    public string CanAdd()
+    {
+        return CustomerID == Guid.Empty ? null : "must provide a CustomerID";
+    }
   }
   #endregion Customer class
 
@@ -168,7 +170,7 @@ namespace Northwind.Models
     [JsonIgnore]
     public Guid? UserSessionId { get; set; }
 
-    public string canAdd() { return null; }
+    public string CanAdd() { return null; }
 
   }
   #endregion Employee class
@@ -243,14 +245,7 @@ namespace Northwind.Models
     public Guid? UserSessionId { get; set; }
 
     public static int HighestOriginalID = 11077;
-    public string canAdd() { return null; }
-    public string canUpdate()
-    {
-        return OrderID > HighestOriginalID ?
-            null : " is one of the original Orders.";
-    }
-    public string canDelete() { return canUpdate(); }
-
+    public string CanAdd() { return null; }
   }
   #endregion Order class
 
@@ -276,14 +271,12 @@ namespace Northwind.Models
 
     [JsonIgnore]
     public Guid? UserSessionId { get; set; }
-
-    public string canAdd() { return null; }
-    public string canUpdate()
+    public string CanAdd()
     {
-        return OrderID != 0 && OrderID > Order.HighestOriginalID ?
-            null : " is one of the original Orders.";
+        return (OrderID == 0 || ProductID == 0) ? 
+            null : 
+            "must provide non-zero OrderID and ProductID";
     }
-    public string canDelete() { return canUpdate(); }
   }
 
   #endregion OrderDetail class
@@ -534,9 +527,7 @@ namespace Northwind.Models
 
     [JsonIgnore]
     public Guid? UserSessionId { get; set; }
-
-    public string canAdd() { return null; }
-
+    public string CanAdd() { return null; }
   }
   #endregion User class
 
@@ -582,9 +573,7 @@ namespace Northwind.Models
 
     [JsonIgnore]
     public Guid? UserSessionId { get; set; }   
-
-    public string canAdd() { return null; }
-
+    public string CanAdd() { return null; }
   }
   #endregion InternationalOrder class
 }

@@ -44,7 +44,7 @@
             var city = location.getProperty("city");
             ok(city.length > 0, "city should exist");
             ok(location.complexAspect != null, "location.complexAspect should exist");
-            ok(location.complexAspect.entityAspect === supplier0.entityAspect, "location.complexAspect should exist");
+            ok(location.complexAspect.getEntityAspect() === supplier0.entityAspect, "location.complexAspect should exist");
 
             var supplierType = em.metadataStore.getEntityType("Supplier");
             ok(supplierType instanceof EntityType, "locationType should be instanceof ComplexType");
@@ -381,7 +381,7 @@
             var saved = sr.entities;
             ok(saved.length === 1, "should have saved one record");
             var q2 = EntityQuery.from("Suppliers")
-                .where("location.city", "==", "anyWhere")
+                .where("location.city", "==", "anywhere")
                 .where("companyName", "==", companyName);
             var em2 = newEm();
             return em2.executeQuery(q2);
@@ -401,7 +401,7 @@
         var em = newEm();
         var supplierType = em.metadataStore.getEntityType("Supplier");
         var supplier1 = supplierType.createEntity();
-        em.attachEntity(supplier1);
+        em.addEntity(supplier1);
         var lastNotification;
         var notificationCount = 0;
         supplier1.entityAspect.validationErrorsChanged.subscribe(function (args) {
@@ -420,7 +420,7 @@
         location.setProperty("city", s);
         ok(lastNotification.added, "last notification should have been 'added'");
         ok(lastNotification.added[0].propertyName === "location.city", "should have added 'location.city");
-        ok(notificationCount === 2, "should have been 1 notification");
+        ok(notificationCount === 2, "should have been 2 notifications");
         var errs = supplier1.entityAspect.getValidationErrors();
         ok(errs.length == 2, "should be 2 errors"); // on companyName and city;
 
@@ -437,7 +437,7 @@
         var em = newEm();
         var supplierType = em.metadataStore.getEntityType("Supplier");
         var supplier1 = supplierType.createEntity();
-        em.attachEntity(supplier1);
+        em.addEntity(supplier1);
         var errs;
         var s = "long value long value";
         s = s + s + s + s + s + s + s + s + s + s + s + s;

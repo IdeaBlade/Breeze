@@ -324,6 +324,7 @@
 
         return EntityQuery.from(resourceName)
             .skip(skip).take(take)
+            .orderBy("Id")
             .using(em).execute().then(querySuccess);
 
         function querySuccess(data) {
@@ -676,6 +677,32 @@
                     .format(type, account.Id(), len));
         }
     }
+
+    /*********************************************************
+     * can retrieve entities of self-referencing abstract base class
+     *********************************************************/
+    asyncTest("can retrieve entities of self-referencing base (concrete class query)", 1, function () {
+        var em = newEm();
+        var resourceName = 'SoftProjects';
+        return EntityQuery.from(resourceName)
+            .using(em).execute().then(querySuccess).fail(handleFail).fin(start);
+
+        function querySuccess(data) {
+            var len = data.results.length;
+            equal(len, 2, "should fetch {0} from '{1}'.".format(len, resourceName));
+        }
+    });
+    asyncTest("can retrieve entities of self-referencing base (abstract class query)", 1, function () {
+        var em = newEm();
+        var resourceName = 'Projects';
+        return EntityQuery.from(resourceName)
+            .using(em).execute().then(querySuccess).fail(handleFail).fin(start);
+
+        function querySuccess(data) {
+            var len = data.results.length;
+            equal(len, 3, "should fetch {0} from '{1}'.".format(len, resourceName));
+        }
+    });
     /************************** SAVES *************************/
 
     // reset inheritance db after each save module test because we're messing it up

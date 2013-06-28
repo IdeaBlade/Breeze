@@ -1,0 +1,31 @@
+﻿<div>
+    <h2>Customers</h2>
+    <div class="gridStyle" style="width: 600px; height: 400px;" ng-grid="customerGrid"></div>
+
+
+    <div>
+        <h3>Edit Customer</h3>
+        <form class="form-horizontal">
+            <div class="control-group" ng-class="{ error: customer.entityAspect.getValidationErrors('CompanyName').length }">
+                <label class="control-label" for="CompanyName">Company Name</label>
+                <div class="controls">
+                    <input type="text" id="CompanyName" ng-model="customer.CompanyName">
+                </div>
+            </div>
+            <breezeinput label="Company Name" ng-model="customer.CompanyName"></breezeinput>
+            <breezeinput label="Contact Name" ng-model="customer.ContactName"></breezeinput>
+            <breezeinput label="Contact Title" ng-model="customer.ContactTitle"></breezeinput>
+            <breezeinput label="Address" ng-model="customer.Address"></breezeinput>
+            <breezeinput label="City" ng-model="customer.City"></breezeinput>
+            <breezeinput label="Region" ng-model="customer.Region"></breezeinput>
+            <breezeinput label="Postal Code" ng-model="customer.PostalCode"></breezeinput>
+            <breezeinput label="Country" ng-model="customer.Country"></breezeinput>
+            <breezeinput label="Phone" ng-model="customer.Phone"></breezeinput>
+            <breezeinput label="Fax" ng-model="customer.Fax"></breezeinput>
+
+            <button class="btn" ng-click="reset(customer)">RESET</button>
+            <button class="btn" ng-click="update(customer)">SAVE</button>
+        </form>
+    </div>
+</div>
+

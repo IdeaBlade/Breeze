@@ -29,7 +29,7 @@
 
         var query = new EntityQuery()
             .from("Suppliers")
-            .select("supplierID, companyName, location");
+            .select(testFns.supplierKeyName + ", companyName, location");
         var queryUrl = query._toUri(em.metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {
@@ -48,6 +48,12 @@
             ok(true, "Skipped tests - not written for OData (uses WebApi-jsonResultsAdapter)");
             return;
         };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - written specifically for webApi");
+            return;
+        }
+
         var em = newEm();
         var jra = new breeze.JsonResultsAdapter({
             name: "foo",
@@ -63,7 +69,7 @@
             }
         });
         var query = new EntityQuery()
-            .from("TimeLimits")
+            .from("UnusualDates")
             .where("creationDate", "!=", null)
             .select("creationDate, modificationDate")
             .take(3)
@@ -103,6 +109,11 @@
     });
     
     test("select - anon collection", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - requires join");
+            return;
+        }
+
         var em = newEm();
 
         var query = EntityQuery.from("Customers")
@@ -129,6 +140,11 @@
     });
 
     test("select - anon simple, entity collection projection", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - requires join");
+            return;
+        }
+
         var em = newEm();
 
         var query = new EntityQuery("Customers")
@@ -158,7 +174,11 @@
     });
     
     test("select - anon simple, entity scalar projection", function () {
-        
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - requires join");
+            return;
+        }
+
         var em = newEm();
 
         var query = EntityQuery
@@ -194,7 +214,11 @@
     });
 
     test("select - anon two props", function () {
-        
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - requires join");
+            return;
+        }
+
         var em = newEm();
         var query = EntityQuery
             .from("Products")
@@ -208,13 +232,20 @@
     });
     
     test("select with expand should fail with good msg", function () {
+        /*
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - requires expand");
+            return;
+        }
+        */
+
 
         var em = newEm();
         var query = EntityQuery
             .from("Products")
             .where("category.categoryName", "startswith", "S")
             .expand("category")
-            .select("productID, productName");
+            .select(testFns.productKeyName + ", productName");
         stop();
         em.executeQuery(query).then(function (data) {
             var r = data.results;

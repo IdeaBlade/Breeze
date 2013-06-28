@@ -132,7 +132,11 @@
             
                 <li><a href="..&#x2F;classes/Validator.html">Validator</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
+            
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
             
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
@@ -187,7 +191,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1334"><code>a45_entityQuery.js:1334</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1344"><code>a45_entityQuery.js:1344</code></a>
         </div>
     
 
@@ -401,7 +405,7 @@ method that would modify a Predicate actually returns a new Predicate.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1340"><code>a45_entityQuery.js:1340</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1350"><code>a45_entityQuery.js:1350</code></a>
         
         </p>
 
@@ -554,7 +558,7 @@ var query = new EntityQuery("Customers").where(p2);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1479"><code>a45_entityQuery.js:1479</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1489"><code>a45_entityQuery.js:1489</code></a>
         
         </p>
 
@@ -666,7 +670,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1410"><code>a45_entityQuery.js:1410</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1420"><code>a45_entityQuery.js:1420</code></a>
         
         </p>
 
@@ -792,7 +796,7 @@ var newPred = Predicate.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1381"><code>a45_entityQuery.js:1381</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1391"><code>a45_entityQuery.js:1391</code></a>
         
         </p>
 
@@ -949,7 +953,7 @@ var p1 = Predicate.create(predArgs);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1366"><code>a45_entityQuery.js:1366</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1376"><code>a45_entityQuery.js:1376</code></a>
         
         </p>
 
@@ -1050,7 +1054,7 @@ if (Predicate.isPredicate(p1)) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1460"><code>a45_entityQuery.js:1460</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1470"><code>a45_entityQuery.js:1470</code></a>
         
         </p>
 
@@ -1143,7 +1147,7 @@ var not_p1 = Predicate.not(p1);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1529"><code>a45_entityQuery.js:1529</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1539"><code>a45_entityQuery.js:1539</code></a>
         
         </p>
 
@@ -1226,7 +1230,7 @@ var not_p1 = Predicate.not(p1);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1435"><code>a45_entityQuery.js:1435</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1445"><code>a45_entityQuery.js:1445</code></a>
         
         </p>
 
@@ -1332,7 +1336,7 @@ var newPred = Predicate.or(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1504"><code>a45_entityQuery.js:1504</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1514"><code>a45_entityQuery.js:1514</code></a>
         
         </p>
 
@@ -1384,11 +1388,11 @@ var newPred = Predicate.or(preds);
 var p1 = Predicate.create("OrderDate", "ne", dt);
 var p2 = Predicate.create("ShipCity", "startsWith", "C");
 var p3 = Predicate.create("Freight", "&gt;", 100);
-var newPred = p1.and(p2, p3);
+var newPred = p1.or(p2, p3);
 </code></pre>
 
 <p>or</p><pre class="code prettyprint"><code>var preds = [p2, p3];
-var newPred = p1.and(preds);
+var newPred = p1.or(preds);
 </code></pre>
 
 <p>The 'or' method is also used to write "fluent" expressions</p><pre class="code prettyprint"><code>var p4 = Predicate.create("ShipCity", "startswith", "F")
@@ -1436,7 +1440,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1549"><code>a45_entityQuery.js:1549</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1559"><code>a45_entityQuery.js:1559</code></a>
         
         </p>
 
@@ -1506,7 +1510,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1555"><code>a45_entityQuery.js:1555</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1565"><code>a45_entityQuery.js:1565</code></a>
         
         </p>
 
@@ -1582,7 +1586,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1561"><code>a45_entityQuery.js:1561</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1571"><code>a45_entityQuery.js:1571</code></a>
         
         </p>
 

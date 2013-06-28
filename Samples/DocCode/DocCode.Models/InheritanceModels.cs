@@ -253,4 +253,34 @@ namespace Inheritance.Models
     }
     #endregion
 
+    #region Projects - self referencing base class
+    public abstract class ProjectBase
+    {
+        protected ProjectBase()
+        {
+            Children = new List<ProjectBase>();
+        }
+        // [Key] is essential! 
+        // else mapping error: "Two rows with different primary keys are mapped to the same entity."
+        [Key] 
+        public int Id { get; set; }
+        public int? ParentId { get; set; }
+        public string Name { get; set; }
+
+        // [InverseProperty("Parent")]
+        public virtual ICollection<ProjectBase> Children { get; set; }
+                 
+        // [InverseProperty("Children")]
+        public virtual ProjectBase Parent { get; set; }
+    }
+    public class SoftProject : ProjectBase
+    {
+        public string Observation { get; set; }
+    }
+
+    public class HardProject : ProjectBase
+    {
+        public int Number { get; set; }
+    }
+#endregion
 }

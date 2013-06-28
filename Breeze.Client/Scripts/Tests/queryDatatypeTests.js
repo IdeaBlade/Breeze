@@ -33,6 +33,22 @@
     //    }).fail(testFns.handleFail).fin(start);
     //});
 
+    test("Query Involving Multiple Entities on Server", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - server side interception methods have not yet been implemented.");
+            return;
+        }
+        var em = newEm();
+        var q = EntityQuery.from("QueryInvolvingMultipleEntities");
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            ok(true);
+        }).fail(function (error) {
+            ok(false, error.message);
+        }).fin(start);
+    });
+
     test("byte w/save", function () {
         var em = newEm();
         var dt = new Date();
@@ -88,9 +104,13 @@
 
     
     test("dateTimeOffset & dateTime2 w/save", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - these datatypes do not exist.");
+            return;
+        }
         var em = newEm();
-        var query = new EntityQuery("TimeLimits").take(10);
-        var tlimitType = em.metadataStore.getEntityType("TimeLimit");
+        var query = new EntityQuery("UnusualDates").take(10);
+        var tlimitType = em.metadataStore.getEntityType("UnusualDate");
         var dt1 = new Date(2001, 1, 1, 1, 1, 1);
         var dt2 = new Date(2002, 2, 2, 2, 2, 2);
         var tlimit = tlimitType.createEntity();
@@ -116,10 +136,14 @@
     });
 
     test("where dateTimeOffset & dateTime2", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - these datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var dt1 = new Date(1950, 1, 1, 1, 1, 1);
         var p1 = Predicate.create("creationDate", ">", dt1).or("modificationDate", ">", dt1);
-        var query = EntityQuery.from("TimeLimits").where(p1);
+        var query = EntityQuery.from("UnusualDates").where(p1);
         stop();
         em.executeQuery(query).then(function (data) {
             var r = data.results;
@@ -129,10 +153,14 @@
     });
 
     test("export/import dateTimeOffset with nulls", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - these datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         
-        var p1 = Predicate.create("modificationDate", "==", null);
-        var query = EntityQuery.from("TimeLimits").where(p1).take(2);
+        var p1 = Predicate.create("modificationDate2", "==", null);
+        var query = EntityQuery.from("UnusualDates").where(p1).take(2);
         stop();
         em.executeQuery(query).then(function (data) {
             var r = data.results;
@@ -140,9 +168,9 @@
             var exportedEntities = em.exportEntities();
             var em2 = newEm();
             em2.importEntities(exportedEntities);
-            var tls = em2.getEntities("TimeLimit");
+            var tls = em2.getEntities("UnusualDate");
             var isOk = tls.every(function (tl) {
-                var modDt = tl.getProperty("modificationDate");
+                var modDt = tl.getProperty("modificationDate2");
                 return modDt == null;
             });
             ok(isOk, "import of exported null dateTimeOffsets should succeed");
@@ -152,7 +180,10 @@
 
     
     test("time w/save", function () {
-        
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - these datatypes do not exist.");
+            return;
+        }
         var newMs = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
         var tlimitType = newMs.getEntityType("TimeLimit");
         core.arrayRemoveItem(tlimitType.dataProperties, function(dp) {
@@ -205,6 +236,10 @@
 
     
     test("time 2", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - these datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var query = new EntityQuery("TimeLimits").where("maxTime", ">", "PT4H").take(10);
         var fourHrs = core.durationToSeconds("PT4H");
@@ -221,6 +256,10 @@
     });
     
     test("time not null", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - these datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var query = new EntityQuery("TimeLimits").where("minTime", "!=", null).take(10);
         stop();
@@ -237,6 +276,10 @@
     });
     
     test("bad time", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - these datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var tlimitType = em.metadataStore.getEntityType("TimeLimit");
         var tlimit = tlimitType.createEntity();
@@ -252,6 +295,10 @@
     });
 
     test("timestamp w/save", function() {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - this is a SQL Server specific Timestamp test.");
+            return;
+        }
         var em = newEm();
         var query = new EntityQuery("Roles").take(10);
         stop();
@@ -280,6 +327,11 @@
             ok(true, "Skipped tests - OData does not yet support enums");
             return;
         };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - no enum support.");
+            return;
+        }
 
         var em = newEm();
         var query = new EntityQuery("Roles").where("roleType", "==", 'Restricted');
@@ -319,6 +371,11 @@
             ok(true, "Skipped tests - OData does not yet support enums");
             return;
         };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for MONGO - no enum support.");
+            return;
+        }
 
         var em = newEm();
         var roleType = em.metadataStore.getEntityType("Role");
@@ -395,32 +452,30 @@
     // we don't have a nullable book in NorthwindIB
     test("bool", function () {
         var em = newEm();
+        var discPropName = testFns.DEBUG_MONGO ? "discontinued" : "isDiscontinued";
         var query = new EntityQuery("Products")
-            .where("isDiscontinued", "==", true)
+            .where(discPropName, "==", true)
             .take(10);
         stop();
         em.executeQuery(query).then(function(data) {
             var products = data.results;
             ok(products.length > 0);
             ok(products.every(function(p) {
-                return p.getProperty("isDiscontinued") === true;
+                return p.getProperty(discPropName) === true;
             }));
         }).fail(testFns.handleFail).fin(start);
     });
     
     test("nonnullable bool == null", function () {
         var em = newEm();
+        var discPropName = testFns.DEBUG_MONGO ? "discontinued" : "isDiscontinued";
         var query = new EntityQuery("Products")
-            .where("discontinued", "==", null)
+            .where(discPropName, "==", null)
             .take(30);
         stop();
         em.executeQuery(query).then(function(data) {
-            ok(false);
-        }).fail(function(error) {
-            // TODO: let see if we can't improve this error message.
-            var x = error;
-            ok(true, "should get here");
-        }).fin(start);
+            ok(data.results.length === 0, "should not return any data");
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("nullable guid", function () {

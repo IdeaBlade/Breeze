@@ -65,6 +65,6 @@ Please read the release notes at [Breezejs.com](http://www.breezejs.com/document
  
 
 ## Copyright and license
-Copyright 2012 IdeaBlade, Inc.
+Copyright 2013 IdeaBlade, Inc.
 
 Breeze uses the [MIT license](http://opensource.org/licenses/mit-license.php).

@@ -217,5 +217,56 @@
            .fail(handleSaveFailed)
            .fin(start);
     });
+    
+    /*********************************************************
+    * can save entity with an unmapped property
+    * The unmapped property is sent to the server where it is unknown to the Todo class
+    * but the server safely ignores it.
+    *********************************************************/
+    test("can save TodoItem defined with an unmapped property", 4, function () {
+        var store = cloneTodosMetadataStore();
 
+        var TodoItemCtor = function () {
+            this.foo = "Foo"; // unmapped properties
+            this.bar = "Bar";
+        };
+
+        store.registerEntityTypeCtor('TodoItem', TodoItemCtor);
+
+        var todoType = store.getEntityType('TodoItem');
+        var fooProp = todoType.getProperty('foo');
+        var barProp = todoType.getProperty('bar');
+
+        // Breeze identified the properties as "unmapped"
+        ok(fooProp.isUnmapped,"'foo' should an unmapped property");
+        ok(barProp.isUnmapped, "'bar' should an unmapped property");
+        
+        // EntityManager using the extended metadata
+        var em = new breeze.EntityManager({
+            serviceName: todosServiceName,
+            metadataStore: store
+        });
+
+        var todo = em.createEntity('TodoItem', {Description:"Save 'foo'"});
+
+        equal(todo.foo(), "Foo", "unmapped 'foo' property returns expected value");
+        
+        stop();
+        em.saveChanges().then(saveSuccess).fail(saveError).fin(start);
+        
+        function saveSuccess(saveResult) {
+            ok(true, "saved TodoItem which has an unmapped 'foo' property.");
+        }
+        function saveError(error) {
+            var message = error.message;
+            ok(false, "Save failed: " + message);
+        }
+
+    });
+
+    // Test Helpers
+    function cloneTodosMetadataStore() {
+        var metaExport = newTodosEm.options.metadataStore.exportMetadata();
+        return new breeze.MetadataStore().importMetadata(metaExport);
+    }
 })(docCode.testFns);

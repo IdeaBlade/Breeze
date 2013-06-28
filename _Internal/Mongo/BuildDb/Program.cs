@@ -1,19 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Configuration;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
 
-using MongoDB.Bson;
-using MongoDB.Driver;
-
-using MongoDB.Driver.Builders;
-using MongoDB.Driver.GridFS;
-using MongoDB.Driver.Linq;
-
-
-using System.Reflection;
 
 namespace BuildDb {
   internal class Program {
@@ -28,11 +15,12 @@ namespace BuildDb {
       var dc = new DatabaseConverter(sqlConnectionstring, mongoConnectionString, "NorthwindIB");
 
       var tableItems = new List<TableItem>();
-      tableItems.Add(new TableItem("Customer"));
-      tableItems.Add(new TableItem("Order"));
+      // keep guid ids
+      tableItems.Add(new TableItem("Customer", null, "CustomerID"));
+      tableItems.Add(new TableItem("Order" ));
       tableItems.Add(new TableItem("Employee"));
       tableItems.Add(new TableItem("OrderDetail"));
-      tableItems.Add(new TableItem("Product"));
+      tableItems.Add(new TableItem("Product", null, "ProductID", 10000));
       tableItems.Add(new TableItem("Region"));
       tableItems.Add(new TableItem("Supplier"));
       tableItems.Add(new TableItem("Category", "Categories"));
@@ -42,8 +30,11 @@ namespace BuildDb {
       tableItems.Add(new TableItem("Role"));
       tableItems.Add(new TableItem("UserRole"));
       tableItems.Add(new TableItem("Comment"));
-      // tableItems.Add(new TableItem("InternationalOrder"));
-      // tableItems.Add(new TableItem("PreviousEmployee"));
+      // for these two we probably just want to extend the 'parent' table.
+      //tableItems.Add(new TableItem("InternationalOrder"));
+      //tableItems.Add(new TableItem("PreviousEmployee"));
+
+      // Can do this yet because Mongo doesn't include the Geo datatypes.
       // tableItems.Add(new TableItem("TimeLimit"));
       dc.ConvertTables(tableItems);
       
@@ -63,7 +54,8 @@ namespace BuildDb {
       dc.ClearOldPk("UserRoles", "Id");
 
       
-      dc.MakeChildDoc("Orders", "OrderID", "OrderDetails", "OrderID", "OrderDetails");
+      dc.MakeChildDocs("Orders", "OrderID", "OrderDetails", "OrderID", "OrderDetails");
+      dc.MakeChildDoc("Suppliers", "Location", new string[] {"Address", "City", "Country", "PostalCode", "Region"});
     }
 
 

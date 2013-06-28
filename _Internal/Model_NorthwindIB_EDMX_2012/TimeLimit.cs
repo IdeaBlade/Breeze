@@ -17,10 +17,8 @@ namespace Models.NorthwindIB.EDMX_2012
         public int Id { get; set; }
         public System.TimeSpan MaxTime { get; set; }
         public Nullable<System.TimeSpan> MinTime { get; set; }
-        public Nullable<System.DateTimeOffset> CreationDate { get; set; }
-        public Nullable<System.DateTime> ModificationDate { get; set; }
-        public System.Data.Spatial.DbGeometry Geometry1 { get; set; }
-        public System.Data.Spatial.DbGeography Geography1 { get; set; }
         public Nullable<int> TimeGroupId { get; set; }
+    
+        public virtual TimeGroup TimeGroup { get; set; }
     }
 }

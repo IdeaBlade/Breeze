@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-configuration xmlns="urn:nhibernate-configuration-2.2">
+  <session-factory>
+    <property name="connection.provider">NHibernate.Connection.DriverConnectionProvider</property>
+    <!-- 
+    <property name="dialect">NHibernate.Dialect.MsSqlCeDialect</property>
+    <property name="connection.driver_class">NHibernate.Driver.SqlServerCeDriver</property>
+    <property name="connection.connection_string_name">DefaultConnection</property>
+    -->
+    <property name="connection.driver_class">NHibernate.Driver.Sql2008ClientDriver</property>
+    <property name="dialect">NHibernate.Dialect.MsSql2008Dialect</property>
+    <property name="connection.connection_string">Data Source=.;Initial Catalog=Zza;Integrated Security=True;MultipleActiveResultSets=True</property>
+
+    <!-- web or thread_static-->
+    <property name="current_session_context_class">thread_static</property>
+    <!-- Help debugging-->
+    <property name="show_sql">true</property>
+
+    <property name="default_batch_fetch_size">32</property>
+
+
+  </session-factory>
+</hibernate-configuration>

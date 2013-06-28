@@ -144,6 +144,16 @@ function __resolveProperties(sources, propertyNames) {
 
 // array functions
 
+function __toArray(item) {
+    if (!item) {
+        return [];
+    } else if (Array.isArray(item)) {
+        return item;
+    } else {
+        return [item];
+    }
+}
+
 function __arrayFirst(array, predicate) {
     for (var i = 0, j = array.length; i < j; i++) {
         if (predicate(array[i])) {
@@ -160,16 +170,20 @@ function __arrayIndexOf(array, predicate) {
     return -1;
 }
 
-function __arrayRemoveItem(array, predicateOrItem) {
+function __arrayRemoveItem(array, predicateOrItem, shouldRemoveMultiple) {
     var predicate = __isFunction(predicateOrItem) ? predicateOrItem : undefined;
-    var l = array.length;
-    for (var index = 0; index < l; index++) {
-        if (predicate ? predicate(array[index]) : (array[index] === predicateOrItem)) {
-            array.splice(index, 1);
-            return index;
+    var lastIx = array.length-1;
+    var removed = false;
+    for (var i = lastIx; i >= 0; i--) {
+        if (predicate ? predicate(array[i]) : (array[i] === predicateOrItem)) {
+            array.splice(i, 1);
+            removed = true;
+            if (!shouldRemoveMultiple) {
+                return removed;
+            }
         }
     }
-    return -1;
+    return removed;
 }
 
 function __arrayZip(a1, a2, callback) {
@@ -247,17 +261,30 @@ function __requireLib(libNames, errMessage) {
         var lib = __requireLibCore(arrNames[i]);
         if (lib) return lib;
     }
-    throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
+    if (errMessage) {
+        throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
+    }
 }
     
 function __requireLibCore(libName) {
-    var lib = window[libName];
-    if (lib) return lib;
-    if (window.require) {
-        lib = window.require(libName);
+    var lib;
+    try {
+        if (this.window) {
+            var window = this.window;
+            lib = window[libName];
+            if (lib) return lib;
+            if (window.require) {
+                lib = window.require(libName);
+            }
+            if (lib) return lib;
+        }
+        if (require) {
+            lib = require(libName);
+        }
+    } catch(e) {
+
     }
-    if (lib) return lib;
-    return null;
+    return lib;
 }
 
 function __using(obj, property, tempValue, fn) {
@@ -310,7 +337,9 @@ function __memoize(fn) {
 }
 
 function __getUuid() {
+
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        //noinspection NonShortCircuitBooleanExpressionJS
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
@@ -448,7 +477,7 @@ core.propEq = __propEq;
 core.pluck  = __pluck;
 
 core.arrayEquals = __arrayEquals;
-// core.arrayDistint = __arrayDistinct;
+// core.arrayDistinct = __arrayDistinct;
 core.arrayFirst = __arrayFirst;
 core.arrayIndexOf = __arrayIndexOf;
 core.arrayRemoveItem = __arrayRemoveItem;

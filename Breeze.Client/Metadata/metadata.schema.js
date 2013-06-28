@@ -103,7 +103,7 @@ var x = {
                     "type": "string",
                     "default": ""
                 },
-                "isCompleType": {
+                "isComplexType": {
                     "description": "This must be 'true'.  This field is what distinguishes an entityType from a complexType. ",
                     "type": "boolean"
                 },
@@ -160,6 +160,11 @@ var x = {
                     "description": "Whether a null can be assigned to this property.",
                     "type": "boolean",
                     "default": true
+                },
+                "isScalar": {
+                    "description": "Whether this property returns a single value or an array of values. Typically only used in conjunction with NoSQL databases.",
+                    "type": "boolean",
+                    "default": false
                 },
                 "defaultValue": {
                     "description": "The default value for this property if nothing is assigned to it.",

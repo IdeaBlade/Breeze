@@ -49,7 +49,7 @@ namespace Breeze.WebApi {
     protected virtual JsonSerializerSettings CreateJsonSerializerSettings() {
 
       var jsonSerializerSettings = new JsonSerializerSettings() {
-        NullValueHandling = NullValueHandling.Ignore,
+        NullValueHandling = NullValueHandling.Include,
         PreserveReferencesHandling = PreserveReferencesHandling.Objects,
         ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
         TypeNameHandling = TypeNameHandling.Objects,

@@ -75,6 +75,21 @@
             equal(data.results[0].ID, 1, "Should have raw 'Foo' with ID eq 1.");
         }
     });
+    
+    /*********************************************************
+    * can get Foos metadata from a dedicated metadata controller
+    *********************************************************/
+    asyncTest("can get Foos metadata from a dedicated metadata controller", 1, function () {
+        var store = new breeze.MetadataStore();
+        store.fetchMetadata("breeze/FoosMetadata")
+            .then(success).fail(handleFail).fin(start);
+
+        function success(data) {
+            var fooType = store.getEntityType('Foo');
+            ok(fooType, "Got metadata; has 'Foo' entity type with data properties: "+
+            fooType.dataProperties.map(function (p) { return "'" + p.name + "'"; }).join(", "));
+        }
+    });
     //#endregion
 
     /*********************************************************

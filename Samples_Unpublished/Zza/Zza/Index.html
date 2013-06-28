@@ -1,0 +1,71 @@
+<!DOCTYPE html data-ng-app>
+<html lang="en">
+<head>     
+    <title>Zza with AngularJs</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
+
+    <link href="Content/ie10mobile.css" rel="stylesheet" />
+    <link href="Content/font-awesome.css" rel="stylesheet" />
+    <link href="Content/bootstrap.css" rel="stylesheet" />
+    <link href="Content/bootstrap-responsive.css" rel="stylesheet" />
+    <link href="Content/toastr.css" rel="stylesheet" />
+    <link href="Content/styles.css" rel="stylesheet" />
+
+    <script>
+        // Must be first. IE10 mobile viewport fix
+        if (navigator.userAgent.match(/IEMobile\/10\.0/)) {
+            var msViewportStyle = document.createElement("style");
+            var mq = "@@-ms-viewport{width:auto!important}";
+            msViewportStyle.appendChild(document.createTextNode(mq));
+            document.getElementsByTagName("head")[0].appendChild(msViewportStyle);
+        }
+    </script>
+    <script src="Scripts/modernizr-2.6.2.js"></script>
+
+</head>
+    <body class="ng-cloak" data-ng-app="app" data-ng-controller="appCtrl">
+        
+        <div data-ng-include="'app/views/shellHeader.html'"></div>
+        <div data-ng-view style="margin-top: 50px"></div>
+        <div data-ng-include="'app/views/shellFooter.html'"></div>
+
+        <!-- 3rd party libraries -->
+        <script src="Scripts/jquery-2.0.2.min.js"></script>
+        <script src="Scripts/q.js"></script>
+        <script src="Scripts/breeze.debug.js"></script>
+        <script src="Scripts/breeze.savequeuing.js"></script>
+        <script src="Scripts/toastr.js"></script>
+        <script src="Scripts/angular.js"></script>
+        <script src="Scripts/ui-bootstrap-tpls-0.4.0.js"></script>
+
+        <!-- App libraries -->
+        <!-- Must load app.js first; the others can load in any order -->
+        <script src="app/app.js"></script>
+        <script src="app/config.js"></script>
+        <script src="app/metadata.js"></script>
+
+        <script src="app/controllers/appController.js"></script>
+        <script src="app/controllers/emptyControllers.js"></script>
+        <script src="app/controllers/orderController.js"></script>
+        <script src="app/controllers/productController.js"></script>
+        <script src="app/controllers/routeController.js"></script>
+        <script src="app/controllers/cartController.js"></script>
+        <script src="app/controllers/testController.js"></script>
+
+        <script src="app/directives/directives.js"></script>
+        <script src="app/filters/filters.js"></script>
+
+        <script src="app/services/databaseReset.js"></script>
+        <script src="app/services/dataservice.js"></script>
+        <script src="app/services/entityManagerProvider.js"></script>
+        <script src="app/services/logger.js"></script>
+        <script src="app/services/model.js"></script>
+        <script src="app/services/routes.js"></script>
+        <script src="app/services/util.js"></script>
+
+        <!-- omit appRun.js in tests -->
+        <script src="app/appRun.js"></script> 
+    </body>
+</html>

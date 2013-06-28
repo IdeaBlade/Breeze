@@ -1,4 +1,6 @@
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Web.Http;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
@@ -13,14 +15,14 @@ namespace DocCode.Controllers
         // Todo: inject via an interface rather than "new" the concrete class
         readonly TodosRepository _repository = new TodosRepository();
 
-        // ~/breeze/inheritance/Metadata 
+        // ~/breeze/todos/Metadata 
         [HttpGet]
         public string Metadata()
         {
             return _repository.Metadata;
         }
 
-        // ~/breeze/inheritance/SaveChanges
+        // ~/breeze/todos/SaveChanges
         [HttpPost]
         public SaveResult SaveChanges(JObject saveBundle)
         {
@@ -32,6 +34,13 @@ namespace DocCode.Controllers
         [HttpGet]
         public IQueryable<TodoItem> Todos() {
             return _repository.Todos;
+        }
+
+        [HttpGet]
+        [BreezeQueryable] // Shouldn't be necessary but is until D#2466 fixed
+        public HttpResponseMessage TodosWrapped()
+        {
+            return Request.CreateResponse(HttpStatusCode.OK, _repository.Todos);
         }
 
         #region Purge/Reset

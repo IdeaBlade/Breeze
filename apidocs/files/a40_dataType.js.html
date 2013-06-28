@@ -132,7 +132,11 @@
             
                 <li><a href="..&#x2F;classes/Validator.html">Validator</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
+            
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
             
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
@@ -187,7 +191,7 @@
   @module breeze
   **&#x2F;
 
-var DataType = function () {
+var DataType = (function () {
   
     &#x2F;**
     DataType is an &#x27;Enum&#x27; containing all of the supported data types.
@@ -208,6 +212,30 @@ var DataType = function () {
 
     var dataTypeMethods = {
         &#x2F;&#x2F; default
+    };
+
+    var constants = {
+        stringPrefix: &quot;K_&quot;,
+        nextNumber: -1,
+        nextNumberIncrement: -1
+    };
+
+    var getNextString = function () {
+        return constants.stringPrefix + getNextNumber().toString();
+    };
+
+    var getNextNumber = function () {
+        var result = constants.nextNumber;
+        constants.nextNumber += constants.nextNumberIncrement;
+        return result;
+    };
+
+    var getNextGuid = function () {
+        return __getUuid();
+    };
+
+    var getNextDateTime = function () {
+        return new Date();
     };
 
     var coerceToString = function (source, sourceTypeName) {
@@ -238,13 +266,14 @@ var DataType = function () {
     };
 
     var coerceToDate = function (source, sourceTypeName) {
+        var val;
         if (sourceTypeName === &quot;string&quot;) {
             var src = source.trim();
             if (src === &quot;&quot;) return null;
-            var val = new Date(Date.parse(src));
+            val = new Date(Date.parse(src));
             return __isDate(val) ? val : source;
         } else if (sourceTypeName === &quot;number&quot;) {
-            var val = new Date(source);
+            val = new Date(source);
             return __isDate(val) ? val : source;
         }
         return source;
@@ -269,7 +298,7 @@ var DataType = function () {
     };
 
     var fmtInt = function (val) {
-        return val == null ? null : ((typeof val === &quot;string&quot;) ? parseInt(val) : val);
+        return val == null ? null : ((typeof val === &quot;string&quot;) ? parseInt(val, 10) : val);
     };
 
     var makeFloatFmt = function (fmtSuffix) {
@@ -347,25 +376,45 @@ var DataType = function () {
     @final
     @static
     **&#x2F;
-    DataType.String = DataType.addSymbol({ defaultValue: &quot;&quot;, parse: coerceToString, fmtOData: fmtString });
+    DataType.String = DataType.addSymbol({
+        defaultValue: &quot;&quot;,
+        parse: coerceToString,
+        fmtOData: fmtString,
+        getNext: getNextString
+    });
     &#x2F;**
     @property Int64 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int64 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt, quoteJsonOData: true });
+    DataType.Int64 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true, quoteJsonOData: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property Int32 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int32 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
+    DataType.Int32 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property Int16 {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Int16 = DataType.addSymbol({ defaultValue: 0, isNumeric: true, isInteger: true, parse: coerceToInt, fmtOData: fmtInt });
+    DataType.Int16 = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, isInteger: true,
+        parse: coerceToInt,
+        fmtOData: fmtInt,
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property Byte {DataType}
     @final
@@ -377,32 +426,57 @@ var DataType = function () {
     @final
     @static
     **&#x2F;
-    DataType.Decimal = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt(&quot;m&quot;), quoteJsonOData: true });
+    DataType.Decimal = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true, quoteJsonOData: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt(&quot;m&quot;),
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property Double {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Double = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt(&quot;d&quot;) });
+    DataType.Double = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt(&quot;d&quot;),
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property Single {DataType}
     @final
     @static
     **&#x2F;
-    DataType.Single = DataType.addSymbol({ defaultValue: 0, isNumeric: true, parse: coerceToFloat, fmtOData: makeFloatFmt(&quot;f&quot;) });
+    DataType.Single = DataType.addSymbol({
+        defaultValue: 0, isNumeric: true,
+        parse: coerceToFloat,
+        fmtOData: makeFloatFmt(&quot;f&quot;),
+        getNext: getNextNumber
+    });
     &#x2F;**
     @property DateTime {DataType}
     @final
     @static
     **&#x2F;
-    DataType.DateTime = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTime });
+    DataType.DateTime = DataType.addSymbol({
+        defaultValue: new Date(1900, 0, 1), isDate: true,
+        parse: coerceToDate,
+        fmtOData: fmtDateTime,
+        getNext: getNextDateTime
+    });
     
     &#x2F;**
     @property DateTimeOffset {DataType}
     @final
     @static
     **&#x2F;
-    DataType.DateTimeOffset = DataType.addSymbol({ defaultValue: new Date(1900, 0, 1), isDate: true, parse: coerceToDate, fmtOData: fmtDateTimeOffset });
+    DataType.DateTimeOffset = DataType.addSymbol({
+        defaultValue: new Date(1900, 0, 1), isDate: true,
+        parse: coerceToDate,
+        fmtOData: fmtDateTimeOffset,
+        getNext: getNextDateTime
+    });
     &#x2F;**
     @property Time {DataType}
     @final
@@ -420,7 +494,11 @@ var DataType = function () {
     @final
     @static
     **&#x2F;
-    DataType.Guid = DataType.addSymbol({ defaultValue: &quot;00000000-0000-0000-0000-000000000000&quot;, fmtOData: fmtGuid });
+    DataType.Guid = DataType.addSymbol({
+        defaultValue: &quot;00000000-0000-0000-0000-000000000000&quot;,
+        fmtOData: fmtGuid,
+        getNext: getNextGuid
+    });
   
     &#x2F;**
     @property Binary {DataType}
@@ -451,7 +529,7 @@ var DataType = function () {
             if (simpleName === &quot;image&quot;) {
                 &#x2F;&#x2F; hack
                 dt = DataType.Byte;
-            } else if (parts.length == 2) {
+            } else if (parts.length === 2) {
                 dt = DataType.fromName(simpleName) || DataType.Undefined;
             } else {
                 &#x2F;&#x2F; enum
@@ -468,7 +546,9 @@ var DataType = function () {
         switch (typeof val) {
             case &quot;string&quot;:
                 if (__isGuid(val)) return DataType.Guid;
-                else if (__isDuration(val)) return DataType.Time;
+                &#x2F;&#x2F; the &gt;3 below is a hack to insure that if we are inferring datatypes that 
+                &#x2F;&#x2F; very short strings that are valid but unlikely ISO encoded Time&#x27;s are treated as strings instead.
+                else if (__isDuration(val) &amp;&amp; val.length &gt; 3) return DataType.Time;
                 return DataType.String;
             case &quot;boolean&quot;:
                 return DataType.Boolean;
@@ -503,6 +583,8 @@ var DataType = function () {
     &#x2F;&#x2F; -----------------------------------------------------------------
 
     DataType.parseDateFromServer = DataType.parseDateAsUTC;
+
+    DataType.constants = constants;
 
     DataType.getSymbols().forEach(function (sym) {
         sym.validatorCtor = getValidatorCtor(sym);
@@ -542,11 +624,11 @@ var DataType = function () {
             case DataType.Undefined:
                 return Validator.none;
         }
-    };
+    }
 
     return DataType;
 
-}();
+})();
 
 breeze.DataType = DataType;
 

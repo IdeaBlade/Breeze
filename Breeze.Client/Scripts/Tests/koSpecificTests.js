@@ -28,7 +28,7 @@
         test("Skipping KO specific tests", function () {
             ok(true, "Skipped tests - ko specfic");
         });
-        return testFns;
+        return;
     };
     
     test("registerEntityType", function () {
@@ -148,10 +148,14 @@
     });
     
     test("query results notification", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
         var em = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID)
+            .where(testFns.customerKeyName, "==", alfredsID)
             .using(em);
         stop();
         var arrayChangedCount = 0;
@@ -192,6 +196,11 @@
     });
     
     test("observable array", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
         var items = [];
         var oa = ko.observableArray(items);
         var changeCount = 0;
@@ -203,7 +212,7 @@
 
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID)
+            .where(testFns.customerKeyName, "==", alfredsID)
             .expand("orders");
         var customer;
         stop();
@@ -228,7 +237,7 @@
 
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID);
+            .where(testFns.customerKeyName, "==", alfredsID);
         var customer;
         stop();
         var orders;

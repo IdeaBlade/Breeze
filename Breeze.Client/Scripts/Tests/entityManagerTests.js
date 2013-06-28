@@ -51,6 +51,7 @@
     });
     
     test("export/import deleted", function() {
+
         var em = newEm();
         var custType = em.metadataStore.getEntityType("Customer");
         var cust1 = custType.createEntity();
@@ -84,6 +85,111 @@
         }).fin(start);
 
 
+    });
+
+    test("export/import with custom metadata", function () {
+        var jsonMetadata = {
+            "metadataVersion": "1.0.5",
+            "dataServices": [
+                {
+                    "serviceName": "api/Foo/",
+                    "hasServerMetadata": false,
+                    "jsonResultsAdapter": "webApi_default",
+                    "useJsonp": false
+                }
+            ],
+            "structuralTypes": [
+                {
+                    "shortName": "address",
+                    "namespace": "YourNamespace",
+                    "isComplexType": true,
+                    "dataProperties": [
+                        { "name": "street", "dataType": "String" },
+                        { "name": "city", "dataType": "String" },
+                        { "name": "country", "dataType": "String" }
+                    ]
+                },
+                {
+                    "shortName": "person",
+                    "namespace": "YourNamespace",
+                    "dataProperties": [
+                        { "name": "id", "dataType": "Int32", isPartOfKey: true },
+                        { "name": "name", "dataType": "String" },
+                        { "name": "hobbies", "dataType": "String" },
+                        { "name": "address", "complexTypeName": "address:#YourNamespace" }
+                    ]
+                }
+            ]
+        };
+
+        var manager = new breeze.EntityManager();
+        manager.metadataStore.importMetadata(jsonMetadata)
+
+        var person = manager.createEntity('person', { id: 1 });
+        person.getProperty("address").setProperty("street", "Sample Street");
+
+        // console.log("Complex property is a circular datatype, cannot convert to JSON - that's fine")
+        // JSON.stringify(person.address); // fails with error
+
+        // console.log("... except that manager.exportEntities() doesn't handle that case!");
+        var exportedMs = manager.metadataStore.exportMetadata();
+        var exportedEm = manager.exportEntities(); // also fails
+        var manager2 = new breeze.EntityManager();
+        manager2.importEntities(exportedEm);
+        var ents = manager2.getEntities();
+        ok(ents.length === 1);
+        var samePerson = ents[0];
+        ok(samePerson.getProperty("id") === 1, "id should be 1");
+        ok(samePerson.entityAspect.getPropertyValue("address.street") === "Sample Street", "street names should be the same");
+        
+    });
+
+    test("export/import complexTypes", function () {
+        
+        var em = newEm();
+        var em2 = newEm();
+        var q = EntityQuery.from("Suppliers")
+            .where("companyName", "startsWith", "P");
+        stop();
+        em.executeQuery(q).then(function(data) {
+
+            var suppliers = data.results;
+            var suppliersCount = suppliers.length;
+            ok(suppliersCount > 0, "should be some suppliers");
+            var orderType = em.metadataStore.getEntityType("Order");
+            // we want to have our reconsituted em to have different ids than our current em.
+            em.keyGenerator.generateTempKeyValue(orderType);
+            var empType = em.metadataStore.getEntityType("Employee");
+            var custType = em.metadataStore.getEntityType("Customer");
+        
+            var order1 = em.addEntity(orderType.createEntity());
+            ok(!order1.entityAspect.wasLoaded);
+            var emp1 = em.addEntity(empType.createEntity());
+            ok(!emp1.entityAspect.wasLoaded);
+            emp1.setProperty("lastName", "bar");
+            var cust1 = em.createEntity("Customer", { companyName: "foo" });
+            //var cust1 = em.addEntity(custType.createEntity());
+            //cust1.setProperty("companyName", "foo");
+            ok(!cust1.entityAspect.wasLoaded);
+            order1.setProperty("employee", emp1);
+            order1.setProperty("customer", cust1);
+            var exportedEm = em.exportEntities();
+
+            em2.importEntities(exportedEm);
+            var suppliers = em2.getEntities("Supplier");
+            ok(suppliers.length === suppliersCount, "should be same number of suppliers");
+            var addedOrders = em2.getChanges(orderType, EntityState.Added);
+            ok(addedOrders.length === 1, "should be 1 added order");
+            var addedCusts = em2.getChanges(custType, EntityState.Added);
+            ok(addedCusts.length === 1, "should be 1 added customer");
+            var order1x = addedOrders[0];
+            var cust1x = order1x.getProperty("customer");
+            ok(cust1x, "should have found a customer");
+            ok(cust1x.getProperty("companyName") === "foo", "CompanyName should be 'foo'");
+            var emp1x = order1x.getProperty("employee");
+            ok(emp1x, "should have found an employee");
+            ok(emp1x.getProperty("lastName") === "bar", "LastName should be 'bar'");
+        }).fail(testFns.handleFail).fin(start);
     });
     
     test("mergeStrategy.overwrite", function () {
@@ -203,48 +309,54 @@
     });
     
     test("store-gen keys are always set by key generator on add to manager if they have default values", function () {
+
         var em = newEm();
         var orderEntityType = em.metadataStore.getEntityType("Order");
         var o1 = orderEntityType.createEntity();
-        var orderId = o1.getProperty("orderID");
-        ok(orderId == 0);
+        var tempOrderId = o1.getProperty(testFns.orderKeyName);
+        ok(tempOrderId == 0, "should be 0");
 
         em.addEntity(o1);
-        orderId = o1.getProperty("orderID");
-        ok(orderId == -1);
+        tempOrderId = o1.getProperty(testFns.orderKeyName);
+        ok(tempOrderId !== 0, "should not be 0");
+        var isTempKey = em.keyGenerator.isTempKey(o1.entityAspect.getKey())
+        ok(isTempKey, "should be a tempKey");
+        
         stop();
         em.saveChanges().then(function (saveResult) {
-            orderId = o1.getProperty("orderID");
-            ok(orderId !== -1);
+            orderId = o1.getProperty(testFns.orderKeyName);
+            ok(orderId !== tempOrderId);
             var keyMappings = saveResult.keyMappings;
             ok(keyMappings.length === 1);
             var mapping = keyMappings[0];
-            ok(mapping.tempValue === -1);
+            ok(mapping.tempValue === tempOrderId);
             ok(mapping.realValue === orderId);
         }).fail(testFns.handleFail).fin(start);
     });
 
     test("store-gen keys are not re-set by key generator upon add to manager", function() {
+
+        var dummyOrderID = testFns.wellKnownData.dummyOrderID;
         var em = newEm();
         var orderEntityType = em.metadataStore.getEntityType("Order");
         var o1 = orderEntityType.createEntity();
-        o1.setProperty("orderID", 42); // waste of time to set id; it will be replaced.
-        var orderId = o1.getProperty("orderID");
-        ok(orderId == 42);
+        o1.setProperty(testFns.orderKeyName, dummyOrderID); // waste of time to set id; it will be replaced.
+        var orderId = o1.getProperty(testFns.orderKeyName);
+        ok(orderId === dummyOrderID);
         //ok(o1.OrderID() !== 42,
         //    "o1's original key, 42, should have been replaced w/ new temp key.");
 
         em.addEntity(o1);
-        orderId = o1.getProperty("orderID");
-        ok(orderId == 42);
+        orderId = o1.getProperty(testFns.orderKeyName);
+        ok(orderId === dummyOrderID);
         stop();
         em.saveChanges().then(function(saveResult) {
-            orderId = o1.getProperty("orderID");
+            orderId = o1.getProperty(testFns.orderKeyName);
             ok(orderId !== 42);
             var keyMappings = saveResult.keyMappings;
             ok(keyMappings.length === 1);
             var mapping = keyMappings[0];
-            ok(mapping.tempValue === 42);
+            ok(mapping.tempValue === dummyOrderID);
             ok(mapping.realValue === orderId);
         }).fail(testFns.handleFail).fin(start);
     });
@@ -261,11 +373,15 @@
     });
     
     test("import results notification", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand");
+            return;
+        }
         var em = newEm();
         var em2 = newEm();
         var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
         var query = EntityQuery.from("Customers")
-            .where("customerID", "==", alfredsID)
+            .where(testFns.customerKeyName, "==", alfredsID)
             .expand("orders")
             .using(em);
         stop();
@@ -611,7 +727,7 @@
 
            var cust1 = customerType.createEntity();
            var cust1Id = core.getUuid();
-           cust1.setProperty("customerID", cust1Id);
+           cust1.setProperty(testFns.customerKeyName, cust1Id);
            cust1.setProperty("companyName","Foo");
            em1.attachEntity(cust1);
 
@@ -620,7 +736,7 @@
            // As if em2 queried for same customer
            var em2 = newEm();
            var cust1b = customerType.createEntity();
-           cust1b.setProperty("customerID", cust1Id);
+           cust1b.setProperty(testFns.customerKeyName, cust1Id);
            cust1b.setProperty("companyName","Foo");
            em2.attachEntity(cust1b);
 

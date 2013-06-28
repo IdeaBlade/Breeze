@@ -1,20 +1,18 @@
 ﻿"use strict";
 (function (factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
     }
 }(function(breeze) {
     
     var core = breeze.core;
-    var ComplexAspect = breeze.ComplexAspect;
-    
+
     var ctor = function() {
         this.name = "backingStore";
     };
@@ -101,7 +99,7 @@
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
         proto._pendingSets.process();
         var bs = movePropsToBackingStore(entity);
-        var that = this;
+
         // assign default values to the entity
         var stype = entity.entityType || entity.complexType;
         stype.getProperties().forEach(function(prop) {
@@ -110,11 +108,18 @@
 
             if (prop.isDataProperty) {
                 if (prop.isComplexProperty) {
-                    var co = prop.dataType._createInstanceCore(entity, prop.name);
-                    bs[propName] = co;
+                    // TODO: right now we create Empty complexObjects here - these should actually come from the entity
+                    if (prop.isScalar) {
+                        val = prop.dataType._createInstanceCore(entity, prop);
+                    } else {
+                        val = breeze.makeComplexArray([], entity, prop);
+                    }
+                } else if (!prop.isScalar) {
+                    val = breeze.makePrimitiveArray([], entity, prop);
                 } else if (val === undefined) {
-                    bs[propName] = prop.defaultValue;
+                    val = prop.defaultValue;
                 }
+                bs[propName] = val;
             } else if (prop.isNavigationProperty) {
                 if (val !== undefined) {
                     throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);

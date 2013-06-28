@@ -142,6 +142,8 @@ var EntityKey = (function () {
         return this.values.join("").length === 0;
     };
 
+    ctor.createKeyString = createKeyString;
+
     function createKeyString(keyValues) {
         return keyValues.join(ENTITY_KEY_DELIMITER);
     }

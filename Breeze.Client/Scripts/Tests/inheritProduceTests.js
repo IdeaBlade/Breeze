@@ -20,6 +20,13 @@
 
     var newEm = testFns.newEm;
     var newEmX = testFns.newEmX;
+
+    if (testFns.DEBUG_MONGO) {
+        test("Skipping inherit produce tests - DB not yet avail", function () {
+            ok(true, "Skipped tests - Mongo");
+        });
+        return;
+    };
     
     module("inheritProduce", {
         setup: function () {
@@ -29,19 +36,55 @@
         }
     });
 
+    test("Localquery failing on inheritance entities1", function () {
+        var manager = newEmX();
+        var query = new breeze.EntityQuery()
+            .from("Fruits");
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var fruits = data.results;
+
+            // toType is needed because the "Fruits" resource does not map to any entityTypes. 
+            var newQuery = new EntityQuery("Fruits").toType("Fruit");
+            // uncomment next line to see detailed error message explaining the issue.
+            // var newQuery = new EntityQuery("Fruits");
+            var fruits2 = manager.executeQueryLocally(newQuery);
+            ok(true);
+        }).fail(function (e) {
+            ok(false, e.message);
+        }).fin(start);
+    });
+
+    test("Localquery failing on inheritance entities2", function () {
+        var manager = newEmX();
+        var query = new breeze.EntityQuery()
+            .from("Fruits");
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var fruits = data.results;
+
+            manager.metadataStore.setEntityTypeForResourceName("Fruits", "Fruit");
+            var newQuery = new EntityQuery("Fruits");
+            var fruits2 = manager.executeQueryLocally(newQuery);
+            ok(true);
+        }).fail(function (e) {
+            ok(false, e.message);
+        }).fin(start);
+    });
+
     test("EntityKey for ItemsOfProduce", function() {
         var em = newEmX();
         
         var rdAppleId = "D35E9669-2BAE-4D69-A27A-252B31800B74";
         var et = em.metadataStore.getEntityType("ItemOfProduce");
-
-        try {
-            var ek = new EntityKey(et, rdAppleId);
-            ok(false, "shouldn't get here");
-        } catch (e) {
-            ok(e.message.indexOf("EntityKey") >= 0, "message should mention EntityKey");
-        }
         
+        var ek = new EntityKey(et, rdAppleId);
+        stop();
+        em.fetchEntityByKey(ek).then(function(data) {
+            item = data.entity;
+            ok(item, "item should have been found");
+        
+        }).fail(testFns.handleFail).fin(start);
 
     });
     
@@ -104,7 +147,9 @@
     
     test("query Fruits w/client ofType", function () {
         var em = newEmX();
-
+        ok(false, "Expected failure - OfType operator not yet supported - will be added later");
+        return;
+        
         var q = EntityQuery.from("ItemsOfProduce")
             .where(null, FilterQueryOp.IsTypeOf, "Fruit")
             .using(em);

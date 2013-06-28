@@ -132,7 +132,11 @@
             
                 <li><a href="..&#x2F;classes/Validator.html">Validator</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
+            
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
             
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
@@ -184,7 +188,8 @@
 <div class="file">
     <pre class="code prettyprint linenums">
 ﻿
-breeze.makeRelationArray = function() {
+breeze.makeRelationArray = (function() {
+
     var relationArrayMixin = {};
 
     &#x2F;**
@@ -213,56 +218,6 @@ breeze.makeRelationArray = function() {
     @readOnly
     **&#x2F;
 
-    relationArrayMixin.push = function() {
-        if (this._inProgress) {
-            return -1;
-        }
-
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-        var result = Array.prototype.push.apply(this, goodAdds);
-        processAdds(this, goodAdds);
-        return result;
-    };
-
-
-    relationArrayMixin.unshift = function() {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments));
-        if (!goodAdds.length) {
-            return this.length;
-        }
-
-        var result = Array.prototype.unshift.apply(this, goodAdds);
-        processAdds(this, __arraySlice(goodAdds));
-        return result;
-    };
-
-    relationArrayMixin.pop = function() {
-        var result = Array.prototype.pop.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    relationArrayMixin.shift = function() {
-        var result = Array.prototype.shift.apply(this);
-        processRemoves(this, [result]);
-        return result;
-    };
-
-    relationArrayMixin.splice = function() {
-        var goodAdds = getGoodAdds(this, __arraySlice(arguments, 2));
-        var newArgs = __arraySlice(arguments, 0, 2).concat(goodAdds);
-
-        var result = Array.prototype.splice.apply(this, newArgs);
-        processRemoves(this, result);
-
-        if (goodAdds.length) {
-            processAdds(this, goodAdds);
-        }
-        return result;
-    };
 
     &#x2F;**
     Performs an asynchronous load of all other the entities associated with this relationArray.
@@ -291,6 +246,20 @@ breeze.makeRelationArray = function() {
         return em &amp;&amp; em._pendingPubs;
     };
 
+    &#x2F;&#x2F; virtual impls 
+    relationArrayMixin._getGoodAdds = function(adds) {
+        return getGoodAdds(this, adds);
+    };
+
+    relationArrayMixin._processAdds = function(adds) {
+        processAdds(this, adds);
+    };
+
+    relationArrayMixin._processRemoves = function(removes)  {
+        processRemoves(this, removes);
+    };
+    &#x2F;&#x2F;
+
     function getGoodAdds(relationArray, adds) {
         var goodAdds = checkForDups(relationArray, adds);
         if (!goodAdds.length) {
@@ -301,7 +270,7 @@ breeze.makeRelationArray = function() {
         &#x2F;&#x2F; we do not want to attach an entity during loading
         &#x2F;&#x2F; because these will all be &#x27;attached&#x27; at a later step.
         if (entityManager &amp;&amp; !entityManager.isLoading) {
-            goodAdds.forEach(function(add) {
+            goodAdds.forEach(function (add) {
                 if (add.entityAspect.entityState.isDetached()) {
                     relationArray._inProgress = true;
                     try {
@@ -315,90 +284,75 @@ breeze.makeRelationArray = function() {
         return goodAdds;
     }
 
-    function checkForDups(relationArray, adds) {
-        &#x2F;&#x2F; don&#x27;t allow dups in this array. - also prevents recursion 
-        var inverseProp = relationArray.navigationProperty.inverse;
-        if (inverseProp) {
-            var goodAdds = adds.filter(function (a) {
-                if (relationArray._addsInProcess.indexOf(a) &gt;= 0) {
-                    return false;
-                }
-                var inverseValue = a.getProperty(inverseProp.name);
-                return inverseValue !== relationArray.parentEntity;
-            });
-            return goodAdds;
-        } else {
-            &#x2F;&#x2F; unidirectional navigation defined where 1-&gt;N but NOT N-&gt;1 ( fairly rare use case)
-            &#x2F;&#x2F; TODO: This is not complete. We really do need to elim dups.
-            throw new Error(&quot;Breeze does not YET support unidirectional navigation where navigation is only defined in the 1 -&gt; n direction.  Unidirectional navigation in the opposite direction is supported.&quot;);
-        }
-    }
-
     function processAdds(relationArray, adds) {
-        var inp = relationArray.navigationProperty.inverse;
-        if (inp) {
-            var addsInProcess = relationArray._addsInProcess;
-            var startIx = addsInProcess.length;
-            try {
-                adds.forEach(function(childEntity) {
-                    addsInProcess.push(childEntity);
-                    childEntity.setProperty(inp.name, relationArray.parentEntity);
-                });
-            } finally {
-                addsInProcess.splice(startIx, adds.length);
-            }
-        }
+        var parentEntity = relationArray.parentEntity;
+        var np = relationArray.navigationProperty;
+        var addsInProcess = relationArray._addsInProcess;
 
-        &#x2F;&#x2F; this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, &quot;arrayChanged&quot;, { relationArray: relationArray, added: adds });
-
-    }
-
-    function publish(publisher, eventName, eventArgs) {
-        var pendingPubs = publisher._getPendingPubs();
-        if (pendingPubs) {
-            if (!publisher._pendingArgs) {
-                publisher._pendingArgs = eventArgs;
-                pendingPubs.push(function() {
-                    publisher[eventName].publish(publisher._pendingArgs);
-                    publisher._pendingArgs = null;
-                });
-            } else {
-                combineArgs(publisher._pendingArgs, eventArgs);
-            }
-        } else {
-            publisher[eventName].publish(eventArgs);
-        }
-    }
-
-    function combineArgs(target, source) {
-        for (var key in source) {
-            if (key !== &quot;relationArray&quot; &amp;&amp; target.hasOwnProperty(key)) {
-                var sourceValue = source[key];
-                var targetValue = target[key];
-                if (targetValue) {
-                    if (!Array.isArray(targetValue)) {
-                        throw new Error(&quot;Cannot combine non array args&quot;);
-                    }
-                    Array.prototype.push.apply(targetValue, sourceValue);
+        var invNp = np.inverse;
+        var startIx = addsInProcess.length;
+        try {
+            adds.forEach(function (childEntity) {
+                addsInProcess.push(childEntity);
+                if (invNp) {
+                    childEntity.setProperty(invNp.name, parentEntity);
                 } else {
-                    target[key] = sourceValue;
+                    &#x2F;&#x2F; This occurs with a unidirectional 1-n navigation - in this case
+                    &#x2F;&#x2F; we need to update the fks instead of the navProp
+                    var pks = parentEntity.entityType.keyProperties;
+                    np.invForeignKeyNames.forEach(function (fk, i) {
+                        childEntity.setProperty(fk, parentEntity.getProperty(pks[i].name));
+                    });
                 }
-            }
+            });
+        } finally {
+            addsInProcess.splice(startIx, adds.length);
         }
+
     }
 
     function processRemoves(relationArray, removes) {
         var inp = relationArray.navigationProperty.inverse;
         if (inp) {
-            removes.forEach(function(childEntity) {
+            removes.forEach(function (childEntity) {
                 childEntity.setProperty(inp.name, null);
             });
         }
-        &#x2F;&#x2F; this is referencing the name of the method on the relationArray not the name of the event
-        publish(relationArray, &quot;arrayChanged&quot;, { relationArray: relationArray, removed: removes });
     }
 
+    function checkForDups(relationArray, adds) {
+        &#x2F;&#x2F; don&#x27;t allow dups in this array. - also prevents recursion 
+        var parentEntity = relationArray.parentEntity;
+        var navProp = relationArray.navigationProperty;
+        var inverseProp = navProp.inverse;
+        var goodAdds;
+        if (inverseProp) {
+            goodAdds = adds.filter(function (a) {
+                if (relationArray._addsInProcess.indexOf(a) &gt;= 0) {
+                    return false;
+                }
+                var inverseValue = a.getProperty(inverseProp.name);
+                return inverseValue !== parentEntity;
+            });
+        } else {
+            &#x2F;&#x2F; This occurs with a unidirectional 1-&gt;N relation ( where there is no n -&gt; 1)
+            &#x2F;&#x2F; in this case we compare fks.
+            var fkPropNames = navProp.invForeignKeyNames;
+            var keyProps = parentEntity.entityType.keyProperties;
+            goodAdds = adds.filter(function (a) {
+                if (relationArray._addsInProcess.indexOf(a) &gt;= 0) {
+                    return false;
+                }
+                return fkPropNames.some(function (fk, i) {
+                    var keyProp = keyProps[i].name;
+                    var keyVal = parentEntity.getProperty(keyProp);
+                    var fkVal = a.getProperty(fk);
+                    return keyVal !== fkVal;
+                });
+            });
+        }
+        return goodAdds;
+    }
 
     function makeRelationArray(arr, parentEntity, navigationProperty) {
         arr.parentEntity = parentEntity;
@@ -406,11 +360,13 @@ breeze.makeRelationArray = function() {
         arr.arrayChanged = new Event(&quot;arrayChanged_entityCollection&quot;, arr);
         &#x2F;&#x2F; array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
+        &#x2F;&#x2F; need to use mixins here instead of inheritance because we are starting from an existing array object.
+        __extend(arr, observableArray.mixin);
         return __extend(arr, relationArrayMixin);
     }
 
     return makeRelationArray;
-}();
+})();
     </pre>
 </div>
 

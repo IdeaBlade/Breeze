@@ -26,7 +26,6 @@ namespace Models.NorthwindIB.EDMX_2012
         public int RowVersion { get; set; }
     
         public virtual ICollection<EmployeeTerritory> EmployeeTerritories { get; set; }
-        public virtual Region Region { get; set; }
         public virtual ICollection<Employee> Employees { get; set; }
     }
 }

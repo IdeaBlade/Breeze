@@ -1,0 +1,18 @@
+﻿<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner" data-ng-controller="routeCtrl">
+        <a class="brand" data-ng-href="#/">
+            <span class="title">Zza!</span> 
+        </a>
+        <div>
+            <ul class="nav">
+                <li data-ng-repeat="link in links" 
+                    data-ng-class="{active: current.templateUrl == link.templateUrl}">
+                    <a data-ng-href="#{{link.path}}">{{link.name}}</a>
+                </li>
+            </ul>
+        </div>
+        <div class="btn-group pull-right">
+            <a class="btn btn-warning" data-ng-href="#/cart"><i class="icon-shopping-cart"></i> Cart</a>
+        </div>
+    </div>
+</nav>

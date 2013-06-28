@@ -15,6 +15,8 @@
 
 
     var newEm = testFns.newEm;
+    var wellKnownData = testFns.wellKnownData;
+    
 
     module("validate entity", {
         setup: function () {
@@ -24,6 +26,24 @@
 
         }
     });
+
+    test("customize validation display name", function () {
+        var em = newEm();
+        var newMs = MetadataStore.importMetadata(em.metadataStore.exportMetadata());
+        em = newEm(newMs);
+        var custType = em.metadataStore.getEntityType("Customer");
+        var dp = custType.getProperty("companyName");
+        dp.displayName = "xxx Company name xxx";
+        var cust1 = custType.createEntity();
+        em.attachEntity(cust1);
+        var s = "long value long value";
+        s = s + s + s + s + s + s + s + s + s + s + s + s;
+        cust1.setProperty("companyName", s);
+        errors = cust1.entityAspect.getValidationErrors();
+        ok(errors[0].errorMessage.indexOf("xxx Company name xxx") != -1, "should have a custom error message");
+
+    });
+
     
     test("Remove a rule", 2, function () {
 
@@ -69,6 +89,7 @@
         var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = empType.createEntity(); // created but not attached
+        employee.setProperty(testFns.employeeKeyName, wellKnownData.dummyEmployeeID);
         employee.setProperty("firstName", "John");
         employee.setProperty("lastName", "Doe");
 
@@ -87,7 +108,7 @@
 
         employee.setProperty("birthDate","today"); // 2. Nice try! Wrong data type
 
-        employee.setProperty("employeeID", null); // 3. Id is the pk; automatically required
+        employee.setProperty(testFns.employeeKeyName, null); // 3. Id is the pk; automatically required
 
         employee.setProperty("lastName",          // 4. adds "too long", 5. removes "required", 
             "IamTheGreatestAndDontYouForgetIt");
@@ -356,7 +377,7 @@
 
         freightProperty.validators.push(numericRangeValidatorFactory({ min: 100, max: 500 }));
         var order1 = orderType.createEntity();
-
+        order1.setProperty(testFns.orderKeyName, wellKnownData.dummyOrderID);
         em.attachEntity(order1);
         var valErrors = order1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0"); // nulls do not cause failure
@@ -385,7 +406,7 @@
         var em2 = EntityManager.importEntities(serializedEm);
         var orderType2 = em2.metadataStore.getEntityType("Order");
         var order1 = orderType2.createEntity();
-
+        order1.setProperty(testFns.orderKeyName, wellKnownData.dummyOrderID);
         em2.attachEntity(order1);
         var valErrors = order1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0"); // nulls do not cause failure

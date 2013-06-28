@@ -1,14 +1,13 @@
 ﻿"use strict";
 (function (factory) {
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node: hard-coded dependency on "breeze"
         factory(require("breeze"));
     } else if (typeof define === "function" && define["amd"] && !breeze) {
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
-    } else {
-        // <script> tag: use the global `breeze` object
-        factory(breeze);
     }
 }(function(breeze) {
     
@@ -90,21 +89,28 @@
             if (ko.isObservable(val)) {
                 // if so
                 if (prop.isNavigationProperty) {
-                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
+                    throw new Error("Cannot assign a navigation property in an entity ctor.: " + propName);
                 }
                 koObj = val;
             } else {
                 // if not
                 if (prop.isDataProperty) {
                     if (prop.isComplexProperty) {
-                        val = prop.dataType._createInstanceCore(entity, prop.name);
+                        // TODO: right now we create Empty complexObjects here - these should actually come from the entity
+                        if (prop.isScalar) {
+                            val = prop.dataType._createInstanceCore(entity, prop);
+                        } else {
+                            val = breeze.makeComplexArray([], entity, prop);
+                        }
+                    } else if (!prop.isScalar) {
+                        val = breeze.makePrimitiveArray([], entity, prop);
                     } else if (val === undefined) {
                         val = prop.defaultValue;
-                    }
+                     }
                     koObj = ko.observable(val);
                 } else if (prop.isNavigationProperty) {
                     if (val !== undefined) {
-                        throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
+                        throw new Error("Cannot assign a navigation property in an entity ctor.: " + propName);
                     }
                     if (prop.isScalar) {
                         // TODO: change this to nullEntity later.
@@ -160,7 +166,7 @@
     }
     
     function onArrayChanged(args) {
-        var koObj = args.relationArray._koObj;
+        var koObj = args.array._koObj;
         if (koObj._suppressBreeze) {
             koObj._suppressBreeze = false;
         } else {

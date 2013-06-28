@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Breeze.WebApi;
 using Inheritance.Models;
 using Newtonsoft.Json.Linq;
@@ -109,6 +110,52 @@ namespace DocCode.DataAccess
         {
             get { return Context.BillingDetailTPCs.OfType<CreditCardTPC>(); }
         }
+        #endregion
+
+        #region Projects - self referencing base class
+
+        public IEnumerable<ProjectBase> Projects
+        {
+            get { return getProjects(); }
+        }
+        public IEnumerable<SoftProject> SoftProjects
+        {
+            get { return getProjects().OfType<SoftProject>(); }
+        }
+        public IEnumerable<HardProject> HardProjects
+        {
+            get { return getProjects().OfType<HardProject>(); }
+        } 
+
+        // Faking data
+        private static IEnumerable<ProjectBase> getProjects()
+        {
+            if (_projects != null) return _projects;
+
+            _projects = new List<ProjectBase>();
+
+            // Hard Projects
+            var pro1 = new SoftProject { Id = 1, Name = "Soft Project 1", Observation = "Main" };
+            var pro2 = new SoftProject { Id = 2, Name = "Soft Project 2", Observation = "Secondary" };
+
+            // both children of proj1
+            var pro3 = new SoftProject { Id = 3, Name = "Soft Project 3", ParentId = 1, Parent = pro1 };
+            var pro4 = new SoftProject { Id = 4, Name = "Soft Project 4", ParentId = 1, Parent = pro1 };
+
+            pro1.Children.Add(pro3);
+            pro1.Children.Add(pro4);
+
+            _projects.Add(pro1);
+            _projects.Add(pro2);
+
+            // Hard Projects
+            var pro5 = new HardProject { Id = 2, Name = "Hard Project 5", Number = 42 };
+
+            _projects.Add(pro5);
+
+            return _projects;           
+        }
+        private static ICollection<ProjectBase> _projects;
         #endregion
 
         #region Purge/Reset

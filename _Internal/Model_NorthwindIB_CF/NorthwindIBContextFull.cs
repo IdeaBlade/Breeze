@@ -91,7 +91,13 @@ namespace Models.NorthwindIB.CF {
 
     public DbSet<TimeLimit> TimeLimits { get; set; }
 
+    public DbSet<TimeGroup> TimeGroups { get; set; }
+
     public DbSet<Comment> Comments { get; set; }
+
+    public DbSet<Geospatial> Geospatials { get; set; }
+
+    public DbSet<UnusualDate> UnusualDates { get; set; }
 
     #endregion EntityQueries
   }
@@ -1562,14 +1568,7 @@ namespace Foo {
   [Table("TimeLimit", Schema = "dbo")]
   public partial class TimeLimit {
 
-    public TimeLimit() {
-#if !ODATA
-        this.Geometry1 = DbGeometry.FromText("POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))");
-        this.Geography1 = DbGeography.FromText("MULTIPOINT(-122.360 47.656, -122.343 47.656)", 4326);
-        // this.Geometry1 = DbGeometry.FromText("GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10)");
-#endif
-    }
-
+    #region Data Properties
     [Key]
     [DataMember]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -1585,25 +1584,48 @@ namespace Foo {
     public Nullable<System.TimeSpan> MinTime { get; set; }
 
     [DataMember]
-    [Column("CreationDate")]
-    public Nullable<System.DateTimeOffset> CreationDate { get; set; }
+    // [ForeignKey("TimeGroup")]
+    [Column("TimeGroupId")]
+    public System.Nullable<int> TimeGroupId { get; set; }
+    #endregion Data Properties
 
+    #region Navigation Properties
+    /// <summary>Gets or sets the TimeGroup. </summary>
     [DataMember]
-    [Column("ModificationDate")]
-    public Nullable<System.DateTime> ModificationDate { get; set; }
-
-#if !ODATA
-    [DataMember]
-    [Column("Geometry1")]
-    public System.Data.Spatial.DbGeometry Geometry1 { get; set; }
-
-    [DataMember]
-    [Column("Geography1")]
-    public System.Data.Spatial.DbGeography Geography1 { get; set; }
-#endif
+    [ForeignKey("TimeGroupId")]
+    [InverseProperty("TimeLimits")]
+    public TimeGroup TimeGroup { get; set; }
+    #endregion Navigation Properties
   }
 
-  #endregion TimeList
+  #endregion TimeLimit
+
+  #region TimeGroup class
+
+  [DataContract(IsReference = true)]
+  [Table("TimeGroup", Schema = "dbo")]
+  public partial class TimeGroup {
+
+    #region Data Properties
+    [Key]
+    [DataMember]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Column("Id")]
+    public int Id { get; set; }
+
+    [DataMember]
+    [Column("Comment")]
+    public string Comment { get; set; }
+    #endregion Data Properties
+
+    #region Navigation Properties
+    [DataMember]
+    [InverseProperty("TimeGroup")]
+    public ICollection<TimeLimit> TimeLimits { get; set; }
+    #endregion Navigation Properties
+  }
+
+  #endregion TimeGroup
 
   #region Comment class
 
@@ -1616,7 +1638,7 @@ namespace Foo {
     [Key]
     [DataMember]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    [Column("CreatedOn", Order=1)]
+    [Column("CreatedOn", Order = 1)]
     public System.DateTime CreatedOn { get; set; }
 
     [Key]
@@ -1638,6 +1660,68 @@ namespace Foo {
   }
   #endregion Comment
 
+  #region Geospatial class
 
+  [DataContract(IsReference = true)]
+  [Table("Geospatial", Schema = "dbo")]
+  public partial class Geospatial {
+
+    public Geospatial() {
+#if !ODATA
+      this.Geometry1 = DbGeometry.FromText("POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))");
+      this.Geography1 = DbGeography.FromText("MULTIPOINT(-122.360 47.656, -122.343 47.656)", 4326);
+      // this.Geometry1 = DbGeometry.FromText("GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10)");
+#endif
+    }
+
+    [Key]
+    [DataMember]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Column("Id")]
+    public int Id { get; set; }
+
+#if !ODATA
+    [DataMember]
+    [Column("Geometry1")]
+    public System.Data.Spatial.DbGeometry Geometry1 { get; set; }
+
+    [DataMember]
+    [Column("Geography1")]
+    public System.Data.Spatial.DbGeography Geography1 { get; set; }
+#endif
+  }
+
+  #endregion Geospatial
+
+  #region UnusualDate class
+
+  [DataContract(IsReference = true)]
+  [Table("UnusualDate", Schema = "dbo")]
+  public partial class UnusualDate {
+
+    [Key]
+    [DataMember]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Column("Id")]
+    public int Id { get; set; }
+
+    [DataMember]
+    [Column("CreationDate")]
+    public System.DateTimeOffset CreationDate { get; set; }
+
+    [DataMember]
+    [Column("ModificationDate")]
+    public System.DateTime ModificationDate { get; set; }
+
+    [DataMember]
+    [Column("CreationDate2")]
+    public Nullable<System.DateTimeOffset> CreationDate2 { get; set; }
+
+    [DataMember]
+    [Column("ModificationDate2")]
+    public Nullable<System.DateTime> ModificationDate2 { get; set; }
+  }
+
+  #endregion UnusualDate
 }
 

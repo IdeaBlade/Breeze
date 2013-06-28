@@ -33,7 +33,9 @@ YUI.add("yuidoc-meta", function(Y) {
         "ValidationOptions",
         "Validator",
         "config",
+        "ↈ_complexArray_",
         "ↈ_keyGenerator_interface",
+        "ↈ_primitiveArray_",
         "ↈ_relationArray_"
     ],
     "modules": [

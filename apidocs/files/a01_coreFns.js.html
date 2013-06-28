@@ -132,7 +132,11 @@
             
                 <li><a href="..&#x2F;classes/Validator.html">Validator</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
+            
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
             
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
@@ -329,6 +333,16 @@ function __resolveProperties(sources, propertyNames) {
 
 &#x2F;&#x2F; array functions
 
+function __toArray(item) {
+    if (!item) {
+        return [];
+    } else if (Array.isArray(item)) {
+        return item;
+    } else {
+        return [item];
+    }
+}
+
 function __arrayFirst(array, predicate) {
     for (var i = 0, j = array.length; i &lt; j; i++) {
         if (predicate(array[i])) {
@@ -345,16 +359,20 @@ function __arrayIndexOf(array, predicate) {
     return -1;
 }
 
-function __arrayRemoveItem(array, predicateOrItem) {
+function __arrayRemoveItem(array, predicateOrItem, shouldRemoveMultiple) {
     var predicate = __isFunction(predicateOrItem) ? predicateOrItem : undefined;
-    var l = array.length;
-    for (var index = 0; index &lt; l; index++) {
-        if (predicate ? predicate(array[index]) : (array[index] === predicateOrItem)) {
-            array.splice(index, 1);
-            return index;
+    var lastIx = array.length-1;
+    var removed = false;
+    for (var i = lastIx; i &gt;= 0; i--) {
+        if (predicate ? predicate(array[i]) : (array[i] === predicateOrItem)) {
+            array.splice(i, 1);
+            removed = true;
+            if (!shouldRemoveMultiple) {
+                return removed;
+            }
         }
     }
-    return -1;
+    return removed;
 }
 
 function __arrayZip(a1, a2, callback) {
@@ -432,17 +450,30 @@ function __requireLib(libNames, errMessage) {
         var lib = __requireLibCore(arrNames[i]);
         if (lib) return lib;
     }
-    throw new Error(&quot;Unable to initialize &quot; + libNames + &quot;.  &quot; + errMessage || &quot;&quot;);
+    if (errMessage) {
+        throw new Error(&quot;Unable to initialize &quot; + libNames + &quot;.  &quot; + errMessage || &quot;&quot;);
+    }
 }
     
 function __requireLibCore(libName) {
-    var lib = window[libName];
-    if (lib) return lib;
-    if (window.require) {
-        lib = window.require(libName);
+    var lib;
+    try {
+        if (this.window) {
+            var window = this.window;
+            lib = window[libName];
+            if (lib) return lib;
+            if (window.require) {
+                lib = window.require(libName);
+            }
+            if (lib) return lib;
+        }
+        if (require) {
+            lib = require(libName);
+        }
+    } catch(e) {
+
     }
-    if (lib) return lib;
-    return null;
+    return lib;
 }
 
 function __using(obj, property, tempValue, fn) {
@@ -495,7 +526,9 @@ function __memoize(fn) {
 }
 
 function __getUuid() {
+
     return &#x27;xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx&#x27;.replace(&#x2F;[xy]&#x2F;g, function (c) {
+        &#x2F;&#x2F;noinspection NonShortCircuitBooleanExpressionJS
         var r = Math.random() * 16 | 0, v = c == &#x27;x&#x27; ? r : (r &amp; 0x3 | 0x8);
         return v.toString(16);
     });
@@ -633,7 +666,7 @@ core.propEq = __propEq;
 core.pluck  = __pluck;
 
 core.arrayEquals = __arrayEquals;
-&#x2F;&#x2F; core.arrayDistint = __arrayDistinct;
+&#x2F;&#x2F; core.arrayDistinct = __arrayDistinct;
 core.arrayFirst = __arrayFirst;
 core.arrayIndexOf = __arrayIndexOf;
 core.arrayRemoveItem = __arrayRemoveItem;

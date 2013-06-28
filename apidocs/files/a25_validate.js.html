@@ -132,7 +132,11 @@
             
                 <li><a href="..&#x2F;classes/Validator.html">Validator</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
+            
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
             
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
@@ -187,7 +191,7 @@
 @module breeze
 **&#x2F;
 
-var Validator = function () {
+var Validator = (function () {
 
     var INT16_MIN = -32768;
     var INT16_MAX = 32767;
@@ -304,7 +308,7 @@ var Validator = function () {
             
     validatorFn(value, context)
     @param validatorFn.value {Object} Value to be validated
-    @param validatorFn.context {Object} The same context object passed into the constructor with the following additonal properties if not 
+    @param validatorFn.context {Object} The same context object passed into the constructor with the following additional properties if not
     otherwise specified.
     @param validatorFn.context.value {Object} The value being validated.
     @param validatorFn.context.name {String} The name of the validator being executed.
@@ -404,7 +408,7 @@ var Validator = function () {
             var context = this.currentContext;
             var message = context.message;
             if (message) {
-                if (typeof (message) == &quot;function&quot;) {
+                if (typeof (message) === &quot;function&quot;) {
                     return message(context);
                 } else {
                     return message;
@@ -527,7 +531,7 @@ var Validator = function () {
     ctor.maxLength = function (context) {
         var valFn = function (v, ctx) {
             if (v == null) return true;
-            if (typeof (v) != &quot;string&quot;) return false;
+            if (typeof (v) !== &quot;string&quot;) return false;
             return v.length &lt;= ctx.maxLength;
         };
         return new ctor(&quot;maxLength&quot;, valFn, context);
@@ -552,7 +556,7 @@ var Validator = function () {
     ctor.stringLength = function (context) {
         var valFn = function (v, ctx) {
             if (v == null) return true;
-            if (typeof (v) != &quot;string&quot;) return false;
+            if (typeof (v) !== &quot;string&quot;) return false;
             if (ctx.minLength != null &amp;&amp; v.length &lt; ctx.minLength) return false;
             if (ctx.maxLength != null &amp;&amp; v.length &gt; ctx.maxLength) return false;
             return true;
@@ -837,11 +841,11 @@ var Validator = function () {
     }
 
     return ctor;
-} ();
+}) ();
 
-var ValidationError = function () {
-        &#x2F;**
-    A ValidatationError is used to describe a failed validation.
+var ValidationError = (function () {
+    &#x2F;**
+    A ValidationError is used to describe a failed validation.
 
     @class ValidationError
     **&#x2F;
@@ -907,7 +911,7 @@ var ValidationError = function () {
     };
 
     return ctor;
-}();
+})();
     
 breeze.Validator = Validator;
 breeze.ValidationError = ValidationError;

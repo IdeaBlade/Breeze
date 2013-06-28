@@ -55,8 +55,16 @@ namespace Sample_WebApi.Controllers {
 #endif
 
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
-      // prohibit any additions of entities of type 'Region'
+      if ((string)SaveOptions.Tag == "addProdOnServer") {
+        Supplier supplier = entityInfo.Entity as Supplier;
+        Product product = new Product() {
+          ProductName = "Product added on server"
+        };
+        supplier.Products.Add(product);
+        return true;
+      }
 
+      // prohibit any additions of entities of type 'Region'
       if (entityInfo.Entity.GetType() == typeof(Region) && entityInfo.EntityState == EntityState.Added) {
         var region = entityInfo.Entity as Region;
         if (region.RegionDescription.ToLowerInvariant().StartsWith("error")) return false;
@@ -65,6 +73,39 @@ namespace Sample_WebApi.Controllers {
     }
 
     protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
+      if ((string)SaveOptions.Tag == "increaseProductPrice") {
+        Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
+        foreach (var type in saveMap.Keys) {
+          if (type == typeof(Category)) {
+            foreach (var entityInfo in saveMap[type]) {
+              if (entityInfo.EntityState == EntityState.Modified) {
+                Category category = (entityInfo.Entity as Category);
+                var products = this.Context.Products.Where(p => p.CategoryID == category.CategoryID);
+                foreach (var product in products) {
+                  if (!saveMapAdditions.ContainsKey(typeof(Product)))
+                    saveMapAdditions[typeof(Product)] = new List<EntityInfo>();
+
+                  var ei = this.CreateEntityInfo(product, EntityState.Modified);
+                  ei.ForceUpdate = true;
+                  var incr = (Convert.ToInt64(product.UnitPrice) % 2) == 0 ? 1 : -1;
+                  product.UnitPrice += incr;
+                  saveMapAdditions[typeof(Product)].Add(ei);
+                }
+              }
+            }
+          }
+        }
+        foreach (var type in saveMapAdditions.Keys) {
+          if (!saveMap.ContainsKey(type)) {
+            saveMap[type] = new List<EntityInfo>();
+          }
+          foreach (var enInfo in saveMapAdditions[type]) {
+            saveMap[type].Add(enInfo);
+          }
+        }
+        return saveMap;
+      }
+
       return base.BeforeSaveEntities(saveMap);
       // return saveMap;
     }
@@ -84,14 +125,6 @@ namespace Sample_WebApi.Controllers {
       ContextProvider = new NorthwindContextProvider();
     }
 
-#if NHIBERNATE
-    protected override void Initialize(System.Web.Http.Controllers.HttpControllerContext controllerContext)
-    {
-        base.Initialize(controllerContext);
-        // BreezeNHQueryableAttribute needs the session
-        BreezeNHQueryableAttribute.SetSession(Request, ContextProvider.Session);
-    }
-#endif
     //[HttpGet]
     //public String Metadata() {
     //  var folder = Path.Combine(HttpRuntime.AppDomainAppPath, "App_Data");
@@ -103,7 +136,7 @@ namespace Sample_WebApi.Controllers {
     [HttpGet]
     public String Metadata() {
       return ContextProvider.Metadata();
-    } 
+    }
 
     //[HttpGet]
     //public HttpResponseMessage Metadata() {
@@ -114,7 +147,7 @@ namespace Sample_WebApi.Controllers {
 
     [HttpPost]
     public SaveResult SaveChanges(JObject saveBundle) {
-        return ContextProvider.SaveChanges(saveBundle);
+      return ContextProvider.SaveChanges(saveBundle);
     }
 
     [HttpPost]
@@ -126,7 +159,7 @@ namespace Sample_WebApi.Controllers {
 
     [HttpPost]
     public SaveResult SaveWithExit(JObject saveBundle) {
-        return new SaveResult() { Entities = new List<Object>(), KeyMappings = new List<KeyMapping>() };
+      return new SaveResult() { Entities = new List<Object>(), KeyMappings = new List<KeyMapping>() };
     }
 
     [HttpPost]
@@ -141,15 +174,57 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.SaveChanges(saveBundle);
     }
 
+    [HttpPost]
+    public SaveResult SaveCheckInitializer(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntitiesDelegate = AddOrder;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
+    [HttpPost]
+    public SaveResult SaveCheckUnmappedProperty(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntityDelegate = CheckUnmappedProperty;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
+    private Dictionary<Type, List<EntityInfo>> AddOrder(Dictionary<Type, List<EntityInfo>> saveMap) {
+      var order = new Order();
+      order.OrderDate = DateTime.Today;
+      var ei = ContextProvider.CreateEntityInfo(order);
+      List<EntityInfo> orderInfos;
+      if (!saveMap.TryGetValue(typeof(Order), out orderInfos)) {
+        orderInfos = new List<EntityInfo>();
+        saveMap.Add(typeof(Order), orderInfos);
+      }
+      orderInfos.Add(ei);
+
+      return saveMap;
+    }
+
     private Dictionary<Type, List<EntityInfo>> CheckFreightOnOrders(Dictionary<Type, List<EntityInfo>> saveMap) {
       List<EntityInfo> entityInfos;
       if (saveMap.TryGetValue(typeof(Order), out entityInfos)) {
         foreach (var entityInfo in entityInfos) {
           CheckFreight(entityInfo);
-        }  
+        }
       }
-      
+
       return saveMap;
+    }
+
+    private bool CheckFreight(EntityInfo entityInfo) {
+      if ((ContextProvider.SaveOptions.Tag as String) == "freight update") {
+        var order = entityInfo.Entity as Order;
+        order.Freight = order.Freight + 1;
+      } else if ((ContextProvider.SaveOptions.Tag as String) == "freight update-ov") {
+        var order = entityInfo.Entity as Order;
+        order.Freight = order.Freight + 1;
+        entityInfo.OriginalValuesMap["Freight"] = null;
+      } else if ((ContextProvider.SaveOptions.Tag as String) == "freight update-force") {
+        var order = entityInfo.Entity as Order;
+        order.Freight = order.Freight + 1;
+        entityInfo.ForceUpdate = true;
+      }
+      return true;
     }
 
     private Dictionary<Type, List<EntityInfo>> AddComment(Dictionary<Type, List<EntityInfo>> saveMap) {
@@ -169,25 +244,43 @@ namespace Sample_WebApi.Controllers {
       return saveMap;
     }
 
-
-    private bool CheckFreight(EntityInfo entityInfo) {
-      if ((ContextProvider.SaveOptions.Tag as String) == "freight update") {
-        var order = entityInfo.Entity as Order;
-        order.Freight = order.Freight + 1;
-      } else if ((ContextProvider.SaveOptions.Tag as String) == "freight update-ov") {
-        var order = entityInfo.Entity as Order;
-        order.Freight = order.Freight + 1;
-        entityInfo.OriginalValuesMap["Freight"] = null;
-      } else if ((ContextProvider.SaveOptions.Tag as String) == "freight update-force") {
-        var order = entityInfo.Entity as Order;
-        order.Freight = order.Freight + 1;
-        entityInfo.ForceUpdate = true;
+    private bool CheckUnmappedProperty(EntityInfo entityInfo) {
+      var unmappedValue = entityInfo.UnmappedValuesMap["myUnmappedProperty"];
+      if ((String) unmappedValue != "anything22") {
+        throw new Exception("wrong value for unmapped property:  " + unmappedValue);
       }
-      return true;
+      Customer cust = entityInfo.Entity as Customer;
+      return false;
     }
 
 
+
+
     #region standard queries
+
+    [HttpGet]
+    public List<Employee> QueryInvolvingMultipleEntities() {
+#if NHIBERNATE
+        // need to figure out what to do here
+        return new List<Employee>();
+#else
+      //the query executes using pure EF 
+      var dc0 = new NorthwindIBContext_EDMX_2012();
+      var query0 = (from t1 in dc0.Employees
+                    where (from t2 in dc0.Orders select t2.EmployeeID).Distinct().Contains(t1.EmployeeID)
+                    select t1);
+      var result0 = query0.ToList();
+
+      //the same query fails if using EFContextProvider
+      var dc = new EFContextProvider<NorthwindIBContext_EDMX_2012>();
+      dc0 = dc.Context;
+      var query = (from t1 in dc0.Employees
+                   where (from t2 in dc0.Orders select t2.EmployeeID).Distinct().Contains(t1.EmployeeID)
+                   select t1);
+      var result = query.ToList();
+      return result;
+#endif
+    }
 
     [HttpGet]
     // [BreezeQueryable]
@@ -221,9 +314,9 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public Object CustomerCountsByCountry() {
-      return ContextProvider.Context.Customers.GroupBy(c => c.Country).Select(g => new {g.Key, Count = g.Count()});
+      return ContextProvider.Context.Customers.GroupBy(c => c.Country).Select(g => new { g.Key, Count = g.Count() });
     }
-    
+
 
     [HttpGet]
     public Customer CustomerWithScalarResult() {
@@ -297,28 +390,51 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.TimeLimits;
     }
 
-
     [HttpGet]
-    public Object Lookups()
-    {
-        var regions = ContextProvider.Context.Regions.ToList();
-        var roles = ContextProvider.Context.Roles.ToList();
-        return new { regions, roles };
+    public Object Lookups() {
+      var regions = ContextProvider.Context.Regions.ToList();
+      var roles = ContextProvider.Context.Roles.ToList();
+      return new { regions, roles };
     }
 
-    //[HttpGet]
-    //public IQueryable<TimeGroup> TimeGroups() {
-    //  return ContextProvider.Context.TimeGroups;
-    //}
+    [HttpGet]
+    public IQueryable<TimeGroup> TimeGroups() {
+      return ContextProvider.Context.TimeGroups;
+    }
 
     [HttpGet]
     public IQueryable<Comment> Comments() {
       return ContextProvider.Context.Comments;
     }
 
+    [HttpGet]
+    public IQueryable<UnusualDate> UnusualDates() {
+      return ContextProvider.Context.UnusualDates;
+    }
+
+#if ! DATABASEFIRST_OLD
+    [HttpGet]
+    public IQueryable<Geospatial> Geospatials() {
+      return ContextProvider.Context.Geospatials;
+    }
+#endif
+
     #endregion
 
     #region named queries
+
+    [HttpGet]
+    public IQueryable<Customer> CustomersOrderedStartingWith(string companyName) {
+      var customers = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith(companyName)).OrderBy(cust => cust.CompanyName);
+      var list = customers.ToList();
+      return customers;
+    }
+
+    [HttpGet]
+    public IQueryable<Employee> EmployeesMultipleParams(int employeeID, string city) {
+      var emps = ContextProvider.Context.Employees.Where(emp => emp.EmployeeID == employeeID || emp.City.Equals(city));
+      return emps;
+    }
 
     [HttpGet]
     public IQueryable<Object> CompanyNames() {
@@ -341,14 +457,32 @@ namespace Sample_WebApi.Controllers {
 
 
     [HttpGet]
+#if NHIBERNATE
+    public IQueryable<Object> CompanyInfoAndOrders(ODataQueryOptions options) {
+        // Need to handle this specially for NH, to prevent $top being applied to Orders
+        var query = ContextProvider.Context.Customers;
+        var queryHelper = new NHQueryHelper();
+
+        // apply the $filter, $skip, $top to the query
+        var query2 = queryHelper.ApplyQuery(query, options);
+
+        // execute query, then expand the Orders
+        var r = query2.Cast<Customer>().ToList();
+        NHInitializer.InitializeList(r, "Orders");
+
+        // after all is loaded, create the projection
+        var stuff = r.AsQueryable().Select(c => new { c.CompanyName, c.CustomerID, c.Orders });
+        queryHelper.ConfigureFormatter(Request, query);
+#else
     public IQueryable<Object> CompanyInfoAndOrders() {
       var stuff = ContextProvider.Context.Customers.Select(c => new { c.CompanyName, c.CustomerID, c.Orders });
+#endif
       return stuff;
     }
 
     [HttpGet]
     public Object CustomersAndProducts() {
-      var stuff = new {Customers = ContextProvider.Context.Customers.ToList(), Products = ContextProvider.Context.Products.ToList()};
+      var stuff = new { Customers = ContextProvider.Context.Customers.ToList(), Products = ContextProvider.Context.Products.ToList() };
       return stuff;
     }
 
@@ -408,7 +542,7 @@ namespace Sample_WebApi.Controllers {
       }
     }
 
-    #region standard queries
+  #region standard queries
 
     [HttpGet]
     [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
@@ -516,7 +650,7 @@ namespace Sample_WebApi.Controllers {
 #endif
     #endregion
 
-    #region named queries
+  #region named queries
 
     [HttpGet]
     [BreezeQueryable(AllowedQueryOptions = AllowedQueryOptions.All)]
@@ -580,6 +714,6 @@ namespace Sample_WebApi.Controllers {
     #endregion
   }
 
-#endif  
+#endif
 
 }

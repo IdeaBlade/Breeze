@@ -12,6 +12,24 @@ namespace Breeze.Nhibernate.WebApi
         /// </summary>
         /// <param name="list">Top-level collection of objects</param>
         /// <param name="expandMap">Properties to initialize for each type</param>
+        public static void InitializeList<T>(IEnumerable<T> list, params string[] expandPaths)
+        {
+            var expandMap = NHEagerFetch.MapExpansions(typeof(T), expandPaths);
+
+            var map = expandMap.map;
+            var depth = expandMap.maxDepth;
+            foreach (var el in list)
+            {
+                InitializeWithCascade(el, map, depth);
+            }
+        }
+
+        
+        /// <summary>
+        /// Recursively forces loading of each NHibernate proxy in the tree that matches an entry in the map.
+        /// </summary>
+        /// <param name="list">Top-level collection of objects</param>
+        /// <param name="expandMap">Properties to initialize for each type</param>
         public static void InitializeList(IEnumerable list, ExpandTypeMap expandMap)
         {
             if (expandMap == null) return;

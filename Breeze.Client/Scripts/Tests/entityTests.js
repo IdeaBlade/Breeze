@@ -1,7 +1,7 @@
 (function (testFns) {
     var breeze = testFns.breeze;
     var core = breeze.core;
-    
+
     var Enum = core.Enum;
     var Event = core.Event;
 
@@ -10,9 +10,11 @@
     var EntityQuery = breeze.EntityQuery;
     var EntityKey = breeze.EntityKey;
     var DataType = breeze.DataType;
+
     var newEm = testFns.newEm;
     var newMs = testFns.newMs;
-    
+    var wellKnownData = testFns.wellKnownData;
+
     module("entity", {
         setup: function () {
             breeze.DataType.DateTime.defaultValue = new Date(2000, 0, 1);
@@ -22,48 +24,79 @@
 
         }
     });
-    
 
+
+
+    test("Event token is the same for different entities", function () {
+        var em = newEm();
+
+        var emp1 = em.createEntity("Employee", { firstName: "Joe1", lastName: "Smith1", birthDate: new Date(2000, 1, 1) });
+        var emp2 = em.createEntity("Employee", { firstName: "Joe2", lastName: "Smith2", birthDate: new Date(2000, 1, 1) });
+
+        var token1 = emp1.entityAspect.propertyChanged.subscribe(function (changeArgs) {
+            var a = changeArgs;
+        });        
+        var token2 = emp2.entityAspect.propertyChanged.subscribe(function (changeArgs) {
+            var a = changeArgs;
+        });
+
+        ok(token1 != token2, "Tokens should not be equal.");
+    });
 
     test("set nullable props with an empty string", function () {
         var em = newEm();
-        
-        var emp = em.createEntity("Employee", { firstName: "Joe", lastName: "Smith", birthDate: new Date(2000,1,1) });
+
+        var emp = em.createEntity("Employee", { firstName: "Joe", lastName: "Smith", birthDate: new Date(2000, 1, 1) });
         var bd = emp.getProperty("birthDate");
         ok(bd != null);
         emp.setProperty("birthDate", "");
         var b2 = emp.getProperty("birthDate");
         ok(b2 === null, "birthDate should be null");
     });
-    
-    
+
+
 
     test("create and init relations", function () {
         var em = newEm();
         var newDetail = null;
         // pretend parent entities were queried
-        var parentOrder = em.createEntity("Order", { orderID: 1 }, breeze.EntityState.Unchanged);
-        var parentProduct = em.createEntity("Product", { productID: 1 }, breeze.EntityState.Unchanged);
-        
-        // Can't initialize with related entity. Feature request to make this possible         
-        newDetail = em.createEntity("OrderDetail", { order: parentOrder, product: parentProduct });
-        
-        ok(newDetail && newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
-        ok(parentOrder.entityAspect.entityState.isUnchanged(), "parentOrder should be 'added'");
-        ok(parentProduct.entityAspect.entityState.isUnchanged(), "parentProduct should be 'added'");
+        var cfg = {};
+        cfg[testFns.orderKeyName] = 1;
+        var parentOrder = em.createEntity("Order", cfg, breeze.EntityState.Unchanged);
+        cfg = {};
+        cfg[testFns.productKeyName] = 1;
+        var parentProduct = em.createEntity("Product", cfg, breeze.EntityState.Unchanged);
+
+        if (!testFns.DEBUG_MONGO) {
+            // Can't initialize with related entity. Feature request to make this possible
+            newDetail = em.createEntity("OrderDetail", { order: parentOrder, product: parentProduct });
+            ok(newDetail && newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
+        }
+        ok(parentOrder.entityAspect.entityState.isUnchanged(), "parentOrder should be 'unchanged'");
+        ok(parentProduct.entityAspect.entityState.isUnchanged(), "parentProduct should be 'unchanged'");
     });
 
     test("create and init relations 2", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok("n/a for MONGO - OrderDetail is not an entityType");
+            return;
+        }
         var em = newEm();
         var newDetail = null;
         // pretend parent entities were queried
-        var parentOrder = em.createEntity("Order", { orderID: 1 }, breeze.EntityState.Detached);
-        var parentProduct = em.createEntity("Product", { productID: 1 }, breeze.EntityState.Detached);
+        var cfg = {};
+        cfg[testFns.orderKeyName] = 1;
+        var parentOrder = em.createEntity("Order", cfg, breeze.EntityState.Detached);
+        cfg = {};
+        cfg[testFns.productKeyName] = 1;
+        var parentProduct = em.createEntity("Product", cfg, breeze.EntityState.Detached);
 
-        // Can't initialize with related entity. Feature request to make this possible         
+
+        // Can't initialize with related entity. Feature request to make this possible
         newDetail = em.createEntity("OrderDetail", { order: parentOrder, product: parentProduct });
 
         ok(newDetail && newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
+
         ok(parentOrder.entityAspect.entityState.isAdded(), "parentOrder should be 'added'");
         ok(parentProduct.entityAspect.entityState.isAdded(), "parentProduct should be 'added'");
     });
@@ -76,16 +109,16 @@
         ok(birthDate === null, "birthDate should be null");
         var q = EntityQuery.from("Employees").where("birthDate", "==", null);
         stop();
-        em.executeQuery(q).then(function(data) {
+        em.executeQuery(q).then(function (data) {
             var empsWithNullBirthDates = data.results;
             ok(empsWithNullBirthDates.length > 0, "should be at least 1 employee with a null birthdate");
-            empsWithNullBirthDates.forEach(function(emp) {
+            empsWithNullBirthDates.forEach(function (emp) {
                 var birthDate = emp.getProperty("birthDate");
                 ok(birthDate === null, "queried birthDate should be null");
             });
         }).fail(testFns.handleFail).fin(start);
     });
-   
+
 
     test("registerEntityTypeCtor causing error on importEntities1", function () {
         // 4/25/13 - sbelini - this test should not fail - it's just to ensure the third parameter is causing the error
@@ -97,7 +130,9 @@
 
         var m1 = em.createEmptyCopy();
         var customerType = m1.metadataStore.getEntityType("Customer");
-        var customer = m1.createEntity("Customer", { customerID: breeze.core.getUuid() });
+        var cfg = {};
+        cfg[testFns.customerKeyName] = breeze.core.getUuid();
+        var customer = m1.createEntity("Customer", cfg);
         var exported = m1.exportEntities([customer]);
         var m2 = em.createEmptyCopy();
 
@@ -116,7 +151,9 @@
 
         var m1 = em.createEmptyCopy();
         var customerType = m1.metadataStore.getEntityType("Customer");
-        var customer = m1.createEntity("Customer", { customerID: breeze.core.getUuid() });
+        var cfg = {};
+        cfg[testFns.customerKeyName] = breeze.core.getUuid();
+        var customer = m1.createEntity("Customer", cfg);
         var exported = m1.exportEntities([customer]);
         var m2 = em.createEmptyCopy();
 
@@ -125,12 +162,12 @@
         ok(true);
     });
 
-    test("rejectChanges on unmapped property", function() {
+    test("rejectChanges on unmapped property", function () {
         var em1 = newEm(newMs());
         var Customer = testFns.models.CustomerWithMiscData();
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
-        em1.fetchMetadata().then(function() {
+        em1.fetchMetadata().then(function () {
             var custType = em1.metadataStore.getEntityType("Customer");
             var cust = custType.createEntity();
             em1.addEntity(cust);
@@ -143,31 +180,32 @@
             ok(miscData === 'zzz', "miscData should be zzz");
         }).fail(testFns.handleFail).fin(start);
     });
-    
+
     test("set foreign key property to null", function () {
-        var productQuery = new EntityQuery("Products").take(1)
-            .expand("supplier");
+        var productQuery = new EntityQuery("Products").take(1);
+
 
         stop();
         var em = newEm();
-        em.executeQuery(productQuery)
-            .then(assertProductSetSupplierIDToNull)
-            .fail(testFns.handleFail)
-            .fin(start);
+        em.executeQuery(productQuery).then(function (data) {
+            return data.results[0].entityAspect.loadNavigationProperty("supplier");
+        }).then(assertProductSetSupplierIDToNull)
+          .fail(testFns.handleFail)
+          .fin(start);
     });
 
     function assertProductSetSupplierIDToNull(data) {
         var products = data.results;
         var firstProduct = products[0];
 
-        ok(firstProduct.getProperty("supplierID"), "SupplierID should not be null" );
+        ok(firstProduct.getProperty(testFns.supplierKeyName), "SupplierID should not be null");
 
-        firstProduct.setProperty("supplierID", null);
+        firstProduct.setProperty(testFns.supplierKeyName, null);
 
-        ok(firstProduct.getProperty("supplierID") == null, "is SupplierID null?");
+        ok(firstProduct.getProperty(testFns.supplierKeyName) == null, "is SupplierID null?");
     }
 
-    test("null foriegn key", function() {
+    test("null foriegn key", function () {
         var em = newEm();
         var productType = em.metadataStore.getEntityType("Product");
         var product = productType.createEntity();
@@ -175,7 +213,7 @@
         product.setProperty('supplierID', null);
         var errs = product.entityAspect.getValidationErrors();
         var q = EntityQuery.from("Products").take(1);
-        em.executeQuery(q).then(function(data) {
+        em.executeQuery(q).then(function (data) {
             var products = data.results;
             product = products[0];
             product.setProperty('supplierID', null);
@@ -188,13 +226,13 @@
         //Set product's SupplierID to 0
 
     });
-    
+
     // TODO: finish this
     //test("datatype coercion - boolean - custom conversion", function () {
     //    var em = newEm(); // new empty EntityManager
     //    var oldFn = DataType.Boolean.parse;
     //    var newFn = function(source, sourceTypeName) {
-            
+
     //        if (sourceTypeName === "string") {
     //            var src = source.trim().toLowerCase();
     //            if (src === 'false') {
@@ -209,9 +247,9 @@
     //        }
     //    };
     //    DataType.Boolean.parse = newFn;
-        
+
     //});
-    
+
     test("datatype coercion - null strings to empty strings", function () {
         var em = newEm(); // new empty EntityManager
         var oldFn = DataType.String.parse;
@@ -247,7 +285,7 @@
     });
 
 
-    test("datatype coercion - date", function() {
+    test("datatype coercion - date", function () {
         var em = newEm(); // new empty EntityManager
         var userType = em.metadataStore.getEntityType("User");
 
@@ -261,8 +299,12 @@
         ok(dt.getTime() === sameDt2.getTime());
 
     });
-    
+
     test("datatype coercion - integer", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - OrderDetail is not an entity");
+            return;
+        }
         var em = newEm(); // new empty EntityManager
         var odType = em.metadataStore.getEntityType("OrderDetail");
         // OrderID, UnitPrice, Discount
@@ -275,12 +317,16 @@
         od.setProperty("orderID", 3.4);
         val = od.getProperty("orderID");
         ok(val === 3);
-        
+
 
 
     });
-    
+
     test("datatype coercion - decimal", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - OrderDetail is not an entity");
+            return;
+        }
         var em = newEm(); // new empty EntityManager
         var odType = em.metadataStore.getEntityType("OrderDetail");
         // OrderID, UnitPrice, Discount
@@ -289,7 +335,7 @@
         od.setProperty("unitPrice", "3.4");
         val = od.getProperty("unitPrice");
         ok(val === 3.4);
-        
+
         od.setProperty("unitPrice", "3");
         val = od.getProperty("unitPrice");
         ok(val === 3);
@@ -299,8 +345,12 @@
         ok(val === 3.4);
 
     });
-    
+
     test("datatype coercion - float", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - OrderDetail issues");
+            return true;
+        }
         var em = newEm(); // new empty EntityManager
         var odType = em.metadataStore.getEntityType("OrderDetail");
         // OrderID, UnitPrice, Discount
@@ -322,11 +372,11 @@
 
 
 
-    
-    test("create entity with non-null dates", function() {
+
+    test("create entity with non-null dates", function () {
         var em = newEm(); // new empty EntityManager
         var userType = em.metadataStore.getEntityType("User");
-        
+
         var user = userType.createEntity();
 
         var crtnDate = user.getProperty("createdDate");
@@ -335,7 +385,7 @@
         ok(core.isDate(modDate), "modDate is not a date");
         em.addEntity(user);
         // need to do this after the addEntity call
-        var id = user.getProperty("id");
+        var id = user.getProperty(testFns.userKeyName);
         var exported = em.exportEntities();
         var em2 = newEm();
         em2.importEntities(exported);
@@ -347,14 +397,14 @@
         ok(crtnDate2.getTime() == crtnDate.getTime(), "crtn dates are not equal");
         ok(modDate2.getTime() == modDate.getTime(), "mod dates are not equal");
     });
-    
-    
 
-    test("multipart foreign keys", function() {
+
+
+    test("multipart foreign keys", function () {
         var em = newEm(); // new empty EntityManager
         var bodType = em.metadataStore.getEntityType("BonusOrderDetailItem");
         stop();
-        EntityQuery.from("OrderDetails").take(1).using(em).execute().then(function(data) {
+        EntityQuery.from("OrderDetails").take(1).using(em).execute().then(function (data) {
             var orderDetail = data.results[0];
             var bod = bodType.createEntity();
             bod.setProperty("bonusOrderDetailItemID", core.getUuid());
@@ -368,36 +418,44 @@
 
     });
 
-    test("create entity with initial properties", function() {
+    test("create entity with initial properties", function () {
         var em = newEm(); // new empty EntityManager
         var empType = em.metadataStore.getEntityType("Employee");
 
-        var employee = empType.createEntity({
+        var cfg = {
             firstName: "John",
-            lastName: "Smith",
-            employeeID: 42
-        });
+            lastName: "Smith"
+        }
+        var testVal;
+        if (testFns.DEBUG_MONGO) {
+            testVal = "FakeKey-42";
+        } else {
+            testVal = 42;
+        }
+        cfg[testFns.employeeKeyName] = wellKnownData.dummyEmployeeID;
+        var employee = empType.createEntity(cfg);
         ok(employee.getProperty("firstName") === "John", "first name should be 'John'");
-        ok(employee.getProperty("employeeID") === 42, "employeeID should be 42");
+        ok(employee.getProperty(testFns.employeeKeyName) === wellKnownData.dummyEmployeeID, "employeeID should be " + wellKnownData.dummyEmployeeID);
         try {
-            var badEmp = empType.createEntity({
+            cfg = {
                 firstxame: "John",
-                lastName: "Smith",
-                employeeID: 42,
-            });
+                lastName: "Smith"
+            }
+            cfg[testFns.employeeKeyName] = wellKnownData.dummyEmployeeID;
+            var badEmp = empType.createEntity(cfg);
             ok(false, "shouldn't get here");
-        } catch(e) {
+        } catch (e) {
             ok(e.message.indexOf("firstxame") !== -1, "error should mention 'firstxame'");
         }
     });
-    
+
     test("acceptChanges - detach deleted", 1, function () {
 
         var em = newEm(); // new empty EntityManager
         var empType = em.metadataStore.getEntityType("Employee");
 
         var employee = empType.createEntity(); // created but not attached
-        employee.setProperty("employeeID", 42);
+        employee.setProperty(testFns.employeeKeyName, 42);
         em.attachEntity(employee); // simulate existing employee
 
         employee.entityAspect.setDeleted();
@@ -408,7 +466,7 @@
             'employee should be "Detached" after calling acceptChanges');
     });
 
-    test("rejectChanges notification", function() {
+    test("rejectChanges notification", function () {
         //1) attach propertyChangedHandler to an existing entity
         //2) modify entity (handler hears it, and reports that the entity is "Modified")
         //3) entity.entityAspect.rejectChanges()
@@ -417,7 +475,7 @@
 
         var orderType = em.metadataStore.getEntityType("Order");
         var order = orderType.createEntity();
-        order.setProperty("orderID", 1);
+        order.setProperty(testFns.orderKeyName, 1);
         em.attachEntity(order);
         var es;
         var count = 0;
@@ -439,13 +497,17 @@
         ok(lastArgs.entity.entityAspect.entityState.isUnchanged(), "entityState should be unchanged");
 
     });
-    
-    test("rejectChanges of a child entity restores it to its parent", 8, function () {
+
+    test("rejectChanges of a child entity restores it to its parent", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
         var em = newEm();
 
         var orderType = em.metadataStore.getEntityType("Order");
         var parent = orderType.createEntity();
-        parent.setProperty("orderID",1);
+        parent.setProperty("orderID", 1);
         em.attachEntity(parent);
 
         var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
@@ -480,17 +542,17 @@
     });
 
 
-    test("custom Customer type with createEntity", function() {
+    test("custom Customer type with createEntity", function () {
         var em = newEm(newMs());
 
         var Customer = testFns.models.CustomerWithMiscData();
-        Customer.prototype.getNameLength = function() {
+        Customer.prototype.getNameLength = function () {
             return (this.getProperty("companyName") || "").length;
         };
 
         em.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
-        em.fetchMetadata().then(function() {
+        em.fetchMetadata().then(function () {
             var custType = em.metadataStore.getEntityType("Customer");
             var cust1 = custType.createEntity();
             ok(cust1.entityType === custType, "entityType should be Customer");
@@ -504,21 +566,21 @@
             start();
         }).fail(testFns.handleFail);
     });
-    
-    test("custom Customer type with new", function() {
+
+    test("custom Customer type with new", function () {
         var em = newEm(newMs());
 
         var Customer = testFns.models.CustomerWithMiscData();
-        Customer.prototype.getNameLength = function() {
+        Customer.prototype.getNameLength = function () {
             return (this.getProperty("companyName") || "").length;
         };
 
         em.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
-        em.fetchMetadata().then(function() {
+        em.fetchMetadata().then(function () {
             var custType = em.metadataStore.getEntityType("Customer");
             var cust1 = new Customer();
-             // this works because the fetchMetadataStore hooked up the entityType on the registered ctor.
+            // this works because the fetchMetadataStore hooked up the entityType on the registered ctor.
             ok(cust1.entityType === custType, "entityType should be undefined");
             ok(cust1.entityAspect === undefined, "entityAspect should be undefined");
             em.attachEntity(cust1);
@@ -531,20 +593,20 @@
         }).fail(testFns.handleFail);
     });
 
-    test("custom Customer type with new - v2", function() {
+    test("custom Customer type with new - v2", function () {
         var em = newEm(newMs());
 
         var Customer = testFns.models.CustomerWithMiscData();
-        Customer.prototype.getNameLength = function() {
+        Customer.prototype.getNameLength = function () {
             return (this.getProperty("companyName") || "").length;
         };
 
         stop();
-        em.fetchMetadata().then(function() {
+        em.fetchMetadata().then(function () {
             em.metadataStore.registerEntityTypeCtor("Customer", Customer);
             var custType = em.metadataStore.getEntityType("Customer");
             var cust1 = new Customer();
-             // this works because the fetchMetadataStore hooked up the entityType on the registered ctor.
+            // this works because the fetchMetadataStore hooked up the entityType on the registered ctor.
             ok(cust1.entityType === custType, "entityType should be undefined");
             ok(cust1.entityAspect === undefined, "entityAspect should be undefined");
             em.attachEntity(cust1);
@@ -556,7 +618,7 @@
             start();
         }).fail(testFns.handleFail);
     });
-    
+
     test("entityState", function () {
         stop();
         runQuery(newEm(), function (customers) {
@@ -566,15 +628,18 @@
         });
     });
 
-   
-   
 
 
-    test("entityType.getProperty nested", function() {
-        
+
+
+    test("entityType.getProperty nested", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
         var odType = testFns.metadataStore.getEntityType("OrderDetail");
         var orderType = testFns.metadataStore.getEntityType("Order");
-        
+
         var customerProp = odType.getProperty("order.customer");
         var customerProp2 = orderType.getProperty("customer");
         ok(customerProp, "should not be null");
@@ -599,15 +664,15 @@
             start();
         });
     });
-    
-    test("unmapped import export", function() {
+
+    test("unmapped import export", function () {
 
         // use a different metadata store for this em - so we don't polute other tests
         var em1 = newEm(newMs());
         var Customer = testFns.models.CustomerWithMiscData();
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
-        em1.fetchMetadata().then(function() {
+        em1.fetchMetadata().then(function () {
             var custType = em1.metadataStore.getEntityType("Customer");
             var cust = custType.createEntity();
             em1.addEntity(cust);
@@ -620,9 +685,9 @@
             ok(entities.length === 1);
             var sameCust = entities[0];
             var cname = sameCust.getProperty("companyName");
-            ok(cname === "foo2","companyName should === 'foo2'");
+            ok(cname === "foo2", "companyName should === 'foo2'");
             var miscData = sameCust.getProperty("miscData");
-            ok(miscData === "zzz","miscData should === 'zzz'");
+            ok(miscData === "zzz", "miscData should === 'zzz'");
             start();
         }).fail(testFns.handleFail);
     });
@@ -652,6 +717,11 @@
     });
 
     test("propertyChanged", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
         var orderType = em.metadataStore.getEntityType("Order");
         ok(orderType);
@@ -660,7 +730,7 @@
         var order = orderType.createEntity();
         var lastProperty, lastOldValue, lastNewValue;
         order.entityAspect.propertyChanged.subscribe(function (args) {
-            ok(args.entity === order,"args.entity === order");
+            ok(args.entity === order, "args.entity === order");
             lastProperty = args.propertyName;
             lastOldValue = args.oldValue;
             lastNewValue = args.newValue;
@@ -695,13 +765,13 @@
             lastOldValue = args.oldValue;
             lastNewValue = args.newValue;
         });
-        order.setProperty("employeeID", 1);
-        ok(lastProperty === "employeeID");
-        ok(lastNewValue === 1);
+        order.setProperty(testFns.orderKeyName, wellKnownData.dummyOrderID);
+        ok(lastProperty === testFns.orderKeyName);
+        ok(lastNewValue === wellKnownData.dummyOrderID);
         order.entityAspect.propertyChanged.unsubscribe(key);
-        order.setProperty("employeeID", 999);
-        ok(lastProperty === "employeeID");
-        ok(lastNewValue === 1);
+        order.setProperty("employeeID", wellKnownData.dummyEmployeeID);
+        ok(lastProperty === testFns.orderKeyName);
+        ok(lastNewValue === wellKnownData.dummyOrderID);
     });
 
     test("propertyChanged on query", function () {
@@ -709,7 +779,7 @@
         var empType = em.metadataStore.getEntityType("Employee");
         ok(empType);
         var emp = empType.createEntity();
-        emp.setProperty("employeeID", 1);
+        emp.setProperty(testFns.employeeKeyName, wellKnownData.nancyID);
         var changes = [];
         emp.entityAspect.propertyChanged.subscribe(function (args) {
             changes.push(args);
@@ -719,19 +789,18 @@
         var q = EntityQuery.fromEntities(emp);
         var uri = q._toUri(em.metadataStore);
         stop();
-        em.executeQuery(q, function(data) {
+        em.executeQuery(q, function (data) {
             ok(changes.length === 1, "query merges should only fire a single property change");
             ok(changes[0].propertyName === null, "propertyName should be null on a query merge");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
-    
+
     test("propertyChanged suppressed on query", function () {
         var em = newEm();
         var empType = em.metadataStore.getEntityType("Employee");
         ok(empType);
         var emp = empType.createEntity();
-        emp.setProperty("employeeID", 1);
+        emp.setProperty(testFns.employeeKeyName, wellKnownData.nancyID);
         var changes = [];
         emp.entityAspect.propertyChanged.subscribe(function (args) {
             changes.push(args);
@@ -743,11 +812,15 @@
         stop();
         em.executeQuery(q, function (data) {
             ok(changes.length === 0, "query merges should not fire");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("delete entity - check children", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
         var order = createOrderAndDetails(em);
         var details = order.getProperty("orderDetails");
@@ -767,6 +840,11 @@
     });
 
     test("delete entity - check parent", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
         var order = createOrderAndDetails(em);
         var details = order.getProperty("orderDetails");
@@ -788,8 +866,14 @@
     });
 
     test("detach entity - check children", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
         var order = createOrderAndDetails(em);
+        var orderId = order.getProperty(testFns.orderKeyName);
         var details = order.getProperty("orderDetails");
         var copyDetails = details.slice(0);
         ok(details.length > 0, "order should have details");
@@ -800,26 +884,30 @@
 
         copyDetails.forEach(function (od) {
             ok(od.getProperty("order") === null, "orderDetail.order should not be set");
-            var defaultOrderId = od.entityType.getProperty("orderID").defaultValue;
-            ok(od.getProperty("orderID") === defaultOrderId, "orderDetail.orderId should not be set");
-            ok(od.entityAspect.entityState.isModified(), "orderDetail should be 'modified");
+            ok(od.getProperty(testFns.orderKeyName) === orderId, "orderDetail.orderId should not have changed");
+            ok(od.entityAspect.entityState.isUnchanged(), "orderDetail should be 'modified");
         });
     });
 
-   test("hasChanges", function() {
+    test("hasChanges", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
-        
+
         var orderType = em.metadataStore.getEntityType("Order");
         var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
         var order1 = createOrderAndDetails(em, false);
         var order2 = createOrderAndDetails(em, false);
-        
+
         var valid = em.hasChanges();
         ok(valid, "should have some changes");
         try {
             var x = em.hasChanges("order");
             ok(false, "should have failed");
-        } catch(e) {
+        } catch (e) {
             ok(e.message.indexOf("order") != -1, " should have an error message about 'order'");
         }
         valid = em.hasChanges("Order");
@@ -832,37 +920,42 @@
         }
         valid = em.hasChanges([orderType, orderDetailType]);
         ok(valid, "should have changes for Orders or OrderDetails");
-        em.getChanges(orderType).forEach(function(e) {
+        em.getChanges(orderType).forEach(function (e) {
             e.entityAspect.acceptChanges();
         });
         valid = !em.hasChanges(orderType);
         ok(valid, "should not have changes for Orders");
         valid = em.hasChanges("OrderDetail");
         ok(valid, "should still have changes for OrderDetails");
-        em.getChanges(orderDetailType).forEach(function(e) {
+        em.getChanges(orderDetailType).forEach(function (e) {
             e.entityAspect.acceptChanges();
         });
-        
+
         valid = !em.hasChanges(["Order", "OrderDetail"]);
         ok(valid, "should no longer have changes for Orders or OrderDetails");
         valid = !em.hasChanges();
         ok(valid, "should no longer have any changes");
     });
-    
-    test("rejectChanges", function() {
+
+    test("rejectChanges", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - OrderDetail issues");
+            return true;
+        }
+
         var em = newEm();
         var orderType = em.metadataStore.getEntityType("Order");
         var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
         var order1 = createOrderAndDetails(em, false);
         var order2 = createOrderAndDetails(em, false);
-        
+
         var valid = em.hasChanges();
         ok(valid, "should have some changes");
         valid = em.hasChanges(orderType);
         ok(valid, "should have changes for Orders");
         valid = em.hasChanges([orderType, orderDetailType]);
         ok(valid, "should have changes for Orders or OrderDetails");
-        em.getChanges(orderType).forEach(function(e) {
+        em.getChanges(orderType).forEach(function (e) {
             e.entityAspect.acceptChanges();
             e.setProperty("freight", 100);
             ok(e.entityAspect.entityState.isModified(), "should be modified");
@@ -877,7 +970,7 @@
         valid = !em.hasChanges();
         ok(valid, "should no longer have any changes");
     });
-   
+
 
     function createOrderAndDetails(em, shouldAttachUnchanged) {
         if (shouldAttachUnchanged === undefined) shouldAttachUnchanged = true;
@@ -953,15 +1046,19 @@
             if (p.isUnmapped) {
                 // do nothing
             } else if (p.isDataProperty) {
-                if (p.isComplexProperty) {
-                    ok(v !== null, core.formatString("'%1': prop: '%2' - was null",
-                        structType.name, p.name ));
-                } else if (p.isNullable) {
-                    ok(v === null, core.formatString("'%1': prop: '%2' - was: '%3' - should be null",
-                        structType.name, p.name, v));
+                if (p.isScalar) {
+                    if (p.isComplexProperty) {
+                        ok(v !== null, core.formatString("'%1': prop: '%2' - was null",
+                            structType.name, p.name));
+                    } else if (p.defaultValue != null) {
+                        ok(v === p.defaultValue, core.formatString("'%1': prop: '%2' - was: '%3' - should be defaultValue: '%4'",
+                            structType.name, p.name, v, p.defaultValue));
+                    } else if (p.isNullable) {
+                        ok(v === null, core.formatString("'%1': prop: '%2' - was: '%3' - should be null",
+                            structType.name, p.name, v));
+                    }
                 } else {
-                    ok(v === p.defaultValue, core.formatString("'%1': prop: '%2' - was: '%3' - should be defaultValue: '%4'",
-                        structType.name, p.name, v, p.defaultValue));
+                    ok(v.arrayChanged, "value should be a complex array or primitive array");
                 }
             } else {
                 if (p.isScalar) {

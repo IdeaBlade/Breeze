@@ -27,16 +27,16 @@
     test("query property inference error", function () {
         var em = newEm();
         var q1 = EntityQuery.from("Orders")
-            .where("orderID", "==", "20140000");
+            .where(testFns.orderKeyName, "==", "20140000");
         var r1 = em.executeQueryLocally(q1);
         ok(r1.length == 0);
 
-        var p1 = new Predicate("orderID", "==", "2140000");
+        var p1 = new Predicate(testFns.orderKeyName, "==", "2140000");
         var q2 = EntityQuery.from("Orders").where(p1);
         var r2 = em.executeQueryLocally(q2);
         ok(r2.length == 0);
 
-        var p2 = new Predicate("employeeID", "ne", "orderID");
+        var p2 = new Predicate("employeeID", "ne", testFns.orderKeyName);
         var q3 = EntityQuery.from("Orders").where(p1.and(p2));
         var r3 = em.executeQueryLocally(q3);
         ok(r3.length == 0);
@@ -73,6 +73,10 @@
     });
     
     test("timespan", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("maxTime", "<", "PT4H")
@@ -86,6 +90,10 @@
     });
     
     test("compare timespans", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("maxTime", "<", "minTime")
@@ -99,6 +107,10 @@
     });
     
     test("null timespans", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - datatypes do not exist.");
+            return;
+        }
         var em = newEm();
         var q = EntityQuery.from("TimeLimits")
             .where("minTime", "!=", null)
@@ -185,6 +197,10 @@
     });
     
     test("local query with complex select", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - involves expand");
+            return;
+        }
         var em = newEm();
 
         var query = EntityQuery
@@ -235,14 +251,14 @@
         var em = newEm();
         stop();
         EntityQuery.from("Products").take(5).using(em).execute().then(function (data) {
-            var id = data.results[0].getProperty("productID").toString();
+            var id = data.results[0].getProperty(testFns.productKeyName).toString();
             var query = new breeze.EntityQuery()
-                .from("Products").where('productID', '==', id);
+                .from("Products").where(testFns.productKeyName, '==', id);
             var r = em.executeQueryLocally(query);
             
             ok(r.length == 1);
             query = new breeze.EntityQuery()
-                .from("Products").where('productID', '!=', id);
+                .from("Products").where(testFns.productKeyName, '!=', id);
             r = em.executeQueryLocally(query);
             ok(r.length == 4);
         }).fail(testFns.handleFail).fin(start);
@@ -291,6 +307,10 @@
     });
     
     test("case sensitivity - order by", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - mongo does not support case insensitive sorting");
+            return;
+        }
         var em = newEm();
         var query = EntityQuery.from("Customers")
             .where("companyName", "startsWith", "F")
@@ -307,24 +327,9 @@
         }).fail(testFns.handleFail).fin(start);
     });
     
-    test("case sensitivity - order by", function () {
-        var em = newEm();
-        var query = EntityQuery.from("Customers")
-            .where("companyName", "startsWith", "F")
-            .orderBy("companyName");
-        stop();
-        em.executeQuery(query).then(function (data) {
-            var r = data.results;
-            var comps1 = r.map(function (e) { return e.getProperty("companyName"); });
-            ok(r.length > 0, "should have returned some entities");
-            var r2 = em.executeQueryLocally(query);
-            var comps2 = r2.map(function (e) { return e.getProperty("companyName") });
-            ok(r.length === r2.length, "should have returned some entities");
-            ok(core.arrayEquals(r, r2), "arrays should be equal");
-        }).fail(testFns.handleFail).fin(start);
-    });
-    
+
     test("case sensitivity - order by 2", function () {
+
         var em = newEm();
         var baseQuery = EntityQuery.from("Customers")
             .where("companyName", "startsWith", "F");
@@ -435,6 +440,10 @@
 
         
     test("case sensitivity - string padding", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - mongo does not implement ANSI SQL string padding rules");
+            return;
+        }
         var em = newEm();
         var origCompName = "Simons bistro";
         var q1 = EntityQuery.from("Customers")
@@ -468,6 +477,11 @@
     });
     
     test("case sensitivity - string padding 2", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - mongo does not implement ANSI SQL string padding rules");
+            return;
+        }
+
         var em = newEm();
         var origCompName = "Simons bistro";
         var q = EntityQuery.from("Customers")
@@ -485,6 +499,11 @@
 
       
     test("executeQueryLocally for related entities after query", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - mongo does not implement navigation thru related entities except if part of the doc");
+            return;
+        }
+
         var em = newEm();
         var query = breeze.EntityQuery.from("Orders").take(10);
         var r;

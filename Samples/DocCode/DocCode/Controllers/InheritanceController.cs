@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
 using Breeze.WebApi;
@@ -142,6 +143,25 @@ namespace DocCode.Controllers
         }
         #endregion
 
+        #region Projects - self referencing base class
+
+        [HttpGet]
+        public IEnumerable<ProjectBase> Projects()
+        {
+            return _repository.Projects;
+        }
+        [HttpGet]
+        public IEnumerable<SoftProject> SoftProjects()
+        {
+            return _repository.SoftProjects;
+        }
+        [HttpGet]
+        public IEnumerable<HardProject> HardProjects()
+        {
+            return _repository.HardProjects;
+        }
+        #endregion
+        
         #region Purge/Reset
 
         // ~/breeze/inheritance//purge

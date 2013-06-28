@@ -35,6 +35,10 @@
     //});
 
     test("filter and order by", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - no support for expand YET");
+            return;
+        }
         stop();
         var em = newEm(testFns.newMs());
         ok(em, "no em found");
@@ -54,6 +58,10 @@
     });
 
     test("select", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - no support for expand YET");
+            return;
+        }
         var em = newEm(testFns.newMs());
         ok(em, "no em found");
 
@@ -95,6 +103,10 @@
             ok(true, "NA for OData impl");
             return;
         }
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - no server side include YET");
+            return;
+        }
         stop();
         try {
             $.getJSON(testFns.defaultServiceName+"/CustomersAndOrders?&$top=3").success(function(data, status) {
@@ -114,6 +126,10 @@
     test("raw ajax to web api - server side include 1 - order and customer", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "NA for OData impl");
+            return;
+        }
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - no server side include YET");
             return;
         }
         stop();

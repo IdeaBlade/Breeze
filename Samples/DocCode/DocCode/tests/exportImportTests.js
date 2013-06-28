@@ -41,7 +41,6 @@
         equal(restoreCount, expected.entityCount,
             "should have restored expected number of all entities");
     });
- 
     /*********************************************************
     * can navigate from restored child to its parent
     *********************************************************/
@@ -216,36 +215,6 @@
                 "should have imported {0} queried entities"
                 .format(selectedCustsCount));
         });
-    /*********************************************************
-    * temporary keys can change after importing
-    *********************************************************/
-    test("temporary keys can change after importing", 2, function () {
-        var em1 = newEm();
-        
-        // new Employee gets the first temporary id in the new 'em1' manager
-        var newEmployee1a = em1.createEntity('Employee', {FirstName: 'Bob'});
-
-        var exportData = em1.exportEntities([newEmployee1a]);
-
-        var em2 = newEm(); // virginal
-        
-        // add a new Employee to it first
-        // this burns the first temporary id in the new 'em2' manager
-        em2.createEntity('Employee', { FirstName: 'Sam' });
-        
-        // now import 'Bob' from 'em1'
-        em2.importEntities(exportData);
-        
-        // get the imported employee
-        var newEmployee1b = em2.getChanges()[1]; // cheat: we know it's the 2nd change
-
-        equal(newEmployee1a.FirstName(), newEmployee1b.FirstName(),
-            "newEmployee1a's name should match newEmployee1b's name.");
-
-        notEqual(newEmployee1a.EmployeeID(), newEmployee1b.EmployeeID(),
-             "newEmployee1a's ID should not equal newEmployee1b's ID because " +
-             "the imported new entity gets a new temp key");
-    });
 
     /*********************************************************
     * can safely merge and preserve pending changes

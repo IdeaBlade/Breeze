@@ -132,7 +132,11 @@
             
                 <li><a href="..&#x2F;classes/Validator.html">Validator</a></li>
             
+                <li><a href="..&#x2F;classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
+            
                 <li><a href="..&#x2F;classes/ↈ_keyGenerator_interface.html">ↈ_keyGenerator_interface</a></li>
+            
+                <li><a href="..&#x2F;classes/ↈ_primitiveArray_.html">ↈ_primitiveArray_</a></li>
             
                 <li><a href="..&#x2F;classes/ↈ_relationArray_.html">ↈ_relationArray_</a></li>
             
@@ -783,7 +787,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l440"><code>a50_entityManager.js:440</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l442"><code>a50_entityManager.js:442</code></a>
         
         </p>
 
@@ -911,7 +915,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l461"><code>a50_entityManager.js:461</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l463"><code>a50_entityManager.js:463</code></a>
         
         </p>
 
@@ -1029,7 +1033,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l390"><code>a50_entityManager.js:390</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l392"><code>a50_entityManager.js:392</code></a>
         
         </p>
 
@@ -1100,7 +1104,7 @@ em1.clear();
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l418"><code>a50_entityManager.js:418</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l420"><code>a50_entityManager.js:420</code></a>
         
         </p>
 
@@ -1205,7 +1209,7 @@ var em2 = em1.createEmptyCopy();
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l213"><code>a50_entityManager.js:213</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l214"><code>a50_entityManager.js:214</code></a>
         
         </p>
 
@@ -1364,7 +1368,7 @@ var emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: 
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l516"><code>a50_entityManager.js:516</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l517"><code>a50_entityManager.js:517</code></a>
         
         </p>
 
@@ -1495,7 +1499,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l599"><code>a50_entityManager.js:599</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l592"><code>a50_entityManager.js:592</code></a>
         
         </p>
 
@@ -1586,6 +1590,17 @@ em1.detachEntity(cust1);
                                         
                                         <li class="param">
                                             
+                                                <code class="param-name">entityManager</code>
+                                                <span class="type"><a href="..\classes\EntityManager.html" class="crosslink">EntityManager</a></span>
+                                            
+
+                                            <div class="param-description">
+                                                The EntityManager.
+                                            </div>
+                                        </li>
+                                        
+                                        <li class="param">
+                                            
                                                 <code class="param-name">XHR</code>
                                                 <span class="type">XMLHttpRequest</span>
                                             
@@ -1663,6 +1678,18 @@ em1.detachEntity(cust1);
                                         
                                         <li class="param">
                                             
+                                                <code class="param-name optional">[entityManager]</code>
+                                                <span class="type"></span>
+                                                <span class="flag optional" title="This parameter is optional.">optional</span>
+                                            
+
+                                            <div class="param-description">
+                                                The query that caused the error.
+                                            </div>
+                                        </li>
+                                        
+                                        <li class="param">
+                                            
                                                 <code class="param-name optional">[XHR]</code>
                                                 <span class="type">XMLHttpRequest</span>
                                                 <span class="flag optional" title="This parameter is optional.">optional</span>
@@ -1698,6 +1725,7 @@ em1.detachEntity(cust1);
 
 <pre><code>promiseData.results {Array of Entity}
 promiseData.query {EntityQuery} The original query
+promiseData.entityManager {EntityManager} The EntityManager.
 promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
 items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
@@ -1798,7 +1826,7 @@ would have been applied.
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l693"><code>a50_entityManager.js:693</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l689"><code>a50_entityManager.js:689</code></a>
         
         </p>
 
@@ -1925,7 +1953,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l278"><code>a50_entityManager.js:278</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l279"><code>a50_entityManager.js:279</code></a>
         
         </p>
 
@@ -2071,7 +2099,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l968"><code>a50_entityManager.js:968</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l973"><code>a50_entityManager.js:973</code></a>
         
         </p>
 
@@ -2234,7 +2262,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l993"><code>a50_entityManager.js:993</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l998"><code>a50_entityManager.js:998</code></a>
         
         </p>
 
@@ -2381,7 +2409,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l550"><code>a50_entityManager.js:550</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l543"><code>a50_entityManager.js:543</code></a>
         
         </p>
 
@@ -2571,7 +2599,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1042"><code>a50_entityManager.js:1042</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1047"><code>a50_entityManager.js:1047</code></a>
         
         </p>
 
@@ -2690,7 +2718,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1059"><code>a50_entityManager.js:1059</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1064"><code>a50_entityManager.js:1064</code></a>
         
         </p>
 
@@ -2824,7 +2852,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1162"><code>a50_entityManager.js:1162</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1167"><code>a50_entityManager.js:1167</code></a>
         
         </p>
 
@@ -2958,7 +2986,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1215"><code>a50_entityManager.js:1215</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1220"><code>a50_entityManager.js:1220</code></a>
         
         </p>
 
@@ -3114,7 +3142,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l932"><code>a50_entityManager.js:932</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l930"><code>a50_entityManager.js:930</code></a>
         
         </p>
 
@@ -3244,7 +3272,7 @@ var employee = em1.getEntityByKey("Employee", 1);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l944"><code>a50_entityManager.js:944</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l942"><code>a50_entityManager.js:942</code></a>
         
         </p>
 
@@ -3361,7 +3389,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1100"><code>a50_entityManager.js:1100</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1105"><code>a50_entityManager.js:1105</code></a>
         
         </p>
 
@@ -3503,7 +3531,7 @@ if ( em1.hasChanges( [custType, orderType]) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l250"><code>a50_entityManager.js:250</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l251"><code>a50_entityManager.js:251</code></a>
         
         </p>
 
@@ -3663,7 +3691,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l321"><code>a50_entityManager.js:321</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l322"><code>a50_entityManager.js:322</code></a>
         
         </p>
 
@@ -3686,7 +3714,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
                 <li class="param">
                     
                         <code class="param-name">exportedString</code>
-                        <span class="type">String</span>
+                        <span class="type">String | Json</span>
                     
 
                     
@@ -3806,7 +3834,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1192"><code>a50_entityManager.js:1192</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1197"><code>a50_entityManager.js:1197</code></a>
         
         </p>
 
@@ -3918,7 +3946,7 @@ var entities = em1.rejectChanges();
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l765"><code>a50_entityManager.js:765</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l761"><code>a50_entityManager.js:761</code></a>
         
         </p>
 
@@ -4207,7 +4235,7 @@ em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l79"><code>a50_entityManager.js:79</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l80"><code>a50_entityManager.js:80</code></a>
         
         </p>
 
@@ -4385,7 +4413,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l147"><code>a50_entityManager.js:147</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l148"><code>a50_entityManager.js:148</code></a>
         
         </p>
 
@@ -4431,7 +4459,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l182"><code>a50_entityManager.js:182</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l183"><code>a50_entityManager.js:183</code></a>
         
         </p>
 
@@ -4477,7 +4505,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l154"><code>a50_entityManager.js:154</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l155"><code>a50_entityManager.js:155</code></a>
         
         </p>
 
@@ -4524,7 +4552,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l161"><code>a50_entityManager.js:161</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l162"><code>a50_entityManager.js:162</code></a>
         
         </p>
 
@@ -4570,7 +4598,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l168"><code>a50_entityManager.js:168</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l169"><code>a50_entityManager.js:169</code></a>
         
         </p>
 
@@ -4616,7 +4644,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l140"><code>a50_entityManager.js:140</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l141"><code>a50_entityManager.js:141</code></a>
         
         </p>
 
@@ -4662,7 +4690,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l175"><code>a50_entityManager.js:175</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l176"><code>a50_entityManager.js:176</code></a>
         
         </p>
 
@@ -4718,7 +4746,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l192"><code>a50_entityManager.js:192</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l193"><code>a50_entityManager.js:193</code></a>
         
         </p>
 
@@ -4831,7 +4859,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1136"><code>a50_entityManager.js:1136</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1141"><code>a50_entityManager.js:1141</code></a>
         
         </p>
 
