@@ -2196,6 +2196,9 @@ var EntityManager = (function () {
         var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
         if (!relatedRawEntities) return null;
             
+        // related entities is in relatedRawEntities.results (verified when ODATA)...
+        if (relatedRawEntities && relatedRawEntities.results)
+            relatedRawEntities = relatedRawEntities.results;
         // needed if what is returned is not an array and we expect one - this happens with __deferred in OData.
         if (!Array.isArray(relatedRawEntities)) return null;
 
