@@ -990,12 +990,13 @@ var CsdlMetadataParser = (function () {
             var shortName = nameParts[nameParts.length - 1];
 
             var ns;
-            if (schema) {
-                ns = getNamespaceFor(shortName, schema);
-            } else {
-                var namespaceParts = nameParts.slice(0, nameParts.length - 1);
-                ns = namespaceParts.join(".");
-            }
+            // TODO: Error when working with WCF DataService
+            //if (schema) {
+            //    ns = getNamespaceFor(shortName, schema);
+            //} else {
+            var namespaceParts = nameParts.slice(0, nameParts.length - 1);
+            ns = namespaceParts.join(".");
+            //}
             return {
                 shortTypeName: shortName,
                 namespace: ns,
