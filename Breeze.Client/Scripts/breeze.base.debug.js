@@ -3088,6 +3088,10 @@ var EntityAspect = (function() {
         this.propertyChanged = new Event("propertyChanged_entityAspect", this);
         // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
 
+        // lists that control many-to-many links between entities
+        this.inseredLinks = [];
+        this.removedLinks = [];
+
         if (entity != null) {
             entity.entityAspect = this;
             // entityType should already be on the entity from 'watch'    
@@ -3105,6 +3109,51 @@ var EntityAspect = (function() {
         }
     };
     var proto = ctor.prototype;
+
+    proto.insertLink = function (childEntity, np) {
+        var removedLink = __arrayFirst(this.removedLinks, function (link) {
+            return link.entity === childEntity;
+        });
+
+        if (removedLink !== null) {
+            var removedIndexOf = this.removedLinks.indexOf(removedLink);
+            this.removedLinks.split(removedIndexOf, 1);
+            return;
+        }
+
+        var inseredLink = __arrayFirst(this.inseredLinks, function (link) {
+            return link.entity === childEntity;
+        });
+
+        if (inseredLink == null) {
+            this.inseredLinks.push({ entity: childEntity, np: np });
+            if (this.entityManager !== null
+                && !this.entityState.isAdded() && !this.entityState.isDeleted())
+                this.setModified();
+        }
+    };
+
+    proto.removeLink = function (childEntity) {
+        var inseredLink = __arrayFirst(this.inseredLinks, function (link) {
+            return link.entity === childEntity;
+        });
+
+        if (inseredLink !== null) {
+            var inseredIndexOf = this.inseredLinks.indexOf(inseredLink);
+            this.inseredLinks.split(inseredIndexOf, 1);
+            return;
+        }
+
+        var removedLink = __arrayFirst(this.removedLinks, function (link) {
+            return link.entity === childEntity;
+        });
+
+        if (removedLink == null) {
+            this.removedLinks.push({ entity: childEntity, np: np });
+            if (!this.entityState.isAdded() && !this.entityState.isDeleted())
+                this.setModified();
+        }
+    };
 
     proto._postInitialize = function() {
         var entity = this.entity;
@@ -4390,7 +4439,28 @@ breeze.makeRelationArray = (function() {
         try {
             adds.forEach(function (childEntity) {
                 addsInProcess.push(childEntity);
-                if (invNp) {
+                var childAspect = childEntity.entityAspect;
+                // Verify if inverse nav. property is not scalar / is a collection...
+                if (invNp && !invNp.isScalar) {
+                    // This occurs with n-n navigation
+                    var nonScalarProperty = childEntity.getProperty(invNp.name);
+                    // This test is necessary to loop prevent
+                    if (nonScalarProperty.indexOf(parentEntity) == -1) {
+                        nonScalarProperty.push(parentEntity);
+
+                        if (childAspect.entityState.isDetached()) {
+                            parentEntity.entityAspect
+                                .entityManager.attachEntity(childEntity, EntityState.Added);
+                        } else if (!childAspect.entityState.isAdded()) {
+                            // Set entity as modified..
+                            childEntity.entityAspect.setModified();
+                        }
+
+                        // Add link to entityAspect...
+                        parentEntity.entityAspect.insertLink(childEntity, np);
+                    }
+                }
+                else if (invNp) {
                     childEntity.setProperty(invNp.name, parentEntity);
                 } else {
                     // This occurs with a unidirectional 1-n navigation - in this case
@@ -4408,11 +4478,27 @@ breeze.makeRelationArray = (function() {
     }
 
     function processRemoves(relationArray, removes) {
+        var parentEntity = relationArray.parentEntity;
         var inp = relationArray.navigationProperty.inverse;
         if (inp) {
-            removes.forEach(function (childEntity) {
-                childEntity.setProperty(inp.name, null);
-            });
+            // Verify if inverse nav. property is not scalar / is a collection...
+            if (!inp.isScalar) {
+                removes.forEach(function (childEntity) {
+                    var nonScalarProperty = childEntity.getProperty(inp.name);
+                    var indexOfParent = nonScalarProperty.indexOf(parentEntity);
+                    if (indexOfParent > -1) nonScalarProperty.split(indexOfParent, 1);
+                    // Remove link to entityAspect...
+                    parentEntity.entityAspect.removeLink(childEntity, np);
+                    // Set entity as modified..
+                    if (!childAspect.entityState.isDetached() && !childAspect.entityState.isAdded())
+                        childEntity.entityAspect.setModified();
+                });
+            }
+            else {
+                removes.forEach(function (childEntity) {
+                    childEntity.setProperty(inp.name, null);
+                });
+            }
         }
     }
 
@@ -11934,7 +12020,7 @@ var EntityManager = (function () {
     proto.getEntityByKey = function () {
         var entityKey = createEntityKey(this, arguments).entityKey;
         var group;
-        var subtypes = entityKey._subTypes;
+        var subtypes = entityKey._subtypes;
         if (subtypes) {
             for (var i = 0, j = subtypes.length; i < j; i++) {
                 group = this._findEntityGroup(subtypes[i]);
@@ -13193,7 +13279,14 @@ var EntityManager = (function () {
         if (thisEntity !== targetEntity) {
             // if not - hook it up.
             relatedEntities.push(relatedEntity);
-            relatedEntity.setProperty(inverseProperty.name, targetEntity);
+            // Verify if inverse property is scalar...
+            if (inverseProperty.isScalar)
+                relatedEntity.setProperty(inverseProperty.name, targetEntity);
+            // if is a collection is a many-to-many, push target entity...
+            else {
+                var nonScalarProperty = relatedEntity.getProperty(inverseProperty.name);
+                nonScalarProperty.push(targetEntity);
+            }
         }
     }
 
@@ -13268,10 +13361,12 @@ var EntityManager = (function () {
     };
     
    
-    function unwrapInstance(structObj, isOData) {
+    function unwrapInstance(structObj, isOData, readedAssociations, isChildren) {
         
         var rawObject = {};
         var stype = structObj.entityType || structObj.complexType;
+        readedAssociations = readedAssociations || [];
+        readedAssociations.push(structObj);
         
         stype.dataProperties.forEach(function (dp) {
             if (dp.isUnmapped) {
@@ -13299,6 +13394,51 @@ var EntityManager = (function () {
             }
         });
         
+        /*
+         * Runs through the navigation properties to fill the entity. If the entity is someone's daughter and is new, 
+         * is not generated directly and only in a relationship of another entity.
+         */
+        var returnsNull = false;
+        stype.navigationProperties.forEach(function (dp) {
+            if (dp.isScalar) {
+                var child = structObj.getProperty(dp.name);
+                if (child !== null && readedAssociations.indexOf(child) == -1) {
+                    if (child.entityAspect.entityState.isAdded())
+                        if (!isChildren)
+                            returnsNull = true; // returns null to ignore insertion of this entity, the insertion will be on association of parent.
+                        else
+                            rawObject[dp.nameOnServer] = null; //unwrapInstance(child, isOData, readedAssociations);
+                    else {
+                        rawObject[dp.nameOnServer] = {
+                            __deferred: {
+                                uri: child.entityAspect.extraMetadata.uri
+                            }
+                        };
+                    }
+                }
+            } else {
+                complexObjs = structObj.getProperty(dp.name);
+                rawObject[dp.nameOnServer] = [];
+
+                complexObjs.map(function (child) {
+                    if (child !== null && readedAssociations.indexOf(child) == -1) {
+                        if (child.entityAspect.entityState.isAdded())
+                            rawObject[dp.nameOnServer].push(unwrapInstance(child, isOData, readedAssociations, true));
+                        else {
+                            rawObject[dp.nameOnServer].push({
+                                __metadata: {
+                                    uri: child.entityAspect.extraMetadata.uri,
+                                    content_type: child.entityAspect.extraMetadata.type,
+                                }
+                            });
+                        }
+                    }
+                });
+
+            }
+        });
+        if (returnsNull)
+            return null;
         return rawObject;
     }
     

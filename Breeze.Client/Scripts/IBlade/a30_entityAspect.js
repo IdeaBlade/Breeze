@@ -46,6 +46,10 @@ var EntityAspect = (function() {
         this.propertyChanged = new Event("propertyChanged_entityAspect", this);
         // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
 
+        // lists that control many-to-many links between entities
+        this.inseredLinks = [];
+        this.removedLinks = [];
+
         if (entity != null) {
             entity.entityAspect = this;
             // entityType should already be on the entity from 'watch'    
@@ -63,6 +67,51 @@ var EntityAspect = (function() {
         }
     };
     var proto = ctor.prototype;
+
+    proto.insertLink = function (childEntity, np) {
+        var removedLink = __arrayFirst(this.removedLinks, function (link) {
+            return link.entity === childEntity;
+        });
+
+        if (removedLink !== null) {
+            var removedIndexOf = this.removedLinks.indexOf(removedLink);
+            this.removedLinks.split(removedIndexOf, 1);
+            return;
+        }
+
+        var inseredLink = __arrayFirst(this.inseredLinks, function (link) {
+            return link.entity === childEntity;
+        });
+
+        if (inseredLink == null) {
+            this.inseredLinks.push({ entity: childEntity, np: np });
+            if (this.entityManager !== null
+                && !this.entityState.isAdded() && !this.entityState.isDeleted())
+                this.setModified();
+        }
+    };
+
+    proto.removeLink = function (childEntity) {
+        var inseredLink = __arrayFirst(this.inseredLinks, function (link) {
+            return link.entity === childEntity;
+        });
+
+        if (inseredLink !== null) {
+            var inseredIndexOf = this.inseredLinks.indexOf(inseredLink);
+            this.inseredLinks.split(inseredIndexOf, 1);
+            return;
+        }
+
+        var removedLink = __arrayFirst(this.removedLinks, function (link) {
+            return link.entity === childEntity;
+        });
+
+        if (removedLink == null) {
+            this.removedLinks.push({ entity: childEntity, np: np });
+            if (!this.entityState.isAdded() && !this.entityState.isDeleted())
+                this.setModified();
+        }
+    };
 
     proto._postInitialize = function() {
         var entity = this.entity;
