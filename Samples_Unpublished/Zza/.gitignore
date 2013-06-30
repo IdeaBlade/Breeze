@@ -9,6 +9,5 @@ Zza/test/testdata/*.*
 
 #not ready to check in the node_modules
 
-
 #Zza mongoDb data shouldn't be under VCS unless added explicitly to VCS
-Zza/Zza.ExpressServer/data
+Zza.ExpressServer/data
