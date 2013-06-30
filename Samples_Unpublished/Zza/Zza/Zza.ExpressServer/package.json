@@ -1,0 +1,10 @@
+{
+    "name": "ExpressDemo",
+    "description": "first express app",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "express": "3.x",
+        "breeze-mongodb": ">0.0.1"
+    }
+}
