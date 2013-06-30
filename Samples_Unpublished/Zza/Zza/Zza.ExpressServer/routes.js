@@ -37,26 +37,6 @@ exports.getProducts = function(req, res, next) {
     query.execute(db, "products", processResults(res, next));
 }
 
-exports.saveChanges = function(req, res, next) {
-    var saveHandler = new breezeMongo.MongoSaveHandler(db, req.body, processResults(res, next));
-    saveHandler.beforeSaveEntity = beforeSaveEntity;
-    saveHandler.beforeSaveEntities = beforeSaveEntities;
-    saveHandler.save();
-};
-
-function beforeSaveEntity(entity) {
-    /* logic here */
-    return true;
-}
-
-function beforeSaveEntities(callback) {
-    /* logic here */
-    callback();
-}
-
-/* No named queries yet */
-var namedQuery = {};
-
 // if you don't want to use a Mongo query
 function executeQuery(db, collectionName, query, fn) {
     var that = this;
@@ -80,6 +60,45 @@ function executeQuery(db, collectionName, query, fn) {
 
 };
 
+/* Named queries */
+var namedQuery = {};
+
+namedQuery.lookups = function(req, res, next) {
+    var lookups = {};
+    var queryCountDown = 0;
+    var done = processResults(res, next);
+
+    getAll('orderStatuses','OrderStatus');
+    getAll('products','Product');
+    getAll('productOptions','ProductOption');
+    getAll('productSizes','ProductSize');
+
+    function getAll(collectionName, entityType) {
+        db.collection(collectionName, {strict: true} , function (err, collection) {
+            if (err) {
+                err = { statusCode: 404, message: "Unable to locate: " + collectionName, error: err };
+                done(err, null);
+                return;
+            }
+            queryCountDown += 1;
+            src = collection.find().toArray(function (err, results) {
+                queryCountDown -= 1;
+                if (err) {
+                    done(err,null);
+                    return;
+                }
+                //Todo: explain why we add $type
+                results.forEach(function(r) {r.$type = entityType});
+                lookups[collectionName]=results;
+
+                if (queryCountDown === 0) {
+                    done(null, lookups);
+                }
+            });
+        });
+    }
+
+};
 
 function processResults(res, next) {
 
@@ -91,6 +110,25 @@ function processResults(res, next) {
             res.send(results);
         }
     }
+}
+
+/*** Save Changes ***/
+
+exports.saveChanges = function(req, res, next) {
+    var saveHandler = new breezeMongo.MongoSaveHandler(db, req.body, processResults(res, next));
+    saveHandler.beforeSaveEntity = beforeSaveEntity;
+    saveHandler.beforeSaveEntities = beforeSaveEntities;
+    saveHandler.save();
+};
+
+function beforeSaveEntity(entity) {
+    /* logic here */
+    return true;
+}
+
+function beforeSaveEntities(callback) {
+    /* logic here */
+    callback();
 }
 
 
