@@ -15,26 +15,42 @@ app.configure(function(){
     app.use(express.bodyParser());
    // app.use(express.methodOverride());  // for full REST ... if we need it
     app.use(app.router);
-    app.use(express.errorHandler());
-    //app.use(logErrors);    // See below
-    //app.use(errorHandler); // See below
 });
 
-/* data routes */
+// only in development
+app.configure('development', function(){
+    app.use(logErrors);
+});
+
+app.configure(function(){
+    //app.use(express.errorHandler()); // use our error handler instead of Express module
+    app.use(errorHandler);
+});
+
+    /* '/breeze/zza' API routes */
 app.configure(function() {
     app.get('/breeze/zza/Metadata', routes.getMetadata);
-    app.get('/breeze/zza/Products', routes.getProducts);
     app.post('/breeze/zza/SaveChanges', routes.saveChanges);
-    app.get('/breeze/zza/:slug', routes.get);
+    app.get('/breeze/zza/Products', routes.getProducts); // demo specialized route
+    app.get('/breeze/zza/:slug', routes.get); // must be last API route
 });
 
 app.listen(3000);
-console.log('Listening on port 3000, \n__dirname = ' + __dirname +
-    '\nexpressAppdir = ' + expressAppdir +
-    '\nappDir = ' + appDir);
+console.log('__dirname = ' + __dirname +
+            '\nexpressAppdir = ' + expressAppdir +
+            '\nappDir = ' + appDir);
 
-/* Our errorHandler if we don't like the express handler */
-/*
+console.log('\nListening on port 3000');
+
+/* Our fall through error logger and errorHandler  */
+
+function logErrors(err, req, res, next) {
+    var status = err.statusCode || 500;
+    console.error(status + ' ' + (err.message ? err.message : err));
+    if(err.stack) { console.error(err.stack); }
+    next(err);
+}
+
 function errorHandler(err, req, res, next) {
     var status = err.statusCode || 500;
     if (err.message) {
@@ -44,8 +60,4 @@ function errorHandler(err, req, res, next) {
     }
 }
 
-function logErrors(err, req, res, next) {
-    console.error(err.stack);
-    next(err);
-}
- */
+
