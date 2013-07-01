@@ -31,16 +31,22 @@ namespace Zza.Controllers
         }
 
         [HttpPost]
-        public HttpResponseMessage TestDataFile(string filename, JObject body)
+        public HttpResponseMessage WriteScriptFile(string filename, JObject body, string path=null, string prefix=null, string postfix=null)
+        {
+            if (String.IsNullOrWhiteSpace(path)) { path = "~/test/testdata/"; }
+            var scriptFilename = HostingEnvironment.MapPath(path + filename + ".js");
+            return _writeFile(scriptFilename, body, prefix, postfix);
+        }
+
+        private HttpResponseMessage _writeFile(string filename, JObject body, string prefix=null, string postfix=null)
         {
             if (_devUserId != GetUserStoreId().ToString().ToUpper())
             {
-                return Request.CreateResponse(HttpStatusCode.Forbidden);   
+                return Request.CreateResponse(HttpStatusCode.Forbidden);
             }
-            var scriptFilename = HostingEnvironment.MapPath("~/test/testdata/" + filename + ".js");
-            App_Start.ScriptWriter.WriteFile(scriptFilename, body.ToString());
+            App_Start.ScriptWriter.WriteFile(filename, body.ToString(), prefix, postfix);
 
-            return Request.CreateResponse(HttpStatusCode.OK, scriptFilename);
+            return Request.CreateResponse(HttpStatusCode.OK, filename);          
         }
 
         /// <summary>

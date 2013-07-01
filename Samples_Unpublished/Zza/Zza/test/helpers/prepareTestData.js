@@ -27,9 +27,19 @@
 
     function gotMetadata() {
         logger.log("Got metadata.");
-        return loadMasterManager();
+        return writeBreezeMetadataJsonFile();
     }
-
+    
+    function writeBreezeMetadataJsonFile() {
+        logger.log("<h3>Write metadata.breeze</h3>");
+        var meta = metadataStore.exportMetadata();
+        return writeScriptFile('metadata.breeze', meta, {
+                path: '~/app/',
+                prefix: 'var zza=zza||{};zza.breezeMetadata='
+            })
+            .then(loadMasterManager);
+    }
+    
     function loadMasterManager() {
         masterEm = new breeze.EntityManager({
             serviceName: serviceName,
@@ -66,9 +76,14 @@
         em.importEntities(lookupsEmCache);
     }
     
-    function writeScriptFile(filename, body) {
+    function writeScriptFile(filename, body, options) {
         var deferred = Q.defer();
-        var url = devServiceName + '/TestDataFile/?filename=' + filename;
+        var url = devServiceName + '/WriteScriptFile/?filename=' + filename;
+        if (options) {
+            if (options.path) { url += '&path=' + encodeURIComponent(options.path); }
+            if (options.prefix) { url += '&prefix=' + encodeURIComponent(options.prefix); }
+            if (options.postfix) { url += '&postfix=' + encodeURIComponent(options.postfix); }
+        }
         $.ajax({
             method: 'POST',
             url: url,

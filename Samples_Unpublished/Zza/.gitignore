@@ -1,4 +1,6 @@
 metadata.js
+metadata.breeze.js
+
 Zza.Interfaces/Breeze.WebApi.dll
 
 #generally ignore testdata which are typically generated ...
