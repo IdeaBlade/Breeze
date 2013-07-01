@@ -3,11 +3,15 @@ var express = require('express');
 var routes = require('./routes');
 
 var app = express();
-var appDir =  __dirname+'/../zza/';
+var appDir =  __dirname+'/../zza';
+var expressAppdir =  __dirname+'/public';
+
 app.configure(function(){
     app.use(express.favicon());
     app.use(express.logger('dev'));
-    app.use(express.static(appDir));
+    app.use(express.compress());
+    app.use('/', express.static(expressAppdir)); // look for overrides on express server 1st
+    app.use('/', express.static(appDir));        // then look in regular zza
     app.use(express.bodyParser());
    // app.use(express.methodOverride());  // for full REST ... if we need it
     app.use(app.router);
@@ -25,7 +29,9 @@ app.configure(function() {
 });
 
 app.listen(3000);
-console.log('Listening on port 3000, \n__dirname = ' + __dirname + '\nappDir = ' + appDir);
+console.log('Listening on port 3000, \n__dirname = ' + __dirname +
+    '\nexpressAppdir = ' + expressAppdir +
+    '\nappDir = ' + appDir);
 
 /* Our errorHandler if we don't like the express handler */
 /*
