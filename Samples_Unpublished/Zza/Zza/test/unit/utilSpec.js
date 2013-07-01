@@ -149,6 +149,29 @@
         expect(groups[2].stuff[1].val).toEqual('c1');
     });
 
+    it('should keyArray 6 into a key:value object', function () {
+        var arr = [
+            { name: 'a', val: 'a1' },
+            { name: 'b', val: 'b1' },
+            { name: 'c', val: 'c1' },
+            { name: 'd', val: 'd1' },
+            { name: 'e', val: 'e1' },
+            { name: 'c', val: 'c2' },
+        ];
+        var keyfn = function (o) { return o.name; };
+        var o = u.keyArray(arr, keyfn);
+        expect(o.a.name).toEqual('a');
+        expect(o.b.name).toEqual('b');
+        expect(o.c.name).toEqual('c');
+        expect(o.d.name).toEqual('d');
+        expect(o.e.name).toEqual('e');
+        expect(o.a.val).toEqual('a1');
+        expect(o.b.val).toEqual('b1');
+        expect(o.c.val).toEqual('c2');
+        expect(o.d.val).toEqual('d1');
+        expect(o.e.val).toEqual('e1');
+    });
+
 });
 
 
