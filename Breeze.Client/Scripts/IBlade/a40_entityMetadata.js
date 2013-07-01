@@ -864,17 +864,6 @@ var CsdlMetadataParser = (function () {
         var dataType = parseTypeName(toEnd.type, schema).typeName;
 
         var constraint = association.referentialConstraint;
-        if (!constraint) {
-            // TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
-            return;
-            // Think about adding this back later.
-            //if (association.end[0].multiplicity == "*" && association.end[1].multiplicity == "*") {
-            //    // many to many relation
-            //    ???
-            //} else {
-            //    throw new Error("Foreign Key Associations must be turned on for this model");
-            //}
-        }
         
         var cfg = {
             nameOnServer: csdlProperty.name,
@@ -883,16 +872,18 @@ var CsdlMetadataParser = (function () {
             associationName: association.name
         };
 
-        var principal = constraint.principal;
-        var dependent = constraint.dependent;
-        var propRefs;
-        if (csdlProperty.fromRole === principal.role) {
-            propRefs = __toArray(principal.propertyRef);
-            cfg.invForeignKeyNamesOnServer = propRefs.map(__pluck("name"));
-        } else {
-            propRefs = __toArray(dependent.propertyRef);
-            // will be used later by np._update
-            cfg.foreignKeyNamesOnServer = propRefs.map(__pluck("name"));
+        if (constraint) {
+            var principal = constraint.principal;
+            var dependent = constraint.dependent;
+            var propRefs;
+            if (csdlProperty.fromRole === principal.role) {
+                propRefs = __toArray(principal.propertyRef);
+                cfg.invForeignKeyNamesOnServer = propRefs.map(__pluck("name"));
+            } else {
+                propRefs = __toArray(dependent.propertyRef);
+                // will be used later by np._update
+                cfg.foreignKeyNamesOnServer = propRefs.map(__pluck("name"));
+            }
         }
 
         var np = new NavigationProperty(cfg);
@@ -999,12 +990,13 @@ var CsdlMetadataParser = (function () {
             var shortName = nameParts[nameParts.length - 1];
 
             var ns;
-            if (schema) {
-                ns = getNamespaceFor(shortName, schema);
-            } else {
-                var namespaceParts = nameParts.slice(0, nameParts.length - 1);
-                ns = namespaceParts.join(".");
-            }
+            // TODO: Error when working with WCF DataService
+            //if (schema) {
+            //    ns = getNamespaceFor(shortName, schema);
+            //} else {
+            var namespaceParts = nameParts.slice(0, nameParts.length - 1);
+            ns = namespaceParts.join(".");
+            //}
             return {
                 shortTypeName: shortName,
                 namespace: ns,

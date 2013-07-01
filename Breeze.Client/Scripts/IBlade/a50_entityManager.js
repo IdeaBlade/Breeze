@@ -954,7 +954,7 @@ var EntityManager = (function () {
     proto.getEntityByKey = function () {
         var entityKey = createEntityKey(this, arguments).entityKey;
         var group;
-        var subtypes = entityKey._subTypes;
+        var subtypes = entityKey._subtypes;
         if (subtypes) {
             for (var i = 0, j = subtypes.length; i < j; i++) {
                 group = this._findEntityGroup(subtypes[i]);
@@ -2196,6 +2196,9 @@ var EntityManager = (function () {
         var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
         if (!relatedRawEntities) return null;
             
+        // related entities is in relatedRawEntities.results (verified when ODATA)...
+        if (relatedRawEntities && relatedRawEntities.results)
+            relatedRawEntities = relatedRawEntities.results;
         // needed if what is returned is not an array and we expect one - this happens with __deferred in OData.
         if (!Array.isArray(relatedRawEntities)) return null;
 
@@ -2213,7 +2216,14 @@ var EntityManager = (function () {
         if (thisEntity !== targetEntity) {
             // if not - hook it up.
             relatedEntities.push(relatedEntity);
-            relatedEntity.setProperty(inverseProperty.name, targetEntity);
+            // Verify if inverse property is scalar...
+            if (inverseProperty.isScalar)
+                relatedEntity.setProperty(inverseProperty.name, targetEntity);
+            // if is a collection is a many-to-many, push target entity...
+            else {
+                var nonScalarProperty = relatedEntity.getProperty(inverseProperty.name);
+                nonScalarProperty.push(targetEntity);
+            }
         }
     }
 
@@ -2288,10 +2298,12 @@ var EntityManager = (function () {
     };
     
    
-    function unwrapInstance(structObj, isOData) {
+    function unwrapInstance(structObj, isOData, readedAssociations, isChildren) {
         
         var rawObject = {};
         var stype = structObj.entityType || structObj.complexType;
+        readedAssociations = readedAssociations || [];
+        readedAssociations.push(structObj);
         
         stype.dataProperties.forEach(function (dp) {
             if (dp.isUnmapped) {
@@ -2319,6 +2331,51 @@ var EntityManager = (function () {
             }
         });
         
+        /*
+         * Runs through the navigation properties to fill the entity. If the entity is someone's daughter and is new, 
+         * is not generated directly and only in a relationship of another entity.
+         */
+        var returnsNull = false;
+        stype.navigationProperties.forEach(function (dp) {
+            if (dp.isScalar) {
+                var child = structObj.getProperty(dp.name);
+                if (child !== null && readedAssociations.indexOf(child) == -1) {
+                    if (child.entityAspect.entityState.isAdded())
+                        if (!isChildren)
+                            returnsNull = true; // returns null to ignore insertion of this entity, the insertion will be on association of parent.
+                        else
+                            rawObject[dp.nameOnServer] = null; //unwrapInstance(child, isOData, readedAssociations);
+                    else {
+                        rawObject[dp.nameOnServer] = {
+                            __deferred: {
+                                uri: child.entityAspect.extraMetadata.uri
+                            }
+                        };
+                    }
+                }
+            } else {
+                complexObjs = structObj.getProperty(dp.name);
+                rawObject[dp.nameOnServer] = [];
+
+                complexObjs.map(function (child) {
+                    if (child !== null && readedAssociations.indexOf(child) == -1) {
+                        if (child.entityAspect.entityState.isAdded())
+                            rawObject[dp.nameOnServer].push(unwrapInstance(child, isOData, readedAssociations, true));
+                        else {
+                            rawObject[dp.nameOnServer].push({
+                                __metadata: {
+                                    uri: child.entityAspect.extraMetadata.uri,
+                                    content_type: child.entityAspect.extraMetadata.type,
+                                }
+                            });
+                        }
+                    }
+                });
+
+            }
+        });
+        if (returnsNull)
+            return null;
         return rawObject;
     }
     

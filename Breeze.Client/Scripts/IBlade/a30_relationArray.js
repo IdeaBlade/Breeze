@@ -105,7 +105,28 @@ breeze.makeRelationArray = (function() {
         try {
             adds.forEach(function (childEntity) {
                 addsInProcess.push(childEntity);
-                if (invNp) {
+                var childAspect = childEntity.entityAspect;
+                // Verify if inverse nav. property is not scalar / is a collection...
+                if (invNp && !invNp.isScalar) {
+                    // This occurs with n-n navigation
+                    var nonScalarProperty = childEntity.getProperty(invNp.name);
+                    // This test is necessary to loop prevent
+                    if (nonScalarProperty.indexOf(parentEntity) == -1) {
+                        nonScalarProperty.push(parentEntity);
+
+                        if (childAspect.entityState.isDetached()) {
+                            parentEntity.entityAspect
+                                .entityManager.attachEntity(childEntity, EntityState.Added);
+                        } else if (!childAspect.entityState.isAdded()) {
+                            // Set entity as modified..
+                            childEntity.entityAspect.setModified();
+                        }
+
+                        // Add link to entityAspect...
+                        parentEntity.entityAspect.insertLink(childEntity, np);
+                    }
+                }
+                else if (invNp) {
                     childEntity.setProperty(invNp.name, parentEntity);
                 } else {
                     // This occurs with a unidirectional 1-n navigation - in this case
@@ -123,11 +144,28 @@ breeze.makeRelationArray = (function() {
     }
 
     function processRemoves(relationArray, removes) {
+        var parentEntity = relationArray.parentEntity;
         var inp = relationArray.navigationProperty.inverse;
         if (inp) {
-            removes.forEach(function (childEntity) {
-                childEntity.setProperty(inp.name, null);
-            });
+            // Verify if inverse nav. property is not scalar / is a collection...
+            if (!inp.isScalar) {
+                removes.forEach(function (childEntity) {
+                    var nonScalarProperty = childEntity.getProperty(inp.name);
+                    var indexOfParent = nonScalarProperty.indexOf(parentEntity);
+                    if (indexOfParent > -1) nonScalarProperty.splice(indexOfParent, 1);
+                    // Remove link to entityAspect...
+                    parentEntity.entityAspect.removeLink(childEntity, inp);
+                    // Set entity as modified..
+                    var childAspect = childEntity.entityAspect;
+                    if (!childAspect.entityState.isDetached() && !childAspect.entityState.isAdded())
+                        childEntity.entityAspect.setModified();
+                });
+            }
+            else {
+                removes.forEach(function (childEntity) {
+                    childEntity.setProperty(inp.name, null);
+                });
+            }
         }
     }
 

@@ -168,6 +168,7 @@
     });
 
     function createChangeRequests(saveContext, saveBundle) {
+        var linksRequest = [];
         var changeRequests = [];
         var tempKeys = [];
         var contentKeys = [];
@@ -180,8 +181,50 @@
             id = id + 1; // we are deliberately skipping id=0 because Content-ID = 0 seems to be ignored.
             var request = { headers: { "Content-ID": id, "DataServiceVersion": "2.0" } };
             contentKeys[id] = entity;
+
+            var getId = function (entity) {
+                var prefix = "", sufix = "";
+                if (entity.entityType.keyProperties[0].dataType.name == "Guid") {
+                    prefix = "guid'";
+                    sufix = "'";
+                }
+                return prefix + entity.entityAspect.getKey().values[0] + sufix;
+            };
+
+            if (entity.entityAspect.entityState.isModified()) {
+                aspect.inseredLinks.forEach(function (inseredLink) {
+                    if (!inseredLink.entity.entityAspect.entityState.isAdded()
+                        && !inseredLink.entity.entityAspect.entityState.isDeleted()) {
+                        var linkRequest = { headers: { "Content-ID": id, "DataServiceVersion": "3.0" } };
+                        // POST /OData/OData.svc/Categories(1)/$links/Products
+                        linkRequest.requestUri = prefix + entity.entityType.defaultResourceName + "(" + getId(entity) + ")"
+                            + "/$links/" + inseredLink.np.name;
+                        linkRequest.method = "POST";
+
+                        linkRequest.data = {
+                            uri: prefix + inseredLink.entity.entityType.defaultResourceName
+                                + "(" + getId(inseredLink.entity) + ")"
+                        };
+
+                        linksRequest.push(linkRequest);
+                    }
+                });
+
+                aspect.removedLinks.forEach(function (removedLink) {
+                    if (!removedLink.entity.entityAspect.entityState.isAdded()
+                        && !removedLink.entity.entityAspect.entityState.isDeleted()) {
+                        var linkRequest = { headers: { "Content-ID": id, "DataServiceVersion": "3.0" } };
+                        // DELETE /OData/OData.svc/Categories(1)/$links/Products(10)
+                        linkRequest.requestUri = prefix + entity.entityType.defaultResourceName + "(" + getId(entity) + ")"
+                            + "/$links/" + removedLink.np.name + "(" + getId(removedLink.entity) + ")";
+                        linkRequest.method = "DELETE";
+                        linksRequest.push(linkRequest);
+                    }
+                });
+            }
+
             if (aspect.entityState.isAdded()) {
-                request.requestUri = entity.entityType.defaultResourceName;
+                insertRequest(request, entity.entityType);
                 request.method = "POST";
                 request.data = helper.unwrapInstance(entity, true);
                 tempKeys[id] = aspect.getKey();
@@ -190,6 +233,10 @@
                 request.method = "MERGE";
                 request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, true);
                 // should be a PATCH/MERGE
+                if (Object.keys(request.data).length == 0) {
+                    id--;
+                    return;
+                }
             } else if (aspect.entityState.isDeleted()) {
                 updateDeleteMergeRequest(request, aspect, prefix);
                 request.method = "DELETE";
@@ -198,6 +245,12 @@
             }
             changeRequests.push(request);
         });
+
+        linksRequest.forEach(function (link) {
+            link.headers["Content-ID"] = ++id;
+            changeRequests.push(link);
+        });
+
         saveContext.contentKeys = contentKeys;
         saveContext.tempKeys = tempKeys;
         return {
@@ -206,6 +259,24 @@
             }]
         };
 
+    }
+
+    function insertRequest(request, entityType) {
+        var lastBaseType = null;
+        var sbaseType = entityType;
+        var defaultResourceName = entityType.defaultResourceName;
+        do {
+            lastBaseType = sbaseType;
+            sbaseType = sbaseType.baseEntityType;
+        } while (sbaseType);
+
+        if (lastBaseType !== entityType) {
+            var namespace = entityType.namespace;
+            var className = entityType.name.replace(":#" + namespace, "");
+            defaultResourceName = lastBaseType.defaultResourceName + "/" + namespace + "." + className;
+        }
+
+        request.requestUri = defaultResourceName;
     }
 
     function updateDeleteMergeRequest(request, aspect, prefix) {
