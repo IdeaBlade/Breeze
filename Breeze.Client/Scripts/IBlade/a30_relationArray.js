@@ -152,7 +152,7 @@ breeze.makeRelationArray = (function() {
                 removes.forEach(function (childEntity) {
                     var nonScalarProperty = childEntity.getProperty(inp.name);
                     var indexOfParent = nonScalarProperty.indexOf(parentEntity);
-                    if (indexOfParent > -1) nonScalarProperty.split(indexOfParent, 1);
+                    if (indexOfParent > -1) nonScalarProperty.splice(indexOfParent, 1);
                     // Remove link to entityAspect...
                     parentEntity.entityAspect.removeLink(childEntity, np);
                     // Set entity as modified..

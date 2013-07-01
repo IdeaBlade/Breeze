@@ -75,7 +75,7 @@ var EntityAspect = (function() {
 
         if (removedLink !== null) {
             var removedIndexOf = this.removedLinks.indexOf(removedLink);
-            this.removedLinks.split(removedIndexOf, 1);
+            this.removedLinks.splice(removedIndexOf, 1);
             return;
         }
 
@@ -98,7 +98,7 @@ var EntityAspect = (function() {
 
         if (inseredLink !== null) {
             var inseredIndexOf = this.inseredLinks.indexOf(inseredLink);
-            this.inseredLinks.split(inseredIndexOf, 1);
+            this.inseredLinks.splice(inseredIndexOf, 1);
             return;
         }
 
