@@ -91,7 +91,7 @@ var EntityAspect = (function() {
         }
     };
 
-    proto.removeLink = function (childEntity) {
+    proto.removeLink = function (childEntity, np) {
         var inseredLink = __arrayFirst(this.inseredLinks, function (link) {
             return link.entity === childEntity;
         });

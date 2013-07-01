@@ -154,8 +154,9 @@ breeze.makeRelationArray = (function() {
                     var indexOfParent = nonScalarProperty.indexOf(parentEntity);
                     if (indexOfParent > -1) nonScalarProperty.splice(indexOfParent, 1);
                     // Remove link to entityAspect...
-                    parentEntity.entityAspect.removeLink(childEntity, np);
+                    parentEntity.entityAspect.removeLink(childEntity, inp);
                     // Set entity as modified..
+                    var childAspect = childEntity.entityAspect;
                     if (!childAspect.entityState.isDetached() && !childAspect.entityState.isAdded())
                         childEntity.entityAspect.setModified();
                 });
