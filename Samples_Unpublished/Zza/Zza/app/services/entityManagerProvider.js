@@ -15,7 +15,10 @@
             var store = new breeze.MetadataStore();
 
             // Import metadata that were downloaded as a script file
-            // Because of Breeze bug, must stringify it first.
+            if (!zza || !zza.metadata)   {
+                throw new Error("'zza.metadata' is not defined; was metadata.js loaded?");
+            }
+            // Because of Breeze bug, must stringify metadata first.
             store.importMetadata(JSON.stringify(zza.metadata));
 
             // Associate these metadata data with the service
