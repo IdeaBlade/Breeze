@@ -7,6 +7,7 @@
 
         extendString();
         extendQ();
+        extend$q();
         
         var service = {
             // bundle these so util clients don't have to get them
@@ -82,7 +83,19 @@
             var promise = Q.defer().promise;
             var fn = Object.getPrototypeOf(promise);
             if (fn.to$q) return; // already extended
-            fn.to$q = function(no$apply) { return to$q(this, no$apply); };
+            fn.to$q = function (skipApply) { return to$q(this, skipApply); };
+        }
+        
+        /*********************************************************
+       * Give Angular's $q a static `resolve` method.
+       *********************************************************/
+        function extend$q() {
+            if ($q.resolve) return;
+            $q.resolve = function (data) {
+                var d = $q.defer();
+                d.resolve(data);
+                return d.promise;
+            };
         }
         /*********************************************************
         * Generate a new GuidCOMB Id (sequential for MS SQL Server)
