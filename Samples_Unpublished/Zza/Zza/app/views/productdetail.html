@@ -33,7 +33,7 @@
                         <div data-ng-repeat="optgroup in optgroups">
                             <div class="span3">
                                 <div data-ng-repeat="opt in optgroup">
-                                    <label class="checkbox" for="ck{{opt.option.id}}">
+                                    <label class="checkbox" for="ck{{opt.option.id}}" data-ng-click="selectOption(opt)">
                                         <input type="checkbox" id="ck{{opt.option.id}}" data-ng-model="opt.selected" class="input-mini">
                                         {{opt.option.name}}
                                     </label>

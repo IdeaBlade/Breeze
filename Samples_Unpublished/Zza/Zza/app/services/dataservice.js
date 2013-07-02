@@ -25,6 +25,8 @@
             getAllCustomers: getAllCustomers,
             getOrders: getOrders,
             saveChanges: saveChanges,
+            exportChanges: exportChanges,
+            importChanges: importChanges,
             resetManager: resetManager,
             addOrderItem: addOrderItem,
             addOrderItemOption: addOrderItemOption
@@ -226,6 +228,16 @@
         // Should be in Breeze itself
         function attachEntities(entities, entityState) {
             entities.forEach(function (entity) { manager.attachEntity(entity, entityState); });
+        }
+
+        function exportChanges(entities) {
+            entities = entities || manager.getChanges();
+            var changeset = manager.exportEntities(entities);
+            return changeset;
+        }
+
+        function importChanges(changeset) {
+            manager.importEntities(changeset);
         }
         //#endregion
 

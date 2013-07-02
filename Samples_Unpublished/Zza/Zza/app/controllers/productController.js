@@ -35,11 +35,17 @@
             return;
         }
 
+        // preserve the current state to allow later cancel or undo.
+        var entitiesToSave = orderItem.orderItemOptions.concat(orderItem);
+        var savePoint = dataservice.exportChanges(entitiesToSave);
+
         var selectedOptionIds = orderItem.orderItemOptions.map(function (o) { return o.productOptionId; });
+        var selectedOptions = util.keyArray(orderItem.orderItemOptions, function(o) { return o.productOptionId });
         var productOptions = dataservice.productOptions.byTag(tag);
 
-        // wrap each productOption to provide a 'selected' flag
-        var selectableOptions = productOptions.map(function (o) { return { option: o, selected: (selectedOptionIds.indexOf(o.id) >= 0) } });
+        // wrap each productOption to provide a 'selected' flag, and a orderItemOption object (if available)
+        var selectableOptions = productOptions.map(function (o) { 
+            return { option: o, selected: (selectedOptionIds.indexOf(o.id) >= 0), itemOption: (selectedOptions[o.id]) } });
 
         // group the productOptions by type, so they can be displayed on the tabs
         var optionTypeList = util.groupArray(selectableOptions, function (so) { return so.option.type; }, 'type', 'options');
@@ -51,6 +57,7 @@
         $scope.optionTypes = optionTypeList;
         $scope.segment = util.segmentArray;
         $scope.isInCart = isInCart;
+        $scope.selectOption = selectOption;
 
         // Exposed functions
         $scope.addToCart = function () {
@@ -59,12 +66,6 @@
             orderItem.productSize = size;
             orderItem.unitPrice = size.price;
             orderItem.totalPrice = orderItem.quantity * size.price;
-
-            setOrderItemOptions(orderItem, selectableOptions);
-
-            // acceptChanges enables change tracking, to allow later canceling of changes to an item in the cart
-            // we must reset EntityState to 'Added' prior to saveChanges
-            orderItem.entityAspect.acceptChanges();
 
             if (isInCart) {
                 util.logger.info("Updated item in cart");
@@ -78,8 +79,8 @@
             $location.path(cancelUrl);
         }
         $scope.cancel = function () {
-            // roll back any changes made 
-            orderItem.entityAspect.rejectChanges();
+            // roll back any changes made by reverting to the savePoint
+            dataservice.importChanges(savePoint);
             $location.path(cancelUrl);
         }
 
@@ -121,6 +122,7 @@
         }
 
         // Add/remove orderItemOptions based on what is selected
+        /*
         function setOrderItemOptions(orderItem, selectableOptions)
         {
             var selectedOptions = selectableOptions.filter(function (so) { return so.selected; });
@@ -145,6 +147,22 @@
             orderItem.orderItemOptions.forEach(function (io) {
                 io.price = orderItem.productSize.toppingPrice * io.productOption.factor;
             });
+        }*/
+
+        // Add/remove orderItemOption for a single selection
+        function selectOption(selectableOption) {
+            var itemOption = selectableOption.itemOption;
+            if (selectableOption.selected) {
+                if (itemOption) {
+                    itemOption.entityAspect.entityState = (itemOption.id < 0) ? EntityState.Added : EntityState.Modified;
+                } else {
+                    selectableOption.itemOption = itemOption = dataservice.addOrderItemOption(orderItem, selectableOption.option.id);
+                }
+            } else {
+                if (itemOption) {
+                    itemOption.entityAspect.setDeleted();
+                }
+            }
         }
     }
     
