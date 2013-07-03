@@ -32,6 +32,16 @@
         teardown: function () { }
     });
 
+    test("check if save requeried saved entities", function () {
+        var em = newEm();
+        var c1 = em.createEntity("TimeGroup", { comment: "trigger" });
+        stop();
+        em.saveChanges().then(function (sr) {
+            var comment = sr.entities[0].comment;
+            ok(comment === "happy", "should have requeried the value updated by trigger");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("check unmapped property on server", function () {
         // this test does not fail. Must debug server and 'dig' to find unmapped property value since it's not available in the interceptors
         // var em = newEm();
