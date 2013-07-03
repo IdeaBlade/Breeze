@@ -27,6 +27,8 @@
             saveChanges: saveChanges,
             exportChanges: exportChanges,
             importChanges: importChanges,
+            detachEntities: detachEntities,
+            attachOrphanOrderItemsToOrder: attachOrphanOrderItemsToOrder,
             resetManager: resetManager,
             addOrderItem: addOrderItem,
             addOrderItemOption: addOrderItemOption
@@ -155,7 +157,7 @@
         function createDraftAndCartOrders() {
             var orderInit = {
                 customerId: util.emptyGuid,
-                orderStatusId: service.OrderStatus.Pending,
+                orderStatusId: service.OrderStatus.Pending.id,
                 orderDate: new Date(),
                 deliveryDate: new Date()
             };
@@ -230,6 +232,10 @@
             entities.forEach(function (entity) { manager.attachEntity(entity, entityState); });
         }
 
+        function detachEntities(entities) {
+            entities.forEach(function (entity) { manager.detachEntity(entity); });
+        }
+
         function exportChanges(entities) {
             entities = entities || manager.getChanges();
             var changeset = manager.exportEntities(entities);
@@ -238,6 +244,15 @@
 
         function importChanges(changeset) {
             manager.importEntities(changeset);
+        }
+
+        function attachOrphanOrderItemsToOrder(order) {
+            var orderItems = manager.getEntities('OrderItem');
+            orderItems.forEach(function (oi) {
+                if (!oi.order) {
+                    oi.order = order;
+                }
+            });
         }
         //#endregion
 

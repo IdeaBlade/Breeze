@@ -80,7 +80,12 @@
         }
         $scope.cancel = function () {
             // roll back any changes made by reverting to the savePoint
+            var oldId = orderItem.id;
+            var oldOrder = orderItem.order;
+            dataservice.detachEntities(entitiesToSave);
             dataservice.importChanges(savePoint);
+            dataservice.attachOrphanOrderItemsToOrder(oldOrder);
+
             $location.path(cancelUrl);
         }
 
