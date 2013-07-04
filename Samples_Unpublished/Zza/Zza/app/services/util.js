@@ -79,11 +79,11 @@
                         // and trap here if data is ever undefined
                     }
                     d.resolve(data);
-                    $rootScope.$apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
+                    $apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
                 })
                .fail(function (error) {
                    d.reject(error);
-                   $rootScope.$apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
+                   $apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
                });
             return d.promise;
         }
