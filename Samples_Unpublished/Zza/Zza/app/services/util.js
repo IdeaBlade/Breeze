@@ -56,15 +56,18 @@
             } else {
                 $rootScope.$apply.apply($rootScope, arguments);
             }           
-        }
-        
+        }       
+
         /*********************************************************
         * @method to$q {Promise} Convert a Q.js promise into an angular $q
+        * and optionally add a $q.then(sucess, fail) to the returned $q promise.
         * @param promiseQ {Promise} the Q.js promise to convert
         * The Q promise must return some value when they succeed or
         * rethrow the error if they fail. Else this method logs an error.
+        * @param [success] {function} optional success callback for the $q.then()
+        * @param [fail] {function} optional fail callback for the $q.then()
         *********************************************************/
-        function to$q(qPromise) {
+        function to$q(qPromise, success, fail) {
             var d = $q.defer();
             qPromise
                 .then(function (data) {
@@ -85,7 +88,11 @@
                    d.reject(error);
                    $apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
                });
-            return d.promise;
+            var promise = d.promise;
+            if (success || fail) {
+                promise = promise.then(success, fail);
+            }
+            return promise;
         }
 
         // monkey patch this method into Q.js' promise prototype
@@ -93,7 +100,7 @@
             var promise = Q.defer().promise;
             var fn = Object.getPrototypeOf(promise);
             if (fn.to$q) return; // already extended
-            fn.to$q = function () { return to$q(this); };
+            fn.to$q = function (success, fail) { return to$q(this, success, fail); };
         }
         
         /*********************************************************
