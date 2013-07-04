@@ -74,7 +74,7 @@
                     if (data === undefined) {
                         logger.logError("Programming error: no data. " +
                         "Perhaps success callback didn't return a value or " +
-                         "fail callback didn't re-throw error");
+                            "fail callback didn't re-throw error");
                         // If an error is caught and not rethrown in an earlier promise chain
                         // will arrive here with data === undefined. 
                         // Neglecting to re-throw is a common, accidental omission.
@@ -84,15 +84,14 @@
                     d.resolve(data);
                     $apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
                 })
-               .fail(function (error) {
+                .fail(function (error) {
                    d.reject(error);
                    $apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
                });
-            var promise = d.promise;
             if (success || fail) {
-                promise = promise.then(success, fail);
+                d.promise = d.promise.then(success, fail);
             }
-            return promise;
+            return d.promise;
         }
 
         // monkey patch this method into Q.js' promise prototype
