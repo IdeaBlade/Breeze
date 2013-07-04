@@ -19,7 +19,9 @@
   
             // actual utilities
             $apply: $apply,
-            to$q: to$q,
+            $broadcast: $broadcast,
+            //to$q: to$q,
+            
             emptyGuid: '00000000-0000-0000-0000-000000000000',
             newGuidComb: newGuidComb,
             filterById: filterById,
@@ -28,12 +30,15 @@
             getSaveErrorMessages: getSaveErrorMessages,
             getEntityValidationErrMsgs: getEntityValidationErrMsgs,
             segmentArray: segmentArray,
-            groupArray: groupArray,
-            keyArray: keyArray
+            groupArray: groupArray
         };
         
         return service;
- 
+        
+        function $broadcast() {
+            return $rootScope.$broadcast.apply($rootScope, arguments);
+        }
+        
         /*********************************************************
         * @method $apply {Void} easy access to $rootScope.$apply
         * @param [func]{function} optional niladic function to call
@@ -56,40 +61,44 @@
         /*********************************************************
         * @method to$q {Promise} Convert a Q.js promise into an angular $q
         * @param promiseQ {Promise} the Q.js promise to convert
-        * @param [skipApply] {Boolean} should not call $apply right now
-        *        @default false
         * The Q promise must return some value when they succeed or
-        * rethrow the error if they fail. Else this method logs a warning.
+        * rethrow the error if they fail. Else this method logs an error.
         *********************************************************/
-        function to$q(promiseQ, skipApply) {
+        function to$q(qPromise) {
             var d = $q.defer();
-            promiseQ
+            qPromise
                 .then(function (data) {
                     if (data === undefined) {
-                        logger.warning("Programming error: no data. "+
+                        logger.logError("Programming error: no data. " +
                         "Perhaps success callback didn't return a value or " +
                          "fail callback didn't re-throw error");
+                        // If an error is caught and not rethrown in an earlier promise chain
+                        // will arrive here with data === undefined. 
+                        // Neglecting to re-throw is a common, accidental omission.
+                        // To be safe, have every success callback return something
+                        // and trap here if data is ever undefined
                     }
                     d.resolve(data);
+                    $rootScope.$apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
                 })
                .fail(function (error) {
-                    d.reject(error);
-                });
-            
-            if (!skipApply) promiseQ.fin($apply);
+                   d.reject(error);
+                   $rootScope.$apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
+               });
             return d.promise;
         }
+
         // monkey patch this method into Q.js' promise prototype
         function extendQ() {
             var promise = Q.defer().promise;
             var fn = Object.getPrototypeOf(promise);
             if (fn.to$q) return; // already extended
-            fn.to$q = function (skipApply) { return to$q(this, skipApply); };
+            fn.to$q = function () { return to$q(this); };
         }
         
         /*********************************************************
-       * Give Angular's $q a static `resolve` method.
-       *********************************************************/
+        * Give Angular's $q a static `resolve` method.
+        *********************************************************/
         function extend$q() {
             if ($q.resolve) return;
             $q.resolve = function (data) {
@@ -232,11 +241,11 @@
         }
 
         /*********************************************************
-        * Divide an array into segments using modulo, e.g. segmentArray([1,2,3,4,5,6,7], 3) -> [[1,4,7],[2,5],[3,6]]
+        * Divide an array into segments, e.g. segmentArray([1,2,3,4,5,6,7], 3) -> [[1,4,7],[2,5],[3,6]]
         *********************************************************/
         function segmentArray(arr, numSegments) {
             var segments = new Array(numSegments);
-            var i = 0, len = arr.length, seg;
+            var i, len = arr.length, seg;
             for (i = 0; i < numSegments; i++) {
                 segments[i] = [];
             }
@@ -245,23 +254,6 @@
                 segments[seg].push(arr[i]);
             }
             return segments;
-        }
-
-        /*********************************************************
-        // Convert an array into an object.  The returned object has keys defined by the keyfn,
-        // and values from the original array.  If there are duplicate keys, the resulting object
-        // has the value of the last key.
-        // arr: array of objects
-        // keyfn: function to get the desired group key from each object
-        // See utilSpec.js for an example.
-        *********************************************************/
-        function keyArray(arr, keyfn) {
-            var map = {};
-            arr.forEach(function (o) {
-                var key = keyfn(o);
-                map[key] = o;
-            });
-            return map;
         }
 
         /*********************************************************
