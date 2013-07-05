@@ -34,16 +34,16 @@
 
             <tabset>
                 <tab data-ng-repeat="tab in tabVms" heading="{{tab.type}}" active="tab.active" disabled="tab.disabled">
-                    <div class="span3">
+                    <div>
                         <div data-ng-repeat="column in tab.options" >
-                    
-                            <div data-ng-repeat="opt in column" >
-                                <label class="checkbox" for="ck{{opt.id}}" data-ng-click="selectOption(opt)">
-                                    <input type="checkbox" id="ck{{opt.id}}" data-ng-model="opt.selected" class="input-mini">
-                                    {{opt.option.name}}
-                                </label>
+                            <div class="span3">
+                                <div data-ng-repeat="opt in column" >
+                                    <label class="checkbox" for="ck{{opt.id}}" data-ng-click="selectOption(opt)">
+                                        <input type="checkbox" id="ck{{opt.id}}" data-ng-model="opt.selected" class="input-mini">
+                                        {{opt.option.name}}
+                                    </label>
+                                </div>
                             </div>
-
                         </div>
                     </div>
                 </tab>
