@@ -39,7 +39,6 @@
     dataServiceInit.$inject = ['dataservice','logger'];
     
     app.routeResolve[ctrlName] = {
-        //alert: alert
         dataServiceInit: dataServiceInit
     };
     

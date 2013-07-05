@@ -97,8 +97,19 @@
             service.productOptions = manager.getEntities('ProductOption');
             service.productSizes = manager.getEntities('ProductSize');
             extendLookups();
+            patchIsPremium();
         }
-        
+        function patchIsPremium() {
+            // mistakenly left 'isPremium' out of the product data
+            // isPremium should be true for all pizzas except the plain cheese and make your own
+            service.products.forEach(function(p) {
+                if (p.type === 'pizza' && p.id > 2) {
+                    p.isPremium = true;
+                } else {
+                    p.isPremium = false;
+                }
+            });
+        }
         function extendLookups() {
             var u = util, s = service, os = s.OrderStatus; // for brevity
 
@@ -166,17 +177,20 @@
         }
 
         function addOrderItem(order, productId) {
-            var orderItem = manager.createEntity('OrderItem');
-            orderItem.productId = productId;
-            order.orderItems.push(orderItem);
+            var orderItem = manager.createEntity('OrderItem', {
+                orderId: order.id,
+                productId: productId,
+                quantity: 1
+            });
             return orderItem;
         }
 
         function addOrderItemOption(orderItem, productOptionId) {
-            var orderItemOption = manager.createEntity('OrderItemOption');
-            orderItemOption.productOptionId = productOptionId;
-            orderItemOption.quantity = 1;
-            orderItem.orderItemOptions.push(orderItemOption);
+            var orderItemOption = manager.createEntity('OrderItemOption', {
+                orderItemId: orderItem.id,
+                productOptionId: productOptionId,
+                quantity: 1
+            });
             return orderItemOption;
         }
 

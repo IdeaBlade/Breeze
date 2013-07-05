@@ -18,20 +18,22 @@
         $scope.orderTotal = orderTotal;
 
         function itemTotal(orderItem) {
-            var unitTotal = orderItem.unitPrice;
+            // Todo: move totalling logic into the model
+            var total = orderItem.unitPrice;
             orderItem.orderItemOptions.forEach(function (option) {
                 option.price = orderItem.productSize.toppingPrice * option.productOption.factor * option.quantity;
-                unitTotal += option.price;
+                total += option.price;
             });
-            return unitTotal * orderItem.quantity;
+            return total * orderItem.quantity;
         }
 
         function orderTotal() {
-            var orderTotal = 0;
+            // Todo: move totalling logic into the model
+            var total = 0;
             cartOrder.orderItems.forEach(function(item) {
-                orderTotal += itemTotal(item);
+                total += itemTotal(item);
             });
-            return orderTotal;
+            return total;
         }
     }
 

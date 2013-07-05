@@ -29,8 +29,9 @@
             filterByType: filterByType,
             getSaveErrorMessages: getSaveErrorMessages,
             getEntityValidationErrMsgs: getEntityValidationErrMsgs,
-            segmentArray: segmentArray,
-            groupArray: groupArray
+            deal: deal,
+            groupArray: groupArray,
+            keyArray: keyArray
         };
         
         return service;
@@ -247,19 +248,20 @@
         }
 
         /*********************************************************
-        * Divide an array into segments, e.g. segmentArray([1,2,3,4,5,6,7], 3) -> [[1,4,7],[2,5],[3,6]]
+        * Deal an array of things into "hands" as if dealing cards. 
+        * e.g. deal([1,2,3,4,5,6,7], 3) -> [[1,4,7],[2,5],[3,6]]
         *********************************************************/
-        function segmentArray(arr, numSegments) {
-            var segments = new Array(numSegments);
-            var i, len = arr.length, seg;
-            for (i = 0; i < numSegments; i++) {
-                segments[i] = [];
+        function deal(arr, numHands) {
+            var hands = new Array(numHands);
+            var i, len = arr.length, hand;
+            for (i = 0; i < numHands; i++) {
+                hands[i] = [];
             }
             for (i = 0; i < len; i++) {
-                seg = Math.ceil(i % numSegments);
-                segments[seg].push(arr[i]);
+                hand = Math.ceil(i % numHands);
+                hands[hand].push(arr[i]);
             }
-            return segments;
+            return hands;
         }
 
         /*********************************************************
@@ -290,6 +292,23 @@
                 group[valueName].push(o);
             });
             return groupList;
+        }
+
+        /*********************************************************
+        // Convert an array into an object.  The returned object has keys defined by the keyfn,
+        // and values from the original array.  If there are duplicate keys, the resulting object
+        // has the value of the last key.
+        // arr: array of objects
+        // keyfn: function to get the desired group key from each object
+        // See utilSpec.js for an example.
+        *********************************************************/
+        function keyArray(arr, keyfn) {
+            var map = {};
+            arr.forEach(function (o) {
+                var key = keyfn(o);
+                map[key] = o;
+            });
+            return map;
         }
 
     }

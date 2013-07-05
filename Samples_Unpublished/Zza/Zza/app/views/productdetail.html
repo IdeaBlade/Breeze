@@ -9,9 +9,14 @@
         <form class="form-horizontal">
             <table class="table-condensed control-group">
                 <tr><th style="min-width: 160px">Size</th><th>Price</th></tr>
-                <tr data-ng-repeat="size in sizes">
-                    <td><label class="radio" for="size{{size.id}}">{{size.name}}</label> </td>
-                    <td><label class="radio" for="size{{size.id}}"><input type="radio" data-ng-model="orderItem.productSizeId" value="{{size.id}}" name="selectedSize" id="size{{size.id}}"/>{{size.price | currency}}</label></td>
+                <tr data-ng-repeat="svm in sizeVms">
+                    <td><label class="radio" for="size{{svm.id}}">{{svm.name}}</label> </td>
+                    <td><label class="radio" for="size{{svm.id}}">
+                            <input type="radio" data-ng-model="orderItem.productSizeId" 
+                                   value="{{svm.id}}" name="selectedSize" id="size{{svm.id}}"/>
+                            {{svm.price | currency}}
+                        </label>
+                    </td>
                 </tr>
             </table>
             <div class="control-group">
@@ -28,22 +33,22 @@
             </div>
 
             <tabset>
-                <tab data-ng-repeat="tab in optionTypes" heading="{{tab.type}}" active="tab.active" disabled="tab.disabled">
-                    <div data-ng-init="optgroups=segment(tab.options, 3)">
-                        <div data-ng-repeat="optgroup in optgroups">
-                            <div class="span3">
-                                <div data-ng-repeat="opt in optgroup">
-                                    <label class="checkbox" for="ck{{opt.option.id}}" data-ng-click="selectOption(opt)">
-                                        <input type="checkbox" id="ck{{opt.option.id}}" data-ng-model="opt.selected" class="input-mini">
-                                        {{opt.option.name}}
-                                    </label>
-                                </div>
+                <tab data-ng-repeat="tab in tabVms" heading="{{tab.type}}" active="tab.active" disabled="tab.disabled">
+                    <div class="span3">
+                        <div data-ng-repeat="column in tab.options" >
+                    
+                            <div data-ng-repeat="opt in column" >
+                                <label class="checkbox" for="ck{{opt.id}}" data-ng-click="selectOption(opt)">
+                                    <input type="checkbox" id="ck{{opt.id}}" data-ng-model="opt.selected" class="input-mini">
+                                    {{opt.option.name}}
+                                </label>
                             </div>
+
                         </div>
                     </div>
                 </tab>
             </tabset>
-            <button class="btn" data-ng-click="cancel()">Cancel</button>
+            <p></p>
             <button class="btn" data-ng-click="addToCart()">{{isInCart ? 'Update Cart' : 'Add to Cart'}}</button>
         </form>
     </div>
