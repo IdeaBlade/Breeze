@@ -278,6 +278,31 @@
         .fin(start);
     });
 
+    /*********************************************************
+    * When API method returns an HttpResponseMessage (HRM)
+    * can filter, select, and expand 
+    *********************************************************/
+    asyncTest("Can query customers API method that returns an HttpResponseMessage", 3,
+        function () {
+
+            var em = newEm();
+            var query = new EntityQuery.from('CustomersAsHRM')
+                .where("CustomerID", "eq", testFns.wellKnownData.alfredsID)
+                .select('CustomerID, CompanyName')
+                .expand('Orders');
+
+            em.executeQuery(query)
+              .then(success).fail(handleFail).fin(start);
+            
+            function success(data){
+                var results = data.results;
+                equal(results.length, 1, "should have returned one customer");
+                var first = results[0];
+                ok(!first.entityAspect, 'should be a projection, not an entity');
+                // a projection so properties are not KO properties
+                ok(first.orders && first.orders.length, 'should have orders from $expand');
+            }
+    });
     /*****************************************************************
     * Nancy's orders  (compare nullable int)
     ******************************************************************/

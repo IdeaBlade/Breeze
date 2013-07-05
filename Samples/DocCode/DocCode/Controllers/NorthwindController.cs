@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using Breeze.WebApi;
@@ -51,6 +53,13 @@ namespace DocCode.Controllers
         public IQueryable<Customer> CustomersAndOrders()
         {
             return _repository.CustomersAndOrders;
+        }
+
+        [HttpGet]
+        [BreezeQueryable]
+        public HttpResponseMessage CustomersAsHRM()
+        {
+            return Request.CreateResponse(HttpStatusCode.OK, _repository.Customers);
         }
 
         [HttpGet]
