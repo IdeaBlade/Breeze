@@ -514,6 +514,14 @@ namespace Sample_WebApi.Controllers {
       return custs;
     }
 
+    [HttpGet]
+    [BreezeQueryable]
+    public HttpResponseMessage CustomersAsHRM()
+    {
+        var customers = ContextProvider.Context.Customers;
+        var response = Request.CreateResponse(HttpStatusCode.OK, customers);
+        return response;
+    }
 
     #endregion
   }

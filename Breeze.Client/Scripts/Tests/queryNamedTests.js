@@ -499,5 +499,41 @@
             ok(r.length > 0);
         }).fail(testFns.handleFail).fin(start);
     });
-    
+
+
+    test("server returns HttpResponseMessage containing Customers", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this is WebApi specific");
+            return;
+        }
+
+        stop();
+        var em = newEm();
+
+        var query = new EntityQuery()
+            .from("CustomersAsHRM")
+            .where("companyName", "startsWith", "A")
+            .orderBy("companyName")
+            .take(4);
+        var queryUrl = query._toUri(em.metadataStore);
+
+        em.executeQuery(query, function (data) {
+            var customers = data.results;
+            var len = customers.length;
+            ok(len == 4, "customers.length should be 4, was " + len);
+            testFns.assertIsSorted(customers, "companyName", breeze.DataType.String, false, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
+            len = (len > 4) ? 4 : len;
+            for (var i = 0; i < len; i++) {
+                var c = customers[i];
+                var companyName = c.getProperty("companyName");
+                ok(companyName, 'should have a companyName property');
+                ok(companyName.indexOf('A') == 0, 'companyName should start with A, was ' + companyName);
+                var ckey = c.entityAspect.getKey();
+                ok(ckey, "missing key");
+                var c2 = em.findEntityByKey(ckey);
+                ok(c2 === c, "cust not cached");
+            }
+        }).fail(testFns.handleFail).fin(start);
+    });
+
 })(breezeTestFns);
