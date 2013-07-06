@@ -97,19 +97,8 @@
             service.productOptions = manager.getEntities('ProductOption');
             service.productSizes = manager.getEntities('ProductSize');
             extendLookups();
-            patchIsPremium();
         }
-        function patchIsPremium() {
-            // mistakenly left 'isPremium' out of the product data
-            // isPremium should be true for all pizzas except the plain cheese and make your own
-            service.products.forEach(function(p) {
-                if (p.type === 'pizza' && p.id > 2) {
-                    p.isPremium = true;
-                } else {
-                    p.isPremium = false;
-                }
-            });
-        }
+
         function extendLookups() {
             var u = util, s = service, os = s.OrderStatus; // for brevity
 
