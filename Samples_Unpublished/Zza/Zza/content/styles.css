@@ -23,3 +23,7 @@ tr.narrow td {
     padding-top: 2px;
     padding-bottom: 0px;
 }
+
+.tab-pane {
+    min-height: 6em;
+}

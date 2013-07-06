@@ -17,7 +17,7 @@
         }
 
         // Have orderItem; build out viewmodel
-        var isInCart = orderItem.order === dataservice.cartOrder;
+        var isDraftOrder = orderItem.order === dataservice.draftOrder;
         var optionVms = createOptionVms();        
         var tabVms = createTabVms();
         var sizeVms = createSizeVms();
@@ -26,7 +26,7 @@
         $scope.product = info.product;
         $scope.sizeVms = sizeVms;
         $scope.tabVms = tabVms;
-        $scope.isInCart = isInCart;
+        $scope.isDraftOrder = isDraftOrder;
         $scope.addToCart = addToCart;
         $scope.selectOption = selectOption;
 
@@ -130,13 +130,11 @@
         }
         
         function addToCart() {
-            if (isInCart) {
-                util.logger.info("Updated item in cart");
-            } else {
+            if (isDraftOrder) {
                 orderItem.order = dataservice.cartOrder;
                 util.logger.info("Added item to cart");
+                info.goNext();
             }
-            info.goNext();
         }
 
         // Add/remove orderItemOption for a single selection
