@@ -29,7 +29,8 @@
 
         var query = new EntityQuery()
             .from("Suppliers")
-            .select(testFns.supplierKeyName + ", companyName, location");
+            .select(testFns.supplierKeyName + ", companyName, location")
+            .where("location.city", "!=", null);  // added because NH returns null Location, when all Location properties are null
         var queryUrl = query._toUri(em.metadataStore);
         stop();
         em.executeQuery(query).then(function (data) {

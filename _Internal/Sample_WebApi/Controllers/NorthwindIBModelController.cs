@@ -60,6 +60,9 @@ namespace Sample_WebApi.Controllers {
         Product product = new Product() {
           ProductName = "Product added on server"
         };
+#if CODEFIRST_PROVIDER
+        if (supplier.Products == null) supplier.Products = new List<Product>();
+#endif
         supplier.Products.Add(product);
         return true;
       }
@@ -262,24 +265,32 @@ namespace Sample_WebApi.Controllers {
     public List<Employee> QueryInvolvingMultipleEntities() {
 #if NHIBERNATE
         // need to figure out what to do here
-        return new List<Employee>();
-#else
-      //the query executes using pure EF 
+        //return new List<Employee>();
+        var dc0 = new NorthwindContext();
+        var dc = new NorthwindContext();
+#elif CODEFIRST_PROVIDER
+        var dc0 = new NorthwindIBContext_CF();
+        var dc = new EFContextProvider<NorthwindIBContext_CF>();
+#elif DATABASEFIRST_OLD
+        var dc0 = new NorthwindIBContext_EDMX();
+        var dc = new EFContextProvider<NorthwindIBContext_EDMX>();
+#elif DATABASEFIRST_NEW
       var dc0 = new NorthwindIBContext_EDMX_2012();
+      var dc = new EFContextProvider<NorthwindIBContext_EDMX_2012>();
+#endif
+      //the query executes using pure EF 
       var query0 = (from t1 in dc0.Employees
                     where (from t2 in dc0.Orders select t2.EmployeeID).Distinct().Contains(t1.EmployeeID)
                     select t1);
       var result0 = query0.ToList();
 
       //the same query fails if using EFContextProvider
-      var dc = new EFContextProvider<NorthwindIBContext_EDMX_2012>();
       dc0 = dc.Context;
       var query = (from t1 in dc0.Employees
                    where (from t2 in dc0.Orders select t2.EmployeeID).Distinct().Contains(t1.EmployeeID)
                    select t1);
       var result = query.ToList();
       return result;
-#endif
     }
 
     [HttpGet]
@@ -515,10 +526,14 @@ namespace Sample_WebApi.Controllers {
     }
 
     [HttpGet]
+#if NHIBERNATE
+    [BreezeNHQueryable]
+#else
     [BreezeQueryable]
+#endif
     public HttpResponseMessage CustomersAsHRM()
     {
-        var customers = ContextProvider.Context.Customers;
+        var customers = ContextProvider.Context.Customers.Cast<Customer>();
         var response = Request.CreateResponse(HttpStatusCode.OK, customers);
         return response;
     }

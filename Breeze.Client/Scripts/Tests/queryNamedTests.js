@@ -514,6 +514,7 @@
             .from("CustomersAsHRM")
             .where("companyName", "startsWith", "A")
             .orderBy("companyName")
+            .expand("orders")
             .take(4);
         var queryUrl = query._toUri(em.metadataStore);
 
@@ -532,6 +533,8 @@
                 ok(ckey, "missing key");
                 var c2 = em.findEntityByKey(ckey);
                 ok(c2 === c, "cust not cached");
+                var orders = c.getProperty("orders");
+                ok(orders.length > 1, "customer should have several orders");
             }
         }).fail(testFns.handleFail).fin(start);
     });

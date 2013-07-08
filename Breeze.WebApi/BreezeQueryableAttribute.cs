@@ -82,7 +82,7 @@ namespace Breeze.WebApi {
       var request = actionExecutedContext.Request;
       var returnType = actionExecutedContext.ActionContext.ActionDescriptor.ReturnType;
       var queryHelper = GetQueryHelper(request);
-      if (typeof(IEnumerable).IsAssignableFrom(returnType))
+      if (typeof(IEnumerable).IsAssignableFrom(returnType) || responseObject is IEnumerable)
       {
           // QueryableAttribute only applies for IQueryable and IEnumerable return types
           base.OnActionExecuted(actionExecutedContext);
@@ -94,11 +94,7 @@ namespace Breeze.WebApi {
       }
       else
       {
-          // We may still need to execute the query and wrap the results.
-          if (responseObject is IEnumerable)
-          {
-              queryHelper.WrapResult(request, response, responseObject);
-          }
+          // For non-IEnumerable results, post-processing must be done manually by the developer.
       }
 
       queryHelper.ConfigureFormatter(actionExecutedContext.Request, responseObject as IQueryable);
