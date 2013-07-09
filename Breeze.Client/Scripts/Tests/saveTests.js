@@ -32,6 +32,31 @@
         teardown: function () { }
     });
 
+    test("test delete entity with Int32 property set to null", function () {
+        var em = newEm();
+        var c1 = em.createEntity("Order", { employeeID: 1 });
+        stop();
+        //save entity with non-null value on Int32 field
+        em.saveChanges().then(function (sr) {
+            var order = sr.entities[0];
+            //set the Int32 field to null
+            order.setProperty("employeeID", null);
+            //resave entity
+            em.saveChanges().then(function (sr) {
+                var order = sr.entities[0];
+                var empID1 = order.getProperty("employeeID");
+                ok(empID1 === null, "value should be null");
+
+                //mark entity as deleted
+                order.entityAspect.setDeleted();
+                //resave (i.e. delete) entity - the error should occur past this point
+                em.saveChanges().then(function (sr) {
+                    ok(true);
+                }).fail(testFns.handleFail);
+            }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("check if save requeried saved entities", function () {
         var em = newEm();
         var c1 = em.createEntity("TimeGroup", { comment: "trigger" });
