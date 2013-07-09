@@ -435,6 +435,12 @@ namespace Sample_WebApi.Controllers {
     #region named queries
 
     [HttpGet]
+    public Customer CustomerFirstOrDefault() {
+      var customer = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith("blah")).FirstOrDefault();
+      return customer;
+    }
+
+    [HttpGet]
     public IQueryable<Customer> CustomersOrderedStartingWith(string companyName) {
       var customers = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith(companyName)).OrderBy(cust => cust.CompanyName);
       var list = customers.ToList();

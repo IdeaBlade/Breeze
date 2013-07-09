@@ -31,6 +31,17 @@
         return;
     }
 
+    test("named query first or default", function () {
+        var em = newEm();
+
+        var query = EntityQuery.from("CustomerFirstOrDefault");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     test("named query not returning results in same order as in server", function () {
         var em = newEm();
 
