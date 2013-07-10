@@ -35,6 +35,32 @@
         teardown: function () {
         }
     });
+    
+    test("getEntityByKey failing 1", function () {
+        var manager = newEmX();
+        var query = new breeze.EntityQuery()
+            .from("Fruits");
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var fruit1 = data.results[0];
+            var key = fruit1.getProperty("id");
+            var fruit2 = manager.getEntityByKey("Fruit", key);
+            ok(fruit1 === fruit2, "should be same entity");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("getEntityByKey failing 2", function () {
+        var manager = newEmX();
+        var query = new breeze.EntityQuery()
+            .from("ItemsOfProduce");
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var ioprod1 = data.results[0];
+            var key = ioprod1.getProperty("id");
+            var ioprod2 = manager.getEntityByKey("ItemOfProduce", key);
+            ok(ioprod1 === ioprod2, "should be same entity");
+        }).fail(testFns.handleFail).fin(start);
+    });
 
     test("Localquery failing on inheritance entities1", function () {
         var manager = newEmX();
