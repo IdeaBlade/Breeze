@@ -29,6 +29,21 @@
         }
     });
 
+    test("test D2460 - Detaching the parent modifies the in-cache children", function () {
+        var em = newEm();
+        var q = EntityQuery.from("Employees").where("employeeID", "==", 1)
+            .expand("orders");
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var employee = data.results[0];
+            var q2 = new EntityQuery("Orders");
+            var orders = em.executeQueryLocally(q2);
+            var order = orders[0];
+            employee.entityAspect.setDetached();
+            ok(!em.hasChanges());
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("initialization", function () {
         var em = new EntityManager("foo");
         var so = new SaveOptions();
