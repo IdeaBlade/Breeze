@@ -54,6 +54,26 @@ namespace Sample_WebApi.Controllers {
 
 #endif
 
+    protected override void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings)
+    {
+        var itype = typeof(InternationalOrder);
+        if (saveMap.ContainsKey(itype))  // only do this if we're saving an InternationalOrder
+        {
+            var count = CountIntOrders();
+        }
+        base.AfterSaveEntities(saveMap, keyMappings);
+    }
+
+    // Test performing a raw db query in BeforeSaveEntities and AfterSaveEntities
+    private int CountIntOrders()
+    {
+        var conn = base.GetDbConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "select count(*) from InternationalOrder";
+        var result = cmd.ExecuteScalar();
+        return (int)result;
+    }
+
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
       if ((string)SaveOptions.Tag == "addProdOnServer") {
         Supplier supplier = entityInfo.Entity as Supplier;
@@ -76,6 +96,13 @@ namespace Sample_WebApi.Controllers {
     }
 
     protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
+        
+        var itype = typeof(InternationalOrder);
+        if (saveMap.ContainsKey(itype))  // only do this if we're saving an InternationalOrder
+        {
+            var count = CountIntOrders();
+        }
+
       if ((string)SaveOptions.Tag == "increaseProductPrice") {
         Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
         foreach (var type in saveMap.Keys) {

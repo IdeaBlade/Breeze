@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.Data;
+using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Validation;
@@ -68,15 +69,38 @@ namespace Breeze.WebApi {
       }
     }
 
-    private IDbConnection DbConnection {
-      get {
+    protected override IDbConnection GetDbConnection()
+    {
         var ec = ObjectContext.Connection as EntityConnection;
         if (ec != null) {
           return ec.StoreConnection;
         } else {
           throw new Exception("Unable to create a StoreConnection");
         }
-      }
+    }
+
+    /// <summary>
+    /// Opens the DbConnection used by the Context.
+    /// If the connection will be used outside of the DbContext, this method should be called prior to DbContext 
+    /// initialization, so that the connection will already be open when the DbContext uses it.  This keeps
+    /// the DbContext from closing the connection, so it must be closed manually.
+    /// See http://blogs.msdn.com/b/diego/archive/2012/01/26/exception-from-dbcontext-api-entityconnection-can-only-be-constructed-with-a-closed-dbconnection.aspx
+    /// </summary>
+    /// <returns></returns>
+    protected override void OpenDbConnection()
+    {
+        var ec = ObjectContext.Connection as EntityConnection;
+        if (ec.State == ConnectionState.Closed) ec.Open();
+    }
+
+    protected override void CloseDbConnection()
+    {
+        if (_context != null)
+        {
+            var ec = ObjectContext.Connection as EntityConnection;
+            ec.Close();
+            ec.Dispose();
+        }
     }
 
     #region Base implementation overrides
@@ -134,7 +158,7 @@ namespace Breeze.WebApi {
           }
         }
         throw new ValidationException(msg);
-      } catch (Exception e2) {
+      } catch (Exception) {
         throw;
       }
       
@@ -198,7 +222,7 @@ namespace Breeze.WebApi {
 
     private IKeyGenerator GetKeyGenerator() {
       var generatorType = KeyGeneratorType.Value;
-      return (IKeyGenerator)Activator.CreateInstance(generatorType, DbConnection);
+      return (IKeyGenerator)Activator.CreateInstance(generatorType, GetDbConnection());
     }
 
     private EntityInfo ProcessEntity(EFEntityInfo entityInfo) {
@@ -613,9 +637,19 @@ namespace Breeze.WebApi {
     // TODO: may want to improve perf on this later ( cache the mappings maybe).
     private String GetEntitySetName(ObjectContext context, Type entityType) {
       var metaWs = context.MetadataWorkspace;
+      EntityType cspaceEntityType;
       var ospaceEntityTypes = metaWs.GetItems<EntityType>(DataSpace.OSpace);
-      var ospaceEntityType = ospaceEntityTypes.First(oet => oet.FullName == entityType.FullName);
-      var cspaceEntityType = (EntityType) metaWs.GetEdmSpaceType(ospaceEntityType);
+      if (ospaceEntityTypes.Any())
+      {
+          var ospaceEntityType = ospaceEntityTypes.First(oet => oet.FullName == entityType.FullName);
+          cspaceEntityType = (EntityType)metaWs.GetEdmSpaceType(ospaceEntityType);
+      }
+      else
+      {
+          // Old EDMX ObjectContext has empty OSpace, so we get cspaceEntityType directly
+          var cspaceEntityTypes = metaWs.GetItems<EntityType>(DataSpace.CSpace);
+          cspaceEntityType = cspaceEntityTypes.First(et => et.FullName == entityType.FullName);
+      }
 
       // note CSpace below - not OSpace - evidently the entityContainer is only in the CSpace.
       var entitySets = metaWs.GetItems<EntityContainer>(DataSpace.CSpace)
