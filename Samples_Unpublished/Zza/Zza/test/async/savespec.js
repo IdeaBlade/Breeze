@@ -1,7 +1,7 @@
 /* Zza/Breeze Web API save */
 describe('Zza/Breeze web api', function(){
     'use strict';
-    var fns = zzaTestFns;
+    var fns = testFns;
     var breezeTest = fns.breezeTest;
     var newEm = fns.newEm;
     var reset = fns.zzaReset;

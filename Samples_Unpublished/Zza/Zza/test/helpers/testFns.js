@@ -8,7 +8,7 @@
         define(definition);
         // <script>
     } else {
-        zzaTestFns = definition();
+        testFns = definition();
     }
 
 })(function()  {
@@ -20,8 +20,8 @@
     configureBreeze();
 
     var devServiceName = 'http://localhost:5452/breeze/dev';
-    var zzaServiceName = 'http://localhost:5452/breeze/ZzaEf' ;
-    var zzaMetadataStore = new breeze.MetadataStore();
+    var serviceName = 'http://localhost:5452/breeze/ZzaEf' ;
+    var metadataStore = new breeze.MetadataStore();
 
     //TODO: Add server ping test because a common cause of failure is that
     //      I forgot to start the server first.
@@ -32,12 +32,12 @@
         addLookupsToManager: addLookupsToManager,
         fetchMetadata: fetchMetadata,
         userSessionId: userSessionId,
-        serviceName: zzaServiceName,
-        metadataStore: zzaMetadataStore,
+        serviceName: serviceName,
+        metadataStore: metadataStore,
         newEm: newEm,
         getNextIntId: getNextIntId,
         newGuid: newGuid,
-        newGuidComb: newGuid,
+        newGuidComb: newGuidComb, 
         zzaReset: zzaReset,
         FakeLogger: FakeLogger
     };
@@ -94,8 +94,8 @@
      *********************************************************/
     function newEm() {
         return new breeze.EntityManager({
-            serviceName: zzaServiceName,
-            metadataStore: zzaMetadataStore
+            serviceName: serviceName,
+            metadataStore: metadataStore
         });
     }
 
