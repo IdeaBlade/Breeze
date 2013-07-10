@@ -1,7 +1,6 @@
 /* Zza/Breeze Web API queries */
 xdescribe('Zza/Breeze web api', function(){
     'use strict';
-    var testFns = zzaTestFns;
     var breezeTest = testFns.breezeTest;
     var newEm = testFns.newEm;
     var EntityQuery = breeze.EntityQuery;

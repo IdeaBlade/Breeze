@@ -26,6 +26,21 @@
         }
     });
 
+    test("check getEntityByKey", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers");
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var cust1 = data.results[0];
+            var key = cust1.getProperty("customerID");
+            var cust2 = manager.getEntityByKey("Customer", key);
+            ok(cust1 === cust2);
+        }).fail(function (e) {
+            ok(false, e.message);
+        }).fin(start);
+    });
+
     test("inlineCount null when ordering results by navigation property", function () {
         var em = newEm();
         var query = new breeze.EntityQuery.from("Orders")

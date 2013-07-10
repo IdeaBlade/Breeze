@@ -5,8 +5,8 @@
 
     var EntityQuery = breeze.EntityQuery;
 
-    var devServiceName = '../breeze/Dev';
-    var serviceName = '../breeze/ZzaEf';
+    var devServiceName = 'breeze/Dev';
+    var serviceName = 'breeze/ZzaEf';
 
     var logger = getLogger();
     var metadataStore = new breeze.MetadataStore();
