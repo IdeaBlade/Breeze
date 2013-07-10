@@ -9313,13 +9313,13 @@ var EntityQuery = (function () {
                 var qoValue = queryOptions[qoName];
                 if (qoValue !== undefined) {
                     if (qoValue instanceof Array) {
-        				for (var i = 0; i < qoValue.length; i++) {
-        					qoStrings.push(qoName + "=" + encodeURIComponent(qoValue[i]));
-        				}
-        			}
-        			else {
-        				qoStrings.push(qoName + "=" + encodeURIComponent(qoValue));
-        			}
+                        for (var i = 0; i < qoValue.length; i++) {
+                            qoStrings.push(qoName + "=" + encodeURIComponent(qoValue[i]));
+                        }
+                    }
+                    else {
+                        qoStrings.push(qoName + "=" + encodeURIComponent(qoValue));
+                    }
                 }
             }
 
