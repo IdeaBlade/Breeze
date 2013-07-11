@@ -30,7 +30,7 @@ namespace Sample_WebApi.Controllers {
       return saveMap;
     }
 
-    protected override IDbConnection GetDbConnection() { return null;  }
+    public override IDbConnection GetDbConnection() { return null;  }
 
     protected override void OpenDbConnection() { }
 

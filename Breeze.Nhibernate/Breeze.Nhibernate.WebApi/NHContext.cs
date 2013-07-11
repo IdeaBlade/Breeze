@@ -52,7 +52,7 @@ namespace Breeze.Nhibernate.WebApi
             Close();
         }
 
-        protected override IDbConnection GetDbConnection() 
+        public override IDbConnection GetDbConnection() 
         { 
             return session.Connection; 
         }

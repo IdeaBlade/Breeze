@@ -102,10 +102,22 @@ namespace Breeze.WebApi {
 
     #region abstract and virtual methods 
 
-    protected abstract IDbConnection GetDbConnection();
+    /// <summary>
+    /// Should only be called from BeforeSaveEntities and AfterSaveEntities.
+    /// </summary>
+    /// <returns>Open DbConnection used by the ContextProvider's implementation</returns>
+    public abstract IDbConnection GetDbConnection();
 
+    /// <summary>
+    /// Internal use only.  Should only be called by ContextProvider during SaveChanges.
+    /// Opens the DbConnection used by the ContextProvider's implementation.
+    /// </summary>
     protected abstract void OpenDbConnection();
 
+    /// <summary>
+    /// Internal use only.  Should only be called by ContextProvider during SaveChanges.
+    /// Closes the DbConnection used by the ContextProvider's implementation.
+    /// </summary>
     protected abstract void CloseDbConnection();
 
     protected abstract String BuildJsonMetadata();
