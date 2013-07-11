@@ -252,6 +252,7 @@ namespace Breeze.Nhibernate.WebApi
         /// <param name="classMeta"></param>
         private void RestoreOldVersionValue(EntityInfo entityInfo, IClassMetadata classMeta)
         {
+            if (entityInfo.OriginalValuesMap == null) return;
             var vcol = classMeta.VersionProperty;
             var vname = classMeta.PropertyNames[vcol];
             object oldVersion;
