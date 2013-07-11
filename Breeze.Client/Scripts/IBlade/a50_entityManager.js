@@ -66,8 +66,9 @@ var EntityManager = (function () {
 
         updateWithConfig(this, config, true);
 
-        this.entityChanged = new Event("entityChanged_entityManager", this);
-        this.hasChangesChanged = new Event("hasChangesChanged_entityManager", this);
+        this.entityChanged = new Event("entityChanged", this);
+        this.validationErrorsChanged = new Event("validationErrorsChanged", this);
+        this.hasChangesChanged = new Event("hasChangesChanged", this);
             
         this.clear();
             
@@ -206,6 +207,28 @@ var EntityManager = (function () {
     @param entityAction {EntityAction} The {{#crossLink "EntityAction"}}{{/crossLink}} that occured. 
     @param entity {Object} The entity that changed.  If this is null, then all entities in the entityManager were affected. 
     @param args {Object} Additional information about this event. This will differ based on the entityAction.
+    @readOnly
+    **/
+
+    /**
+    An {{#crossLink "Event"}}{{/crossLink}} that fires whenever validationErrors change for any entity in this EntityManager.
+    @example                    
+        var em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
+        em.validationErrorsChanged.subscribe(function(changeArgs) {
+            // This code will be executed any time any entity within the entityManager experiences a change to its validationErrors collection. 
+            function (validationChangeArgs) {
+                var entity == validationChangeArgs.entity; 
+                var errorsAdded = validationChangeArgs.added;
+                var errorsCleared = validationChangeArgs.removed;
+                // ... do something interesting with the order.
+            });
+        });
+    });
+    @event validationErrorsChanged 
+    @param entity {Entity} The entity on which the validation errors have been added or removed.
+    @param added {Array of ValidationError} An array containing any newly added {{#crossLink "ValidationError"}}{{/crossLink}}s
+    @param removed {Array of ValidationError} An array containing any newly removed {{#crossLink "ValidationError"}}{{/crossLink}}s. This is those
+    errors that have been 'fixed'
     @readOnly
     **/
 

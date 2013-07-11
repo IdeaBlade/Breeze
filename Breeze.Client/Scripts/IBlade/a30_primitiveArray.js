@@ -76,7 +76,7 @@ breeze.makePrimitiveArray = (function() {
     function makePrimitiveArray(arr, parent, parentProperty) {
 
         observableArray.initializeParent(arr, parent, parentProperty);
-        arr.arrayChanged = new Event("arrayChanged_primitiveArray", arr);
+        arr.arrayChanged = new Event("arrayChanged", arr);
         __extend(arr, observableArray.mixin);
         return __extend(arr, primitiveArrayMixin);
     }
