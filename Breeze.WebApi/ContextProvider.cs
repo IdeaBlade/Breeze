@@ -102,11 +102,11 @@ namespace Breeze.WebApi {
 
     #region abstract and virtual methods 
 
-    protected virtual IDbConnection GetDbConnection() { return null; }
+    protected abstract IDbConnection GetDbConnection();
 
-    protected virtual void OpenDbConnection() { }
+    protected abstract void OpenDbConnection();
 
-    protected virtual void CloseDbConnection() { }
+    protected abstract void CloseDbConnection();
 
     protected abstract String BuildJsonMetadata();
     

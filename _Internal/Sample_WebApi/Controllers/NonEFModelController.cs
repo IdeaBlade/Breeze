@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sample_WebApi.Models;
 using Microsoft.Data.Edm.Validation;
+using System.Data;
 using System.Xml;
 using System.IO;
 using System.Xml.Linq;
@@ -29,6 +30,11 @@ namespace Sample_WebApi.Controllers {
       return saveMap;
     }
 
+    protected override IDbConnection GetDbConnection() { return null;  }
+
+    protected override void OpenDbConnection() { }
+
+    protected override void CloseDbConnection() { }
    
 
     protected override string BuildJsonMetadata() {
