@@ -7,6 +7,7 @@ using NHibernate.Linq;
 using NHibernate.Metadata;
 using NHibernate.Type;
 using System;
+using System.Data;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -50,6 +51,26 @@ namespace Breeze.Nhibernate.WebApi
         {
             Close();
         }
+
+        protected override IDbConnection GetDbConnection() 
+        { 
+            return session.Connection; 
+        }
+
+        protected override void OpenDbConnection() 
+        {
+            // already open when session is created
+        }
+
+        protected override void CloseDbConnection() 
+        {
+            if (session != null && session.IsOpen)
+            {
+                var dbc = session.Close();
+                if (dbc != null) dbc.Close();
+            }
+        }
+
 
         #region Metadata
 
@@ -120,10 +141,6 @@ namespace Breeze.Nhibernate.WebApi
                 {
                     if (tx.IsActive) tx.Rollback();
                     throw;
-                }
-                finally
-                {
-                    if (session.IsOpen) session.Close();
                 }
             }
 
