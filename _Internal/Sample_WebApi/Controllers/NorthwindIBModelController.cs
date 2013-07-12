@@ -55,26 +55,24 @@ namespace Sample_WebApi.Controllers {
 
 #endif
 
-    protected override void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings)
-    {
-        var itype = typeof(InternationalOrder);
-        if (saveMap.ContainsKey(itype))  // only do this if we're saving an InternationalOrder
+    protected override void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings) {
+      var itype = typeof(InternationalOrder);
+      if (saveMap.ContainsKey(itype))  // only do this if we're saving an InternationalOrder
         {
-            var count = CountIntOrders();
+        var count = CountIntOrders();
             AddComment("Now there are " + count + " international orders.", 1);
             UpdateProduce("Update " + count);
-        }
-        base.AfterSaveEntities(saveMap, keyMappings);
+      }
+      base.AfterSaveEntities(saveMap, keyMappings);
     }
 
     // Test performing a raw db query in NorthwindIB using the base connection
-    private int CountIntOrders()
-    {
-        var conn = base.GetDbConnection();
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = "select count(*) from InternationalOrder";
-        var result = cmd.ExecuteScalar();
-        return (int)result;
+    private int CountIntOrders() {
+      var conn = base.GetDbConnection();
+      var cmd = conn.CreateCommand();
+      cmd.CommandText = "select count(*) from InternationalOrder";
+      var result = cmd.ExecuteScalar();
+      return (int)result;
     }
 
     // Test performing a raw db insert to NorthwindIB using the base connection
@@ -125,12 +123,12 @@ namespace Sample_WebApi.Controllers {
     }
 
     protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
-        
-        var itype = typeof(InternationalOrder);
-        if (saveMap.ContainsKey(itype))  // only do this if we're saving an InternationalOrder
+
+      var itype = typeof(InternationalOrder);
+      if (saveMap.ContainsKey(itype))  // only do this if we're saving an InternationalOrder
         {
-            var count = CountIntOrders();
-        }
+        var count = CountIntOrders();
+      }
 
       if ((string)SaveOptions.Tag == "increaseProductPrice") {
         Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
@@ -305,7 +303,7 @@ namespace Sample_WebApi.Controllers {
 
     private bool CheckUnmappedProperty(EntityInfo entityInfo) {
       var unmappedValue = entityInfo.UnmappedValuesMap["myUnmappedProperty"];
-      if ((String) unmappedValue != "anything22") {
+      if ((String)unmappedValue != "anything22") {
         throw new Exception("wrong value for unmapped property:  " + unmappedValue);
       }
       Customer cust = entityInfo.Entity as Customer;
@@ -593,11 +591,10 @@ namespace Sample_WebApi.Controllers {
 #else
     [BreezeQueryable]
 #endif
-    public HttpResponseMessage CustomersAsHRM()
-    {
-        var customers = ContextProvider.Context.Customers.Cast<Customer>();
-        var response = Request.CreateResponse(HttpStatusCode.OK, customers);
-        return response;
+    public HttpResponseMessage CustomersAsHRM() {
+      var customers = ContextProvider.Context.Customers.Cast<Customer>();
+      var response = Request.CreateResponse(HttpStatusCode.OK, customers);
+      return response;
     }
 
     #endregion
@@ -733,7 +730,7 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.TimeLimits;
     }
 #endif
-    #endregion
+  #endregion
 
   #region named queries
 
@@ -796,7 +793,7 @@ namespace Sample_WebApi.Controllers {
     }
 
 
-    #endregion
+  #endregion
   }
 
 #endif

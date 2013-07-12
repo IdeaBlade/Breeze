@@ -222,19 +222,12 @@ var Event = (function() {
         assertParam(eventName, "eventName").isNonEmptyString().check();
         assertParam(obj, "obj").isObject().check();
         assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction().check();
-        eventName = getFullEventName(eventName);
         if (!obj._$eventMap) {
             obj._$eventMap = {};
         }
         obj._$eventMap[eventName] = isEnabled;
     };
 
-    ctor._enableFast = function(event, obj, isEnabled) {
-        if (!obj._$eventMap) {
-            obj._$eventMap = {};
-        }
-        obj._$eventMap[event.name] = isEnabled;
-    };
 
     /**
     Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set. 
@@ -253,7 +246,8 @@ var Event = (function() {
         if (!obj._getEventParent) {
             throw new Error("This object does not support event enabling/disabling");
         }
-        return ctor._isEnabled(obj, getFullEventName(eventName));
+        // return ctor._isEnabled(obj, getFullEventName(eventName));
+        return ctor._isEnabled(obj, eventName);
     };
 
     ctor._isEnabled = function(eventName, obj) {
@@ -278,18 +272,6 @@ var Event = (function() {
             }
         }
     };
-
-    function getFullEventName(eventName) {
-        if (__eventNameMap[eventName]) return eventName;
-        // find the closest event name that matches
-        var fullEventName = __arrayFirst(Object.keys(__eventNameMap), function(name) {
-            return name.indexOf(eventName) === 0;
-        });
-        if (!fullEventName) {
-            throw new Error("Unable to find any registered event that matches: " + eventName);
-        }
-        return fullEventName;
-    }
 
     function fallbackErrorHandler(e) {
         // TODO: maybe log this 

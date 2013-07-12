@@ -41,9 +41,11 @@ var EntityAspect = (function() {
         this.entityState = EntityState.Detached;
         this.isBeingSaved = false;
         this.originalValues = {};
+        this.hasValidationErrors = false;
         this._validationErrors = {};
-        this.validationErrorsChanged = new Event("validationErrorsChanged_entityAspect", this);
-        this.propertyChanged = new Event("propertyChanged_entityAspect", this);
+        
+        this.validationErrorsChanged = new Event("validationErrorsChanged", this);
+        this.propertyChanged = new Event("propertyChanged", this);
         // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
 
         if (entity != null) {
@@ -106,6 +108,13 @@ var EntityAspect = (function() {
 
     __readOnly__
     @property isBeingSaved {Boolean}
+    **/
+
+    /**
+    Whether this entity has any validation errors.
+
+    __readOnly__
+    @property hasValidationErrors {Boolean}
     **/
 
     /**
@@ -539,6 +548,7 @@ var EntityAspect = (function() {
                     that._pendingValidationResult.removed.push(valError);
                 }
             });
+            that.hasValidationErrors = !__isEmpty(this._validationErrors);
         });
     };
 
@@ -588,6 +598,7 @@ var EntityAspect = (function() {
         this.entityState = EntityState.Detached;
         this.originalValues = {};
         this._validationErrors = {};
+        this.hasValidationErrors = false;
         this.validationErrorsChanged.clear();
         this.propertyChanged.clear();
     };
@@ -614,6 +625,8 @@ var EntityAspect = (function() {
                 validationFn(this);
                 if (this._pendingValidationResult.added.length > 0 || this._pendingValidationResult.removed.length > 0) {
                     this.validationErrorsChanged.publish(this._pendingValidationResult);
+                    this.entityManager.validationErrorsChanged.publish(this._pendingValidationResult);
+                    
                 }
             } finally {
                 this._pendingValidationResult = undefined;
@@ -623,6 +636,7 @@ var EntityAspect = (function() {
 
     proto._addValidationError = function (validationError) {
         this._validationErrors[validationError.key] = validationError;
+        this.hasValidationErrors = true;
         this._pendingValidationResult.added.push(validationError);
     };
 
@@ -631,6 +645,7 @@ var EntityAspect = (function() {
         var valError = this._validationErrors[key];
         if (valError) {
             delete this._validationErrors[key];
+            this.hasValidationErrors = !__isEmpty(this._validationErrors);
             this._pendingValidationResult.removed.push(valError);
         }
     };
