@@ -18,6 +18,7 @@ using System.Web.Http.OData.Query;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Data.SqlClient;
 using System.IO;
 using System.Web;
 
@@ -60,11 +61,13 @@ namespace Sample_WebApi.Controllers {
         if (saveMap.ContainsKey(itype))  // only do this if we're saving an InternationalOrder
         {
             var count = CountIntOrders();
+            AddComment("Now there are " + count + " international orders.", 1);
+            UpdateProduce("Update " + count);
         }
         base.AfterSaveEntities(saveMap, keyMappings);
     }
 
-    // Test performing a raw db query in BeforeSaveEntities and AfterSaveEntities
+    // Test performing a raw db query in NorthwindIB using the base connection
     private int CountIntOrders()
     {
         var conn = base.GetDbConnection();
@@ -73,6 +76,32 @@ namespace Sample_WebApi.Controllers {
         var result = cmd.ExecuteScalar();
         return (int)result;
     }
+
+    // Test performing a raw db insert to NorthwindIB using the base connection
+    private int AddComment(string comment, byte seqnum)
+    {
+        var conn = base.GetDbConnection();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = String.Format("insert into Comment (CreatedOn, Comment1, SeqNum) values ('{0}', '{1}', {2})", 
+            DateTime.Now, comment, seqnum);
+        var result = cmd.ExecuteNonQuery();
+        return result;
+    }
+
+    // Test performing a raw db update to ProduceTPH using the ProduceTPH connection.  Requires DTC.
+    private int UpdateProduce(string comment)
+    {
+        using (var conn = new SqlConnection("data source=.;initial catalog=ProduceTPH;integrated security=True;multipleactiveresultsets=True;application name=EntityFramework"))
+        {
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = String.Format("update ItemOfProduce set USDACategory='{0}' where id='{1}'",
+                comment, "13F1C9F5-3189-45FA-BA6E-13314FAFAA92");
+            var result = cmd.ExecuteNonQuery();
+            return result;
+        }
+    }
+
 
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
       if ((string)SaveOptions.Tag == "addProdOnServer") {
