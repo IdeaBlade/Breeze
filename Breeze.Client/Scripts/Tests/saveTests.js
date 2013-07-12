@@ -190,7 +190,61 @@
         }).fail(testFns.handleFail).fin(start);
 
     });
-    
+
+    test("save Order and add ShipAddress to Comment in BeforeSave", function () {
+        // Create and initialize entity to save
+        var em = newEm();
+        var testAddress = "Test " + new Date().toISOString();
+
+        var order = em.createEntity('Order', {
+            customerID: wellKnownData.alfredsID,
+            employeeID: wellKnownData.nancyID,
+            shipAddress: testAddress
+        });
+        var saveOptions = new SaveOptions({ tag: "CommentOrderShipAddress.Before" });
+        stop();
+        em.saveChanges(null, saveOptions).then(function (data) {
+            // BeforeSaveEntities should have put the testAddress in a comment
+            var em2 = newEm();
+            var q = EntityQuery.from("Comments").where("comment1", "==", testAddress);
+            return em2.executeQuery(q);
+        }).then(function (data) {
+            var results = data.results;
+            ok(results.length === 1, "should have returned 1 result");
+            var comment = results[0];
+            var comment1 = comment.getProperty("comment1");
+            ok(comment1 === testAddress, "comment should equal testAddress");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save Order and update ShipAddress in ProduceTPH in BeforeSave", function () {
+        // Create and initialize entity to save
+        var em = newEm();
+        var testAddress = "Test " + new Date().toISOString();
+
+        var order = em.createEntity('Order', {
+            customerID: wellKnownData.alfredsID,
+            employeeID: wellKnownData.nancyID,
+            shipAddress: testAddress
+        });
+        var saveOptions = new SaveOptions({ tag: "UpdateProduceShipAddress.Before" });
+        stop();
+        em.saveChanges(null, saveOptions).then(function (data) {
+            // BeforeSaveEntities should have put the testAddress in the description of an Apple
+            var emx = new EntityManager({ serviceName: "breeze/ProduceTPH" });
+            var q = EntityQuery.from("Apples").where("description", "==", testAddress);
+            return emx.executeQuery(q);
+        }).then(function (data) {
+            var results = data.results;
+            ok(results.length === 1, "should have returned 1 result");
+            var produce = results[0];
+            var desc = produce.getProperty("description");
+            ok(desc === testAddress, "description should equal testAddress");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("save data with alt resource and server side add", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");

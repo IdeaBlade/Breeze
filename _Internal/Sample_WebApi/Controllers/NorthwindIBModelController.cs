@@ -51,29 +51,33 @@ namespace Sample_WebApi.Controllers {
     public NorthwindContextProvider() : base() { }
 #elif NHIBERNATE
   public class NorthwindContextProvider : NorthwindContext {
-    
-
 #endif
 
     protected override void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings) {
-      var itype = typeof(InternationalOrder);
-      if (saveMap.ContainsKey(itype))  // only do this if we're saving an InternationalOrder
-        {
-        var count = CountIntOrders();
-            AddComment("Now there are " + count + " international orders.", 1);
-            UpdateProduce("Update " + count);
+      var tag = (string)SaveOptions.Tag;
+      if (tag == "CommentKeyMappings.After") {
+          byte seq = 1;
+          foreach (var km in keyMappings) {
+            AddComment(km.EntityTypeName + ':' + km.RealValue, seq++);
+          }
       }
+      if (tag == "UpdateProduceKeyMapping.After") {
+        if (!keyMappings.Any()) throw new Exception("UpdateProduce.After: No key mappings available");
+        var km = keyMappings[0];
+        UpdateProduceDescription(km.EntityTypeName + ':' + km.RealValue);
+      }
+
       base.AfterSaveEntities(saveMap, keyMappings);
     }
 
     // Test performing a raw db query in NorthwindIB using the base connection
-    private int CountIntOrders() {
-      var conn = base.GetDbConnection();
-      var cmd = conn.CreateCommand();
-      cmd.CommandText = "select count(*) from InternationalOrder";
-      var result = cmd.ExecuteScalar();
-      return (int)result;
-    }
+    //private int CountIntOrders() {
+    //  var conn = base.GetDbConnection();
+    //  var cmd = conn.CreateCommand();
+    //  cmd.CommandText = "select count(*) from InternationalOrder";
+    //  var result = cmd.ExecuteScalar();
+    //  return (int)result;
+    //}
 
     // Test performing a raw db insert to NorthwindIB using the base connection
     private int AddComment(string comment, byte seqnum)
@@ -87,15 +91,16 @@ namespace Sample_WebApi.Controllers {
     }
 
     // Test performing a raw db update to ProduceTPH using the ProduceTPH connection.  Requires DTC.
-    private int UpdateProduce(string comment)
+    private int UpdateProduceDescription(string comment)
     {
         using (var conn = new SqlConnection("data source=.;initial catalog=ProduceTPH;integrated security=True;multipleactiveresultsets=True;application name=EntityFramework"))
         {
             conn.Open();
             var cmd = conn.CreateCommand();
-            cmd.CommandText = String.Format("update ItemOfProduce set USDACategory='{0}' where id='{1}'",
+            cmd.CommandText = String.Format("update ItemOfProduce set Description='{0}' where id='{1}'",
                 comment, "13F1C9F5-3189-45FA-BA6E-13314FAFAA92");
             var result = cmd.ExecuteNonQuery();
+            conn.Close();
             return result;
         }
     }
@@ -124,13 +129,23 @@ namespace Sample_WebApi.Controllers {
 
     protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
 
-      var itype = typeof(InternationalOrder);
-      if (saveMap.ContainsKey(itype))  // only do this if we're saving an InternationalOrder
-        {
-        var count = CountIntOrders();
+      var tag = (string)SaveOptions.Tag;
+
+      if (tag == "CommentOrderShipAddress.Before") {
+        var orderInfos = saveMap[typeof(Order)];
+        byte seq = 1;
+        foreach (var info in orderInfos) {
+          var order = (Order)info.Entity;
+          AddComment(order.ShipAddress, seq++);
+        }
+      }
+      if (tag == "UpdateProduceShipAddress.Before") {
+        var orderInfos = saveMap[typeof(Order)];
+        var order = (Order) orderInfos[0].Entity;
+        UpdateProduceDescription(order.ShipAddress);
       }
 
-      if ((string)SaveOptions.Tag == "increaseProductPrice") {
+      if (tag == "increaseProductPrice") {
         Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
         foreach (var type in saveMap.Keys) {
           if (type == typeof(Category)) {
