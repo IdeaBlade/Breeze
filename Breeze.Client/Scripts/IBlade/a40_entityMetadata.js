@@ -166,7 +166,7 @@ var MetadataStore = (function () {
             "dataServices": this.dataServices,
             "structuralTypes": __objectMapToArray(this._structuralTypeMap),
             "resourceEntityTypeMap": this._resourceEntityTypeMap
-        }, __config.stringifyPad);
+        }, null, __config.stringifyPad);
         return result;
     };
 
