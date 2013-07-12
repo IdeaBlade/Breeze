@@ -87,7 +87,7 @@
             success: function(data, textStatus, XHR) {
                 try {
                     var rData;
-                    if (data.Results) {
+                    if (data && data.Results) {
                         rData = { results: data.Results, inlineCount: data.InlineCount, XHR: XHR };
                     } else {
                         rData = { results: data, XHR: XHR };

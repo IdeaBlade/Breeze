@@ -5715,7 +5715,7 @@ var MetadataStore = (function () {
             "dataServices": this.dataServices,
             "structuralTypes": __objectMapToArray(this._structuralTypeMap),
             "resourceEntityTypeMap": this._resourceEntityTypeMap
-        }, __config.stringifyPad);
+        }, null, __config.stringifyPad);
         return result;
     };
 
@@ -12832,8 +12832,9 @@ var EntityManager = (function () {
 
                 }, function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);
+
                     if (!Array.isArray(nodes)) {
-                        nodes = [nodes];
+                        nodes = (nodes == null) ? [] : [nodes];
                     }
                     var results = nodes.map(function (node) {
                         var r = visitAndMerge(node, mappingContext, { nodeType: "root" });
@@ -13644,7 +13645,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             success: function(data, textStatus, XHR) {
                 try {
                     var rData;
-                    if (data.Results) {
+                    if (data && data.Results) {
                         rData = { results: data.Results, inlineCount: data.InlineCount, XHR: XHR };
                     } else {
                         rData = { results: data, XHR: XHR };
