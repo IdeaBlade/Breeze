@@ -269,6 +269,9 @@ breezeTestFns = (function (breeze) {
         if (error.handled === true) return;
         
         if (error instanceof (Error)) {
+            if (error.message.indexOf("assertion outside test context") >= 0) {
+                alert(error.message);
+            }
             var msg = (error.message || "") + ((error.responseText && " responseText: " + error.responseText) || "");
             ok(false, "Failed: " + msg);
         } else {

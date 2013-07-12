@@ -39,21 +39,24 @@
         //save entity with non-null value on Int32 field
         em.saveChanges().then(function (sr) {
             var order = sr.entities[0];
+            var empID0 = order.getProperty("employeeID");
+            ok(empID0 != null, "empID0 should not be null");
+
             //set the Int32 field to null
             order.setProperty("employeeID", null);
             //resave entity
-            em.saveChanges().then(function (sr) {
-                var order = sr.entities[0];
-                var empID1 = order.getProperty("employeeID");
-                ok(empID1 === null, "value should be null");
+            return em.saveChanges();
+        }).then(function (sr) {
+            var order = sr.entities[0];
+            var empID1 = order.getProperty("employeeID");
+            ok(empID1 === null, "value should be null");
 
-                //mark entity as deleted
-                order.entityAspect.setDeleted();
-                //resave (i.e. delete) entity - the error should occur past this point
-                em.saveChanges().then(function (sr) {
-                    ok(true);
-                }).fail(testFns.handleFail);
-            }).fail(testFns.handleFail);
+            //mark entity as deleted
+            order.entityAspect.setDeleted();
+            //resave (i.e. delete) entity - the error should occur past this point
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(true);
         }).fail(testFns.handleFail).fin(start);
     });
 
