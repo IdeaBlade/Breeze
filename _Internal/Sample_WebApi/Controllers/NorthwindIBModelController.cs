@@ -50,7 +50,7 @@ namespace Sample_WebApi.Controllers {
   public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_2012> {
     public NorthwindContextProvider() : base() { }
 #elif NHIBERNATE
-  public class NorthwindContextProvider : NorthwindContext {
+  public class NorthwindContextProvider : NorthwindNHContext {
 #endif
 
     protected override void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings) {
@@ -329,8 +329,8 @@ namespace Sample_WebApi.Controllers {
 #if NHIBERNATE
         // need to figure out what to do here
         //return new List<Employee>();
-        var dc0 = new NorthwindContext();
-        var dc = new NorthwindContext();
+        var dc0 = new NorthwindNHContext();
+        var dc = new NorthwindNHContext();
 #elif CODEFIRST_PROVIDER
         var dc0 = new NorthwindIBContext_CF();
         var dc = new EFContextProvider<NorthwindIBContext_CF>();
