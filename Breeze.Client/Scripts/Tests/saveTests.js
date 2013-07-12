@@ -192,7 +192,11 @@
     });
 
     test("save Order and add ShipAddress to Comment in BeforeSave", function () {
-        // Create and initialize entity to save
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
         var em = newEm();
         var testAddress = "Test " + new Date().toISOString();
 
@@ -219,7 +223,11 @@
     });
 
     test("save Order and update ShipAddress in ProduceTPH in BeforeSave", function () {
-        // Create and initialize entity to save
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
         var em = newEm();
         var testAddress = "Test " + new Date().toISOString();
 
@@ -244,6 +252,75 @@
 
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("save Order and add KeyMapping to Comment in AfterSave", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        var em = newEm();
+        var testComment;
+        var order = em.createEntity('Order', {
+            customerID: wellKnownData.alfredsID,
+            employeeID: wellKnownData.nancyID,
+            shipAddress: "Test " + new Date().toISOString()
+        });
+        var saveOptions = new SaveOptions({ tag: "CommentKeyMappings.After" });
+        stop();
+        em.saveChanges(null, saveOptions).then(function (data) {
+            // AfterSaveEntities should have put the order type and id in a comment
+            var orderId = order.getProperty("orderID");
+            var type = order.entityType;
+            testComment = type.namespace + '.' + type.shortName + ':' + orderId;
+
+            var em2 = newEm();
+            var q = EntityQuery.from("Comments").where("comment1", "==", testComment);
+            return em2.executeQuery(q);
+        }).then(function (data) {
+            var results = data.results;
+            ok(results.length === 1, "should have returned 1 result");
+            var comment = results[0];
+            var comment1 = comment.getProperty("comment1");
+            ok(comment1 === testComment, "comment should equal testComment");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save Order and update KeyMapping in ProduceTPH in AfterSave", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        var em = newEm();
+        var testComment;
+        var order = em.createEntity('Order', {
+            customerID: wellKnownData.alfredsID,
+            employeeID: wellKnownData.nancyID,
+            shipAddress: "Test " + new Date().toISOString()
+        });
+        var saveOptions = new SaveOptions({ tag: "UpdateProduceKeyMapping.After" });
+        stop();
+        em.saveChanges(null, saveOptions).then(function (data) {
+            // AfterSaveEntities should have put the order type and id in the description of an Apple
+            var orderId = order.getProperty("orderID");
+            var type = order.entityType;
+            testComment = type.namespace + '.' + type.shortName + ':' + orderId;
+
+            var emx = new EntityManager({ serviceName: "breeze/ProduceTPH" });
+            var q = EntityQuery.from("Apples").where("description", "==", testComment);
+            return emx.executeQuery(q);
+        }).then(function (data) {
+            var results = data.results;
+            ok(results.length === 1, "should have returned 1 result");
+            var produce = results[0];
+            var desc = produce.getProperty("description");
+            ok(desc === testComment, "description should equal testComment");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
 
     test("save data with alt resource and server side add", function () {
         if (testFns.DEBUG_ODATA) {

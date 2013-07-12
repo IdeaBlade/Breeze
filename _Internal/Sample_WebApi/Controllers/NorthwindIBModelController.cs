@@ -56,9 +56,11 @@ namespace Sample_WebApi.Controllers {
     protected override void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings) {
       var tag = (string)SaveOptions.Tag;
       if (tag == "CommentKeyMappings.After") {
-          byte seq = 1;
+          
           foreach (var km in keyMappings) {
-            AddComment(km.EntityTypeName + ':' + km.RealValue, seq++);
+              var realint = Convert.ToInt32(km.RealValue);
+              byte seq = (byte) (realint % 512);
+            AddComment(km.EntityTypeName + ':' + km.RealValue, seq);
           }
       }
       if (tag == "UpdateProduceKeyMapping.After") {
@@ -70,22 +72,14 @@ namespace Sample_WebApi.Controllers {
       base.AfterSaveEntities(saveMap, keyMappings);
     }
 
-    // Test performing a raw db query in NorthwindIB using the base connection
-    //private int CountIntOrders() {
-    //  var conn = base.GetDbConnection();
-    //  var cmd = conn.CreateCommand();
-    //  cmd.CommandText = "select count(*) from InternationalOrder";
-    //  var result = cmd.ExecuteScalar();
-    //  return (int)result;
-    //}
-
     // Test performing a raw db insert to NorthwindIB using the base connection
     private int AddComment(string comment, byte seqnum)
     {
         var conn = base.GetDbConnection();
         var cmd = conn.CreateCommand();
+        var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
         cmd.CommandText = String.Format("insert into Comment (CreatedOn, Comment1, SeqNum) values ('{0}', '{1}', {2})", 
-            DateTime.Now, comment, seqnum);
+            time, comment, seqnum);
         var result = cmd.ExecuteNonQuery();
         return result;
     }
