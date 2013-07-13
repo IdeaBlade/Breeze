@@ -170,11 +170,11 @@
 
     /* Route resolve logic */
     // Why? 
+    dataServiceInit.$inject = ['dataservice', 'logger'];
     function dataServiceInit(dataservice, logger) {
         logger.log(ctrlName + " is waiting for dataservice init");
         return dataservice.initialize();
     };
-    dataServiceInit.$inject = ['dataservice','logger'];
     
     app.routeResolve[ctrlName] = {
         //alert: alert

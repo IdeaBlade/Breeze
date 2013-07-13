@@ -31,18 +31,19 @@
             $scope.products = products;
         }
     }
-    
+
+    dataServiceInit.$inject = ['dataservice', 'logger'];
     function dataServiceInit(dataservice, logger) {
         logger.log(ctrlName + " is waiting for dataservice init");
         return dataservice.initialize();
     };
-    dataServiceInit.$inject = ['dataservice','logger'];
     
     app.routeResolve[ctrlName] = {
         dataServiceInit: dataServiceInit
     };
     
     /* Delayed route example
+    alert.$inject = ['$q', '$timeout', '$window'];
     function alert(q, timeout, window) {
         var deferred = q.defer();
         timeout(function () {
@@ -51,7 +52,6 @@
         }, 0);
         return deferred.promise;
     };
-    alert.$inject = ['$q', '$timeout', '$window'];
     */
     
 })();
