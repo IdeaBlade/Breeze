@@ -87,7 +87,7 @@ namespace Breeze.WebApi {
       }
 
       var newQueryOptions = QueryHelper.RemoveExtendedOps(queryOptions);
-      
+
       var result = QueryHelper.ApplyQuery(queryable, newQueryOptions, querySettings);
 
       var elementType = TypeFns.GetElementType(queryable.GetType());
@@ -116,12 +116,12 @@ namespace Breeze.WebApi {
         result = func(result);
       }
 
-      
+
       string inlinecountString = queryOptions.RawValues.InlineCount;
       if (!string.IsNullOrWhiteSpace(inlinecountString)) {
         if (inlinecountString == "allpages") {
           if (result is IQueryable) {
-            var inlineCount = (Int64) Queryable.Count((dynamic)result);
+            var inlineCount = (Int64)Queryable.Count((dynamic)result);
             queryOptions.Request.SetInlineCount(inlineCount);
           }
         }

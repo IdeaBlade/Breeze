@@ -32,6 +32,35 @@
         teardown: function () { }
     });
 
+    test("exceptions thrown on server", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+
+        var em = newEm();
+
+        var q = new EntityQuery("Orders").take(1);
+        stop();
+        var order;
+        var freight;
+        q.using(em).execute().then(function (data) {
+            order = data.results[0];
+            freight = order.getProperty("freight") + .5;
+            order.setProperty("freight", freight);
+
+            var so = new SaveOptions({ resourceName: "SaveAndThrow", tag: "SaveAndThrow" });
+
+            return em.saveChanges(null, so);
+        }).then(function (sr) {
+            ok("should not get here");
+
+        }).fail(function (e) {
+            ok(e);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("test delete entity with Int32 property set to null", function () {
         var em = newEm();
         var c1 = em.createEntity("Order", { employeeID: 1 });
@@ -60,15 +89,17 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("check if save requeried saved entities", function () {
-        var em = newEm();
-        var c1 = em.createEntity("TimeGroup", { comment: "trigger" });
-        stop();
-        em.saveChanges().then(function (sr) {
-            var comment = sr.entities[0].comment;
-            ok(comment === "happy", "should have requeried the value updated by trigger");
-        }).fail(testFns.handleFail).fin(start);
-    });
+    // Breeze does not YET support an option to requery after save. 
+    // When it does let's resurrect this test.
+    //test("check if save requeried saved entities", function () {
+    //    var em = newEm();
+    //    var c1 = em.createEntity("TimeGroup", { comment: "trigger" });
+    //    stop();
+    //    em.saveChanges().then(function (sr) {
+    //        var comment = sr.entities[0].comment;
+    //        ok(comment === "happy", "should have requeried the value updated by trigger");
+    //    }).fail(testFns.handleFail).fin(start);
+    //});
 
     test("check unmapped property on server", function () {
         // this test does not fail. Must debug server and 'dig' to find unmapped property value since it's not available in the interceptors

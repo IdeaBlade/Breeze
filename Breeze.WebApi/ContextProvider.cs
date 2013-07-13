@@ -56,7 +56,7 @@ namespace Breeze.WebApi {
       var dynSaveBundle = (dynamic)saveBundle;
       var entitiesArray = (JArray)dynSaveBundle.entities;
       var dynSaveOptions = dynSaveBundle.saveOptions;
-      SaveOptions = (SaveOptions) jsonSerializer.Deserialize(new JTokenReader(dynSaveOptions), typeof(SaveOptions));
+      SaveOptions = (SaveOptions)jsonSerializer.Deserialize(new JTokenReader(dynSaveOptions), typeof(SaveOptions));
       transactionSettings = transactionSettings ?? BreezeConfig.Instance.GetTransactionSettings();
 
       // SaveOptions = ExtractSaveOptions(saveBundle);
@@ -74,40 +74,32 @@ namespace Breeze.WebApi {
         saveMap.Add(entityType, entityInfos);
       });
 
-      List<KeyMapping> keyMappings;
-      try
-      {
-          if (transactionSettings.UseTransactionScope)
-          {
-              var txOptions = transactionSettings.ToTransactionOptions();
-              using (var txScope = new TransactionScope(TransactionScopeOption.Required, txOptions))
-              {
-                  OpenDbConnection();    // ensure connection is available for BeforeSaveEntities
-
-                  saveMap = BeforeSaveEntities(saveMap);
-                  keyMappings = SaveChangesCore(saveMap);
-                  AfterSaveEntities(saveMap, keyMappings);
-
-                  txScope.Complete();
-              }
+      var saveWorkState = new SaveWorkState(saveMap);
+      try {
+        if (transactionSettings.UseTransactionScope) {
+          var txOptions = transactionSettings.ToTransactionOptions();
+          using (var txScope = new TransactionScope(TransactionScopeOption.Required, txOptions)) {
+            OpenAndSave(saveWorkState);           
+            txScope.Complete();
           }
-          else
-          {
-              OpenDbConnection();    // ensure connection is available for BeforeSaveEntities
-              
-              saveMap = BeforeSaveEntities(saveMap);
-              keyMappings = SaveChangesCore(saveMap);
-              AfterSaveEntities(saveMap, keyMappings);
-          }
+        } else {
+          OpenAndSave(saveWorkState);
+        }
+      } finally {
+        CloseDbConnection();
       }
-      finally
-      {
-          CloseDbConnection();
-      }
+
+      return saveWorkState.ToSaveResult();
+
+    }
+
+    private void OpenAndSave(SaveWorkState saveWorkState) {
+      OpenDbConnection();    // ensure connection is available for BeforeSaveEntities
       
-      var entities = saveMap.SelectMany(kvp => kvp.Value.Select(entityInfo => entityInfo.Entity)).ToList();
-
-      return new SaveResult() { Entities = entities, KeyMappings = keyMappings };
+      saveWorkState.SaveMap = BeforeSaveEntities(saveWorkState.SaveMap);
+      SaveChangesCore(saveWorkState);
+      AfterSaveEntities(saveWorkState.SaveMap, saveWorkState.KeyMappings);
+      
     }
 
 
@@ -117,7 +109,7 @@ namespace Breeze.WebApi {
       return jsonSerializer;
     }
 
-    #region abstract and virtual methods 
+    #region abstract and virtual methods
 
     /// <summary>
     /// Should only be called from BeforeSaveEntities and AfterSaveEntities.
@@ -138,8 +130,8 @@ namespace Breeze.WebApi {
     protected abstract void CloseDbConnection();
 
     protected abstract String BuildJsonMetadata();
-    
-    protected abstract List<KeyMapping> SaveChangesCore(Dictionary<Type, List<EntityInfo>> saveMap);
+
+    protected abstract void SaveChangesCore(SaveWorkState saveWorkState);
 
     protected virtual EntityInfo CreateEntityInfo() {
       return new EntityInfo();
@@ -153,9 +145,9 @@ namespace Breeze.WebApi {
     }
 
     public Func<EntityInfo, bool> BeforeSaveEntityDelegate { get; set; }
-    public Func<Dictionary<Type, List<EntityInfo>>, Dictionary<Type, List<EntityInfo>>>  BeforeSaveEntitiesDelegate { get; set; }
+    public Func<Dictionary<Type, List<EntityInfo>>, Dictionary<Type, List<EntityInfo>>> BeforeSaveEntitiesDelegate { get; set; }
     public Action<Dictionary<Type, List<EntityInfo>>, List<KeyMapping>> AfterSaveEntitiesDelegate { get; set; }
-    
+
     /// <summary>
     /// The method is called for each entity to be saved before the save occurs.  If this method returns 'false'
     /// then the entity will be excluded from the save. There is no need to call the base implementation of this
@@ -179,19 +171,17 @@ namespace Breeze.WebApi {
       }
     }
 
-    protected virtual void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings)
-    {
-        if (AfterSaveEntitiesDelegate != null)
-        {
-            AfterSaveEntitiesDelegate(saveMap, keyMappings);
-        }
+    protected virtual void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings) {
+      if (AfterSaveEntitiesDelegate != null) {
+        AfterSaveEntitiesDelegate(saveMap, keyMappings);
+      }
     }
 
     #endregion
-    
+
     protected EntityInfo CreateEntityInfoFromJson(dynamic jo, Type entityType, JsonSerializer jsonSerializer) {
       var entityInfo = CreateEntityInfo();
-      
+
       entityInfo.Entity = jsonSerializer.Deserialize(new JTokenReader(jo), entityType);
       entityInfo.EntityState = (EntityState)Enum.Parse(typeof(EntityState), (String)jo.entityAspect.entityState);
 
@@ -223,7 +213,7 @@ namespace Breeze.WebApi {
     public SaveOptions SaveOptions { get; set; }
 
     protected List<EntityInfo> EntitiesWithAutoGeneratedKeys { get; set; }
-    
+
     protected Type LookupEntityType(String entityTypeName) {
       var delims = new string[] { ":#" };
       var parts = entityTypeName.Split(delims, StringSplitOptions.None);
@@ -234,17 +224,17 @@ namespace Breeze.WebApi {
       var type = BreezeConfig.ProbeAssemblies.Value
         .Select(a => a.GetType(typeName, false, true))
         .FirstOrDefault(t => t != null);
-      if (type!=null) {
+      if (type != null) {
         return type;
       } else {
         throw new ArgumentException("Assembly could not be found for " + entityTypeName);
       }
     }
 
-    protected static Lazy<Type> KeyGeneratorType = new Lazy<Type>( () => {
-       var typeCandidates = BreezeConfig.ProbeAssemblies.Value.Concat( new Assembly[] {typeof(IKeyGenerator).Assembly})
-        .SelectMany(a => a.GetTypes()).ToList();
-      var generatorTypes = typeCandidates.Where(t => typeof (IKeyGenerator).IsAssignableFrom(t) && !t.IsAbstract)
+    protected static Lazy<Type> KeyGeneratorType = new Lazy<Type>(() => {
+      var typeCandidates = BreezeConfig.ProbeAssemblies.Value.Concat(new Assembly[] { typeof(IKeyGenerator).Assembly })
+       .SelectMany(a => a.GetTypes()).ToList();
+      var generatorTypes = typeCandidates.Where(t => typeof(IKeyGenerator).IsAssignableFrom(t) && !t.IsAbstract)
         .ToList();
       if (generatorTypes.Count == 0) {
         throw new Exception("Unable to locate a KeyGenerator implementation.");
@@ -254,12 +244,30 @@ namespace Breeze.WebApi {
 
     private object _metadataLock = new object();
     private string _jsonMetadata;
-    
+
+  }
+
+  public class SaveWorkState {
+    public SaveWorkState(Dictionary<Type, List<EntityInfo>> saveMap) {
+      SaveMap = saveMap;
+    }
+
+    public Dictionary<Type, List<EntityInfo>> SaveMap { get; set; }
+    public List<KeyMapping> KeyMappings;
+    public List<Object> Errors;
+    public SaveResult ToSaveResult() {
+      if (Errors != null) {
+        return new SaveResult() { Errors = Errors };
+      } else {
+        var entities = SaveMap.SelectMany(kvp => kvp.Value.Select(entityInfo => entityInfo.Entity)).ToList();
+        return new SaveResult() { Entities = entities, KeyMappings = KeyMappings };
+      }
+    }
   }
 
   public class SaveOptions {
-      public bool AllowConcurrentSaves { get; set; }
-      public Object Tag { get; set; }
+    public bool AllowConcurrentSaves { get; set; }
+    public Object Tag { get; set; }
   }
 
   public interface IKeyGenerator {
@@ -346,7 +354,7 @@ namespace Breeze.WebApi {
   public class SaveResult {
     public List<Object> Entities;
     public List<KeyMapping> KeyMappings;
-    public String Error;
+    public List<Object> Errors;
   }
 
   public class KeyMapping {
@@ -394,7 +402,7 @@ namespace Breeze.WebApi {
     private bool _isDataType;
 
 
-    
+
   }
- 
+
 }

@@ -56,12 +56,12 @@ namespace Sample_WebApi.Controllers {
     protected override void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings) {
       var tag = (string)SaveOptions.Tag;
       if (tag == "CommentKeyMappings.After") {
-          
-          foreach (var km in keyMappings) {
-              var realint = Convert.ToInt32(km.RealValue);
-              byte seq = (byte) (realint % 512);
-            AddComment(km.EntityTypeName + ':' + km.RealValue, seq);
-          }
+
+        foreach (var km in keyMappings) {
+          var realint = Convert.ToInt32(km.RealValue);
+          byte seq = (byte)(realint % 512);
+          AddComment(km.EntityTypeName + ':' + km.RealValue, seq);
+        }
       }
       if (tag == "UpdateProduceKeyMapping.After") {
         if (!keyMappings.Any()) throw new Exception("UpdateProduce.After: No key mappings available");
@@ -73,30 +73,27 @@ namespace Sample_WebApi.Controllers {
     }
 
     // Test performing a raw db insert to NorthwindIB using the base connection
-    private int AddComment(string comment, byte seqnum)
-    {
-        var conn = base.GetDbConnection();
-        var cmd = conn.CreateCommand();
-        var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-        cmd.CommandText = String.Format("insert into Comment (CreatedOn, Comment1, SeqNum) values ('{0}', '{1}', {2})", 
-            time, comment, seqnum);
-        var result = cmd.ExecuteNonQuery();
-        return result;
+    private int AddComment(string comment, byte seqnum) {
+      var conn = base.GetDbConnection();
+      var cmd = conn.CreateCommand();
+      var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+      cmd.CommandText = String.Format("insert into Comment (CreatedOn, Comment1, SeqNum) values ('{0}', '{1}', {2})",
+          time, comment, seqnum);
+      var result = cmd.ExecuteNonQuery();
+      return result;
     }
 
     // Test performing a raw db update to ProduceTPH using the ProduceTPH connection.  Requires DTC.
-    private int UpdateProduceDescription(string comment)
-    {
-        using (var conn = new SqlConnection("data source=.;initial catalog=ProduceTPH;integrated security=True;multipleactiveresultsets=True;application name=EntityFramework"))
-        {
-            conn.Open();
-            var cmd = conn.CreateCommand();
-            cmd.CommandText = String.Format("update ItemOfProduce set Description='{0}' where id='{1}'",
-                comment, "13F1C9F5-3189-45FA-BA6E-13314FAFAA92");
-            var result = cmd.ExecuteNonQuery();
-            conn.Close();
-            return result;
-        }
+    private int UpdateProduceDescription(string comment) {
+      using (var conn = new SqlConnection("data source=.;initial catalog=ProduceTPH;integrated security=True;multipleactiveresultsets=True;application name=EntityFramework")) {
+        conn.Open();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = String.Format("update ItemOfProduce set Description='{0}' where id='{1}'",
+            comment, "13F1C9F5-3189-45FA-BA6E-13314FAFAA92");
+        var result = cmd.ExecuteNonQuery();
+        conn.Close();
+        return result;
+      }
     }
 
 
@@ -135,7 +132,7 @@ namespace Sample_WebApi.Controllers {
       }
       if (tag == "UpdateProduceShipAddress.Before") {
         var orderInfos = saveMap[typeof(Order)];
-        var order = (Order) orderInfos[0].Entity;
+        var order = (Order)orderInfos[0].Entity;
         UpdateProduceDescription(order.ShipAddress);
       }
 
@@ -229,6 +226,13 @@ namespace Sample_WebApi.Controllers {
     }
 
     [HttpPost]
+    public SaveResult SaveAndThrow(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntitiesDelegate = ThrowError;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
+
+    [HttpPost]
     public SaveResult SaveWithFreight(JObject saveBundle) {
       ContextProvider.BeforeSaveEntityDelegate = CheckFreight;
       return ContextProvider.SaveChanges(saveBundle);
@@ -250,6 +254,10 @@ namespace Sample_WebApi.Controllers {
     public SaveResult SaveCheckUnmappedProperty(JObject saveBundle) {
       ContextProvider.BeforeSaveEntityDelegate = CheckUnmappedProperty;
       return ContextProvider.SaveChanges(saveBundle);
+    }
+
+    private Dictionary<Type, List<EntityInfo>> ThrowError(Dictionary<Type, List<EntityInfo>> saveMap) {
+      throw new Exception("Deliberately thrown exception");
     }
 
     private Dictionary<Type, List<EntityInfo>> AddOrder(Dictionary<Type, List<EntityInfo>> saveMap) {

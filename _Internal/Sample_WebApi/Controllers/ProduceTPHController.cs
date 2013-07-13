@@ -32,7 +32,7 @@ namespace Sample_WebApi.Controllers {
     }
 
 
-    protected override List<KeyMapping> SaveChangesCore(Dictionary<Type, List<EntityInfo>> saveMap) {
+    protected override void SaveChangesCore(SaveWorkState saveWorkState) {
       throw new NotImplementedException();
     }
   }
