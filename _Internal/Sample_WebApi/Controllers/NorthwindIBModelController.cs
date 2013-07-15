@@ -441,6 +441,17 @@ namespace Sample_WebApi.Controllers {
     }
 
     [HttpGet]
+    public IQueryable<Employee> SearchEmployees([FromUri] int[] employeeIds) {
+      var query = ContextProvider.Context.Employees.AsQueryable();
+      if (employeeIds.Length > 0) {
+        query = query.Where(emp => employeeIds.Contains(emp.EmployeeID));
+        var result = query.ToList();
+      }
+      return query;
+    }
+
+
+    [HttpGet]
     public IQueryable<Customer> CustomersOrderedStartingWith(string companyName) {
       var customers = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith(companyName)).OrderBy(cust => cust.CompanyName);
       var list = customers.ToList();

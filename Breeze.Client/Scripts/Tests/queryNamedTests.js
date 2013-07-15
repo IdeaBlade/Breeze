@@ -42,6 +42,20 @@
 
     });
 
+    test("named query building incorrect uri", function () {
+        var em = newEm();
+        
+        var query = EntityQuery.from("SearchEmployees")
+            .withParameters({ employeeIds: [1, 4] });
+        stop();
+        em.executeQuery(query, function (data) {
+            var results = data.results;
+            ok(data.results.length === 2, "should be 2 results");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     test("named query not returning results in same order as in server", function () {
         var em = newEm();
 
