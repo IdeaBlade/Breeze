@@ -37,7 +37,7 @@
         var query = EntityQuery.from("CustomerFirstOrDefault");
         stop();
         em.executeQuery(query).then(function (data) {
-            ok(true);
+            ok(data.results.length === 0);
         }).fail(testFns.handleFail).fin(start);
 
     });

@@ -1401,19 +1401,12 @@ var Event = (function() {
         assertParam(eventName, "eventName").isNonEmptyString().check();
         assertParam(obj, "obj").isObject().check();
         assertParam(isEnabled, "isEnabled").isBoolean().isOptional().or().isFunction().check();
-        eventName = getFullEventName(eventName);
         if (!obj._$eventMap) {
             obj._$eventMap = {};
         }
         obj._$eventMap[eventName] = isEnabled;
     };
 
-    ctor._enableFast = function(event, obj, isEnabled) {
-        if (!obj._$eventMap) {
-            obj._$eventMap = {};
-        }
-        obj._$eventMap[event.name] = isEnabled;
-    };
 
     /**
     Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set. 
@@ -1432,7 +1425,8 @@ var Event = (function() {
         if (!obj._getEventParent) {
             throw new Error("This object does not support event enabling/disabling");
         }
-        return ctor._isEnabled(obj, getFullEventName(eventName));
+        // return ctor._isEnabled(obj, getFullEventName(eventName));
+        return ctor._isEnabled(obj, eventName);
     };
 
     ctor._isEnabled = function(eventName, obj) {
@@ -1458,18 +1452,6 @@ var Event = (function() {
         }
     };
 
-    function getFullEventName(eventName) {
-        if (__eventNameMap[eventName]) return eventName;
-        // find the closest event name that matches
-        var fullEventName = __arrayFirst(Object.keys(__eventNameMap), function(name) {
-            return name.indexOf(eventName) === 0;
-        });
-        if (!fullEventName) {
-            throw new Error("Unable to find any registered event that matches: " + eventName);
-        }
-        return fullEventName;
-    }
-
     function fallbackErrorHandler(e) {
         // TODO: maybe log this 
         // for now do nothing;
@@ -1492,7 +1474,7 @@ var __config = (function () {
     __config.functionRegistry = {};
     __config.typeRegistry = {};
     __config.objectRegistry = {};
-    __config.interfaceInitialized = new Event("interfaceInitialized_config", __config);
+    __config.interfaceInitialized = new Event("interfaceInitialized", __config);
 
     var InterfaceDef = function(name) {
         this.name = name;
@@ -2897,7 +2879,7 @@ breeze.makeComplexArray = (function() {
     function makeComplexArray(arr, parent, parentProperty) {
 
         observableArray.initializeParent(arr, parent, parentProperty);
-        arr.arrayChanged = new Event("arrayChanged_complexArray", arr);
+        arr.arrayChanged = new Event("arrayChanged", arr);
         __extend(arr, observableArray.mixin);
         return __extend(arr, complexArrayMixin);
     }
@@ -3083,9 +3065,11 @@ var EntityAspect = (function() {
         this.entityState = EntityState.Detached;
         this.isBeingSaved = false;
         this.originalValues = {};
+        this.hasValidationErrors = false;
         this._validationErrors = {};
-        this.validationErrorsChanged = new Event("validationErrorsChanged_entityAspect", this);
-        this.propertyChanged = new Event("propertyChanged_entityAspect", this);
+        
+        this.validationErrorsChanged = new Event("validationErrorsChanged", this);
+        this.propertyChanged = new Event("propertyChanged", this);
         // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
 
         if (entity != null) {
@@ -3148,6 +3132,13 @@ var EntityAspect = (function() {
 
     __readOnly__
     @property isBeingSaved {Boolean}
+    **/
+
+    /**
+    Whether this entity has any validation errors.
+
+    __readOnly__
+    @property hasValidationErrors {Boolean}
     **/
 
     /**
@@ -3581,6 +3572,7 @@ var EntityAspect = (function() {
                     that._pendingValidationResult.removed.push(valError);
                 }
             });
+            that.hasValidationErrors = !__isEmpty(this._validationErrors);
         });
     };
 
@@ -3630,6 +3622,7 @@ var EntityAspect = (function() {
         this.entityState = EntityState.Detached;
         this.originalValues = {};
         this._validationErrors = {};
+        this.hasValidationErrors = false;
         this.validationErrorsChanged.clear();
         this.propertyChanged.clear();
     };
@@ -3656,6 +3649,8 @@ var EntityAspect = (function() {
                 validationFn(this);
                 if (this._pendingValidationResult.added.length > 0 || this._pendingValidationResult.removed.length > 0) {
                     this.validationErrorsChanged.publish(this._pendingValidationResult);
+                    this.entityManager.validationErrorsChanged.publish(this._pendingValidationResult);
+                    
                 }
             } finally {
                 this._pendingValidationResult = undefined;
@@ -3665,6 +3660,7 @@ var EntityAspect = (function() {
 
     proto._addValidationError = function (validationError) {
         this._validationErrors[validationError.key] = validationError;
+        this.hasValidationErrors = true;
         this._pendingValidationResult.added.push(validationError);
     };
 
@@ -3673,6 +3669,7 @@ var EntityAspect = (function() {
         var valError = this._validationErrors[key];
         if (valError) {
             delete this._validationErrors[key];
+            this.hasValidationErrors = !__isEmpty(this._validationErrors);
             this._pendingValidationResult.removed.push(valError);
         }
     };
@@ -4276,7 +4273,7 @@ breeze.makePrimitiveArray = (function() {
     function makePrimitiveArray(arr, parent, parentProperty) {
 
         observableArray.initializeParent(arr, parent, parentProperty);
-        arr.arrayChanged = new Event("arrayChanged_primitiveArray", arr);
+        arr.arrayChanged = new Event("arrayChanged", arr);
         __extend(arr, observableArray.mixin);
         return __extend(arr, primitiveArrayMixin);
     }
@@ -4453,7 +4450,7 @@ breeze.makeRelationArray = (function() {
     function makeRelationArray(arr, parentEntity, navigationProperty) {
         arr.parentEntity = parentEntity;
         arr.navigationProperty = navigationProperty;
-        arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
+        arr.arrayChanged = new Event("arrayChanged", arr);
         // array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
         // need to use mixins here instead of inheritance because we are starting from an existing array object.
@@ -5718,7 +5715,7 @@ var MetadataStore = (function () {
             "dataServices": this.dataServices,
             "structuralTypes": __objectMapToArray(this._structuralTypeMap),
             "resourceEntityTypeMap": this._resourceEntityTypeMap
-        }, __config.stringifyPad);
+        }, null, __config.stringifyPad);
         return result;
     };
 
@@ -11046,8 +11043,9 @@ var EntityManager = (function () {
 
         updateWithConfig(this, config, true);
 
-        this.entityChanged = new Event("entityChanged_entityManager", this);
-        this.hasChangesChanged = new Event("hasChangesChanged_entityManager", this);
+        this.entityChanged = new Event("entityChanged", this);
+        this.validationErrorsChanged = new Event("validationErrorsChanged", this);
+        this.hasChangesChanged = new Event("hasChangesChanged", this);
             
         this.clear();
             
@@ -11186,6 +11184,28 @@ var EntityManager = (function () {
     @param entityAction {EntityAction} The {{#crossLink "EntityAction"}}{{/crossLink}} that occured. 
     @param entity {Object} The entity that changed.  If this is null, then all entities in the entityManager were affected. 
     @param args {Object} Additional information about this event. This will differ based on the entityAction.
+    @readOnly
+    **/
+
+    /**
+    An {{#crossLink "Event"}}{{/crossLink}} that fires whenever validationErrors change for any entity in this EntityManager.
+    @example                    
+        var em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
+        em.validationErrorsChanged.subscribe(function(changeArgs) {
+            // This code will be executed any time any entity within the entityManager experiences a change to its validationErrors collection. 
+            function (validationChangeArgs) {
+                var entity == validationChangeArgs.entity; 
+                var errorsAdded = validationChangeArgs.added;
+                var errorsCleared = validationChangeArgs.removed;
+                // ... do something interesting with the order.
+            });
+        });
+    });
+    @event validationErrorsChanged 
+    @param entity {Entity} The entity on which the validation errors have been added or removed.
+    @param added {Array of ValidationError} An array containing any newly added {{#crossLink "ValidationError"}}{{/crossLink}}s
+    @param removed {Array of ValidationError} An array containing any newly removed {{#crossLink "ValidationError"}}{{/crossLink}}s. This is those
+    errors that have been 'fixed'
     @readOnly
     **/
 
@@ -11934,7 +11954,7 @@ var EntityManager = (function () {
     proto.getEntityByKey = function () {
         var entityKey = createEntityKey(this, arguments).entityKey;
         var group;
-        var subtypes = entityKey._subTypes;
+        var subtypes = entityKey._subtypes;
         if (subtypes) {
             for (var i = 0, j = subtypes.length; i < j; i++) {
                 group = this._findEntityGroup(subtypes[i]);
@@ -12812,8 +12832,9 @@ var EntityManager = (function () {
 
                 }, function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);
+
                     if (!Array.isArray(nodes)) {
-                        nodes = [nodes];
+                        nodes = (nodes == null) ? [] : [nodes];
                     }
                     var results = nodes.map(function (node) {
                         var r = visitAndMerge(node, mappingContext, { nodeType: "root" });
@@ -13624,7 +13645,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             success: function(data, textStatus, XHR) {
                 try {
                     var rData;
-                    if (data.Results) {
+                    if (data && data.Results) {
                         rData = { results: data.Results, inlineCount: data.InlineCount, XHR: XHR };
                     } else {
                         rData = { results: data, XHR: XHR };

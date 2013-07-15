@@ -3,11 +3,11 @@ using Models.NorthwindIB.NH;
 
 namespace Sample_WebApi.Controllers
 {
-    public class NorthwindContext : NHContext
+    public class NorthwindNHContext : NHContext
     {
-        public NorthwindContext() : base(NHConfig.OpenSession(), NHConfig.Configuration) { }
+        public NorthwindNHContext() : base(NHConfig.OpenSession(), NHConfig.Configuration) { }
 
-        public NorthwindContext Context
+        public NorthwindNHContext Context
         {
             get { return this; }
         }

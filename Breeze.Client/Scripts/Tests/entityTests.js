@@ -189,9 +189,7 @@
         var em = newEm();
         em.executeQuery(productQuery).then(function (data) {
             return data.results[0].entityAspect.loadNavigationProperty("supplier");
-        }).then(assertProductSetSupplierIDToNull)
-          .fail(testFns.handleFail)
-          .fin(start);
+        }).then(assertProductSetSupplierIDToNull).fail(testFns.handleFail).fin(start);
     });
 
     function assertProductSetSupplierIDToNull(data) {
@@ -210,16 +208,20 @@
         var productType = em.metadataStore.getEntityType("Product");
         var product = productType.createEntity();
         em.attachEntity(product);
+        product.setProperty("productName", "foo");
         product.setProperty('supplierID', null);
         var errs = product.entityAspect.getValidationErrors();
+        ok(errs.length === 0, "supplierId on product should be nullable");
         var q = EntityQuery.from("Products").take(1);
+        stop();
         em.executeQuery(q).then(function (data) {
             var products = data.results;
             product = products[0];
             product.setProperty('supplierID', null);
             errs = product.entityAspect.getValidationErrors();
-        });
-        ok(true);
+            ok(errs.length === 0, "supplierId on product should be nullable");
+        }).fail(testFns.handleFail).fin(start);
+        
 
         //Set product's SupplierID value to null
         //Set product's Supplier to null
@@ -563,8 +565,7 @@
             ok(cust1.getProperty("miscData") === "asdf");
             cust1.setProperty("companyName", "testxxx");
             ok(cust1.getNameLength() === 7, "getNameLength should be 7");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("custom Customer type with new", function () {
@@ -589,8 +590,7 @@
             ok(cust1.getProperty("miscData") === "asdf");
             cust1.setProperty("companyName", "testxxx");
             ok(cust1.getNameLength() === 7, "getNameLength should be 7");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("custom Customer type with new - v2", function () {
@@ -615,8 +615,7 @@
             ok(cust1.getProperty("miscData") === "asdf");
             cust1.setProperty("companyName", "testxxx");
             ok(cust1.getNameLength() === 7, "getNameLength should be 7");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("entityState", function () {
@@ -624,8 +623,7 @@
         runQuery(newEm(), function (customers) {
             var c = customers[0];
             testEntityState(c);
-            start();
-        });
+        }).fail(testFns.handleFail).fin(start);
     });
 
 
@@ -661,8 +659,7 @@
             var c = customers[0];
             ok(c.getProperty("miscData") === "asdf", "miscData property should contain 'asdf'");
             testEntityState(c);
-            start();
-        });
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("unmapped import export", function () {
@@ -1014,9 +1011,9 @@
             .where("companyName", "startsWith", "C")
             .orderBy("companyName");
 
-        em.executeQuery(query, function (data) {
+        return em.executeQuery(query, function (data) {
             callback(data.results);
-        }).fail(testFns.handleFail);
+        });
     }
 
     function testEntityState(c) {

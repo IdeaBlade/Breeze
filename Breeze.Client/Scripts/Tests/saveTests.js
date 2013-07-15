@@ -32,6 +32,35 @@
         teardown: function () { }
     });
 
+    test("exceptions thrown on server", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+
+        var em = newEm();
+
+        var q = new EntityQuery("Orders").take(1);
+        stop();
+        var order;
+        var freight;
+        q.using(em).execute().then(function (data) {
+            order = data.results[0];
+            freight = order.getProperty("freight") + .5;
+            order.setProperty("freight", freight);
+
+            var so = new SaveOptions({ resourceName: "SaveAndThrow", tag: "SaveAndThrow" });
+
+            return em.saveChanges(null, so);
+        }).then(function (sr) {
+            ok("should not get here");
+
+        }).fail(function (e) {
+            ok(e);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("test delete entity with Int32 property set to null", function () {
         var em = newEm();
         var c1 = em.createEntity("Order", { employeeID: 1 });
@@ -39,33 +68,38 @@
         //save entity with non-null value on Int32 field
         em.saveChanges().then(function (sr) {
             var order = sr.entities[0];
+            var empID0 = order.getProperty("employeeID");
+            ok(empID0 != null, "empID0 should not be null");
+
             //set the Int32 field to null
             order.setProperty("employeeID", null);
             //resave entity
-            em.saveChanges().then(function (sr) {
-                var order = sr.entities[0];
-                var empID1 = order.getProperty("employeeID");
-                ok(empID1 === null, "value should be null");
+            return em.saveChanges();
+        }).then(function (sr) {
+            var order = sr.entities[0];
+            var empID1 = order.getProperty("employeeID");
+            ok(empID1 === null, "value should be null");
 
-                //mark entity as deleted
-                order.entityAspect.setDeleted();
-                //resave (i.e. delete) entity - the error should occur past this point
-                em.saveChanges().then(function (sr) {
-                    ok(true);
-                }).fail(testFns.handleFail);
-            }).fail(testFns.handleFail);
+            //mark entity as deleted
+            order.entityAspect.setDeleted();
+            //resave (i.e. delete) entity - the error should occur past this point
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(true);
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("check if save requeried saved entities", function () {
-        var em = newEm();
-        var c1 = em.createEntity("TimeGroup", { comment: "trigger" });
-        stop();
-        em.saveChanges().then(function (sr) {
-            var comment = sr.entities[0].comment;
-            ok(comment === "happy", "should have requeried the value updated by trigger");
-        }).fail(testFns.handleFail).fin(start);
-    });
+    // Breeze does not YET support an option to requery after save. 
+    // When it does let's resurrect this test.
+    //test("check if save requeried saved entities", function () {
+    //    var em = newEm();
+    //    var c1 = em.createEntity("TimeGroup", { comment: "trigger" });
+    //    stop();
+    //    em.saveChanges().then(function (sr) {
+    //        var comment = sr.entities[0].comment;
+    //        ok(comment === "happy", "should have requeried the value updated by trigger");
+    //    }).fail(testFns.handleFail).fin(start);
+    //});
 
     test("check unmapped property on server", function () {
         // this test does not fail. Must debug server and 'dig' to find unmapped property value since it's not available in the interceptors
@@ -187,7 +221,138 @@
         }).fail(testFns.handleFail).fin(start);
 
     });
-    
+
+    test("save Order and add ShipAddress to Comment in BeforeSave", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        var em = newEm();
+        var testAddress = "Test " + new Date().toISOString();
+
+        var order = em.createEntity('Order', {
+            customerID: wellKnownData.alfredsID,
+            employeeID: wellKnownData.nancyID,
+            shipAddress: testAddress
+        });
+        var saveOptions = new SaveOptions({ tag: "CommentOrderShipAddress.Before" });
+        stop();
+        em.saveChanges(null, saveOptions).then(function (data) {
+            // BeforeSaveEntities should have put the testAddress in a comment
+            var em2 = newEm();
+            var q = EntityQuery.from("Comments").where("comment1", "==", testAddress);
+            return em2.executeQuery(q);
+        }).then(function (data) {
+            var results = data.results;
+            ok(results.length === 1, "should have returned 1 result");
+            var comment = results[0];
+            var comment1 = comment.getProperty("comment1");
+            ok(comment1 === testAddress, "comment should equal testAddress");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save Order and update ShipAddress in ProduceTPH in BeforeSave", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        var em = newEm();
+        var testAddress = "Test " + new Date().toISOString();
+
+        var order = em.createEntity('Order', {
+            customerID: wellKnownData.alfredsID,
+            employeeID: wellKnownData.nancyID,
+            shipAddress: testAddress
+        });
+        var saveOptions = new SaveOptions({ tag: "UpdateProduceShipAddress.Before" });
+        stop();
+        em.saveChanges(null, saveOptions).then(function (data) {
+            // BeforeSaveEntities should have put the testAddress in the description of an Apple
+            var emx = new EntityManager({ serviceName: "breeze/ProduceTPH" });
+            var q = EntityQuery.from("Apples").where("description", "==", testAddress);
+            return emx.executeQuery(q);
+        }).then(function (data) {
+            var results = data.results;
+            ok(results.length === 1, "should have returned 1 result");
+            var produce = results[0];
+            var desc = produce.getProperty("description");
+            ok(desc === testAddress, "description should equal testAddress");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save Order and add KeyMapping to Comment in AfterSave", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        var em = newEm();
+        var testComment;
+        var order = em.createEntity('Order', {
+            customerID: wellKnownData.alfredsID,
+            employeeID: wellKnownData.nancyID,
+            shipAddress: "Test " + new Date().toISOString()
+        });
+        var saveOptions = new SaveOptions({ tag: "CommentKeyMappings.After" });
+        stop();
+        em.saveChanges(null, saveOptions).then(function (data) {
+            // AfterSaveEntities should have put the order type and id in a comment
+            var orderId = order.getProperty("orderID");
+            var type = order.entityType;
+            testComment = type.namespace + '.' + type.shortName + ':' + orderId;
+
+            var em2 = newEm();
+            var q = EntityQuery.from("Comments").where("comment1", "==", testComment);
+            return em2.executeQuery(q);
+        }).then(function (data) {
+            var results = data.results;
+            ok(results.length === 1, "should have returned 1 result");
+            var comment = results[0];
+            var comment1 = comment.getProperty("comment1");
+            ok(comment1 === testComment, "comment should equal testComment");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save Order and update KeyMapping in ProduceTPH in AfterSave", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        var em = newEm();
+        var testComment;
+        var order = em.createEntity('Order', {
+            customerID: wellKnownData.alfredsID,
+            employeeID: wellKnownData.nancyID,
+            shipAddress: "Test " + new Date().toISOString()
+        });
+        var saveOptions = new SaveOptions({ tag: "UpdateProduceKeyMapping.After" });
+        stop();
+        em.saveChanges(null, saveOptions).then(function (data) {
+            // AfterSaveEntities should have put the order type and id in the description of an Apple
+            var orderId = order.getProperty("orderID");
+            var type = order.entityType;
+            testComment = type.namespace + '.' + type.shortName + ':' + orderId;
+
+            var emx = new EntityManager({ serviceName: "breeze/ProduceTPH" });
+            var q = EntityQuery.from("Apples").where("description", "==", testComment);
+            return emx.executeQuery(q);
+        }).then(function (data) {
+            var results = data.results;
+            ok(results.length === 1, "should have returned 1 result");
+            var produce = results[0];
+            var desc = produce.getProperty("description");
+            ok(desc === testComment, "description should equal testComment");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+
     test("save data with alt resource and server side add", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");

@@ -11,7 +11,7 @@ describe('testController', function () {
     }));
 
     beforeEach(function () {
-        loggerStub = sinon.stub(new zzaTestFns.FakeLogger);
+        loggerStub = sinon.stub(new testFns.FakeLogger);
         ctorArgs = {
             $scope: scope,
             $routeParams: {},

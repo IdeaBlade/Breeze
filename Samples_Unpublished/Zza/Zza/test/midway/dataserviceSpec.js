@@ -1,28 +1,27 @@
 ﻿describe('dataservice', function () {
     'use strict';
     var ds, loggerStub, manager;
-    var fns = zzaTestFns;
-    var FakeLogger = fns.FakeLogger;
+    var fns = testFns;
     var EntityState = breeze.EntityState;
     var async = new AsyncSpec(this);
     
     beforeEach(module('app'));
 
     beforeEach(function () {
-        
         module(function ($provide) {
-            loggerStub = sinon.stub(new FakeLogger);
+            
+            loggerStub = sinon.stub(new fns.FakeLogger);
             $provide.value('logger', loggerStub);
-        });
-
-        inject(function (entityManagerProvider) {
-            var origFn = entityManagerProvider.newManager;
-            entityManagerProvider.newManager = function () {               
-                manager = origFn(); // test manager
-                fns.addLookupsToManager(manager);
-                fns.setManagerToFetchFromCache(manager);
+            
+            var emProvider = { newManager: newManagerStub }; // stub the em provider
+            $provide.value('entityManagerProvider', emProvider);
+            
+            function newManagerStub() {
+                manager = new breeze.EntityManager();
+                fns.addLookupsToManager(manager); // test data
+                fns.setManagerToFetchFromCache(manager); // so we don't go anywhere
                 return manager;
-            };
+            }
         });
     });
 

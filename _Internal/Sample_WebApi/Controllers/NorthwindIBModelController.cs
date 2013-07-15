@@ -18,6 +18,7 @@ using System.Web.Http.OData.Query;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Data.SqlClient;
 using System.IO;
 using System.Web;
 
@@ -49,10 +50,52 @@ namespace Sample_WebApi.Controllers {
   public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_2012> {
     public NorthwindContextProvider() : base() { }
 #elif NHIBERNATE
-  public class NorthwindContextProvider : NorthwindContext {
-    
-
+  public class NorthwindContextProvider : NorthwindNHContext {
 #endif
+
+    protected override void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings) {
+      var tag = (string)SaveOptions.Tag;
+      if (tag == "CommentKeyMappings.After") {
+
+        foreach (var km in keyMappings) {
+          var realint = Convert.ToInt32(km.RealValue);
+          byte seq = (byte)(realint % 512);
+          AddComment(km.EntityTypeName + ':' + km.RealValue, seq);
+        }
+      }
+      if (tag == "UpdateProduceKeyMapping.After") {
+        if (!keyMappings.Any()) throw new Exception("UpdateProduce.After: No key mappings available");
+        var km = keyMappings[0];
+        UpdateProduceDescription(km.EntityTypeName + ':' + km.RealValue);
+      }
+
+      base.AfterSaveEntities(saveMap, keyMappings);
+    }
+
+    // Test performing a raw db insert to NorthwindIB using the base connection
+    private int AddComment(string comment, byte seqnum) {
+      var conn = base.GetDbConnection();
+      var cmd = conn.CreateCommand();
+      var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+      cmd.CommandText = String.Format("insert into Comment (CreatedOn, Comment1, SeqNum) values ('{0}', '{1}', {2})",
+          time, comment, seqnum);
+      var result = cmd.ExecuteNonQuery();
+      return result;
+    }
+
+    // Test performing a raw db update to ProduceTPH using the ProduceTPH connection.  Requires DTC.
+    private int UpdateProduceDescription(string comment) {
+      using (var conn = new SqlConnection("data source=.;initial catalog=ProduceTPH;integrated security=True;multipleactiveresultsets=True;application name=EntityFramework")) {
+        conn.Open();
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = String.Format("update ItemOfProduce set Description='{0}' where id='{1}'",
+            comment, "13F1C9F5-3189-45FA-BA6E-13314FAFAA92");
+        var result = cmd.ExecuteNonQuery();
+        conn.Close();
+        return result;
+      }
+    }
+
 
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
       if ((string)SaveOptions.Tag == "addProdOnServer") {
@@ -76,7 +119,24 @@ namespace Sample_WebApi.Controllers {
     }
 
     protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
-      if ((string)SaveOptions.Tag == "increaseProductPrice") {
+
+      var tag = (string)SaveOptions.Tag;
+
+      if (tag == "CommentOrderShipAddress.Before") {
+        var orderInfos = saveMap[typeof(Order)];
+        byte seq = 1;
+        foreach (var info in orderInfos) {
+          var order = (Order)info.Entity;
+          AddComment(order.ShipAddress, seq++);
+        }
+      }
+      if (tag == "UpdateProduceShipAddress.Before") {
+        var orderInfos = saveMap[typeof(Order)];
+        var order = (Order)orderInfos[0].Entity;
+        UpdateProduceDescription(order.ShipAddress);
+      }
+
+      if (tag == "increaseProductPrice") {
         Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
         foreach (var type in saveMap.Keys) {
           if (type == typeof(Category)) {
@@ -166,6 +226,13 @@ namespace Sample_WebApi.Controllers {
     }
 
     [HttpPost]
+    public SaveResult SaveAndThrow(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntitiesDelegate = ThrowError;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
+
+    [HttpPost]
     public SaveResult SaveWithFreight(JObject saveBundle) {
       ContextProvider.BeforeSaveEntityDelegate = CheckFreight;
       return ContextProvider.SaveChanges(saveBundle);
@@ -187,6 +254,10 @@ namespace Sample_WebApi.Controllers {
     public SaveResult SaveCheckUnmappedProperty(JObject saveBundle) {
       ContextProvider.BeforeSaveEntityDelegate = CheckUnmappedProperty;
       return ContextProvider.SaveChanges(saveBundle);
+    }
+
+    private Dictionary<Type, List<EntityInfo>> ThrowError(Dictionary<Type, List<EntityInfo>> saveMap) {
+      throw new Exception("Deliberately thrown exception");
     }
 
     private Dictionary<Type, List<EntityInfo>> AddOrder(Dictionary<Type, List<EntityInfo>> saveMap) {
@@ -249,7 +320,7 @@ namespace Sample_WebApi.Controllers {
 
     private bool CheckUnmappedProperty(EntityInfo entityInfo) {
       var unmappedValue = entityInfo.UnmappedValuesMap["myUnmappedProperty"];
-      if ((String) unmappedValue != "anything22") {
+      if ((String)unmappedValue != "anything22") {
         throw new Exception("wrong value for unmapped property:  " + unmappedValue);
       }
       Customer cust = entityInfo.Entity as Customer;
@@ -266,8 +337,8 @@ namespace Sample_WebApi.Controllers {
 #if NHIBERNATE
         // need to figure out what to do here
         //return new List<Employee>();
-        var dc0 = new NorthwindContext();
-        var dc = new NorthwindContext();
+        var dc0 = new NorthwindNHContext();
+        var dc = new NorthwindNHContext();
 #elif CODEFIRST_PROVIDER
         var dc0 = new NorthwindIBContext_CF();
         var dc = new EFContextProvider<NorthwindIBContext_CF>();
@@ -548,11 +619,10 @@ namespace Sample_WebApi.Controllers {
 #else
     [BreezeQueryable]
 #endif
-    public HttpResponseMessage CustomersAsHRM()
-    {
-        var customers = ContextProvider.Context.Customers.Cast<Customer>();
-        var response = Request.CreateResponse(HttpStatusCode.OK, customers);
-        return response;
+    public HttpResponseMessage CustomersAsHRM() {
+      var customers = ContextProvider.Context.Customers.Cast<Customer>();
+      var response = Request.CreateResponse(HttpStatusCode.OK, customers);
+      return response;
     }
 
     #endregion
@@ -688,7 +758,7 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.TimeLimits;
     }
 #endif
-    #endregion
+  #endregion
 
   #region named queries
 
@@ -751,7 +821,7 @@ namespace Sample_WebApi.Controllers {
     }
 
 
-    #endregion
+  #endregion
   }
 
 #endif

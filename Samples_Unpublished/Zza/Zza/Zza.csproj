@@ -227,6 +227,9 @@
     <Content Include="Scripts\breeze.savequeuing.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </Content>
+        <Content Include="Scripts\breeze.dataservice.mongo.js">
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </Content>
     <None Include="Scripts\breeze.intellisense.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </None>
@@ -264,7 +267,7 @@
     <Content Include="test\config\jasmineTestRunnerConfig.js" />
     <Content Include="test\testdata\smallOrderTestData.js" />
     <Content Include="test\unit\utilSpec.js" />
-    <Content Include="test\zzaTestRunner.html" />
+    <Content Include="test\testRunner.html" />
     <Content Include="test\testdata\lookups.js" />
     <Content Include="test\unit\configSpec.js" />
     <Content Include="test\midway\dataserviceSpec.js" />
@@ -351,6 +354,7 @@
       COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\IBlade\breeze.dataservice.mongo.js" "$(ProjectDir)Scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Experimental\breeze.savequeuing.js" "$(ProjectDir)Scripts" /Y</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

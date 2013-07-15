@@ -145,7 +145,7 @@
     <Compile Include="Controllers\MetadataTestController.cs" />
     <Compile Include="Controllers\InheritanceController.cs" />
     <Compile Include="Controllers\NHConfig.cs" />
-    <Compile Include="Controllers\NorthwindContext.cs" />
+    <Compile Include="Controllers\NorthwindNHContext.cs" />
     <Compile Include="Controllers\ProduceTPHController.cs" />
     <Compile Include="Controllers\NonEFModels.cs" />
     <Compile Include="Controllers\NonEFModelController.cs" />
