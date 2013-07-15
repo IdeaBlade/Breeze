@@ -253,7 +253,7 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("save Order and update ShipAddress in ProduceTPH in BeforeSave", function () {
+    test("save Order and update ShipAddress in ProduceTPH in BeforeSave (uses DTC)", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
@@ -318,7 +318,7 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("save Order and update KeyMapping in ProduceTPH in AfterSave", function () {
+    test("save Order and update KeyMapping in ProduceTPH in AfterSave (uses DTC)", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
