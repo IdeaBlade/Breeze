@@ -9332,7 +9332,13 @@ var EntityQuery = (function () {
             for (var qoName in queryOptions) {
                 var qoValue = queryOptions[qoName];
                 if (qoValue !== undefined) {
-                    qoStrings.push(qoName + "=" + encodeURIComponent(qoValue));
+                    if (qoValue instanceof Array) {
+                        qoValue.forEach(function (qov) {
+                            qoStrings.push(qoName + "=" + encodeURIComponent(qov));
+                        });
+                    }  else {
+                        qoStrings.push(qoName + "=" + encodeURIComponent(qoValue));
+                    }
                 }
             }
 

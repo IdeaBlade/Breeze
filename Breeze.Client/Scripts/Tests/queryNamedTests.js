@@ -47,7 +47,7 @@
 
     });
 
-    test("named query building incorrect uri", function () {
+    test("named query withParameters using an array", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - this endpoint not yet implemented");
             return;
