@@ -407,7 +407,11 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public IQueryable<Customer> CustomersWithHttpError() {
-      throw new HttpResponseException(HttpStatusCode.NotFound);
+      // throw new HttpResponseException(HttpStatusCode.NotFound);
+      var responseMsg = new HttpResponseMessage(HttpStatusCode.NotFound);
+      responseMsg.Content = new StringContent("Custom error message");
+      responseMsg.ReasonPhrase = "Custom Reason";
+      throw new HttpResponseException(responseMsg);
     }
 
     [HttpGet]

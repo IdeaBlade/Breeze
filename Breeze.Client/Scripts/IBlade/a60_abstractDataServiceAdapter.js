@@ -133,11 +133,10 @@
             contentType: "application/json",
             data: bundle,
             success: function (data, textStatus, XHR) {
-                var error = data.Error || data.error;
-                if (error) {
+                var errors = data.Errors || data.errors;
+                if (errors) {
                     // anticipatable errors on server - concurrency...
-                    var err = that._createError(XHR);
-                    err.message = error;
+                    var err = prepareServerErrors(saveContext, errors);
                     deferred.reject(err);
                 } else {
                     var saveResult = that._prepareSaveResult(saveContext, data);
@@ -152,6 +151,22 @@
 
         return deferred.promise;
     };
+
+    function prepareServerErrors(saveContext, errors) {
+        var err = new Error();
+        var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
+        err.serverErrors = errors.map(function (e) {
+            return {
+                errorName: e.ErrorName,
+                entityTypeName: MetadataStore.normalizeTypeName(e.EntityTypeName),
+                keyValues: e.KeyValues,
+                propertyName: e.PropertyName && propNameFn(e.PropertyName),
+                errorMessage: e.ErrorMessage
+            };
+        });
+        err.message = "Server side errors encountered - see the serverErrors collection on this object for more detail";
+        return err;
+    }
 
     ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
         throw new Error("Need a concrete implementation of _prepareSaveBundle");

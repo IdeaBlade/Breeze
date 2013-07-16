@@ -32,6 +32,11 @@
     }
 
     test("named query first or default", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
+
         var em = newEm();
 
         var query = EntityQuery.from("CustomerFirstOrDefault");
@@ -43,6 +48,10 @@
     });
 
     test("named query building incorrect uri", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
         var em = newEm();
         
         var query = EntityQuery.from("SearchEmployees")
@@ -57,6 +66,11 @@
     });
 
     test("named query not returning results in same order as in server", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
+
         var em = newEm();
 
         var query = EntityQuery.from("CustomersOrderedStartingWith")

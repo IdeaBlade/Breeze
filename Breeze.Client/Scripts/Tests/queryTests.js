@@ -33,7 +33,7 @@
         stop();
         manager.executeQuery(query).then(function (data) {
             var cust1 = data.results[0];
-            var key = cust1.getProperty("customerID");
+            var key = cust1.getProperty(testFns.customerKeyName);
             var cust2 = manager.getEntityByKey("Customer", key);
             ok(cust1 === cust2);
         }).fail(function (e) {

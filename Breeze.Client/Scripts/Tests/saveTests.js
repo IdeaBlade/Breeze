@@ -61,23 +61,27 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("test delete entity with Int32 property set to null", function () {
+    test("delete entity with Int32 property set to null", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - employeeId is not an integer on Mongo");
+            return;
+        }
         var em = newEm();
         var c1 = em.createEntity("Order", { employeeID: 1 });
         stop();
         //save entity with non-null value on Int32 field
         em.saveChanges().then(function (sr) {
             var order = sr.entities[0];
-            var empID0 = order.getProperty("employeeID");
+            var empID0 = order.getProperty(testFns.employeeKeyName);
             ok(empID0 != null, "empID0 should not be null");
 
             //set the Int32 field to null
-            order.setProperty("employeeID", null);
+            order.setProperty(testFns.employeeKeyName, null);
             //resave entity
             return em.saveChanges();
         }).then(function (sr) {
             var order = sr.entities[0];
-            var empID1 = order.getProperty("employeeID");
+            var empID1 = order.getProperty(testFns.employeeKeyName);
             ok(empID1 === null, "value should be null");
 
             //mark entity as deleted
@@ -129,6 +133,11 @@
 
     test("check initializer is hit for entities added/saved on server", function () {
         // var em = newEm();
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
+            return;
+        }
 
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var ordInitializer = function (ord) {
@@ -228,6 +237,11 @@
             return;
         };
 
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
+            return;
+        }
+
         var em = newEm();
         var testAddress = "Test " + new Date().toISOString();
 
@@ -259,6 +273,11 @@
             return;
         };
 
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
+            return;
+        }
+
         var em = newEm();
         var testAddress = "Test " + new Date().toISOString();
 
@@ -289,6 +308,11 @@
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
         };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
+            return;
+        }
 
         var em = newEm();
         var testComment;
@@ -323,6 +347,11 @@
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
         };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
+            return;
+        }
 
         var em = newEm();
         var testComment;
@@ -681,10 +710,49 @@
         stop();
         em.saveChanges().then(function(sr) {
             ok(false, "should not get here");
-        }).fail(function(e) {
-            ok(e.message.toLowerCase().indexOf("validation errors") >= 0, "should be a validation error message");
+        }).fail(function (e) {
+            ok(e.serverErrors, "should be a server error");
+            ok(e.serverErrors.length === 1, "should be only one server error");
+            var errors = cust1.entityAspect.getValidationErrors();
+            ok(errors[0].errorMessage === serverErrors[0].errorMessage, "error message should appear on the cust");
+            // ok(e.message.toLowerCase().indexOf("validation errors") >= 0, "should be a validation error message");
         }).fin(start);
     });
+
+    test("save with server side entity level validation error + repeat", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - Mongo does not YET support server side validation");
+            return;
+        };
+
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        var cust1 = zzz.cust1;
+        cust1.setProperty("companyName", "error");
+        stop();
+        em.saveChanges().then(function (sr) {
+            ok(false, "should not get here");
+        }).fail(function (e) {
+            ok(e.serverErrors, "should be a server error");
+            ok(e.serverErrors.length === 1, "should be only one server error");
+            var errors = cust1.entityAspect.getValidationErrors();
+            ok(errors.length === 1, "should only be 1 error");
+            ok(errors[0].errorMessage === e.serverErrors[0].errorMessage, "error message should appear on the cust");
+            return em.saveChanges();
+        }).fail(function(e2) {
+           ok(e2.serverErrors, "should be a server error");
+           ok(e2.serverErrors.length === 1, "should be only one server error");
+           var errors = cust1.entityAspect.getValidationErrors();
+           ok(errors.length === 1, "should only be 1 error");
+           ok(errors[0].errorMessage === e2.serverErrors[0].errorMessage, "error message should appear on the cust");
+        }).fin(start);
+    });
+
     
     test("delete unsaved entity", function () {
         var realEm = newEm();
@@ -850,7 +918,12 @@
         }).then(function(sr) {
             ok(false, "shouldn't get here - except with DATABASEFIRST_OLD");
         }).fail(function (error) {
-            ok(error.message.indexOf("the word 'Error'") > 0, "incorrect error message");
+            ok(error.serverErrors, "should be some server errors");
+            ok(error.serverErrors.length === 1, "should be 1 server error");
+            ok(error.serverErrors[0].errorMessage.indexOf("the word 'Error'") > 0, "incorrect error message");
+            var custErrors = cust1.entityAspect.getValidationErrors();
+            ok(error.serverErrors[0].errorMessage === custErrors[0].errorMessage);
+            // ok(error.message.indexOf("the word 'Error'") > 0, "incorrect error message");
         }).fin(start);
 
 

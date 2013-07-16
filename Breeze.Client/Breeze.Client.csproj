@@ -248,6 +248,7 @@
     <None Include="Scripts\ThirdParty\q.README.md" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Scripts\Experimental\" />
     <Folder Include="Scripts\Unused\Enums\" />
     <Folder Include="Scripts\Unused\JQuery\" />
     <Folder Include="Scripts\Unused\OQuery\" />

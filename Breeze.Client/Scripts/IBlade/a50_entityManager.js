@@ -836,7 +836,10 @@ var EntityManager = (function () {
             
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param [errorCallback.error.serverErrors] { Array of serverErrors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
+        @param [errorCallback.error.XHR] {XMLHttpRequest} Any error that cannot be represented as a server error (above) will be returned in this format. 
+        This includes timeouts, server failures, database locking issues etc. 
+        
     @return {Promise} Promise
     **/
     proto.saveChanges = function (entities, saveOptions, callback, errorCallback) {
@@ -865,6 +868,8 @@ var EntityManager = (function () {
                 return Q.reject(err);
             }
         }
+
+        clearServerErrors(entitiesToSave);
             
         if (this.validationOptions.validateOnSave) {
             var failedEntities = entitiesToSave.filter(function (entity) {
@@ -927,12 +932,51 @@ var EntityManager = (function () {
             if (callback) callback(saveResult);
             return Q.resolve(saveResult);
         }, function (error) {
+            processServerErrors(saveContext, error);
             markIsBeingSaved(entitiesToSave, false);
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
         });
 
     };
+
+    function clearServerErrors(entities) {
+        entities.forEach(function (entity) {
+            var serverKeys = [];
+            __objectForEach(entity.entityAspect._validationErrors, function (err) {
+                if (err.isServerError) serverKeys.push(err.key);
+            });
+            if (serverKeys.length === 0) return;
+            serverKeys.forEach(function(key) {
+                delete this._validationErrors[key];
+            });
+            entity.hasValidationErrors = !__isEmpty(entity._validationErrors);
+        });
+
+    }
+
+    function processServerErrors(saveContext, error) {
+        var serverErrors = error.serverErrors;
+        if (!serverErrors) return;
+        var entityManager = saveContext.entityManager;
+        var metadataStore = entityManager.metadataStore;
+        serverErrors.forEach(function (serr) {
+            if (!serr.keyValues) return;
+            var entityType = metadataStore._getEntityType(serr.entityTypeName);
+            var ekey = new EntityKey(entityType, serr.keyValues);
+            var entity = entityManager.findEntityByKey(ekey);
+            if (!entity) return;
+            var ve = new ValidationError();
+            ve.errorMessage = serr.errorMessage;
+            ve.key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
+            ve.isServerError = true;
+            if (serr.propertyName) {
+                ve.propertyName = serr.propertyName;
+                ve.property = entityType.getProperty(serr.propertyName);
+            }
+            entity.entityAspect.addValidationError(ve);
+        });
+    }
     
     function haveSameContents(arr1, arr2) {
         if (arr1.length !== arr2.length) {
