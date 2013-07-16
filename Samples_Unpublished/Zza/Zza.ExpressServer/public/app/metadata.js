@@ -633,6 +633,20 @@ var zza=zza||{};zza.metadata=
                     ]
                 },
                 {
+                    "name":"isPremium",
+                    "dataType":"Boolean",
+                    "isNullable":false,
+                    "defaultValue":false,
+                    "validators":[
+                        {
+                            "name":"required"
+                        },
+                        {
+                            "name":"bool"
+                        }
+                    ]
+                },
+                {
                     "name":"isVegetarian",
                     "dataType":"Boolean",
                     "validators":[
