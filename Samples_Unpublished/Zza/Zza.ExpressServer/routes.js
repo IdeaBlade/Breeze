@@ -1,6 +1,7 @@
 var mongodb = require('mongodb');
 var fs = require('fs');
 var breezeMongo = require('breeze-mongodb');
+var metadata;
 
 var host = 'localhost';
 var port = 27017;
@@ -15,12 +16,23 @@ var db = new mongodb.Db(dbName, dbServer, {
 db.open(function () {/* noop */ });
 
 exports.getMetadata = function(req, res, next) {
-    var filename = serverBase + "metadata.json";
-    if (!fs.existsSync(filename)) {
-        next(new Error("Unable to locate file: " + filename));
+    if (!metadata){ getMetadataFromScriptFile();  }
+    res.send(metadata);
+
+    function getMetadataFromScriptFile(){
+        var filename = serverBase + "public/app/metadata.js";
+        if (!fs.existsSync(filename)) {
+            next(new Error("Unable to locate metadata file: " + filename));
+        }
+        var metadataSrc = fs.readFileSync(filename, 'utf8');
+
+        // Depend upon metadata.js in expected form:
+        //   begins "var zza=zza||{};zza.metadata=" ...then \n ... then { ... and
+        //   ends with "};"
+        metadata = metadataSrc.substring(
+            metadataSrc.indexOf('\n{')-1, // start with '{' following a newline
+            metadataSrc.lastIndexOf('}')+1); // end with last '}'
     }
-    var metadata = fs.readFileSync(filename, 'utf8');
-    res.sendfile(filename);
 }
 
 exports.get = function (req, res, next) {
