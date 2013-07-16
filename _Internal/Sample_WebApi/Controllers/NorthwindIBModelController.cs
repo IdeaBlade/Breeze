@@ -407,7 +407,11 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public IQueryable<Customer> CustomersWithHttpError() {
-      throw new HttpResponseException(HttpStatusCode.NotFound);
+      // throw new HttpResponseException(HttpStatusCode.NotFound);
+      var responseMsg = new HttpResponseMessage(HttpStatusCode.NotFound);
+      responseMsg.Content = new StringContent("Custom error message");
+      responseMsg.ReasonPhrase = "Custom Reason";
+      throw new HttpResponseException(responseMsg);
     }
 
     [HttpGet]
@@ -510,6 +514,17 @@ namespace Sample_WebApi.Controllers {
       var customer = ContextProvider.Context.Customers.Where(c => c.CompanyName.StartsWith("blah")).FirstOrDefault();
       return customer;
     }
+
+    [HttpGet]
+    public IQueryable<Employee> SearchEmployees([FromUri] int[] employeeIds) {
+      var query = ContextProvider.Context.Employees.AsQueryable();
+      if (employeeIds.Length > 0) {
+        query = query.Where(emp => employeeIds.Contains(emp.EmployeeID));
+        var result = query.ToList();
+      }
+      return query;
+    }
+
 
     [HttpGet]
     public IQueryable<Customer> CustomersOrderedStartingWith(string companyName) {

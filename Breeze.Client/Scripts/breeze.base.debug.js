@@ -2101,9 +2101,23 @@ var Validator = (function () {
         this.currentContext = currentContext;
         if (!this.valFn(value, currentContext)) {
             currentContext.value = value;
-            return new ValidationError(this, currentContext, this.getMessage());
+            return this.createValidationError(currentContext);
         }
         return null;
+    };
+
+    proto.createValidationError = function (context) {
+        var ve = new ValidationError();
+        ve.validator = this;
+
+        ve.context = context;
+        ve.property = context.property;
+        if (ve.property) {
+            ve.propertyName = context.propertyName || context.property.name;
+        }
+        ve.errorMessage = this.getMessage();
+        ve.key = ValidationError.getKey(this, ve.propertyName);
+        return ve;
     };
         
     // context.value is not avail unless validate was called first.
@@ -2566,22 +2580,9 @@ var ValidationError = (function () {
         
     /**
     @method <ctor> ValidationError
-    @param validator {Validator}
-    @param context {Object}
-    @param errorMessage {String}
     **/
-    var ctor = function (validator, context, errorMessage) {
-        assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
-
-        this.validator = validator;
-        context = context || {};
-        this.context = context;
-        this.property = context.property;
-        if (this.property) {
-            this.propertyName = context.propertyName || context.property.name;
-        }
-        this.errorMessage = errorMessage;
-        this.key = ValidationError.getKey(validator, this.propertyName);
+    var ctor = function () {
+        
     };
 
         
@@ -2620,8 +2621,31 @@ var ValidationError = (function () {
     @property errorMessage {string}
     **/
 
-    ctor.getKey = function (validator, propertyPath) {
-        return (propertyPath || "") + ":" + validator.name;
+    /**
+    The key by which this validation error may be removed from a collection of ValidationErrors.
+
+    __readOnly__
+    @property key {string}
+    **/
+
+    /**
+   Whether this is a server error.  This property will be missing completely for client side errors.
+
+   __readOnly__
+   @property isServerError {bool}
+   **/
+
+
+    /**
+    Returns a ValidationError 'key' given a validator and an option propertyName
+    @method getKey
+    @static
+    @param validator {Validator} 
+    @param [propertyName] A property name
+    @return {String} A ValidationError 'key'
+    **/
+    ctor.getKey = function (validator, propertyName) {
+        return (propertyName || "") + ":" + (validator.name || validator);
     };
 
     return ctor;
@@ -3535,7 +3559,7 @@ var EntityAspect = (function() {
     };
 
     /**
-    Adds a validation error for a specified property.
+    Adds a validation error.
     @method addValidationError
     @param validationError {ValidationError} 
     **/
@@ -3547,16 +3571,16 @@ var EntityAspect = (function() {
     };
 
     /**
-    Removes a validation error for a specified property.
+    Removes a validation error.
     @method removeValidationError
-    @param validator {Validator}
-    @param [property] {DataProperty|NavigationProperty}
+    @param validationErrorOrKey {ValidationError|String} Either a ValidationError or a ValidationError 'key' value
     **/
-    proto.removeValidationError = function (validator, property) {
-        assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
-        assertParam(property, "property").isOptional().isEntityProperty().check();
+    proto.removeValidationError = function (validationErrorOrKey) {
+        assertParam(validationErrorOrKey, "validationErrorOrKey").isString().or().isInstanceOf(ValidationError).or().isInstanceOf(Validator).check();
+        
+        var key = (typeof (validationErrorOrKey) === "string") ? validationErrorOrKey : validationErrorOrKey.key;
         this._processValidationOpAndPublish(function (that) {
-            that._removeValidationError(validator, property && property.name);
+            that._removeValidationError(key);
         });
     };
 
@@ -3664,8 +3688,7 @@ var EntityAspect = (function() {
         this._pendingValidationResult.added.push(validationError);
     };
 
-    proto._removeValidationError = function (validator, propertyPath) {
-        var key = ValidationError.getKey(validator, propertyPath);
+    proto._removeValidationError = function (key) {
         var valError = this._validationErrors[key];
         if (valError) {
             delete this._validationErrors[key];
@@ -3751,7 +3774,8 @@ var EntityAspect = (function() {
             aspect._addValidationError(ve);
             return false;
         } else {
-            aspect._removeValidationError(validator, context ? context.propertyName: null);
+            var key = ValidationError.getKey(validator, context ? context.propertyName: null);
+            aspect._removeValidationError(key);
             return true;
         }
     }
@@ -3933,7 +3957,6 @@ var EntityKey = (function () {
     @param keyValues {value|Array of values} A single value or an array of values.
     **/
     var ctor = function (entityType, keyValues) {
-        
         assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
         var subtypes = entityType.getSelfAndSubtypes();
         if (subtypes.length > 1) {
@@ -9309,7 +9332,13 @@ var EntityQuery = (function () {
             for (var qoName in queryOptions) {
                 var qoValue = queryOptions[qoName];
                 if (qoValue !== undefined) {
-                    qoStrings.push(qoName + "=" + encodeURIComponent(qoValue));
+                    if (qoValue instanceof Array) {
+                        qoValue.forEach(function (qov) {
+                            qoStrings.push(qoName + "=" + encodeURIComponent(qov));
+                        });
+                    }  else {
+                        qoStrings.push(qoName + "=" + encodeURIComponent(qoValue));
+                    }
                 }
             }
 
@@ -11813,7 +11842,10 @@ var EntityManager = (function () {
             
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param [errorCallback.error.serverErrors] { Array of serverErrors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
+        @param [errorCallback.error.XHR] {XMLHttpRequest} Any error that cannot be represented as a server error (above) will be returned in this format. 
+        This includes timeouts, server failures, database locking issues etc. 
+        
     @return {Promise} Promise
     **/
     proto.saveChanges = function (entities, saveOptions, callback, errorCallback) {
@@ -11842,6 +11874,8 @@ var EntityManager = (function () {
                 return Q.reject(err);
             }
         }
+
+        clearServerErrors(entitiesToSave);
             
         if (this.validationOptions.validateOnSave) {
             var failedEntities = entitiesToSave.filter(function (entity) {
@@ -11904,12 +11938,51 @@ var EntityManager = (function () {
             if (callback) callback(saveResult);
             return Q.resolve(saveResult);
         }, function (error) {
+            processServerErrors(saveContext, error);
             markIsBeingSaved(entitiesToSave, false);
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
         });
 
     };
+
+    function clearServerErrors(entities) {
+        entities.forEach(function (entity) {
+            var serverKeys = [];
+            __objectForEach(entity.entityAspect._validationErrors, function (err) {
+                if (err.isServerError) serverKeys.push(err.key);
+            });
+            if (serverKeys.length === 0) return;
+            serverKeys.forEach(function(key) {
+                delete this._validationErrors[key];
+            });
+            entity.hasValidationErrors = !__isEmpty(entity._validationErrors);
+        });
+
+    }
+
+    function processServerErrors(saveContext, error) {
+        var serverErrors = error.serverErrors;
+        if (!serverErrors) return;
+        var entityManager = saveContext.entityManager;
+        var metadataStore = entityManager.metadataStore;
+        serverErrors.forEach(function (serr) {
+            if (!serr.keyValues) return;
+            var entityType = metadataStore._getEntityType(serr.entityTypeName);
+            var ekey = new EntityKey(entityType, serr.keyValues);
+            var entity = entityManager.findEntityByKey(ekey);
+            if (!entity) return;
+            var ve = new ValidationError();
+            ve.errorMessage = serr.errorMessage;
+            ve.key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
+            ve.isServerError = true;
+            if (serr.propertyName) {
+                ve.propertyName = serr.propertyName;
+                ve.property = entityType.getProperty(serr.propertyName);
+            }
+            entity.entityAspect.addValidationError(ve);
+        });
+    }
     
     function haveSameContents(arr1, arr2) {
         if (arr1.length !== arr2.length) {
@@ -13691,11 +13764,10 @@ breeze.AbstractDataServiceAdapter = (function () {
             contentType: "application/json",
             data: bundle,
             success: function (data, textStatus, XHR) {
-                var error = data.Error || data.error;
-                if (error) {
+                var errors = data.Errors || data.errors;
+                if (errors) {
                     // anticipatable errors on server - concurrency...
-                    var err = that._createError(XHR);
-                    err.message = error;
+                    var err = prepareServerErrors(saveContext, errors);
                     deferred.reject(err);
                 } else {
                     var saveResult = that._prepareSaveResult(saveContext, data);
@@ -13710,6 +13782,22 @@ breeze.AbstractDataServiceAdapter = (function () {
 
         return deferred.promise;
     };
+
+    function prepareServerErrors(saveContext, errors) {
+        var err = new Error();
+        var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
+        err.serverErrors = errors.map(function (e) {
+            return {
+                errorName: e.ErrorName,
+                entityTypeName: MetadataStore.normalizeTypeName(e.EntityTypeName),
+                keyValues: e.KeyValues,
+                propertyName: e.PropertyName && propNameFn(e.PropertyName),
+                errorMessage: e.ErrorMessage
+            };
+        });
+        err.message = "Server side errors encountered - see the serverErrors collection on this object for more detail";
+        return err;
+    }
 
     ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
         throw new Error("Need a concrete implementation of _prepareSaveBundle");

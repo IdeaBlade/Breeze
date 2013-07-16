@@ -254,10 +254,10 @@ namespace Breeze.WebApi {
 
     public Dictionary<Type, List<EntityInfo>> SaveMap { get; set; }
     public List<KeyMapping> KeyMappings;
-    public List<Object> Errors;
+    public List<EntityError> EntityErrors;
     public SaveResult ToSaveResult() {
-      if (Errors != null) {
-        return new SaveResult() { Errors = Errors };
+      if (EntityErrors != null) {
+        return new SaveResult() { Errors = EntityErrors.Cast<Object>().ToList() };
       } else {
         var entities = SaveMap.SelectMany(kvp => kvp.Value.Select(entityInfo => entityInfo.Entity)).ToList();
         return new SaveResult() { Entities = entities, KeyMappings = KeyMappings };
@@ -363,7 +363,16 @@ namespace Breeze.WebApi {
     public Object RealValue;
   }
 
+  public class EntityError {
+    public String ErrorName;
+    public String EntityTypeName;
+    public Object[] KeyValues;
+    public String PropertyName;
+    public string ErrorMessage;
+    
+  }
 
+  
 
   public class JsonPropertyFixupWriter : JsonTextWriter {
     public JsonPropertyFixupWriter(TextWriter textWriter)

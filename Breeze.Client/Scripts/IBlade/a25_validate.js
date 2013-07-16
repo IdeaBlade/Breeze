@@ -198,9 +198,23 @@ var Validator = (function () {
         this.currentContext = currentContext;
         if (!this.valFn(value, currentContext)) {
             currentContext.value = value;
-            return new ValidationError(this, currentContext, this.getMessage());
+            return this.createValidationError(currentContext);
         }
         return null;
+    };
+
+    proto.createValidationError = function (context) {
+        var ve = new ValidationError();
+        ve.validator = this;
+
+        ve.context = context;
+        ve.property = context.property;
+        if (ve.property) {
+            ve.propertyName = context.propertyName || context.property.name;
+        }
+        ve.errorMessage = this.getMessage();
+        ve.key = ValidationError.getKey(this, ve.propertyName);
+        return ve;
     };
         
     // context.value is not avail unless validate was called first.
@@ -663,22 +677,9 @@ var ValidationError = (function () {
         
     /**
     @method <ctor> ValidationError
-    @param validator {Validator}
-    @param context {Object}
-    @param errorMessage {String}
     **/
-    var ctor = function (validator, context, errorMessage) {
-        assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
-
-        this.validator = validator;
-        context = context || {};
-        this.context = context;
-        this.property = context.property;
-        if (this.property) {
-            this.propertyName = context.propertyName || context.property.name;
-        }
-        this.errorMessage = errorMessage;
-        this.key = ValidationError.getKey(validator, this.propertyName);
+    var ctor = function () {
+        
     };
 
         
@@ -717,8 +718,31 @@ var ValidationError = (function () {
     @property errorMessage {string}
     **/
 
-    ctor.getKey = function (validator, propertyPath) {
-        return (propertyPath || "") + ":" + validator.name;
+    /**
+    The key by which this validation error may be removed from a collection of ValidationErrors.
+
+    __readOnly__
+    @property key {string}
+    **/
+
+    /**
+   Whether this is a server error.  This property will be missing completely for client side errors.
+
+   __readOnly__
+   @property isServerError {bool}
+   **/
+
+
+    /**
+    Returns a ValidationError 'key' given a validator and an option propertyName
+    @method getKey
+    @static
+    @param validator {Validator} 
+    @param [propertyName] A property name
+    @return {String} A ValidationError 'key'
+    **/
+    ctor.getKey = function (validator, propertyName) {
+        return (propertyName || "") + ":" + (validator.name || validator);
     };
 
     return ctor;

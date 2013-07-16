@@ -30,6 +30,11 @@
     });
 
     test("test D2460 - Detaching the parent modifies the in-cache children", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not YET supported");
+            return;
+        }
+
         var em = newEm();
         var q = EntityQuery.from("Employees").where("employeeID", "==", 1)
             .expand("orders");

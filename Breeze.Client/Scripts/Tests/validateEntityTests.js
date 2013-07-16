@@ -12,6 +12,7 @@
     var EntityKey = breeze.EntityKey;
     var EntityState = breeze.EntityState;
     var Validator = breeze.Validator;
+    var ValidationError = breeze.ValidationError;
 
 
     var newEm = testFns.newEm;
@@ -75,7 +76,8 @@
         // Clear out the "alwaysWrong" error
         // Must do manually because that rule is now gone
         // and, therefore, can't cleanup after itself
-        cust.entityAspect.removeValidationError(alwaysWrong);
+        var valKey = ValidationError.getKey(alwaysWrong);
+        cust.entityAspect.removeValidationError(valKey);
 
         cust.entityAspect.validateEntity(); // re-validate
 
