@@ -2,15 +2,12 @@
 (function () {
     'use strict';
     angular.module('app').factory(
-        'dataservice', ['entityManagerProvider', 'util', dataservice]);
+        'dataservice', ['entityManagerProvider', 'model', 'util', dataservice]);
 
-    function dataservice(entityManagerProvider, util) {
+    function dataservice(entityManagerProvider, model, util) {
         var breeze = util.breeze,
             config = util.config,
             logger = util.logger,
-            $apply = util.$apply,
-            $q = util.$q,
-            to$q = util.to$q,
             $timeout = util.$timeout;
 
         var EntityQuery = breeze.EntityQuery,
@@ -22,13 +19,7 @@
         var service = {
             initialize: initialize,
             initializeSynchronously: initializeSynchronously, // testing only?
-            getAllCustomers: getAllCustomers,
-            getOrders: getOrders,
             saveChanges: saveChanges,
-            exportChanges: exportChanges,
-            importChanges: importChanges,
-            detachEntities: detachEntities,
-            attachOrphanOrderItemsToOrder: attachOrphanOrderItemsToOrder,
             resetManager: resetManager,
             addOrderItem: addOrderItem,
             addOrderItemOption: addOrderItemOption
@@ -51,8 +42,8 @@
             initFailed = false;
 
             return initPromise = fetchLookups()
-                .then(success).fail(failure)
-                .to$q(); // convert Q.js promise to $q promise
+                .then(success).fail(failure).to$q();
+                // .to$q converts Q.js promise to $q promise
 
             function success() {
                 initializeSynchronously();
@@ -106,11 +97,11 @@
             os.byName = u.filterByName(os.statuses);
 
             // OrderStatus enums               
-            os.Ordered = os.byName(/Ordered/i);
-            os.PickedUp = os.byName(/PickedUp/i);
-            os.Delivered = os.byName(/Delivered/i);
-            os.Cancelled = os.byName(/Cancelled/i);
-            os.Pending = os.byName(/Pending/i);
+            os.Ordered = os.byName(/Ordered/i)[0];
+            os.PickedUp = os.byName(/PickedUp/i)[0];
+            os.Delivered = os.byName(/Delivered/i)[0];
+            os.Cancelled = os.byName(/Cancelled/i)[0];
+            os.Pending = os.byName(/Pending/i)[0];
 
             s.products.byId = u.filterById(s.products);
             s.products.byType = u.filterByType(s.products);
@@ -155,44 +146,17 @@
         }
 
         function createDraftAndCartOrders() {
-            var orderInit = {
-                customerId: util.emptyGuid,
-                orderStatusId: service.OrderStatus.Pending.id,
-                orderDate: new Date(),
-                deliveryDate: new Date()
-            };
-            service.cartOrder = manager.createEntity('Order', orderInit);
-            service.draftOrder = manager.createEntity('Order', orderInit);
+            var orderInit = { orderStatusId: service.OrderStatus.Pending.id};
+            service.cartOrder = model.Order.create(manager, orderInit);
+            service.draftOrder = model.Order.create(manager, orderInit);
         }
 
         function addOrderItem(order, productId) {
-            var orderItem = manager.createEntity('OrderItem', {
-                orderId: order.id,
-                productId: productId,
-                quantity: 1
-            });
-            return orderItem;
+            return order.addOrderItem(productId);
         }
 
         function addOrderItemOption(orderItem, productOptionId) {
-            var orderItemOption = manager.createEntity('OrderItemOption', {
-                orderItemId: orderItem.id,
-                productOptionId: productOptionId,
-                quantity: 1
-            });
-            return orderItemOption;
-        }
-
-        function getAllCustomers() {
-            var query = EntityQuery
-                .from("Customers")
-                .orderBy("CompanyName");
-
-            return manager.executeQuery(query);
-        }
-
-        function getOrders(customer) {
-            return customer.entityAspect.loadNavigationProperty("Orders");
+            return orderItem.addOrderItemOption(productOptionId);
         }
 
         function saveChanges() {
@@ -233,29 +197,6 @@
         // Should be in Breeze itself
         function attachEntities(entities, entityState) {
             entities.forEach(function (entity) { manager.attachEntity(entity, entityState); });
-        }
-
-        function detachEntities(entities) {
-            entities.forEach(function (entity) { manager.detachEntity(entity); });
-        }
-
-        function exportChanges(entities) {
-            entities = entities || manager.getChanges();
-            var changeset = manager.exportEntities(entities);
-            return changeset;
-        }
-
-        function importChanges(changeset) {
-            manager.importEntities(changeset);
-        }
-
-        function attachOrphanOrderItemsToOrder(order) {
-            var orderItems = manager.getEntities('OrderItem');
-            orderItems.forEach(function (oi) {
-                if (!oi.order) {
-                    oi.order = order;
-                }
-            });
         }
         //#endregion
 

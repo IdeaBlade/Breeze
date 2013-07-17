@@ -237,6 +237,12 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.SaveChanges(saveBundle);
     }
 
+    [HttpPost]
+    public SaveResult SaveWithEntityErrorsException(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntitiesDelegate = ThrowEntityErrorsException;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
 
     [HttpPost]
     public SaveResult SaveWithFreight(JObject saveBundle) {
@@ -265,6 +271,18 @@ namespace Sample_WebApi.Controllers {
     private Dictionary<Type, List<EntityInfo>> ThrowError(Dictionary<Type, List<EntityInfo>> saveMap) {
       throw new Exception("Deliberately thrown exception");
     }
+
+    private Dictionary<Type, List<EntityInfo>> ThrowEntityErrorsException(Dictionary<Type, List<EntityInfo>> saveMap) {
+      List<EntityInfo> orderInfos;
+      if (saveMap.TryGetValue(typeof(Order), out orderInfos)) {
+        var errors = orderInfos.Select(oi => {
+          return new EFEntityError(oi, "Cannot save orders with this save method", "OrderID");
+        });
+        throw new EntityErrorsException(errors);
+      }
+      return saveMap;
+    }
+
 
     private Dictionary<Type, List<EntityInfo>> AddOrder(Dictionary<Type, List<EntityInfo>> saveMap) {
       var order = new Order();

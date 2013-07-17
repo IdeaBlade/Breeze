@@ -2099,11 +2099,19 @@ var Validator = (function () {
             currentContext = this.context;
         }
         this.currentContext = currentContext;
-        if (!this.valFn(value, currentContext)) {
-            currentContext.value = value;
-            return this.createValidationError(currentContext);
+        
+        try {
+            if (this.valFn(value, currentContext)) {
+                return null;
+            } else {
+                currentContext.value = value;
+                return this.createValidationError(currentContext);
+            }
+        } catch (e) {
+            var ve  = this.createValidationError(currentContext);
+            ve.errorMessage = "Exception occured while executing this validator: " + this.name;
+            return ve;
         }
-        return null;
     };
 
     proto.createValidationError = function (context) {
@@ -3657,7 +3665,7 @@ var EntityAspect = (function() {
         var ok = true;
         this._processValidationOpAndPublish(function (that) {
             context.property.validators.forEach(function (validator) {
-                ok = ok && validate(that, validator, value, context);
+                ok = validate(that, validator, value, context) && ok;
             });
         });
         return ok;
