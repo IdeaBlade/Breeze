@@ -3,14 +3,19 @@
 
     var app = angular.module('app');
     
-    var config = {
-        version: '0.1',
-        serviceName: 'breeze/ZzaEf',
-        devServiceName: 'breeze/Dev',
-        imageBase: 'app/images/products/',
-        userSessionId: breeze.core.getUuid()
-    };       
-    app.value('config', config); 
+    app.factory('config', ['environment', config]);
+
+    function config(environment) {
+        return {
+            version: '0.1',
+            server: environment.server,
+            serviceName: environment.serviceName,
+            devServiceName: environment.devServiceName,
+            imageBase: 'app/images/products/',
+            userSessionId: breeze.core.getUuid()
+        };
+    }
+
 
     toastr.options.timeOut = 2000; // 2 second toast timeout
     toastr.options.positionClass = 'toast-bottom-right';

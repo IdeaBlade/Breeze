@@ -120,6 +120,7 @@
     <Content Include="app\controllers\routeController.js" />
     <Content Include="app\controllers\orderController.js" />
     <Content Include="app\appRun.js" />
+    <Content Include="app\environment.js" />
     <Content Include="app\images\icon_tomato.png" />
     <Content Include="app\images\icon_vegetarian.png" />
     <Content Include="app\images\products\amadeus.jpg" />
@@ -227,7 +228,7 @@
     <Content Include="Scripts\breeze.savequeuing.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </Content>
-        <Content Include="Scripts\breeze.dataservice.mongo.js">
+    <Content Include="Scripts\breeze.dataservice.mongo.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </Content>
     <None Include="Scripts\breeze.intellisense.js">
