@@ -1,7 +1,8 @@
-﻿// Only one of the next 4 should be uncommented.
+﻿// Only one of the next 5 should be uncommented.
 //#define CODEFIRST_PROVIDER
 //#define DATABASEFIRST_OLD
 #define DATABASEFIRST_NEW
+//#define ORACLE_EDMX
 //#define NHIBERNATE
 
 
@@ -30,6 +31,8 @@ using System.ComponentModel.DataAnnotations;
 using Models.NorthwindIB.EDMX;
 #elif DATABASEFIRST_NEW
 using Models.NorthwindIB.EDMX_2012;
+#elif ORACLE_EDMX
+using Models.NorthwindIB.Oracle;
 #elif NHIBERNATE
 using Models.NorthwindIB.NH;
 using Breeze.Nhibernate.WebApi;
@@ -48,6 +51,9 @@ namespace Sample_WebApi.Controllers {
     public NorthwindContextProvider() : base() { }
 #elif DATABASEFIRST_NEW
   public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_2012> {
+    public NorthwindContextProvider() : base() { }
+#elif ORACLE_EDMX
+  public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_Oracle> {
     public NorthwindContextProvider() : base() { }
 #elif NHIBERNATE
   public class NorthwindContextProvider : NorthwindNHContext {
@@ -348,6 +354,9 @@ namespace Sample_WebApi.Controllers {
 #elif DATABASEFIRST_NEW
       var dc0 = new NorthwindIBContext_EDMX_2012();
       var dc = new EFContextProvider<NorthwindIBContext_EDMX_2012>();
+#elif ORACLE_EDMX
+      var dc0 = new NorthwindIBContext_EDMX_Oracle();
+      var dc = new EFContextProvider<NorthwindIBContext_EDMX_Oracle>();
 #endif
       //the query executes using pure EF 
       var query0 = (from t1 in dc0.Employees

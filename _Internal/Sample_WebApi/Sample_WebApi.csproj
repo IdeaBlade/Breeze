@@ -409,6 +409,10 @@
       <Project>{deadb93b-f375-42b7-b41c-9d02d3199e77}</Project>
       <Name>Model_NorthwindIB_EDMX_2012</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Model_NorthwindIB_EDMX_Oracle\Model_NorthwindIB_EDMX_Oracle.csproj">
+      <Project>{c5c44af0-5975-4c58-8ad4-ed5f5fde7f9a}</Project>
+      <Name>Model_NorthwindIB_EDMX_Oracle</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model_NorthwindIB_NH\Model_NorthwindIB_NH.csproj">
       <Project>{afc1c3a8-40d5-4db3-82be-19730091a4f2}</Project>
       <Name>Model_NorthwindIB_NH</Name>
