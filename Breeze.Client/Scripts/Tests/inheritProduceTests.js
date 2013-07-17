@@ -49,6 +49,25 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
+    test("query with predicate failing on inheritance entities", function () {
+        var manager = newEmX();
+
+        var predicate = Predicate.create('name', '==', 'Apple')
+            .or('name', '==', 'Orange');
+
+        var query = new breeze.EntityQuery()
+            .from("Fruits")
+            .where(predicate)
+            .toType('ItemOfProduce');
+
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(true);
+        }).fail(function (e) {
+            ok(false, e.message);
+        }).fin(start);
+    });
+
     test("getEntityByKey failing 2", function () {
         var manager = newEmX();
         var query = new breeze.EntityQuery()
