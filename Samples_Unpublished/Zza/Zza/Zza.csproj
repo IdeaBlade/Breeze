@@ -46,13 +46,10 @@
     </Reference>
     <Reference Include="Breeze.WebApi">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Zza.DataAccess.EF\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\Zza.Interfaces\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="Irony">
-      <HintPath>..\packages\Breeze.WebApi.1.3.5\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -285,7 +282,6 @@
     <Compile Include="App_Start\ScriptWriter.cs" />
     <Compile Include="Controllers\DevController.cs" />
     <Compile Include="Controllers\ZzaEfController.cs" />
-    <Compile Include="Controllers\ZzaNhController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -304,10 +300,6 @@
     <ProjectReference Include="..\Zza.DataAccess.EF\Zza.DataAccess.EF.csproj">
       <Project>{57e72b09-3299-4af9-8a81-5d82c37613d7}</Project>
       <Name>Zza.DataAccess.EF</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Zza.DataAccess.NH\Zza.DataAccess.NH.csproj">
-      <Project>{a94398f2-b2dd-4eb0-8c6f-ac9d2c255f30}</Project>
-      <Name>Zza.DataAccess.NH</Name>
     </ProjectReference>
     <ProjectReference Include="..\Zza.Interfaces\Zza.Interfaces.csproj">
       <Project>{1dce6208-8e07-4e0e-b758-400452a50329}</Project>
