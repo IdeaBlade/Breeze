@@ -11980,6 +11980,7 @@ var EntityManager = (function () {
             var ekey = new EntityKey(entityType, serr.keyValues);
             var entity = entityManager.findEntityByKey(ekey);
             if (!entity) return;
+            serr.entity = entity;
             var ve = new ValidationError();
             ve.errorMessage = serr.errorMessage;
             ve.key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);

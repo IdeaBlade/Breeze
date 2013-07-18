@@ -727,6 +727,49 @@
 
     });
 
+    test("save/mods with EntityErrorsException", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - Mongo does not YET support server side validation");
+            return;
+        };
+
+
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        var cust1 = zzz.cust1;
+        
+        stop();
+        em.saveChanges().then(function (sr) {
+            zzz.cust1.setProperty("contactName", "foo");
+            zzz.cust2.setProperty("contactName", "foo");
+            zzz.order1.setProperty("freight", 888.11);
+            zzz.order2.setProperty("freight", 888.11);
+            ok(zzz.cust1.entityAspect.entityState.isModified(), "cust1 should be modified");
+            ok(zzz.order1.entityAspect.entityState.isModified(), "order1 should be modified");
+            var so = new SaveOptions({ resourceName: "SaveWithEntityErrorsException", tag: "entityErrorsException" });
+            return em.saveChanges(null, so);
+        }).then(function(sr2) {
+            ok(false, "should not get here");
+        }).fail(function (e) {
+            ok(e.serverErrors, "should have server errors");
+            ok(e.serverErrors.length === 2, "2 order entities should have failed");
+            ok(zzz.order1.entityAspect.getValidationErrors().length === 1);
+            var order2Errs = zzz.order2.entityAspect.getValidationErrors();
+            ok(order2Errs.length === 1, "should be 1 error for order2");
+            ok(order2Errs[0].propertyName === "orderID", "errant property should have been 'orderID'");
+            // now save it properly
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(sr.entities.length === 4, "should have saved ok");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     test("save with server side entity level validation error", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");

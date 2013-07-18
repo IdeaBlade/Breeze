@@ -53,7 +53,7 @@ namespace Sample_WebApi.Controllers {
   public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_2012> {
     public NorthwindContextProvider() : base() { }
 #elif ORACLE_EDMX
-  public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_Oracle> {
+  public class NorthwindContextProvider : EFContextProvider<Entities> {
     public NorthwindContextProvider() : base() { }
 #elif NHIBERNATE
   public class NorthwindContextProvider : NorthwindNHContext {
@@ -82,9 +82,15 @@ namespace Sample_WebApi.Controllers {
     private int AddComment(string comment, byte seqnum) {
       var conn = base.GetDbConnection();
       var cmd = conn.CreateCommand();
+#if ORACLE_EDMX
+      var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+      cmd.CommandText = String.Format("insert into COMMENT_ (CreatedOn, Comment1, SeqNum) values (TO_DATE('{0}','YYYY-MM-DD HH24:MI:SS'), '{1}', {2})",
+          time, comment, seqnum);
+#else
       var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
       cmd.CommandText = String.Format("insert into Comment (CreatedOn, Comment1, SeqNum) values ('{0}', '{1}', {2})",
           time, comment, seqnum);
+#endif
       var result = cmd.ExecuteNonQuery();
       return result;
     }
@@ -121,6 +127,18 @@ namespace Sample_WebApi.Controllers {
         var region = entityInfo.Entity as Region;
         if (region.RegionDescription.ToLowerInvariant().StartsWith("error")) return false;
       }
+
+#if ORACLE_EDMX
+      // Remove '-' from GUIDs in Customer and Order to be compatible with Oracle
+      if (entityInfo.Entity.GetType() == typeof(Customer)) {
+        var cust = entityInfo.Entity as Customer;
+        cust.CustomerID = cust.CustomerID.Replace("-", "").ToUpperInvariant();
+      } else if (entityInfo.Entity.GetType() == typeof(Order)) {
+        var order = entityInfo.Entity as Order;
+        order.CustomerID = order.CustomerID.Replace("-", "").ToUpperInvariant();
+      }
+#endif
+
       return base.BeforeSaveEntity(entityInfo);
     }
 
@@ -373,8 +391,8 @@ namespace Sample_WebApi.Controllers {
       var dc0 = new NorthwindIBContext_EDMX_2012();
       var dc = new EFContextProvider<NorthwindIBContext_EDMX_2012>();
 #elif ORACLE_EDMX
-      var dc0 = new NorthwindIBContext_EDMX_Oracle();
-      var dc = new EFContextProvider<NorthwindIBContext_EDMX_Oracle>();
+      var dc0 = new Entities();
+      var dc = new EFContextProvider<Entities>();
 #endif
       //the query executes using pure EF 
       var query0 = (from t1 in dc0.Employees

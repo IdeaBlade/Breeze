@@ -15,8 +15,8 @@ namespace Models.NorthwindIB.Oracle
     public partial class TimeLimit
     {
         public int Id { get; set; }
-        public System.TimeSpan MaxTime { get; set; }
-        public Nullable<System.TimeSpan> MinTime { get; set; }
+        public string MaxTime { get; set; }
+        public string MinTime { get; set; }
         public Nullable<int> TimeGroupId { get; set; }
     
         public virtual TimeGroup TimeGroup { get; set; }
