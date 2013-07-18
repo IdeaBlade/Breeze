@@ -373,6 +373,7 @@
     <Content Include="Images\twitter.png" />
     <Content Include="Images\windowsLive.png" />
     <None Include="App_Data\metadataTest.json" />
+    <None Include="copyscripts.bat" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
