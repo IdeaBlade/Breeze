@@ -129,13 +129,17 @@ namespace Sample_WebApi.Controllers {
       }
 
 #if ORACLE_EDMX
-      // Remove '-' from GUIDs in Customer and Order to be compatible with Oracle
+      // Convert GUIDs in Customer and Order to be compatible with Oracle
       if (entityInfo.Entity.GetType() == typeof(Customer)) {
         var cust = entityInfo.Entity as Customer;
-        cust.CustomerID = cust.CustomerID.Replace("-", "").ToUpperInvariant();
+        if (cust.CustomerID != null) {
+          cust.CustomerID = cust.CustomerID.ToUpperInvariant();
+        }
       } else if (entityInfo.Entity.GetType() == typeof(Order)) {
         var order = entityInfo.Entity as Order;
-        order.CustomerID = order.CustomerID.Replace("-", "").ToUpperInvariant();
+        if (order.CustomerID != null) {
+          order.CustomerID = order.CustomerID.ToUpperInvariant();
+        }
       }
 #endif
 
