@@ -22,8 +22,11 @@
             store.importMetadata(JSON.stringify(zza.metadata));
 
             // Associate these metadata data with the service
+            // if not already associated
+            if (!store.hasMetadataFor(serviceName))   {
             store.addDataService(
-                new breeze.DataService({ serviceName: serviceName }));           
+                new breeze.DataService({ serviceName: serviceName }));
+            }
 
             model.configureMetadataStore(store);
 

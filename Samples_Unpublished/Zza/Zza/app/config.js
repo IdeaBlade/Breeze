@@ -23,7 +23,6 @@
     
     // configure Breeze for this app
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
-    breeze.NamingConvention.camelCase.setAsDefault();
     initBreezeAjaxAdapter(config.userSessionId);
     app.value('breeze', breeze);
     

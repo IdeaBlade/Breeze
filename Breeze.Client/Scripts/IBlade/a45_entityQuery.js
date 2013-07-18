@@ -1050,11 +1050,10 @@ var FnNode = (function() {
     var RX_COMMA_DELIM1 = /('[^']*'|[^,]+)/g ;
     var RX_COMMA_DELIM2 = /("[^"]*"|[^,]+)/g ;
         
+    // entityType will only be passed in for rhs expr.
     var ctor = function (source, tokens, entityType) {
         var parts = source.split(":");
-        if (entityType) {
-            this.isValidated = true;
-        }
+        this.isRealNode = true;
         if (parts.length === 1) {
             var value = parts[0].trim();
             this.value = value;
@@ -1072,7 +1071,7 @@ var FnNode = (function() {
                     if (entityType) {
                         if (entityType.getProperty(value, false) == null) {
                             // not a real FnNode;
-                            this.isValidated = false;
+                            this.isRealNode = false;
                             return;
                         }
                     }
@@ -1080,7 +1079,7 @@ var FnNode = (function() {
                     this.fn = createPropFunction(value);
                 } else {
                     if (entityType) {
-                        this.isValidated = false;
+                        this.isRealNode = false;
                         return;
                     }
                     this.fn = function (entity) { return value; };
@@ -1109,10 +1108,10 @@ var FnNode = (function() {
                 var commaMatchStr = source.indexOf("'") >= 0 ? RX_COMMA_DELIM1 : RX_COMMA_DELIM2;
                 var args = argSource.match(commaMatchStr);
                 this.fnNodes = args.map(function(a) {
-                    return new FnNode(a, tokens);
+                    return new FnNode(a, tokens );
                 });
             } catch (e) {
-                this.isValidated = false;
+                this.isRealNode = false;
             }
         }
     };
@@ -1132,12 +1131,19 @@ var FnNode = (function() {
             var repl = ":" + i++;
             source = source.replace(token, repl);
         }
-        var node = new FnNode(source, tokens, entityType);
-        if (!node.dataType && operator && operator.isStringFn) {
-            node.dataType = DataType.String;
+        
+        var node = new FnNode(source, tokens, operator ? null : entityType);
+        if (node.isRealNode) {
+            if (!node.dataType && operator && operator.isStringFn) {
+                node.dataType = DataType.String;
+            }
+            node._validate(entityType);
+            return node;
+        } else {
+            return null;
         }
-        // isValidated may be undefined
-        return node.isValidated === false ? null : node;
+        
+        
     };
 
     proto.toString = function() {
@@ -1152,20 +1158,8 @@ var FnNode = (function() {
         }
     };
 
-    proto.updateWithEntityType = function(entityType) {
-        if (this.propertyPath) {
-            if (entityType.isAnonymous) return;
-            var prop = entityType.getProperty(this.propertyPath);
-            if (!prop) {
-                var msg = __formatString("Unable to resolve propertyPath.  EntityType: '%1'   PropertyPath: '%2'", entityType.name, this.propertyPath);
-                throw new Error(msg);
-            }
-            this.dataType = prop.dataType;
-        }
-    };
-
     proto.toOdataFragment = function (entityType) {
-        this.updateWithEntityType(entityType);
+        this._validate(entityType);
         if (this.fnName) {
             var args = this.fnNodes.map(function(fnNode) {
                 return fnNode.toOdataFragment(entityType);
@@ -1184,12 +1178,17 @@ var FnNode = (function() {
         }
     };
 
-    proto.validate = function(entityType) {
+    proto._validate = function(entityType) {
         // will throw if not found;
-        if (this.isValidated !== undefined) return;            
+        if (this.isValidated) return;            
         this.isValidated = true;
         if (this.propertyPath) {
+            if (entityType.isAnonymous) return;
             var prop = entityType.getProperty(this.propertyPath, true);
+            if (!prop) {
+                var msg = __formatString("Unable to resolve propertyPath.  EntityType: '%1'   PropertyPath: '%2'", entityType.name, this.propertyPath);
+                throw new Error(msg);
+            }
             if (prop.isDataProperty) {
                 this.dataType = prop.dataType;
             } else {
@@ -1197,10 +1196,12 @@ var FnNode = (function() {
             }
         } else if (this.fnNodes) {
             this.fnNodes.forEach(function(node) {
-                node.validate(entityType);
+                node._validate(entityType);
             });
         }
     };
+
+
         
     function createPropFunction(propertyPath) {
         var properties = propertyPath.split('.');
@@ -1614,7 +1615,7 @@ var SimplePredicate = (function () {
         }
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
-            this._fnNode1 = FnNode.create(propertyOrExpr, null, this._filterQueryOp);
+            // this._fnNode1 = FnNode.create(propertyOrExpr, null, this._filterQueryOp);
         } else {
             if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
                 throw new Error("propertyOrExpr cannot be null except when using the 'IsTypeOf' operator");
@@ -1635,13 +1636,13 @@ var SimplePredicate = (function () {
             var typeName = oftype.namespace + '.' + oftype.shortName;
             return this._filterQueryOp.operator + "(" + DataType.String.fmtOData(typeName) + ")";
         }
+
+        this.validate(entityType);
+
         var v1Expr = this._fnNode1 && this._fnNode1.toOdataFragment(entityType);
         var v2Expr;
-        if (this.fnNode2 === undefined && !this._valueIsLiteral) {
-            this.fnNode2 = FnNode.create(this._value, entityType);
-        }
-        if (this.fnNode2) {
-            v2Expr = this.fnNode2.toOdataFragment(entityType);
+        if (this._fnNode2) {
+            v2Expr = this._fnNode2.toOdataFragment(entityType);
         } else {
             var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
             v2Expr = dataType.fmtOData(this._value);
@@ -1659,15 +1660,14 @@ var SimplePredicate = (function () {
     };
 
     proto.toFunction = function (entityType) {
+        this.validate(entityType);
+
         var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
         var predFn = getPredicateFn(entityType, this._filterQueryOp, dataType);
         var v1Fn = this._fnNode1.fn;
-        if (this.fnNode2 === undefined && !this._valueIsLiteral) {
-            this.fnNode2 = FnNode.create(this._value, entityType);
-        }
             
-        if (this.fnNode2) {
-            var v2Fn = this.fnNode2.fn;
+        if (this._fnNode2) {
+            var v2Fn = this._fnNode2.fn;
             return function(entity) {
                 return predFn(v1Fn(entity), v2Fn(entity));
             };
@@ -1685,10 +1685,15 @@ var SimplePredicate = (function () {
     };
 
     proto.validate = function (entityType) {
-        if (!this._fnNode1) return;
-        // throw if not valid
-        this._fnNode1.validate(entityType);
-        this.dataType = this._fnNode1.dataType;
+        if (this._fnNode1 === undefined && this._propertyOrExpr) {
+            this._fnNode1 = FnNode.create(this._propertyOrExpr, entityType, this._filterQueryOp);
+            this.dataType = this._fnNode1.dataType;
+        }
+
+        if (this._fnNode2 === undefined && !this._valueIsLiteral) {
+            this._fnNode2 = FnNode.create(this._value, entityType);
+        }
+
     };
         
     // internal functions
