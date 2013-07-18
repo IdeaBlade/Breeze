@@ -121,6 +121,12 @@ namespace DocCode.Controllers
         }
 
         [HttpGet]
+        public IQueryable<Supplier> Suppliers()
+        {
+            return _repository.Suppliers;
+        }
+
+        [HttpGet]
         public IQueryable<Territory> Territories() {
             return _repository.Territories;
         }
