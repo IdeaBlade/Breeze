@@ -2105,28 +2105,13 @@ var Validator = (function () {
                 return null;
             } else {
                 currentContext.value = value;
-                return this.createValidationError(currentContext);
+                return new ValidationError(this, currentContext, this.getMessage());
             }
         } catch (e) {
-            var ve  = this.createValidationError(currentContext);
-            ve.errorMessage = "Exception occured while executing this validator: " + this.name;
-            return ve;
+            return new ValidationError(this, currentContext, "Exception occured while executing this validator: " + this.name);
         }
     };
 
-    proto.createValidationError = function (context) {
-        var ve = new ValidationError();
-        ve.validator = this;
-
-        ve.context = context;
-        ve.property = context.property;
-        if (ve.property) {
-            ve.propertyName = context.propertyName || context.property.name;
-        }
-        ve.errorMessage = this.getMessage();
-        ve.key = ValidationError.getKey(this, ve.propertyName);
-        return ve;
-    };
         
     // context.value is not avail unless validate was called first.
 
@@ -2589,8 +2574,24 @@ var ValidationError = (function () {
     /**
     @method <ctor> ValidationError
     **/
-    var ctor = function () {
+    var ctor = function (validator, context, errorMessage, key) {
+        this.validator = validator;
+        var context = context || {};
+        this.context = context;
+        this.errorMessage = errorMessage;
         
+        this.property = context.property 
+        this.propertyName = context.propertyName || (context.property && context.property.name);
+        
+        if (key) {
+            this.key = key;
+        } else {
+            if (this.validator) {
+                this.key = ValidationError.getKey(this.validator, this.propertyName);
+            } else {
+                this.key = (this.propertyName || "") + ":" + this.errorMessage;
+            }
+        }        
     };
 
         
@@ -3681,7 +3682,8 @@ var EntityAspect = (function() {
                 validationFn(this);
                 if (this._pendingValidationResult.added.length > 0 || this._pendingValidationResult.removed.length > 0) {
                     this.validationErrorsChanged.publish(this._pendingValidationResult);
-                    this.entityManager.validationErrorsChanged.publish(this._pendingValidationResult);
+                    // this might be a detached entity hence the guard below.
+                    this.entityManager && this.entityManager.validationErrorsChanged.publish(this._pendingValidationResult);
                     
                 }
             } finally {
@@ -11986,14 +11988,16 @@ var EntityManager = (function () {
             var entity = entityManager.findEntityByKey(ekey);
             if (!entity) return;
             serr.entity = entity;
-            var ve = new ValidationError();
-            ve.errorMessage = serr.errorMessage;
-            ve.key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
+            
+            var context = serr.propertyName ?
+                {   propertyName: serr.propertyName,
+                    property: entityType.getProperty(serr.propertyName)
+                } : {
+                };
+            var key = (serr.propertyName || "") + ":" + (serr.errorName || serr.errorMessage)
+            
+            var ve = new ValidationError(null, context, serr.errorMessage, key);
             ve.isServerError = true;
-            if (serr.propertyName) {
-                ve.propertyName = serr.propertyName;
-                ve.property = entityType.getProperty(serr.propertyName);
-            }
             entity.entityAspect.addValidationError(ve);
         });
     }

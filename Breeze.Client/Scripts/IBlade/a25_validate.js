@@ -202,28 +202,13 @@ var Validator = (function () {
                 return null;
             } else {
                 currentContext.value = value;
-                return this.createValidationError(currentContext);
+                return new ValidationError(this, currentContext, this.getMessage());
             }
         } catch (e) {
-            var ve  = this.createValidationError(currentContext);
-            ve.errorMessage = "Exception occured while executing this validator: " + this.name;
-            return ve;
+            return new ValidationError(this, currentContext, "Exception occured while executing this validator: " + this.name);
         }
     };
 
-    proto.createValidationError = function (context) {
-        var ve = new ValidationError();
-        ve.validator = this;
-
-        ve.context = context;
-        ve.property = context.property;
-        if (ve.property) {
-            ve.propertyName = context.propertyName || context.property.name;
-        }
-        ve.errorMessage = this.getMessage();
-        ve.key = ValidationError.getKey(this, ve.propertyName);
-        return ve;
-    };
         
     // context.value is not avail unless validate was called first.
 
@@ -686,8 +671,24 @@ var ValidationError = (function () {
     /**
     @method <ctor> ValidationError
     **/
-    var ctor = function () {
+    var ctor = function (validator, context, errorMessage, key) {
+        this.validator = validator;
+        var context = context || {};
+        this.context = context;
+        this.errorMessage = errorMessage;
         
+        this.property = context.property 
+        this.propertyName = context.propertyName || (context.property && context.property.name);
+        
+        if (key) {
+            this.key = key;
+        } else {
+            if (this.validator) {
+                this.key = ValidationError.getKey(this.validator, this.propertyName);
+            } else {
+                this.key = (this.propertyName || "") + ":" + this.errorMessage;
+            }
+        }        
     };
 
         

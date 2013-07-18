@@ -967,14 +967,16 @@ var EntityManager = (function () {
             var entity = entityManager.findEntityByKey(ekey);
             if (!entity) return;
             serr.entity = entity;
-            var ve = new ValidationError();
-            ve.errorMessage = serr.errorMessage;
-            ve.key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
+            
+            var context = serr.propertyName ?
+                {   propertyName: serr.propertyName,
+                    property: entityType.getProperty(serr.propertyName)
+                } : {
+                };
+            var key = (serr.propertyName || "") + ":" + (serr.errorName || serr.errorMessage)
+            
+            var ve = new ValidationError(null, context, serr.errorMessage, key);
             ve.isServerError = true;
-            if (serr.propertyName) {
-                ve.propertyName = serr.propertyName;
-                ve.property = entityType.getProperty(serr.propertyName);
-            }
             entity.entityAspect.addValidationError(ve);
         });
     }
