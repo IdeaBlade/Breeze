@@ -1,9 +1,8 @@
 var zza=zza||{};zza.metadata=
 {
-    "namingConvention":"camelCase",
     "dataServices":[
         {
-            "serviceName":"/breeze/zza/",
+            "serviceName":"breeze/zza/",
             "hasServerMetadata":true,
             "jsonResultsAdapter":"webApi_default",
             "useJsonp":false
@@ -17,7 +16,7 @@ var zza=zza||{};zza.metadata=
             "defaultResourceName":"Customers",
             "dataProperties":[
                 {
-                    "name":"_id",
+                    "name":"id",
                     "dataType":"MongoObjectId",
                     "isNullable":false,
                     "isPartOfKey":true,
@@ -147,7 +146,7 @@ var zza=zza||{};zza.metadata=
             "defaultResourceName":"Orders",
             "dataProperties":[
                 {
-                    "name":"_id",
+                    "name":"id",
                     "dataType":"MongoObjectId",
                     "isNullable":false,
                     "isPartOfKey":true,
@@ -374,7 +373,6 @@ var zza=zza||{};zza.metadata=
                 },
                 {
                     "name":"productSizeId",
-                    "nameOnServer":"sizeId",
                     "dataType":"Int32",
                     "isNullable":false,
                     "defaultValue":0,
@@ -389,7 +387,6 @@ var zza=zza||{};zza.metadata=
                 },
                 {
                     "name":"quantity",
-                    "nameOnServer":"qty",
                     "dataType":"Int32",
                     "isNullable":false,
                     "defaultValue":0,
@@ -455,7 +452,6 @@ var zza=zza||{};zza.metadata=
             "dataProperties":[
                 {
                     "name":"productOptionId",
-                    "nameOnServer":"optionId",
                     "dataType":"Int32",
                     "isNullable":false,
                     "defaultValue":0,
@@ -470,7 +466,6 @@ var zza=zza||{};zza.metadata=
                 },
                 {
                     "name":"quantity",
-                    "nameOnServer":"qty",
                     "dataType":"Int32",
                     "isNullable":false,
                     "defaultValue":0,
