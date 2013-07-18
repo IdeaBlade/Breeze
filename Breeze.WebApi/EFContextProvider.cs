@@ -717,7 +717,11 @@ namespace Breeze.WebApi {
       var objContext = contextProvider.ObjectContext;
       var entity = entityInfo.Entity;
       var esName = contextProvider.GetEntitySetName(entity.GetType());
-      objContext.AddObject(esName, entity);
+      if (entityInfo.EntityState == EntityState.Added) {
+        objContext.AddObject(esName, entity);
+      } else {
+        objContext.AttachTo(esName, entity);
+      }
       ObjectStateEntry entry;
       if (!objContext.ObjectStateManager.TryGetObjectStateEntry(entity, out entry)) {
           throw new Exception("unable to getKey values for: " + entity);
