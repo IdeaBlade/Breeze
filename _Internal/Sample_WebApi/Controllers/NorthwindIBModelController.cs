@@ -158,11 +158,30 @@ namespace Sample_WebApi.Controllers {
           AddComment(order.ShipAddress, seq++);
         }
       }
-      if (tag == "UpdateProduceShipAddress.Before") {
+      else if (tag == "UpdateProduceShipAddress.Before") {
         var orderInfos = saveMap[typeof(Order)];
         var order = (Order)orderInfos[0].Entity;
         UpdateProduceDescription(order.ShipAddress);
+      } else if (tag == "ValidationError.Before") {
+        foreach(var type in saveMap.Keys) {
+          var list = saveMap[type];
+          foreach(var entityInfo in list) {
+            var entity = entityInfo.Entity;
+            var entityError = new EntityError() {
+              EntityTypeName = type.Name,
+              ErrorMessage = "Error message for " + type.Name,
+              ErrorName = "Server-Side Validation",
+            };
+            if (entity is Order) {
+              var order = (Order)entity;
+              entityError.KeyValues = new object[] { order.OrderID };
+              entityError.PropertyName = "OrderDate";
+            }
+          
+          }
+        }
       }
+
 
       if (tag == "increaseProductPrice") {
         Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
