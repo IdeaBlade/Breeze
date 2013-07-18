@@ -53,12 +53,14 @@
         var manager = newEmX();
 
         var predicate = Predicate.create('name', '==', 'Apple')
-            .or('name', '==', 'Orange');
+            .or('name', '==', 'Orange')
+            .or('name', '==', "Papa");
 
         var query = new breeze.EntityQuery()
             .from("Fruits")
             .where(predicate)
-            .toType('ItemOfProduce');
+        // .toType('ItemOfProduce');  // this will fail because 'ItemOfProduce' does not have a 'name' property.
+            .toType("Fruit");  // without this we get the "time" issue.
 
         stop();
         manager.executeQuery(query).then(function (data) {
