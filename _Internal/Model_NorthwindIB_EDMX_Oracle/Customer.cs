@@ -19,7 +19,7 @@ namespace Models.NorthwindIB.Oracle
             this.Orders = new HashSet<Order>();
         }
     
-        public System.Guid CustomerID { get; set; }
+        public string CustomerID { get; set; }
         public string CustomerID_OLD { get; set; }
         public string CompanyName { get; set; }
         public string ContactName { get; set; }

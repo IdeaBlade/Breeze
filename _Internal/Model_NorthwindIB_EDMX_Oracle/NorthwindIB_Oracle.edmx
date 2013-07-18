@@ -233,7 +233,7 @@
           <Property Name="PRODUCTID" Type="number" Nullable="false" Precision="10" />
           <Property Name="UNITPRICE" Type="number" Nullable="false" Precision="19" Scale="4" />
           <Property Name="QUANTITY" Type="number" Nullable="false" Precision="5" />
-          <Property Name="DISCOUNT" Type="float" Nullable="false" Precision="126" />
+          <Property Name="DISCOUNT" Type="binary_float" Nullable="false" />
           <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
         </EntityType>
         <EntityType Name="PREVIOUSEMPLOYEE">
@@ -333,7 +333,7 @@
             <PropertyRef Name="ID" />
           </Key>
           <Property Name="ID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
-          <Property Name="MAXTIME" Type="varchar2" Nullable="false" MaxLength="200" />
+          <Property Name="MAXTIME" Type="varchar2" MaxLength="200" Nullable="false" />
           <Property Name="MINTIME" Type="varchar2" MaxLength="200" />
           <Property Name="TIMEGROUPID" Type="number" Precision="10" />
         </EntityType>
@@ -342,10 +342,10 @@
             <PropertyRef Name="ID" />
           </Key>
           <Property Name="ID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
-          <Property Name="CREATIONDATE" Type="varchar2" Nullable="false" MaxLength="200" />
-          <Property Name="MODIFICATIONDATE" Type="varchar2" Nullable="false" MaxLength="200" />
-          <Property Name="CREATIONDATE2" Type="varchar2" MaxLength="200" />
-          <Property Name="MODIFICATIONDATE2" Type="varchar2" MaxLength="200" />
+          <Property Name="CREATIONDATE" Type="timestamp with time zone" Nullable="false" />
+          <Property Name="MODIFICATIONDATE" Type="date" Nullable="false" />
+          <Property Name="CREATIONDATE2" Type="timestamp with time zone" />
+          <Property Name="MODIFICATIONDATE2" Type="date"  />
         </EntityType>
         <EntityType Name="USER_">
           <Key>
@@ -677,7 +677,7 @@
           <Key>
             <PropertyRef Name="CustomerID" />
           </Key>
-          <Property Name="CustomerID" Type="Guid" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CustomerID" Type="String" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CustomerID_OLD" Type="String" MaxLength="5" Unicode="true" FixedLength="true" />
           <Property Name="CompanyName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
           <Property Name="ContactName" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
@@ -738,8 +738,8 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Geometry1" Type="Geometry" />
-          <Property Name="Geography1" Type="Geography" />
+          <Property Name="Geometry1" Type="Binary" />
+          <Property Name="Geography1" Type="Binary" />
         </EntityType>
         <EntityType Name="InternationalOrder">
           <Key>
@@ -764,7 +764,7 @@
             <PropertyRef Name="OrderID" />
           </Key>
           <Property Name="OrderID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="CustomerID" Type="Guid" />
+          <Property Name="CustomerID" Type="String" />
           <Property Name="EmployeeID" Type="Int32" />
           <Property Name="OrderDate" Type="DateTime" />
           <Property Name="RequiredDate" Type="DateTime" />
@@ -900,8 +900,8 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="MaxTime" Type="Time" Nullable="false" />
-          <Property Name="MinTime" Type="Time" />
+          <Property Name="MaxTime" Type="String" MaxLength="200" Nullable="false" />
+          <Property Name="MinTime" Type="String" MaxLength="200" />
           <Property Name="TimeGroupId" Type="Int32" />
           <NavigationProperty Name="TimeGroup" Relationship="Model.NorthwindIB.Oracle.FK_TIMELIMITTIMEGROUP" FromRole="TIMELIMIT" ToRole="TIMEGROUP" />
         </EntityType>

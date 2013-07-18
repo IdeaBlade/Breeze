@@ -15,7 +15,7 @@ namespace Models.NorthwindIB.Oracle
     public partial class Geospatial
     {
         public int Id { get; set; }
-        public System.Data.Spatial.DbGeometry Geometry1 { get; set; }
-        public System.Data.Spatial.DbGeography Geography1 { get; set; }
+        public byte[] Geometry1 { get; set; }
+        public byte[] Geography1 { get; set; }
     }
 }

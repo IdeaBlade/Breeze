@@ -57,6 +57,7 @@
     <Compile Include="Customer.cs">
       <DependentUpon>NorthwindIB_Oracle.tt</DependentUpon>
     </Compile>
+    <Compile Include="CustomerPartial.cs" />
     <Compile Include="Employee.cs">
       <DependentUpon>NorthwindIB_Oracle.tt</DependentUpon>
     </Compile>

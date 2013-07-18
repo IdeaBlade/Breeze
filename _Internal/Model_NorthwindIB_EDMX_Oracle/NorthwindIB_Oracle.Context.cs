@@ -13,9 +13,9 @@ namespace Models.NorthwindIB.Oracle
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class NorthwindIBContext_EDMX_Oracle : DbContext
+    public partial class Entities : DbContext
     {
-      public NorthwindIBContext_EDMX_Oracle()
+        public Entities()
         : base("name=NorthwindIBContext_EDMX_Oracle")
         {
         }
