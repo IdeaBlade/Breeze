@@ -261,6 +261,24 @@ namespace Sample_WebApi.Controllers {
     }
 
     [HttpPost]
+    public SaveResult SaveWithTransactionScope(JObject saveBundle) {
+      var txSettings = new TransactionSettings() { TransactionType = TransactionType.TransactionScope };
+      return ContextProvider.SaveChanges(saveBundle, txSettings);
+    }
+
+    [HttpPost]
+    public SaveResult SaveWithDbTransaction(JObject saveBundle) {
+      var txSettings = new TransactionSettings() { TransactionType = TransactionType.DbTransaction };
+      return ContextProvider.SaveChanges(saveBundle, txSettings);
+    }
+
+    [HttpPost]
+    public SaveResult SaveWithNoTransaction(JObject saveBundle) {
+      var txSettings = new TransactionSettings() { TransactionType = TransactionType.None };
+      return ContextProvider.SaveChanges(saveBundle, txSettings);
+    }
+
+    [HttpPost]
     public SaveResult SaveWithComment(JObject saveBundle) {
       ContextProvider.BeforeSaveEntitiesDelegate = AddComment;
       return ContextProvider.SaveChanges(saveBundle);

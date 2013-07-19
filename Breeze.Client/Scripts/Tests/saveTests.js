@@ -231,7 +231,7 @@
 
     });
 
-    test("save Order and add ShipAddress to Comment in BeforeSave", function () {
+    function saveOrderAndAddShipAddressToComment(resourceName) {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
@@ -250,7 +250,7 @@
             employeeID: wellKnownData.nancyID,
             shipAddress: testAddress
         });
-        var saveOptions = new SaveOptions({ tag: "CommentOrderShipAddress.Before" });
+        var saveOptions = new SaveOptions({ resourceName: resourceName, tag: "CommentOrderShipAddress.Before" });
         stop();
         em.saveChanges(null, saveOptions).then(function (data) {
             // BeforeSaveEntities should have put the testAddress in a comment
@@ -265,9 +265,19 @@
             ok(comment1 === testAddress, "comment should equal testAddress");
 
         }).fail(testFns.handleFail).fin(start);
+    }
+
+    test("save Order and add ShipAddress to Comment in BeforeSave - SaveWithNoTransaction", function () {
+        saveOrderAndAddShipAddressToComment("SaveWithNoTransaction");
+    });
+    test("save Order and add ShipAddress to Comment in BeforeSave - SaveWithDbTransaction", function () {
+        saveOrderAndAddShipAddressToComment("SaveWithDbTransaction");
+    });
+    test("save Order and add ShipAddress to Comment in BeforeSave - SaveWithTransactionScope", function () {
+        saveOrderAndAddShipAddressToComment("SaveWithTransactionScope");
     });
 
-    test("save Order and update ShipAddress in ProduceTPH in BeforeSave (uses DTC)", function () {
+    function saveOrderAndUpdateShipAddressBeforeSave(resourceName) {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
@@ -286,7 +296,7 @@
             employeeID: wellKnownData.nancyID,
             shipAddress: testAddress
         });
-        var saveOptions = new SaveOptions({ tag: "UpdateProduceShipAddress.Before" });
+        var saveOptions = new SaveOptions({ resourceName: resourceName, tag: "UpdateProduceShipAddress.Before" });
         stop();
         em.saveChanges(null, saveOptions).then(function (data) {
             // BeforeSaveEntities should have put the testAddress in the description of an Apple
@@ -301,9 +311,19 @@
             ok(desc === testAddress, "description should equal testAddress");
 
         }).fail(testFns.handleFail).fin(start);
+    }
+
+    test("save Order and update ShipAddress in ProduceTPH in BeforeSave - SaveWithNoTransaction", function () {
+        saveOrderAndUpdateShipAddressBeforeSave("SaveWithNoTransaction");
+    });
+    test("save Order and update ShipAddress in ProduceTPH in BeforeSave - SaveWithDbTransaction", function () {
+        saveOrderAndUpdateShipAddressBeforeSave("SaveWithDbTransaction");
+    });
+    test("save Order and update ShipAddress in ProduceTPH in BeforeSave - SaveWithTransactionScope", function () {
+        saveOrderAndUpdateShipAddressBeforeSave("SaveWithTransactionScope");
     });
 
-    test("save Order and add KeyMapping to Comment in AfterSave", function () {
+    function saveOrderAddKeyMappingToCommentAfterSave(resourceName) {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
@@ -321,7 +341,7 @@
             employeeID: wellKnownData.nancyID,
             shipAddress: "Test " + new Date().toISOString()
         });
-        var saveOptions = new SaveOptions({ tag: "CommentKeyMappings.After" });
+        var saveOptions = new SaveOptions({ resourceName: resourceName, tag: "CommentKeyMappings.After" });
         stop();
         em.saveChanges(null, saveOptions).then(function (data) {
             // AfterSaveEntities should have put the order type and id in a comment
@@ -340,9 +360,19 @@
             ok(comment1 === testComment, "comment should equal testComment");
 
         }).fail(testFns.handleFail).fin(start);
+    }
+
+    test("save Order and add KeyMapping to Comment in AfterSave - SaveWithNoTransaction", function () {
+        saveOrderAddKeyMappingToCommentAfterSave("SaveWithNoTransaction");
+    });
+    test("save Order and add KeyMapping to Comment in AfterSave - SaveWithDbTransaction", function () {
+        saveOrderAddKeyMappingToCommentAfterSave("SaveWithDbTransaction");
+    });
+    test("save Order and add KeyMapping to Comment in AfterSave - SaveWithTransactionScope", function () {
+        saveOrderAddKeyMappingToCommentAfterSave("SaveWithTransactionScope");
     });
 
-    test("save Order and update KeyMapping in ProduceTPH in AfterSave (uses DTC)", function () {
+    function saveOrderUpdateKeyMappingInProduceTPHAfterSave(resourceName) {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
@@ -379,6 +409,16 @@
             ok(desc === testComment, "description should equal testComment");
 
         }).fail(testFns.handleFail).fin(start);
+    }
+
+    test("save Order and update KeyMapping in ProduceTPH in AfterSave - SaveWithNoTransaction", function () {
+        saveOrderUpdateKeyMappingInProduceTPHAfterSave("SaveWithNoTransaction");
+    });
+    test("save Order and update KeyMapping in ProduceTPH in AfterSave - SaveWithDbTransaction", function () {
+        saveOrderUpdateKeyMappingInProduceTPHAfterSave("SaveWithDbTransaction");
+    });
+    test("save Order and update KeyMapping in ProduceTPH in AfterSave - SaveWithTransactionScope", function () {
+        saveOrderUpdateKeyMappingInProduceTPHAfterSave("SaveWithTransactionScope");
     });
 
 

@@ -63,12 +63,24 @@ namespace Breeze.WebApi {
 
       transactionSettings = transactionSettings ?? BreezeConfig.Instance.GetTransactionSettings();
       try {
-        if (transactionSettings.UseTransactionScope) {
+        if (transactionSettings.TransactionType == TransactionType.TransactionScope) {
           var txOptions = transactionSettings.ToTransactionOptions();
           using (var txScope = new TransactionScope(TransactionScopeOption.Required, txOptions)) {           
             OpenAndSave(SaveWorkState);           
             txScope.Complete();
           }
+        } else if (transactionSettings.TransactionType == TransactionType.DbTransaction) {
+          this.OpenDbConnection();
+          var conn = this.GetDbConnection();
+          using (IDbTransaction tran = conn.BeginTransaction(transactionSettings.IsolationLevelAs)) {
+            try {
+              OpenAndSave(SaveWorkState);
+              tran.Commit();
+            } catch {
+              tran.Rollback();
+              throw;
+            }
+          }          
         } else {
           OpenAndSave(SaveWorkState);
         }
@@ -110,6 +122,7 @@ namespace Breeze.WebApi {
     /// <summary>
     /// Internal use only.  Should only be called by ContextProvider during SaveChanges.
     /// Opens the DbConnection used by the ContextProvider's implementation.
+    /// Method must be idempotent; after it is called the first time, subsequent calls have no effect.
     /// </summary>
     protected abstract void OpenDbConnection();
 
