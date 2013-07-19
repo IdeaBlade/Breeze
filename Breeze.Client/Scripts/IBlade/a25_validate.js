@@ -669,9 +669,18 @@ var ValidationError = (function () {
     **/
         
     /**
+    Constructs a new ValidationError
     @method <ctor> ValidationError
+
+    @param validator {Validator || null} The Validator used to create this error, if any.
+    @param context { ContextObject || null) The Context object used in conjunction with the Validator to create this error.
+    @param errorMessage { String} The actual error message
+    @param [key] {String} An optional key used to define a key for this error. One will be created automatically if not provided here. 
     **/
     var ctor = function (validator, context, errorMessage, key) {
+        assertParam(validator, "validator").isOptional().isInstanceOf(Validator).check();
+        assertParam(errorMessage, "errorMessage").isNonEmptyString().check();
+        assertParam(key, "key").isOptional().isNonEmptyString().check();
         this.validator = validator;
         var context = context || {};
         this.context = context;
@@ -683,11 +692,7 @@ var ValidationError = (function () {
         if (key) {
             this.key = key;
         } else {
-            if (this.validator) {
-                this.key = ValidationError.getKey(this.validator, this.propertyName);
-            } else {
-                this.key = (this.propertyName || "") + ":" + this.errorMessage;
-            }
+            this.key = ValidationError.getKey(validator || errorMessage, this.propertyName);
         }        
     };
 
@@ -743,16 +748,18 @@ var ValidationError = (function () {
 
 
     /**
-    Returns a ValidationError 'key' given a validator and an option propertyName
+    Composes a ValidationError 'key' given a validator or an errorName and an optional propertyName
     @method getKey
     @static
-    @param validator {Validator} 
+    @param validator {ValidatorOrErrorKey} A Validator or an "error name" if no validator is available.
     @param [propertyName] A property name
     @return {String} A ValidationError 'key'
     **/
-    ctor.getKey = function (validator, propertyName) {
-        return (propertyName || "") + ":" + (validator.name || validator);
+    ctor.getKey = function (validatorOrErrorName, propertyName) {
+        return (validatorOrErrorName.name || validatorOrErrorName) + (propertyName ? ":" + propertyName : "");
+        // return (propertyName || "") + ":" + (validator.name || validator);
     };
+
 
     return ctor;
 })();

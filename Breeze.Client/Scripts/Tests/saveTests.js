@@ -713,8 +713,8 @@
             ok(false, "should not get here");
 
         }).fail(function (e) {
-            ok(e.serverErrors, "should have server errors");
-            ok(e.serverErrors.length === 2, "2 order entities should have failed");
+            ok(e.entityErrors, "should have server errors");
+            ok(e.entityErrors.length === 2, "2 order entities should have failed");
             ok(zzz.order1.entityAspect.getValidationErrors().length === 1);
             var order2Errs = zzz.order2.entityAspect.getValidationErrors();
             ok(order2Errs.length === 1, "should be 1 error for order2");
@@ -756,8 +756,8 @@
         }).then(function(sr2) {
             ok(false, "should not get here");
         }).fail(function (e) {
-            ok(e.serverErrors, "should have server errors");
-            ok(e.serverErrors.length === 2, "2 order entities should have failed");
+            ok(e.entityErrors, "should have server errors");
+            ok(e.entityErrors.length === 2, "2 order entities should have failed");
             ok(zzz.order1.entityAspect.getValidationErrors().length === 1);
             var order2Errs = zzz.order2.entityAspect.getValidationErrors();
             ok(order2Errs.length === 1, "should be 1 error for order2");
@@ -789,8 +789,8 @@
         em.saveChanges().then(function(sr) {
             ok(false, "should not get here");
         }).fail(function (e) {
-            ok(e.serverErrors, "should be a server error");
-            ok(e.serverErrors.length === 1, "should be only one server error");
+            ok(e.entityErrors, "should be a server error");
+            ok(e.entityErrors.length === 1, "should be only one server error");
             var errors = cust1.entityAspect.getValidationErrors();
             ok(errors[0].errorMessage === serverErrors[0].errorMessage, "error message should appear on the cust");
             // ok(e.message.toLowerCase().indexOf("validation errors") >= 0, "should be a validation error message");
@@ -816,18 +816,18 @@
         em.saveChanges().then(function (sr) {
             ok(false, "should not get here");
         }).fail(function (e) {
-            ok(e.serverErrors, "should be a server error");
-            ok(e.serverErrors.length === 1, "should be only one server error");
+            ok(e.entityErrors, "should be a server error");
+            ok(e.entityErrors.length === 1, "should be only one server error");
             var errors = cust1.entityAspect.getValidationErrors();
             ok(errors.length === 1, "should only be 1 error");
-            ok(errors[0].errorMessage === e.serverErrors[0].errorMessage, "error message should appear on the cust");
+            ok(errors[0].errorMessage === e.entityErrors[0].errorMessage, "error message should appear on the cust");
             return em.saveChanges();
         }).fail(function(e2) {
-           ok(e2.serverErrors, "should be a server error");
-           ok(e2.serverErrors.length === 1, "should be only one server error");
+            ok(e2.entityErrors, "should be a server error");
+            ok(e2.entityErrors.length === 1, "should be only one server error");
            var errors = cust1.entityAspect.getValidationErrors();
            ok(errors.length === 1, "should only be 1 error");
-           ok(errors[0].errorMessage === e2.serverErrors[0].errorMessage, "error message should appear on the cust");
+           ok(errors[0].errorMessage === e2.entityErrors[0].errorMessage, "error message should appear on the cust");
         }).fin(start);
     });
 
@@ -996,11 +996,11 @@
         }).then(function(sr) {
             ok(false, "shouldn't get here - except with DATABASEFIRST_OLD");
         }).fail(function (error) {
-            ok(error.serverErrors, "should be some server errors");
-            ok(error.serverErrors.length === 1, "should be 1 server error");
-            ok(error.serverErrors[0].errorMessage.indexOf("the word 'Error'") > 0, "incorrect error message");
+            ok(error.entityErrors, "should be some server errors");
+            ok(error.entityErrors.length === 1, "should be 1 server error");
+            ok(error.entityErrors[0].errorMessage.indexOf("the word 'Error'") > 0, "incorrect error message");
             var custErrors = cust1.entityAspect.getValidationErrors();
-            ok(error.serverErrors[0].errorMessage === custErrors[0].errorMessage);
+            ok(error.entityErrors[0].errorMessage === custErrors[0].errorMessage);
             // ok(error.message.indexOf("the word 'Error'") > 0, "incorrect error message");
         }).fin(start);
 

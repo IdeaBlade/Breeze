@@ -2572,9 +2572,18 @@ var ValidationError = (function () {
     **/
         
     /**
+    Constructs a new ValidationError
     @method <ctor> ValidationError
+
+    @param validator {Validator || null} The Validator used to create this error, if any.
+    @param context { ContextObject || null) The Context object used in conjunction with the Validator to create this error.
+    @param errorMessage { String} The actual error message
+    @param [key] {String} An optional key used to define a key for this error. One will be created automatically if not provided here. 
     **/
     var ctor = function (validator, context, errorMessage, key) {
+        assertParam(validator, "validator").isOptional().isInstanceOf(Validator).check();
+        assertParam(errorMessage, "errorMessage").isNonEmptyString().check();
+        assertParam(key, "key").isOptional().isNonEmptyString().check();
         this.validator = validator;
         var context = context || {};
         this.context = context;
@@ -2586,11 +2595,7 @@ var ValidationError = (function () {
         if (key) {
             this.key = key;
         } else {
-            if (this.validator) {
-                this.key = ValidationError.getKey(this.validator, this.propertyName);
-            } else {
-                this.key = (this.propertyName || "") + ":" + this.errorMessage;
-            }
+            this.key = ValidationError.getKey(validator || errorMessage, this.propertyName);
         }        
     };
 
@@ -2646,16 +2651,18 @@ var ValidationError = (function () {
 
 
     /**
-    Returns a ValidationError 'key' given a validator and an option propertyName
+    Composes a ValidationError 'key' given a validator or an errorName and an optional propertyName
     @method getKey
     @static
-    @param validator {Validator} 
+    @param validator {ValidatorOrErrorKey} A Validator or an "error name" if no validator is available.
     @param [propertyName] A property name
     @return {String} A ValidationError 'key'
     **/
-    ctor.getKey = function (validator, propertyName) {
-        return (propertyName || "") + ":" + (validator.name || validator);
+    ctor.getKey = function (validatorOrErrorName, propertyName) {
+        return (validatorOrErrorName.name || validatorOrErrorName) + (propertyName ? ":" + propertyName : "");
+        // return (propertyName || "") + ":" + (validator.name || validator);
     };
+
 
     return ctor;
 })();
@@ -5860,7 +5867,7 @@ var MetadataStore = (function () {
            
     @method getDataService
     @param serviceName {String} The service name.
-    @return {Boolean}
+    @return {DataService}
     **/
     proto.getDataService = function (serviceName) {
         assertParam(serviceName, "serviceName").isString().check();
@@ -11857,7 +11864,7 @@ var EntityManager = (function () {
             
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @param [errorCallback.error.serverErrors] { Array of serverErrors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
+        @param [errorCallback.error.entityErrors] { Array of server side errors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
         @param [errorCallback.error.XHR] {XMLHttpRequest} Any error that cannot be represented as a server error (above) will be returned in this format. 
         This includes timeouts, server failures, database locking issues etc. 
         
@@ -11977,11 +11984,11 @@ var EntityManager = (function () {
     }
 
     function processServerErrors(saveContext, error) {
-        var serverErrors = error.serverErrors;
-        if (!serverErrors) return;
+        var entityErrors = error.entityErrors;
+        if (!entityErrors) return;
         var entityManager = saveContext.entityManager;
         var metadataStore = entityManager.metadataStore;
-        serverErrors.forEach(function (serr) {
+        entityErrors.forEach(function (serr) {
             if (!serr.keyValues) return;
             var entityType = metadataStore._getEntityType(serr.entityTypeName);
             var ekey = new EntityKey(entityType, serr.keyValues);
@@ -11994,7 +12001,7 @@ var EntityManager = (function () {
                     property: entityType.getProperty(serr.propertyName)
                 } : {
                 };
-            var key = (serr.propertyName || "") + ":" + (serr.errorName || serr.errorMessage)
+            var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
             
             var ve = new ValidationError(null, context, serr.errorMessage, key);
             ve.isServerError = true;
@@ -13807,8 +13814,9 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     function prepareServerErrors(saveContext, errors) {
         var err = new Error();
+        err.message = "Server side errors encountered - see the serverErrors collection on this object for more detail";
         var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
-        err.serverErrors = errors.map(function (e) {
+        err.entityErrors = errors.map(function (e) {
             return {
                 errorName: e.ErrorName,
                 entityTypeName: MetadataStore.normalizeTypeName(e.EntityTypeName),
@@ -13817,7 +13825,6 @@ breeze.AbstractDataServiceAdapter = (function () {
                 errorMessage: e.ErrorMessage
             };
         });
-        err.message = "Server side errors encountered - see the serverErrors collection on this object for more detail";
         return err;
     }
 
