@@ -13161,11 +13161,13 @@ var EntityManager = (function () {
             } else {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                rawVal.forEach(function (rawCo) {
-                    var newCo = dp.dataType._createInstanceCore(target, dp);
-                    updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
-                    oldVal.push(newCo);
-                });
+                if (Array.isArray(rawVal)) {
+                    rawVal.forEach(function (rawCo) {
+                        var newCo = dp.dataType._createInstanceCore(target, dp);
+                        updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
+                        oldVal.push(newCo);
+                    });
+                }
             }
         } else {
             var val;
@@ -13176,10 +13178,12 @@ var EntityManager = (function () {
                 oldVal = target.getProperty(dp.name);
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                rawVal.forEach(function (rv) {
-                    val = parseRawValue(dp, rv);
-                    oldVal.push(val);
-                });
+                if (Array.isArray(rawVal)) {
+                    rawVal.forEach(function (rv) {
+                        val = parseRawValue(dp, rv);
+                        oldVal.push(val);
+                    });
+                }
             }
         }
     }
