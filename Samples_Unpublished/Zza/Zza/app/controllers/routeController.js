@@ -1,9 +1,10 @@
 ﻿(function() {
     'use strict';
 
-    angular.module('app').controller('routeCtrl',
-    ['$scope', '$route', 'routes',
-    function ($scope, $route, routes) {
+    angular.module('app').controller('routeController',
+        ['$scope', '$route', 'routes', controller]);
+    
+    function controller ($scope, $route, routes) {
 
         $scope.current = $route.current;
 
@@ -13,6 +14,6 @@
         $scope.$on('$routeChangeSuccess', function () {
             $scope.current = $route.current;
         });
-    }]);
+    };
     
 })();

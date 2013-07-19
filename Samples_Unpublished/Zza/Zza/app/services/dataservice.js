@@ -21,8 +21,6 @@
             initializeSynchronously: initializeSynchronously, // testing only?
             saveChanges: saveChanges,
             resetManager: resetManager,
-            addOrderItem: addOrderItem,
-            addOrderItemOption: addOrderItemOption
         /* These are added during initialization:
                cartOrder,
                draftOrder,
@@ -149,14 +147,6 @@
             var orderInit = { orderStatusId: service.OrderStatus.Pending.id};
             service.cartOrder = model.Order.create(manager, orderInit);
             service.draftOrder = model.Order.create(manager, orderInit);
-        }
-
-        function addOrderItem(order, productId) {
-            return order.addOrderItem(productId);
-        }
-
-        function addOrderItemOption(orderItem, productOptionId) {
-            return orderItem.addOrderItemOption(productOptionId);
         }
 
         function saveChanges() {

@@ -109,14 +109,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app\app.js" />
+    <Content Include="app\appRun.js" />
     <Content Include="app\controllers\appController.js" />
     <Content Include="app\controllers\cartController.js" />
-    <Content Include="app\controllers\productController.js" />
+    <Content Include="app\controllers\productOrderController.js" />
     <Content Include="app\controllers\testController.js" />
-    <Content Include="app\controllers\emptyControllers.js" />
+    <Content Include="app\controllers\homeController.js" />
     <Content Include="app\controllers\routeController.js" />
     <Content Include="app\controllers\orderController.js" />
-    <Content Include="app\appRun.js" />
     <Content Include="app\environment.js" />
     <Content Include="app\images\icon_tomato.png" />
     <Content Include="app\images\icon_vegetarian.png" />

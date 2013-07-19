@@ -7,16 +7,16 @@
     // Those with a name will be visible in the navigation bar.
     // Those with a :tag are used for sub-navigation within a view.
     var navRoutes = [
-        { name: 'Home', path: '/', templateUrl: viewBase + 'home.html' },//, controller: 'homeCtrl' },
-        { name: 'Order', path: '/order', templateUrl: viewBase + 'order.html', controller: 'orderCtrl' },
-        { path: '/order/:tag', templateUrl: viewBase + 'order.html', controller: 'orderCtrl' },
-        { path: '/order/:tag/:id', templateUrl: viewBase + 'order.html', controller: 'orderCtrl' },
+        { name: 'Home', path: '/', templateUrl: viewBase + 'home.html' },//, controller: 'homeController' },
+        { name: 'Order', path: '/order', templateUrl: viewBase + 'order.html', controller: 'orderController' },
+        { path: '/order/:tag', templateUrl: viewBase + 'order.html', controller: 'orderController' },
+        { path: '/order/:tag/:id', templateUrl: viewBase + 'order.html', controller: 'orderController' },
         { name: 'Menu', path: '/menu', templateUrl: viewBase + 'menu.html' },
         { name: 'About', path: '/about', templateUrl: viewBase + 'about.html' },
         
-        { path: '/test/', templateUrl: viewBase + 'test.html', controller: 'testCtrl' },
-        { path: '/test/:id', templateUrl: viewBase + 'test.html', controller: 'testCtrl' },
-        { path: '/cart', templateUrl: viewBase + 'cart.html', controller: 'cartCtrl' }
+        { path: '/test/', templateUrl: viewBase + 'test.html', controller: 'testController' },
+        { path: '/test/:id', templateUrl: viewBase + 'test.html', controller: 'testController' },
+        { path: '/cart', templateUrl: viewBase + 'cart.html', controller: 'cartController' }
 
     ];
     
@@ -48,12 +48,30 @@
         .value('routes', routes)
         .config(['$routeProvider', function ($routeProvider) {
             navRoutes.forEach(function (route) {
-                var resolve = app.routeResolve[route.controller];
-                if (resolve) { route.resolve = resolve; }
+                setRouteResolve(route);
                 $routeProvider.when(route.path, route);
             });
         $routeProvider.otherwise({ redirectTo: '/' });
     }]);
     
+    function setRouteResolve(route) {
+        var controllerName = route.controller;
+        var resolve = app.routeResolve[controllerName];
+        if (resolve) {
+            setDataServiceInit();
+            route.resolve = resolve;
+        }
+
+        function setDataServiceInit() {
+            if (!resolve.dataServiceInit) return;
+            // replace `true` with the dataServiceInit function.
+            var init = function(dataservice, logger) {
+                logger.log(controllerName + " is waiting for dataservice init");
+                return dataservice.initialize();
+            };
+            init.$inject = ['dataservice', 'logger'];
+            resolve.dataServiceInit = init;
+        }
+    }
 
 })();

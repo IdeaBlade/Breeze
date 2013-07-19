@@ -25,7 +25,7 @@
     <script src="Scripts/modernizr-2.6.2.js"></script>
 
 </head>
-    <body class="ng-cloak" data-ng-app="app" data-ng-controller="appCtrl">
+    <body class="ng-cloak" data-ng-app="app" data-ng-controller="appController">
         
         <div data-ng-include="'app/views/shellHeader.html'"></div>
         <div data-ng-view style="margin-top: 50px"></div>
@@ -50,9 +50,9 @@
         <script src="app/metadata.js"></script>
 
         <script src="app/controllers/appController.js"></script>
-        <script src="app/controllers/emptyControllers.js"></script>
+        <script src="app/controllers/homeController.js"></script>
         <script src="app/controllers/orderController.js"></script>
-        <script src="app/controllers/productController.js"></script>
+        <script src="app/controllers/productOrderController.js"></script>
         <script src="app/controllers/routeController.js"></script>
         <script src="app/controllers/cartController.js"></script>
         <script src="app/controllers/testController.js"></script>
@@ -67,7 +67,7 @@
         <script src="app/services/model.js"></script>
         <script src="app/services/routes.js"></script>
         <script src="app/services/util.js"></script>
-
+        
         <!-- omit appRun.js in tests -->
         <script src="app/appRun.js"></script> 
     </body>

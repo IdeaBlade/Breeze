@@ -12,7 +12,8 @@ namespace Zza.DataAccess.EF
 
         public ZzaSaveDataProvider(DbConnection connection)
         {
-            context = new ZzaContext(connection);
+            //context = new ZzaContext(connection); // not working yet
+            context = new ZzaContext();
         }
 
         public object GetExisting(object o, bool cacheOk=true)

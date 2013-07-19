@@ -1,11 +1,11 @@
 ﻿(function() {
     'use strict';
 
-    var ctrlName = 'orderCtrl';
-    var app = angular.module('app').controller(
-        ctrlName, ['$scope', '$routeParams', '$route', 'routes', 'dataservice', orderCtrl]);
+    var ctrlName = 'orderController';
+    var app = angular.module('app').controller(ctrlName,
+        ['$scope', '$routeParams', '$route', 'routes', 'dataservice', controller]);
     
-    function orderCtrl($scope, $routeParams, $route, routes, dataservice) {
+    function controller($scope, $routeParams, $route, routes, dataservice) {
  
         // tag comes from nav url; get the current route
         var tag = $routeParams.tag;
@@ -32,26 +32,6 @@
         }
     }
 
-    dataServiceInit.$inject = ['dataservice', 'logger'];
-    function dataServiceInit(dataservice, logger) {
-        logger.log(ctrlName + " is waiting for dataservice init");
-        return dataservice.initialize();
-    };
-    
-    app.routeResolve[ctrlName] = {
-        dataServiceInit: dataServiceInit
-    };
-    
-    /* Delayed route example
-    alert.$inject = ['$q', '$timeout', '$window'];
-    function alert(q, timeout, window) {
-        var deferred = q.defer();
-        timeout(function () {
-            window.alert("waiting for " + ctrlName);
-            deferred.resolve("done");
-        }, 0);
-        return deferred.promise;
-    };
-    */
+    app.routeResolve[ctrlName] = { dataServiceInit: true };
     
 })();
