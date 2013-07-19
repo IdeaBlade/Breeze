@@ -1,17 +1,17 @@
 ﻿(function() {
     'use strict';
 
-    var ctrlName = 'cartCtrl';
-    var app = angular.module('app').controller(
-        ctrlName, ['$scope', 'dataservice', cartCtrl]);
+    var ctrlName = 'cartController';
+    var app = angular.module('app').controller(ctrlName,
+        ['$scope', 'dataservice', controller]);
     
-    function cartCtrl($scope, dataservice) {
+    function controller($scope, dataservice) {
         var cartOrder = dataservice.cartOrder;
         var draftOrder = dataservice.draftOrder;
         $scope.cartOrder = cartOrder;
 
         $scope.removeItem = function (orderItem) {
-            orderItem.order = draftOrder;
+            draftOrder.orderItems.push(orderItem);
         };
 
         $scope.itemTotal = itemTotal;
@@ -37,14 +37,6 @@
         }
     }
 
-    dataServiceInit.$inject = ['dataservice', 'logger'];
-    function dataServiceInit(dataservice, logger) {
-        logger.log(ctrlName + " is waiting for dataservice init");
-        return dataservice.initialize();
-    };
-
-    app.routeResolve[ctrlName] = {
-        dataServiceInit: dataServiceInit
-    };
+    app.routeResolve[ctrlName] = { dataServiceInit: true };
 
 })();

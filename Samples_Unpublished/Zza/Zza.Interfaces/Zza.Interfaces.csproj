@@ -61,8 +61,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi\xxxxxxxbreeze.webapi.dll" GOTO breezeSourceExists
-echo Source xxxxxxxbreeze.webapi.dll was not found in '$(ProjectDir)..\..\..\Breeze.WebApi\' and was not copied
+    <PreBuildEvent>IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi\breeze.webapi.dll" GOTO breezeSourceExists
+echo Source breeze.webapi.dll was not found in '$(ProjectDir)..\..\..\Breeze.WebApi\' and was not copied
 GOTO :done
 :breezeSourceExists
 echo Copying breeze.webapi.dll from '$(ProjectDir)..\..\..\Breeze.WebApi\' to $(ProjectDir)

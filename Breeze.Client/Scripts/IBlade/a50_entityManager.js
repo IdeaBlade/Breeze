@@ -967,14 +967,16 @@ var EntityManager = (function () {
             var entity = entityManager.findEntityByKey(ekey);
             if (!entity) return;
             serr.entity = entity;
-            var ve = new ValidationError();
-            ve.errorMessage = serr.errorMessage;
-            ve.key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
+            
+            var context = serr.propertyName ?
+                {   propertyName: serr.propertyName,
+                    property: entityType.getProperty(serr.propertyName)
+                } : {
+                };
+            var key = (serr.propertyName || "") + ":" + (serr.errorName || serr.errorMessage)
+            
+            var ve = new ValidationError(null, context, serr.errorMessage, key);
             ve.isServerError = true;
-            if (serr.propertyName) {
-                ve.propertyName = serr.propertyName;
-                ve.property = entityType.getProperty(serr.propertyName);
-            }
             entity.entityAspect.addValidationError(ve);
         });
     }
@@ -2138,11 +2140,13 @@ var EntityManager = (function () {
             } else {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                rawVal.forEach(function (rawCo) {
-                    var newCo = dp.dataType._createInstanceCore(target, dp);
-                    updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
-                    oldVal.push(newCo);
-                });
+                if (Array.isArray(rawVal)) {
+                    rawVal.forEach(function (rawCo) {
+                        var newCo = dp.dataType._createInstanceCore(target, dp);
+                        updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
+                        oldVal.push(newCo);
+                    });
+                }
             }
         } else {
             var val;
@@ -2153,10 +2157,12 @@ var EntityManager = (function () {
                 oldVal = target.getProperty(dp.name);
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                rawVal.forEach(function (rv) {
-                    val = parseRawValue(dp, rv);
-                    oldVal.push(val);
-                });
+                if (Array.isArray(rawVal)) {
+                    rawVal.forEach(function (rv) {
+                        val = parseRawValue(dp, rv);
+                        oldVal.push(val);
+                    });
+                }
             }
         }
     }

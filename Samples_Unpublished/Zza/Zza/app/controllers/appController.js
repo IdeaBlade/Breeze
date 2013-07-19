@@ -1,10 +1,10 @@
 ﻿(function() {
     'use strict';
     
-    angular.module('app').controller(
-        'appCtrl', ['$rootScope', 'logger', appCtrl]);
+    angular.module('app').controller('appController',
+        ['$rootScope', 'logger', controller]);
     
-    function appCtrl($rootScope, logger) {
+    function controller($rootScope, logger) {
         $rootScope.name = "app";
    
         //#region route change event handlers
