@@ -71,7 +71,7 @@ namespace Breeze.WebApi {
           }
         } else if (transactionSettings.TransactionType == TransactionType.DbTransaction) {
           this.OpenDbConnection();
-          var conn = this.GetDbConnection();
+          var conn = this.GetEntityConnection();
           using (IDbTransaction tran = conn.BeginTransaction(transactionSettings.IsolationLevelAs)) {
             try {
               OpenAndSave(SaveWorkState);
@@ -118,6 +118,16 @@ namespace Breeze.WebApi {
     /// </summary>
     /// <returns>Open DbConnection used by the ContextProvider's implementation</returns>
     public abstract IDbConnection GetDbConnection();
+
+    /// <summary>
+    /// Should only be called from BeforeSaveEntities and AfterSaveEntities.
+    /// Base implementation returns GetDbConnection().  
+    /// EntityFramework implementations should return EntityConnection.
+    /// </summary>
+    /// <returns>Open DbConnection used by the ContextProvider's implementation</returns>
+    public virtual IDbConnection GetEntityConnection() {
+      return GetDbConnection();
+    }
 
     /// <summary>
     /// Internal use only.  Should only be called by ContextProvider during SaveChanges.

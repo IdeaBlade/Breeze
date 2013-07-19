@@ -73,6 +73,10 @@ namespace Breeze.WebApi {
       }
     }
 
+    public override IDbConnection GetEntityConnection() {
+      return ObjectContext.Connection;
+    }
+
     public override IDbConnection GetDbConnection() {
       var ec = ObjectContext.Connection as EntityConnection;
       if (ec != null) {
