@@ -836,7 +836,7 @@ var EntityManager = (function () {
             
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @param [errorCallback.error.serverErrors] { Array of serverErrors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
+        @param [errorCallback.error.entityErrors] { Array of server side errors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
         @param [errorCallback.error.XHR] {XMLHttpRequest} Any error that cannot be represented as a server error (above) will be returned in this format. 
         This includes timeouts, server failures, database locking issues etc. 
         
@@ -956,11 +956,11 @@ var EntityManager = (function () {
     }
 
     function processServerErrors(saveContext, error) {
-        var serverErrors = error.serverErrors;
-        if (!serverErrors) return;
+        var entityErrors = error.entityErrors;
+        if (!entityErrors) return;
         var entityManager = saveContext.entityManager;
         var metadataStore = entityManager.metadataStore;
-        serverErrors.forEach(function (serr) {
+        entityErrors.forEach(function (serr) {
             if (!serr.keyValues) return;
             var entityType = metadataStore._getEntityType(serr.entityTypeName);
             var ekey = new EntityKey(entityType, serr.keyValues);
@@ -973,7 +973,7 @@ var EntityManager = (function () {
                     property: entityType.getProperty(serr.propertyName)
                 } : {
                 };
-            var key = (serr.propertyName || "") + ":" + (serr.errorName || serr.errorMessage)
+            var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
             
             var ve = new ValidationError(null, context, serr.errorMessage, key);
             ve.isServerError = true;
