@@ -29,25 +29,25 @@ describe('testController', function () {
     });
 
     it ('"orderId" should be "<no id>" when no id in routeParams', function() {
-        $controllerFactory("testCtrl", ctorArgs);
+        $controllerFactory("testController", ctorArgs);
         expect(scope.orderId).toBe('<no id>');
     });
     
     it('"orderId" should be same as id in routeParams', function () {
         ctorArgs.$routeParams.id ='42';
-        $controllerFactory("testCtrl",ctorArgs);
+        $controllerFactory("testController",ctorArgs);
         expect(scope.orderId).toEqual('42');
     });
     
     it('should expose products from the dataservice', function () {
         var products = ['some', 'thing'];
         ctorArgs.dataservice = {products: products};
-        $controllerFactory("testCtrl",ctorArgs);
+        $controllerFactory("testController",ctorArgs);
         expect(scope.products).toBe(products);
     });
 
     it('should report something to the logger', function() {
-        $controllerFactory("testCtrl", ctorArgs);
+        $controllerFactory("testController", ctorArgs);
         sinon.assert.calledOnce(loggerStub.log);
         sinon.assert.calledWithMatch(loggerStub.log, /created/i);
     });

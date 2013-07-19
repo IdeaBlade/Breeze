@@ -41,11 +41,10 @@
             metadataStore.registerEntityTypeCtor('Order', Order);
 
             Order.create = create;
-            Order.prototype.addOrderItem = addOrderItem;
+            Order.prototype.addNewItem = addNewItem;
             
             function create(manager, orderInit) {
                 var init = {
-                    customerId: util.emptyGuid,
                     orderStatusId: 5, // known safe value for 'pending'
                     orderDate: new Date(),
                     deliveryDate: new Date()
@@ -54,7 +53,7 @@
                 return manager.createEntity('Order', init);
             }
             
-            function addOrderItem(productId) {
+            function addNewItem(productId) {
                 var orderItem = this.entityAspect.entityManager
                     .createEntity('OrderItem', {
                         orderId: this.id,
@@ -74,10 +73,10 @@
         function registerOrderItem(metadataStore) {
             metadataStore.registerEntityTypeCtor('OrderItem', OrderItem, initializer);
 
-            OrderItem.prototype.addOrderItemOption = addOrderItemOption;
+            OrderItem.prototype.addNewOption = addNewOption;
             OrderItem.prototype.calcPrice = calcPrice;
             
-            function addOrderItemOption(productOptionId) {
+            function addNewOption(productOptionId) {
                 var orderItemOption = this.entityAspect.entityManager
                     .createEntity('OrderItemOption', {
                         orderItemId: this.id,
