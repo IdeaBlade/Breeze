@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration.Conventions;
 using Zza.Model;
@@ -12,13 +13,17 @@ namespace Zza.DataAccess.EF
             Database.SetInitializer<ZzaContext>(null);
         }
 
-        public static string ContextName { get { return "ZzaContextEf"; } }
+        // ctor for Breeze EFContextProvider
+        public ZzaContext() : base("ZzaContextEf") { ctorCore(); }
 
-        public ZzaContext() : base(ContextName)
+        // ctor for secondary context that shares connection with another DbContext
+        public ZzaContext(DbConnection connection) : base(connection, false) { ctorCore(); }
+
+        private void ctorCore()
         {
             // Disable proxy creation and lazy loading; not wanted in this service context.
             Configuration.ProxyCreationEnabled = false;
-            Configuration.LazyLoadingEnabled = false;
+            Configuration.LazyLoadingEnabled = false;            
         }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

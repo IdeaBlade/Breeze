@@ -1,4 +1,5 @@
 using System;
+using System.Data.Common;
 using System.Linq;
 using Zza.Interfaces;
 using Zza.Model;
@@ -7,7 +8,12 @@ namespace Zza.DataAccess.EF
 {
     internal class ZzaSaveDataProvider : IZzaSaveDataProvider
     {
-        private ZzaContext context = new ZzaContext();
+        private readonly ZzaContext context;
+
+        public ZzaSaveDataProvider(DbConnection connection)
+        {
+            context = new ZzaContext(connection);
+        }
 
         public object GetExisting(object o, bool cacheOk=true)
         {

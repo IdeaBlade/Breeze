@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Common;
 using System.Linq;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
@@ -30,7 +31,8 @@ namespace Zza.DataAccess.EF
 
         private void prepSaveChanges()
         {
-            var saveGuard = new ZzaSaveGuard(() => new ZzaSaveDataProvider(), UserStoreId);
+            var connection = (DbConnection) _contextProvider.GetDbConnection();
+            var saveGuard = new ZzaSaveGuard(() => new ZzaSaveDataProvider(connection), UserStoreId);
             _contextProvider.BeforeSaveEntitiesDelegate += saveGuard.BeforeSaveEntities;
         }
 
