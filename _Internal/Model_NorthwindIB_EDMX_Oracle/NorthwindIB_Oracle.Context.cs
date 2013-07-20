@@ -10,16 +10,19 @@
 namespace Models.NorthwindIB.Oracle
 {
     using System;
+    using System.Data.Common;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class Entities : DbContext
+    public partial class NorthwindIBContext_EDMX_Oracle : DbContext
     {
-        public Entities()
+        public NorthwindIBContext_EDMX_Oracle()
         : base("name=NorthwindIBContext_EDMX_Oracle")
         {
         }
     
+        public NorthwindIBContext_EDMX_Oracle(DbConnection connection) : base(connection, false) {}
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             throw new UnintentionalCodeFirstException();

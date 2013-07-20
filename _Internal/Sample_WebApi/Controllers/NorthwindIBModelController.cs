@@ -53,7 +53,7 @@ namespace Sample_WebApi.Controllers {
   public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_2012> {
     public NorthwindContextProvider() : base() { }
 #elif ORACLE_EDMX
-  public class NorthwindContextProvider : EFContextProvider<Entities> {
+  public class NorthwindContextProvider : EFContextProvider<NorthwindIBContext_EDMX_Oracle> {
     public NorthwindContextProvider() : base() { }
 #elif NHIBERNATE
   public class NorthwindContextProvider : NorthwindNHContext {
@@ -75,7 +75,9 @@ namespace Sample_WebApi.Controllers {
         UpdateProduceDescription(km.EntityTypeName + ':' + km.RealValue);
 
       } else if (tag == "LookupEmployeeInSeparateContext.After") {
-        LookupEmployeeInSeparateContext();
+        LookupEmployeeInSeparateContext(false);
+      } else if (tag == "LookupEmployeeInSeparateContext.SameConnection.After") {
+        LookupEmployeeInSeparateContext(true);
       }
       base.AfterSaveEntities(saveMap, keyMappings);
     }
@@ -111,13 +113,29 @@ namespace Sample_WebApi.Controllers {
     }
 
     // Use another Context to simulate lookup.  Returns Margaret Peacock if employeeId is not specified.
-    private Employee LookupEmployeeInSeparateContext(int employeeId = 4) {
-      var context2 = new NorthwindIBContext_EDMX_2012();
+    private Employee LookupEmployeeInSeparateContext(bool existingConnection, int employeeId = 4) {
+      var context2 = existingConnection 
+#if CODEFIRST_PROVIDER
+        ? new NorthwindIBContext_CF((System.Data.Common.DbConnection)GetEntityConnection())
+        : new NorthwindIBContext_CF();
+#elif DATABASEFIRST_OLD
+        ? new NorthwindIBContext_EDMX((System.Data.EntityClient.EntityConnection)GetEntityConnection())
+        : new NorthwindIBContext_EDMX();
+#elif DATABASEFIRST_NEW
+        ? new NorthwindIBContext_EDMX_2012((System.Data.Common.DbConnection)GetEntityConnection())
+        : new NorthwindIBContext_EDMX_2012();
+#elif ORACLE_EDMX
+        ? new NorthwindIBContext_EDMX_Oracle((System.Data.Common.DbConnection)GetEntityConnection())
+        : new NorthwindIBContext_EDMX_Oracle();
+#elif NHIBERNATE
+        ? new NorthwindNHContext(GetDbConnection())
+        : new NorthwindNHContext();
+#endif
+
       var query = context2.Employees.Where(e => e.EmployeeID == employeeId);
       var employee = query.FirstOrDefault();
       return employee;
     }
-
 
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
       if ((string)SaveOptions.Tag == "addProdOnServer") {
@@ -173,8 +191,9 @@ namespace Sample_WebApi.Controllers {
         var order = (Order)orderInfos[0].Entity;
         UpdateProduceDescription(order.ShipAddress);
       } else if (tag == "LookupEmployeeInSeparateContext.Before") {
-        LookupEmployeeInSeparateContext();
-      
+        LookupEmployeeInSeparateContext(false);
+      } else if (tag == "LookupEmployeeInSeparateContext.SameConnection.Before") {
+        LookupEmployeeInSeparateContext(true);
       } else if (tag == "ValidationError.Before") {
         foreach(var type in saveMap.Keys) {
           var list = saveMap[type];
@@ -196,7 +215,7 @@ namespace Sample_WebApi.Controllers {
       }
 
 
-      if (tag == "increaseProductPrice") {
+      else if (tag == "increaseProductPrice") {
         Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
         foreach (var type in saveMap.Keys) {
           if (type == typeof(Category)) {
@@ -445,8 +464,8 @@ namespace Sample_WebApi.Controllers {
       var dc0 = new NorthwindIBContext_EDMX_2012();
       var dc = new EFContextProvider<NorthwindIBContext_EDMX_2012>();
 #elif ORACLE_EDMX
-      var dc0 = new Entities();
-      var dc = new EFContextProvider<Entities>();
+      var dc0 = new NorthwindIBContext_EDMX_Oracle();
+      var dc = new EFContextProvider<NorthwindIBContext_EDMX_Oracle>();
 #endif
       //the query executes using pure EF 
       var query0 = (from t1 in dc0.Employees
