@@ -878,15 +878,15 @@ var EntityManager = (function () {
                 return !isValid;
             });
             if (failedEntities.length > 0) {
-                var valError = new Error("Validation error");
-                valError.entitiesWithErrors = failedEntities;
+                var valError = new Error("Client side validation errors encountered - see the entityErrors collection on this object for more detail");
+                valError.entityErrors = createEntityErrors(failedEntities);
                 if (errorCallback) errorCallback(valError);
                 return Q.reject(valError);
             }
         }
             
         updateConcurrencyProperties(entitiesToSave);
-        
+       
        
         var dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
         var saveContext = {
@@ -954,6 +954,24 @@ var EntityManager = (function () {
         });
 
     }
+
+
+    function createEntityErrors(entities) {
+        var entityErrors = [];
+        entities.forEach(function (e) {
+            e._validationErrors.forEach(function (ve) {
+                entityErrors.push({
+                    entity: e,
+                    errorName: ve.validator.name,
+                    errorMessage: ve.errorMessage,
+                    propertyName: ve.propertyName,
+                    isServerError: ve.isServerError,
+                });
+            });
+        });
+        return entityErrors;
+    }
+
 
     function processServerErrors(saveContext, error) {
         var entityErrors = error.entityErrors;

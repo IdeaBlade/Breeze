@@ -705,12 +705,14 @@ namespace Breeze.WebApi {
   }
 
   public class EFEntityError : EntityError {
-    public EFEntityError(EntityInfo entityInfo, String errorMessage, String propertyName) {
+    public EFEntityError(EntityInfo entityInfo, String errorName, String errorMessage, String propertyName) {
+
 
       if (entityInfo != null) {
         this.EntityTypeName = entityInfo.Entity.GetType().FullName;       
         this.KeyValues = GetKeyValues(entityInfo);
       }
+      ErrorName = ErrorName;
       ErrorMessage = errorMessage;
       PropertyName = propertyName;
     }
