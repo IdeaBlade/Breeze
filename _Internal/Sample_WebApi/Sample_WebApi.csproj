@@ -240,6 +240,10 @@
       <Link>Scripts\Tests\saveTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\saveTransactionTests.js">
+      <Link>Scripts\Tests\saveTransactionTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\testFns.js">
       <Link>Scripts\Tests\testFns.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
