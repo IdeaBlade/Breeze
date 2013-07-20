@@ -348,7 +348,7 @@ namespace Sample_WebApi.Controllers {
       List<EntityInfo> orderInfos;
       if (saveMap.TryGetValue(typeof(Order), out orderInfos)) {
         var errors = orderInfos.Select(oi => {
-          return new EFEntityError(oi, "Cannot save orders with this save method", "OrderID");
+          return new EFEntityError(oi, "WrongMethod", "Cannot save orders with this save method", "OrderID");
         });
         throw new EntityErrorsException(errors);
       }

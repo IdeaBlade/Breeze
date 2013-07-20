@@ -878,15 +878,15 @@ var EntityManager = (function () {
                 return !isValid;
             });
             if (failedEntities.length > 0) {
-                var valError = new Error("Validation error");
-                valError.entitiesWithErrors = failedEntities;
+                var valError = new Error("Client side validation errors encountered - see the entityErrors collection on this object for more detail");
+                valError.entityErrors = createEntityErrors(failedEntities);
                 if (errorCallback) errorCallback(valError);
                 return Q.reject(valError);
             }
         }
             
         updateConcurrencyProperties(entitiesToSave);
-        
+       
        
         var dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
         var saveContext = {
@@ -943,17 +943,36 @@ var EntityManager = (function () {
     function clearServerErrors(entities) {
         entities.forEach(function (entity) {
             var serverKeys = [];
-            __objectForEach(entity.entityAspect._validationErrors, function (err) {
-                if (err.isServerError) serverKeys.push(err.key);
+            var valErrors = entity.entityAspect._validationErrors;
+            __objectForEach(valErrors, function (key, ve) {
+                if (ve.isServerError) serverKeys.push(key);
             });
             if (serverKeys.length === 0) return;
             serverKeys.forEach(function(key) {
-                delete this._validationErrors[key];
+                delete valErrors[key];
             });
-            entity.hasValidationErrors = !__isEmpty(entity._validationErrors);
+            entity.hasValidationErrors = !__isEmpty(valErrors);
         });
 
     }
+
+
+    function createEntityErrors(entities) {
+        var entityErrors = [];
+        entities.forEach(function (entity) {
+            __objectForEach(entity.entityAspect._validationErrors, function (key, ve) {
+                entityErrors.push({
+                    entity: entity,
+                    errorName: ve.validator.name,
+                    errorMessage: ve.errorMessage,
+                    propertyName: ve.propertyName,
+                    isServerError: ve.isServerError,
+                });
+            });
+        });
+        return entityErrors;
+    }
+
 
     function processServerErrors(saveContext, error) {
         var entityErrors = error.entityErrors;
