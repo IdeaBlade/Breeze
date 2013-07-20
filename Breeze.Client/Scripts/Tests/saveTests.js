@@ -810,7 +810,26 @@
 
     });
 
-    test("save with server side entity level validation error", function () {
+    test("save with client side validation error", function () {
+
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        var cust1 = zzz.cust1;
+        cust1.setProperty("companyName", null);
+        stop();
+        em.saveChanges().then(function (sr) {
+            ok(false, "should not get here");
+        }).fail(function (e) {
+            ok(e.entityErrors, "should be a  entityError");
+            ok(e.entityErrors.length === 1, "should be only one error");
+            ok(!e.entityErrors[0].isServerError, "should NOT be a server error");
+            var errors = cust1.entityAspect.getValidationErrors();
+            ok(errors[0].errorMessage === errors[0].errorMessage, "error message should appear on the cust");
+
+        }).fin(start);
+    });
+
+    test("save with server side entity level validation error", 3, function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
@@ -832,8 +851,7 @@
             ok(e.entityErrors, "should be a server error");
             ok(e.entityErrors.length === 1, "should be only one server error");
             var errors = cust1.entityAspect.getValidationErrors();
-            ok(errors[0].errorMessage === serverErrors[0].errorMessage, "error message should appear on the cust");
-            // ok(e.message.toLowerCase().indexOf("validation errors") >= 0, "should be a validation error message");
+            ok(errors[0].errorMessage === errors[0].errorMessage, "error message should appear on the cust");
         }).fin(start);
     });
 

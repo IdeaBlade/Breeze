@@ -11971,14 +11971,15 @@ var EntityManager = (function () {
     function clearServerErrors(entities) {
         entities.forEach(function (entity) {
             var serverKeys = [];
-            __objectForEach(entity.entityAspect._validationErrors, function (err) {
-                if (err.isServerError) serverKeys.push(err.key);
+            var valErrors = entity.entityAspect._validationErrors;
+            __objectForEach(valErrors, function (key, ve) {
+                if (ve.isServerError) serverKeys.push(key);
             });
             if (serverKeys.length === 0) return;
             serverKeys.forEach(function(key) {
-                delete this._validationErrors[key];
+                delete valErrors[key];
             });
-            entity.hasValidationErrors = !__isEmpty(entity._validationErrors);
+            entity.hasValidationErrors = !__isEmpty(valErrors);
         });
 
     }
@@ -11986,10 +11987,10 @@ var EntityManager = (function () {
 
     function createEntityErrors(entities) {
         var entityErrors = [];
-        entities.forEach(function (e) {
-            e._validationErrors.forEach(function (ve) {
+        entities.forEach(function (entity) {
+            __objectForEach(entity.entityAspect._validationErrors, function (key, ve) {
                 entityErrors.push({
-                    entity: e,
+                    entity: entity,
                     errorName: ve.validator.name,
                     errorMessage: ve.errorMessage,
                     propertyName: ve.propertyName,
