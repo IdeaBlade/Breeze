@@ -69,12 +69,14 @@ namespace Sample_WebApi.Controllers {
           AddComment(km.EntityTypeName + ':' + km.RealValue, seq);
         }
       }
-      if (tag == "UpdateProduceKeyMapping.After") {
+      else if (tag == "UpdateProduceKeyMapping.After") {
         if (!keyMappings.Any()) throw new Exception("UpdateProduce.After: No key mappings available");
         var km = keyMappings[0];
         UpdateProduceDescription(km.EntityTypeName + ':' + km.RealValue);
-      }
 
+      } else if (tag == "LookupEmployeeInSeparateContext.After") {
+        LookupEmployeeInSeparateContext();
+      }
       base.AfterSaveEntities(saveMap, keyMappings);
     }
 
@@ -106,6 +108,14 @@ namespace Sample_WebApi.Controllers {
         conn.Close();
         return result;
       }
+    }
+
+    // Use another Context to simulate lookup.  Returns Margaret Peacock if employeeId is not specified.
+    private Employee LookupEmployeeInSeparateContext(int employeeId = 4) {
+      var context2 = new NorthwindIBContext_EDMX_2012();
+      var query = context2.Employees.Where(e => e.EmployeeID == employeeId);
+      var employee = query.FirstOrDefault();
+      return employee;
     }
 
 
@@ -162,6 +172,9 @@ namespace Sample_WebApi.Controllers {
         var orderInfos = saveMap[typeof(Order)];
         var order = (Order)orderInfos[0].Entity;
         UpdateProduceDescription(order.ShipAddress);
+      } else if (tag == "LookupEmployeeInSeparateContext.Before") {
+        LookupEmployeeInSeparateContext();
+      
       } else if (tag == "ValidationError.Before") {
         foreach(var type in saveMap.Keys) {
           var list = saveMap[type];
