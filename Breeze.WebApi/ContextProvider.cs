@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Transactions;
 using System.Xml.Linq;
 using System.Data;
+using System.Data.Common;
 
 namespace Breeze.WebApi {
   // Base for EFContextProvider
@@ -121,12 +122,12 @@ namespace Breeze.WebApi {
 
     /// <summary>
     /// Should only be called from BeforeSaveEntities and AfterSaveEntities.
-    /// Base implementation returns GetDbConnection().  
+    /// Base implementation returns null.  
     /// EntityFramework implementations should return EntityConnection.
     /// </summary>
     /// <returns>Open DbConnection used by the ContextProvider's implementation</returns>
     public virtual IDbConnection GetEntityConnection() {
-      return GetDbConnection();
+      return null;
     }
 
     /// <summary>
