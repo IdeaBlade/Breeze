@@ -693,7 +693,8 @@ var ValidationError = (function () {
             this.key = key;
         } else {
             this.key = ValidationError.getKey(validator || errorMessage, this.propertyName);
-        }        
+        }
+        this.isServerError = false;
     };
 
         
@@ -740,7 +741,7 @@ var ValidationError = (function () {
     **/
 
     /**
-   Whether this is a server error.  This property will be missing completely for client side errors.
+   Whether this is a server error.  
 
    __readOnly__
    @property isServerError {bool}
