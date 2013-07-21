@@ -64,7 +64,18 @@
             equal(suppliers.length, 0, "local query should succeed with no results");
         }
     });
-
+    
+    test("Insure that this is Not a duration query even without type mapping", function () {
+        var em = newEm();
+        var q = EntityQuery.from("AltCustomers").where('companyName', '==', 'Papa');
+        stop();
+        em.executeQuery(q).then(function (data) {
+            ok(true);
+            ok(data.results.length === 0);
+        }).fail(function (error) {
+            ok(false, error.message);
+        }).fin(start);
+    });
 
 
     test("Query Involving Multiple Entities on Server", function () {

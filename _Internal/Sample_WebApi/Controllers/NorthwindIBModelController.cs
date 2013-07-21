@@ -634,6 +634,13 @@ namespace Sample_WebApi.Controllers {
     }
 
     [HttpGet]
+    // AltCustomers will not be in the resourceName/entityType map;
+    public IQueryable<Customer> AltCustomers() {
+      return ContextProvider.Context.Customers;
+    }
+
+
+    [HttpGet]
     public IQueryable<Employee> SearchEmployees([FromUri] int[] employeeIds) {
       var query = ContextProvider.Context.Employees.AsQueryable();
       if (employeeIds.Length > 0) {
