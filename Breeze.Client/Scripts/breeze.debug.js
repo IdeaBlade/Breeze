@@ -12384,6 +12384,17 @@ var EntityManager = (function () {
 
             // attach any unattachedChildren
             var tuples = unattachedMap.getTuples(entityKey);
+			var baseTuples = unattachedMap.getBaseTuples(entityKey);;
+
+
+            if (tuples && baseTuples) {
+                tuples = tuples.concat(baseTuples);
+            } else if (tuples) {
+            
+            } else {
+                tuples = baseTuples;
+            }
+
             if (tuples) {
                 tuples.forEach(function (tpl) {
 
@@ -13535,6 +13546,14 @@ var EntityManager = (function () {
 
     UnattachedChildrenMap.prototype.getTuples = function (parentEntityKey) {
         return this.map[parentEntityKey.toString()];
+    };
+	
+	UnattachedChildrenMap.prototype.getBaseTuples = function (parentEntityKey) {
+		var baseTuples = null;
+		if (parentEntityKey.entityType.baseEntityType) {
+            baseTuples = this.map[parentEntityKey.entityType.baseEntityType.toString() + '-' + parentEntityKey._keyInGroup];
+        }
+        return baseTuples;
     };
 
     return ctor;
