@@ -84,7 +84,11 @@ namespace Sample_WebApi.Controllers {
 
     // Test performing a raw db insert to NorthwindIB using the base connection
     private int AddComment(string comment, byte seqnum) {
+#if NHIBERNATE
       var conn = base.GetDbConnection();
+#else
+      var conn = StoreConnection;
+#endif
       var cmd = conn.CreateCommand();
 #if ORACLE_EDMX
       var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -116,16 +120,16 @@ namespace Sample_WebApi.Controllers {
     private Employee LookupEmployeeInSeparateContext(bool existingConnection, int employeeId = 4) {
       var context2 = existingConnection 
 #if CODEFIRST_PROVIDER
-        ? new NorthwindIBContext_CF((System.Data.Common.DbConnection)GetEntityConnection())
+        ? new NorthwindIBContext_CF(EntityConnection)
         : new NorthwindIBContext_CF();
 #elif DATABASEFIRST_OLD
-        ? new NorthwindIBContext_EDMX((System.Data.EntityClient.EntityConnection)GetEntityConnection())
+        ? new NorthwindIBContext_EDMX(EntityConnection)
         : new NorthwindIBContext_EDMX();
 #elif DATABASEFIRST_NEW
-        ? new NorthwindIBContext_EDMX_2012((System.Data.Common.DbConnection)GetEntityConnection())
+        ? new NorthwindIBContext_EDMX_2012(EntityConnection)
         : new NorthwindIBContext_EDMX_2012();
 #elif ORACLE_EDMX
-        ? new NorthwindIBContext_EDMX_Oracle((System.Data.Common.DbConnection)GetEntityConnection())
+        ? new NorthwindIBContext_EDMX_Oracle(EntityConnection)
         : new NorthwindIBContext_EDMX_Oracle();
 #elif NHIBERNATE
         ? new NorthwindNHContext(GetDbConnection())
