@@ -94,6 +94,8 @@
             metadataStore.registerEntityTypeCtor('OrderItem', OrderItem, initializer);
 
             OrderItem.prototype.addNewOption = addNewOption;
+            OrderItem.prototype.restoreOption = restoreOption;
+            OrderItem.prototype.deleteOption = deleteOption;
             OrderItem.prototype.calcPrice = calcPrice;
             
             function addNewOption(productOptionId) {
@@ -104,6 +106,15 @@
                         quantity: 1
                     });
                 return orderItemOption;
+            }
+            
+            function restoreOption(option) {
+                option.entityAspect.setUnchanged();
+            }
+            
+            function deleteOption(option) {
+                option.entityAspect.setDeleted();
+                return (option.entityAspect.entityState.isDeleted()) ? option : null;
             }
             
             function calcPrice() {

@@ -141,22 +141,16 @@
             
             if (optionVm.selected) {
                 if (itemOption) {
-                    // must be an existing option that was deselected and marked-for-delete; revert
-                    if (ea.entityState.isDeleted()) {
-                        ea.setUnchanged(); 
-                    } else {        
-                        throw new Error(
-                            "itemOption has unexpected EntityState, " + ea.entityState.name);
-                    }
+                    orderItem.restore(option);
                 } else { // no itemOption; create one
                     optionVm.itemOption = orderItem.addNewOption(optionVm.option.id);
                 }
                 
             } else if (itemOption) { // option de-selected; delete
-                if (ea.entityState.isAdded()) {
-                    optionVm.itemOption = null; // discard a newly created option
+                var deletedOption = orderItem.deleteOption(itemOption);
+                if (!deletedOption) {
+                    optionVm.itemOption = null; // discard; deleted option no longer in cache
                 }
-                ea.setDeleted(); // deletes existing or detaches an added
             } else {
                 throw new Error("deselected but no itemOption to delete");
             }
