@@ -82,6 +82,28 @@ namespace Sample_WebApi.Controllers {
       base.AfterSaveEntities(saveMap, keyMappings);
     }
 
+    /* hack to get current DbTransaction from EF private properties
+    public DbTransaction StoreTransaction {
+      get {
+        // get private member via reflection
+        var ec = EntityConnection;
+        if (ec == null) return null;
+        var ectype = ec.GetType();
+        var ctProp = ectype.GetProperty("CurrentTransaction", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+        var entityTransaction = ctProp.GetValue(ec, null) as EntityTransaction;
+
+        if (entityTransaction != null) {
+          var etype = entityTransaction.GetType();
+          var stProp = etype.GetProperty("StoreTransaction", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+          var transaction = stProp.GetValue(entityTransaction, null);
+          var dbTransaction = transaction as DbTransaction;
+          return dbTransaction;
+        }
+        return null;
+      }
+    }
+    */
+
     // Test performing a raw db insert to NorthwindIB using the base connection
     private int AddComment(string comment, byte seqnum) {
 #if NHIBERNATE
