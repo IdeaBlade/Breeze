@@ -34,30 +34,9 @@
 
             <tabset>
                 <tab data-ng-repeat="tab in tabVms" heading="{{tab.type}}" active="tab.active" disabled="tab.disabled">
-                    <div>
-                        <div data-ng-repeat="column in tab.columnOptions" >
-                            <div class="span3">
-                                <div data-ng-repeat="opt in column" >
-                                    <label data-ng-if="!tab.oneChoice" class="checkbox" for="chk{{opt.id}}" 
-                                        data-ng-click="selectOption(opt)">
-                                        <input type="checkbox" 
-                                               id="chk{{opt.id}}" 
-                                               data-ng-model="opt.selected" 
-                                               class="input-mini"/>
-                                        {{opt.name}}
-                                    </label>
-                                    <label data-ng-if="tab.oneChoice" class="radio" for="rad{{opt.id}}" 
-                                        data-ng-click="selectOneOption(tab)">
-                                        <input type="radio" 
-                                               id="rad{{opt.id}}"
-                                               value="{{opt.id}}"
-                                               data-ng-model="tab.selectedOptionId" 
-                                               class="input-mini"/>
-                                        {{opt.name}}
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+                    <div data-ng-switch="tab.oneChoice">
+                        <div data-ng-switch-when="true"  data-ng-include="'app/views/productOptionRadio.html'"></div>                         
+                        <div data-ng-switch-when="false" data-ng-include="'app/views/productOptionCheckbox.html'"></div>
                     </div>
                 </tab>
             </tabset>
