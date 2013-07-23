@@ -42,9 +42,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 		<li>
-			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
 		
 	</ul>
 </div>
@@ -587,7 +587,9 @@ function __isGuid(value) {
 }
     
 function __isDuration(value) {
-    return (typeof value === &quot;string&quot;) &amp;&amp; &#x2F;^(-|)?P([0-9]+Y|)?([0-9]+M|)?([0-9]+D|)?T?([0-9]+H|)?([0-9]+M|)?([0-9]+S|)?&#x2F;.test(value);
+    return (typeof value === &quot;string&quot;) &amp;&amp; &#x2F;^(-|)?P[T]?[\d\.,\-]+[YMDTHS]&#x2F;.test(value);
+    &#x2F;&#x2F; old version
+    &#x2F;&#x2F; return (typeof value === &quot;string&quot;) &amp;&amp; &#x2F;^(-|)?P([0-9]+Y|)?([0-9]+M|)?([0-9]+D|)?T?([0-9]+H|)?([0-9]+M|)?([0-9]+S|)?&#x2F;.test(value);
 }
 
 function __isEmpty(obj) {

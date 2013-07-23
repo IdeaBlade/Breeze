@@ -42,9 +42,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 		<li>
-			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
 		
 	</ul>
 </div>
@@ -411,19 +411,12 @@ var Event = (function() {
         assertParam(eventName, &quot;eventName&quot;).isNonEmptyString().check();
         assertParam(obj, &quot;obj&quot;).isObject().check();
         assertParam(isEnabled, &quot;isEnabled&quot;).isBoolean().isOptional().or().isFunction().check();
-        eventName = getFullEventName(eventName);
         if (!obj._$eventMap) {
             obj._$eventMap = {};
         }
         obj._$eventMap[eventName] = isEnabled;
     };
 
-    ctor._enableFast = function(event, obj, isEnabled) {
-        if (!obj._$eventMap) {
-            obj._$eventMap = {};
-        }
-        obj._$eventMap[event.name] = isEnabled;
-    };
 
     &#x2F;**
     Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set. 
@@ -442,7 +435,8 @@ var Event = (function() {
         if (!obj._getEventParent) {
             throw new Error(&quot;This object does not support event enabling&#x2F;disabling&quot;);
         }
-        return ctor._isEnabled(obj, getFullEventName(eventName));
+        &#x2F;&#x2F; return ctor._isEnabled(obj, getFullEventName(eventName));
+        return ctor._isEnabled(obj, eventName);
     };
 
     ctor._isEnabled = function(eventName, obj) {
@@ -467,18 +461,6 @@ var Event = (function() {
             }
         }
     };
-
-    function getFullEventName(eventName) {
-        if (__eventNameMap[eventName]) return eventName;
-        &#x2F;&#x2F; find the closest event name that matches
-        var fullEventName = __arrayFirst(Object.keys(__eventNameMap), function(name) {
-            return name.indexOf(eventName) === 0;
-        });
-        if (!fullEventName) {
-            throw new Error(&quot;Unable to find any registered event that matches: &quot; + eventName);
-        }
-        return fullEventName;
-    }
 
     function fallbackErrorHandler(e) {
         &#x2F;&#x2F; TODO: maybe log this 
