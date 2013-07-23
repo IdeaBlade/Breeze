@@ -31,6 +31,7 @@
         $scope.isDraftOrder = isDraftOrder;
         $scope.addToCart = addToCart;
         $scope.selectOption = selectOption;
+        $scope.selectOneOption = selectOneOption;
 
         /*** Implementation ***/
 
@@ -85,17 +86,17 @@
         }
 
         function createOptionVms() {
-            var options = dataservice.productOptions.byTag(info.tag);
-            // Todo: filter special case for "Plain Pizza"
+            var options = dataservice.productOptions.byProduct(info.product);
 
             var itemOptions =
                 util.keyArray(orderItem.orderItemOptions, function (o) { return o.productOptionId; });
 
-            return options.map(function (o) {
-                var io = itemOptions[o.id];
+            return options.map(function (po) {
+                var io = itemOptions[po.id];
                 return {
-                    id: o.id,
-                    option: o,
+                    id: po.id,
+                    name: po.name,
+                    productOption: po,
                     selected: !!io,
                     itemOption: io
                 };
@@ -105,14 +106,31 @@
         function createTabVms() {
             // group the productOption viewmodels by type so they can be displayed on tabs
             var tabs = util.groupArray(optionVms,
-                function (vm) { return vm.option.type; }, 'type', 'options');
+                function (vm) { return vm.productOption.type; }, 'type', 'options');
 
             // distribute the options in each tab among 3 columns
+            // indicate which tabs allow only one choice
             tabs.forEach(function (t) {
-                t.options = util.deal(t.options, 3);
+                t.oneChoice = t.type == 'crust'; // can only pick one crust
+                if (t.oneChoice) { ensureOneSelected(t); };
+                t.columnOptions = util.deal(t.options, 3);
             });
 
             return tabs;
+            
+            function ensureOneSelected(tab) {
+                // Only one choice allowed among options on the tab
+                // Will display with radio buttons which, unlike checkboxes,
+                // must bind to something other than the choices.
+                // The `tab.selectedOptionId` is that something.
+                // p.s.: can't bind to option itself because of Ng circular-ref failure
+                tab.selectedOptionId = tab.options[0].id; // default selection
+                tab.options.forEach(function (opt) {
+                    // override default if any of the options is already selected
+                    if (opt.selected) tab.selectedOptionId = opt.id;});                
+                selectOneOption(tab);
+            }
+
         }
         
         function createSizeVms() {
@@ -137,13 +155,12 @@
         // Add/remove orderItemOption for a single selection
         function selectOption(optionVm) {
             var itemOption = optionVm.itemOption;
-            var ea = itemOption && itemOption.entityAspect;
             
             if (optionVm.selected) {
                 if (itemOption) {
-                    orderItem.restore(option);
+                    orderItem.undeleteOption(itemOption);
                 } else { // no itemOption; create one
-                    optionVm.itemOption = orderItem.addNewOption(optionVm.option.id);
+                    optionVm.itemOption = orderItem.addNewOption(optionVm.productOption);
                 }
                 
             } else if (itemOption) { // option de-selected; delete
@@ -151,9 +168,16 @@
                 if (!deletedOption) {
                     optionVm.itemOption = null; // discard; deleted option no longer in cache
                 }
-            } else {
-                throw new Error("deselected but no itemOption to delete");
             }
+        }
+        
+        function selectOneOption(tab) {
+            var selectedId = parseInt(tab.selectedOptionId);
+            // reset selected state for every option on this tab
+            tab.options.forEach(function (opt) {
+                opt.selected = opt.id === selectedId;
+                selectOption(opt);
+            });
         }
     }
  

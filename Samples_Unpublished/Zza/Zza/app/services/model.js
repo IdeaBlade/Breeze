@@ -94,22 +94,24 @@
             metadataStore.registerEntityTypeCtor('OrderItem', OrderItem, initializer);
 
             OrderItem.prototype.addNewOption = addNewOption;
-            OrderItem.prototype.restoreOption = restoreOption;
             OrderItem.prototype.deleteOption = deleteOption;
+            OrderItem.prototype.undeleteOption = undeleteOption;
             OrderItem.prototype.calcPrice = calcPrice;
             
-            function addNewOption(productOptionId) {
+            function addNewOption(productOption) {
                 var orderItemOption = this.entityAspect.entityManager
                     .createEntity('OrderItemOption', {
                         orderItemId: this.id,
-                        productOptionId: productOptionId,
+                        productOption: productOption,
                         quantity: 1
                     });
                 return orderItemOption;
             }
             
-            function restoreOption(option) {
-                option.entityAspect.setUnchanged();
+            function undeleteOption(option) {
+                if (option.entityAspect.entityState.isDeleted()) {
+                    option.entityAspect.setUnchanged();
+                }
             }
             
             function deleteOption(option) {
