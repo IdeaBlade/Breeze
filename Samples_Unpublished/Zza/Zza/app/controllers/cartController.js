@@ -11,7 +11,7 @@
         $scope.cartOrder = cartOrder;
 
         $scope.removeItem = function (orderItem) {
-            draftOrder.orderItems.push(orderItem);
+            draftOrder.addItem(orderItem);
         };
 
         $scope.itemTotal = itemTotal;
@@ -19,21 +19,18 @@
 
         function itemTotal(orderItem) {
             // Todo: move totalling logic into the model
-            var total = orderItem.unitPrice;
+            var toppingPrice = orderItem.productSize.toppingPrice;
+            var unitTotal = orderItem.unitPrice;
             orderItem.orderItemOptions.forEach(function (option) {
-                option.price = orderItem.productSize.toppingPrice * option.productOption.factor * option.quantity;
-                total += option.price;
+                option.price = toppingPrice * option.productOption.factor * option.quantity;
+                unitTotal += option.price;
             });
-            return total * orderItem.quantity;
+            return unitTotal * orderItem.quantity;
         }
 
         function orderTotal() {
             // Todo: move totalling logic into the model
-            var total = 0;
-            cartOrder.orderItems.forEach(function(item) {
-                total += itemTotal(item);
-            });
-            return total;
+            return cartOrder.orderItems.reduce(function (p, c) {return p + c;}, 0);
         }
     }
 

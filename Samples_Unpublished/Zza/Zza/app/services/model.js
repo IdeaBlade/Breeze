@@ -42,6 +42,8 @@
 
             Order.create = create;
             Order.prototype.addNewItem = addNewItem;
+            Order.prototype.getSelectedItem = getSelectedItem;
+            Order.prototype.addItem = addItem;
             
             function create(manager, orderInit) {
                 var init = {
@@ -53,6 +55,12 @@
                 return manager.createEntity('Order', init);
             }
             
+            function getSelectedItem(id) {
+                var isMatch = function (oi) { return oi.id === id; };
+                return this.orderItems.filter(isMatch)[0];
+            }
+            
+            // create new item and add to existing order
             function addNewItem(productId) {
                 var orderItem = this.entityAspect.entityManager
                     .createEntity('OrderItem', {
@@ -61,6 +69,18 @@
                         quantity: 1
                     });
                 return orderItem;
+            }
+            // attach existing item to order
+            function addItem(item) {
+                item.order = this; // rewrite for mongo
+            }
+            // needed only where item is not entity (e.g, mongo version)
+            // would be part of addItem logic
+            function removeItem(item) {
+                if (item.order) {
+                    breeze.core.arrayRemoveItem(item.order.orderItems, item);
+                    item.orderId = 0;
+                }
             }
         }      
         //#endregion

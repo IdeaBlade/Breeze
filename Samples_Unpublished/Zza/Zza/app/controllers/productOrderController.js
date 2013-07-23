@@ -6,7 +6,9 @@
         ['$scope', '$routeParams', '$location', 'dataservice', 'util', controller]);
     
     function controller($scope, $routeParams, $location, dataservice, util) {
- 
+        
+        var cartOrder = dataservice.cartOrder;
+        var draftOrder = dataservice.draftOrder;
         var info = getOrderItemInfo();
         var orderItem = info.orderItem;
         
@@ -15,7 +17,7 @@
             info.goNext();
             return;
         }
-
+       
         // Have orderItem; build out viewmodel
         var isDraftOrder = orderItem.order === dataservice.draftOrder;
         var optionVms = createOptionVms();        
@@ -40,7 +42,7 @@
 
             if (tag == 'item') {
                 // reached this page from an existing orderItem so id is the orderItemId
-                item = getOrderItemById(id);
+                item = getSelectedItem(id);
                 if (item) {
                     product = item.product;
                     tag = product.type;
@@ -62,28 +64,23 @@
         }            
         
         // Get the order item by the order item id.  Returns falsey if not found.
-        function getOrderItemById(id) {
-            var isMatch = function (oi) { return oi.id === id; };
-            var item = dataservice.cartOrder.orderItems.filter(isMatch)[0];
-            if (!item) {
-                item = dataservice.draftOrder.orderItems.filter(isMatch)[0];
-            }
+        function getSelectedItem(id) {
+            var item = cartOrder.getSelectedItem(id) || draftOrder.getSelectedItem(id);
             return item;
         }
         
         // Find an orderItem on the draft order for the given product.  
         // Create a new orderItem if none found.
         function getOrderItemByProductId(id, defaultSize) {
-            var draftOrder = dataservice.draftOrder;
 
-            var item = draftOrder.orderItems.filter(
-                function (oi) { return oi.productId == id; })[0];
+            var item = draftOrder.orderItems
+                .filter(function (oi) { return oi.productId == id; })[0];
             
             if (!item) {
                 item = draftOrder.addNewItem(id);
+                item.quantity = item.quantity || 1;
+                item.productSizeId = item.productSizeId || defaultSize.id;
             }
-            item.quantity = item.quantity || 1;
-            item.productSizeId = item.productSizeId || defaultSize.id;
             return item;
         }
 
@@ -131,7 +128,7 @@
         
         function addToCart() {
             if (isDraftOrder) {
-                orderItem.order = dataservice.cartOrder;
+                cartOrder.addItem(orderItem);
                 util.logger.info("Added item to cart");
                 info.goNext();
             }
