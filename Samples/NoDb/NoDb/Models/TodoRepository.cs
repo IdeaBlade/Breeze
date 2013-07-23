@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Breeze.WebApi;
+using System.Data;
 
 namespace NoDb.Models {
   public class TodoRepository : ContextProvider {
@@ -41,8 +42,8 @@ namespace NoDb.Models {
       throw new InvalidOperationException("Cannot save entity of unknown type");
     }
 
-    protected override List<KeyMapping> SaveChangesCore(Dictionary<Type, List<EntityInfo>> saveMap) {
-      return Context.SaveChanges(saveMap);
+    protected override void SaveChangesCore(SaveWorkState saveWorkState) {
+      Context.SaveChanges(saveWorkState);
     }
 
     private bool BeforeSaveTodoItem(TodoItem todoItem, EntityInfo info) {
@@ -53,6 +54,20 @@ namespace NoDb.Models {
     private static bool throwCannotFindParentTodoList() {
       throw new InvalidOperationException("Invalid TodoItem - can't find parent TodoList");
     }
+
+    // No DbConnections needed
+    public override IDbConnection GetDbConnection() {
+      return null;
+    }
+
+    protected override void OpenDbConnection() {
+      // do nothing
+    }
+    
+    protected override void CloseDbConnection() {
+      // do nothing 
+    }
+
 
     #endregion
   }

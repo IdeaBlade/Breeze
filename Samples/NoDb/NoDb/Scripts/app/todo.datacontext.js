@@ -91,7 +91,7 @@ window.todoApp.datacontext = (function (breeze) {
 
             var reason = error.message;
 
-            if (reason.match(/validation error/i)) {
+            if (error.entityErrors) {
                 reason = getValidationErrorMessage(error);
             } else if (isConcurrencyError(error)) {
                 reason =
@@ -102,8 +102,7 @@ window.todoApp.datacontext = (function (breeze) {
 
         function getValidationErrorMessage(error) {
             try { // return the first error message
-                var firstItem = error.entitiesWithErrors[0];
-                var firstError = firstItem.entityAspect.getValidationErrors()[0];
+                var firstError = error.entityErrors[0];
                 return firstError.errorMessage;
             } catch(e) { // ignore problem extracting error message 
                 return "validation error";

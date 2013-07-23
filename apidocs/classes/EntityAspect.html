@@ -42,9 +42,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 		<li>
-			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
 		
 	</ul>
 </div>
@@ -380,6 +380,13 @@ var currentState = aspect.entityState;
                             </li>
                         
                             <li class="index-item property">
+                                <a href="#property_hasValidationErrors">hasValidationErrors</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
                                 <a href="#property_isBeingSaved">isBeingSaved</a>
 
                                 
@@ -461,7 +468,7 @@ var currentState = aspect.entityState;
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l183"><code>a30_entityAspect.js:183</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l192"><code>a30_entityAspect.js:192</code></a>
         
         </p>
 
@@ -537,7 +544,7 @@ had 'acceptChanges' called on it.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l504"><code>a30_entityAspect.js:504</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l513"><code>a30_entityAspect.js:513</code></a>
         
         </p>
 
@@ -548,7 +555,7 @@ had 'acceptChanges' called on it.</p>
     </div>
 
     <div class="description">
-        <p>Adds a validation error for a specified property.</p>
+        <p>Adds a validation error.</p>
     </div>
 
     
@@ -614,7 +621,7 @@ had 'acceptChanges' called on it.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l530"><code>a30_entityAspect.js:530</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l539"><code>a30_entityAspect.js:539</code></a>
         
         </p>
 
@@ -682,7 +689,7 @@ had 'acceptChanges' called on it.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l161"><code>a30_entityAspect.js:161</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l170"><code>a30_entityAspect.js:170</code></a>
         
         </p>
 
@@ -797,7 +804,7 @@ var entityKey = order.entityAspect.getKey();
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l471"><code>a30_entityAspect.js:471</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l480"><code>a30_entityAspect.js:480</code></a>
         
         </p>
 
@@ -935,7 +942,7 @@ var orderDateErrors = order.entityAspect.getValidationErrors(orderDateProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l354"><code>a30_entityAspect.js:354</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l363"><code>a30_entityAspect.js:363</code></a>
         
         </p>
 
@@ -1074,7 +1081,7 @@ promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l202"><code>a30_entityAspect.js:202</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l211"><code>a30_entityAspect.js:211</code></a>
         
         </p>
 
@@ -1117,13 +1124,7 @@ had 'rejectChanges' called on it.</p>
             
                 <li class="arg">
                     
-                        <code>validator</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code class="optional">[property]</code>
+                        <code>validationErrorOrKey</code>
                     
                 </li>
             
@@ -1156,7 +1157,7 @@ had 'rejectChanges' called on it.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l516"><code>a30_entityAspect.js:516</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l525"><code>a30_entityAspect.js:525</code></a>
         
         </p>
 
@@ -1167,7 +1168,7 @@ had 'rejectChanges' called on it.</p>
     </div>
 
     <div class="description">
-        <p>Removes a validation error for a specified property.</p>
+        <p>Removes a validation error.</p>
     </div>
 
     
@@ -1178,30 +1179,14 @@ had 'rejectChanges' called on it.</p>
             
                 <li class="param">
                     
-                        <code class="param-name">validator</code>
-                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
+                        <code class="param-name">validationErrorOrKey</code>
+                        <span class="type"><a href="..\classes\ValidationError.html" class="crosslink">ValidationError</a> | String</span>
                     
 
                     
 
                     <div class="param-description">
-                         
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name optional">[property]</code>
-                        <span class="type"><a href="..\classes\DataProperty.html" class="crosslink">DataProperty</a> | <a href="..\classes\NavigationProperty.html" class="crosslink">NavigationProperty</a></span>
-                        <span class="flag optional" title="This parameter is optional.">optional</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                         
+                        <p>Either a ValidationError or a ValidationError 'key' value</p>
                     </div>
 
                     
@@ -1249,7 +1234,7 @@ had 'rejectChanges' called on it.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l308"><code>a30_entityAspect.js:308</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l317"><code>a30_entityAspect.js:317</code></a>
         
         </p>
 
@@ -1315,7 +1300,7 @@ order.entityAspect.setDeleted();
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l332"><code>a30_entityAspect.js:332</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l341"><code>a30_entityAspect.js:341</code></a>
         
         </p>
 
@@ -1380,7 +1365,7 @@ order.entityAspect.setDetached();
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l295"><code>a30_entityAspect.js:295</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l304"><code>a30_entityAspect.js:304</code></a>
         
         </p>
 
@@ -1445,7 +1430,7 @@ order.entityAspect.setModified();
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l256"><code>a30_entityAspect.js:256</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l265"><code>a30_entityAspect.js:265</code></a>
         
         </p>
 
@@ -1514,7 +1499,7 @@ order.entityAspect.setModified();
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l381"><code>a30_entityAspect.js:381</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l390"><code>a30_entityAspect.js:390</code></a>
         
         </p>
 
@@ -1617,7 +1602,7 @@ if (!isOk) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l434"><code>a30_entityAspect.js:434</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l443"><code>a30_entityAspect.js:443</code></a>
         
         </p>
 
@@ -1741,7 +1726,7 @@ var isOk = order.entityAspect.validateProperty(OrderDateProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l83"><code>a30_entityAspect.js:83</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l85"><code>a30_entityAspect.js:85</code></a>
         
         </p>
 
@@ -1787,7 +1772,7 @@ var isOk = order.entityAspect.validateProperty(OrderDateProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l90"><code>a30_entityAspect.js:90</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l92"><code>a30_entityAspect.js:92</code></a>
         
         </p>
 
@@ -1833,7 +1818,7 @@ var isOk = order.entityAspect.validateProperty(OrderDateProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l97"><code>a30_entityAspect.js:97</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l99"><code>a30_entityAspect.js:99</code></a>
         
         </p>
 
@@ -1844,6 +1829,52 @@ var isOk = order.entityAspect.validateProperty(OrderDateProperty);
 
     <div class="description">
         <p>The <a href="..\classes\EntityState.html" class="crosslink">EntityState</a> of this entity.</p>
+
+<p><strong>readOnly</strong></p>
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_hasValidationErrors" class="property item">
+    <h3 class="name"><code>hasValidationErrors</code></h3>
+    <span class="type">Boolean</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l113"><code>a30_entityAspect.js:113</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Whether this entity has any validation errors.</p>
 
 <p><strong>readOnly</strong></p>
     </div>
@@ -1879,7 +1910,7 @@ var isOk = order.entityAspect.validateProperty(OrderDateProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l104"><code>a30_entityAspect.js:104</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l106"><code>a30_entityAspect.js:106</code></a>
         
         </p>
 
@@ -1925,7 +1956,7 @@ var isOk = order.entityAspect.validateProperty(OrderDateProperty);
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l111"><code>a30_entityAspect.js:111</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l120"><code>a30_entityAspect.js:120</code></a>
         
         </p>
 
@@ -1982,7 +2013,7 @@ This is a map where the key is a property name and the value is the 'original va
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l119"><code>a30_entityAspect.js:119</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l128"><code>a30_entityAspect.js:128</code></a>
         
         </p>
 
@@ -2112,7 +2143,7 @@ order.entityAspect.propertyChanged.subscribe(
             
         
         
-        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l141"><code>a30_entityAspect.js:141</code></a>
+        <a href="..&#x2F;files&#x2F;a30_entityAspect.js.html#l150"><code>a30_entityAspect.js:150</code></a>
         
         </p>
 
