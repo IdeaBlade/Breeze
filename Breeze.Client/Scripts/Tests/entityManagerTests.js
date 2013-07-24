@@ -29,6 +29,46 @@
         }
     });
 
+    test("test - relationship not resolved after import", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not YET supported");
+            return;
+        }
+
+        var em = newEm();
+        var q = EntityQuery.from("Employees")
+            .where("employeeID", "==", 1)
+            .expand("orders")
+            .expand("orders.orderDetails");
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var employee = data.results[0];
+            ok(employee.orders().length > 0);
+            var order = employee.orders()[0];
+            ok(order.orderDetails().length > 0);
+
+            var exported = em.exportEntities();
+            var em2 = newEm();
+            em2.importEntities(exported);
+
+            var q2 = new breeze.EntityQuery("Employees")
+                .using(breeze.FetchStrategy.FromLocalCache)
+                .where("employeeID", "==", 1)
+                .expand("orders")
+                .expand("orders.orderDetails");
+
+            em2.executeQuery(q2).then(function (data) {
+                var employee1 = data.results[0];
+                //master._linkRelatedEntities(order);
+
+                ok(employee1.orders().length > 0);
+                var order1 = employee1.orders()[0];
+                ok(order1.orderDetails().length > 0);
+            });
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("test D2460 - Detaching the parent modifies the in-cache children", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - expand not YET supported");
