@@ -5,43 +5,34 @@
     
     // Declare all the routes.  
     // Those with a name will be visible in the navigation bar.
-    // Those with a :tag are used for sub-navigation within a view.
+    // Those with a token (e.g., :tag) are used for sub-navigation within a view.
     var navRoutes = [
         { name: 'Home', path: '/', templateUrl: viewBase + 'home.html' },//, controller: 'homeController' },
-        { name: 'Order', path: '/order', templateUrl: viewBase + 'order.html', controller: 'orderController' },
-        { path: '/order/:tag', templateUrl: viewBase + 'order.html', controller: 'orderController' },
-        { path: '/order/:tag/:id', templateUrl: viewBase + 'order.html', controller: 'orderController' },
-        { name: 'Menu', path: '/menu', templateUrl: viewBase + 'menu.html' },
+
+        { name: 'Order', path: '/order', templateUrl: viewBase + 'order.html', controller: 'orderProductController' },
+        { path: '/order/:tag', templateUrl: viewBase + 'order.html', controller: 'orderProductController' },
+        { path: '/order/:tag/:id', templateUrl: viewBase + 'order.html', controller: 'orderItemController' },
+
         { name: 'About', path: '/about', templateUrl: viewBase + 'about.html' },
         
+        { path: '/cart', templateUrl: viewBase + 'cart.html', controller: 'cartController' },
+        
         { path: '/test/', templateUrl: viewBase + 'test.html', controller: 'testController' },
-        { path: '/test/:id', templateUrl: viewBase + 'test.html', controller: 'testController' },
-        { path: '/cart', templateUrl: viewBase + 'cart.html', controller: 'cartController' }
-
+        { path: '/test/:id', templateUrl: viewBase + 'test.html', controller: 'testController' }
     ];
     
-    // Routes within the order view that lead to list views
-    var orderRoutes = [
-        { tag: 'pizza', path: '/order/pizza', name: 'Pizza', templateUrl: viewBase + 'orderpizza.html' },
-        { tag: 'salad', path: '/order/salad', name: 'Salad', templateUrl: viewBase + 'ordersalad.html' },
-        { tag: 'beverage', path: '/order/beverage', name: 'Drinks', templateUrl: viewBase + 'orderdrinks.html' }
-    ];
-
-    // Routes within the order view that lead to productOrder views.  These expect an :id parameter.
-    var productOrderRoutes = [
-        { tag: 'pizza', path: '/order/pizza', templateUrl: viewBase + 'productOrder.html' },
-        { tag: 'salad', path: '/order/salad', templateUrl: viewBase + 'productOrder.html' },
-        { tag: 'beverage', path: '/order/beverage', templateUrl: viewBase + 'productOrder.html' },
-        { tag: 'item', path: '/order/item', templateUrl: viewBase + 'productOrder.html' }
+    // Routes within the order view that lead to product list views
+    var orderProductRoutes = [
+        { tag: 'pizza', path: '/order/pizza', name: 'Pizza', templateUrl: viewBase + 'orderProductPizza.html' },
+        { tag: 'salad', path: '/order/salad', name: 'Salad', templateUrl: viewBase + 'orderProductSalad.html' },
+        { tag: 'drink', path: '/order/drink', name: 'Drinks', templateUrl: viewBase + 'orderProductDrinks.html' }
     ];
     
     var routes = {
         navRoutes: navRoutes,
-        orderRoutes: orderRoutes,
-        productOrderRoutes: productOrderRoutes,
-        // visible routes are those that have a display name
+        orderProductRoutes: orderProductRoutes,
+        // visible routes are those that have a (display) name
         visibleNavRoutes: navRoutes.filter(function (item) { return item.name; }),
-        visibleOrderRoutes: orderRoutes.filter(function (item) { return item.name; })
     };
 
     var app = angular.module('app')

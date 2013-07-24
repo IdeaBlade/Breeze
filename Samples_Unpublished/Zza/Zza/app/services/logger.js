@@ -2,7 +2,7 @@
     'use strict';
     angular
         .module('app').factory(
-            'logger', ['$log', 'toastr', function ($log, toastr) {
+            'logger', ['$log', function ($log) {
 
         // This logger wraps the toastr logger and also logs to console
         // toastr.js is library by John Papa that shows messages in pop up toast.

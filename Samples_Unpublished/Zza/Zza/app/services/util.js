@@ -1,9 +1,9 @@
 ﻿(function () {
     'use strict';
     angular.module('app').factory('util',       
-        ['breeze','config','logger','$q','$timeout','$rootScope', util]);
+        ['config','logger','$q','$timeout','$rootScope', util]);
 
-    function util(breeze, config, logger, $q, $timeout, $rootScope) {
+    function util(config, logger, $q, $timeout, $rootScope) {
 
         extendString();
         extendQ();
@@ -12,7 +12,6 @@
             // bundle these so util clients don't have to get them
             $q: $q,
             $timeout: $timeout,
-            breeze: breeze,
             config: config,
             logger: logger,
   
