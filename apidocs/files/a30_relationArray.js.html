@@ -42,9 +42,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 		<li>
-			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
 		
 	</ul>
 </div>
@@ -357,7 +357,7 @@ breeze.makeRelationArray = (function() {
     function makeRelationArray(arr, parentEntity, navigationProperty) {
         arr.parentEntity = parentEntity;
         arr.navigationProperty = navigationProperty;
-        arr.arrayChanged = new Event(&quot;arrayChanged_entityCollection&quot;, arr);
+        arr.arrayChanged = new Event(&quot;arrayChanged&quot;, arr);
         &#x2F;&#x2F; array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
         &#x2F;&#x2F; need to use mixins here instead of inheritance because we are starting from an existing array object.

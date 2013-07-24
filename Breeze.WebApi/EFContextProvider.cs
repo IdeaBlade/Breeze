@@ -73,17 +73,23 @@ namespace Breeze.WebApi {
       }
     }
 
-    public override IDbConnection GetEntityConnection() {
-      return ObjectContext.Connection;
+    /// <summary>Gets the EntityConnection from the ObjectContext.</summary>
+    public DbConnection EntityConnection {
+      get {
+        return (DbConnection)GetDbConnection();
+      }
     }
 
-    public override IDbConnection GetDbConnection() {
-      var ec = ObjectContext.Connection as EntityConnection;
-      if (ec != null) {
-        return ec.StoreConnection;
-      } else {
-        throw new Exception("Unable to create a StoreConnection");
+    /// <summary>Gets the StoreConnection from the ObjectContext.</summary>
+    public DbConnection StoreConnection {
+      get {
+        return ((EntityConnection)GetDbConnection()).StoreConnection;
       }
+    }
+
+    /// <summary>Gets the EntityConnection from the ObjectContext.</summary>
+    public override IDbConnection GetDbConnection() {
+      return ObjectContext.Connection;
     }
 
     /// <summary>
@@ -232,7 +238,7 @@ namespace Breeze.WebApi {
 
     private IKeyGenerator GetKeyGenerator() {
       var generatorType = KeyGeneratorType.Value;
-      return (IKeyGenerator)Activator.CreateInstance(generatorType, GetDbConnection());
+      return (IKeyGenerator)Activator.CreateInstance(generatorType, StoreConnection);
     }
 
     private EntityInfo ProcessEntity(EFEntityInfo entityInfo) {
@@ -634,7 +640,7 @@ namespace Breeze.WebApi {
     #endregion
 
     // TODO: may want to improve perf on this later ( cache the mappings maybe).
-    public String GetEntitySetName( Type entityType) {
+    public String GetEntitySetName(Type entityType) {
       var metaWs = ObjectContext.MetadataWorkspace;
       EntityType cspaceEntityType;
       var ospaceEntityTypes = metaWs.GetItems<EntityType>(DataSpace.OSpace);
@@ -709,7 +715,7 @@ namespace Breeze.WebApi {
 
 
       if (entityInfo != null) {
-        this.EntityTypeName = entityInfo.Entity.GetType().FullName;       
+        this.EntityTypeName = entityInfo.Entity.GetType().FullName;
         this.KeyValues = GetKeyValues(entityInfo);
       }
       ErrorName = ErrorName;
@@ -730,9 +736,9 @@ namespace Breeze.WebApi {
       }
       ObjectStateEntry entry;
       if (!objContext.ObjectStateManager.TryGetObjectStateEntry(entity, out entry)) {
-          throw new Exception("unable to getKey values for: " + entity);
+        throw new Exception("unable to getKey values for: " + entity);
       }
-      
+
       var key = entry.EntityKey;
       Object[] keyValues;
       if (key.EntityKeyValues != null) {

@@ -112,6 +112,7 @@
             s.productOptions.byId = u.filterById(s.productOptions);
             s.productOptions.byType = u.filterByType(s.productOptions);
             s.productOptions.byTag = filterByTag(s.productOptions);
+            s.productOptions.byProduct = filterOptionsByProduct(s.productOptions);
 
         }
 
@@ -138,6 +139,25 @@
                     return productOptions.filter(function (o) { return o.isPizzaOption; });
                 } else if (tag == 'salad') {
                     return productOptions.filter(function (o) { return o.isSaladOption; });
+                }
+                return [];  // beverage tag has no options
+            };
+        }
+        
+        function filterOptionsByProduct(productOptions){
+            return function (product) {
+                var type = product.type;
+                if (type == 'pizza') {
+                    if (product.hasOptions) {
+                        return productOptions.filter(function(o) { return o.isPizzaOption;});
+                    } else {
+                        // even pizza without options has crust and spice options
+                        return productOptions.filter(
+                            function (o) { return o.isPizzaOption &&
+                                          (o.type === "crust" || o.type === "spice");});
+                    }
+                } else if (type == 'salad') {
+                    return productOptions.filter(function(o) { return o.isSaladOption; });
                 }
                 return [];  // beverage tag has no options
             };

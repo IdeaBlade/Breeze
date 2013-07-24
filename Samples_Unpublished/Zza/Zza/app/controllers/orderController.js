@@ -19,7 +19,7 @@
         function getTaggedRoute() {            
             var i, len, pizza, item, result;
             var tag = (($routeParams.tag) || '').toLowerCase();
-            var source = hasId ? routes.detailRoutes : routes.orderRoutes;
+            var source = hasId ? routes.productOrderRoutes : routes.orderRoutes;
             for (i = 0, len = source.length; i < len; i++) {
                 item = source[i];
                 if (item.tag === tag) {

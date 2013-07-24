@@ -42,9 +42,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 		<li>
-			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
 		
 	</ul>
 </div>
@@ -385,12 +385,19 @@ var Validator = (function () {
             currentContext = this.context;
         }
         this.currentContext = currentContext;
-        if (!this.valFn(value, currentContext)) {
-            currentContext.value = value;
-            return new ValidationError(this, currentContext, this.getMessage());
+        
+        try {
+            if (this.valFn(value, currentContext)) {
+                return null;
+            } else {
+                currentContext.value = value;
+                return new ValidationError(this, currentContext, this.getMessage());
+            }
+        } catch (e) {
+            return new ValidationError(this, currentContext, &quot;Exception occured while executing this validator: &quot; + this.name);
         }
-        return null;
     };
+
         
     &#x2F;&#x2F; context.value is not avail unless validate was called first.
 
@@ -851,23 +858,32 @@ var ValidationError = (function () {
     **&#x2F;
         
     &#x2F;**
+    Constructs a new ValidationError
     @method &lt;ctor&gt; ValidationError
-    @param validator {Validator}
-    @param context {Object}
-    @param errorMessage {String}
-    **&#x2F;
-    var ctor = function (validator, context, errorMessage) {
-        assertParam(validator, &quot;validator&quot;).isString().or().isInstanceOf(Validator).check();
 
+    @param validator {Validator || null} The Validator used to create this error, if any.
+    @param context { ContextObject || null) The Context object used in conjunction with the Validator to create this error.
+    @param errorMessage { String} The actual error message
+    @param [key] {String} An optional key used to define a key for this error. One will be created automatically if not provided here. 
+    **&#x2F;
+    var ctor = function (validator, context, errorMessage, key) {
+        assertParam(validator, &quot;validator&quot;).isOptional().isInstanceOf(Validator).check();
+        assertParam(errorMessage, &quot;errorMessage&quot;).isNonEmptyString().check();
+        assertParam(key, &quot;key&quot;).isOptional().isNonEmptyString().check();
         this.validator = validator;
-        context = context || {};
+        var context = context || {};
         this.context = context;
-        this.property = context.property;
-        if (this.property) {
-            this.propertyName = context.propertyName || context.property.name;
-        }
         this.errorMessage = errorMessage;
-        this.key = ValidationError.getKey(validator, this.propertyName);
+        
+        this.property = context.property 
+        this.propertyName = context.propertyName || (context.property &amp;&amp; context.property.name);
+        
+        if (key) {
+            this.key = key;
+        } else {
+            this.key = ValidationError.getKey(validator || errorMessage, this.propertyName);
+        }
+        this.isServerError = false;
     };
 
         
@@ -906,9 +922,34 @@ var ValidationError = (function () {
     @property errorMessage {string}
     **&#x2F;
 
-    ctor.getKey = function (validator, propertyPath) {
-        return (propertyPath || &quot;&quot;) + &quot;:&quot; + validator.name;
+    &#x2F;**
+    The key by which this validation error may be removed from a collection of ValidationErrors.
+
+    __readOnly__
+    @property key {string}
+    **&#x2F;
+
+    &#x2F;**
+   Whether this is a server error.  
+
+   __readOnly__
+   @property isServerError {bool}
+   **&#x2F;
+
+
+    &#x2F;**
+    Composes a ValidationError &#x27;key&#x27; given a validator or an errorName and an optional propertyName
+    @method getKey
+    @static
+    @param validator {ValidatorOrErrorKey} A Validator or an &quot;error name&quot; if no validator is available.
+    @param [propertyName] A property name
+    @return {String} A ValidationError &#x27;key&#x27;
+    **&#x2F;
+    ctor.getKey = function (validatorOrErrorName, propertyName) {
+        return (validatorOrErrorName.name || validatorOrErrorName) + (propertyName ? &quot;:&quot; + propertyName : &quot;&quot;);
+        &#x2F;&#x2F; return (propertyName || &quot;&quot;) + &quot;:&quot; + (validator.name || validator);
     };
+
 
     return ctor;
 })();

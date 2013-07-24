@@ -14,8 +14,8 @@
     // of first entity that failed to save
     function getSaveValidationErrorMessage(saveError) {
         try { // return the first entity's error message(s)
-            var firstEntity = saveError.entitiesWithErrors[0];
-            return 'Validation Error: ' + getEntityValidationErrorMessage(firstEntity);
+            var firstError = saveError.entityErrors[0];
+            return 'Validation Error: ' + firstError.errorMessage;
         } catch (e) { // ignore problem extracting error message 
             return "Save validation error";
         }
