@@ -11,7 +11,6 @@
         { name: 'Order', path: '/order', templateUrl: viewBase + 'order.html', controller: 'orderController' },
         { path: '/order/:tag', templateUrl: viewBase + 'order.html', controller: 'orderController' },
         { path: '/order/:tag/:id', templateUrl: viewBase + 'order.html', controller: 'orderController' },
-        { name: 'Menu', path: '/menu', templateUrl: viewBase + 'menu.html' },
         { name: 'About', path: '/about', templateUrl: viewBase + 'about.html' },
         
         { path: '/test/', templateUrl: viewBase + 'test.html', controller: 'testController' },

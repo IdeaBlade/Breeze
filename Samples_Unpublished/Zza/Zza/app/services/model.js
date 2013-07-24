@@ -2,9 +2,9 @@
     'use strict';
     
     angular.module('app').factory('model',
-    ['breeze', 'util', function (breeze, util) {
+    ['config', function (config) {
         
-        var imageBase = util.config.imageBase;
+        var imageBase = config.imageBase;
         var model = {
             configureMetadataStore: configureMetadataStore,
             Customer: Customer,
@@ -18,6 +18,7 @@
             registerCustomer(metadataStore);
             registerOrder(metadataStore);
             registerOrderItem(metadataStore);
+            registerOrderItemOption(metadataStore);
             registerProduct(metadataStore);
         }
         
@@ -102,8 +103,7 @@
                 var orderItemOption = this.entityAspect.entityManager
                     .createEntity('OrderItemOption', {
                         orderItemId: this.id,
-                        productOption: productOption,
-                        quantity: 1
+                        productOption: productOption
                     });
                 return orderItemOption;
             }
@@ -147,14 +147,44 @@
             }
         }
         //#endregion
+
+        //#region OrderItemOption
+        function OrderItemOption() {
+            this.quantity = 1;
+        }
+
+        function registerOrderItemOption(metadataStore) {
+            metadataStore.registerEntityTypeCtor('OrderItemOption', OrderItemOption);
+        }
+        //#endregion 
         
         //#region Product        
         function registerProduct(metadataStore) {
             metadataStore.registerEntityTypeCtor('Product', Product);
 
             function Product() { /* nothing inside */ }
+            
             Object.defineProperty(Product.prototype, "img", {
                 get: function () { return imageBase + this.image; }
+            });
+            
+            Object.defineProperty(Product.prototype, "productSizeIds", {              
+                get: function () {
+                    if (!this.__productSizeIds) {
+                        var sizeIds = this.sizeIds;
+                        
+                        if (sizeIds) {
+                            // sizeIds is in the form "'10,11,12'"; convert to integer array
+                            var sizeArr = sizeIds.slice(1, -1).split(',');
+                            this.__productSizeIds = sizeArr.map(
+                                function(s) { return parseInt(s); });
+                        } else {
+                            this.__productSizeIds = [];
+                        }
+                    }
+                    return this.__productSizeIds;
+                },
+                set: function (value) {this.__productSizeIds = value;}
             });
         }
         //#endregion

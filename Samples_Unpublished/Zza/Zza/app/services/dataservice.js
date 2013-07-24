@@ -2,11 +2,10 @@
 (function () {
     'use strict';
     angular.module('app').factory(
-        'dataservice', ['entityManagerProvider', 'model', 'util', dataservice]);
+        'dataservice', ['entityManagerFactory', 'model', 'util', dataservice]);
 
-    function dataservice(entityManagerProvider, model, util) {
-        var breeze = util.breeze,
-            config = util.config,
+    function dataservice(entityManagerFactory, model, util) {
+        var config = util.config,
             logger = util.logger,
             $timeout = util.$timeout;
 
@@ -14,7 +13,7 @@
             initPromise,
             initFailed;
 
-        var manager = entityManagerProvider.newManager();
+        var manager = entityManagerFactory.newManager();
 
         var service = {
             initialize: initialize,
@@ -107,7 +106,7 @@
 
             s.productSizes.byId = u.filterById(s.productSizes);
             s.productSizes.byType = u.filterByType(s.productSizes);
-            s.productSizes.byProduct = filterByProduct(s.productSizes);
+            s.productSizes.byProduct = filterSizesByProduct(s.productSizes);
 
             s.productOptions.byId = u.filterById(s.productOptions);
             s.productOptions.byType = u.filterByType(s.productOptions);
@@ -116,19 +115,16 @@
 
         }
 
-        function filterByProduct(productSizes) {
+        function filterSizesByProduct(productSizes) {
             return function (product) {
-                var sizeIds = product.sizeIds;
+                var sizeIds = product.productSizeIds;
                 var type = product.type;
-                if (sizeIds) {
-                    // sizeIds is in the form "'10,11,12'"
-                    var sizeArr = sizeIds.slice(1, -1).split(',');
-                    var intArr = sizeArr.map(function (s) { return parseInt(s); });
-                    return productSizes.filter(function (o) {
-                        return (o.type == type) && (intArr.indexOf(o.id) >= 0);
+                if (sizeIds.length) {
+                    return productSizes.filter(function (ps) {
+                        return (ps.type == type) && (sizeIds.indexOf(ps.id) >= 0);
                     });
                 } else {
-                    return productSizes.filter(function (o) { return o.type == type; });
+                    return productSizes.filter(function (ps) { return ps.type == type; });
                 }
             };
         }
