@@ -1,13 +1,13 @@
-/**
-* A copy from the SQL version. Not yet modified for Mongo world
- */
+/*** Mongo-oriented version of model.js ***/
 (function() {
     'use strict';
 
     angular.module('app').factory('model',
-        ['breeze', 'util', function (breeze, util) {
+        ['config', function (config) {
 
-            var imageBase = util.config.imageBase;
+            var imageBase = config.imageBase;
+            var orderItemType, orderItemOptionType;
+
             var model = {
                 configureMetadataStore: configureMetadataStore,
                 Customer: Customer,
@@ -21,6 +21,7 @@
                 registerCustomer(metadataStore);
                 registerOrder(metadataStore);
                 registerOrderItem(metadataStore);
+                registerOrderItemOption(metadataStore);
                 registerProduct(metadataStore);
             }
 
@@ -44,11 +45,12 @@
                 metadataStore.registerEntityTypeCtor('Order', Order);
 
                 Order.create = create;
-                Order.prototype.addOrderItem = addOrderItem;
+                Order.prototype.addNewItem = addNewItem;
+                Order.prototype.getSelectedItem = getSelectedItem;
+                Order.prototype.addItem = addItem;
 
                 function create(manager, orderInit) {
                     var init = {
-                        customerId: util.emptyGuid,
                         orderStatusId: 5, // known safe value for 'pending'
                         orderDate: new Date(),
                         deliveryDate: new Date()
@@ -57,14 +59,31 @@
                     return manager.createEntity('Order', init);
                 }
 
-                function addOrderItem(productId) {
-                    var orderItem = this.entityAspect.entityManager
-                        .createEntity('OrderItem', {
-                            orderId: this.id,
-                            productId: productId,
-                            quantity: 1
+                function getSelectedItem(id) {
+                    var isMatch = function (oi) { return oi.id === id; };
+                    return this.orderItems.filter(isMatch)[0];
+                }
+
+                // create new item and add to existing order
+                function addNewItem(productId) {
+
+                    var orderItem = orderItemType.createInstance( {
+                            productId: productId
                         });
                     return orderItem;
+                }
+                // attach existing item to order
+                function addItem(item) {
+                    item.order = this; // rewrite for mongo
+                }
+                // needed only where item is not entity (e.g, mongo version)
+                // would be part of addItem logic
+                function removeItem(item) {
+                    if (item.order) {
+                        breeze.core.arrayRemoveItem(this.orderItems, item);
+                        item.orderId = 0;
+                    }
+                    resetSeqNums(this);
                 }
             }
             //#endregion
@@ -77,17 +96,31 @@
             function registerOrderItem(metadataStore) {
                 metadataStore.registerEntityTypeCtor('OrderItem', OrderItem, initializer);
 
-                OrderItem.prototype.addOrderItemOption = addOrderItemOption;
+                orderItemType = metadataStore.getEntityType('OrderItem')  ;
+
+                OrderItem.prototype.addNewOption = addNewOption;
+                OrderItem.prototype.deleteOption = deleteOption;
+                OrderItem.prototype.undeleteOption = undeleteOption;
                 OrderItem.prototype.calcPrice = calcPrice;
 
-                function addOrderItemOption(productOptionId) {
+                function addNewOption(productOption) {
                     var orderItemOption = this.entityAspect.entityManager
                         .createEntity('OrderItemOption', {
                             orderItemId: this.id,
-                            productOptionId: productOptionId,
-                            quantity: 1
+                            productOption: productOption
                         });
                     return orderItemOption;
+                }
+
+                function undeleteOption(option) {
+                    if (option.entityAspect.entityState.isDeleted()) {
+                        option.entityAspect.setUnchanged();
+                    }
+                }
+
+                function deleteOption(option) {
+                    option.entityAspect.setDeleted();
+                    return (option.entityAspect.entityState.isDeleted()) ? option : null;
                 }
 
                 function calcPrice() {
@@ -119,6 +152,19 @@
             }
             //#endregion
 
+            //#region OrderItemOption
+            function OrderItemOption() {
+                this.quantity = 1;
+            }
+
+            function registerOrderItemOption(metadataStore) {
+                metadataStore.registerEntityTypeCtor('OrderItemOption', OrderItemOption);
+
+                orderItemOptionType = metadataStore.getEntityType('OrderItemOption');
+            }
+
+            //#endregion
+
             //#region Product
             function registerProduct(metadataStore) {
                 metadataStore.registerEntityTypeCtor('Product', Product);
@@ -126,6 +172,11 @@
                 function Product() { /* nothing inside */ }
                 Object.defineProperty(Product.prototype, "img", {
                     get: function () { return imageBase + this.image; }
+                });
+
+                Object.defineProperty(Product.prototype, "productSizeIds", {
+                    get: function () { return this.sizeIds || []; },
+                    set: function () {/* do nothing */;}
                 });
             }
             //#endregion
