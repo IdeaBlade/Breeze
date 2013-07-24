@@ -17,9 +17,9 @@
     });
     
     // Create managers preloaded with test data and defaulted to local query
-    beforeEach(inject(function (entityManagerProvider) {        
-        var newManager = entityManagerProvider.newManager; // original version
-        entityManagerProvider.newManager = function() {
+    beforeEach(inject(function (entityManagerFactory) {
+        var newManager = entityManagerFactory.newManager; // original version
+        entityManagerFactory.newManager = function() {
             manager = newManager();
             fns.addLookupsToManager(manager); // test data
             fns.setManagerToFetchFromCache(manager); // so we don't go anywhere

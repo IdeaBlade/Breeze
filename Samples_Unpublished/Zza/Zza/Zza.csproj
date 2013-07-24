@@ -166,7 +166,7 @@
     <Content Include="app\metadata.js" />
     <Content Include="app\config.js" />
     <Content Include="app\services\databaseReset.js" />
-    <Content Include="app\services\entityManagerProvider.js" />
+    <Content Include="app\services\entityManagerFactory.js" />
     <Content Include="app\services\util.js" />
     <Content Include="app\services\routes.js" />
     <Content Include="app\services\dataservice.js" />

@@ -1,7 +1,7 @@
 ﻿(function () {
     'use strict';
     angular.module('app').factory(
-        'entityManagerProvider', ['config', 'model', emProvider]);
+        'entityManagerFactory', ['config', 'model', emProvider]);
 
     function emProvider(config, model) {
         var serviceName = config.serviceName;
