@@ -53,9 +53,7 @@
 
             var q2 = new breeze.EntityQuery("Employees")
                 .using(breeze.FetchStrategy.FromLocalCache)
-                .where("employeeID", "==", 1)
-                .expand("orders")
-                .expand("orders.orderDetails");
+                .where("employeeID", "==", 1);
 
             em2.executeQuery(q2).then(function (data) {
                 var employee1 = data.results[0];
@@ -64,6 +62,44 @@
                 ok(employee1.orders().length > 0);
                 var order1 = employee1.orders()[0];
                 ok(order1.orderDetails().length > 0);
+            });
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("test - relationship not resolved after import2", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not YET supported");
+            return;
+        }
+
+        var em = newEm();
+        var q = EntityQuery.from("Regions")
+            .where("regionID", "==", 1)
+            .expand("territories")
+            .expand("territories.employeeTerritories");
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var region = data.results[0];
+            ok(region.territories().length > 0);
+            var territory = region.territories()[0];
+            ok(territory.employeeTerritories().length > 0);
+
+            var exported = em.exportEntities();
+            var em2 = newEm();
+            em2.importEntities(exported);
+
+            var q2 = new breeze.EntityQuery("Regions")
+                .using(breeze.FetchStrategy.FromLocalCache)
+                .where("regionID", "==", 1);
+
+            em2.executeQuery(q2).then(function (data2) {
+                var region1 = data2.results[0];
+                //master._linkRelatedEntities(order);
+
+                ok(region1.territories().length > 0);
+                var territory1 = region1.territories()[0];
+                ok(territory1.employeeTerritories().length > 0);
             });
 
         }).fail(testFns.handleFail).fin(start);
