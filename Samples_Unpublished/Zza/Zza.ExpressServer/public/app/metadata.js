@@ -296,7 +296,7 @@ var zza=zza||{};zza.metadata=
                     ]
                 },
                 {
-                    "name":"status",
+                    "name":"orderStatus",
                     "entityTypeName":"OrderStatus:#Zza.Model",
                     "isScalar":true,
                     "associationName":"Order_Status",

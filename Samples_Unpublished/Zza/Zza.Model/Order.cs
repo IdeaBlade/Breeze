@@ -39,7 +39,7 @@ namespace Zza.Model
         public virtual decimal ItemsTotal { get; set; }
 
         public virtual Customer Customer { get; set; }
-        public virtual OrderStatus Status { get; set; }
+        public virtual OrderStatus OrderStatus { get; set; }
         public virtual ICollection<OrderItem> OrderItems { get; set; }
     } 
 }     
