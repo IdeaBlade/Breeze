@@ -54,11 +54,12 @@
             } else {
                 // reached here from product list page so id is the productId
                 product = dataservice.products.byId(id);
-                sizes = dataservice.productSizes.byProduct(product);
-                item = getOrderItemByProduct(product, sizes[0]);
+                if (product) {
+                    sizes = dataservice.productSizes.byProduct(product);
+                    item = getOrderItemByProduct(product, sizes[0]);
+                }
             }
             return {
-                tag: tag,
                 goNext: function () { $location.path('/order/' + tag); },
                 orderItem: item,
                 product: product,
