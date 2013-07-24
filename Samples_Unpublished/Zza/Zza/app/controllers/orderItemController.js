@@ -1,7 +1,7 @@
 ﻿(function() {
     'use strict';
 
-    var ctrlName = 'productOrderController';
+    var ctrlName = 'orderItemController';
     var app = angular.module('app').controller(ctrlName,
         ['$scope', '$routeParams', '$location', 'dataservice', 'util', controller]);
     
@@ -9,6 +9,7 @@
         
         var cartOrder = dataservice.cartOrder;
         var draftOrder = dataservice.draftOrder;
+        var tag = $routeParams.tag;
         var info = getOrderItemInfo();
         var orderItem = info.orderItem;
         
@@ -23,7 +24,9 @@
         var optionVms = createOptionVms();        
         var tabVms = createTabVms();
         var sizeVms = createSizeVms();
-                
+        
+        $scope.activeTag = tag;
+        $scope.isItemView = true;
         $scope.orderItem = orderItem;
         $scope.product = info.product;
         $scope.sizeVms = sizeVms;
@@ -38,7 +41,6 @@
         function getOrderItemInfo() {
             // id may be productId or orderItemId, depending upon route tag
             var id = +$routeParams.id; // convert to integer w/ '+'
-            var tag = $routeParams.tag;
             var item, product, sizes;
 
             if (tag == 'item') {
@@ -46,14 +48,14 @@
                 item = getSelectedItem(id);
                 if (item) {
                     product = item.product;
-                    tag = product.type;
+                    tag = (product.type === 'beverage') ? 'drinks': product.type;
                     sizes = dataservice.productSizes.byProduct(product);
                 }
             } else {
                 // reached here from product list page so id is the productId
                 product = dataservice.products.byId(id);
                 sizes = dataservice.productSizes.byProduct(product);
-                item = getOrderItemByProductId(id, sizes[0]);
+                item = getOrderItemByProduct(product, sizes[0]);
             }
             return {
                 tag: tag,
@@ -72,15 +74,15 @@
         
         // Find an orderItem on the draft order for the given product.  
         // Create a new orderItem if none found.
-        function getOrderItemByProductId(id, defaultSize) {
+        function getOrderItemByProduct(product, defaultSize) {
 
+            var prodId = product.id;
             var item = draftOrder.orderItems
-                .filter(function (oi) { return oi.productId == id; })[0];
+                .filter(function (oi) { return oi.productId == prodId; })[0];
             
             if (!item) {
-                item = draftOrder.addNewItem(id);
-                item.quantity = item.quantity || 1;
-                item.productSizeId = item.productSizeId || defaultSize.id;
+                item = draftOrder.addNewItem(product);
+                item.productSize = defaultSize;
             }
             return item;
         }

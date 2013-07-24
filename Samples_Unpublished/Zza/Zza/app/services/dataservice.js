@@ -19,7 +19,7 @@
             initialize: initialize,
             initializeSynchronously: initializeSynchronously, // testing only?
             saveChanges: saveChanges,
-            resetManager: resetManager,
+            resetManager: resetManager
         /* These are added during initialization:
                cartOrder,
                draftOrder,
@@ -101,20 +101,25 @@
             os.Pending = os.byName(/Pending/i)[0];
 
             s.products.byId = u.filterById(s.products);
-            s.products.byType = u.filterByType(s.products);
             s.products.byName = u.filterByName(s.products);
+            s.products.byTag = filterProductsByTag(s.products);
 
             s.productSizes.byId = u.filterById(s.productSizes);
-            s.productSizes.byType = u.filterByType(s.productSizes);
             s.productSizes.byProduct = filterSizesByProduct(s.productSizes);
 
             s.productOptions.byId = u.filterById(s.productOptions);
-            s.productOptions.byType = u.filterByType(s.productOptions);
-            s.productOptions.byTag = filterByTag(s.productOptions);
+            s.productOptions.byTag = filterOptionsByTag(s.productOptions);
             s.productOptions.byProduct = filterOptionsByProduct(s.productOptions);
 
         }
-
+        
+        function filterProductsByTag(products) {
+            return function (tag) {
+                var type = (tag === 'drinks') ? 'beverage' : tag;
+                return products.filter(function (p) { return p.type === type; });
+            };
+        }
+        
         function filterSizesByProduct(productSizes) {
             return function (product) {
                 var sizeIds = product.productSizeIds;
@@ -124,19 +129,19 @@
                         return (ps.type == type) && (sizeIds.indexOf(ps.id) >= 0);
                     });
                 } else {
-                    return productSizes.filter(function (ps) { return ps.type == type; });
+                    return productSizes.filter(function (ps) { return ps.type === type; });
                 }
             };
         }
 
-        function filterByTag(productOptions) {
+        function filterOptionsByTag(productOptions) {
             return function (tag) {
                 if (tag == 'pizza') {
                     return productOptions.filter(function (o) { return o.isPizzaOption; });
                 } else if (tag == 'salad') {
                     return productOptions.filter(function (o) { return o.isSaladOption; });
                 }
-                return [];  // beverage tag has no options
+                return [];  // drinks tag has no options
             };
         }
         
@@ -155,7 +160,7 @@
                 } else if (type == 'salad') {
                     return productOptions.filter(function(o) { return o.isSaladOption; });
                 }
-                return [];  // beverage tag has no options
+                return [];  // drinks tag has no options
             };
         }
 

@@ -62,12 +62,11 @@
             }
             
             // create new item and add to existing order
-            function addNewItem(productId) {
+            function addNewItem(product) {
                 var orderItem = this.entityAspect.entityManager
                     .createEntity('OrderItem', {
                         orderId: this.id,
-                        productId: productId,
-                        quantity: 1
+                        productId: product.id
                     });
                 return orderItem;
             }
@@ -148,7 +147,7 @@
         }
         //#endregion
 
-        //#region OrderItemOption
+        //#region OrderItemOption       
         function OrderItemOption() {
             this.quantity = 1;
         }
@@ -187,8 +186,7 @@
                 set: function (value) {this.__productSizeIds = value;}
             });
         }
-        //#endregion
-        
+        //#endregion      
    
     }]);
     
