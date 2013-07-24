@@ -60,18 +60,31 @@
                 }
 
                 function getSelectedItem(id) {
-                    var isMatch = function (oi) { return oi.id === id; };
+                    var isMatch = function (oi) { return oi.ref === id; };
                     return this.orderItems.filter(isMatch)[0];
                 }
 
                 // create new item and add to existing order
-                function addNewItem(productId) {
-
+                function addNewItem(product) {
                     var orderItem = orderItemType.createInstance( {
-                            productId: productId
+                            ref: getNextItemId(this),
+                            productId: product.Id,
+                            name: product.type
                         });
                     return orderItem;
                 }
+
+                function getNextItemId(order){
+                    var id = order._nextId;
+                    if (!id) {
+                        // not cached; calc as 1 + highest item.ref value
+                        var items = order.items || [];
+                        id = 1 + items.reduce(function(p,c){return Math.max(p, c.ref);},0);
+                    }
+                    order._nextId = id + 1;
+                    return id;
+                }
+
                 // attach existing item to order
                 function addItem(item) {
                     item.order = this; // rewrite for mongo
@@ -81,9 +94,7 @@
                 function removeItem(item) {
                     if (item.order) {
                         breeze.core.arrayRemoveItem(this.orderItems, item);
-                        item.orderId = 0;
                     }
-                    resetSeqNums(this);
                 }
             }
             //#endregion
@@ -149,6 +160,37 @@
                         entity.calcPrice();
                     }
                 }
+
+                /*** navigation properties ***/
+                Object.defineProperty(OrderItem.prototype, "product", {
+                    get: function () {
+                        if (this._product === undefined){
+                            this._product =
+                                this.entityManager.getEntityByKey('Product', this.productId);
+                        }
+                        return this._product;
+                    },
+                    set: function (product) {
+                        this._product = product;
+                        this.productId = product.id;
+                        this.name = product.name;
+                    }
+                });
+
+                Object.defineProperty(OrderItem.prototype, "productSize", {
+                    get: function () {
+                        if (this._productSize === undefined){
+                            this._productSize =
+                                this.entityManager.getEntityByKey('ProductSize', this.productSizeId);
+                        }
+                        return this._productSize;
+                    },
+                    set: function (size) {
+                        this._productSize = size;
+                        this.productSizeId = size.id;
+                        this.size = size.name;
+                    }
+                });
             }
             //#endregion
 

@@ -312,6 +312,20 @@ var zza=zza||{};zza.metadata=
             "isComplexType":true,
             "dataProperties":[
                 {
+                    "name":"ref",
+                    "dataType":"Int32",
+                    "isNullable":false,
+                    "defaultValue":0,
+                    "validators":[
+                        {
+                            "name":"required"
+                        },
+                        {
+                            "name":"int32"
+                        }
+                    ]
+                },
+                {
                     "name":"productId",
                     "dataType":"Int32",
                     "isNullable":false,
