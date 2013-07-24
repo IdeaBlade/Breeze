@@ -125,7 +125,7 @@
     <Content Include="app\images\products\applejuice.jpg" />
     <Content Include="app\images\products\aquah2o.jpg" />
     <Content Include="app\images\products\asianchicken.jpg" />
-    <Content Include="app\images\products\beverage.jpg" />
+    <Content Include="app\images\products\drink.jpg" />
     <Content Include="app\images\products\bigcountrysalad.jpg" />
     <Content Include="app\images\products\caesarsalad.jpg" />
     <Content Include="app\images\products\cascadefog.jpg" />

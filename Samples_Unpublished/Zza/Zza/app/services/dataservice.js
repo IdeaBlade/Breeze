@@ -115,8 +115,7 @@
         
         function filterProductsByTag(products) {
             return function (tag) {
-                var type = (tag === 'drinks') ? 'beverage' : tag;
-                return products.filter(function (p) { return p.type === type; });
+                return products.filter(function (p) { return p.type === tag; });
             };
         }
         
@@ -141,7 +140,7 @@
                 } else if (tag == 'salad') {
                     return productOptions.filter(function (o) { return o.isSaladOption; });
                 }
-                return [];  // drinks tag has no options
+                return [];  // drink tag has no options
             };
         }
         
@@ -160,12 +159,12 @@
                 } else if (type == 'salad') {
                     return productOptions.filter(function(o) { return o.isSaladOption; });
                 }
-                return [];  // drinks tag has no options
+                return [];  // drink tag has no options
             };
         }
 
         function createDraftAndCartOrders() {
-            var orderInit = { orderStatusId: service.OrderStatus.Pending.id};
+            var orderInit = { orderStatus: service.OrderStatus.Pending};
             service.cartOrder = model.Order.create(manager, orderInit);
             service.draftOrder = model.Order.create(manager, orderInit);
         }

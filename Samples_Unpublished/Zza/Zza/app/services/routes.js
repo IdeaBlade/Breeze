@@ -25,7 +25,7 @@
     var orderProductRoutes = [
         { tag: 'pizza', path: '/order/pizza', name: 'Pizza', templateUrl: viewBase + 'orderProductPizza.html' },
         { tag: 'salad', path: '/order/salad', name: 'Salad', templateUrl: viewBase + 'orderProductSalad.html' },
-        { tag: 'drinks', path: '/order/drinks', name: 'Drinks', templateUrl: viewBase + 'orderProductDrinks.html' }
+        { tag: 'drink', path: '/order/drink', name: 'Drinks', templateUrl: viewBase + 'orderProductDrinks.html' }
     ];
     
     var routes = {

@@ -48,9 +48,8 @@
             
             function create(manager, orderInit) {
                 var init = {
-                    orderStatusId: 5, // known safe value for 'pending'
                     orderDate: new Date(),
-                    deliveryDate: new Date()
+                    deliveryDate: new Date() // projected //todo: add time
                 };
                 breeze.core.extend(init, orderInit);
                 return manager.createEntity('Order', init);

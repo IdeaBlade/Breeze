@@ -48,7 +48,7 @@
                 item = getSelectedItem(id);
                 if (item) {
                     product = item.product;
-                    tag = (product.type === 'beverage') ? 'drinks': product.type;
+                    tag = product.type;
                     sizes = dataservice.productSizes.byProduct(product);
                 }
             } else {
