@@ -22,6 +22,8 @@
                     case 'qty':   return 'quantity';
                     case 'optionId':   return 'productOptionId';
                     case 'sizeId':   return 'productSizeId';
+                    case 'items':   return 'orderItems';
+                    case 'options':   return 'orderItemOptions';
                     default: return serverPropertyName;
                 }
             },
@@ -31,6 +33,8 @@
                     case 'quantity':   return 'qty';
                     case 'productOptionId':   return 'optionId';
                     case 'productSizeId':   return 'sizeId';
+                    case 'orderItems':   return 'items';
+                    case 'orderItemOptions':   return 'options';
                     default: return clientPropertyName;
                 }
             }

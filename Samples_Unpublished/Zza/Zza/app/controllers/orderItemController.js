@@ -149,6 +149,8 @@
         
         function addToCart() {
             if (isDraftOrder) {
+                //don't need remove if item is an entity (e.g, SQL version)
+                draftOrder.removeItem(orderItem); 
                 cartOrder.addItem(orderItem);
                 util.logger.info("Added item to cart");
                 info.goNext();
@@ -161,22 +163,22 @@
             
             if (optionVm.selected) {
                 if (itemOption) {
-                    orderItem.undeleteOption(itemOption);
+                    orderItem.restoreOption(itemOption);
                 } else { // no itemOption; create one
                     optionVm.itemOption = orderItem.addNewOption(optionVm.productOption);
                 }
                 
-            } else if (itemOption) { // option de-selected; delete
-                var deletedOption = orderItem.deleteOption(itemOption);
-                if (!deletedOption) {
-                    optionVm.itemOption = null; // discard; deleted option no longer in cache
+            } else if (itemOption) { // option de-selected; remove it
+                var removedOption = orderItem.removeOption(itemOption);
+                if (!removedOption) {
+                    optionVm.itemOption = null; // discard; removed option no longer in cache
                 }
             }
         }
         
         function selectOneOption(tab) {
             var selectedId = parseInt(tab.selectedOptionId);
-            // reset selected state for every option on this tab
+            // reset the selected state for every option on this tab
             tab.options.forEach(function (opt) {
                 opt.selected = opt.id === selectedId;
                 selectOption(opt);

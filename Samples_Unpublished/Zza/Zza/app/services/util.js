@@ -25,6 +25,8 @@
             filterById: filterById,
             filterByName: filterByName,
             filterByType: filterByType,
+            getEntityByIdFromObj: getEntityByIdFromObj,
+            getEntityManager: getEntityManager,
             getSaveErrorMessages: getSaveErrorMessages,
             getEntityValidationErrMsgs: getEntityValidationErrMsgs,
             deal: deal,
@@ -148,6 +150,24 @@
                 return array.filter(function (x) { return re.test(x.type); });
             };
         }
+
+        /** Complex type helpers **/
+        function getEntityByIdFromObj(obj, typeName, id)  {
+            var em = getEntityManager(obj);
+            return (em) ? em.getEntityByKey(typeName, id) : null;
+        }
+
+        function getEntityManager(obj){
+            if (obj.complexAspect) {
+                return obj.complexAspect.getEntityAspect().entityManager;
+            } else if (obj.entityAspect) {
+                return obj.entityAspect.entityManager;
+            }   else {
+                return null;
+            }
+
+        }
+
         /*********************************************************
         * Handle save error messages
         *********************************************************/
