@@ -82,27 +82,28 @@ namespace Sample_WebApi.Controllers {
       base.AfterSaveEntities(saveMap, keyMappings);
     }
 
-    /* hack to get current DbTransaction from EF private properties
-    public DbTransaction StoreTransaction {
-      get {
+#if (CODEFIRST_PROVIDER || DATABASEFIRST_NEW || DATABASEFIRST_OLD)
+    /* hack to set the current DbTransaction onto the DbCommand.  Transaction comes from EF private properties. */
+    public void SetCurrentTransaction(System.Data.Common.DbCommand command) {
         // get private member via reflection
+        var bindingFlags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Instance;
         var ec = EntityConnection;
-        if (ec == null) return null;
+        if (ec == null) return;
         var ectype = ec.GetType();
-        var ctProp = ectype.GetProperty("CurrentTransaction", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
-        var entityTransaction = ctProp.GetValue(ec, null) as EntityTransaction;
+        var ctProp = ectype.GetProperty("CurrentTransaction", bindingFlags);
+        var entityTransaction = ctProp.GetValue(ec, null) as System.Data.EntityClient.EntityTransaction;
 
         if (entityTransaction != null) {
           var etype = entityTransaction.GetType();
-          var stProp = etype.GetProperty("StoreTransaction", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+          var stProp = etype.GetProperty("StoreTransaction", bindingFlags);
           var transaction = stProp.GetValue(entityTransaction, null);
-          var dbTransaction = transaction as DbTransaction;
-          return dbTransaction;
+          var dbTransaction = transaction as System.Data.Common.DbTransaction;
+          if (dbTransaction != null) {
+              command.Transaction = dbTransaction;
+          }
         }
-        return null;
-      }
     }
-    */
+#endif    
 
     // Test performing a raw db insert to NorthwindIB using the base connection
     private int AddComment(string comment, byte seqnum) {
@@ -117,6 +118,9 @@ namespace Sample_WebApi.Controllers {
       cmd.CommandText = String.Format("insert into COMMENT_ (CreatedOn, Comment1, SeqNum) values (TO_DATE('{0}','YYYY-MM-DD HH24:MI:SS'), '{1}', {2})",
           time, comment, seqnum);
 #else
+#if !NHIBERNATE
+      SetCurrentTransaction(cmd);
+#endif
       var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
       cmd.CommandText = String.Format("insert into Comment (CreatedOn, Comment1, SeqNum) values ('{0}', '{1}', {2})",
           time, comment, seqnum);
