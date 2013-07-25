@@ -2,11 +2,10 @@
 (function () {
     'use strict';
     angular.module('app').factory(
-        'dataservice', ['entityManagerProvider', 'model', 'util', dataservice]);
+        'dataservice', ['entityManagerFactory', 'model', 'util', dataservice]);
 
-    function dataservice(entityManagerProvider, model, util) {
-        var breeze = util.breeze,
-            config = util.config,
+    function dataservice(entityManagerFactory, model, util) {
+        var config = util.config,
             logger = util.logger,
             $timeout = util.$timeout;
 
@@ -14,13 +13,13 @@
             initPromise,
             initFailed;
 
-        var manager = entityManagerProvider.newManager();
+        var manager = entityManagerFactory.newManager();
 
         var service = {
             initialize: initialize,
             initializeSynchronously: initializeSynchronously, // testing only?
             saveChanges: saveChanges,
-            resetManager: resetManager,
+            resetManager: resetManager
         /* These are added during initialization:
                cartOrder,
                draftOrder,
@@ -102,45 +101,46 @@
             os.Pending = os.byName(/Pending/i)[0];
 
             s.products.byId = u.filterById(s.products);
-            s.products.byType = u.filterByType(s.products);
             s.products.byName = u.filterByName(s.products);
+            s.products.byTag = filterProductsByTag(s.products);
 
             s.productSizes.byId = u.filterById(s.productSizes);
-            s.productSizes.byType = u.filterByType(s.productSizes);
-            s.productSizes.byProduct = filterByProduct(s.productSizes);
+            s.productSizes.byProduct = filterSizesByProduct(s.productSizes);
 
             s.productOptions.byId = u.filterById(s.productOptions);
-            s.productOptions.byType = u.filterByType(s.productOptions);
-            s.productOptions.byTag = filterByTag(s.productOptions);
+            s.productOptions.byTag = filterOptionsByTag(s.productOptions);
             s.productOptions.byProduct = filterOptionsByProduct(s.productOptions);
 
         }
-
-        function filterByProduct(productSizes) {
+        
+        function filterProductsByTag(products) {
+            return function (tag) {
+                return products.filter(function (p) { return p.type === tag; });
+            };
+        }
+        
+        function filterSizesByProduct(productSizes) {
             return function (product) {
-                var sizeIds = product.sizeIds;
+                var sizeIds = product.productSizeIds;
                 var type = product.type;
-                if (sizeIds) {
-                    // sizeIds is in the form "'10,11,12'"
-                    var sizeArr = sizeIds.slice(1, -1).split(',');
-                    var intArr = sizeArr.map(function (s) { return parseInt(s); });
-                    return productSizes.filter(function (o) {
-                        return (o.type == type) && (intArr.indexOf(o.id) >= 0);
+                if (sizeIds.length) {
+                    return productSizes.filter(function (ps) {
+                        return (ps.type == type) && (sizeIds.indexOf(ps.id) >= 0);
                     });
                 } else {
-                    return productSizes.filter(function (o) { return o.type == type; });
+                    return productSizes.filter(function (ps) { return ps.type === type; });
                 }
             };
         }
 
-        function filterByTag(productOptions) {
+        function filterOptionsByTag(productOptions) {
             return function (tag) {
                 if (tag == 'pizza') {
                     return productOptions.filter(function (o) { return o.isPizzaOption; });
                 } else if (tag == 'salad') {
                     return productOptions.filter(function (o) { return o.isSaladOption; });
                 }
-                return [];  // beverage tag has no options
+                return [];  // drink tag has no options
             };
         }
         
@@ -159,12 +159,12 @@
                 } else if (type == 'salad') {
                     return productOptions.filter(function(o) { return o.isSaladOption; });
                 }
-                return [];  // beverage tag has no options
+                return [];  // drink tag has no options
             };
         }
 
         function createDraftAndCartOrders() {
-            var orderInit = { orderStatusId: service.OrderStatus.Pending.id};
+            var orderInit = { orderStatus: service.OrderStatus.Pending};
             service.cartOrder = model.Order.create(manager, orderInit);
             service.draftOrder = model.Order.create(manager, orderInit);
         }

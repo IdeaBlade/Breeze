@@ -1,6 +1,13 @@
 ﻿(function () {
     'use strict';
+    
+    // configure toastr for this app
+    toastr.options.timeOut = 2000; // 2 second toast timeout
+    toastr.options.positionClass = 'toast-bottom-right';
 
+    // configure Breeze for this app
+    breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
+    initBreezeAjaxAdapter(config.userSessionId);
     var app = angular.module('app');
     
     app.factory('config', ['environment', config]);
@@ -15,16 +22,6 @@
             userSessionId: breeze.core.getUuid()
         };
     }
-
-
-    toastr.options.timeOut = 2000; // 2 second toast timeout
-    toastr.options.positionClass = 'toast-bottom-right';
-    app.value('toastr', toastr);
-    
-    // configure Breeze for this app
-    breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
-    initBreezeAjaxAdapter(config.userSessionId);
-    app.value('breeze', breeze);
     
     function initBreezeAjaxAdapter(userSessionId) {
         // get the current default Breeze AJAX adapter

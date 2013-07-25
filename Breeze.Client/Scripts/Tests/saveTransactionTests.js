@@ -121,7 +121,7 @@
     test("save Order and update ShipAddress in ProduceTPH in BeforeSave - SaveWithDbTransaction", function () {
         saveOrderAndUpdateShipAddressBeforeSave("SaveWithDbTransaction");
     });
-    test("save Order and update ShipAddress in ProduceTPH in BeforeSave - SaveWithTransactionScope", function () {
+    test("save Order and update ShipAddress in ProduceTPH in BeforeSave - SaveWithTransactionScope - DTC", function () {
         saveOrderAndUpdateShipAddressBeforeSave("SaveWithTransactionScope");
     });
 
@@ -220,7 +220,7 @@
         saveOrderUpdateKeyMappingInProduceTPHAfterSave("SaveWithDbTransaction");
     });
     test("save Order and update KeyMapping in ProduceTPH in AfterSave - SaveWithTransactionScope", function () {
-        saveOrderUpdateKeyMappingInProduceTPHAfterSave("SaveWithTransactionScope");
+        saveOrderUpdateKeyMappingInProduceTPHAfterSave("SaveWithTransactionScope");  // DTC iff database != SQL 2008+
     });
 
     function saveOrderWithLookupInSecondContext(resourceName, tag) {
@@ -258,7 +258,7 @@
     test("save Order with lookup in second Context in BeforeSave - SaveWithDbTransaction", function () {
         saveOrderWithLookupInSecondContext("SaveWithDbTransaction", "LookupEmployeeInSeparateContext.Before");
     });
-    test("save Order with lookup in second Context in BeforeSave - SaveWithTransactionScope", function () {
+    test("save Order with lookup in second Context in BeforeSave - SaveWithTransactionScope - DTC", function () {
         saveOrderWithLookupInSecondContext("SaveWithTransactionScope", "LookupEmployeeInSeparateContext.Before");
     });
 
@@ -278,7 +278,7 @@
     test("save Order with lookup in second Context in AfterSave - SaveWithDbTransaction", function () {
         saveOrderWithLookupInSecondContext("SaveWithDbTransaction", "LookupEmployeeInSeparateContext.After");
     });
-    test("save Order with lookup in second Context in AfterSave - SaveWithTransactionScope", function () {
+    test("save Order with lookup in second Context in AfterSave - SaveWithTransactionScope - DTC", function () {
         saveOrderWithLookupInSecondContext("SaveWithTransactionScope", "LookupEmployeeInSeparateContext.After");
     });
 

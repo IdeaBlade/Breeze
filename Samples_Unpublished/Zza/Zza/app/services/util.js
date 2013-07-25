@@ -1,9 +1,9 @@
 ﻿(function () {
     'use strict';
     angular.module('app').factory('util',       
-        ['breeze','config','logger','$q','$timeout','$rootScope', util]);
+        ['config','logger','$q','$timeout','$rootScope', util]);
 
-    function util(breeze, config, logger, $q, $timeout, $rootScope) {
+    function util(config, logger, $q, $timeout, $rootScope) {
 
         extendString();
         extendQ();
@@ -12,7 +12,6 @@
             // bundle these so util clients don't have to get them
             $q: $q,
             $timeout: $timeout,
-            breeze: breeze,
             config: config,
             logger: logger,
   
@@ -26,6 +25,8 @@
             filterById: filterById,
             filterByName: filterByName,
             filterByType: filterByType,
+            getEntityByIdFromObj: getEntityByIdFromObj,
+            getEntityManager: getEntityManager,
             getSaveErrorMessages: getSaveErrorMessages,
             getEntityValidationErrMsgs: getEntityValidationErrMsgs,
             deal: deal,
@@ -149,6 +150,24 @@
                 return array.filter(function (x) { return re.test(x.type); });
             };
         }
+
+        /** Complex type helpers **/
+        function getEntityByIdFromObj(obj, typeName, id)  {
+            var em = getEntityManager(obj);
+            return (em) ? em.getEntityByKey(typeName, id) : null;
+        }
+
+        function getEntityManager(obj){
+            if (obj.complexAspect) {
+                return obj.complexAspect.getEntityAspect().entityManager;
+            } else if (obj.entityAspect) {
+                return obj.entityAspect.entityManager;
+            }   else {
+                return null;
+            }
+
+        }
+
         /*********************************************************
         * Handle save error messages
         *********************************************************/
