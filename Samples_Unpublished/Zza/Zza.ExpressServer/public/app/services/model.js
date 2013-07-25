@@ -3,9 +3,9 @@
     'use strict';
 
     angular.module('app').factory('model',
-        ['config', function (config) {
+        ['util', function (util) {
 
-            var imageBase = config.imageBase;
+            var imageBase = util.config.imageBase;
             var orderItemType, orderItemOptionType;
 
             var model = {
@@ -33,6 +33,7 @@
 
                 // extend Customer
                 Object.defineProperty(Customer.prototype, "fullName", {
+                    enumerable: true,
                     get: function () { return this.firstName + " " + this.lastName; }
                 });
             }
@@ -42,12 +43,34 @@
             function Order() {/* nothing inside */ }
 
             function registerOrder(metadataStore) {
-                metadataStore.registerEntityTypeCtor('Order', Order);
+                metadataStore.registerEntityTypeCtor('Order', Order, initializer);
 
                 Order.create = create;
-                Order.prototype.addNewItem = addNewItem;
                 Order.prototype.getSelectedItem = getSelectedItem;
+                Order.prototype.addNewItem = addNewItem;
                 Order.prototype.addItem = addItem;
+                Order.prototype.removeItem = removeItem;
+
+                function initializer(order) {
+
+                    order.entityAspect.propertyChanged.subscribe(function(args) {
+                        var pname = args.propertyName;
+                     /*
+                        var path = this.complexAspect.getPropertyPath();
+                        var pname = args.propertyName;
+                        if (pname == path+'quantity' ||
+                            pname == path+'productSizeId' ||
+                            pname === path+'productId') {
+                            item.calcPrice();
+                        }
+                    });
+                    // calculate immediately if item has no unitPrice (i.e., is new)
+                    if (item.unitPrice === 0 ) {
+                        item.calcPrice();
+                    }
+                    */
+                    });
+                }
 
                 function create(manager, orderInit) {
                     var init = {
@@ -58,41 +81,31 @@
                     return manager.createEntity('Order', init);
                 }
 
-                function getSelectedItem(id) {
-                    var isMatch = function (oi) { return oi.ref === id; };
-                    return this.orderItems.filter(isMatch)[0];
+                function getSelectedItem(id) { // id == 1 + item's index
+                    return this.orderItems[id - 1] || null;
                 }
 
                 // create new item and add to existing order
                 function addNewItem(product) {
-                    var orderItem = orderItemType.createInstance( {
-                            ref: getNextItemId(this),
-                            productId: product.Id,
-                            name: product.type
-                        });
-                    return orderItem;
-                }
-
-                function getNextItemId(order){
-                    var id = order._nextId;
-                    if (!id) {
-                        // not cached; calc as 1 + highest item.ref value
-                        var items = order.items || [];
-                        id = 1 + items.reduce(function(p,c){return Math.max(p, c.ref);},0);
-                    }
-                    order._nextId = id + 1;
-                    return id;
+                    var item = orderItemType.createInstance();
+                    this.orderItems.push(item);
+                    item.product = product;
+                    return item;
                 }
 
                 // attach existing item to order
                 function addItem(item) {
-                    item.order = this; // rewrite for mongo
+                    var items = this.orderItems;
+                    if (items.indexOf(item) == -1){
+                        items.push(item);
+                    }
                 }
-                // needed only where item is not entity (e.g, mongo version)
-                // would be part of addItem logic
+
+                // remove existing item from order
                 function removeItem(item) {
-                    if (item.order) {
-                        breeze.core.arrayRemoveItem(this.orderItems, item);
+                    var ix = this.orderItems.indexOf(item);
+                    if (ix > -1){
+                        this.orderItems.splice(ix, 1);
                     }
                 }
             }
@@ -104,33 +117,34 @@
             }
 
             function registerOrderItem(metadataStore) {
-                metadataStore.registerEntityTypeCtor('OrderItem', OrderItem, initializer);
+                metadataStore.registerEntityTypeCtor('OrderItem', OrderItem);
 
                 orderItemType = metadataStore.getEntityType('OrderItem')  ;
 
                 OrderItem.prototype.addNewOption = addNewOption;
-                OrderItem.prototype.deleteOption = deleteOption;
-                OrderItem.prototype.undeleteOption = undeleteOption;
+                OrderItem.prototype.removeOption = removeOption;
+                OrderItem.prototype.restoreOption = addOption;
                 OrderItem.prototype.calcPrice = calcPrice;
 
                 function addNewOption(productOption) {
-                    var orderItemOption = this.entityAspect.entityManager
-                        .createEntity('OrderItemOption', {
-                            orderItemId: this.id,
-                            productOption: productOption
-                        });
-                    return orderItemOption;
-                }
+                    var option = orderItemType.createInstance();
+                    this.orderItemOptions.push(option);
+                    option.productOption = productOption;
+                    return option;
+                 }
 
-                function undeleteOption(option) {
-                    if (option.entityAspect.entityState.isDeleted()) {
-                        option.entityAspect.setUnchanged();
+                function addOption(option) {
+                    var options = this.orderItemOptions;
+                    if (options.indexOf(option) == -1){
+                        options.push(option);
                     }
                 }
 
-                function deleteOption(option) {
-                    option.entityAspect.setDeleted();
-                    return (option.entityAspect.entityState.isDeleted()) ? option : null;
+                function removeOption(option) {
+                    var ix = this.orderItemOptions.indexOf(option);
+                    if (ix > -1){
+                        this.orderItemOptions.splice(ix, 1);
+                    }
                 }
 
                 function calcPrice() {
@@ -144,50 +158,58 @@
                     }
                 };
 
-                function initializer(entity) {
-                    // Todo: Is it really necessary to recalc price on property changes
-                    // of should it be called on demand (e.g., before save)?
-                    entity.entityAspect.propertyChanged.subscribe(function (args) {
-                        var pname = args.propertyName;
-                        if (pname == 'quantity' ||
-                            pname == 'productSizeId' ||
-                            pname === 'productId') {
-                            entity.calcPrice();
+                Object.defineProperty(OrderItem.prototype, "id", {
+                    enumerable: true,
+                    get: function () {
+                        var ix = -1;
+                        var parent = this.complexAspect.parent;
+                        if (parent)  {
+                            ix = parent.orderItems.indexOf(this);
                         }
-                    });
-                    if (entity.unitPrice === 0 ) {
-                        entity.calcPrice();
+                        return ix + 1; // id == 1 + item's index
                     }
-                }
+                });
 
                 /*** navigation properties ***/
                 Object.defineProperty(OrderItem.prototype, "product", {
+                    enumerable: true,
                     get: function () {
-                        if (this._product === undefined){
-                            this._product =
-                                this.entityManager.getEntityByKey('Product', this.productId);
+                        if (this._product === undefined && this.productId) {
+                            this.product = util.getEntityByIdFromObj(this, 'Product', this.productId);
                         }
                         return this._product;
                     },
                     set: function (product) {
                         this._product = product;
-                        this.productId = product.id;
-                        this.name = product.name;
+                        if (product) {
+                            this.productId = product.id;
+                            this.name = product.name;
+                            this.type = product.type;
+                        } else {
+                            this.productId = 0;
+                            this.name = "";
+                            this.type = "";
+                        }
                     }
                 });
 
                 Object.defineProperty(OrderItem.prototype, "productSize", {
+                    enumerable: true,
                     get: function () {
-                        if (this._productSize === undefined){
-                            this._productSize =
-                                this.entityManager.getEntityByKey('ProductSize', this.productSizeId);
+                        if (this._productSize === undefined && this.productSizeId) {
+                            this.productSize = util.getEntityByIdFromObj(this, 'ProductSize', this.productSizeId);
                         }
                         return this._productSize;
                     },
                     set: function (size) {
                         this._productSize = size;
-                        this.productSizeId = size.id;
-                        this.size = size.name;
+                        if (size) {
+                            this.productSizeId = size.id;
+                            this.size = size.name;
+                        } else {
+                            this.productSizeId = 0;
+                            this.size = "";
+                        }
                     }
                 });
             }
@@ -202,6 +224,27 @@
                 metadataStore.registerEntityTypeCtor('OrderItemOption', OrderItemOption);
 
                 orderItemOptionType = metadataStore.getEntityType('OrderItemOption');
+
+                /*** navigation properties ***/
+                Object.defineProperty(OrderItem.prototype, "productOption", {
+                    enumerable: true,
+                    get: function () {
+                        if (this._productOption === undefined && this.productOptionId) {
+                            this.productOption = util.getEntityByIdFromObj(this, 'ProductOption', this.productOptionId);
+                        }
+                        return this._productOption;
+                    },
+                    set: function (po) {
+                        this._productOption = po;
+                        if (po) {
+                            this.productOptionId = po.id;
+                            this.name = po.name;
+                        } else {
+                            this.productOptionId = 0;
+                            this.name = "";
+                        }
+                    }
+                });
             }
 
             //#endregion
@@ -212,17 +255,17 @@
 
                 function Product() { /* nothing inside */ }
                 Object.defineProperty(Product.prototype, "img", {
+                    enumerable: true,
                     get: function () { return imageBase + this.image; }
                 });
 
                 Object.defineProperty(Product.prototype, "productSizeIds", {
+                    enumerable: true,
                     get: function () { return this.sizeIds || []; },
                     set: function () {/* do nothing */;}
                 });
             }
             //#endregion
-
-
         }]);
 
 })();
