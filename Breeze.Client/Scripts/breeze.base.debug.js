@@ -12384,6 +12384,16 @@ var EntityManager = (function () {
 
             // attach any unattachedChildren
             var tuples = unattachedMap.getTuples(entityKey);
+			var baseTuples = unattachedMap.getBaseTuples(entityKey);;
+
+            if (tuples && baseTuples) {
+                tuples = tuples.concat(baseTuples);
+            } else if (tuples) {
+            
+            } else {
+                tuples = baseTuples;
+            }
+			
             if (tuples) {
                 tuples.forEach(function (tpl) {
 
@@ -12983,7 +12993,7 @@ var EntityManager = (function () {
             return null;
         } else if (meta.nodeRefId) {
             var refValue = resolveRefEntity(meta.nodeRefId, mappingContext);
-            if (typeof refValue === "function") {
+            if (typeof refValue === "function" && typeof assignFn === "function") {
                 mappingContext.deferredFns.push(function () {
                     assignFn(refValue);
                 });
@@ -13161,11 +13171,13 @@ var EntityManager = (function () {
             } else {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                rawVal.forEach(function (rawCo) {
-                    var newCo = dp.dataType._createInstanceCore(target, dp);
-                    updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
-                    oldVal.push(newCo);
-                });
+                if (Array.isArray(rawVal)) {
+                    rawVal.forEach(function (rawCo) {
+                        var newCo = dp.dataType._createInstanceCore(target, dp);
+                        updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
+                        oldVal.push(newCo);
+                    });
+                }
             }
         } else {
             var val;
@@ -13176,10 +13188,12 @@ var EntityManager = (function () {
                 oldVal = target.getProperty(dp.name);
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                rawVal.forEach(function (rv) {
-                    val = parseRawValue(dp, rv);
-                    oldVal.push(val);
-                });
+                if (Array.isArray(rawVal)) {
+                    rawVal.forEach(function (rv) {
+                        val = parseRawValue(dp, rv);
+                        oldVal.push(val);
+                    });
+                }
             }
         }
     }
@@ -13535,6 +13549,14 @@ var EntityManager = (function () {
 
     UnattachedChildrenMap.prototype.getTuples = function (parentEntityKey) {
         return this.map[parentEntityKey.toString()];
+    };
+	
+	UnattachedChildrenMap.prototype.getBaseTuples = function (parentEntityKey) {
+		var baseTuples = null;
+		if (parentEntityKey.entityType.baseEntityType) {
+            baseTuples = this.map[parentEntityKey.entityType.baseEntityType.toString() + '-' + parentEntityKey._keyInGroup];
+        }
+        return baseTuples;
     };
 
     return ctor;
