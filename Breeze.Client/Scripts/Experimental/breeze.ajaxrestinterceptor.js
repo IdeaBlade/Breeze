@@ -1,4 +1,4 @@
-﻿docCode.AjaxAdapterRestyInterceptor = (function () {
+﻿breeze.AjaxRestInterceptor = (function () {
     /**
      Wraps the ambient breeze ajax adapter's `ajax` method with an interceptor
      that converts certain URLs into a more "ReSTy" design.
@@ -10,7 +10,7 @@
     
      **/
 
-    var AjaxAdapterRestyInterceptor = function (adapterName) {
+    var AjaxRestInterceptor = function (adapterName) {
 
         var adapter = breeze.config.getAdapterInstance("ajax", adapterName);
         if (!adapter) {
@@ -37,7 +37,7 @@
 
     };
 
-    return AjaxAdapterRestyInterceptor;
+    return AjaxRestInterceptor;
 
     function createRestyAjaxFn(interceptor) {
         

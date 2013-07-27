@@ -6,12 +6,12 @@
  *
  * The sample Web API controllers are in Controller/MultiControllers
  *
- * Tests ALSO use the AjaxAdapterRestyInterceptor to convert a 
+ * Tests ALSO use the AjaxRestInterceptor to convert a 
  * query-by-id, e.g., /multi/employees?$filter=id eq 1
  * into a "resty" query, e.g. /breeze/employees/1
  *
- * Engage the AjaxAdapterRestyInterceptor as follows:
- *    var ajaxInterceptor = new AjaxAdapterRestyInterceptor();
+ * Engage the AjaxRestInterceptor as follows:
+ *    var ajaxInterceptor = new breeze.AjaxRestInterceptor();
  *    ajaxInterceptor.enable(); // call disable() to restore orig
  *
  * Relies on Web API routing to re-route to controllers.
@@ -23,7 +23,7 @@
  * to see the URL (especially those re-written by the interceptor).
  *
  *************************************************************/
-(function (testFns, AjaxAdapterRestyInterceptor) {
+(function (testFns) {
     "use strict";
 
     /*********************************************************
@@ -38,7 +38,7 @@
     var masterMetadata = masterEm.metadataStore;
     var newEm = function () { return masterEm.createEmptyCopy(); };
     
-    var ajaxInterceptor = new AjaxAdapterRestyInterceptor();
+    var ajaxInterceptor = new breeze.AjaxRestInterceptor();
     
     module("multi-controller tests", {
         setup: function () {
@@ -181,4 +181,4 @@
         return data;
     }
     
-})(docCode.testFns, docCode.AjaxAdapterRestyInterceptor);
+})(docCode.testFns);

@@ -114,6 +114,9 @@
     <Content Include="Scripts\breeze.savequeuing.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </Content>
+    <Content Include="Scripts\breeze.ajaxrestinterceptor.js">
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </Content>    
     <Content Include="Scripts\jquery-1.9.1.js" />
     <None Include="Scripts\jquery-1.9.1.intellisense.js">
       <DependentUpon>jquery-1.9.1.js</DependentUpon>
@@ -137,7 +140,6 @@
     <Content Include="tests\apiDirectTests.js" />
     <Content Include="tests\basicTodoTests.js" />
     <Content Include="tests\multiControllerTests.js" />
-    <Content Include="tests\AjaxAdapterRestyInterceptor.js" />
     <Content Include="tests\saveNorthwindTests.js" />
     <Content Include="tests\AjaxAdapterTestInterceptorTests.js" />
     <Content Include="tests\dtoTests.js" />
@@ -230,6 +232,7 @@ echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to 
 COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
 COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
 COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
+COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Experimental\breeze.ajaxrestinterceptor.js" "$(ProjectDir)Scripts" /Y
 COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Experimental\breeze.savequeuing.js" "$(ProjectDir)Scripts" /Y
 :done</PreBuildEvent>
   </PropertyGroup>
