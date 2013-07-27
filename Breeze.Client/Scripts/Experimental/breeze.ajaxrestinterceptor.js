@@ -1,4 +1,19 @@
-﻿breeze.AjaxRestInterceptor = (function () {
+﻿//#region Copyright, Version, and Description
+/*
+ * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
+ * Use, reproduction, distribution, and modification of this code is subject to the terms and 
+ * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
+ *
+ * Author: Ward Bell
+ * Version: 1.0
+  * --------------------------------------------------------------------------------
+ * Converts typical entity-by-id query into a url format typical in ReST-like APIs
+ * Experimental! This is a primitive implementation, not currently "supported".
+ * Use it for guidance and roll your own.
+ */
+ //#endregion
+
+breeze.AjaxRestInterceptor = (function () {
     /**
      Wraps the ambient breeze ajax adapter's `ajax` method with an interceptor
      that converts certain URLs into a more "ReSTy" design.
