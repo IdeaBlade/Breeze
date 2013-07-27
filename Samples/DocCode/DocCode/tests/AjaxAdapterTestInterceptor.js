@@ -1,25 +1,63 @@
-﻿docCode.TestAjaxAdapter = (function () {
-/**************************************************************
-@class TestAjaxAdapter
- A test 'ajax' adapter class whose instance can monitor a base ajax adapter
- with 'before', 'afterSuccess', 'afterError' methods and 
- synchronously return a canned response for a given request url.
+﻿docCode.AjaxAdapterTestInterceptor = (function () {
+    /** 
+     A test 'ajax' adapter class whose instance can monitor a base ajax adapter
+     with 'before', 'afterSuccess', 'afterError' methods and 
+     synchronously return a canned response for a given request url.
 
- You can supply any number of canned responses. Each has a url pattern which
- is compared with the ajax request url. The first matching response becomes
- the faked response of the ajax request.
+     You can supply any number of canned responses. Each has a url pattern which
+     is compared with the ajax request url. The first matching response becomes
+     the faked response of the ajax request.
 
- If none of the response match but there is a default response, 
- the default becomes the faked response of the ajax request.
+     If none of the response match but there is a default response, 
+     the default becomes the faked response of the ajax request.
 
- If there still is no canned response, the request is forwarded to
- the 'ajax' function of the base adapter.
+     If there still is no canned response, the request is forwarded to
+     the 'ajax' function of the base adapter.
  
- After instantiating a test adapter, call its enable() method to enable its injection into the
- base ajax adapter. Call its disable() method to restore the pre-injection behavior.
+     After instantiating a test adapter, call its enable() method to enable its injection into the
+     base ajax adapter. Call its disable() method to restore the pre-injection behavior.
 
- @method <ctor> TestAjaxAdapter
- The constructor takes an optional 'config' object and optional 'adaptername'
+     Example:
+         var ajaxInterceptor = new AjaxAdapterTestInterceptor();
+
+         module("AjaxAdapterTestInterceptor unit tests", {
+            setup: function () {
+                // unit tests should never attempt to reach the server
+                // the blockServerRequests switch ensures that the AjaxAdapterTestInterceptor
+                // doesn't accidentally go to the server during these module tests
+                ajaxInterceptor.blockServerRequests = true;
+            },
+                teardown: function () {
+                ajaxInterceptor.blockServerRequests = false; // restore default
+                ajaxInterceptor.disable();
+            }
+        });
+
+        // the config.blockServerRequests switch ensures that 
+        // this particular request cannot accidentally go to the server
+        // even if the test adapter would allow it otherwise.
+        test("server requests are blocked for THIS module's tests by default.", 1, function () {
+            ajaxInterceptor.enable();
+        
+            var ajaxConfig = makeAjaxConfig({ success: success, error: error });
+
+            ajaxInterceptor.ajax(ajaxConfig);
+
+            function success(data, textStatus, xhr) {
+                ok(false, "request should have been blocked and failed");
+            }
+            function error(xhr, textStatus, errorThrown) {
+                ok(/server requests are blocked/i.test(xhr.responseText),
+                    serverRequestBlockMessage(xhr));
+            }
+        });
+    **/ 
+    var extend = breeze.core.extend;
+    var clone = function (thing) { return extend({}, thing); };
+    
+    /** AjaxAdapterTestInterceptor
+    @constructor 
+    The constructor takes an optional 'config' object and optional 'adaptername'
   
     @param [adapterName] {String} The name of the ajax adapter to hijack. Hijacks the default adapter by default.
 
@@ -78,16 +116,13 @@
     @param pattern {String} the pattern defined in the response.url
     @return {Boolean} true if the response matches this url
 
- *************************************************************/
-    var extend = breeze.core.extend;
-    var clone = function (thing) { return extend({}, thing); };
-
-    var TestAjaxAdapter = function (config, adapterName) {
+ **/
+    var interceptor = function (config, adapterName) {
      
         var adapter = breeze.config.getAdapterInstance("ajax", adapterName);
         if (!adapter) {
             throw new Error("No existing " + adapterName + " ajax adapter to fake.");
-        }
+        }       
         
         /**
         The default settings to copy to an ajax fn call
@@ -103,7 +138,7 @@
         this.testAdapterConfig = config;
         
         /**
-        Enable the testAjaxAdapter, replacing the wrapped adapter's ajax fn with the test version
+        Enable the AjaxAdapterTestInterceptor, replacing the wrapped adapter's ajax fn with the test version
         @method enable
         @param [config] {object} Optionally replace the adapter's current configuration
         **/
@@ -116,7 +151,7 @@
         };
 
         /**
-        Disable the testAjaxAdapter, restoring the original ajax fn
+        Disable the AjaxAdapterTestInterceptor, restoring the original ajax fn
         @method disable
         **/
         this.disable = function () {
@@ -124,26 +159,26 @@
         };
 
         /**
-        Call the adapter's current ajax function
-        @method ajax
-        @param ajaxSettings {Object} parameter to adapter's ajax method. 
-        See breeze documentation: http://www.breezejs.com/documentation/customizing-ajax
-        **/
-        this.ajax = function (ajaxSettings) { adapter.ajax(ajaxSettings); };
-
-        /**
         Ensure that the test adapter does not make a server request when enabled.
         @property blockServerRequests=false {Boolean}
         **/
         this.blockServerRequests = false;
-
+        
         var origAjaxFn = adapter.ajax;
         var getAdapterConfig = createGetAdapterConfigFn(this);
-        var fakeAjaxFn = createFakeAjaxFn(getAdapterConfig, origAjaxFn);
+        var fakeAjaxFn = createFakeAjaxFn(getAdapterConfig, origAjaxFn);       
+
+        /**
+        Delegate to the adapter's current ajax function
+        @method ajax
+        @param ajaxSettings {Object} parameter to adapter's ajax method. 
+        See breeze documentation for {@link http://www.breezejs.com/documentation/customizing-ajax ajaxadapter}
+        **/
+        this.ajax = function (ajaxSettings) { adapter.ajax(ajaxSettings); };
 
     };
 
-    return TestAjaxAdapter;
+    return interceptor;
     
     //#region private functions
     function createFakeAjaxFn(getAdapterConfig, origAjaxFn) {

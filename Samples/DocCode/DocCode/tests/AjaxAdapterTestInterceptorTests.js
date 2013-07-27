@@ -1,5 +1,5 @@
 /**************************************************************
- * Tests of the 'TestAjaxAdapter' class which is used in DocCode
+ * Tests of the 'AjaxAdapterTestInterceptor' class which is used in DocCode
  * to mock JSON results for Breeze integration testing
  *
  * Such mocking is useful 
@@ -15,18 +15,18 @@
 // ReSharper disable UnusedParameter
 // ReSharper disable InconsistentNaming
 // ReSharper disable AssignedValueIsNeverUsed
-(function (testFns, TestAjaxAdapter) {
+(function (testFns, AjaxAdapterTestInterceptor) {
     "use strict";
 
     /*********************************************************
     * Breeze configuration and module setup 
     *********************************************************/
     var extend = breeze.core.extend;
-    var EntityQuery = new breeze.EntityQuery;
+    var EntityQuery = breeze.EntityQuery;
     
     var handleFail = testFns.handleFail;
 
-    var testAjaxAdapter = new TestAjaxAdapter();
+    var ajaxInterceptor = new AjaxAdapterTestInterceptor();
 
     var testDataService = new breeze.DataService({
         serviceName: "test",
@@ -41,16 +41,16 @@
     var newNorthwindEm = testFns.newEmFactory(northwindService);
     /************************** UNIT TESTS *************************/
     
-    module("TestAjaxAdapter unit tests", {
+    module("ajaxAdapterTestInterceptor unit tests", {
         setup: function () {
             // unit tests should never attempt to reach the server
-            // the blockServerRequests switch ensures that the TestAjaxAdapter
+            // the blockServerRequests switch ensures that the ajaxInterceptor
             // doesn't accidentally go to the server during these module tests
-            testAjaxAdapter.blockServerRequests = true;
+            ajaxInterceptor.blockServerRequests = true;
         },
         teardown: function () {
-            testAjaxAdapter.blockServerRequests = false; // restore default
-            testAjaxAdapter.disable();
+            ajaxInterceptor.blockServerRequests = false; // restore default
+            ajaxInterceptor.disable();
         }
     });
 
@@ -58,11 +58,11 @@
     // this particular request cannot accidentally go to the server
     // even if the test adapter would allow it otherwise.
     test("server requests are blocked for THIS module's tests by default.", 1, function () {
-        testAjaxAdapter.enable();
+        ajaxInterceptor.enable();
         
         var ajaxConfig = makeAjaxConfig({ success: success, error: error });
 
-        testAjaxAdapter.ajax(ajaxConfig);
+        ajaxInterceptor.ajax(ajaxConfig);
 
         function success(data, textStatus, xhr) {
             ok(false, "request should have been blocked and failed");
@@ -79,14 +79,14 @@
     test("can block trip to server at request level.", 1, function () {
         
         // re-enable server requests for the adapter
-        testAjaxAdapter.blockServerRequests = false;
+        ajaxInterceptor.blockServerRequests = false;
         
         // but block them for this request
-        testAjaxAdapter.enable({ blockServerRequests: true });
+        ajaxInterceptor.enable({ blockServerRequests: true });
 
         var ajaxConfig = makeAjaxConfig({ success: success, error: error });
 
-        testAjaxAdapter.ajax(ajaxConfig);
+        ajaxInterceptor.ajax(ajaxConfig);
 
         function success(data, textStatus, xhr) {
             ok(false, "request should have been blocked and failed");
@@ -100,11 +100,11 @@
     test("can use JSON array quick syntax to fake an OK data response.", 1, function () {
         var expectedData = [{ id: 1, name: 'Bob', userId: null }];
                
-        testAjaxAdapter.enable(expectedData); // the quick syntax: just a JSON array
+        ajaxInterceptor.enable(expectedData); // the quick syntax: just a JSON array
  
         var ajaxConfig = makeAjaxConfig({ success: success });
 
-        testAjaxAdapter.ajax(ajaxConfig);
+        ajaxInterceptor.ajax(ajaxConfig);
 
         function success(data, textStatus, xhr) {
             deepEqual(data, expectedData,
@@ -117,11 +117,11 @@
         var expectedData = [{ id: 2, name: 'Sally', userId: 42 }];
         
         var adapterConfig = { defaultResponse: { data: expectedData } };
-        testAjaxAdapter.enable(adapterConfig);
+        ajaxInterceptor.enable(adapterConfig);
 
         var ajaxConfig = makeAjaxConfig({ success: success });
 
-        testAjaxAdapter.ajax(ajaxConfig);
+        ajaxInterceptor.ajax(ajaxConfig);
 
         function success(data, textStatus, xhr) {
             deepEqual(data, expectedData,
@@ -137,11 +137,11 @@
         var response = { url: "api/test", data: expectedData };
         
         // register a response for a specific url
-        testAjaxAdapter.enable({responses:[response], blockServerRequests: true});
+        ajaxInterceptor.enable({responses:[response], blockServerRequests: true});
 
         var ajaxConfig = makeAjaxConfig({url: testUrl, success: success });
 
-        testAjaxAdapter.ajax(ajaxConfig);
+        ajaxInterceptor.ajax(ajaxConfig);
 
         function success(data, textStatus, xhr) {
             deepEqual(data, expectedData,
@@ -151,16 +151,16 @@
 
     /************************** QUERIES *************************/
 
-    module("TestAjaxAdapter query tests", {
+    module("ajaxAdapterTestInterceptor query tests", {
         setup: function() {
             testFns.populateMetadataStore(newNorthwindEm);
         },
-        teardown: function () { testAjaxAdapter.disable(); }
+        teardown: function () { ajaxInterceptor.disable(); }
     });
     
     asyncTest("can handle anonymous Zumo Todos when all properties are defined.", 1, function () {
         
-        testAjaxAdapter.enable([{ id: 1, title: "Learn Breeze"}]);
+        ajaxInterceptor.enable([{ id: 1, title: "Learn Breeze"}]);
         
         newTestEm().executeQuery("Todos")
             .then(success).fail(handleFail).fin(start);
@@ -173,7 +173,7 @@
     
     asyncTest("can handle anonymous Zumo Todos when a property is null.", 1, function () {
 
-        testAjaxAdapter.enable([{ id: 1, title: "Learn Breeze", userId: null }]);
+        ajaxInterceptor.enable([{ id: 1, title: "Learn Breeze", userId: null }]);
 
         newTestEm().executeQuery("Todos")
             .then(success).fail(handleFail).fin(start);
@@ -184,13 +184,13 @@
         }
     });
     
-    test("can mix sync tests with async TestAjaxAdapter tests", 1,
+    test("can mix sync tests with async ajaxInterceptor tests", 1,
      function () { ok(true, "should always be ok"); });
     
     asyncTest("can project all Northwind customers (with server trip).", function () {
 
-        // Notice that an enabled testAJaxAdapter is OK when no response matches
-        testAjaxAdapter.enable({
+        // Notice that an enabled ajaxInterceptor is OK when no response matches
+        ajaxInterceptor.enable({
             responses: {
                 url: 'xxx', // pattern doesn't match anything in the request URL
                 data: []
@@ -203,7 +203,7 @@
     asyncTest("can test Northwind customer projection with data snapshot (no server trip).", function () {
 
         // Now we fake the data from a snapshot of the full projection
-        testAjaxAdapter.enable({
+        ajaxInterceptor.enable({
             responses: {
                 url: 'Customers', // this pattern is found in the request URL
                 data: [
@@ -231,7 +231,7 @@
         // Now we fake just fake the data
         // Use the quick syntax which specifies the successful data result for ALL requests
         // because this test only makes one request.
-        testAjaxAdapter.enable([
+        ajaxInterceptor.enable([
                     { CustomerID: "Not-a-Guid",
                       CompanyName: "Acme" },
                     { CustomerID: "Nor-is-this",
@@ -267,7 +267,7 @@
     asyncTest("can fake query result for all Northwind customers with snapshot (no server trip).", 3, function () {
 
         // Now we fake the data from a snapshot of the full projection
-        testAjaxAdapter.enable({
+        ajaxInterceptor.enable({
             responses: {
                 url: 'Customers',
                 data: customerSnapshot
@@ -331,7 +331,7 @@
  
     asyncTest("can block trip to server.", 1, function () {
 
-        testAjaxAdapter.enable({ blockServerRequests: true });
+        ajaxInterceptor.enable({ blockServerRequests: true });
 
         newTestEm().executeQuery("Todos")
             .then(success).fail(expectedFail).fin(start);
@@ -387,4 +387,4 @@
         }).fin(start);
     }
 
-})(docCode.testFns, docCode.TestAjaxAdapter);
+})(docCode.testFns, docCode.AjaxAdapterTestInterceptor);
