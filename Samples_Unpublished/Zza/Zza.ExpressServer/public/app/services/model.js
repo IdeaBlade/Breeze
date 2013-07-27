@@ -174,13 +174,10 @@
                 Object.defineProperty(OrderItem.prototype, "product", {
                     enumerable: true,
                     get: function () {
-                        if (this._product === undefined && this.productId) {
-                            this.product = util.getEntityByIdFromObj(this, 'Product', this.productId);
-                        }
-                        return this._product;
+                        var id = this.productId;
+                        return (id) ? this.product = util.getEntityByIdFromObj(this, 'Product', id) : null;
                     },
                     set: function (product) {
-                        this._product = product;
                         if (product) {
                             this.productId = product.id;
                             this.name = product.name;
@@ -196,13 +193,10 @@
                 Object.defineProperty(OrderItem.prototype, "productSize", {
                     enumerable: true,
                     get: function () {
-                        if (this._productSize === undefined && this.productSizeId) {
-                            this.productSize = util.getEntityByIdFromObj(this, 'ProductSize', this.productSizeId);
-                        }
-                        return this._productSize;
+                        var id =  this.productSizeId;
+                        return (id) ? this.productSize = util.getEntityByIdFromObj(this, 'ProductSize', id) : null;
                     },
                     set: function (size) {
-                        this._productSize = size;
                         if (size) {
                             this.productSizeId = size.id;
                             this.size = size.name;
@@ -229,13 +223,10 @@
                 Object.defineProperty(OrderItem.prototype, "productOption", {
                     enumerable: true,
                     get: function () {
-                        if (this._productOption === undefined && this.productOptionId) {
-                            this.productOption = util.getEntityByIdFromObj(this, 'ProductOption', this.productOptionId);
-                        }
-                        return this._productOption;
+                        var id =  this.productOptionId;
+                        return (id) ? this.productOption = util.getEntityByIdFromObj(this, 'ProductOption', id) : null;
                     },
                     set: function (po) {
-                        this._productOption = po;
                         if (po) {
                             this.productOptionId = po.id;
                             this.name = po.name;
