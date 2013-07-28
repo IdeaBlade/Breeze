@@ -116,6 +116,18 @@ namespace DocCode.Controllers
         }
 
         [HttpGet]
+        public IQueryable<ProductDto> ProductDtos()
+        {
+            return _repository.Products
+                .Where(x => x.CategoryID == 1) // a surrogate for a security filter
+                .Select(x => new ProductDto
+                    {
+                        ProductID = x.ProductID, 
+                        ProductName = x.ProductName
+                    });
+        }
+
+        [HttpGet]
         public IQueryable<Region> Regions() {
             return _repository.Regions;
         }
