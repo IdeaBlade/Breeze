@@ -116,11 +116,18 @@ namespace DocCode.Controllers
         }
 
         [HttpGet]
-        public IQueryable<ProductDto> ProductDtos()
+        public IQueryable<ProductDto> ProductDtos(int? supplierID=null)
         {
-            return _repository.Products
-                .Where(x => x.CategoryID == 1) // a surrogate for a security filter
-                .Select(x => new ProductDto
+            // TODO: move the following into the repository where it belongs
+            var query = _repository.Products
+                .Where(x => x.CategoryID == 1); // a surrogate for a security filter
+
+            if (supplierID != null)
+            {
+                query = query.Where(x => x.SupplierID == supplierID);
+            }
+
+            return query.Select(x => new ProductDto
                     {
                         ProductID = x.ProductID, 
                         ProductName = x.ProductName
