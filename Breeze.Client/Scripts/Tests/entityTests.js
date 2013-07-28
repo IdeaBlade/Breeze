@@ -140,6 +140,26 @@
         ok(true);
     });
 
+    test("registerEntityTypeCtor with ES5 props and importEntities", function () {
+        // 4/25/13 - sbelini - this test should not fail - it's just to ensure the third parameter is causing the error
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Customer = testFns.models.CustomerWithES5Props();
+        var productType = em.metadataStore.getEntityType("Customer");
+
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+        var m1 = em.createEmptyCopy();
+        var customerType = m1.metadataStore.getEntityType("Customer");
+        var cfg = {};
+        cfg[testFns.customerKeyName] = breeze.core.getUuid();
+        var customer = m1.createEntity("Customer", cfg);
+        var exported = m1.exportEntities([customer]);
+        var m2 = em.createEmptyCopy();
+
+        m2.importEntities(exported);
+        ok(true);
+    });
+
     test("registerEntityTypeCtor causing error on importEntities2", function () {
         // 4/25/13 - sbelini - this test is failing due to the third parameter in registerEntityTypeCtor
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
@@ -178,6 +198,28 @@
             cust.entityAspect.rejectChanges();
             var miscData = cust.getProperty("miscData");
             ok(miscData === 'zzz', "miscData should be zzz");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("rejectChanges with ES5 props", function () {
+        var em1 = newEm(newMs());
+        var Customer = testFns.models.CustomerWithES5Props();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        em1.fetchMetadata().then(function () {
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust = custType.createEntity();
+            em1.addEntity(cust);
+            cust.setProperty("companyName", "foo2");
+            var companyName = cust.getProperty("companyName");
+            ok(companyName === "FOO2", "should be uppercased");
+            cust.entityAspect.acceptChanges();
+            cust.setProperty("companyName", "foo3");
+            var companyName = cust.getProperty("companyName");
+            ok(companyName === "FOO3", "should be uppercased");
+            cust.entityAspect.rejectChanges();
+            var companyName = cust.getProperty("companyName");
+            ok(companyName === 'FOO2', "comapnyName should be FOO2");
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -568,6 +610,32 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
+    test("custom Customer type with ES5 props and createEntity", function () {
+        var em = newEm(newMs());
+
+        var Customer = testFns.models.CustomerWithES5Props();
+        Customer.prototype.getNameLength = function () {
+            return (this.getProperty("companyName") || "").length;
+        };
+
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        em.fetchMetadata().then(function () {
+            var custType = em.metadataStore.getEntityType("Customer");
+            var cust1 = custType.createEntity();
+            ok(cust1.entityType === custType, "entityType should be Customer");
+            ok(cust1.entityAspect.entityState.isDetached(), "should be detached");
+            em.attachEntity(cust1);
+            ok(cust1.entityType === custType, "entityType should be Customer");
+            ok(cust1.entityAspect.entityState.isUnchanged(), "should be unchanged");
+            ok(cust1.getProperty("miscData") === "asdf");
+            cust1.setProperty("companyName", "testxxx");
+            var custName = cust1.getProperty("companyName");
+            ok(custName === "TESTXXX", "should be all uppercase");
+            ok(cust1.getNameLength() === 7, "getNameLength should be 7");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("custom Customer type with new", function () {
         var em = newEm(newMs());
 
@@ -593,6 +661,35 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
+    test("custom Customer type with ES5 props and new", function () {
+        var em = newEm(newMs());
+
+        var Customer = testFns.models.CustomerWithES5Props();
+        Customer.prototype.getNameLength = function () {
+            return (this.getProperty("companyName") || "").length;
+        };
+
+        // register before fetchMetadata
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        em.fetchMetadata().then(function () {
+            var custType = em.metadataStore.getEntityType("Customer");
+            var cust1 = new Customer();
+            // this works because the fetchMetadataStore hooked up the entityType on the registered ctor.
+            ok(cust1.entityType === custType, "entityType should be undefined");
+            ok(cust1.entityAspect === undefined, "entityAspect should be undefined");
+            em.attachEntity(cust1);
+            ok(cust1.entityType === custType, "entityType should be Customer");
+            ok(cust1.entityAspect.entityState.isUnchanged(), "should be unchanged");
+            ok(cust1.getProperty("miscData") === "asdf");
+            cust1.setProperty("companyName", "testxxx");
+            var custName = cust1.getProperty("companyName");
+            ok(custName === "TESTXXX", "should be all uppercase");
+            ok(cust1.getNameLength() === 7, "getNameLength should be 7");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+
     test("custom Customer type with new - v2", function () {
         var em = newEm(newMs());
 
@@ -602,6 +699,7 @@
         };
 
         stop();
+        // register after fetchMetadata
         em.fetchMetadata().then(function () {
             em.metadataStore.registerEntityTypeCtor("Customer", Customer);
             var custType = em.metadataStore.getEntityType("Customer");
@@ -618,6 +716,34 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
+    test("custom Customer type with ES5 proand and new - v2", function () {
+        var em = newEm(newMs());
+
+        var Customer = testFns.models.CustomerWithES5Props();
+        Customer.prototype.getNameLength = function () {
+            return (this.getProperty("companyName") || "").length;
+        };
+
+        stop();
+        // register after fetchMetadata
+        em.fetchMetadata().then(function () {
+            em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+            var custType = em.metadataStore.getEntityType("Customer");
+            var cust1 = new Customer();
+            // this works because the fetchMetadataStore hooked up the entityType on the registered ctor.
+            ok(cust1.entityType === custType, "entityType should be undefined");
+            ok(cust1.entityAspect === undefined, "entityAspect should be undefined");
+            em.attachEntity(cust1);
+            ok(cust1.entityType === custType, "entityType should be Customer");
+            ok(cust1.entityAspect.entityState.isUnchanged(), "should be unchanged");
+            ok(cust1.getProperty("miscData") === "asdf");
+            cust1.setProperty("companyName", "testxxx");
+            var custName = cust1.getProperty("companyName");
+            ok(custName === "TESTXXX", "should be all uppercase");
+            ok(cust1.getNameLength() === 7, "getNameLength should be 7");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("entityState", function () {
         stop();
         runQuery(newEm(), function (customers) {
@@ -625,9 +751,6 @@
             testEntityState(c);
         }).fail(testFns.handleFail).fin(start);
     });
-
-
-
 
 
     test("entityType.getProperty nested", function () {
@@ -648,7 +771,7 @@
         ok(prop1 == prop2, "should be the same prop");
     });
 
-    test("entityCtor materialization with js class", function () {
+    test("entityCtor materialization with js ctor", function () {
         // use a different metadata store for this em - so we don't polute other tests
         var em1 = newEm(newMs());
         var Customer = testFns.models.CustomerWithMiscData();
@@ -661,6 +784,24 @@
             testEntityState(c);
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("entityCtor materialization with ES5 ctor", function () {
+        // use a different metadata store for this em - so we don't polute other tests
+        var em1 = newEm(newMs());
+        var Customer = testFns.models.CustomerWithES5Props();
+
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        runQuery(em1, function (customers) {
+            var cust1 = customers[0];
+            ok(cust1.getProperty("miscData") === "asdf", "miscData property should contain 'asdf'");
+            var custName = cust1.getProperty("companyName");
+            ok(custName.length > 1, "should have a companyName");
+            ok(custName.toUpperCase() === custName, "should be all uppercase");
+            testEntityState(cust1, true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
 
     test("unmapped import export", function () {
 
@@ -685,8 +826,35 @@
             ok(cname === "foo2", "companyName should === 'foo2'");
             var miscData = sameCust.getProperty("miscData");
             ok(miscData === "zzz", "miscData should === 'zzz'");
-            start();
-        }).fail(testFns.handleFail);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("unmapped import export with ES5 props", function () {
+
+        // use a different metadata store for this em - so we don't polute other tests
+        var em1 = newEm(newMs());
+        var Customer = testFns.models.CustomerWithES5Props();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        em1.fetchMetadata().then(function () {
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust = custType.createEntity();
+            em1.addEntity(cust);
+            cust.setProperty("companyName", "foo2");
+            var cname = cust.getProperty("companyName");
+            ok(cname === "FOO2", "companyName should === 'FOO2'");
+            cust.setProperty("miscData", "zzz");
+            var bundle = em1.exportEntities();
+            var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
+            em2.importEntities(bundle);
+            var entities = em2.getEntities();
+            ok(entities.length === 1);
+            var sameCust = entities[0];
+            var cname2 = sameCust.getProperty("companyName");
+            ok(cname2 === "FOO2", "companyName should === 'FOO2'");
+            var miscData = sameCust.getProperty("miscData");
+            ok(miscData === "zzz", "miscData should === 'zzz'");
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("generate ids", function () {
@@ -1011,25 +1179,27 @@
             .where("companyName", "startsWith", "C")
             .orderBy("companyName");
 
-        return em.executeQuery(query, function (data) {
+        return em.executeQuery(query).then(function (data) {
             callback(data.results);
         });
     }
 
-    function testEntityState(c) {
+    function testEntityState(c, isES5) {
+        var testVal = isES5 ? "TEST" : "Test";
+        var test2Val = isES5 ? "TEST2" : "Test2";
         ok(c.getProperty("companyName"), 'should have a companyName property');
         ok(c.entityAspect.entityState.isUnchanged(), "should be unchanged");
         c.setProperty("companyName", "Test");
-        ok(c.getProperty("companyName") === "Test", "companyName should be 'Test'");
+        ok(c.getProperty("companyName") === testVal, "companyName should be 'Test'");
         ok(c.entityAspect.entityState.isModified(), "should be modified after change");
         c.entityAspect.acceptChanges();
         ok(c.entityAspect.entityState.isUnchanged(), "should be unchanged after acceptChanges");
 
         c.setProperty("companyName", "Test2");
-        ok(c.getProperty("companyName") === "Test2", "companyName should be 'Test2'");
+        ok(c.getProperty("companyName") === test2Val, "companyName should be 'Test2'");
         ok(c.entityAspect.entityState.isModified(), "should be modified after change");
         c.entityAspect.rejectChanges();
-        ok(c.getProperty("companyName") === "Test", "companyName should be 'Test' after rejectChanges");
+        ok(c.getProperty("companyName") === testVal, "companyName should be 'Test' after rejectChanges");
         ok(c.entityAspect.entityState.isUnchanged(), "should be unchanged after reject changes");
     }
 

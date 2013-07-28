@@ -381,6 +381,27 @@
             ok(e.length === 1, "1 record should have been saved");
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("save update with ES5 props and unmapped changes", function () {
+        var em1 = newEm(testFns.newMs());
+        var Customer = testFns.models.CustomerWithES5Props();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        var q = new EntityQuery("Customers").take(1);
+        em1.executeQuery(q).then(function (data) {
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust = data.results[0];
+            var oldContactName = cust.getProperty("contactName");
+            var oldMiscData = cust.getProperty("miscData");
+            testFns.morphStringProp(cust, "contactName");
+            testFns.morphStringProp(cust, "miscData");
+            return em1.saveChanges();
+        }).then(function (sr) {
+
+            var e = sr.entities;
+            ok(e.length === 1, "1 record should have been saved");
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("save delete with unmapped changes", function () {
         var em1 = newEm(testFns.newMs());
@@ -925,6 +946,33 @@
             ok(!em1.hasChanges(), "should not have changes");
             return em1.saveChanges();
         }).then(function(sr) {
+            var saved = sr.entities;
+            ok(saved.length === 0);
+            ok(!em1.hasChanges());
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("unmapped save with ES5 props", function () {
+
+        // use a different metadata store for this em - so we don't polute other tests
+        var em1 = newEm();
+        var Customer = testFns.models.CustomerWithES5Props();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        var q = new EntityQuery("Customers")
+            .where("companyName", "startsWith", "C");
+        q.using(em1).execute().then(function (data) {
+            var customers = data.results;
+            customers.every(function (c) {
+                ok(c.getProperty("miscData") == "asdf", "miscData should == 'asdf'");
+
+            });
+            var cust = customers[0];
+            cust.setProperty("miscData", "xxx");
+            ok(cust.entityAspect.entityState == EntityState.Unchanged);
+            ok(!em1.hasChanges(), "should not have changes");
+            return em1.saveChanges();
+        }).then(function (sr) {
             var saved = sr.entities;
             ok(saved.length === 0);
             ok(!em1.hasChanges());

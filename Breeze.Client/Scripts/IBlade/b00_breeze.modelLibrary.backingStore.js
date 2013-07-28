@@ -36,6 +36,7 @@
         return names;
     };
 
+    // This method is called during Metadata initialization 
     ctor.prototype.initializeEntityPrototype = function (proto) {
 
         proto.getProperty = function(propertyName) {
@@ -54,14 +55,17 @@
         //// called after any create during a query;
         // this method cannot be called while a 'defineProperty' accessor is executing
         // because of IE bug 
-        proto.initializeFrom = function(rawEntity) {
+        proto.initializeFrom = function (rawEntity) {
+            // HACK:
             // copy unmapped properties from newly created client entity to the rawEntity.
+            // This is so that we don't lose them when we update from the rawEntity to the target.
+            // Something that will occur immediately after this method completes. 
             var that = this;
             this.entityType.unmappedProperties.forEach(function(prop) {
                 var propName = prop.name;
                 rawEntity[propName] = that[propName];
             });
-            // this._backingStore = rawEntity;
+            
             if (!this._backingStore) {
                 this._backingStore = { };
             }
@@ -94,6 +98,8 @@
 
     };
 
+    // This method is called when an instance is first created via materialization or createEntity.
+
     // entity is either an entity or a complexObject
     ctor.prototype.startTracking = function (entity, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
@@ -105,10 +111,8 @@
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
             var val = entity[propName];
-
             if (prop.isDataProperty) {
                 if (prop.isComplexProperty) {
-                    // TODO: right now we create Empty complexObjects here - these should actually come from the entity
                     if (prop.isScalar) {
                         val = prop.dataType._createInstanceCore(entity, prop);
                     } else {
@@ -119,37 +123,49 @@
                 } else if (val === undefined) {
                     val = prop.defaultValue;
                 }
-                bs[propName] = val;
+                
             } else if (prop.isNavigationProperty) {
                 if (val !== undefined) {
                     throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.Name);
                 }
                 if (prop.isScalar) {
                     // TODO: change this to nullstob later.
-                    bs[propName] = null;
+                    val = null;
                 } else {
-                    bs[propName] = breeze.makeRelationArray([], entity, prop);
+                    val = breeze.makeRelationArray([], entity, prop);
                 }
             } else {
                 throw new Error("unknown property: " + propName);
             }
+            // can't touch the normal property sets within this method (IE9 Bug) - so we access the backingStore directly instead. 
+            // otherwise we could just do 
+            // entity[propName] = val 
+            // after all of the interception logic had been injected.
+            bs[propName] = val;
         });
     };
 
 
     // private methods
 
+    // This method is called during Metadata initialization to correct "wrap" properties.
     function movePropDefsToProto(proto) {
+        if (proto._isWrapped) return;
         var stype = proto.entityType || proto.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
-            if (!proto[propName]) {
+            // If property is already defined on the prototype then wrap it in another propertyDescriptor.
+            // otherwise create a propDescriptor for it. 
+            if (propName in proto) {
+                wrapPropDescription(proto, prop);
+            } else {
                 Object.defineProperty(proto, propName, makePropDescription(prop));
             }
         });
-
+        proto._isWrapped = true;
     }
 
+    // This method is called when an instance is first created via materialization or createEntity.
     // this method cannot be called while a 'defineProperty' accessor is executing
     // because of IE bug mentioned above.
 
@@ -162,6 +178,7 @@
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
             if (!instance.hasOwnProperty(propName)) return;
+            // pulls off the value, removes the instance property and then rewrites it via ES5 accessor
             var value = instance[propName];
             delete instance[propName];
             instance[propName] = value;
@@ -208,6 +225,48 @@
             configurable: true
         };
     }
+
+    function wrapPropDescription(proto, property) {
+        if (!proto.hasOwnProperty(property.name)) {
+            var nextProto = Object.getPrototypeOf(proto);
+            wrapPropDescription(nextProto, property);
+            return;
+        } 
+
+        var propDescr = Object.getOwnPropertyDescriptor(proto, property.name);
+        // if not configurable; we can't touch it - so leave.
+        if (!propDescr.configurable) return;
+        // if a data descriptor - don't change it - this is basically a static property - i.e. defined on every instance of the type with the same value. 
+        if (propDescr.value) return;
+        // if a read only property descriptor - no need to change it.
+        if (!propDescr.set) return;
+            
+        var accessorFn = function () {
+                if (arguments.length == 0) {
+                    return propDescr.get();
+                } else {
+                    propDescr.set(arguments[0]);
+                }
+            };
+            
+        var newDescr = {
+            get: function () {
+                return propDescr.get();
+            },
+            set: function (value) {
+                if (this._$interceptor) {
+                    this._$interceptor(property, value, accessorFn);
+
+                } else {
+                    accessorFn(value);
+                }
+            },
+            enumerable: propDescr.enumerable,
+            configurable: true
+        };
+        Object.defineProperty(proto, property.name, newDescr);
+    };
+        
 
     breeze.config.registerAdapter("modelLibrary", ctor);
 
