@@ -159,7 +159,7 @@
             if (propName in proto) {
                 wrapPropDescription(proto, prop);
             } else {
-                Object.defineProperty(proto, propName, makePropDescription(prop));
+                makePropDescription(proto, prop);
             }
         });
         proto._isWrapped = true;
@@ -186,7 +186,7 @@
         return instance._backingStore;
     }
 
-    function makePropDescription(property) {
+    function makePropDescription(proto, property) {
         var propName = property.name;
         var getAccessorFn = function(backingStore) {
             return function() {
@@ -197,7 +197,7 @@
                 }
             };
         };
-        return {
+        var descr = {
             get: function() {
                 var bs = this._backingStore;
                 if (!bs) {
@@ -224,6 +224,7 @@
             enumerable: true,
             configurable: true
         };
+        Object.defineProperty(proto, propName, descr);
     }
 
     function wrapPropDescription(proto, property) {
