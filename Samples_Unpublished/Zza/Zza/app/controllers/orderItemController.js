@@ -117,13 +117,24 @@
 
             // distribute the options in each tab among 3 columns
             // indicate which tabs allow only one choice
+            // indicate which tabs have "count as 2" options
             tabs.forEach(function (t) {
+                setTabCostFlags(t);
                 t.oneChoice = t.type == 'crust'; // can only pick one crust
                 if (t.oneChoice) { ensureOneSelected(t); };
                 t.columnOptions = util.deal(t.options, 3);
             });
 
             return tabs;
+            
+            function setTabCostFlags(tab) {
+                var maxFactor = 0;
+                tab.options.forEach(function (o) {
+                    maxFactor = Math.max(maxFactor, o.productOption.factor);
+                });
+                tab.allFree = maxFactor === 0;
+                tab.someCostMore = maxFactor > 1;
+            }
             
             function ensureOneSelected(tab) {
                 // Only one choice allowed among options on the tab
@@ -146,14 +157,14 @@
                 return {
                     id: size.id,
                     name: size.name,
-                    price: isPremium ? size.premiumPrice : size.price,
+                    price: isPremium ? (size.premiumPrice ||size.price) : size.price,
                 };
             });
         }
         
         function addToCart() {
             if (isDraftOrder) {
-                //don't need remove if item is an entity (e.g, SQL version)
+                //don't need to remove if item is an entity (e.g, SQL version)
                 draftOrder.removeItem(orderItem); 
                 cartOrder.addItem(orderItem);
                 util.logger.info("Added item to cart");

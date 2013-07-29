@@ -34,10 +34,12 @@
 
             <tabset>
                 <tab data-ng-repeat="tab in tabVms" heading="{{tab.type | toTitle}}" active="tab.active" disabled="tab.disabled">
+                    <p data-ng-show="tab.allFree" class="optionMessage">These choices are all free! Enjoy!</p>
+                    <p data-ng-show="tab.someCostMore" class="optionMessage">Choices with an (*) after the name count as 2.</p> 
                     <div data-ng-switch="tab.oneChoice">
                         <div data-ng-switch-when="true"  data-ng-include="'app/views/orderItemOptionRadio.html'"></div>                         
                         <div data-ng-switch-when="false" data-ng-include="'app/views/orderItemOptionCheckbox.html'"></div>
-                    </div>
+                    </div>                      
                 </tab>
             </tabset>
             <p></p>

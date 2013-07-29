@@ -88,12 +88,11 @@
         }
         
         function registerOrderItem(metadataStore) {
-            metadataStore.registerEntityTypeCtor('OrderItem', OrderItem, initializer);
+            metadataStore.registerEntityTypeCtor('OrderItem', OrderItem);
 
             OrderItem.prototype.addNewOption = addNewOption;
             OrderItem.prototype.removeOption = removeOption;
             OrderItem.prototype.restoreOption = restoreOption;
-            OrderItem.prototype.calcPrice = calcPrice;
             
             function addNewOption(productOption) {
                 var orderItemOption = this.entityAspect.entityManager
@@ -112,34 +111,6 @@
             function restoreOption(option) {
                 if (option.entityAspect.entityState.isDeleted()) {
                     option.entityAspect.setUnchanged();
-                }
-            }
-            
-            function calcPrice() {
-                var size = this.productSize;
-                var product = this.product;
-                if (size && product) {
-                    var isPremium = product.isPremium && !!size.premiumPrice;
-                    var unitPrice = isPremium ? size.premiumPrice : size.price;
-                    this.unitPrice = unitPrice;
-                    this.totalPrice = this.quantity * unitPrice;
-                }
-            };
-            
-            function initializer(item) {
-                // Todo: Is it really necessary to recalc price on property changes
-                // of should it be called on demand (e.g., before save)?
-                item.entityAspect.propertyChanged.subscribe(function (args) {
-                    var pname = args.propertyName;
-                    if (pname == 'quantity' ||
-                        pname == 'productSizeId' ||
-                        pname === 'productId') {
-                        item.calcPrice();
-                    }                   
-                });
-                // calculate immediately if item has no unitPrice (i.e., is new)
-                if (item.unitPrice === 0) {
-                    item.calcPrice();
                 }
             }
         }
