@@ -29,6 +29,42 @@
         }
     });
 
+    test("export/import with nulls", function () {
+        var queryOptions = new QueryOptions({
+            mergeStrategy: MergeStrategy.OverwriteChanges,
+            fetchStrategy: FetchStrategy.FromServer
+        });
+        var em = newEm();
+        var pred = new breeze.Predicate("companyName", "!=" , null).and("city", "!=", null);
+        var q = EntityQuery.from("Customers").where(pred).take(2)
+            .using(MergeStrategy.OverwriteChanges);
+        var val = Date.now().toString();
+        stop();
+        var exported;
+        em.executeQuery(q).then(function (data) {
+            var custs = data.results;
+            custs[0].setProperty("companyName", null);
+            custs[1].setProperty("city", null);
+            exported = em.exportEntities();
+            var em2 = newEm();
+            em2.importEntities(exported);
+            cust0x = em2.findEntityByKey(custs[0].entityAspect.getKey());
+            ok(cust0x.getProperty("companyName") === null, "orig export companyName should be null");
+            cust1x = em2.findEntityByKey(custs[1].entityAspect.getKey());
+            ok(cust1x.getProperty("city") === null, "orig export city should be null");
+            cust0x.setProperty("companyName", "Foo");
+            cust1x.setProperty("city", "Foo");
+            cust0x.entityAspect.acceptChanges();
+            cust1x.entityAspect.acceptChanges();
+            em2.importEntities(exported);
+            ok(cust0x.getProperty("companyName") === null, "2nd import company should be null");
+            ok(cust1x.getProperty("city") === null, "2nd import city should be null");
+            
+        }).fail(testFns.handleFail).fin(start);
+
+
+    });
+
     test("test - relationship not resolved after import", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - expand not YET supported");

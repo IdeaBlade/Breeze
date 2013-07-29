@@ -2195,11 +2195,13 @@ var EntityManager = (function () {
     }
 
     function getPropertyFromClientRaw(rawEntity, dp) {
-        return rawEntity[dp.name];
+        var val = rawEntity[dp.name];
+        return val !== undefined ? val : dp.defaultValue;
     }
 
     function getPropertyFromServerRaw(rawEntity, dp) {
-        return rawEntity[dp.nameOnServer || dp.isUnmapped && dp.name];
+        var val = rawEntity[dp.nameOnServer || dp.isUnmapped && dp.name];
+        return val !== undefined ? val : dp.defaultValue;
     }
 
     function parseRawValue(dp, val) {

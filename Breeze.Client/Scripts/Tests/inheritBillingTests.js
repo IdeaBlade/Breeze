@@ -85,23 +85,97 @@
         ok(ets.length === ets2.length, "lengths should be the same");
     });
 
-    //test("export entities", function () {
-    //    var em = newEm();
+    //test("query BillingTPT - ES5", function () {
+    //    var em = newEmX();
 
-    //    var q = EntityQuery.from("BillingDetailTPTs").take(1)
-    //       .using(em);
+    //    var q = EntityQuery.from("BillingDetailTPTs")
+    //        .using(em);
     //    stop();
-    //    var entity;
+    //    var iopType = em.metadataStore.getEntityType("BillingDetailTPT");
     //    q.execute().then(function (data) {
     //        var r = data.results;
-    //        ok(r.length == 1, "should have found 1 result");
-    //        entity = data.results[0];
-    //        var q = EntityQuery.fromEntity(entity);
-    //        return q.execute();
-    //    }).then(function(data2) {
-    //        ok(data2.results[0] === e)
-        
-    //    }).fail(testfns.handleFail).fin(start);
+    //        ok(r.length > 0, "should have found some 'BillingDetailTPT'");
+    //        ok(r.every(function (f) {
+    //            return f.entityType.isSubtypeOf(iopType);
+    //        }));
+
+    //    }).fail(testFns.handleFail).fin(start);
     //});
+
+    //models.BillingDetailWithES5 = function () {
+
+    //    var ctor;
+    //    if (testFns.modelLibrary == "ko") {
+    //        ctor = function () {
+
+    //        };
+    //        createES5Props(ctor.prototype);
+
+
+    //    } else if (testFns.modelLibrary == "backbone") {
+    //        ctor = Backbone.Model.extend({
+    //            initialize: function (attr, options) {
+    //                createES5Props(this.attributes);
+    //            }
+    //        });
+
+
+    //    } else {
+    //        ctor = function () {
+
+    //        };
+    //        createES5Props(ctor.prototype);
+    //    }
+    //    return ctor;
+
+
+    //};
+
+    //function createES5Props(target) {
+    //    Object.defineProperty(target, "companyName", {
+    //        get: function () {
+    //            return this["_companyName"] || null;
+    //        },
+    //        set: function (value) {
+    //            this["_companyName"] = value.toUpperCase();
+    //        },
+    //        enumerable: true,
+    //        configurable: true
+    //    });
+    //    Object.defineProperty(target, "idAndName", {
+    //        get: function () {
+    //            return this.customerID + ":" + this._companyName || "";
+    //        },
+    //        enumerable: true,
+    //        configurable: true
+    //    });
+
+    //    Object.defineProperty(target, "miscData", {
+    //        get: function () {
+    //            return this["_miscData"] || "asdf";
+    //        },
+    //        set: function (value) {
+    //            this["_miscData"] = value;
+    //        },
+    //        enumerable: true,
+    //        configurable: true
+    //    });
+    //}
+
+
+    
+    //function makePropDescription(propName) {
+    //    return {
+    //        get: function () {
+    //            return this["_" + propName];
+    //        },
+    //        set: function (value) {
+    //            this["_" + propName] = value.toUpperCase();
+    //        },
+    //        enumerable: true,
+    //        configurable: true
+    //    };
+    //}
+    
 
 })(breezeTestFns);
