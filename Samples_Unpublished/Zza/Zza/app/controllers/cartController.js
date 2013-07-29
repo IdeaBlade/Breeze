@@ -3,34 +3,31 @@
 
     var ctrlName = 'cartController';
     var app = angular.module('app').controller(ctrlName,
-        ['$scope', 'dataservice', controller]);
+        ['$scope', 'dataservice', 'pricing', controller]);
     
-    function controller($scope, dataservice) {
+    function controller($scope, dataservice, pricing) {
         var cartOrder = dataservice.cartOrder;
         var draftOrder = dataservice.draftOrder;
+
         $scope.cartOrder = cartOrder;
-
-        $scope.removeItem = function (orderItem) {
-            draftOrder.addItem(orderItem);
-        };
-
-        $scope.itemTotal = itemTotal;
-        $scope.orderTotal = orderTotal;
-
-        function itemTotal(orderItem) {
-            // Todo: move totalling logic into the model
-            var toppingPrice = orderItem.productSize.toppingPrice;
-            var unitTotal = orderItem.unitPrice;
-            orderItem.orderItemOptions.forEach(function (option) {
-                option.price = toppingPrice * option.productOption.factor * option.quantity;
-                unitTotal += option.price;
-            });
-            return unitTotal * orderItem.quantity;
+        $scope.removeItem = removeItem;
+        $scope.calc = calc;
+        
+        calc();
+        
+        function calc() {
+            var haveItems = $scope.haveItems = cartOrder.orderItems.length;
+            if (haveItems){
+                pricing.calcOrderItemsTotal(cartOrder);
+                $scope.someCostMore = pricing.orderHasExtraCostOptions(cartOrder);
+            }
         }
-
-        function orderTotal() {
-            // Todo: move totalling logic into the model
-            return cartOrder.orderItems.reduce(function (p, c) {return p + c;}, 0);
+               
+        function removeItem(orderItem) {
+            //don't need to remove if item is an entity (e.g, SQL version)
+            cartOrder.removeItem(orderItem);
+            draftOrder.addItem(orderItem);
+            calc();
         }
     }
 

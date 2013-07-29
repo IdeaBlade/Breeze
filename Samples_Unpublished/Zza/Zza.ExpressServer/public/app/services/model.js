@@ -23,6 +23,7 @@
                 registerOrderItem(metadataStore);
                 registerOrderItemOption(metadataStore);
                 registerProduct(metadataStore);
+                registerProductOption(metadataStore);
             }
 
             //#region Customer
@@ -88,6 +89,7 @@
                 // create new item and add to existing order
                 function addNewItem(product) {
                     var item = orderItemType.createInstance();
+                    item.order = this;
                     this.orderItems.push(item);
                     item.product = product;
                     return item;
@@ -96,6 +98,7 @@
                 // attach existing item to order
                 function addItem(item) {
                     var items = this.orderItems;
+                    item.order = this;
                     if (items.indexOf(item) == -1){
                         items.push(item);
                     }
@@ -104,6 +107,7 @@
                 // remove existing item from order
                 function removeItem(item) {
                     var ix = this.orderItems.indexOf(item);
+                    item.order = null;
                     if (ix > -1){
                         this.orderItems.splice(ix, 1);
                     }
@@ -128,13 +132,15 @@
 
                 function addNewOption(productOption) {
                     var option = orderItemType.createInstance();
-                    this.orderItemOptions.push(option);
+                    option.orderItem = this;
                     option.productOption = productOption;
+                    this.orderItemOptions.push(option);
                     return option;
                  }
 
                 function addOption(option) {
                     var options = this.orderItemOptions;
+                    option.orderItem = this;
                     if (options.indexOf(option) == -1){
                         options.push(option);
                     }
@@ -142,6 +148,7 @@
 
                 function removeOption(option) {
                     var ix = this.orderItemOptions.indexOf(option);
+                    option.orderItem = null;
                     if (ix > -1){
                         this.orderItemOptions.splice(ix, 1);
                     }
@@ -237,7 +244,6 @@
                     }
                 });
             }
-
             //#endregion
 
             //#region Product
@@ -252,8 +258,24 @@
 
                 Object.defineProperty(Product.prototype, "productSizeIds", {
                     enumerable: true,
-                    get: function () { return this.sizeIds || []; },
-                    set: function () {/* do nothing */;}
+                    get: function () { return this.sizeIds || []; }
+                });
+            }
+            //#endregion
+
+            //#region ProductOption
+            function registerProductOption(metadataStore) {
+                metadataStore.registerEntityTypeCtor('ProductOption', ProductOption);
+
+                function ProductOption() { /* nothing inside */ }
+                Object.defineProperty(ProductOption.prototype, "isPizzaOption", {
+                    enumerable: true,
+                    get: function () { return this.productTypes.indexOf('pizza') > -1; }
+                });
+
+                Object.defineProperty(ProductOption.prototype, "isSaladOption", {
+                    enumerable: true,
+                    get: function () { return this.productTypes.indexOf('salad') > -1 }
                 });
             }
             //#endregion

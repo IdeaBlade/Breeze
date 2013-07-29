@@ -6,10 +6,10 @@
         ['$scope', '$routeParams', '$location', 'dataservice', 'util', controller]);
     
     function controller($scope, $routeParams, $location, dataservice, util) {
-        
+  
+        var productTag = $routeParams.product || "";
         var cartOrder = dataservice.cartOrder;
         var draftOrder = dataservice.draftOrder;
-        var tag = $routeParams.tag;
         var info = getOrderItemInfo();
         var orderItem = info.orderItem;
         
@@ -25,7 +25,7 @@
         var tabVms = createTabVms();
         var sizeVms = createSizeVms();
         
-        $scope.activeTag = tag;
+        $scope.activeProduct = productTag;
         $scope.isItemView = true;
         $scope.orderItem = orderItem;
         $scope.product = info.product;
@@ -41,14 +41,15 @@
         function getOrderItemInfo() {
             // id may be productId or orderItemId, depending upon route tag
             var id = +$routeParams.id; // convert to integer w/ '+'
+            var orderIdTag = $routeParams.orderId;
             var item, product, sizes;
 
-            if (tag == 'item') {
+            if (orderIdTag) {
                 // reached this page from an existing orderItem so id is the orderItemId
-                item = getSelectedItem(id);
+                item = getSelectedItem(orderIdTag, id);
                 if (item) {
                     product = item.product;
-                    tag = product.type;
+                    productTag = product.type;
                     sizes = dataservice.productSizes.byProduct(product);
                 }
             } else {
@@ -60,7 +61,7 @@
                 }
             }
             return {
-                goNext: function () { $location.path('/order/' + tag); },
+                goNext: function () { $location.path('/order/' + productTag); },
                 orderItem: item,
                 product: product,
                 sizes: sizes
@@ -68,8 +69,11 @@
         }            
         
         // Get the order item by the order item id.  Returns falsey if not found.
-        function getSelectedItem(id) {
-            var item = cartOrder.getSelectedItem(id) || draftOrder.getSelectedItem(id);
+        function getSelectedItem(orderIdTag, id) {
+            // Todo: in future, could be the orderId of any order
+            var item = orderIdTag == 'cart' ?
+                cartOrder.getSelectedItem(id) :
+                draftOrder.getSelectedItem(id);
             return item;
         }
         
@@ -113,13 +117,24 @@
 
             // distribute the options in each tab among 3 columns
             // indicate which tabs allow only one choice
+            // indicate which tabs have "count as 2" options
             tabs.forEach(function (t) {
+                setTabCostFlags(t);
                 t.oneChoice = t.type == 'crust'; // can only pick one crust
                 if (t.oneChoice) { ensureOneSelected(t); };
                 t.columnOptions = util.deal(t.options, 3);
             });
 
             return tabs;
+            
+            function setTabCostFlags(tab) {
+                var maxFactor = 0;
+                tab.options.forEach(function (o) {
+                    maxFactor = Math.max(maxFactor, o.productOption.factor);
+                });
+                tab.allFree = maxFactor === 0;
+                tab.someCostMore = maxFactor > 1;
+            }
             
             function ensureOneSelected(tab) {
                 // Only one choice allowed among options on the tab
@@ -142,14 +157,14 @@
                 return {
                     id: size.id,
                     name: size.name,
-                    price: isPremium ? size.premiumPrice : size.price,
+                    price: isPremium ? (size.premiumPrice ||size.price) : size.price,
                 };
             });
         }
         
         function addToCart() {
             if (isDraftOrder) {
-                //don't need remove if item is an entity (e.g, SQL version)
+                //don't need to remove if item is an entity (e.g, SQL version)
                 draftOrder.removeItem(orderItem); 
                 cartOrder.addItem(orderItem);
                 util.logger.info("Added item to cart");

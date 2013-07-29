@@ -1,10 +1,10 @@
 {
-    "name": "ExpressDemo",
-    "description": "first express app",
-    "version": "0.0.1",
+    "name": "Zza Mongo Express",
+    "description": "A demonstration of Breeze, MongoDb, Express, Angular, and Node.js (BMEAN)",
+    "version": "0.5.0",
     "private": true,
     "dependencies": {
         "express": "3.x",
-        "breeze-mongodb": ">0.0.1"
+        "breeze-mongodb": ">0.0.5"
     }
 }
