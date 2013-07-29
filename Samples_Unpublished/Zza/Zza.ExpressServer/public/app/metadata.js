@@ -832,22 +832,9 @@ var zza=zza||{};zza.metadata=
                     ]
                 },
                 {
-                    "name":"isPizzaOption",
-                    "dataType":"Boolean",
-                    "validators":[
-                        {
-                            "name":"bool"
-                        }
-                    ]
-                },
-                {
-                    "name":"isSaladOption",
-                    "dataType":"Boolean",
-                    "validators":[
-                        {
-                            "name":"bool"
-                        }
-                    ]
+                    "name":"productTypes",
+                    "dataType":"String",
+                    "isScalar":false
                 }
             ]
         }

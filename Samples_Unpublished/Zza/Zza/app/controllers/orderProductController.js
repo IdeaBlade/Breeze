@@ -8,15 +8,15 @@
     function controller($scope, $routeParams, routes, dataservice) {
         var route = getTaggedRoute();
         var tag = route.tag;
-        $scope.activeTag = tag;
+        $scope.activeProduct = tag;
         $scope.isItemView = false;
         $scope.products = dataservice.products.byTag(tag);
         $scope.view = route.templateUrl; // view is used in data-ng-include
 
-        // get the correct product route based on the route tag
+        // get the correct route based on the route product tag
         function getTaggedRoute() {            
             var i, len, pizza, item, result;
-            tag = ($routeParams.tag || '').toLowerCase();
+            tag = ($routeParams.product || '').toLowerCase();
             var source = routes.orderProductRoutes;
             for (i = 0, len = source.length; i < len; i++) {
                 item = source[i];

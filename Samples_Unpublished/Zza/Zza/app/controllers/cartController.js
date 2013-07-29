@@ -11,6 +11,8 @@
         $scope.cartOrder = cartOrder;
 
         $scope.removeItem = function (orderItem) {
+            //don't need remove if item is an entity (e.g, SQL version)
+            cartOrder.removeItem(orderItem);
             draftOrder.addItem(orderItem);
         };
 

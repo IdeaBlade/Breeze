@@ -10,8 +10,9 @@
         { name: 'Home', path: '/', templateUrl: viewBase + 'home.html' },//, controller: 'homeController' },
 
         { name: 'Order', path: '/order', templateUrl: viewBase + 'order.html', controller: 'orderProductController' },
-        { path: '/order/:tag', templateUrl: viewBase + 'order.html', controller: 'orderProductController' },
-        { path: '/order/:tag/:id', templateUrl: viewBase + 'order.html', controller: 'orderItemController' },
+        { path: '/order/:product', templateUrl: viewBase + 'order.html', controller: 'orderProductController' },
+        { path: '/order/:product/:id', templateUrl: viewBase + 'order.html', controller: 'orderItemController' },
+        { path: '/order/:orderId/item/:id', templateUrl: viewBase + 'order.html', controller: 'orderItemController' },
 
         { name: 'About', path: '/about', templateUrl: viewBase + 'about.html' },
         
