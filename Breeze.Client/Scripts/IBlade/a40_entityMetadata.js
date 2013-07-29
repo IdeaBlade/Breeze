@@ -1742,12 +1742,18 @@ var EntityType = (function () {
                 fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np) {
                     return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(fkProp.name) >= 0;
                 });
-                entityType.foreignKeyProperties.push(fkProp);
+                // entityType.foreignKeyProperties.push(fkProp);
+                addUniqueItem(entityType.foreignKeyProperties, fkProp);
             });
         }
         
         resolveRelated(np);
         return true;
+    }
+
+    function addUniqueItem(collection, item) {
+        var ix = collection.indexOf(item);
+        if (ix === -1) collection.push(item);
     }
 
     // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
@@ -1760,9 +1766,11 @@ var EntityType = (function () {
         var fkProps = fkNames.map(function (fkName) {
             return parentEntityType.getDataProperty(fkName);
         });
-        Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
+        var fkPropCollection = parentEntityType.foreignKeyProperties;
+        // Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
 
         fkProps.forEach(function (dp) {
+            addUniqueItem(fkPropCollection, dp);
             dp.relatedNavigationProperty = np;
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
