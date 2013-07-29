@@ -8,6 +8,11 @@
     padding-right:20px;
 }
 
+/* Add some air above the description */
+p.description {
+   margin-top: 10px; 
+}
+
 /* Narrow the spacing for the controls.  Bootstrap has margin-bottom: 20px */
 .form-horizontal .control-group {
     margin-bottom: 10px;
