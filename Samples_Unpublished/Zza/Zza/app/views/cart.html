@@ -1,4 +1,7 @@
-﻿<div class="container">
+﻿<div data-ng-if="!haveItems" class="container">
+    <h2>Your cart is empty</h2>
+</div>
+<div data-ng-if="haveItems" class="container">
     <h2>Your Order</h2>
     <div>
         <table class="table" >
@@ -8,7 +11,7 @@
                     <td><button class="btn" data-ng-click="removeItem(item)">Remove</button></td>
                     <td><a href="#/order/cart/item/{{item.id}}"><strong>{{item.product.name}}</strong></a></td>
                     <td>{{item.productSize.name}}</td>
-                    <td><input type="text" data-ng-model="item.quantity" data-ng-change="recalc()" class="input-mini" /></td>
+                    <td><input type="text" data-ng-model="item.quantity" data-ng-change="calc()" class="input-mini" /></td>
                     <td>{{item.unitPrice | currency}}</td>
                 </tr> 
                 <tr class="narrow" data-ng-repeat="option in item.orderItemOptions">

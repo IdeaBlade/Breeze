@@ -14,7 +14,7 @@
 
     function config(environment) {
         return {
-            version: '0.1',
+            version: '0.5.0',
             server: environment.server,
             serviceName: environment.serviceName,
             devServiceName: environment.devServiceName,
