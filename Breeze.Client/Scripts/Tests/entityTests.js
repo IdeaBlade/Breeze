@@ -144,7 +144,7 @@
         // 4/25/13 - sbelini - this test should not fail - it's just to ensure the third parameter is causing the error
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var Customer = testFns.models.CustomerWithES5Props();
-        var productType = em.metadataStore.getEntityType("Customer");
+        // var productType = em.metadataStore.getEntityType("Customer");
 
         em.metadataStore.registerEntityTypeCtor("Customer", Customer);
 

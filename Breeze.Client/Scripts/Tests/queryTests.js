@@ -26,6 +26,30 @@
         }
     });
 
+    test("take(0)", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers")
+            .take(0);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length === 0, "should be no records returned");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("take(0) with inlinecount", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers")
+            .take(0)
+            .inlineCount();
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length === 0, "should be no records returned");
+            ok(data.inlineCount > 0, "should have an inlinecount");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("check getEntityByKey", function () {
         var manager = newEm();
         var query = new breeze.EntityQuery()
@@ -66,16 +90,43 @@
     });
 
 
-    test("inlineCount null when ordering results by navigation property", function () {
+    test("inlineCount when ordering results by simple navigation path", function () {
         var em = newEm();
+        var pred = new Predicate("employeeID", ">", 1).and("employeeID", "<", 6);
         var query = new breeze.EntityQuery.from("Orders")
-        .where("employeeID", "equals", 1)
-        .orderBy("customer.companyName")
-        .inlineCount();
-
+        .where(pred)
+        .orderBy("customerID");
+        // .orderBy("customer.companyName")
         stop();
+        var totalCount;
         em.executeQuery(query).then(function (data) {
-            ok(data.inlineCount != null, "inlineCount should not be null");
+            totalCount = data.results.length;
+            ok(totalCount > 3, "totalCount should be > 3");
+            var q2 = query.inlineCount(true).take(3);
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            ok(data2.results.length === 3);
+            ok(data2.inlineCount === totalCount, "inlineCount should equal totalCount");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("inlineCount when ordering results by nested navigation path", function () {
+        var em = newEm();
+        var pred = new Predicate("employeeID", ">", 1).and("employeeID", "<", 6);
+        var query = new breeze.EntityQuery.from("Orders")
+        .where(pred)
+        // .orderBy("customerID");
+        .orderBy("customer.companyName")
+        stop();
+        var totalCount;
+        em.executeQuery(query).then(function (data) {
+            totalCount = data.results.length;
+            ok(totalCount > 3, "totalCount should be > 3");
+            var q2 = query.inlineCount(true).take(3);
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            ok(data2.results.length === 3);
+            ok(data2.inlineCount === totalCount, "inlineCount should equal totalCount");
         }).fail(testFns.handleFail).fin(start);
     });
 
