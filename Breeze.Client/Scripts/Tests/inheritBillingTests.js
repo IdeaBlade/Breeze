@@ -36,42 +36,36 @@
         }
     });
 
-
-    test("query BillingTPHs", function() {
+    function queryBillingBase(typeName) {
         var em = newEmX();
 
-        var q = EntityQuery.from("BillingDetailTPHs")
+        var q = EntityQuery.from(typeName + 's')
             .using(em);
         stop();
-        var iopType = em.metadataStore.getEntityType("BillingDetailTPH");
-        q.execute().then(function(data) {
-            var r = data.results;
-            ok(r.length > 0, "should have found some 'BillingDetailTPH'");
-            ok(r.every(function(f) {
-                return f.entityType.isSubtypeOf(iopType);
-            }));
-
-        }).fail(function(e) {
-            ok(false, e.message);
-        }).fin(start);
-    });
-    
-    test("query BillingTPT", function () {
-        var em = newEmX();
-
-        var q = EntityQuery.from("BillingDetailTPTs")
-            .using(em);
-        stop();
-        var iopType = em.metadataStore.getEntityType("BillingDetailTPT");
+        var iopType = em.metadataStore.getEntityType(typeName);
         q.execute().then(function (data) {
             var r = data.results;
-            ok(r.length > 0, "should have found some 'BillingDetailTPT'");
+            ok(r.length > 0, "should have found some " + typeName);
             ok(r.every(function (f) {
                 return f.entityType.isSubtypeOf(iopType);
             }));
 
-        }).fail(testFns.handleFail).fin(start);
+        }).fail(function (e) {
+            ok(false, e.message);
+        }).fin(start);
+
+    }
+
+    test("query BillingDetailTPH", function () {
+        queryBillingBase("BillingDetailTPH");
     });
+    test("query BillingDetailTPT", function () {
+        queryBillingBase("BillingDetailTPT");
+    });
+    test("query BillingDetailTPC", function () {
+        queryBillingBase("BillingDetailTPC");
+    });
+
 
     test("export metadata", function () {
         var em = newEm();
@@ -83,6 +77,63 @@
         em2.metadataStore.importMetadata(exportedMs);
         var ets2 = em2.metadataStore.getEntityTypes();
         ok(ets.length === ets2.length, "lengths should be the same");
+    });
+
+
+    function queryBillingBaseWithES5(typeName) {
+        var em = newEmX();
+        em.metadataStore.registerEntityTypeCtor(typeName, models.BillingDetailWithES5());
+
+        var q = EntityQuery.from(typeName + 's')
+            .using(em);
+        stop();
+        var iopType = em.metadataStore.getEntityType(typeName);
+
+        q.execute().then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should have found some " + typeName);
+            ok(r.every(function (f) {
+                return f.entityType.isSubtypeOf(iopType);
+            }), "every item is subtype");
+            ok(r.every(function (f) {
+                var miscData = f.getProperty("miscData");
+                return miscData === "asdf";
+            }), "every item has miscData == asdf");
+            ok(r.every(function (f) {
+                var owner = f.getProperty("owner");
+                return owner.length > 1 && owner.toUpperCase() === owner;
+            }), "every item has uppercase owner property");
+            ok(r.every(function (f) {
+                var ido = f.getProperty("idAndOwner");
+                var id = f.getProperty("id");
+                var owner = f.getProperty("owner");
+                return ido.length > 1 && ido == (id + ':' + owner);
+            }), "every item has idAndOwner property == id:owner");
+
+        }).fail(function (e) {
+            ok(false, e.message);
+        }).fin(start);
+    }
+
+    test("query BillingDetailTPH - ES5", function () {
+        queryBillingBaseWithES5("BillingDetailTPH");
+    });
+    test("query BillingDetailTPT - ES5", function () {
+        queryBillingBaseWithES5("BillingDetailTPT");
+    });
+    test("query BillingDetailTPC - ES5", function () {
+        queryBillingBaseWithES5("BillingDetailTPC");
+    });
+
+
+    test("query BankAccountTPH - ES5", function () {
+        queryBillingBaseWithES5("BankAccountTPH");
+    });
+    test("query BankAccountTPT - ES5", function () {
+        queryBillingBaseWithES5("BankAccountTPT");
+    });
+    test("query BankAccountTPC - ES5", function () {
+        queryBillingBaseWithES5("BankAccountTPC");
     });
 
     //test("query BillingTPT - ES5", function () {
@@ -102,80 +153,63 @@
     //    }).fail(testFns.handleFail).fin(start);
     //});
 
-    //models.BillingDetailWithES5 = function () {
+    var models = {};
+    models.BillingDetailWithES5 = function () {
 
-    //    var ctor;
-    //    if (testFns.modelLibrary == "ko") {
-    //        ctor = function () {
+        var ctor;
+        if (testFns.modelLibrary == "ko") {
+            ctor = function () {
 
-    //        };
-    //        createES5Props(ctor.prototype);
+            };
+            createBillingDetailES5Props(ctor.prototype);
 
+        } else if (testFns.modelLibrary == "backbone") {
+            ctor = Backbone.Model.extend({
+                initialize: function (attr, options) {
+                    createBillingDetailES5Props(this.attributes);
+                }
+            });
 
-    //    } else if (testFns.modelLibrary == "backbone") {
-    //        ctor = Backbone.Model.extend({
-    //            initialize: function (attr, options) {
-    //                createES5Props(this.attributes);
-    //            }
-    //        });
+        } else {
+            ctor = function () {
 
+            };
+            createBillingDetailES5Props(ctor.prototype);
+        }
+        return ctor;
 
-    //    } else {
-    //        ctor = function () {
+    };
 
-    //        };
-    //        createES5Props(ctor.prototype);
-    //    }
-    //    return ctor;
+    function createBillingDetailES5Props(target) {
+        Object.defineProperty(target, "owner", {
+            get: function () {
+                return this["_owner"] || null;
+            },
+            set: function (value) {
+                this["_owner"] = value.toUpperCase();
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(target, "idAndOwner", {
+            get: function () {
+                return this.id + ":" + this.owner || "";
+            },
+            enumerable: true,
+            configurable: true
+        });
 
+        Object.defineProperty(target, "miscData", {
+            get: function () {
+                return this["_miscData"] || "asdf";
+            },
+            set: function (value) {
+                this["_miscData"] = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+    }
 
-    //};
-
-    //function createES5Props(target) {
-    //    Object.defineProperty(target, "companyName", {
-    //        get: function () {
-    //            return this["_companyName"] || null;
-    //        },
-    //        set: function (value) {
-    //            this["_companyName"] = value.toUpperCase();
-    //        },
-    //        enumerable: true,
-    //        configurable: true
-    //    });
-    //    Object.defineProperty(target, "idAndName", {
-    //        get: function () {
-    //            return this.customerID + ":" + this._companyName || "";
-    //        },
-    //        enumerable: true,
-    //        configurable: true
-    //    });
-
-    //    Object.defineProperty(target, "miscData", {
-    //        get: function () {
-    //            return this["_miscData"] || "asdf";
-    //        },
-    //        set: function (value) {
-    //            this["_miscData"] = value;
-    //        },
-    //        enumerable: true,
-    //        configurable: true
-    //    });
-    //}
-
-
-    
-    //function makePropDescription(propName) {
-    //    return {
-    //        get: function () {
-    //            return this["_" + propName];
-    //        },
-    //        set: function (value) {
-    //            this["_" + propName] = value.toUpperCase();
-    //        },
-    //        enumerable: true,
-    //        configurable: true
-    //    };
-    //}
-    
 
 })(breezeTestFns);
