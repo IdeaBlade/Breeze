@@ -26,6 +26,30 @@
         }
     });
 
+    test("take(0)", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers")
+            .take(0);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length === 0, "should be no records returned");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("take(0) with inlinecount", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers")
+            .take(0)
+            .inlineCount();
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length === 0, "should be no records returned");
+            ok(data.inlineCount > 0, "should have an inlinecount");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("check getEntityByKey", function () {
         var manager = newEm();
         var query = new breeze.EntityQuery()
