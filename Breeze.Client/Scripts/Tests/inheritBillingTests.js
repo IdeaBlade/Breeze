@@ -15,6 +15,7 @@
     var QueryOptions = breeze.QueryOptions;
     var FetchStrategy = breeze.FetchStrategy;
     var MergeStrategy = breeze.MergeStrategy;
+    var EntityState = breeze.EntityState;
 
     var altServiceName = "breeze/Inheritance";
 
@@ -136,22 +137,71 @@
         queryBillingBaseWithES5("BankAccountTPC");
     });
 
-    //test("query BillingTPT - ES5", function () {
-    //    var em = newEmX();
 
-    //    var q = EntityQuery.from("BillingDetailTPTs")
-    //        .using(em);
-    //    stop();
-    //    var iopType = em.metadataStore.getEntityType("BillingDetailTPT");
-    //    q.execute().then(function (data) {
-    //        var r = data.results;
-    //        ok(r.length > 0, "should have found some 'BillingDetailTPT'");
-    //        ok(r.every(function (f) {
-    //            return f.entityType.isSubtypeOf(iopType);
-    //        }));
+    function createBillingDetailWithES5 (typeName, baseTypeName, data) {
+        var em = newEmX();
+        em.metadataStore.registerEntityTypeCtor(baseTypeName, models.BillingDetailWithES5());
+        var baseType = em.metadataStore.getEntityType(baseTypeName);
 
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
+        var x = em.createEntity(typeName, data);
+        ok(x.entityAspect.entityState === EntityState.Added);
+
+        ok(x.entityType.isSubtypeOf(baseType), "is subtype of " + baseTypeName);
+
+        var number = x.getProperty("number");
+        ok(number === data.number);
+
+        var miscData = x.getProperty("miscData");
+        ok(miscData === "asdf", "miscData === asdf");
+
+        var owner = x.getProperty("owner");
+        ok(owner.length > 1, "has owner property");
+        ok(owner === data.owner.toUpperCase(), "owner property is uppercase");
+
+        var idAndOwner = x.getProperty("idAndOwner");
+        ok(idAndOwner.length > 1, "has idAndOwner property");
+        var id = x.getProperty("id");
+        var owner = x.getProperty("owner");
+        ok(idAndOwner == (id + ':' + owner), "idAndOwner property == id:owner");
+    }
+
+    var billingDetailData = {
+        id: 456,
+        createdAt: new Date(),
+        owner: "Richie Rich",
+        number: "888-888-8"
+    };
+
+    var bankAccountData = {
+        id: 789,
+        createdAt: new Date(),
+        owner: "Scrooge McDuck",
+        number: "999-999-9",
+        bankName: "Bank of Duckburg",
+        swift: "RICHDUCK"
+    };
+
+    test("create BillingDetailTPH - ES5", function () {
+        createBillingDetailWithES5("BillingDetailTPH", "BillingDetailTPH", billingDetailData);
+    });
+    test("create BillingDetailTPT - ES5", function () {
+        createBillingDetailWithES5("BillingDetailTPT", "BillingDetailTPT", billingDetailData);
+    });
+    test("create BillingDetailTPC - ES5", function () {
+        createBillingDetailWithES5("BillingDetailTPC", "BillingDetailTPC", billingDetailData);
+    });
+
+
+    test("create BankAccountTPH - ES5", function () {
+        createBillingDetailWithES5("BankAccountTPH", "BillingDetailTPH", bankAccountData);
+    });
+    test("create BankAccountTPT - ES5", function () {
+        createBillingDetailWithES5("BankAccountTPT", "BillingDetailTPT", bankAccountData);
+    });
+    test("create BankAccountTPC - ES5", function () {
+        createBillingDetailWithES5("BankAccountTPC", "BillingDetailTPC", bankAccountData);
+    });
+
 
     var models = {};
     models.BillingDetailWithES5 = function () {
