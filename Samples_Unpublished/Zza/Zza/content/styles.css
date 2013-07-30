@@ -2,11 +2,22 @@
   display: none;
 }
 
-/* put some horizontal space around the top nav and footer */
+/* put some horizontal space around the top nav and footer, & make font bigger */
 .navbar .navbar-inner {
     padding-left:20px;
     padding-right:20px;
+    font-size:20px;
 }
+
+/* change nav bar inactive text color */
+.navbar-inverse .nav li a {
+    color:#bbbbbb;
+}
+
+.navbar-inverse .brand {
+    color:#cc0000;
+}
+
 
 /* Add some air above the description */
 p.description {
