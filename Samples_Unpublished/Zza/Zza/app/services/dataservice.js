@@ -38,9 +38,14 @@
             }
             initFailed = false;
 
-            return initPromise = fetchLookups()
-                .then(success).fail(failure).to$q();
-                // .to$q converts Q.js promise to $q promise
+            initPromise = fetchLookups()
+                .then(success).fail(failure)
+
+            initPromise = Q.timeout(initPromise, config.serverTimeoutMs)
+                .fail(initialzeServerTimeout)
+                .to$q(); // converts Q.js promise to $q promise
+
+            return initPromise;
 
             function success() {
                 initializeSynchronously();
@@ -52,8 +57,17 @@
                 logger.error(error.message, "Data initialization failed");
                 throw error; // so downstream fail handlers hear it too
             }
+
+            function initialzeServerTimeout(error){
+                if ( /timed out/i.test(error.message)){
+                    error.message = 'Data Server ' +error.message+'; is your data server running?';
+                    failure(error);
+                }
+                throw error;
+            }
         }
-        
+
+
         function fetchLookups() {
             // if OrderStatuses in cache -> assume all lookups in cache
             if (manager.metadataStore.hasMetadataFor(config.serviceName) &&
