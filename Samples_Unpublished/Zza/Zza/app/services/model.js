@@ -1,18 +1,19 @@
 ﻿(function() {
     'use strict';
+
+    angular.module('app').factory('model', model);
     
-    angular.module('app').factory('model',
-    ['config', function (config) {
+    function model() {
         
-        var imageBase = config.imageBasePath;
-        var model = {
-            configureMetadataStore: configureMetadataStore,
-            Customer: Customer,
-            Order: Order,
-            OrderItem: OrderItem
+        var _model = {
+            configureMetadataStore: configureMetadataStore
+            // registration methods add
+            //  Customer,
+            //  Order,
+            //  OrderItem
         };
 
-        return model;
+        return _model;
     
         function configureMetadataStore(metadataStore) {
             registerCustomer(metadataStore);
@@ -22,26 +23,22 @@
             registerProduct(metadataStore);
         }
         
-        //#region Customer
-        function Customer() {/* nothing inside */ }
-        
         function registerCustomer(metadataStore) {
             metadataStore.registerEntityTypeCtor('Customer', Customer);
+            _model.Customer = Customer;
             
-            // extend Customer
+            function Customer() {/* empty ctor */ }
             Object.defineProperty(Customer.prototype, "fullName", {
                 enumerable: true,
                 get: function () { return this.firstName + " " + this.lastName; }
             });
         }
-        //#endregion
-
-        //#region Order
-        function Order() {/* nothing inside */ }
 
         function registerOrder(metadataStore) {
             metadataStore.registerEntityTypeCtor('Order', Order);
-
+            _model.Order = Order;
+            
+            function Order() {/* empty ctor */ }
             Order.create = create;
             Order.prototype.getSelectedItem = getSelectedItem;
             Order.prototype.addNewItem = addNewItem;
@@ -80,16 +77,14 @@
                 item.order = null;
             }
         }      
-        //#endregion
 
-        //#region OrderItem
-        function OrderItem() {
-            this.quantity = 1;
-        }
-        
         function registerOrderItem(metadataStore) {
             metadataStore.registerEntityTypeCtor('OrderItem', OrderItem);
-
+            _model.orderItem = OrderItem;
+            
+            function OrderItem() {
+                this.quantity = 1;
+            }
             OrderItem.prototype.addNewOption = addNewOption;
             OrderItem.prototype.removeOption = removeOption;
             OrderItem.prototype.restoreOption = restoreOption;
@@ -113,20 +108,17 @@
                     option.entityAspect.setUnchanged();
                 }
             }
-        }
-        //#endregion
-
-        //#region OrderItemOption       
-        function OrderItemOption() {
-            this.quantity = 1;
-        }
+        }     
 
         function registerOrderItemOption(metadataStore) {
             metadataStore.registerEntityTypeCtor('OrderItemOption', OrderItemOption);
+            
+            function OrderItemOption() {
+                this.quantity = 1;
+            }
+
         }
-        //#endregion 
         
-        //#region Product        
         function registerProduct(metadataStore) {
             metadataStore.registerEntityTypeCtor('Product', Product);
 
@@ -152,8 +144,8 @@
                 set: function (value) {this.__productSizeIds = value;}
             });
         }
-        //#endregion      
+     
    
-    }]);
+    }
     
 })();
