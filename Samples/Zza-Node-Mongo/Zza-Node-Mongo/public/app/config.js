@@ -12,13 +12,17 @@
     
     app.factory('config', ['environment', config]);
 
+    var productImageBasePath = 'app/images/products/';
+    var productUnknownImage = productImageBasePath + 'unknown.jpg';
+    
     function config(environment) {
         return {
             version: '0.5.0',
             server: environment.server,
             serviceName: environment.serviceName,
             devServiceName: environment.devServiceName,
-            imageBase: 'app/images/products/',
+            productImageBasePath: productImageBasePath,
+            productUnknownImage: productUnknownImage,
             userSessionId: breeze.core.getUuid(),
             serverTimeoutMs: 5000 // 5 seconds should be long enough
         };
