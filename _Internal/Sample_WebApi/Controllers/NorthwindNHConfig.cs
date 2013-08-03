@@ -4,12 +4,12 @@ using NHibernate.Cfg;
 
 namespace Sample_WebApi.Controllers
 {
-    public static class NHConfig
+    public static class NorthwindNHConfig
     {
         private static Configuration _configuration;
         private static ISessionFactory _sessionFactory;
 
-        static NHConfig()
+        static NorthwindNHConfig()
         {
             var modelAssembly = typeof(Customer).Assembly;
 
