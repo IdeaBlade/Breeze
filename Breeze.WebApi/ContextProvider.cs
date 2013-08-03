@@ -3,14 +3,13 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Transactions;
 using System.Xml.Linq;
-using System.Data;
-using System.Data.Common;
 
 namespace Breeze.WebApi {
   // Base for EFContextProvider
@@ -72,8 +71,7 @@ namespace Breeze.WebApi {
           }
         } else if (transactionSettings.TransactionType == TransactionType.DbTransaction) {
           this.OpenDbConnection();
-          var conn = this.GetDbConnection();
-          using (IDbTransaction tran = conn.BeginTransaction(transactionSettings.IsolationLevelAs)) {
+          using (IDbTransaction tran = BeginTransaction(transactionSettings.IsolationLevelAs)) {
             try {
               OpenAndSave(SaveWorkState);
               tran.Commit();
@@ -132,6 +130,12 @@ namespace Breeze.WebApi {
     /// Closes the DbConnection used by the ContextProvider's implementation.
     /// </summary>
     protected abstract void CloseDbConnection();
+
+    protected virtual IDbTransaction BeginTransaction(System.Data.IsolationLevel isolationLevel) {
+      var conn = GetDbConnection();
+      if (conn == null) return null;
+      return conn.BeginTransaction(isolationLevel);
+    }
 
     protected abstract String BuildJsonMetadata();
 

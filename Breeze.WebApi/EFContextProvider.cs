@@ -87,6 +87,12 @@ namespace Breeze.WebApi {
       }
     }
 
+    /// <summary>Gets the current transaction, if one is in progress.</summary>
+    public EntityTransaction EntityTransaction {
+      get; private set;
+    }
+
+
     /// <summary>Gets the EntityConnection from the ObjectContext.</summary>
     public override IDbConnection GetDbConnection() {
       return ObjectContext.Connection;
@@ -112,6 +118,15 @@ namespace Breeze.WebApi {
         ec.Dispose();
       }
     }
+
+    // Override BeginTransaction so we can keep the current transaction in a property
+    protected override IDbTransaction BeginTransaction(System.Data.IsolationLevel isolationLevel) {
+      var conn = GetDbConnection();
+      if (conn == null) return null;
+      EntityTransaction = (EntityTransaction) conn.BeginTransaction(isolationLevel);
+      return EntityTransaction;
+    }
+
 
     #region Base implementation overrides
 

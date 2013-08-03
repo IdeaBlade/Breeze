@@ -85,18 +85,12 @@ namespace Sample_WebApi.Controllers {
 #if (CODEFIRST_PROVIDER || DATABASEFIRST_NEW || DATABASEFIRST_OLD)
     /* hack to set the current DbTransaction onto the DbCommand.  Transaction comes from EF private properties. */
     public void SetCurrentTransaction(System.Data.Common.DbCommand command) {
-        // get private member via reflection
-        var bindingFlags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Instance;
-        var ec = EntityConnection;
-        if (ec == null) return;
-        var ectype = ec.GetType();
-        var ctProp = ectype.GetProperty("CurrentTransaction", bindingFlags);
-        var entityTransaction = ctProp.GetValue(ec, null) as System.Data.EntityClient.EntityTransaction;
-
-        if (entityTransaction != null) {
-          var etype = entityTransaction.GetType();
+        if (EntityTransaction != null) {
+          // get private member via reflection
+          var bindingFlags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Instance;
+          var etype = EntityTransaction.GetType();
           var stProp = etype.GetProperty("StoreTransaction", bindingFlags);
-          var transaction = stProp.GetValue(entityTransaction, null);
+          var transaction = stProp.GetValue(EntityTransaction, null);
           var dbTransaction = transaction as System.Data.Common.DbTransaction;
           if (dbTransaction != null) {
               command.Transaction = dbTransaction;
@@ -107,25 +101,27 @@ namespace Sample_WebApi.Controllers {
 
     // Test performing a raw db insert to NorthwindIB using the base connection
     private int AddComment(string comment, byte seqnum) {
-#if NHIBERNATE
-      var conn = base.GetDbConnection();
-#else
-      var conn = StoreConnection;
-#endif
-      var cmd = conn.CreateCommand();
 #if ORACLE_EDMX
       var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-      cmd.CommandText = String.Format("insert into COMMENT_ (CreatedOn, Comment1, SeqNum) values (TO_DATE('{0}','YYYY-MM-DD HH24:MI:SS'), '{1}', {2})",
+      var text = String.Format("insert into COMMENT_ (CreatedOn, Comment1, SeqNum) values (TO_DATE('{0}','YYYY-MM-DD HH24:MI:SS'), '{1}', {2})",
           time, comment, seqnum);
 #else
-#if !NHIBERNATE
-      SetCurrentTransaction(cmd);
-#endif
       var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-      cmd.CommandText = String.Format("insert into Comment (CreatedOn, Comment1, SeqNum) values ('{0}', '{1}', {2})",
+      var text = String.Format("insert into Comment (CreatedOn, Comment1, SeqNum) values ('{0}', '{1}', {2})",
           time, comment, seqnum);
 #endif
+#if NHIBERNATE
+      var cmd = Session.CreateSQLQuery(text);
+      var result = cmd.ExecuteUpdate();
+#else
+      var conn = StoreConnection;
+      var cmd = conn.CreateCommand();
+#if !ORACLE_EDMX
+      SetCurrentTransaction(cmd);
+#endif
+      cmd.CommandText = text;
       var result = cmd.ExecuteNonQuery();
+#endif
       return result;
     }
 
@@ -158,7 +154,7 @@ namespace Sample_WebApi.Controllers {
         ? new NorthwindIBContext_EDMX_Oracle(EntityConnection)
         : new NorthwindIBContext_EDMX_Oracle();
 #elif NHIBERNATE
-        ? new NorthwindNHContext(GetDbConnection())
+        ? new NorthwindNHContext(this)
         : new NorthwindNHContext();
 #endif
 

@@ -7,6 +7,8 @@ namespace Sample_WebApi.Controllers
     {
         public NorthwindNHContext() : base(NHConfig.OpenSession(), NHConfig.Configuration) { }
 
+        public NorthwindNHContext(NHContext sourceContext) : base(sourceContext) { }
+
         public NorthwindNHContext Context
         {
             get { return this; }

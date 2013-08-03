@@ -88,6 +88,7 @@
     <Compile Include="NhQueryableInclude.cs" />
     <Compile Include="NHQueryHelper.cs" />
     <Compile Include="NHRelationshipFixer.cs" />
+    <Compile Include="NHTransactionWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
