@@ -4,7 +4,7 @@
     angular.module('app').factory('model',
     ['config', function (config) {
         
-        var imageBase = config.imageBase;
+        var imageBase = config.imageBasePath;
         var model = {
             configureMetadataStore: configureMetadataStore,
             Customer: Customer,
@@ -131,12 +131,7 @@
             metadataStore.registerEntityTypeCtor('Product', Product);
 
             function Product() { /* nothing inside */ }
-            
-            Object.defineProperty(Product.prototype, "img", {
-                enumerable: true,
-                get: function () { return imageBase + this.image; }
-            });
-            
+
             Object.defineProperty(Product.prototype, "productSizeIds", {
                 enumerable: true,
                 get: function () {

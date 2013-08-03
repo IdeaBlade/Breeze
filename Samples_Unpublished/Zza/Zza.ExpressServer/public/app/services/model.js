@@ -251,10 +251,6 @@
                 metadataStore.registerEntityTypeCtor('Product', Product);
 
                 function Product() { /* nothing inside */ }
-                Object.defineProperty(Product.prototype, "img", {
-                    enumerable: true,
-                    get: function () { return imageBase + this.image; }
-                });
 
                 Object.defineProperty(Product.prototype, "productSizeIds", {
                     enumerable: true,
