@@ -1395,7 +1395,7 @@ var EntityType = (function () {
         __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
 
         if (!proto._alreadyWrappedProps) {
-            proto.alreadyWrappedProps = {};
+            proto._alreadyWrappedProps = {};
         }
         this._ctor = aCtor;
     };
