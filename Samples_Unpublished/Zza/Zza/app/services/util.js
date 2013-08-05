@@ -6,7 +6,7 @@
     function util(config, logger, $q, $timeout, $rootScope) {
 
         extendString();
-        extendQ();
+        breeze.core.extendQ($rootScope, $q);
         
         var service = {
             // bundle these so util clients don't have to get them
@@ -16,7 +16,6 @@
             logger: logger,
   
             // actual utilities
-            $apply: $apply,
             $broadcast: $broadcast,
             //to$q: to$q,
             
@@ -38,70 +37,7 @@
         
         function $broadcast() {
             return $rootScope.$broadcast.apply($rootScope, arguments);
-        }
-        
-        /*********************************************************
-        * @method $apply {Void} easy access to $rootScope.$apply
-        * @param [func]{function} optional niladic function to call
-        *********************************************************/
-        function $apply() {
-            if ($rootScope.$$phase) {
-                // from http://docs.angularjs.org/api/ng.$rootScope.Scope
-                if (arguments[0]) {
-                    try {
-                        $rootScope.$eval(arguments[0]);
-                    } catch(e) {
-                        logger.error(e);
-                    }
-                }
-            } else {
-                $rootScope.$apply.apply($rootScope, arguments);
-            }           
-        }       
-
-        /*********************************************************
-        * @method to$q {Promise} Convert a Q.js promise into an angular $q
-        * and optionally add a $q.then(sucess, fail) to the returned $q promise.
-        * @param promiseQ {Promise} the Q.js promise to convert
-        * The Q promise must return some value when they succeed or
-        * rethrow the error if they fail. Else this method logs an error.
-        * @param [success] {function} optional success callback for the $q.then()
-        * @param [fail] {function} optional fail callback for the $q.then()
-        *********************************************************/
-        function to$q(qPromise, success, fail) {
-            var d = $q.defer();
-            qPromise
-                .then(function (data) {
-                    if (data === undefined) {
-                        logger.logError("Programming error: no data. " +
-                        "Perhaps success callback didn't return a value or " +
-                            "fail callback didn't re-throw error");
-                        // If an error is caught and not rethrown in an earlier promise chain
-                        // will arrive here with data === undefined. 
-                        // Neglecting to re-throw is a common, accidental omission.
-                        // To be safe, have every success callback return something
-                        // and trap here if data is ever undefined
-                    }
-                    d.resolve(data);
-                    $apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
-                })
-                .fail(function (error) {
-                   d.reject(error);
-                   $apply();// see https://groups.google.com/forum/#!topic/angular/LQoBCQ-V_tM
-               });
-            if (success || fail) {
-                d.promise = d.promise.then(success, fail);
-            }
-            return d.promise;
-        }
-
-        // monkey patch this method into Q.js' promise prototype
-        function extendQ() {
-            var promise = Q.defer().promise;
-            var fn = Object.getPrototypeOf(promise);
-            if (fn.to$q) return; // already extended
-            fn.to$q = function (success, fail) { return to$q(this, success, fail); };
-        }
+        }      
         
         /*********************************************************
         * Generate a new GuidCOMB Id (sequential for MS SQL Server)

@@ -226,6 +226,12 @@
     <Content Include="Scripts\breeze.min.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </Content>
+    <Content Include="Scripts\breeze.directives.validation.js">
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </Content>
+    <Content Include="Scripts\breeze.to%24q.js" >
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </Content>
     <Content Include="Scripts\breeze.savequeuing.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </Content>
