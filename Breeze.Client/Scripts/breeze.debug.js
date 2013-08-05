@@ -6965,26 +6965,30 @@ var EntityType = (function () {
 
     // May make public later.
     proto._setCtor = function (aCtor, interceptor) {
-        var instance = new aCtor();
+
         var proto = aCtor.prototype;
-            
+
+        if (!proto._alreadyWrappedProps) {
+            var instance = new aCtor();
+            calcUnmappedProperties(this, instance);
+        } 
+
         if (this._$typeName === "EntityType") {
             // insure that all of the properties are on the 'template' instance before watching the class.
-            calcUnmappedProperties(this, instance);
             proto.entityType = this;
         } else {
-            calcUnmappedProperties(this, instance);
             proto.complexType = this;
         }
 
-        if (interceptor) {
-            proto._$interceptor = interceptor;
-        } else {
-            proto._$interceptor = defaultPropertyInterceptor;
-        }
+        // defaultPropertyInterceptor is a 'global' (but internal to breeze) function;
+        proto._$interceptor = interceptor || defaultPropertyInterceptor;
+
 
         __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
 
+        if (!proto._alreadyWrappedProps) {
+            proto.alreadyWrappedProps = {};
+        }
         this._ctor = aCtor;
     };
 
@@ -14564,6 +14568,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             if (p === "_$typeName") continue;
             if (p === "_pendingSets") continue;
             if (p === "_backingStore") continue;
+            if (p === "_alreadyWrappedProps") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);
@@ -14686,19 +14691,23 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     // This method is called during Metadata initialization to correct "wrap" properties.
     function movePropDefsToProto(proto) {
-        if (proto._isWrapped) return;
+        var alreadyWrapped = proto._alreadyWrappedProps || {};
         var stype = proto.entityType || proto.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
+            // we only want to wrap props that haven't already been wrapped
+            if (alreadyWrapped[propName]) return;
+                
             // If property is already defined on the prototype then wrap it in another propertyDescriptor.
             // otherwise create a propDescriptor for it. 
             if (propName in proto) {
-                wrapPropDescription(proto, prop);
+               wrapPropDescription(proto, prop);
             } else {
-                makePropDescription(proto, prop);
+               makePropDescription(proto, prop);
             }
+            alreadyWrapped[propName] = true;
         });
-        proto._isWrapped = true;
+        proto._alreadyWrappedProps = alreadyWrapped;
     }
 
     // This method is called when an instance is first created via materialization or createEntity.

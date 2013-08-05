@@ -83,18 +83,20 @@
 
     function queryBillingBaseWithES5(typeName) {
         var em = newEmX();
-        em.metadataStore.registerEntityTypeCtor(typeName, models.BillingDetailWithES5());
+        
+        var baseType = registerBaseBillingDetailWithES5(em, typeName);
+        
 
         var q = EntityQuery.from(typeName + 's')
             .using(em);
         stop();
-        var iopType = em.metadataStore.getEntityType(typeName);
+        
 
         q.execute().then(function (data) {
             var r = data.results;
             ok(r.length > 0, "should have found some " + typeName);
             ok(r.every(function (f) {
-                return f.entityType.isSubtypeOf(iopType);
+                return f.entityType.isSubtypeOf(baseType);
             }), "every item is subtype");
             ok(r.every(function (f) {
                 var miscData = f.getProperty("miscData");
@@ -138,10 +140,12 @@
     });
 
 
-    function createBillingDetailWithES5 (typeName, baseTypeName, data) {
+    function createBillingDetailWithES5(typeName, baseTypeName, data) {
+        
         var em = newEmX();
-        em.metadataStore.registerEntityTypeCtor(baseTypeName, models.BillingDetailWithES5());
-        var baseType = em.metadataStore.getEntityType(baseTypeName);
+                
+        var baseType = registerBaseBillingDetailWithES5(em, baseTypeName);
+        
 
         var x = em.createEntity(typeName, data);
         ok(x.entityAspect.entityState === EntityState.Added);
@@ -163,6 +167,26 @@
         var id = x.getProperty("id");
         var owner = x.getProperty("owner");
         ok(idAndOwner == (id + ':' + owner), "idAndOwner property == id:owner");
+    }
+
+    function registerBaseBillingDetailWithES5(em, baseTypeName) {
+        var baseCtor = models.BillingDetailWithES5();
+        em.metadataStore.registerEntityTypeCtor(baseTypeName, baseCtor);
+        var baseType = em.metadataStore.getEntityType(baseTypeName);
+        // 1) we cannot change the ctor of an object in js.
+        // 2) we can only set prototype on a ctor fn not on an instance.
+        // 3) prototypes are instances - so to get the proto of a proto you need to use getPrototypeOf
+        baseType.subtypes.forEach(function (subtype) {
+            // subCtor = subtype.getCtor(true);
+            // subCtor.prototype = new baseCtor();
+            // forces refresh
+            // subtype.getCtor(true);
+            //em.metadataStore.registerEntityTypeCtor(subtype.name, subCtor);
+            newCtor = function () { };
+            newCtor.prototype = new baseCtor();
+            em.metadataStore.registerEntityTypeCtor(subtype.name, newCtor);
+        });
+        return baseType;
     }
 
     var billingDetailData = {

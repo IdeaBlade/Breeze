@@ -28,6 +28,7 @@
             if (p === "_$typeName") continue;
             if (p === "_pendingSets") continue;
             if (p === "_backingStore") continue;
+            if (p === "_alreadyWrappedProps") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);
@@ -150,19 +151,23 @@
 
     // This method is called during Metadata initialization to correct "wrap" properties.
     function movePropDefsToProto(proto) {
-        if (proto._isWrapped) return;
+        var alreadyWrapped = proto._alreadyWrappedProps || {};
         var stype = proto.entityType || proto.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
+            // we only want to wrap props that haven't already been wrapped
+            if (alreadyWrapped[propName]) return;
+                
             // If property is already defined on the prototype then wrap it in another propertyDescriptor.
             // otherwise create a propDescriptor for it. 
             if (propName in proto) {
-                wrapPropDescription(proto, prop);
+               wrapPropDescription(proto, prop);
             } else {
-                makePropDescription(proto, prop);
+               makePropDescription(proto, prop);
             }
+            alreadyWrapped[propName] = true;
         });
-        proto._isWrapped = true;
+        proto._alreadyWrappedProps = alreadyWrapped;
     }
 
     // This method is called when an instance is first created via materialization or createEntity.
