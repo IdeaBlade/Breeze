@@ -2,7 +2,7 @@
 @module breeze   
 **/
 
-var EntityAspect = (function() {
+var EntityAspect = (function () {
     /**
     An EntityAspect instance is associated with every attached entity and is accessed via the entity's 'entityAspect' property. 
         
@@ -18,7 +18,7 @@ var EntityAspect = (function() {
         var currentState = aspect.entityState;
     @class EntityAspect
     **/
-    var ctor = function(entity) {
+    var ctor = function (entity) {
         if (entity === null) {
             var nullInstance = EntityAspect._nullInstance;
             if (nullInstance) return nullInstance;
@@ -47,8 +47,7 @@ var EntityAspect = (function() {
         // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
 
         // lists that control many-to-many links between entities
-        this.inseredLinks = [];
-        this.removedLinks = [];
+        this.resetLinks();
 
         if (entity != null) {
             entity.entityAspect = this;
@@ -67,6 +66,11 @@ var EntityAspect = (function() {
         }
     };
     var proto = ctor.prototype;
+
+    proto.resetLinks = function () {
+        this.inseredLinks = [];
+        this.removedLinks = [];
+    };
 
     proto.insertLink = function (childEntity, np) {
         var removedLink = __arrayFirst(this.removedLinks, function (link) {
@@ -113,7 +117,7 @@ var EntityAspect = (function() {
         }
     };
 
-    proto._postInitialize = function() {
+    proto._postInitialize = function () {
         var entity = this.entity;
         var entityCtor = entity.entityType.getEntityCtor();
         var initFn = entityCtor._$initializationFn;
@@ -125,7 +129,7 @@ var EntityAspect = (function() {
         }
     };
 
-    Event.bubbleEvent(proto, function() {
+    Event.bubbleEvent(proto, function () {
         return this.entityManager;
     });
 
@@ -216,12 +220,12 @@ var EntityAspect = (function() {
     @param [forceRefresh=false] {Boolean} Forces the recalculation of the key.  This should normally be unnecessary.
     @return {EntityKey} The {{#crossLink "EntityKey"}}{{/crossLink}} associated with this Entity.
     **/
-    proto.getKey = function(forceRefresh) {
+    proto.getKey = function (forceRefresh) {
         forceRefresh = assertParam(forceRefresh, "forceRefresh").isBoolean().isOptional().check(false);
         if (forceRefresh || !this._entityKey) {
             var entityType = this.entity.entityType;
             var keyProps = entityType.keyProperties;
-            var values = keyProps.map(function(p) {
+            var values = keyProps.map(function (p) {
                 return this.entity.getProperty(p.name);
             }, this);
             this._entityKey = new EntityKey(entityType, values);
@@ -238,7 +242,7 @@ var EntityAspect = (function() {
             // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
     @method acceptChanges
     **/
-    proto.acceptChanges = function() {
+    proto.acceptChanges = function () {
         var em = this.entityManager;
         if (this.entityState.isDeleted()) {
             em.detachEntity(this.entity);
@@ -257,11 +261,11 @@ var EntityAspect = (function() {
             // The 'order' entity will now be in an 'Unchanged' state with any changes rejected. 
     @method rejectChanges
     **/
-    proto.rejectChanges = function() {
+    proto.rejectChanges = function () {
         var entity = this.entity;
         var entityManager = this.entityManager;
         // we do not want PropertyChange or EntityChange events to occur here
-        __using(entityManager, "isRejectingChanges", true, function() {
+        __using(entityManager, "isRejectingChanges", true, function () {
             rejectChangesCore(entity);
         });
         if (this.entityState.isAdded()) {
@@ -287,7 +291,7 @@ var EntityAspect = (function() {
         for (var propName in originalValues) {
             target.setProperty(propName, originalValues[propName]);
         }
-        stype.complexProperties.forEach(function(cp) {
+        stype.complexProperties.forEach(function (cp) {
             var cos = target.getProperty(cp.name);
             if (cp.isScalar) {
                 rejectChangesCore(cos);
@@ -298,7 +302,7 @@ var EntityAspect = (function() {
         });
     }
 
-    proto.getPropertyPath = function(propName) {
+    proto.getPropertyPath = function (propName) {
         return propName;
     }
 
@@ -310,7 +314,8 @@ var EntityAspect = (function() {
             // The 'order' entity will now be in an 'Unchanged' state with any changes committed.
     @method setUnchanged
     **/
-    proto.setUnchanged = function() {
+    proto.setUnchanged = function () {
+        this.resetLinks();
         clearOriginalValues(this.entity);
         delete this.hasTempKey;
         this.entityState = EntityState.Unchanged;
@@ -349,7 +354,7 @@ var EntityAspect = (function() {
         // The 'order' entity will now be in a 'Modified' state. 
     @method setModified
     **/
-    proto.setModified = function() {
+    proto.setModified = function () {
         this.entityState = EntityState.Modified;
         this.entityManager._notifyStateChange(this.entity, true);
     };
@@ -363,7 +368,7 @@ var EntityAspect = (function() {
         // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities. 
     @method setDeleted
     **/
-    proto.setDeleted = function() {
+    proto.setDeleted = function () {
         var em = this.entityManager;
         var entity = this.entity;
         if (this.entityState.isAdded()) {
@@ -442,8 +447,8 @@ var EntityAspect = (function() {
     @return {Boolean} Whether the entity passed validation.
     **/
     proto.validateEntity = function () {
-        var ok =true;
-        this._processValidationOpAndPublish(function(that) {
+        var ok = true;
+        this._processValidationOpAndPublish(function (that) {
             ok = validateTarget(that.entity);
         });
         return ok;
@@ -454,7 +459,7 @@ var EntityAspect = (function() {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var entityAspect = target.entityAspect || target.complexAspect.getEntityAspect();
-            
+
         stype.getProperties().forEach(function (p) {
             var value = target.getProperty(p.name);
             var propName = aspect.getPropertyPath(p.name);
@@ -470,7 +475,7 @@ var EntityAspect = (function() {
                 }
             }
         });
-            
+
 
         // then entity level
         stype.validators.forEach(function (validator) {
@@ -478,7 +483,7 @@ var EntityAspect = (function() {
         });
         return ok;
     }
-    
+
 
     /**
     Performs validation on a specific property of this entity, any errors encountered during the validation are available via the 
@@ -506,14 +511,14 @@ var EntityAspect = (function() {
         }
         context = context || {};
         context.entity = this.entity;
-        if (typeof(property) === 'string') {
+        if (typeof (property) === 'string') {
             context.property = this.entity.entityType.getProperty(property, true);
             context.propertyName = property;
         } else {
             context.property = property;
             context.propertyName = property.name;
         }
-            
+
         return this._validateProperty(value, context);
     };
 
@@ -582,7 +587,7 @@ var EntityAspect = (function() {
     **/
     proto.clearValidationErrors = function () {
         this._processValidationOpAndPublish(function (that) {
-            __objectForEach(that._validationErrors, function(key, valError) {
+            __objectForEach(that._validationErrors, function (key, valError) {
                 if (valError) {
                     delete that._validationErrors[key];
                     that._pendingValidationResult.removed.push(valError);
@@ -591,7 +596,7 @@ var EntityAspect = (function() {
         });
     };
 
-   
+
 
     // returns null for np's that do not have a parentKey
     proto.getParentKey = function (navigationProperty) {
@@ -630,8 +635,8 @@ var EntityAspect = (function() {
 
     // internal methods
 
-    proto._detach = function() {
-            
+    proto._detach = function () {
+
         this.entityGroup = null;
         this.entityManager = null;
         this.entityState = EntityState.Detached;
@@ -640,7 +645,7 @@ var EntityAspect = (function() {
         this.validationErrorsChanged.clear();
         this.propertyChanged.clear();
     };
-    
+
 
     // called from defaultInterceptor.
     proto._validateProperty = function (value, context) {
@@ -761,7 +766,7 @@ var EntityAspect = (function() {
             aspect._addValidationError(ve);
             return false;
         } else {
-            aspect._removeValidationError(validator, context ? context.propertyName: null);
+            aspect._removeValidationError(validator, context ? context.propertyName : null);
             return true;
         }
     }
@@ -770,8 +775,8 @@ var EntityAspect = (function() {
 
 })();
 
-var ComplexAspect = (function() {
-        
+var ComplexAspect = (function () {
+
     /**
     An ComplexAspect instance is associated with every complex object instance and is accessed via the complex object's 'complexAspect' property. 
      
@@ -786,7 +791,7 @@ var ComplexAspect = (function() {
         // aCustomer === aspect.parent;
     @class ComplexAspect
     **/
-    var ctor = function(complexObject, parent, parentProperty) {
+    var ctor = function (complexObject, parent, parentProperty) {
         if (!complexObject) {
             throw new Error("The  ComplexAspect ctor requires an entity as its only argument.");
         }
@@ -833,7 +838,7 @@ var ComplexAspect = (function() {
     __readOnly__
     @property complexObject {Entity} 
     **/
-        
+
     /**
     The parent object that to which this aspect belongs; this will either be an entity or another complex object.
 
@@ -847,21 +852,21 @@ var ComplexAspect = (function() {
     __readOnly__
     @property parentProperty {DataProperty}
     **/
-        
+
     /**
     The EntityAspect for the top level entity tht contains this complex object.
 
     __readOnly__
     @property entityAspect {String}
     **/
-        
+
     /**
     The 'property path' from the top level entity that contains this complex object to this object.
 
     __readOnly__
     @property propertyPath {String}
     **/
-        
+
     /**
     The 'original values' of this complex object where they are different from the 'current values'. 
     This is a map where the key is a property name and the value is the 'original value' of the property.
@@ -870,7 +875,7 @@ var ComplexAspect = (function() {
     @property originalValues {Object}
     **/
 
-    proto.getEntityAspect = function() {
+    proto.getEntityAspect = function () {
         var parent = this.parent;
         if (!parent) return new EntityAspect(null);
         var entityAspect = parent.entityAspect;
@@ -881,14 +886,14 @@ var ComplexAspect = (function() {
         return entityAspect || new EntityAspect(null);
     }
 
-    proto.getPropertyPath = function(propName) {
+    proto.getPropertyPath = function (propName) {
         var parent = this.parent;
         if (!parent) return null;
         var aspect = parent.complexAspect || parent.entityAspect;
         return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
     }
 
-    proto._postInitialize = function() {
+    proto._postInitialize = function () {
         var co = this.complexObject;
         var aCtor = co.complexType.getCtor();
         var initFn = aCtor._$initializationFn;
@@ -906,5 +911,5 @@ var ComplexAspect = (function() {
 })();
 
 
-breeze.EntityAspect= EntityAspect;
-breeze.ComplexAspect= ComplexAspect;
+breeze.EntityAspect = EntityAspect;
+breeze.ComplexAspect = ComplexAspect;

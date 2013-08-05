@@ -1,5 +1,5 @@
 ﻿
-breeze.makeRelationArray = (function() {
+breeze.makeRelationArray = (function () {
 
     var relationArrayMixin = {};
 
@@ -41,32 +41,32 @@ breeze.makeRelationArray = (function() {
     @param [errorCallback] {Function}
     @return {Promise} 
     **/
-    relationArrayMixin.load = function(callback, errorCallback) {
+    relationArrayMixin.load = function (callback, errorCallback) {
         var parent = this.parentEntity;
         var query = EntityQuery.fromEntityNavigation(this.parentEntity, this.navigationProperty);
         var em = parent.entityAspect.entityManager;
         return em.executeQuery(query, callback, errorCallback);
     };
 
-    relationArrayMixin._getEventParent = function() {
+    relationArrayMixin._getEventParent = function () {
         return this.parentEntity.entityAspect;
     };
 
-    relationArrayMixin._getPendingPubs = function() {
+    relationArrayMixin._getPendingPubs = function () {
         var em = this.parentEntity.entityAspect.entityManager;
         return em && em._pendingPubs;
     };
 
     // virtual impls 
-    relationArrayMixin._getGoodAdds = function(adds) {
+    relationArrayMixin._getGoodAdds = function (adds) {
         return getGoodAdds(this, adds);
     };
 
-    relationArrayMixin._processAdds = function(adds) {
+    relationArrayMixin._processAdds = function (adds) {
         processAdds(this, adds);
     };
 
-    relationArrayMixin._processRemoves = function(removes)  {
+    relationArrayMixin._processRemoves = function (removes) {
         processRemoves(this, removes);
     };
     //
@@ -108,22 +108,26 @@ breeze.makeRelationArray = (function() {
                 var childAspect = childEntity.entityAspect;
                 // Verify if inverse nav. property is not scalar / is a collection...
                 if (invNp && !invNp.isScalar) {
-                    // This occurs with n-n navigation
-                    var nonScalarProperty = childEntity.getProperty(invNp.name);
-                    // This test is necessary to loop prevent
-                    if (nonScalarProperty.indexOf(parentEntity) == -1) {
-                        nonScalarProperty.push(parentEntity);
+                    var em = parentEntity.entityAspect.entityManager
+                        || childEntity.entityAspect.entityManager;
+                    if (!em.isLoading) {
+                        // This occurs with n-n navigation
+                        var nonScalarProperty = childEntity.getProperty(invNp.name);
+                        // This test is necessary to loop prevent
+                        if (nonScalarProperty.indexOf(parentEntity) == -1) {
+                            nonScalarProperty.push(parentEntity);
 
-                        if (childAspect.entityState.isDetached()) {
-                            parentEntity.entityAspect
-                                .entityManager.attachEntity(childEntity, EntityState.Added);
-                        } else if (!childAspect.entityState.isAdded()) {
-                            // Set entity as modified..
-                            childEntity.entityAspect.setModified();
+                            if (childAspect.entityState.isDetached()) {
+                                parentEntity.entityAspect
+                                    .entityManager.attachEntity(childEntity, EntityState.Added);
+                            } else if (!childAspect.entityState.isAdded()) {
+                                // Set entity as modified..
+                                childEntity.entityAspect.setModified();
+                            }
+
+                            // Add link to entityAspect...
+                            parentEntity.entityAspect.insertLink(childEntity, np);
                         }
-
-                        // Add link to entityAspect...
-                        parentEntity.entityAspect.insertLink(childEntity, np);
                     }
                 }
                 else if (invNp) {
@@ -145,7 +149,8 @@ breeze.makeRelationArray = (function() {
 
     function processRemoves(relationArray, removes) {
         var parentEntity = relationArray.parentEntity;
-        var inp = relationArray.navigationProperty.inverse;
+        var np = relationArray.navigationProperty;
+        var inp = np.inverse;
         if (inp) {
             // Verify if inverse nav. property is not scalar / is a collection...
             if (!inp.isScalar) {
@@ -154,7 +159,7 @@ breeze.makeRelationArray = (function() {
                     var indexOfParent = nonScalarProperty.indexOf(parentEntity);
                     if (indexOfParent > -1) nonScalarProperty.splice(indexOfParent, 1);
                     // Remove link to entityAspect...
-                    parentEntity.entityAspect.removeLink(childEntity, inp);
+                    parentEntity.entityAspect.removeLink(childEntity, np);
                     // Set entity as modified..
                     var childAspect = childEntity.entityAspect;
                     if (!childAspect.entityState.isDetached() && !childAspect.entityState.isAdded())
