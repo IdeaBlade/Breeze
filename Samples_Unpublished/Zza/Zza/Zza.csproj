@@ -358,7 +358,7 @@
       COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.debug.js" "$(ProjectDir)scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.intellisense.js" "$(ProjectDir)scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\IBlade\breeze.dataservice.mongo.js" "$(ProjectDir)scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Experimental\breeze.savequeuing.js" "$(ProjectDir)scripts" /Y</PreBuildEvent>
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)scripts" /Y</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

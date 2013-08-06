@@ -201,7 +201,7 @@
       COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Experimental\breeze.savequeuing.js" "$(ProjectDir)Scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)Scripts" /Y
       :done
 </PreBuildEvent>
   </PropertyGroup>
