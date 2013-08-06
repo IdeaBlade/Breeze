@@ -15,7 +15,7 @@ namespace Sample_WebApi.Controllers {
             // Configure NHibernate
             _configuration = new Configuration();
             _configuration.Configure();  //configure from the app.config
-            //_configuration.SetProperty("connection.connection_string_name", "ProduceTPHConnection");
+            _configuration.SetProperty("connection.connection_string_name", "ProduceTPHConnection");
             _configuration.AddAssembly(modelAssembly);  // mapping is in this assembly
 
             _sessionFactory = _configuration.BuildSessionFactory();

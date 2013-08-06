@@ -1,9 +1,9 @@
-<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.Produce" assembly="Models.Produce">
-  <class name="ItemOfProduce" table="`ItemOfProduce`" schema="`dbo`" dynamic-update="true" optimistic-lock="dirty">
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.Produce.NH" assembly="Model_Produce_NH">
+  <class name="ItemOfProduce" table="`ItemOfProduce`" schema="`dbo`" dynamic-update="true">
     <id name="Id" type="System.Guid">
       <generator class="guid.comb" />
     </id>
-    <discriminator column="ItemType" type="string" length="20"/>
+    <discriminator formula="ItemType+':'+ItemSubtype" type="string" length="70"/>
     <property name="ItemNumber" type="string" length="8" not-null="true" />
     <property name="UnitPrice" type="decimal" />
     <property name="QuantityPerUnit" type="string" length="20" />
@@ -11,37 +11,35 @@
     <property name="UnitsOnOrder" type="int" not-null="true" />
     <property name="RowVersion" type="int" />
 
-    <subclass name="Fruit" extends="ItemOfProduce" discriminator-value="CC">
-      <discriminator column="ItemSubtype" type="string" length="50"/>
+    <subclass name="Fruit" extends="ItemOfProduce">
       <property name="Name" type="string" length="50" not-null="true" />
       <property name="USDACategory" type="string" length="50" />
-      <subclass name="Apple" extends="Fruit" discriminator-value="RA">
+      <subclass name="Apple" extends="Fruit" discriminator-value="Fruit:Apple">
         <property name="Variety" type="string" length="50" />
         <property name="Description" type="string" length="250" />
         <property name="Photo" type="System.Byte[]" />
       </subclass>
-      <subclass name="Strawberry" extends="Fruit" discriminator-value="RA">
+      <subclass name="Strawberry" extends="Fruit" discriminator-value="Fruit:Strawberry">
         <property name="Variety" type="string" length="50" not-null="true" />
         <property name="Description" type="string" length="200" />
         <property name="Photo" type="System.Byte[]" />
       </subclass>
     </subclass>
-    <subclass name="Vegetable" extends="ItemOfProduce" discriminator-value="BA">
-      <discriminator column="ItemSubtype" type="string" length="50"/>
+    <subclass name="Vegetable" extends="ItemOfProduce">
       <property name="Name" type="string" length="50" not-null="true" />
       <property name="USDACategory" type="string" length="50" />
       <property name="AboveGround" type="bool" />
-      <subclass name="Tomato" extends="Vegetable" discriminator-value="RA">
+      <subclass name="Tomato" extends="Vegetable" discriminator-value="Vegetable:Tomato">
         <property name="Variety" type="string" length="50" not-null="true" />
         <property name="Description" type="string" length="100" />
         <property name="Determinate" type="bool" />
         <property name="Photo" type="System.Byte[]" />
       </subclass>
-      <subclass name="WhitePotato" extends="Vegetable" discriminator-value="RA">
+      <subclass name="WhitePotato" extends="Vegetable" discriminator-value="Vegetable:WhitePotato">
         <property name="Variety" type="string" length="50" not-null="true" />
         <property name="SkinColor" type="string" length="20" />
-        <property name="Eye" column="`Eyes`" type="string" length="20" />
-        <property name="PrimaryUs" column="`PrimaryUses`" type="string" length="50" />
+        <property name="Eyes" column="`Eyes`" type="string" length="20" />
+        <property name="PrimaryUses" column="`PrimaryUses`" type="string" length="50" />
         <property name="Photo" type="System.Byte[]" />
       </subclass>
     </subclass>
