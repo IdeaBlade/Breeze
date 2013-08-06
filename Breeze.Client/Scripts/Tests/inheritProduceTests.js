@@ -298,6 +298,63 @@
 
     });
 
+    test("query ItemsOfProduce - Additional Base Class - ES5", function () {
+        var em = newEmX();
+        registerWithAdditionalBaseClass(em, "ItemOfProduce");
+
+        var q = EntityQuery.from("ItemsOfProduce")
+            .using(em);
+        stop();
+        var iopType = em.metadataStore.getEntityType("ItemOfProduce");
+        q.execute().then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should have found some 'ItemsOfProduce'");
+            ok(r.every(function (f) {
+                return f.entityType.isSubtypeOf(iopType);
+            }), "every item is a subtype");
+            ok(r.every(function (f) {
+                var miscData = f.getProperty("miscData");
+                return miscData === "asdf";
+            }), "every item has miscData == asdf");
+            ok(r.every(function (f) {
+                var u = f.getProperty("quantityPerUnit");
+                return u.length > 1 && u.toUpperCase() === u;
+            }), "every item has uppercase quantityPerUnit property");
+            ok(r.every(function (f) {
+                var amount = f.getProperty("amountOnHand");
+                var stock = f.getProperty("unitsInStock");
+                var quan = f.getProperty("quantityPerUnit");
+                return amount.length > 1 && amount == (stock + ':' + quan);
+            }), "every item has amountOnHand property == unitsInStock:quantityPerUnit");
+            ok(r.every(function (f) {
+                var onBase = f.getProperty("onBase");
+                return onBase === "I am on base";
+            }), "every item has onBase == I am on base");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+
+    function registerWithAdditionalBaseClass(em, baseTypeName) {
+        var entity = registerItemOfProduceWithES5(em, baseTypeName);
+        var entityCtor = entity.getCtor();
+
+        var ctor = function () { };
+        Object.defineProperty(ctor.prototype, "onBase", {
+            get: function () {
+                return this["_onBase"] || "I am on base";
+            },
+            set: function (value) {
+                this["_onBase"] = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        entityCtor.prototype = new ctor();
+    }
+
 
     function registerItemOfProduceWithES5(em, baseTypeName) {
         var baseCtor = models.ItemOfProduceWithES5();
@@ -306,10 +363,12 @@
         var descendents = baseType.getSelfAndSubtypes();
 
         var subtype, newCtor, i;
+        var subCtor = baseCtor;
         for (var i = 1, len = descendents.length; i < len; i++) {
             subtype = descendents[i];
             newCtor = function () { };
-            newCtor.prototype = new baseCtor();
+            newCtor.prototype = new subCtor();
+            subCtor = newCtor;
             em.metadataStore.registerEntityTypeCtor(subtype.name, newCtor);
         }
         return baseType;
