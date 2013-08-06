@@ -26,6 +26,17 @@
         }
     });
 
+    test("test math functions", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where("EmployeeID add ReportsToEmployeeID", ">", 3);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("take(0)", function () {
         var manager = newEm();
         var query = new breeze.EntityQuery()
