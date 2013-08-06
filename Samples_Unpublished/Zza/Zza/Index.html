@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/>
     <link rel="shortcut icon" type="image/png" href="app/images/logo.png">
-    <link href="Content/ie10mobile.css" rel="stylesheet" />
-    <link href="Content/font-awesome.css" rel="stylesheet" />
-    <link href="Content/bootstrap.css" rel="stylesheet" />
-    <link href="Content/bootstrap-responsive.css" rel="stylesheet" />
-    <link href="Content/toastr.css" rel="stylesheet" />
-    <link href="Content/styles.css" rel="stylesheet" />
+    <link href="content/ie10mobile.css" rel="stylesheet" />
+    <link href="content/font-awesome.css" rel="stylesheet" />
+    <link href="content/bootstrap.css" rel="stylesheet" />
+    <link href="content/bootstrap-responsive.css" rel="stylesheet" />
+    <link href="content/toastr.css" rel="stylesheet" />
+    <link href="content/styles.css" rel="stylesheet" />
 
     <script>
         // Must be first. IE10 mobile viewport fix
@@ -22,7 +22,7 @@
             document.getElementsByTagName("head")[0].appendChild(msViewportStyle);
         }
     </script>
-    <script src="Scripts/modernizr-2.6.2.js"></script>
+    <script src="scripts/modernizr-2.6.2.js"></script>
 
 </head>
     <body class="ng-cloak" data-ng-app="app" data-ng-controller="appController">
@@ -32,15 +32,16 @@
         <div data-ng-include="'app/views/shellFooter.html'"></div>
 
         <!-- 3rd party libraries -->
-        <script src="Scripts/jquery-2.0.2.min.js"></script>
-        <script src="Scripts/q.js"></script>
-        <script src="Scripts/breeze.debug.js"></script>
+        <script src="scripts/jquery-2.0.2.min.js"></script>
+        <script src="scripts/q.js"></script>
+        <script src="scripts/breeze.debug.js"></script>
+        <script src="scripts/breeze.to$q.js"></script>
         <!-- breeze.dataService.mongo.js used in Mongo Zza; ignored by Web API versions -->
-        <script src="Scripts/breeze.dataservice.mongo.js"></script>
-        <script src="Scripts/breeze.savequeuing.js"></script>
-        <script src="Scripts/toastr.js"></script>
-        <script src="Scripts/angular.js"></script>
-        <script src="Scripts/ui-bootstrap-tpls-0.4.0.js"></script>
+        <script src="scripts/breeze.dataservice.mongo.js"></script>
+        <script src="scripts/breeze.savequeuing.js"></script>
+        <script src="scripts/toastr.js"></script>
+        <script src="scripts/angular.js"></script>
+        <script src="scripts/ui-bootstrap-tpls-0.4.0.js"></script>
 
         <!-- App libraries -->
         <!-- Must load app.js first; the others can load in any order -->

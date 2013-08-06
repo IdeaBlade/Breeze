@@ -108,176 +108,182 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="app\app.js" />
-    <Content Include="app\appRun.js" />
-    <Content Include="app\controllers\appController.js" />
-    <Content Include="app\controllers\cartController.js" />
-    <Content Include="app\controllers\orderProductController.js" />
-    <Content Include="app\controllers\dashboardController.js" />
-    <Content Include="app\controllers\orderItemController.js" />
-    <Content Include="app\controllers\testController.js" />
-    <Content Include="app\controllers\homeController.js" />
-    <Content Include="app\controllers\routeController.js" />
-    <Content Include="app\environment.js" />
-    <Content Include="app\images\icon_tomato.png" />
-    <Content Include="app\images\icon_vegetarian.png" />
-    <Content Include="app\images\products\amadeus.jpg" />
-    <Content Include="app\images\products\applejuice.jpg" />
-    <Content Include="app\images\products\aquah2o.jpg" />
-    <Content Include="app\images\products\asianchicken.jpg" />
-    <Content Include="app\images\products\drink.jpg" />
-    <Content Include="app\images\products\bigcountrysalad.jpg" />
-    <Content Include="app\images\products\caesarsalad.jpg" />
-    <Content Include="app\images\products\cascadefog.jpg" />
-    <Content Include="app\images\products\chefsalad.jpg" />
-    <Content Include="app\images\products\chickencaesarsalad.jpg" />
-    <Content Include="app\images\products\chickencoolness.jpg" />
-    <Content Include="app\images\products\cola.jpg" />
-    <Content Include="app\images\products\dietcola.jpg" />
-    <Content Include="app\images\products\dr.popper.jpg" />
-    <Content Include="app\images\products\energade.jpg" />
-    <Content Include="app\images\products\farmersalad.jpg" />
-    <Content Include="app\images\products\gardengallop.jpg" />
-    <Content Include="app\images\products\gardensalad.jpg" />
-    <Content Include="app\images\products\grecoirish.jpg" />
-    <Content Include="app\images\products\greeksalad.jpg" />
-    <Content Include="app\images\products\greentea.jpg" />
-    <Content Include="app\images\products\holysmokes.jpg" />
-    <Content Include="app\images\products\hulapie.jpg" />
-    <Content Include="app\images\products\italianstallion.jpg" />
-    <Content Include="app\images\products\jerusalem.jpg" />
-    <Content Include="app\images\products\lemonspruce.jpg" />
-    <Content Include="app\images\products\lisbon.jpg" />
-    <Content Include="app\images\products\littlevenus.jpg" />
-    <Content Include="app\images\products\makeyourown.jpg" />
-    <Content Include="app\images\products\mamamia.jpg" />
-    <Content Include="app\images\products\nocheese.jpg" />
-    <Content Include="app\images\products\orangejuice.jpg" />
-    <Content Include="app\images\products\pestolante.jpg" />
-    <Content Include="app\images\products\plaincheese.jpg" />
-    <Content Include="app\images\products\porkbbq.jpg" />
-    <Content Include="app\images\products\rootbeer.jpg" />
-    <Content Include="app\images\products\shanghai.jpg" />
-    <Content Include="app\images\products\southoftheborder.jpg" />
-    <Content Include="app\images\products\spinachsalad.jpg" />
-    <Content Include="app\images\products\tajmahal.jpg" />
-    <Content Include="app\images\products\thaichickensalad.jpg" />
-    <Content Include="app\images\products\tomterrific.jpg" />
-    <Content Include="app\images\products\unknown.jpg" />
-    <Content Include="app\metadata.js" />
-    <Content Include="app\config.js" />
-    <Content Include="app\services\databaseReset.js" />
-    <Content Include="app\services\entityManagerFactory.js" />
-    <Content Include="app\services\pricing.js" />
-    <Content Include="app\services\util.js" />
-    <Content Include="app\services\routes.js" />
-    <Content Include="app\services\dataservice.js" />
-    <Content Include="app\directives\directives.js" />
-    <Content Include="app\filters\filters.js" />
-    <Content Include="app\images\logo.png" />
-    <Content Include="app\services\logger.js" />
-    <Content Include="app\services\model.js" />
-    <Content Include="app\views\about.html" />
-    <Content Include="app\views\dashboard.html" />
-    <Content Include="app\views\orderItemOptionCheckbox.html" />
-    <Content Include="app\views\orderItemOptionRadio.html" />
-    <Content Include="app\views\orderItem.html" />
-    <Content Include="app\views\shellFooter.html" />
-    <Content Include="app\views\shellHeader.html" />
-    <Content Include="app\views\test.html" />
-    <Content Include="app\views\orderProductPizza.html" />
-    <Content Include="app\views\orderProductSalad.html" />
-    <Content Include="app\views\orderProductDrinks.html" />
-    <Content Include="app\views\home.html" />
-    <Content Include="app\views\cart.html" />
-    <Content Include="app\views\order.html" />
-    <Content Include="App_Data\Zza-20130602100112.mdf" />
-    <Content Include="App_Data\Zza-20130602100112_log.ldf">
+    <content Include="app\app.js" />
+    <content Include="app\appRun.js" />
+    <content Include="app\controllers\appController.js" />
+    <content Include="app\controllers\cartController.js" />
+    <content Include="app\controllers\orderProductController.js" />
+    <content Include="app\controllers\dashboardController.js" />
+    <content Include="app\controllers\orderItemController.js" />
+    <content Include="app\controllers\testController.js" />
+    <content Include="app\controllers\homeController.js" />
+    <content Include="app\controllers\routeController.js" />
+    <content Include="app\environment.js" />
+    <content Include="app\images\icon_tomato.png" />
+    <content Include="app\images\icon_vegetarian.png" />
+    <content Include="app\images\products\amadeus.jpg" />
+    <content Include="app\images\products\applejuice.jpg" />
+    <content Include="app\images\products\aquah2o.jpg" />
+    <content Include="app\images\products\asianchicken.jpg" />
+    <content Include="app\images\products\drink.jpg" />
+    <content Include="app\images\products\bigcountrysalad.jpg" />
+    <content Include="app\images\products\caesarsalad.jpg" />
+    <content Include="app\images\products\cascadefog.jpg" />
+    <content Include="app\images\products\chefsalad.jpg" />
+    <content Include="app\images\products\chickencaesarsalad.jpg" />
+    <content Include="app\images\products\chickencoolness.jpg" />
+    <content Include="app\images\products\cola.jpg" />
+    <content Include="app\images\products\dietcola.jpg" />
+    <content Include="app\images\products\dr.popper.jpg" />
+    <content Include="app\images\products\energade.jpg" />
+    <content Include="app\images\products\farmersalad.jpg" />
+    <content Include="app\images\products\gardengallop.jpg" />
+    <content Include="app\images\products\gardensalad.jpg" />
+    <content Include="app\images\products\grecoirish.jpg" />
+    <content Include="app\images\products\greeksalad.jpg" />
+    <content Include="app\images\products\greentea.jpg" />
+    <content Include="app\images\products\holysmokes.jpg" />
+    <content Include="app\images\products\hulapie.jpg" />
+    <content Include="app\images\products\italianstallion.jpg" />
+    <content Include="app\images\products\jerusalem.jpg" />
+    <content Include="app\images\products\lemonspruce.jpg" />
+    <content Include="app\images\products\lisbon.jpg" />
+    <content Include="app\images\products\littlevenus.jpg" />
+    <content Include="app\images\products\makeyourown.jpg" />
+    <content Include="app\images\products\mamamia.jpg" />
+    <content Include="app\images\products\nocheese.jpg" />
+    <content Include="app\images\products\orangejuice.jpg" />
+    <content Include="app\images\products\pestolante.jpg" />
+    <content Include="app\images\products\plaincheese.jpg" />
+    <content Include="app\images\products\porkbbq.jpg" />
+    <content Include="app\images\products\rootbeer.jpg" />
+    <content Include="app\images\products\shanghai.jpg" />
+    <content Include="app\images\products\southoftheborder.jpg" />
+    <content Include="app\images\products\spinachsalad.jpg" />
+    <content Include="app\images\products\tajmahal.jpg" />
+    <content Include="app\images\products\thaichickensalad.jpg" />
+    <content Include="app\images\products\tomterrific.jpg" />
+    <content Include="app\images\products\unknown.jpg" />
+    <content Include="app\metadata.js" />
+    <content Include="app\config.js" />
+    <content Include="app\services\databaseReset.js" />
+    <content Include="app\services\entityManagerFactory.js" />
+    <content Include="app\services\pricing.js" />
+    <content Include="app\services\util.js" />
+    <content Include="app\services\routes.js" />
+    <content Include="app\services\dataservice.js" />
+    <content Include="app\directives\directives.js" />
+    <content Include="app\filters\filters.js" />
+    <content Include="app\images\logo.png" />
+    <content Include="app\services\logger.js" />
+    <content Include="app\services\model.js" />
+    <content Include="app\views\about.html" />
+    <content Include="app\views\dashboard.html" />
+    <content Include="app\views\orderItemOptionCheckbox.html" />
+    <content Include="app\views\orderItemOptionRadio.html" />
+    <content Include="app\views\orderItem.html" />
+    <content Include="app\views\shellFooter.html" />
+    <content Include="app\views\shellHeader.html" />
+    <content Include="app\views\test.html" />
+    <content Include="app\views\orderProductPizza.html" />
+    <content Include="app\views\orderProductSalad.html" />
+    <content Include="app\views\orderProductDrinks.html" />
+    <content Include="app\views\home.html" />
+    <content Include="app\views\cart.html" />
+    <content Include="app\views\order.html" />
+    <content Include="App_Data\Zza-20130602100112.mdf" />
+    <content Include="App_Data\Zza-20130602100112_log.ldf">
       <DependentUpon>Zza-20130602100112.mdf</DependentUpon>
-    </Content>
-    <Content Include="content\bootstrap-responsive.css" />
-    <Content Include="content\bootstrap-responsive.min.css" />
-    <Content Include="content\bootstrap.css" />
-    <Content Include="content\bootstrap.min.css" />
-    <Content Include="content\font-awesome-ie7.min.css" />
-    <Content Include="content\font-awesome.css" />
-    <Content Include="content\font-awesome.min.css" />
-    <Content Include="content\font\fontawesome-webfont.svg" />
-    <Content Include="content\ie10mobile.css" />
-    <Content Include="content\images\glyphicons-halflings-white.png" />
-    <Content Include="content\images\glyphicons-halflings.png" />
-    <Content Include="content\styles.css" />
-    <Content Include="content\toastr.css" />
-    <Content Include="content\toastr.less" />
-    <Content Include="content\font\fontawesome-webfont.eot" />
-    <Content Include="content\font\fontawesome-webfont.ttf" />
-    <Content Include="content\font\fontawesome-webfont.woff" />
-    <Content Include="content\font\FontAwesome.otf" />
-    <Content Include="content\toastr.min.css" />
-    <Content Include="Global.asax" />
-    <Content Include="Index.html" />
-    <Content Include="Scripts\ui-bootstrap-tpls-0.4.0.js" />
-    <Content Include="test\config\karma.conf.js" />
-    <Content Include="Scripts\angular.js" />
-    <Content Include="Scripts\angular.min.js">
+    </content>
+    <content Include="content\bootstrap-responsive.css" />
+    <content Include="content\bootstrap-responsive.min.css" />
+    <content Include="content\bootstrap.css" />
+    <content Include="content\bootstrap.min.css" />
+    <content Include="content\font-awesome-ie7.min.css" />
+    <content Include="content\font-awesome.css" />
+    <content Include="content\font-awesome.min.css" />
+    <content Include="content\font\fontawesome-webfont.svg" />
+    <content Include="content\ie10mobile.css" />
+    <content Include="content\images\glyphicons-halflings-white.png" />
+    <content Include="content\images\glyphicons-halflings.png" />
+    <content Include="content\styles.css" />
+    <content Include="content\toastr.css" />
+    <content Include="content\toastr.less" />
+    <content Include="content\font\fontawesome-webfont.eot" />
+    <content Include="content\font\fontawesome-webfont.ttf" />
+    <content Include="content\font\fontawesome-webfont.woff" />
+    <content Include="content\font\FontAwesome.otf" />
+    <content Include="content\toastr.min.css" />
+    <content Include="Global.asax" />
+    <content Include="index.html" />
+    <content Include="scripts\ui-bootstrap-tpls-0.4.0.js" />
+    <content Include="test\config\karma.conf.js" />
+    <content Include="scripts\angular.js" />
+    <content Include="scripts\angular.min.js">
       <DependentUpon>angular.js</DependentUpon>
-    </Content>
-    <Content Include="Scripts\breeze.debug.js" />
-    <Content Include="Scripts\breeze.min.js">
+    </content>
+    <content Include="scripts\breeze.debug.js" />
+    <content Include="scripts\breeze.min.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
-    </Content>
-    <Content Include="Scripts\breeze.savequeuing.js">
+    </content>
+    <content Include="scripts\breeze.directives.validation.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
-    </Content>
-    <Content Include="Scripts\breeze.dataservice.mongo.js">
+    </content>
+    <content Include="scripts\breeze.to%24q.js" >
       <DependentUpon>breeze.debug.js</DependentUpon>
-    </Content>
-    <None Include="Scripts\breeze.intellisense.js">
+    </content>
+    <content Include="scripts\breeze.savequeuing.js">
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </content>
+    <content Include="scripts\breeze.dataservice.mongo.js">
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </content>
+    <None Include="scripts\breeze.intellisense.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </None>
-    <Content Include="Scripts\modernizr-2.6.2.js" />
-    <Content Include="Scripts\q.js" />
-    <Content Include="Scripts\q.min.js">
+    <content Include="scripts\modernizr-2.6.2.js" />
+    <content Include="scripts\q.js" />
+    <content Include="scripts\q.min.js">
       <DependentUpon>q.js</DependentUpon>
-    </Content>
-    <Content Include="Scripts\toastr.js" />
-    <Content Include="Scripts\toastr.min.js">
+    </content>
+    <content Include="scripts\toastr.js" />
+    <content Include="scripts\toastr.min.js">
       <DependentUpon>toastr.js</DependentUpon>
-    </Content>
-    <Content Include="Scripts\jquery-2.0.2.js" />
-    <Content Include="Scripts\jquery-2.0.2.min.js">
+    </content>
+    <content Include="scripts\jquery-2.0.2.js" />
+    <content Include="scripts\jquery-2.0.2.min.js">
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
-    </Content>
-    <Content Include="Scripts\jquery.min.js.map">
+    </content>
+    <content Include="scripts\jquery.min.js.map">
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
-    </Content>
-    <Content Include="Scripts\jquery-2.0.2.min.map">
+    </content>
+    <content Include="scripts\jquery-2.0.2.min.map">
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
-    </Content>
-    <Content Include="Scripts\_references.js" />
-    <Content Include="test\helpers\prepareTestData.js" />
-    <Content Include="test\prepareTestData.html" />
-    <Content Include="test\helpers\jasmineTestFns.js" />
-    <Content Include="test\helpers\testFns.js" />
-    <Content Include="test\lib\angular-mocks.js" />
-    <Content Include="test\lib\jasmine-async.js" />
-    <Content Include="test\lib\jasmine-async.min.js" />
-    <Content Include="test\lib\jasmine-html.js" />
-    <Content Include="test\lib\jasmine.css" />
-    <Content Include="test\lib\jasmine.js" />
-    <Content Include="test\lib\sinon-1.7.1.js" />
-    <Content Include="test\config\jasmineTestRunnerConfig.js" />
-    <Content Include="test\testdata\smallOrderTestData.js" />
-    <Content Include="test\unit\utilSpec.js" />
-    <Content Include="test\testRunner.html" />
-    <Content Include="test\testdata\lookups.js" />
-    <Content Include="test\unit\configSpec.js" />
-    <Content Include="test\midway\dataserviceSpec.js" />
-    <Content Include="test\unit\firstspec.js" />
-    <Content Include="test\midway\testControllerSpec.js" />
-    <Content Include="test\async\queryspec.js" />
-    <Content Include="test\async\savespec.js" />
-    <Content Include="Web.config" />
+    </content>
+    <content Include="scripts\_references.js" />
+    <content Include="test\helpers\prepareTestData.js" />
+    <content Include="test\prepareTestData.html" />
+    <content Include="test\helpers\jasmineTestFns.js" />
+    <content Include="test\helpers\testFns.js" />
+    <content Include="test\lib\angular-mocks.js" />
+    <content Include="test\lib\jasmine-async.js" />
+    <content Include="test\lib\jasmine-async.min.js" />
+    <content Include="test\lib\jasmine-html.js" />
+    <content Include="test\lib\jasmine.css" />
+    <content Include="test\lib\jasmine.js" />
+    <content Include="test\lib\sinon-1.7.1.js" />
+    <content Include="test\config\jasmineTestRunnerConfig.js" />
+    <content Include="test\testdata\smallOrderTestData.js" />
+    <content Include="test\unit\utilSpec.js" />
+    <content Include="test\testRunner.html" />
+    <content Include="test\testdata\lookups.js" />
+    <content Include="test\unit\configSpec.js" />
+    <content Include="test\midway\dataserviceSpec.js" />
+    <content Include="test\unit\firstspec.js" />
+    <content Include="test\midway\testControllerSpec.js" />
+    <content Include="test\async\queryspec.js" />
+    <content Include="test\async\savespec.js" />
+    <content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BreezeSimpleCorsHandler.cs" />
@@ -292,7 +298,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="packages.config" />
+    <content Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -343,16 +349,16 @@
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <PropertyGroup>
     <PreBuildEvent>
-      IF EXIST "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" GOTO breezeExists
-      echo Source breeze.debug.js was not found in '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' and was not copied
+      IF EXIST "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.debug.js" GOTO breezeExists
+      echo Source breeze.debug.js was not found in '$(ProjectDir)..\..\..\Breeze.Client\scripts\' and was not copied
       GOTO :done
       :breezeExists
-      echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\IBlade\breeze.dataservice.mongo.js" "$(ProjectDir)Scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Experimental\breeze.savequeuing.js" "$(ProjectDir)Scripts" /Y</PreBuildEvent>
+      echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\scripts\' to scripts\
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.min.js" "$(ProjectDir)scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.debug.js" "$(ProjectDir)scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.intellisense.js" "$(ProjectDir)scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\IBlade\breeze.dataservice.mongo.js" "$(ProjectDir)scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)scripts" /Y</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
