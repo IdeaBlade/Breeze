@@ -227,7 +227,7 @@
     });
 
     function importMetadataWithInheritance (metadataJson) {
-        var store = new MetadataStore();
+        var store = new MetadataStore({ namingConvention: breeze.NamingConvention.none });
         store.importMetadata(metadataJson);
         var em = new EntityManager({ metadataStore: store });
         var apple = em.createEntity("Apple", { Variety: "Jonathan", Name: "Apple", Id: 23 });
