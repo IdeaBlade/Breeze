@@ -1,4 +1,4 @@
-﻿// Generated on: Mon Jul 22 2013 18:24:58 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Tue Aug 06 2013 12:10:18 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1918,6 +1918,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     /// <signature>
     ///   <summary>
     ///   Returns a new query that skips the specified number of entities when returning results.
+    ///   Any existing 'skip' can be cleared by calling 'skip' with no arguments.
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return. If omitted this clears the</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1927,6 +1928,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     /// <signature>
     ///   <summary>
     ///   Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.
+    ///   Any existing 'top' can be cleared by calling 'top' with no arguments.
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1935,7 +1937,8 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'take': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a new query that returns only the specified number of entities when returning results - Same as 'top'
+    ///   Returns a new query that returns only the specified number of entities when returning results - Same as 'top'.  
+    ///   Any existing take can be cleared by calling take with no arguments.
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -2324,7 +2327,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   </summary>
     ///   <param name="exportedString" type="String|Json" optional="true">The result of a previous 'export' call.</param>
     ///   <param name="config" type="Object" optional="true">A configuration object.</param>
-    
+    ///   <returns type="Object" >result  </returns>
     /// </signature>
   },
   'clear': function() {

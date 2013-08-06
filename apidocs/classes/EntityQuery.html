@@ -10,6 +10,20 @@
     <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
     <link rel="shortcut icon" type="image/png" href="..&#x2F;assets/favicon.png">
     <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;combo?3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
+	<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34729465-1']);
+  _gaq.push(['_setDomainName', 'breezejs.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
 </head>
 <body class="yui3-skin-sam">
 <script type="text/javascript">
@@ -630,7 +644,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l542"><code>a45_entityQuery.js:542</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l545"><code>a45_entityQuery.js:545</code></a>
         
         </p>
 
@@ -893,7 +907,7 @@ EntityQueries can be 'modified' without affecting any current instances.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l609"><code>a45_entityQuery.js:609</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l612"><code>a45_entityQuery.js:612</code></a>
         
         </p>
 
@@ -976,7 +990,7 @@ var orders = query.executeLocally();
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l404"><code>a45_entityQuery.js:404</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l407"><code>a45_entityQuery.js:407</code></a>
         
         </p>
 
@@ -1342,7 +1356,7 @@ Multiple paths may be specified by separating the paths by a ','</p><pre class="
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l627"><code>a45_entityQuery.js:627</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l630"><code>a45_entityQuery.js:630</code></a>
         
         </p>
 
@@ -1471,7 +1485,7 @@ var customerQuery = EntityQuery.fromEntities(customer);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l668"><code>a45_entityQuery.js:668</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l671"><code>a45_entityQuery.js:671</code></a>
         
         </p>
 
@@ -1600,7 +1614,7 @@ var query = EntityQuery.fromEntityKey(entityKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l693"><code>a45_entityQuery.js:693</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l696"><code>a45_entityQuery.js:696</code></a>
         
         </p>
 
@@ -1733,7 +1747,7 @@ var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l457"><code>a45_entityQuery.js:457</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l460"><code>a45_entityQuery.js:460</code></a>
         
         </p>
 
@@ -2256,7 +2270,8 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
     </div>
 
     <div class="description">
-        <p>Returns a new query that skips the specified number of entities when returning results.</p>
+        <p>Returns a new query that skips the specified number of entities when returning results.
+Any existing 'skip' can be cleared by calling 'skip' with no arguments.</p>
     </div>
 
     
@@ -2361,7 +2376,7 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l383"><code>a45_entityQuery.js:383</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l385"><code>a45_entityQuery.js:385</code></a>
         
         </p>
 
@@ -2372,7 +2387,8 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
     </div>
 
     <div class="description">
-        <p>Returns a new query that returns only the specified number of entities when returning results - Same as 'top'</p>
+        <p>Returns a new query that returns only the specified number of entities when returning results - Same as 'top'. <br />
+Any existing take can be cleared by calling take with no arguments.</p>
     </div>
 
     
@@ -2476,7 +2492,7 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l369"><code>a45_entityQuery.js:369</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l370"><code>a45_entityQuery.js:370</code></a>
         
         </p>
 
@@ -2487,7 +2503,8 @@ Composite projections are also possible:</p><pre class="code prettyprint"><code>
     </div>
 
     <div class="description">
-        <p>Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.</p>
+        <p>Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.
+Any existing 'top' can be cleared by calling 'top' with no arguments.</p>
     </div>
 
     
@@ -2708,7 +2725,7 @@ does not include type information.  If the json result consists of more than a s
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l481"><code>a45_entityQuery.js:481</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l484"><code>a45_entityQuery.js:484</code></a>
         
         </p>
 
@@ -2987,7 +3004,7 @@ var query = new EntityQuery("Customers")
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l430"><code>a45_entityQuery.js:430</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l433"><code>a45_entityQuery.js:433</code></a>
         
         </p>
 

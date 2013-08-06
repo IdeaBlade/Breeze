@@ -491,7 +491,9 @@
                 arrayChangedCount++;
                 adds = args.added;
             });
-            em2.importEntities(exportedEm);
+            var r = em2.importEntities(exportedEm);
+            ok(r.entities, "should have an 'entities' property");
+            ok(r.tempKeyMapping, "should have a 'tempKeyMapping' property")
             ok(arrayChangedCount == 1, "should only see a single arrayChanged event fired");
             ok(adds && adds.length > 1, "should have been multiple entities shown as added");
         }).fail(testFns.handleFail).fin(start);
@@ -753,7 +755,11 @@
             ok(data.results.length == 2, "results.length should be 2");
             var exportedEm = em.exportEntities();
             em2 = newEm();
-            em2.importEntities(exportedEm);
+            var r = em2.importEntities(exportedEm);
+            // 5 = 3 created + 2 queried
+            ok(r.entities.length === 5, "should have imported 5 entities");
+            var keys = Object.keys(r.tempKeyMapping);
+            ok(keys.length === 3, "should have 3 keys in the tempKeyMapping");
             var r2 = em2.executeQueryLocally(q);
             ok(r2.length === 2, "should return 2 records");
             var addedOrders = em2.getChanges(orderType, EntityState.Added);
@@ -795,7 +801,8 @@
            var cust2 = data.results[0];
            var exportedEm = em.exportEntities([order1, cust1, cust2]);
            em2 = newEm();
-           em2.importEntities(exportedEm);
+           var r = em2.importEntities(exportedEm);
+           ok(r.entities.length === 3, "should have imported 3 entities");
            var r2 = em2.executeQueryLocally(q);
            ok(r2.length === 2, "should return 2 records");
            var addedOrders = em2.getChanges(orderType, EntityState.Added);

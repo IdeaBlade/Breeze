@@ -10,6 +10,20 @@
     <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
     <link rel="shortcut icon" type="image/png" href="..&#x2F;assets/favicon.png">
     <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;combo?3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
+	<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34729465-1']);
+  _gaq.push(['_setDomainName', 'breezejs.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
 </head>
 <body class="yui3-skin-sam">
 <script type="text/javascript">
@@ -1562,26 +1576,30 @@ var EntityType = (function () {
 
     &#x2F;&#x2F; May make public later.
     proto._setCtor = function (aCtor, interceptor) {
-        var instance = new aCtor();
+
         var proto = aCtor.prototype;
-            
+
+        if (!proto._alreadyWrappedProps) {
+            var instance = new aCtor();
+            calcUnmappedProperties(this, instance);
+        } 
+
         if (this._$typeName === &quot;EntityType&quot;) {
             &#x2F;&#x2F; insure that all of the properties are on the &#x27;template&#x27; instance before watching the class.
-            calcUnmappedProperties(this, instance);
             proto.entityType = this;
         } else {
-            calcUnmappedProperties(this, instance);
             proto.complexType = this;
         }
 
-        if (interceptor) {
-            proto._$interceptor = interceptor;
-        } else {
-            proto._$interceptor = defaultPropertyInterceptor;
-        }
+        &#x2F;&#x2F; defaultPropertyInterceptor is a &#x27;global&#x27; (but internal to breeze) function;
+        proto._$interceptor = interceptor || defaultPropertyInterceptor;
+
 
         __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
 
+        if (!proto._alreadyWrappedProps) {
+            proto._alreadyWrappedProps = {};
+        }
         this._ctor = aCtor;
     };
 
@@ -1931,12 +1949,18 @@ var EntityType = (function () {
                 fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np) {
                     return np.invForeignKeyNames &amp;&amp; np.invForeignKeyNames.indexOf(fkProp.name) &gt;= 0;
                 });
-                entityType.foreignKeyProperties.push(fkProp);
+                &#x2F;&#x2F; entityType.foreignKeyProperties.push(fkProp);
+                addUniqueItem(entityType.foreignKeyProperties, fkProp);
             });
         }
         
         resolveRelated(np);
         return true;
+    }
+
+    function addUniqueItem(collection, item) {
+        var ix = collection.indexOf(item);
+        if (ix === -1) collection.push(item);
     }
 
     &#x2F;&#x2F; sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
@@ -1949,9 +1973,11 @@ var EntityType = (function () {
         var fkProps = fkNames.map(function (fkName) {
             return parentEntityType.getDataProperty(fkName);
         });
-        Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
+        var fkPropCollection = parentEntityType.foreignKeyProperties;
+        &#x2F;&#x2F; Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
 
         fkProps.forEach(function (dp) {
+            addUniqueItem(fkPropCollection, dp);
             dp.relatedNavigationProperty = np;
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
