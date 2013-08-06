@@ -52,7 +52,11 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public String Metadata() {
+#if NHIBERNATE
+      return ContextProvider.GetHardcodedMetadata();
+#else
       return ContextProvider.Metadata();
+#endif
     }
 
     [HttpPost]
@@ -64,7 +68,7 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public IQueryable<ItemOfProduce> ItemsOfProduce() {
-      return ContextProvider.Context.ItemsOfProduce;
+        return ContextProvider.Context.ItemsOfProduce;
     }
 
 
