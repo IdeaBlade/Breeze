@@ -81,9 +81,9 @@
         stop();
         em.executeQuery(query, function (data) {
             var results = data.results;
-            var firstCustName = results[0].getProperty("companyName");
-
-            ok(firstCustName.indexOf("Chop-suey") === 0, "order is wrong");
+            testFns.assertIsSorted(results, "companyName", breeze.DataType.String, false, false)
+            // var firstCustName = results[0].getProperty("companyName");
+            // ok(firstCustName.indexOf("Chop-suey") === 0, "order is wrong");
         }).fail(testFns.handleFail).fin(start);
 
     });
