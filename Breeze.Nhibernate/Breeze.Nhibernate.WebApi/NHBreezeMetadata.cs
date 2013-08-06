@@ -182,7 +182,8 @@ namespace Breeze.Nhibernate.WebApi
                 var columnNameString = GetPropertyColumnNames(persister, meta.IdentifierPropertyName);
                 relatedDataPropertyMap.Add(columnNameString, dmap);
             }
-            else if (meta.IdentifierType != null && meta.IdentifierType.IsComponentType)
+            else if (meta.IdentifierType != null && meta.IdentifierType.IsComponentType 
+                && pClass.Identifier is Component && ((Component)pClass.Identifier).Owner == pClass)
             {
                 // composite key is a ComponentType
                 var compType = (ComponentType)meta.IdentifierType;
@@ -190,7 +191,6 @@ namespace Breeze.Nhibernate.WebApi
                 for (int i = 0; i < compNames.Length; i++)
                 {
                     var compName = compNames[i];
-                    if (!hasOwnProperty(pClass, compName)) continue;  // skip property defined on superclass
 
                     var propType = compType.Subtypes[i];
                     if (!propType.IsAssociationType)
