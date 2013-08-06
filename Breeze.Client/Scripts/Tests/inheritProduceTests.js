@@ -335,13 +335,9 @@
 
     });
 
-
     function registerWithAdditionalBaseClass(em, baseTypeName) {
-        var entity = registerItemOfProduceWithES5(em, baseTypeName);
-        var entityCtor = entity.getCtor();
-
-        var ctor = function () { };
-        Object.defineProperty(ctor.prototype, "onBase", {
+        var rootCtor = function () { };
+        Object.defineProperty(rootCtor.prototype, "onBase", {
             get: function () {
                 return this["_onBase"] || "I am on base";
             },
@@ -352,12 +348,33 @@
             configurable: true
         });
 
-        entityCtor.prototype = new ctor();
+        var entityType = registerItemOfProduceWithES5(em, baseTypeName, rootCtor);
     }
 
+    //function registerWithAdditionalBaseClass(em, baseTypeName) {
+    //    var entity = registerItemOfProduceWithES5(em, baseTypeName);
+    //    var entityCtor = entity.getCtor();
 
-    function registerItemOfProduceWithES5(em, baseTypeName) {
-        var baseCtor = models.ItemOfProduceWithES5();
+    //    var ctor = function () { };
+    //    Object.defineProperty(ctor.prototype, "onBase", {
+    //        get: function () {
+    //            return this["_onBase"] || "I am on base";
+    //        },
+    //        set: function (value) {
+    //            this["_onBase"] = value;
+    //        },
+    //        enumerable: true,
+    //        configurable: true
+    //    });
+
+    //    entityCtor.prototype = new ctor();
+
+    //}
+
+
+    function registerItemOfProduceWithES5(em, baseTypeName, rootCtor) {
+
+        var baseCtor = models.ItemOfProduceWithES5(rootCtor);
         em.metadataStore.registerEntityTypeCtor(baseTypeName, baseCtor);
         var baseType = em.metadataStore.getEntityType(baseTypeName);
         var descendents = baseType.getSelfAndSubtypes();
@@ -377,13 +394,14 @@
 
 
     var models = {};
-    models.ItemOfProduceWithES5 = function () {
+    models.ItemOfProduceWithES5 = function (baseCtor) {
 
         var ctor;
         if (testFns.modelLibrary == "ko") {
             ctor = function () {
 
             };
+            if (baseCtor) ctor.prototype = new baseCtor();
             createProduceES5Props(ctor.prototype);
 
         } else if (testFns.modelLibrary == "backbone") {
@@ -392,13 +410,16 @@
                     createProduceES5Props(this.attributes);
                 }
             });
+            if (baseCtor) ctor.prototype = new baseCtor();
 
         } else {
             ctor = function () {
 
             };
+            if (baseCtor) ctor.prototype = new baseCtor();
             createProduceES5Props(ctor.prototype);
         }
+        
         return ctor;
 
     };
