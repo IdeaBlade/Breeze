@@ -86,6 +86,15 @@ namespace Breeze.Nhibernate.WebApi
             cmap.Add("shortName", type.Name);
             cmap.Add("namespace", type.Namespace);
 
+            var persistentClass = _configuration.GetClassMapping(type);
+            var superClass = persistentClass.Superclass;
+            if (superClass != null) 
+            {
+                var superType = superClass.MappedClass;
+                var baseTypeName = superType.Name + ":#" + superType.Namespace;
+                cmap.Add("baseTypeName", baseTypeName);
+            }
+
             var entityPersister = meta as IEntityPersister;
             var generator = entityPersister != null ? entityPersister.IdentifierGenerator : null;
             if (generator != null)
@@ -106,7 +115,6 @@ namespace Breeze.Nhibernate.WebApi
             var navList = new List<Dictionary<string, object>>();
             cmap.Add("navigationProperties", navList);
 
-            var persistentClass = _configuration.GetClassMapping(type);
             AddClassProperties(meta, persistentClass, dataList, navList);
         }
 
@@ -123,17 +131,19 @@ namespace Breeze.Nhibernate.WebApi
             var relatedDataPropertyMap = new Dictionary<string, Dictionary<string, object>>();
 
             var persister = meta as AbstractEntityPersister;
-            var type = meta.GetMappedClass(EntityMode.Poco);
+            var type = pClass.MappedClass;
 
             var propNames = meta.PropertyNames;
             var propTypes = meta.PropertyTypes;
             var propNull = meta.PropertyNullability;
             for (int i = 0; i < propNames.Length; i++)
             {
+                var propName = propNames[i];
+                if (!hasOwnProperty(pClass, propName)) continue;  // skip property defined on superclass
+
                 var propType = propTypes[i];
                 if (!propType.IsAssociationType)    // skip association types until we handle all the data types, so the relatedDataPropertyMap will be populated.
                 {
-                    var propName = propNames[i];
                     var propColumns = pClass.GetProperty(propName).ColumnIterator.ToList();
                     if (propType.IsComponentType)
                     {
@@ -164,7 +174,7 @@ namespace Breeze.Nhibernate.WebApi
 
 
             // Hibernate identifiers are excluded from the list of data properties, so we have to add them separately
-            if (meta.HasIdentifierProperty)
+            if (meta.HasIdentifierProperty && hasOwnProperty(pClass, meta.IdentifierPropertyName))
             {
                 var dmap = MakeDataProperty(meta.IdentifierPropertyName, meta.IdentifierType.Name, false, null, true, false);
                 dataList.Insert(0, dmap);
@@ -179,19 +189,22 @@ namespace Breeze.Nhibernate.WebApi
                 var compNames = compType.PropertyNames;
                 for (int i = 0; i < compNames.Length; i++)
                 {
+                    var compName = compNames[i];
+                    if (!hasOwnProperty(pClass, compName)) continue;  // skip property defined on superclass
+
                     var propType = compType.Subtypes[i];
                     if (!propType.IsAssociationType)
                     {
-                        var dmap = MakeDataProperty(compNames[i], propType.Name, compType.PropertyNullability[i], null, true, false);
+                        var dmap = MakeDataProperty(compName, propType.Name, compType.PropertyNullability[i], null, true, false);
                         dataList.Insert(0, dmap);
                     }
                     else
                     {
                         var manyToOne = propType as ManyToOneType;
                         //var joinable = manyToOne.GetAssociatedJoinable(this._sessionFactory);
-                        var propColumnNames = GetPropertyColumnNames(persister, compNames[i]);
+                        var propColumnNames = GetPropertyColumnNames(persister, compName);
 
-                        var assProp = MakeAssociationProperty(type, (IAssociationType)propType, compNames[i], propColumnNames, pClass, relatedDataPropertyMap, true);
+                        var assProp = MakeAssociationProperty(type, (IAssociationType)propType, compName, propColumnNames, pClass, relatedDataPropertyMap, true);
                         navList.Add(assProp);
                     }
                 }
@@ -200,20 +213,23 @@ namespace Breeze.Nhibernate.WebApi
             // We do the association properties after the data properties, so we can do the foreign key lookups
             for (int i = 0; i < propNames.Length; i++)
             {
-                //var propColumnNames = persister.GetPropertyColumnNames(i);
+                var propName = propNames[i];
+                if (!hasOwnProperty(pClass, propName)) continue;  // skip property defined on superclass 
+
                 var propType = propTypes[i];
                 if (propType.IsAssociationType)
                 {
                     // navigation property
-                    var propName = propNames[i];
-                    //if (propColumnNames.Length == 0)
-                    //    propColumnNames = persister.KeyColumnNames;
-
                     var propColumnNames = GetPropertyColumnNames(persister, propName);
                     var assProp = MakeAssociationProperty(type, (IAssociationType)propType, propName, propColumnNames, pClass, relatedDataPropertyMap, false);
                     navList.Add(assProp);
                 }
             }
+        }
+
+        bool hasOwnProperty(PersistentClass pClass, string propName) 
+        {
+            return pClass.GetProperty(propName).PersistentClass == pClass;
         }
 
         /// <summary>
