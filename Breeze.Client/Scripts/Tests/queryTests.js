@@ -26,16 +26,43 @@
         }
     });
 
-    test("test math functions", function () {
+
+    test("OData predicate", function () {
         var manager = newEm();
         var query = new breeze.EntityQuery()
             .from("Employees")
-            .where("EmployeeID add ReportsToEmployeeID", ">", 3);
+            .where("EmployeeID add ReportsToEmployeeID gt 3");
         stop();
         manager.executeQuery(query).then(function (data) {
             ok(data.results.length > 0, "there should be records returned");
+            try {
+                manager.executeQueryLocally(query);
+                ok(false, "shouldn't get here");
+            } catch (e) {
+                ok(e, "should throw an exception");
+            }
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("OData predicate combined with regular predicate", function () {
+        var manager = newEm();
+        var predicate = Predicate.create("EmployeeID add ReportsToEmployeeID gt 3").and("employeeID", "<", 9999);
+        
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(predicate);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+            try {
+                manager.executeQueryLocally(query);
+                ok(false, "shouldn't get here");
+            } catch (e) {
+                ok(e, "should throw an exception");
+            }
+        }).fail(testFns.handleFail).fin(start);
+    });
+
 
     test("take(0)", function () {
         var manager = newEm();
@@ -678,7 +705,8 @@
     test("query with two fields & contains literal forced", function () {
         var em = newEm();
         var q = EntityQuery.from("Employees")
-            .where("lastName", "startsWith", "firstName", true)
+            .where("lastName", "startsWith", { value: "firstName", isLiteral: true })
+            // .where("lastName", "startsWith", "firstName", true)
             .take(20);
         stop();
         em.executeQuery(q).then(function (data) {
