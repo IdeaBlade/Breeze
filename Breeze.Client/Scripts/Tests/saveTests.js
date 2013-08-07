@@ -231,157 +231,6 @@
 
     });
 
-    test("save Order and add ShipAddress to Comment in BeforeSave", function () {
-        if (testFns.DEBUG_ODATA) {
-            ok(true, "Skipped test - OData does not support server interception or alt resources");
-            return;
-        };
-
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
-            return;
-        }
-
-        var em = newEm();
-        var testAddress = "Test " + new Date().toISOString();
-
-        var order = em.createEntity('Order', {
-            customerID: wellKnownData.alfredsID,
-            employeeID: wellKnownData.nancyID,
-            shipAddress: testAddress
-        });
-        var saveOptions = new SaveOptions({ tag: "CommentOrderShipAddress.Before" });
-        stop();
-        em.saveChanges(null, saveOptions).then(function (data) {
-            // BeforeSaveEntities should have put the testAddress in a comment
-            var em2 = newEm();
-            var q = EntityQuery.from("Comments").where("comment1", "==", testAddress);
-            return em2.executeQuery(q);
-        }).then(function (data) {
-            var results = data.results;
-            ok(results.length === 1, "should have returned 1 result");
-            var comment = results[0];
-            var comment1 = comment.getProperty("comment1");
-            ok(comment1 === testAddress, "comment should equal testAddress");
-
-        }).fail(testFns.handleFail).fin(start);
-    });
-
-    test("save Order and update ShipAddress in ProduceTPH in BeforeSave (uses DTC)", function () {
-        if (testFns.DEBUG_ODATA) {
-            ok(true, "Skipped test - OData does not support server interception or alt resources");
-            return;
-        };
-
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
-            return;
-        }
-
-        var em = newEm();
-        var testAddress = "Test " + new Date().toISOString();
-
-        var order = em.createEntity('Order', {
-            customerID: wellKnownData.alfredsID,
-            employeeID: wellKnownData.nancyID,
-            shipAddress: testAddress
-        });
-        var saveOptions = new SaveOptions({ tag: "UpdateProduceShipAddress.Before" });
-        stop();
-        em.saveChanges(null, saveOptions).then(function (data) {
-            // BeforeSaveEntities should have put the testAddress in the description of an Apple
-            var emx = new EntityManager({ serviceName: "breeze/ProduceTPH" });
-            var q = EntityQuery.from("Apples").where("description", "==", testAddress);
-            return emx.executeQuery(q);
-        }).then(function (data) {
-            var results = data.results;
-            ok(results.length === 1, "should have returned 1 result");
-            var produce = results[0];
-            var desc = produce.getProperty("description");
-            ok(desc === testAddress, "description should equal testAddress");
-
-        }).fail(testFns.handleFail).fin(start);
-    });
-
-    test("save Order and add KeyMapping to Comment in AfterSave", function () {
-        if (testFns.DEBUG_ODATA) {
-            ok(true, "Skipped test - OData does not support server interception or alt resources");
-            return;
-        };
-
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
-            return;
-        }
-
-        var em = newEm();
-        var testComment;
-        var order = em.createEntity('Order', {
-            customerID: wellKnownData.alfredsID,
-            employeeID: wellKnownData.nancyID,
-            shipAddress: "Test " + new Date().toISOString()
-        });
-        var saveOptions = new SaveOptions({ tag: "CommentKeyMappings.After" });
-        stop();
-        em.saveChanges(null, saveOptions).then(function (data) {
-            // AfterSaveEntities should have put the order type and id in a comment
-            var orderId = order.getProperty("orderID");
-            var type = order.entityType;
-            testComment = type.namespace + '.' + type.shortName + ':' + orderId;
-
-            var em2 = newEm();
-            var q = EntityQuery.from("Comments").where("comment1", "==", testComment);
-            return em2.executeQuery(q);
-        }).then(function (data) {
-            var results = data.results;
-            ok(results.length === 1, "should have returned 1 result");
-            var comment = results[0];
-            var comment1 = comment.getProperty("comment1");
-            ok(comment1 === testComment, "comment should equal testComment");
-
-        }).fail(testFns.handleFail).fin(start);
-    });
-
-    test("save Order and update KeyMapping in ProduceTPH in AfterSave (uses DTC)", function () {
-        if (testFns.DEBUG_ODATA) {
-            ok(true, "Skipped test - OData does not support server interception or alt resources");
-            return;
-        };
-
-        if (testFns.DEBUG_MONGO) {
-            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
-            return;
-        }
-
-        var em = newEm();
-        var testComment;
-        var order = em.createEntity('Order', {
-            customerID: wellKnownData.alfredsID,
-            employeeID: wellKnownData.nancyID,
-            shipAddress: "Test " + new Date().toISOString()
-        });
-        var saveOptions = new SaveOptions({ tag: "UpdateProduceKeyMapping.After" });
-        stop();
-        em.saveChanges(null, saveOptions).then(function (data) {
-            // AfterSaveEntities should have put the order type and id in the description of an Apple
-            var orderId = order.getProperty("orderID");
-            var type = order.entityType;
-            testComment = type.namespace + '.' + type.shortName + ':' + orderId;
-
-            var emx = new EntityManager({ serviceName: "breeze/ProduceTPH" });
-            var q = EntityQuery.from("Apples").where("description", "==", testComment);
-            return emx.executeQuery(q);
-        }).then(function (data) {
-            var results = data.results;
-            ok(results.length === 1, "should have returned 1 result");
-            var produce = results[0];
-            var desc = produce.getProperty("description");
-            ok(desc === testComment, "description should equal testComment");
-
-        }).fail(testFns.handleFail).fin(start);
-    });
-
-
     test("save data with alt resource and server side add", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
@@ -528,6 +377,27 @@
             return em1.saveChanges();
         }).then(function (sr) {
             
+            var e = sr.entities;
+            ok(e.length === 1, "1 record should have been saved");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save update with ES5 props and unmapped changes", function () {
+        var em1 = newEm(testFns.newMs());
+        var Customer = testFns.models.CustomerWithES5Props();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        var q = new EntityQuery("Customers").take(1);
+        em1.executeQuery(q).then(function (data) {
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust = data.results[0];
+            var oldContactName = cust.getProperty("contactName");
+            var oldMiscData = cust.getProperty("miscData");
+            testFns.morphStringProp(cust, "contactName");
+            testFns.morphStringProp(cust, "miscData");
+            return em1.saveChanges();
+        }).then(function (sr) {
+
             var e = sr.entities;
             ok(e.length === 1, "1 record should have been saved");
         }).fail(testFns.handleFail).fin(start);
@@ -713,8 +583,8 @@
             ok(false, "should not get here");
 
         }).fail(function (e) {
-            ok(e.serverErrors, "should have server errors");
-            ok(e.serverErrors.length === 2, "2 order entities should have failed");
+            ok(e.entityErrors, "should have server errors");
+            ok(e.entityErrors.length === 2, "2 order entities should have failed");
             ok(zzz.order1.entityAspect.getValidationErrors().length === 1);
             var order2Errs = zzz.order2.entityAspect.getValidationErrors();
             ok(order2Errs.length === 1, "should be 1 error for order2");
@@ -756,8 +626,8 @@
         }).then(function(sr2) {
             ok(false, "should not get here");
         }).fail(function (e) {
-            ok(e.serverErrors, "should have server errors");
-            ok(e.serverErrors.length === 2, "2 order entities should have failed");
+            ok(e.entityErrors, "should have server errors");
+            ok(e.entityErrors.length === 2, "2 order entities should have failed");
             ok(zzz.order1.entityAspect.getValidationErrors().length === 1);
             var order2Errs = zzz.order2.entityAspect.getValidationErrors();
             ok(order2Errs.length === 1, "should be 1 error for order2");
@@ -770,7 +640,26 @@
 
     });
 
-    test("save with server side entity level validation error", function () {
+    test("save with client side validation error", function () {
+
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        var cust1 = zzz.cust1;
+        cust1.setProperty("companyName", null);
+        stop();
+        em.saveChanges().then(function (sr) {
+            ok(false, "should not get here");
+        }).fail(function (e) {
+            ok(e.entityErrors, "should be a  entityError");
+            ok(e.entityErrors.length === 1, "should be only one error");
+            ok(!e.entityErrors[0].isServerError, "should NOT be a server error");
+            var errors = cust1.entityAspect.getValidationErrors();
+            ok(errors[0].errorMessage === errors[0].errorMessage, "error message should appear on the cust");
+
+        }).fin(start);
+    });
+
+    test("save with server side entity level validation error", 3, function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
@@ -789,11 +678,10 @@
         em.saveChanges().then(function(sr) {
             ok(false, "should not get here");
         }).fail(function (e) {
-            ok(e.serverErrors, "should be a server error");
-            ok(e.serverErrors.length === 1, "should be only one server error");
+            ok(e.entityErrors, "should be a server error");
+            ok(e.entityErrors.length === 1, "should be only one server error");
             var errors = cust1.entityAspect.getValidationErrors();
-            ok(errors[0].errorMessage === serverErrors[0].errorMessage, "error message should appear on the cust");
-            // ok(e.message.toLowerCase().indexOf("validation errors") >= 0, "should be a validation error message");
+            ok(errors[0].errorMessage === errors[0].errorMessage, "error message should appear on the cust");
         }).fin(start);
     });
 
@@ -816,18 +704,18 @@
         em.saveChanges().then(function (sr) {
             ok(false, "should not get here");
         }).fail(function (e) {
-            ok(e.serverErrors, "should be a server error");
-            ok(e.serverErrors.length === 1, "should be only one server error");
+            ok(e.entityErrors, "should be a server error");
+            ok(e.entityErrors.length === 1, "should be only one server error");
             var errors = cust1.entityAspect.getValidationErrors();
             ok(errors.length === 1, "should only be 1 error");
-            ok(errors[0].errorMessage === e.serverErrors[0].errorMessage, "error message should appear on the cust");
+            ok(errors[0].errorMessage === e.entityErrors[0].errorMessage, "error message should appear on the cust");
             return em.saveChanges();
         }).fail(function(e2) {
-           ok(e2.serverErrors, "should be a server error");
-           ok(e2.serverErrors.length === 1, "should be only one server error");
+            ok(e2.entityErrors, "should be a server error");
+            ok(e2.entityErrors.length === 1, "should be only one server error");
            var errors = cust1.entityAspect.getValidationErrors();
            ok(errors.length === 1, "should only be 1 error");
-           ok(errors[0].errorMessage === e2.serverErrors[0].errorMessage, "error message should appear on the cust");
+           ok(errors[0].errorMessage === e2.entityErrors[0].errorMessage, "error message should appear on the cust");
         }).fin(start);
     });
 
@@ -996,11 +884,11 @@
         }).then(function(sr) {
             ok(false, "shouldn't get here - except with DATABASEFIRST_OLD");
         }).fail(function (error) {
-            ok(error.serverErrors, "should be some server errors");
-            ok(error.serverErrors.length === 1, "should be 1 server error");
-            ok(error.serverErrors[0].errorMessage.indexOf("the word 'Error'") > 0, "incorrect error message");
+            ok(error.entityErrors, "should be some server errors");
+            ok(error.entityErrors.length === 1, "should be 1 server error");
+            ok(error.entityErrors[0].errorMessage.indexOf("the word 'Error'") > 0, "incorrect error message");
             var custErrors = cust1.entityAspect.getValidationErrors();
-            ok(error.serverErrors[0].errorMessage === custErrors[0].errorMessage);
+            ok(error.entityErrors[0].errorMessage === custErrors[0].errorMessage);
             // ok(error.message.indexOf("the word 'Error'") > 0, "incorrect error message");
         }).fin(start);
 
@@ -1058,6 +946,33 @@
             ok(!em1.hasChanges(), "should not have changes");
             return em1.saveChanges();
         }).then(function(sr) {
+            var saved = sr.entities;
+            ok(saved.length === 0);
+            ok(!em1.hasChanges());
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("unmapped save with ES5 props", function () {
+
+        // use a different metadata store for this em - so we don't polute other tests
+        var em1 = newEm();
+        var Customer = testFns.models.CustomerWithES5Props();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        var q = new EntityQuery("Customers")
+            .where("companyName", "startsWith", "C");
+        q.using(em1).execute().then(function (data) {
+            var customers = data.results;
+            customers.every(function (c) {
+                ok(c.getProperty("miscData") == "asdf", "miscData should == 'asdf'");
+
+            });
+            var cust = customers[0];
+            cust.setProperty("miscData", "xxx");
+            ok(cust.entityAspect.entityState == EntityState.Unchanged);
+            ok(!em1.hasChanges(), "should not have changes");
+            return em1.saveChanges();
+        }).then(function (sr) {
             var saved = sr.entities;
             ok(saved.length === 0);
             ok(!em1.hasChanges());

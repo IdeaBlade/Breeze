@@ -10,6 +10,20 @@
     <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
     <link rel="shortcut icon" type="image/png" href="..&#x2F;assets/favicon.png">
     <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;combo?3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
+	<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34729465-1']);
+  _gaq.push(['_setDomainName', 'breezejs.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
 </head>
 <body class="yui3-skin-sam">
 <script type="text/javascript">
@@ -42,9 +56,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 		<li>
-			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
 		
 	</ul>
 </div>
@@ -230,9 +244,11 @@ var EntityAspect = (function() {
         this.entityState = EntityState.Detached;
         this.isBeingSaved = false;
         this.originalValues = {};
+        this.hasValidationErrors = false;
         this._validationErrors = {};
-        this.validationErrorsChanged = new Event(&quot;validationErrorsChanged_entityAspect&quot;, this);
-        this.propertyChanged = new Event(&quot;propertyChanged_entityAspect&quot;, this);
+        
+        this.validationErrorsChanged = new Event(&quot;validationErrorsChanged&quot;, this);
+        this.propertyChanged = new Event(&quot;propertyChanged&quot;, this);
         &#x2F;&#x2F; in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
 
         if (entity != null) {
@@ -295,6 +311,13 @@ var EntityAspect = (function() {
 
     __readOnly__
     @property isBeingSaved {Boolean}
+    **&#x2F;
+
+    &#x2F;**
+    Whether this entity has any validation errors.
+
+    __readOnly__
+    @property hasValidationErrors {Boolean}
     **&#x2F;
 
     &#x2F;**
@@ -691,7 +714,7 @@ var EntityAspect = (function() {
     };
 
     &#x2F;**
-    Adds a validation error for a specified property.
+    Adds a validation error.
     @method addValidationError
     @param validationError {ValidationError} 
     **&#x2F;
@@ -703,16 +726,16 @@ var EntityAspect = (function() {
     };
 
     &#x2F;**
-    Removes a validation error for a specified property.
+    Removes a validation error.
     @method removeValidationError
-    @param validator {Validator}
-    @param [property] {DataProperty|NavigationProperty}
+    @param validationErrorOrKey {ValidationError|String} Either a ValidationError or a ValidationError &#x27;key&#x27; value
     **&#x2F;
-    proto.removeValidationError = function (validator, property) {
-        assertParam(validator, &quot;validator&quot;).isString().or().isInstanceOf(Validator).check();
-        assertParam(property, &quot;property&quot;).isOptional().isEntityProperty().check();
+    proto.removeValidationError = function (validationErrorOrKey) {
+        assertParam(validationErrorOrKey, &quot;validationErrorOrKey&quot;).isString().or().isInstanceOf(ValidationError).or().isInstanceOf(Validator).check();
+        
+        var key = (typeof (validationErrorOrKey) === &quot;string&quot;) ? validationErrorOrKey : validationErrorOrKey.key;
         this._processValidationOpAndPublish(function (that) {
-            that._removeValidationError(validator, property &amp;&amp; property.name);
+            that._removeValidationError(key);
         });
     };
 
@@ -728,6 +751,7 @@ var EntityAspect = (function() {
                     that._pendingValidationResult.removed.push(valError);
                 }
             });
+            that.hasValidationErrors = !__isEmpty(this._validationErrors);
         });
     };
 
@@ -777,6 +801,7 @@ var EntityAspect = (function() {
         this.entityState = EntityState.Detached;
         this.originalValues = {};
         this._validationErrors = {};
+        this.hasValidationErrors = false;
         this.validationErrorsChanged.clear();
         this.propertyChanged.clear();
     };
@@ -787,7 +812,7 @@ var EntityAspect = (function() {
         var ok = true;
         this._processValidationOpAndPublish(function (that) {
             context.property.validators.forEach(function (validator) {
-                ok = ok &amp;&amp; validate(that, validator, value, context);
+                ok = validate(that, validator, value, context) &amp;&amp; ok;
             });
         });
         return ok;
@@ -803,6 +828,9 @@ var EntityAspect = (function() {
                 validationFn(this);
                 if (this._pendingValidationResult.added.length &gt; 0 || this._pendingValidationResult.removed.length &gt; 0) {
                     this.validationErrorsChanged.publish(this._pendingValidationResult);
+                    &#x2F;&#x2F; this might be a detached entity hence the guard below.
+                    this.entityManager &amp;&amp; this.entityManager.validationErrorsChanged.publish(this._pendingValidationResult);
+                    
                 }
             } finally {
                 this._pendingValidationResult = undefined;
@@ -812,14 +840,15 @@ var EntityAspect = (function() {
 
     proto._addValidationError = function (validationError) {
         this._validationErrors[validationError.key] = validationError;
+        this.hasValidationErrors = true;
         this._pendingValidationResult.added.push(validationError);
     };
 
-    proto._removeValidationError = function (validator, propertyPath) {
-        var key = ValidationError.getKey(validator, propertyPath);
+    proto._removeValidationError = function (key) {
         var valError = this._validationErrors[key];
         if (valError) {
             delete this._validationErrors[key];
+            this.hasValidationErrors = !__isEmpty(this._validationErrors);
             this._pendingValidationResult.removed.push(valError);
         }
     };
@@ -901,7 +930,8 @@ var EntityAspect = (function() {
             aspect._addValidationError(ve);
             return false;
         } else {
-            aspect._removeValidationError(validator, context ? context.propertyName: null);
+            var key = ValidationError.getKey(validator, context ? context.propertyName: null);
+            aspect._removeValidationError(key);
             return true;
         }
     }

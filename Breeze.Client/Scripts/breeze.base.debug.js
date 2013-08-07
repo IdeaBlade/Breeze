@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.3.6",
+        version: "1.4.0",
         metadataVersion: "1.0.5"
     };
 
@@ -433,7 +433,9 @@ function __isGuid(value) {
 }
     
 function __isDuration(value) {
-    return (typeof value === "string") && /^(-|)?P([0-9]+Y|)?([0-9]+M|)?([0-9]+D|)?T?([0-9]+H|)?([0-9]+M|)?([0-9]+S|)?/.test(value);
+    return (typeof value === "string") && /^(-|)?P[T]?[\d\.,\-]+[YMDTHS]/.test(value);
+    // old version
+    // return (typeof value === "string") && /^(-|)?P([0-9]+Y|)?([0-9]+M|)?([0-9]+D|)?T?([0-9]+H|)?([0-9]+M|)?([0-9]+S|)?/.test(value);
 }
 
 function __isEmpty(obj) {
@@ -2572,9 +2574,18 @@ var ValidationError = (function () {
     **/
         
     /**
+    Constructs a new ValidationError
     @method <ctor> ValidationError
+
+    @param validator {Validator || null} The Validator used to create this error, if any.
+    @param context { ContextObject || null) The Context object used in conjunction with the Validator to create this error.
+    @param errorMessage { String} The actual error message
+    @param [key] {String} An optional key used to define a key for this error. One will be created automatically if not provided here. 
     **/
     var ctor = function (validator, context, errorMessage, key) {
+        assertParam(validator, "validator").isOptional().isInstanceOf(Validator).check();
+        assertParam(errorMessage, "errorMessage").isNonEmptyString().check();
+        assertParam(key, "key").isOptional().isNonEmptyString().check();
         this.validator = validator;
         var context = context || {};
         this.context = context;
@@ -2586,12 +2597,9 @@ var ValidationError = (function () {
         if (key) {
             this.key = key;
         } else {
-            if (this.validator) {
-                this.key = ValidationError.getKey(this.validator, this.propertyName);
-            } else {
-                this.key = (this.propertyName || "") + ":" + this.errorMessage;
-            }
-        }        
+            this.key = ValidationError.getKey(validator || errorMessage, this.propertyName);
+        }
+        this.isServerError = false;
     };
 
         
@@ -2638,7 +2646,7 @@ var ValidationError = (function () {
     **/
 
     /**
-   Whether this is a server error.  This property will be missing completely for client side errors.
+   Whether this is a server error.  
 
    __readOnly__
    @property isServerError {bool}
@@ -2646,16 +2654,18 @@ var ValidationError = (function () {
 
 
     /**
-    Returns a ValidationError 'key' given a validator and an option propertyName
+    Composes a ValidationError 'key' given a validator or an errorName and an optional propertyName
     @method getKey
     @static
-    @param validator {Validator} 
+    @param validator {ValidatorOrErrorKey} A Validator or an "error name" if no validator is available.
     @param [propertyName] A property name
     @return {String} A ValidationError 'key'
     **/
-    ctor.getKey = function (validator, propertyName) {
-        return (propertyName || "") + ":" + (validator.name || validator);
+    ctor.getKey = function (validatorOrErrorName, propertyName) {
+        return (validatorOrErrorName.name || validatorOrErrorName) + (propertyName ? ":" + propertyName : "");
+        // return (propertyName || "") + ":" + (validator.name || validator);
     };
+
 
     return ctor;
 })();
@@ -4857,7 +4867,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
 
         }
             
-        var propChangedArgs = { entity: entity, property: property, propertyName: propPath, oldValue: oldValue, newValue: newValue };
+        var propChangedArgs = { entity: entity, parent: this, property: property, propertyName: propPath, oldValue: oldValue, newValue: newValue };
         if (entityManager) {
             // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
             // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.
@@ -5678,8 +5688,10 @@ var MetadataStore = (function () {
             structuralType = structuralType.isComplexType ? new ComplexType(structuralType) : new EntityType(structuralType);
         }
 
+        
         if (!structuralType.isComplexType) {
-            if (structuralType.keyProperties.length === 0) {
+
+            if (structuralType.keyProperties.length === 0 && !structuralType.isAbstract) {
                 throw new Error("Unable to add " + structuralType.name +
                     " to this MetadataStore.  An EntityType must have at least one property designated as a key property - See the 'DataProperty.isPartOfKey' property.");
             }
@@ -5785,8 +5797,8 @@ var MetadataStore = (function () {
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
         if (this.isEmpty()) {
-            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance;
-            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || LocalQueryComparisonOptions.defaultInstance;
+            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || this.namingConvention;
+            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || this.localQueryComparisonOptions;
         } else {
             if (ncName && this.namingConvention.name !== ncName) {
                 throw new Error("Cannot import metadata with a different 'namingConvention' from the current MetadataStore");
@@ -5806,8 +5818,8 @@ var MetadataStore = (function () {
         var structuralTypeMap = this._structuralTypeMap;
         
         json.structuralTypes.forEach(function (stype) {
-            var structuralType = structuralTypeFromJson(that, stype);
-            structuralTypeMap[structuralType.name] = structuralType;
+            structuralTypeFromJson(that, stype);
+            
         });
         __extend(this._resourceEntityTypeMap, json.resourceEntityTypeMap);
         __extend(this._incompleteTypeMap, json.incompleteTypeMap);
@@ -5860,7 +5872,7 @@ var MetadataStore = (function () {
            
     @method getDataService
     @param serviceName {String} The service name.
-    @return {Boolean}
+    @return {DataService}
     **/
     proto.getDataService = function (serviceName) {
         assertParam(serviceName, "serviceName").isString().check();
@@ -6155,18 +6167,18 @@ var MetadataStore = (function () {
         // baseType may not have been imported yet so we need to defer handling this type until later.
         if (json.baseTypeName) {
             stype.baseTypeName = json.baseTypeName;
-            var baseEntityType = metadataStore._getEntityType(json.baseTypeName);
+            var baseEntityType = metadataStore._getEntityType(json.baseTypeName, true);
             if (baseEntityType) {
                 completeStructuralTypeFromJson(metadataStore, json, stype, baseEntityType);
             } else {
-                __getArray(metadataStore.deferredTypes, baseTypeName).push({ json: json, stype: stype });
+                __getArray(metadataStore._deferredTypes, json.baseTypeName).push({ json: json, stype: stype });
                 
             }
         } else {
             completeStructuralTypeFromJson(metadataStore, json, stype, null);
         }
 
-        // sype may or may not have been added to the metadataStore at this point.
+        // stype may or may not have been added to the metadataStore at this point.
         return stype;
     }
 
@@ -6955,26 +6967,30 @@ var EntityType = (function () {
 
     // May make public later.
     proto._setCtor = function (aCtor, interceptor) {
-        var instance = new aCtor();
+
         var proto = aCtor.prototype;
-            
+
+        if (!proto._alreadyWrappedProps) {
+            var instance = new aCtor();
+            calcUnmappedProperties(this, instance);
+        } 
+
         if (this._$typeName === "EntityType") {
             // insure that all of the properties are on the 'template' instance before watching the class.
-            calcUnmappedProperties(this, instance);
             proto.entityType = this;
         } else {
-            calcUnmappedProperties(this, instance);
             proto.complexType = this;
         }
 
-        if (interceptor) {
-            proto._$interceptor = interceptor;
-        } else {
-            proto._$interceptor = defaultPropertyInterceptor;
-        }
+        // defaultPropertyInterceptor is a 'global' (but internal to breeze) function;
+        proto._$interceptor = interceptor || defaultPropertyInterceptor;
+
 
         __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
 
+        if (!proto._alreadyWrappedProps) {
+            proto._alreadyWrappedProps = {};
+        }
         this._ctor = aCtor;
     };
 
@@ -7237,7 +7253,7 @@ var EntityType = (function () {
         if (dp.isComplexProperty) {
             this.complexProperties.push(dp);
         }
-
+        
         if (dp.concurrencyMode && dp.concurrencyMode !== "None") {
             this.concurrencyProperties.push(dp);
         }
@@ -7324,12 +7340,18 @@ var EntityType = (function () {
                 fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np) {
                     return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(fkProp.name) >= 0;
                 });
-                entityType.foreignKeyProperties.push(fkProp);
+                // entityType.foreignKeyProperties.push(fkProp);
+                addUniqueItem(entityType.foreignKeyProperties, fkProp);
             });
         }
         
         resolveRelated(np);
         return true;
+    }
+
+    function addUniqueItem(collection, item) {
+        var ix = collection.indexOf(item);
+        if (ix === -1) collection.push(item);
     }
 
     // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
@@ -7342,9 +7364,11 @@ var EntityType = (function () {
         var fkProps = fkNames.map(function (fkName) {
             return parentEntityType.getDataProperty(fkName);
         });
-        Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
+        var fkPropCollection = parentEntityType.foreignKeyProperties;
+        // Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
 
         fkProps.forEach(function (dp) {
+            addUniqueItem(fkPropCollection, dp);
             dp.relatedNavigationProperty = np;
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
@@ -8679,9 +8703,9 @@ var EntityQuery = (function () {
                 when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.
         - a value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-                In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
-        - an optional [valueIsLiteral] {Boolean} parameter - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
-
+                In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value' property and an 'isLiteral' property set to either true or false.
+                Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a 'value' property and a 'dataType'property set
+                to one of the breeze.DataType enumeration instances.       
    
     @return {EntityQuery}
     @chainable
@@ -8809,6 +8833,7 @@ var EntityQuery = (function () {
 
     /**
     Returns a new query that skips the specified number of entities when returning results.
+    Any existing 'skip' can be cleared by calling 'skip' with no arguments.
     @example
         var query = new EntityQuery("Customers")
             .where("CompanyName", "startsWith", "C")
@@ -8831,6 +8856,7 @@ var EntityQuery = (function () {
         
     /**
     Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.
+    Any existing 'top' can be cleared by calling 'top' with no arguments.
     @example
         var query = new EntityQuery("Customers")
             .top(5);
@@ -8844,7 +8870,8 @@ var EntityQuery = (function () {
     };
 
     /**
-    Returns a new query that returns only the specified number of entities when returning results - Same as 'top'
+    Returns a new query that returns only the specified number of entities when returning results - Same as 'top'.  
+    Any existing take can be cleared by calling take with no arguments.
     @example
         var query = new EntityQuery("Customers")
             .take(5);
@@ -9333,7 +9360,7 @@ var EntityQuery = (function () {
 
         function toTopString() {
             var count = eq.takeCount;
-            if (!count) return;
+            if (count==null) return;
             return count.toString();
         }
 
@@ -9831,15 +9858,17 @@ var Predicate = (function () {
     @param operator {FilterQueryOp|String}
     @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-                In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
-    @param [valueIsLiteral] {Boolean} - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
+                In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value' property and an 'isLiteral' property set to either true or false.
+                Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a 'value' property and a 'dataType'property set
+                to one of the breeze.DataType enumeration instances.
+    
     **/
-    var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
+    var ctor = function (propertyOrExpr, operator, value ) {
         if (arguments[0].prototype === true) {
             // used to construct prototype
             return this;
         }
-        return new SimplePredicate(propertyOrExpr, operator, value, valueIsLiteral);
+        return new SimplePredicate(propertyOrExpr, operator, value);
     };
     var proto = ctor.prototype;
 
@@ -9875,15 +9904,17 @@ var Predicate = (function () {
     @param operator {FilterQueryOp|String}
     @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-                In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
-    @param [valueIsLiteral] {Boolean} - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
+                In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value' property and an 'isLiteral' property set to either true or false.
+                Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a 'value' property and a 'dataType'property set
+                to one of the breeze.DataType enumeration instances.
+    
     **/
-    ctor.create = function (property, operator, value, valueIsLiteral) {
+    ctor.create = function (property, operator, value ) {
         if (Array.isArray(property)) {
-            valueIsLiteral = (property.length === 4) ? property[3] : false;
-            return new SimplePredicate(property[0], property[1], property[2], valueIsLiteral);
+
+            return new SimplePredicate(property[0], property[1], property[2]);
         } else {
-            return new SimplePredicate(property, operator, value, valueIsLiteral);
+            return new SimplePredicate(property, operator, value);
         }
     };
 
@@ -10065,13 +10096,16 @@ var Predicate = (function () {
 // Does not need to be exposed.
 var SimplePredicate = (function () {
 
-    var ctor = function(propertyOrExpr, operator, value, valueIsLiteral) {
+    var ctor = function(propertyOrExpr, operator, value) {
         assertParam(propertyOrExpr, "propertyOrExpr").isString().isOptional().check();
-
-        assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
-        assertParam(value, "value").isRequired(true).check();
-        assertParam(valueIsLiteral).isOptional().isBoolean().check();
-
+        if (arguments.length == 3 && operator != null) {
+            assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
+            assertParam(value, "value").isRequired(true).check();
+        } else {
+            this._odataExpr = propertyOrExpr;
+            return;
+        }
+        
         this._filterQueryOp = FilterQueryOp.from(operator);
         if (!this._filterQueryOp) {
             throw new Error("Unknown query operation: " + operator);
@@ -10085,8 +10119,16 @@ var SimplePredicate = (function () {
             }
         }
 
-        this._value = value;
-        this._valueIsLiteral = valueIsLiteral;
+        // _datatype is just a guess here - it will only be used if we aren't certain from the rest of the expression.
+        if ((value != null) && (typeof (value) === "object") && value.value !== undefined) {
+            this._dataType = value.dataType || DataType.fromValue(value.value);
+            this._value = value.value;
+            this._isLiteral = value.isLiteral;
+        } else {
+            this._dataType = DataType.fromValue(value);
+            this._value = value;
+            this._isLiteral = undefined;
+        }
     };
         
     var proto = new Predicate({ prototype: true });
@@ -10094,6 +10136,9 @@ var SimplePredicate = (function () {
         
 
     proto.toOdataFragment = function (entityType) {
+        if (this._odataExpr) {
+            return this._odataExpr;
+        }
         if (this._filterQueryOp == FilterQueryOp.IsTypeOf) {
             var oftype = entityType.metadataStore.getEntityType(this._value);
             var typeName = oftype.namespace + '.' + oftype.shortName;
@@ -10107,7 +10152,7 @@ var SimplePredicate = (function () {
         if (this._fnNode2) {
             v2Expr = this._fnNode2.toOdataFragment(entityType);
         } else {
-            var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+            var dataType = this._fnNode1.dataType || this._dataType;
             v2Expr = dataType.fmtOData(this._value);
         }
         if (this._filterQueryOp.isFunction) {
@@ -10122,10 +10167,15 @@ var SimplePredicate = (function () {
         }
     };
 
+   
+
     proto.toFunction = function (entityType) {
+        if (this._odataExpr) {
+            throw new Exception("OData predicateexpressions cannot be interpreted locally");
+        }
         this.validate(entityType);
 
-        var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+        var dataType = this._fnNode1.dataType || this._dataType;
         var predFn = getPredicateFn(entityType, this._filterQueryOp, dataType);
         var v1Fn = this._fnNode1.fn;
             
@@ -10153,7 +10203,7 @@ var SimplePredicate = (function () {
             this.dataType = this._fnNode1.dataType;
         }
 
-        if (this._fnNode2 === undefined && !this._valueIsLiteral) {
+        if (this._fnNode2 === undefined && !this._isLiteral) {
             this._fnNode2 = FnNode.create(this._value, entityType);
         }
 
@@ -10162,6 +10212,7 @@ var SimplePredicate = (function () {
     // internal functions
 
     // TODO: still need to handle localQueryComparisonOptions for guids.
+
         
     function getPredicateFn(entityType, filterQueryOp, dataType) {
         var lqco = entityType.metadataStore.localQueryComparisonOptions;
@@ -11310,7 +11361,9 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
     @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
     merging into an existing EntityManager.
-    @return {EntityManager} A new EntityManager.
+    @return {EntityManager} A new EntityManager.  Note that the return value of this method call is different from that 
+    provided by the same named method on an EntityManager instance. Use that method if you need additional information
+    regarding the imported entities.
     **/
     ctor.importEntities = function (exportedString, config) {
         var em = new EntityManager();
@@ -11392,7 +11445,10 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
         @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
         merging into an existing EntityManager.
-    @chainable
+    @return result {Object} 
+
+        result.entities {Array of Entities} The entities that were imported.
+        result.tempKeyMap {Object} Mapping from original EntityKey in the import bundle to its corresponding EntityKey in this EntityManager. 
     **/
     proto.importEntities = function (exportedString, config) {
         config = config || {};
@@ -11414,22 +11470,30 @@ var EntityManager = (function () {
         json.tempKeys.forEach(function (k) {
             var oldKey = EntityKey.fromJSON(k, that.metadataStore);
             // try to use oldKey if not already used in this keyGenerator.
-            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]);
+            tempKeyMap[oldKey.toString()] = new EntityKey(oldKey.entityType, that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]));
         });
+        var entitiesToLink = [];
         config.tempKeyMap = tempKeyMap;
         __wrapExecution(function() {
             that._pendingPubs = [];
         }, function(state) {
             that._pendingPubs.forEach(function(fn) { fn(); });
             that._pendingPubs = null;
-        }, function() {
+        }, function () {
             __objectForEach(json.entityGroupMap, function(entityTypeName, jsonGroup) {
                 var entityType = that.metadataStore._getEntityType(entityTypeName, true);
                 var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
-                importEntityGroup(targetEntityGroup, jsonGroup, config);
+                var entities = importEntityGroup(targetEntityGroup, jsonGroup, config);
+                Array.prototype.push.apply(entitiesToLink, entities);
+            });
+            entitiesToLink.forEach(function (entity) {
+                that._linkRelatedEntities(entity);
             });
         });
-        return this;
+        return {
+            entities: entitiesToLink,
+            tempKeyMapping: tempKeyMap
+        };
     };
 
         
@@ -11850,14 +11914,14 @@ var EntityManager = (function () {
         @param [callback.saveResult.entities] {Array of Entity} The saved entities - with any temporary keys converted into 'real' keys.  
         These entities are actually references to entities in the EntityManager cache that have been updated as a result of the
         save.
-        @param [callback.saveResult.keyMappings] {Object} Map of OriginalEntityKey, NewEntityKey
+        @param [callback.saveResult.keyMappings] {Array of keyMappings} Each keyMapping has the following properties: 'entityTypeName', 'tempValue' and 'realValue'
         @param [callback.saveResult.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
     @param [errorCallback] {Function} Function called on failure.
             
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @param [errorCallback.error.serverErrors] { Array of serverErrors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
+        @param [errorCallback.error.entityErrors] { Array of server side errors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
         @param [errorCallback.error.XHR] {XMLHttpRequest} Any error that cannot be represented as a server error (above) will be returned in this format. 
         This includes timeouts, server failures, database locking issues etc. 
         
@@ -11899,15 +11963,15 @@ var EntityManager = (function () {
                 return !isValid;
             });
             if (failedEntities.length > 0) {
-                var valError = new Error("Validation error");
-                valError.entitiesWithErrors = failedEntities;
+                var valError = new Error("Client side validation errors encountered - see the entityErrors collection on this object for more detail");
+                valError.entityErrors = createEntityErrors(failedEntities);
                 if (errorCallback) errorCallback(valError);
                 return Q.reject(valError);
             }
         }
             
         updateConcurrencyProperties(entitiesToSave);
-        
+       
        
         var dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
         var saveContext = {
@@ -11964,24 +12028,43 @@ var EntityManager = (function () {
     function clearServerErrors(entities) {
         entities.forEach(function (entity) {
             var serverKeys = [];
-            __objectForEach(entity.entityAspect._validationErrors, function (err) {
-                if (err.isServerError) serverKeys.push(err.key);
+            var valErrors = entity.entityAspect._validationErrors;
+            __objectForEach(valErrors, function (key, ve) {
+                if (ve.isServerError) serverKeys.push(key);
             });
             if (serverKeys.length === 0) return;
             serverKeys.forEach(function(key) {
-                delete this._validationErrors[key];
+                delete valErrors[key];
             });
-            entity.hasValidationErrors = !__isEmpty(entity._validationErrors);
+            entity.hasValidationErrors = !__isEmpty(valErrors);
         });
 
     }
 
+
+    function createEntityErrors(entities) {
+        var entityErrors = [];
+        entities.forEach(function (entity) {
+            __objectForEach(entity.entityAspect._validationErrors, function (key, ve) {
+                entityErrors.push({
+                    entity: entity,
+                    errorName: ve.validator.name,
+                    errorMessage: ve.errorMessage,
+                    propertyName: ve.propertyName,
+                    isServerError: ve.isServerError,
+                });
+            });
+        });
+        return entityErrors;
+    }
+
+
     function processServerErrors(saveContext, error) {
-        var serverErrors = error.serverErrors;
-        if (!serverErrors) return;
+        var entityErrors = error.entityErrors;
+        if (!entityErrors) return;
         var entityManager = saveContext.entityManager;
         var metadataStore = entityManager.metadataStore;
-        serverErrors.forEach(function (serr) {
+        entityErrors.forEach(function (serr) {
             if (!serr.keyValues) return;
             var entityType = metadataStore._getEntityType(serr.entityTypeName);
             var ekey = new EntityKey(entityType, serr.keyValues);
@@ -11994,7 +12077,7 @@ var EntityManager = (function () {
                     property: entityType.getProperty(serr.propertyName)
                 } : {
                 };
-            var key = (serr.propertyName || "") + ":" + (serr.errorName || serr.errorMessage)
+            var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
             
             var ve = new ValidationError(null, context, serr.errorMessage, key);
             ve.isServerError = true;
@@ -12685,17 +12768,19 @@ var EntityManager = (function () {
         var dataProps = entityType.dataProperties;
         var keyProps = entityType.keyProperties;
         
-        var entityChanged = entityGroup.entityManager.entityChanged;
+        var em = entityGroup.entityManager;
+        var entityChanged = em.entityChanged;
+        var entitiesToLink = [];
         jsonGroup.entities.forEach(function (rawEntity) {
             var newAspect = rawEntity.entityAspect;
             
             var entityKey = getEntityKeyFromRawEntity(rawEntity, entityType, true);
             var entityState = EntityState.fromName(newAspect.entityState);
-            var newTempKeyValue;
+            var newTempKey;
             if (entityState.isAdded()) {
-                newTempKeyValue = tempKeyMap[entityKey.toString()];
+                newTempKey = tempKeyMap[entityKey.toString()];
                 // merge added records with non temp keys
-                targetEntity = (newTempKeyValue === undefined) ? entityGroup.findEntityByKey(entityKey) : null;
+                targetEntity = (newTempKey === undefined) ? entityGroup.findEntityByKey(entityKey) : null;
             } else {
                 targetEntity = entityGroup.findEntityByKey(entityKey);
             }
@@ -12707,22 +12792,23 @@ var EntityManager = (function () {
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
                         if (!entityState.isUnchanged()) {
-                            entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                            em._notifyStateChange(targetEntity, true);
                         }
                     } else {
                         if (entityState.isUnchanged()) {
-                            entityGroup.entityManager._notifyStateChange(targetEntity, false);
+                            em._notifyStateChange(targetEntity, false);
                         }
                     }
                 } else {
+                    entitiesToLink.push(targetEntity);
                     targetEntity = null;
                 }
             } else {
                 targetEntity = entityType._createEntityCore();
                 updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
-                if (newTempKeyValue !== undefined) {
+                if (newTempKey !== undefined) {
                     // fixup pk
-                    targetEntity.setProperty(entityType.keyProperties[0].name, newTempKeyValue);
+                    targetEntity.setProperty(entityType.keyProperties[0].name, newTempKey.values[0]);
 
                     // fixup foreign keys
                     if (newAspect.tempNavPropNames) {
@@ -12731,8 +12817,8 @@ var EntityManager = (function () {
                             var fkPropName = np.relatedDataProperties[0].name;
                             var oldFkValue = targetEntity.getProperty(fkPropName);
                             var fk = new EntityKey(np.entityType, [oldFkValue]);
-                            var newFkValue = tempKeyMap[fk.toString()];
-                            targetEntity.setProperty(fkPropName, newFkValue);
+                            var newFk = tempKeyMap[fk.toString()];
+                            targetEntity.setProperty(fkPropName, newFk.values[0]);
                         });
                     }
                 }
@@ -12741,7 +12827,7 @@ var EntityManager = (function () {
                 if (entityChanged) {
                     entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
                     if (!entityState.isUnchanged()) {
-                        entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                        em._notifyStateChange(targetEntity, true);
                     }
                 }
             }
@@ -12751,9 +12837,11 @@ var EntityManager = (function () {
                 if (entityState.isModified()) {
                     targetEntity.entityAspect.originalValuesMap = newAspect.originalValues;
                 }
-                entityGroup.entityManager._linkRelatedEntities( targetEntity);
+                entitiesToLink.push(targetEntity);
+
             }
         });
+        return entitiesToLink;
     }
 
      function promiseWithCallbacks(promise, callback, errorCallback) {
@@ -13207,11 +13295,18 @@ var EntityManager = (function () {
     }
 
     function getPropertyFromClientRaw(rawEntity, dp) {
-        return rawEntity[dp.name];
+        var val = rawEntity[dp.name];
+        return val !== undefined ? val : dp.defaultValue;
     }
 
     function getPropertyFromServerRaw(rawEntity, dp) {
-        return rawEntity[dp.nameOnServer || dp.isUnmapped && dp.name];
+        if (dp.isUnmapped) {
+            return rawEntity[dp.nameOnServer || dp.name];
+        } else {
+            var val = rawEntity[dp.nameOnServer];
+            return val !== undefined ? val : dp.defaultValue;
+        }
+        
     }
 
     function parseRawValue(dp, val) {
@@ -13825,8 +13920,9 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     function prepareServerErrors(saveContext, errors) {
         var err = new Error();
+        err.message = "Server side errors encountered - see the serverErrors collection on this object for more detail";
         var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
-        err.serverErrors = errors.map(function (e) {
+        err.entityErrors = errors.map(function (e) {
             return {
                 errorName: e.ErrorName,
                 entityTypeName: MetadataStore.normalizeTypeName(e.EntityTypeName),
@@ -13835,7 +13931,6 @@ breeze.AbstractDataServiceAdapter = (function () {
                 errorMessage: e.ErrorMessage
             };
         });
-        err.message = "Server side errors encountered - see the serverErrors collection on this object for more detail";
         return err;
     }
 

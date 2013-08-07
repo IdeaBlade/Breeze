@@ -174,36 +174,35 @@ docCode.testFns = (function () {
     function getSaveErrorMessages(error) {
         var msg = error.message;
         var detail = error.detail;
-        if (msg.match(/validation error/i)) {
+        if (error.entityErrors) {
             return getValidationMessages(error);
-        } else if (detail && detail.ExceptionType &&
+        } else if (detail) {
+            if (detail.ExceptionType &&
             detail.ExceptionType.indexOf('OptimisticConcurrencyException') !== -1) {
-            // Concurrency error 
-            return "Another user, perhaps the server, " +
-                "may have changed or deleted an entity in the change-set.";
+                // Concurrency error 
+                return "Another user, perhaps the server, " +
+                    "may have changed or deleted an entity in the change-set.";
+            } else {
+                return 'Server ' + detail.ExceptionMessage + '\nStackTrace: ' + detail.StackTrace;
+            }
         }
         return msg;
     }
 
     function getValidationMessages(error) {
-       
-        var detail = error.detail;
-        
-        if (detail) { // Failed validation on the server
-            try {
-                return 'Server ' + detail.ExceptionMessage + '\nStackTrace: ' + detail.StackTrace;
-            } catch(e) {
-                return 'Server ' + error.message;
-            }
-        }
-        
+              
         // Failed on client during pre-Save validation
         try {
-            return error.entitiesWithErrors.map(function (entity) {
-                return entity.entityAspect.getValidationErrors().map(function (valError) {
-                    return valError.errorMessage;
-                }).join(', \n');
-            }).join('; \n');
+            return error.entityErrors.map(function (entityError) {
+                return entityError.errorMessage;
+            }).join(", \n");
+
+            // No longer supported.
+            //return error.entitiesWithErrors.map(function (entity) {
+            //    return entity.entityAspect.getValidationErrors().map(function (valError) {
+            //        return valError.errorMessage;
+            //    }).join(', \n');
+            //}).join('; \n');
         }
         catch (e) {
             return "validation error (error parsing exception :'" + e.message + "')";

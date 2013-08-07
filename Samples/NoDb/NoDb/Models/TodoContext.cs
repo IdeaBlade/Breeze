@@ -44,16 +44,17 @@ namespace NoDb.Models
             }
         }
 
-        public List<KeyMapping> SaveChanges(Dictionary<Type, List<EntityInfo>> saveMap)
+        public void SaveChanges(SaveWorkState saveWorkState)
         {
             lock (__lock)
             {
                 _keyMappings.Clear();
+                var saveMap = saveWorkState.SaveMap;
                 SaveTodoLists(saveMap);
                 SaveTodoItems(saveMap);
                 // ToList effectively copies the _keyMappings so that an incoming SaveChanges call doesn't clear the 
                 // keyMappings before the previous version has completed serializing. 
-                return _keyMappings.ToList();
+                saveWorkState.KeyMappings = _keyMappings.ToList();
             }
         }
 

@@ -3,37 +3,31 @@
 
     var ctrlName = 'cartController';
     var app = angular.module('app').controller(ctrlName,
-        ['$scope', 'dataservice', controller]);
+        ['$scope', 'dataservice', 'pricing', controller]);
     
-    function controller($scope, dataservice) {
+    function controller($scope, dataservice, pricing) {
         var cartOrder = dataservice.cartOrder;
         var draftOrder = dataservice.draftOrder;
+
         $scope.cartOrder = cartOrder;
-
-        $scope.removeItem = function (orderItem) {
-            draftOrder.orderItems.push(orderItem);
-        };
-
-        $scope.itemTotal = itemTotal;
-        $scope.orderTotal = orderTotal;
-
-        function itemTotal(orderItem) {
-            // Todo: move totalling logic into the model
-            var total = orderItem.unitPrice;
-            orderItem.orderItemOptions.forEach(function (option) {
-                option.price = orderItem.productSize.toppingPrice * option.productOption.factor * option.quantity;
-                total += option.price;
-            });
-            return total * orderItem.quantity;
+        $scope.removeItem = removeItem;
+        $scope.calc = calc;
+        
+        calc();
+        
+        function calc() {
+            var haveItems = $scope.haveItems = cartOrder.orderItems.length;
+            if (haveItems){
+                pricing.calcOrderItemsTotal(cartOrder);
+                $scope.someCostMore = pricing.orderHasExtraCostOptions(cartOrder);
+            }
         }
-
-        function orderTotal() {
-            // Todo: move totalling logic into the model
-            var total = 0;
-            cartOrder.orderItems.forEach(function(item) {
-                total += itemTotal(item);
-            });
-            return total;
+               
+        function removeItem(orderItem) {
+            //don't need to remove if item is an entity (e.g, SQL version)
+            cartOrder.removeItem(orderItem);
+            draftOrder.addItem(orderItem);
+            calc();
         }
     }
 

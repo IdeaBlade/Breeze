@@ -132,9 +132,7 @@ function lookups(req, res, next) {
             });
         });
     }
-
-};
-
+}
 
 function processResults(res, next) {
 

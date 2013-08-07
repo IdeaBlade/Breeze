@@ -362,7 +362,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
 
         }
             
-        var propChangedArgs = { entity: entity, property: property, propertyName: propPath, oldValue: oldValue, newValue: newValue };
+        var propChangedArgs = { entity: entity, parent: this, property: property, propertyName: propPath, oldValue: oldValue, newValue: newValue };
         if (entityManager) {
             // propertyChanged will be fired during loading but we only want to fire it once per entity, not once per property.
             // so propertyChanged is fired in the entityManager mergeEntity method if not fired here.

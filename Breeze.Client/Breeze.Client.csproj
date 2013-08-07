@@ -169,6 +169,7 @@
     <Content Include="Scripts\IBlade\node_modules\uglify-js\test\compress\switch.js" />
     <Content Include="Scripts\IBlade\node_modules\uglify-js\test\run-tests.js" />
     <Content Include="Scripts\IBlade\node_modules\uglify-js\tools\node.js" />
+    <Content Include="Scripts\Tests\saveTransactionTests.js" />
     <Content Include="Scripts\Tests\testFns.js" />
     <None Include="Scripts\IBlade\_head.jsfrag" />
     <None Include="Scripts\IBlade\_tail.jsfrag" />
@@ -248,7 +249,7 @@
     <None Include="Scripts\ThirdParty\q.README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Scripts\Experimental\" />
+    <Folder Include="Scripts\Labs\" />
     <Folder Include="Scripts\Unused\Enums\" />
     <Folder Include="Scripts\Unused\JQuery\" />
     <Folder Include="Scripts\Unused\OQuery\" />

@@ -54,7 +54,7 @@ app.dataservice = (function (breeze, logger) {
             var reason = error.message;
             var detail = error.detail;
 
-            if (reason === "Validation error") {
+            if (error.entityErrors) {
                 reason = handleSaveValidationError(error);
             } else if (detail && detail.ExceptionType &&
                 detail.ExceptionType.indexOf('OptimisticConcurrencyException') !== -1) {
@@ -81,7 +81,7 @@ app.dataservice = (function (breeze, logger) {
     function handleSaveValidationError(error) {
         var message = "Not saved due to validation error";
         try { // fish out the first error
-            var firstErr = error.entitiesWithErrors[0].entityAspect.getValidationErrors()[0];
+            var firstErr = error.entityErrors[0];
             message += ": " + firstErr.errorMessage;
         } catch (e) { /* eat it for now */ }
         return message;

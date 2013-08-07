@@ -1,26 +1,32 @@
-﻿using System;
+﻿//#define NHIBERNATE
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
-using System.Web.Http.OData.Builder;
-using Microsoft.Data.Edm.Csdl;
 using Breeze.WebApi;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Sample_WebApi.Models;
-using Microsoft.Data.Edm.Validation;
-using System.Xml;
-using System.IO;
-using System.Xml.Linq;
+
+#if NHIBERNATE
+using Breeze.Nhibernate.WebApi;
+using Models.Produce.NH;
+using NHibernate;
+using NHibernate.Linq;
+#else
 using ProduceTPH;
+#endif
 
 
 namespace Sample_WebApi.Controllers {
    
-
+#if NHIBERNATE
+  public class ProduceTPHContextProvider  : ProduceNHContext {
+#else
   public class ProduceTPHContextProvider  : EFContextProvider<ProduceTPHContext> {
-    
+
     public new ProduceTPHContext Context = new ProduceTPHContext();
+#endif
+    
 
 
     protected override bool BeforeSaveEntity(EntityInfo entityInfo) {
@@ -46,7 +52,11 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public String Metadata() {
+#if NHIBERNATE
+      return ContextProvider.GetHardcodedMetadata();
+#else
       return ContextProvider.Metadata();
+#endif
     }
 
     [HttpPost]
@@ -58,7 +68,7 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public IQueryable<ItemOfProduce> ItemsOfProduce() {
-      return ContextProvider.Context.ItemsOfProduce;
+        return ContextProvider.Context.ItemsOfProduce;
     }
 
 

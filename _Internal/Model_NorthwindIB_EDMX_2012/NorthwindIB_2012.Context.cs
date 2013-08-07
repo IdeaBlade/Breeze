@@ -10,6 +10,7 @@
 namespace Models.NorthwindIB.EDMX_2012
 {
     using System;
+    using System.Data.Common;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
@@ -18,6 +19,10 @@ namespace Models.NorthwindIB.EDMX_2012
         public NorthwindIBContext_EDMX_2012()
             : base("name=NorthwindIBContext_EDMX_2012")
         {
+        }
+
+        public NorthwindIBContext_EDMX_2012(DbConnection connection)
+          : base(connection, false) {
         }
     
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

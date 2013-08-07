@@ -1,44 +1,13 @@
 ﻿<div class="container-fluid">
     <div class="row-fluid">
         <div class="span3">
-
-            <div class="well sidebar-nav">
-                <ul class="nav nav-list">
-                    <li data-ng-repeat="link in links" data-ng-class="{active: activeTag == link.tag}">
-                        <a data-ng-href="#{{link.path}}">{{link.name}}</a>
-                    </li>
-
-                </ul>
-            </div>
-            <!--/.well -->
-            <div class="well">
-                Order Summary
-                <table class="table-condensed" style="font-size:small">
-                    <tr><th>Item</th><th>Size</th><th>Qty</th></tr>
-                    <tr data-ng-repeat="item in cartOrder.orderItems">
-                        <td><a href="#/order/item/{{item.id}}">{{item.product.name}}</a></td>
-                        <td>{{item.productSize.name}}</td>
-                        <td>{{item.quantity}}</td>
-                    </tr>
-                </table>
-                <a href="#/cart">View Cart</a>
-            </div>
-            <div class="well">
-                Recently Viewed Items
-                <table class="table-condensed" style="font-size:small">
-                    <tr><th>Item</th><th>Size</th><th>Qty</th></tr>
-                    <tr data-ng-repeat="item in draftOrder.orderItems">
-                        <td><a href="#/order/item/{{item.id}}">{{item.product.name}}</a></td>
-                        <td>{{item.productSize.name}}</td>
-                        <td>{{item.quantity}}</td>
-                    </tr>
-                </table>
-            </div>
+             <div data-ng-include="'app/views/dashboard.html'"></div>
         </div>
-        <!--/span-->
+
         <div class="span9">
-            <div style="margin-bottom: 30px">
-                <div data-ng-include="view"></div>
+            <div data-ng-switch="isItemView" style="margin-bottom: 30px">
+                <div data-ng-switch-when="true"  data-ng-include="'app/views/orderItem.html'"></div>                         
+                <div data-ng-switch-when="false" data-ng-include="view"></div>
             </div>
         </div>
     </div>

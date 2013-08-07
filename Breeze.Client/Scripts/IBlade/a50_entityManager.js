@@ -289,7 +289,9 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
     @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
     merging into an existing EntityManager.
-    @return {EntityManager} A new EntityManager.
+    @return {EntityManager} A new EntityManager.  Note that the return value of this method call is different from that 
+    provided by the same named method on an EntityManager instance. Use that method if you need additional information
+    regarding the imported entities.
     **/
     ctor.importEntities = function (exportedString, config) {
         var em = new EntityManager();
@@ -371,7 +373,10 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
         @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
         merging into an existing EntityManager.
-    @chainable
+    @return result {Object} 
+
+        result.entities {Array of Entities} The entities that were imported.
+        result.tempKeyMap {Object} Mapping from original EntityKey in the import bundle to its corresponding EntityKey in this EntityManager. 
     **/
     proto.importEntities = function (exportedString, config) {
         config = config || {};
@@ -393,22 +398,30 @@ var EntityManager = (function () {
         json.tempKeys.forEach(function (k) {
             var oldKey = EntityKey.fromJSON(k, that.metadataStore);
             // try to use oldKey if not already used in this keyGenerator.
-            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]);
+            tempKeyMap[oldKey.toString()] = new EntityKey(oldKey.entityType, that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]));
         });
+        var entitiesToLink = [];
         config.tempKeyMap = tempKeyMap;
         __wrapExecution(function() {
             that._pendingPubs = [];
         }, function(state) {
             that._pendingPubs.forEach(function(fn) { fn(); });
             that._pendingPubs = null;
-        }, function() {
+        }, function () {
             __objectForEach(json.entityGroupMap, function(entityTypeName, jsonGroup) {
                 var entityType = that.metadataStore._getEntityType(entityTypeName, true);
                 var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
-                importEntityGroup(targetEntityGroup, jsonGroup, config);
+                var entities = importEntityGroup(targetEntityGroup, jsonGroup, config);
+                Array.prototype.push.apply(entitiesToLink, entities);
+            });
+            entitiesToLink.forEach(function (entity) {
+                that._linkRelatedEntities(entity);
             });
         });
-        return this;
+        return {
+            entities: entitiesToLink,
+            tempKeyMapping: tempKeyMap
+        };
     };
 
         
@@ -829,14 +842,14 @@ var EntityManager = (function () {
         @param [callback.saveResult.entities] {Array of Entity} The saved entities - with any temporary keys converted into 'real' keys.  
         These entities are actually references to entities in the EntityManager cache that have been updated as a result of the
         save.
-        @param [callback.saveResult.keyMappings] {Object} Map of OriginalEntityKey, NewEntityKey
+        @param [callback.saveResult.keyMappings] {Array of keyMappings} Each keyMapping has the following properties: 'entityTypeName', 'tempValue' and 'realValue'
         @param [callback.saveResult.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
     @param [errorCallback] {Function} Function called on failure.
             
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @param [errorCallback.error.serverErrors] { Array of serverErrors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
+        @param [errorCallback.error.entityErrors] { Array of server side errors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
         @param [errorCallback.error.XHR] {XMLHttpRequest} Any error that cannot be represented as a server error (above) will be returned in this format. 
         This includes timeouts, server failures, database locking issues etc. 
         
@@ -878,15 +891,15 @@ var EntityManager = (function () {
                 return !isValid;
             });
             if (failedEntities.length > 0) {
-                var valError = new Error("Validation error");
-                valError.entitiesWithErrors = failedEntities;
+                var valError = new Error("Client side validation errors encountered - see the entityErrors collection on this object for more detail");
+                valError.entityErrors = createEntityErrors(failedEntities);
                 if (errorCallback) errorCallback(valError);
                 return Q.reject(valError);
             }
         }
             
         updateConcurrencyProperties(entitiesToSave);
-        
+       
        
         var dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
         var saveContext = {
@@ -943,24 +956,43 @@ var EntityManager = (function () {
     function clearServerErrors(entities) {
         entities.forEach(function (entity) {
             var serverKeys = [];
-            __objectForEach(entity.entityAspect._validationErrors, function (err) {
-                if (err.isServerError) serverKeys.push(err.key);
+            var valErrors = entity.entityAspect._validationErrors;
+            __objectForEach(valErrors, function (key, ve) {
+                if (ve.isServerError) serverKeys.push(key);
             });
             if (serverKeys.length === 0) return;
             serverKeys.forEach(function(key) {
-                delete this._validationErrors[key];
+                delete valErrors[key];
             });
-            entity.hasValidationErrors = !__isEmpty(entity._validationErrors);
+            entity.hasValidationErrors = !__isEmpty(valErrors);
         });
 
     }
 
+
+    function createEntityErrors(entities) {
+        var entityErrors = [];
+        entities.forEach(function (entity) {
+            __objectForEach(entity.entityAspect._validationErrors, function (key, ve) {
+                entityErrors.push({
+                    entity: entity,
+                    errorName: ve.validator.name,
+                    errorMessage: ve.errorMessage,
+                    propertyName: ve.propertyName,
+                    isServerError: ve.isServerError,
+                });
+            });
+        });
+        return entityErrors;
+    }
+
+
     function processServerErrors(saveContext, error) {
-        var serverErrors = error.serverErrors;
-        if (!serverErrors) return;
+        var entityErrors = error.entityErrors;
+        if (!entityErrors) return;
         var entityManager = saveContext.entityManager;
         var metadataStore = entityManager.metadataStore;
-        serverErrors.forEach(function (serr) {
+        entityErrors.forEach(function (serr) {
             if (!serr.keyValues) return;
             var entityType = metadataStore._getEntityType(serr.entityTypeName);
             var ekey = new EntityKey(entityType, serr.keyValues);
@@ -973,7 +1005,7 @@ var EntityManager = (function () {
                     property: entityType.getProperty(serr.propertyName)
                 } : {
                 };
-            var key = (serr.propertyName || "") + ":" + (serr.errorName || serr.errorMessage)
+            var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
             
             var ve = new ValidationError(null, context, serr.errorMessage, key);
             ve.isServerError = true;
@@ -1664,17 +1696,19 @@ var EntityManager = (function () {
         var dataProps = entityType.dataProperties;
         var keyProps = entityType.keyProperties;
         
-        var entityChanged = entityGroup.entityManager.entityChanged;
+        var em = entityGroup.entityManager;
+        var entityChanged = em.entityChanged;
+        var entitiesToLink = [];
         jsonGroup.entities.forEach(function (rawEntity) {
             var newAspect = rawEntity.entityAspect;
             
             var entityKey = getEntityKeyFromRawEntity(rawEntity, entityType, true);
             var entityState = EntityState.fromName(newAspect.entityState);
-            var newTempKeyValue;
+            var newTempKey;
             if (entityState.isAdded()) {
-                newTempKeyValue = tempKeyMap[entityKey.toString()];
+                newTempKey = tempKeyMap[entityKey.toString()];
                 // merge added records with non temp keys
-                targetEntity = (newTempKeyValue === undefined) ? entityGroup.findEntityByKey(entityKey) : null;
+                targetEntity = (newTempKey === undefined) ? entityGroup.findEntityByKey(entityKey) : null;
             } else {
                 targetEntity = entityGroup.findEntityByKey(entityKey);
             }
@@ -1686,22 +1720,23 @@ var EntityManager = (function () {
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
                         if (!entityState.isUnchanged()) {
-                            entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                            em._notifyStateChange(targetEntity, true);
                         }
                     } else {
                         if (entityState.isUnchanged()) {
-                            entityGroup.entityManager._notifyStateChange(targetEntity, false);
+                            em._notifyStateChange(targetEntity, false);
                         }
                     }
                 } else {
+                    entitiesToLink.push(targetEntity);
                     targetEntity = null;
                 }
             } else {
                 targetEntity = entityType._createEntityCore();
                 updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
-                if (newTempKeyValue !== undefined) {
+                if (newTempKey !== undefined) {
                     // fixup pk
-                    targetEntity.setProperty(entityType.keyProperties[0].name, newTempKeyValue);
+                    targetEntity.setProperty(entityType.keyProperties[0].name, newTempKey.values[0]);
 
                     // fixup foreign keys
                     if (newAspect.tempNavPropNames) {
@@ -1710,8 +1745,8 @@ var EntityManager = (function () {
                             var fkPropName = np.relatedDataProperties[0].name;
                             var oldFkValue = targetEntity.getProperty(fkPropName);
                             var fk = new EntityKey(np.entityType, [oldFkValue]);
-                            var newFkValue = tempKeyMap[fk.toString()];
-                            targetEntity.setProperty(fkPropName, newFkValue);
+                            var newFk = tempKeyMap[fk.toString()];
+                            targetEntity.setProperty(fkPropName, newFk.values[0]);
                         });
                     }
                 }
@@ -1720,7 +1755,7 @@ var EntityManager = (function () {
                 if (entityChanged) {
                     entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
                     if (!entityState.isUnchanged()) {
-                        entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                        em._notifyStateChange(targetEntity, true);
                     }
                 }
             }
@@ -1730,9 +1765,11 @@ var EntityManager = (function () {
                 if (entityState.isModified()) {
                     targetEntity.entityAspect.originalValuesMap = newAspect.originalValues;
                 }
-                entityGroup.entityManager._linkRelatedEntities( targetEntity);
+                entitiesToLink.push(targetEntity);
+
             }
         });
+        return entitiesToLink;
     }
 
      function promiseWithCallbacks(promise, callback, errorCallback) {
@@ -2186,11 +2223,18 @@ var EntityManager = (function () {
     }
 
     function getPropertyFromClientRaw(rawEntity, dp) {
-        return rawEntity[dp.name];
+        var val = rawEntity[dp.name];
+        return val !== undefined ? val : dp.defaultValue;
     }
 
     function getPropertyFromServerRaw(rawEntity, dp) {
-        return rawEntity[dp.nameOnServer || dp.isUnmapped && dp.name];
+        if (dp.isUnmapped) {
+            return rawEntity[dp.nameOnServer || dp.name];
+        } else {
+            var val = rawEntity[dp.nameOnServer];
+            return val !== undefined ? val : dp.defaultValue;
+        }
+        
     }
 
     function parseRawValue(dp, val) {

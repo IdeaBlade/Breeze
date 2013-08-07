@@ -3,13 +3,13 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Transactions;
 using System.Xml.Linq;
-using System.Data;
 
 namespace Breeze.WebApi {
   // Base for EFContextProvider
@@ -63,12 +63,23 @@ namespace Breeze.WebApi {
 
       transactionSettings = transactionSettings ?? BreezeConfig.Instance.GetTransactionSettings();
       try {
-        if (transactionSettings.UseTransactionScope) {
+        if (transactionSettings.TransactionType == TransactionType.TransactionScope) {
           var txOptions = transactionSettings.ToTransactionOptions();
           using (var txScope = new TransactionScope(TransactionScopeOption.Required, txOptions)) {           
             OpenAndSave(SaveWorkState);           
             txScope.Complete();
           }
+        } else if (transactionSettings.TransactionType == TransactionType.DbTransaction) {
+          this.OpenDbConnection();
+          using (IDbTransaction tran = BeginTransaction(transactionSettings.IsolationLevelAs)) {
+            try {
+              OpenAndSave(SaveWorkState);
+              tran.Commit();
+            } catch {
+              tran.Rollback();
+              throw;
+            }
+          }          
         } else {
           OpenAndSave(SaveWorkState);
         }
@@ -110,6 +121,7 @@ namespace Breeze.WebApi {
     /// <summary>
     /// Internal use only.  Should only be called by ContextProvider during SaveChanges.
     /// Opens the DbConnection used by the ContextProvider's implementation.
+    /// Method must be idempotent; after it is called the first time, subsequent calls have no effect.
     /// </summary>
     protected abstract void OpenDbConnection();
 
@@ -118,6 +130,12 @@ namespace Breeze.WebApi {
     /// Closes the DbConnection used by the ContextProvider's implementation.
     /// </summary>
     protected abstract void CloseDbConnection();
+
+    protected virtual IDbTransaction BeginTransaction(System.Data.IsolationLevel isolationLevel) {
+      var conn = GetDbConnection();
+      if (conn == null) return null;
+      return conn.BeginTransaction(isolationLevel);
+    }
 
     protected abstract String BuildJsonMetadata();
 

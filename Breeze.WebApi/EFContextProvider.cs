@@ -73,13 +73,29 @@ namespace Breeze.WebApi {
       }
     }
 
-    public override IDbConnection GetDbConnection() {
-      var ec = ObjectContext.Connection as EntityConnection;
-      if (ec != null) {
-        return ec.StoreConnection;
-      } else {
-        throw new Exception("Unable to create a StoreConnection");
+    /// <summary>Gets the EntityConnection from the ObjectContext.</summary>
+    public DbConnection EntityConnection {
+      get {
+        return (DbConnection)GetDbConnection();
       }
+    }
+
+    /// <summary>Gets the StoreConnection from the ObjectContext.</summary>
+    public DbConnection StoreConnection {
+      get {
+        return ((EntityConnection)GetDbConnection()).StoreConnection;
+      }
+    }
+
+    /// <summary>Gets the current transaction, if one is in progress.</summary>
+    public EntityTransaction EntityTransaction {
+      get; private set;
+    }
+
+
+    /// <summary>Gets the EntityConnection from the ObjectContext.</summary>
+    public override IDbConnection GetDbConnection() {
+      return ObjectContext.Connection;
     }
 
     /// <summary>
@@ -102,6 +118,15 @@ namespace Breeze.WebApi {
         ec.Dispose();
       }
     }
+
+    // Override BeginTransaction so we can keep the current transaction in a property
+    protected override IDbTransaction BeginTransaction(System.Data.IsolationLevel isolationLevel) {
+      var conn = GetDbConnection();
+      if (conn == null) return null;
+      EntityTransaction = (EntityTransaction) conn.BeginTransaction(isolationLevel);
+      return EntityTransaction;
+    }
+
 
     #region Base implementation overrides
 
@@ -228,7 +253,7 @@ namespace Breeze.WebApi {
 
     private IKeyGenerator GetKeyGenerator() {
       var generatorType = KeyGeneratorType.Value;
-      return (IKeyGenerator)Activator.CreateInstance(generatorType, GetDbConnection());
+      return (IKeyGenerator)Activator.CreateInstance(generatorType, StoreConnection);
     }
 
     private EntityInfo ProcessEntity(EFEntityInfo entityInfo) {
@@ -630,7 +655,7 @@ namespace Breeze.WebApi {
     #endregion
 
     // TODO: may want to improve perf on this later ( cache the mappings maybe).
-    public String GetEntitySetName( Type entityType) {
+    public String GetEntitySetName(Type entityType) {
       var metaWs = ObjectContext.MetadataWorkspace;
       EntityType cspaceEntityType;
       var ospaceEntityTypes = metaWs.GetItems<EntityType>(DataSpace.OSpace);
@@ -701,12 +726,14 @@ namespace Breeze.WebApi {
   }
 
   public class EFEntityError : EntityError {
-    public EFEntityError(EntityInfo entityInfo, String errorMessage, String propertyName) {
+    public EFEntityError(EntityInfo entityInfo, String errorName, String errorMessage, String propertyName) {
+
 
       if (entityInfo != null) {
-        this.EntityTypeName = entityInfo.Entity.GetType().FullName;       
+        this.EntityTypeName = entityInfo.Entity.GetType().FullName;
         this.KeyValues = GetKeyValues(entityInfo);
       }
+      ErrorName = ErrorName;
       ErrorMessage = errorMessage;
       PropertyName = propertyName;
     }
@@ -724,9 +751,9 @@ namespace Breeze.WebApi {
       }
       ObjectStateEntry entry;
       if (!objContext.ObjectStateManager.TryGetObjectStateEntry(entity, out entry)) {
-          throw new Exception("unable to getKey values for: " + entity);
+        throw new Exception("unable to getKey values for: " + entity);
       }
-      
+
       var key = entry.EntityKey;
       Object[] keyValues;
       if (key.EntityKeyValues != null) {

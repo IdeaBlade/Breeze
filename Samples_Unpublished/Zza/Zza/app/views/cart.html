@@ -1,4 +1,7 @@
-﻿<div class="container">
+﻿<div data-ng-if="!haveItems" class="container">
+    <h2>Your cart is empty</h2>
+</div>
+<div data-ng-if="haveItems" class="container">
     <h2>Your Order</h2>
     <div>
         <table class="table" >
@@ -6,24 +9,24 @@
             <tbody data-ng-repeat="item in cartOrder.orderItems">
                 <tr>
                     <td><button class="btn" data-ng-click="removeItem(item)">Remove</button></td>
-                    <td><a href="#/order/item/{{item.id}}"><strong>{{item.product.name}}</strong></a></td>
+                    <td><a href="#/order/cart/item/{{item.id}}"><strong>{{item.product.name}}</strong></a></td>
                     <td>{{item.productSize.name}}</td>
-                    <td><input type="text" name="qty{{item.id}}" data-ng-model="item.quantity" class="input-mini" /></td>
-                    <td>{{item.unitPrice * item.quantity | currency}}</td>
+                    <td><input type="text" data-ng-model="item.quantity" data-ng-change="calc()" class="input-mini" /></td>
+                    <td>{{item.unitPrice | currency}}</td>
                 </tr> 
                 <tr class="narrow" data-ng-repeat="option in item.orderItemOptions">
                     <td></td>
                     <td>{{option.productOption.name}}</td>
                     <td></td>
-                    <td><input type="text" name="qty{{option.id}}" data-ng-model="option.quantity" class="input-mini" /></td>
-                    <td>{{(option.price = item.productSize.toppingPrice * option.productOption.factor) * option.quantity * item.quantity | currency}}</td>
+                    <td></td>
+                    <td>{{option.price | currency}}</td>
                 </tr> 
                 <tr>
                     <td></td>
                     <td></td>
                     <td></td>
                     <td>Item Total</td>
-                    <td>{{itemTotal(item) | currency}}</td>
+                    <td>{{item.totalPrice | currency}}</td>
                 </tr> 
             </tbody>
             <tbody>
@@ -32,7 +35,13 @@
                     <td></td>
                     <td></td>
                     <td>Order Total</td>
-                    <td>{{orderTotal() | currency}}</td>
+                    <td>{{cartOrder.itemsTotal | currency}}</td>
+                </tr> 
+                <tr data-ng-show="someCostMore" >
+                    <td></td>
+                    <td colspan="3">
+                    <p class="optionMessage">Options with an (*) count as 2.</p> 
+                    </td>
                 </tr> 
             </tbody>
         </table>

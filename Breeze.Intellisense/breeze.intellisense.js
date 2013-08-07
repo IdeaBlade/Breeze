@@ -1,4 +1,4 @@
-﻿// Generated on: Sun Jun 23 2013 18:35:52 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Tue Aug 06 2013 12:10:18 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -239,9 +239,10 @@ intellisense.annotate(breeze.breeze, {
     ///   <summary>
     ///   A ValidationError is used to describe a failed validation.
     ///   </summary>
-    ///   <param name="validator" type="breeze.breeze.Validator" optional="true"></param>
-    ///   <param name="context" type="Object" optional="true"></param>
-    ///   <param name="errorMessage" type="String" optional="true"></param>
+    ///   <param name="validator" type="Validator || null" optional="true">The Validator used to create this error, if any.</param>
+    ///   <param name="context" type="" optional="true">{ ContextObject || null) The Context object used in conjunction with the Validator to create this error.</param>
+    ///   <param name="errorMessage" type="String" optional="true">The actual error message</param>
+    ///   <param name="key" type="String" optional="true">An optional key used to define a key for this error. One will be created automatically if not provided here.</param>
     /// </signature>
   },
 
@@ -742,9 +743,25 @@ intellisense.annotate(breeze.breeze.ValidationError.prototype, {
   /// <field name="errorMessage" type="String" >The error message associated with the ValidationError.</field>
   'errorMessage': null,
   
+  /// <field name="key" type="String" >The key by which this validation error may be removed from a collection of ValidationErrors.</field>
+  'key': null,
+  
+  /// <field name="isServerError" type="Bool" >Whether this is a server error.  </field>
+  'isServerError': null,
+  
 });
 intellisense.annotate(breeze.breeze.ValidationError, {
   
+  'getKey': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Composes a ValidationError 'key' given a validator or an errorName and an optional propertyName
+    ///   </summary>
+    ///   <param name="validator" type="ValidatorOrErrorKey" optional="true">A Validator or an 'error name' if no validator is available.</param>
+    ///   <param name="propertyName" type="" optional="true">A property name</param>
+    ///   <returns type="String >A ValidationError 'key'</returns>
+    /// </signature>
+  },
   
 });
 
@@ -943,7 +960,7 @@ intellisense.annotate(breeze.breeze.EntityAspect.prototype, {
   'addValidationError': function() {
     /// <signature>
     ///   <summary>
-    ///   Adds a validation error for a specified property.
+    ///   Adds a validation error.
     ///   </summary>
     ///   <param name="validationError" type="breeze.breeze.ValidationError" optional="true"></param>
     
@@ -952,10 +969,9 @@ intellisense.annotate(breeze.breeze.EntityAspect.prototype, {
   'removeValidationError': function() {
     /// <signature>
     ///   <summary>
-    ///   Removes a validation error for a specified property.
+    ///   Removes a validation error.
     ///   </summary>
-    ///   <param name="validator" type="breeze.breeze.Validator" optional="true"></param>
-    ///   <param name="property" type="DataProperty|NavigationProperty" optional="true"></param>
+    ///   <param name="validationErrorOrKey" type="ValidationError|String" optional="true">Either a ValidationError or a ValidationError 'key' value</param>
     
     /// </signature>
   },
@@ -979,6 +995,9 @@ intellisense.annotate(breeze.breeze.EntityAspect.prototype, {
   
   /// <field name="isBeingSaved" type="Boolean" >Whether this entity is in the process of being saved.</field>
   'isBeingSaved': null,
+  
+  /// <field name="hasValidationErrors" type="Boolean" >Whether this entity has any validation errors.</field>
+  'hasValidationErrors': null,
   
   /// <field name="originalValues" type="Object" >The 'original values' of this entity where they are different from the 'current values'.  This is a map where the key is a property name and the value is the 'original value' of the property.</field>
   'originalValues': null,
@@ -1294,7 +1313,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   Returns the DataService for a specified service name
     ///   </summary>
     ///   <param name="serviceName" type="String" optional="true">The service name.</param>
-    ///   <returns type="Boolean" ></returns>
+    ///   <returns type="breeze.breeze.DataService" ></returns>
     /// </signature>
   },
   'fetchMetadata': function() {
@@ -1899,6 +1918,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     /// <signature>
     ///   <summary>
     ///   Returns a new query that skips the specified number of entities when returning results.
+    ///   Any existing 'skip' can be cleared by calling 'skip' with no arguments.
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return. If omitted this clears the</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1908,6 +1928,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     /// <signature>
     ///   <summary>
     ///   Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.
+    ///   Any existing 'top' can be cleared by calling 'top' with no arguments.
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -1916,7 +1937,8 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
   'take': function() {
     /// <signature>
     ///   <summary>
-    ///   Returns a new query that returns only the specified number of entities when returning results - Same as 'top'
+    ///   Returns a new query that returns only the specified number of entities when returning results - Same as 'top'.  
+    ///   Any existing take can be cleared by calling take with no arguments.
     ///   </summary>
     ///   <param name="count" type="Number" optional="true">The number of entities to return.</param>
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
@@ -2305,7 +2327,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   </summary>
     ///   <param name="exportedString" type="String|Json" optional="true">The result of a previous 'export' call.</param>
     ///   <param name="config" type="Object" optional="true">A configuration object.</param>
-    
+    ///   <returns type="Object" >result  </returns>
     /// </signature>
   },
   'clear': function() {
