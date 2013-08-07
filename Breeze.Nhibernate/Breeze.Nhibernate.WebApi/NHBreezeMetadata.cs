@@ -308,8 +308,8 @@ namespace Breeze.Nhibernate.WebApi
         /// <returns></returns>
         private Dictionary<string, object> MakeDataProperty(string propName, string typeName, bool isNullable, Column col, bool isKey, bool isVersion)
         {
-            if (typeName == "Byte[]" || typeName == "BinaryBlob") typeName = "Binary";  // breeze expects Binary
-            if (typeName == "TimeAsTimeSpan") typeName = "Time";
+            string newType;
+            typeName = (BreezeTypeMap.TryGetValue(typeName, out newType)) ? newType : typeName;
 
             var dmap = new Dictionary<string, object>();
             dmap.Add("nameOnServer", propName);
@@ -506,6 +506,15 @@ namespace Breeze.Nhibernate.WebApi
         }
         const string ONE2ONE = "_1to1";
         const string ASSN = "AN_";
+
+        // Map of NH datatype to Breeze datatype.
+        static Dictionary<string, string> BreezeTypeMap = new Dictionary<string, string>() {
+                    {"Byte[]", "Binary" },
+                    {"BinaryBlob", "Binary" },
+                    {"Timestamp", "DateTime" },
+                    {"TimeAsTimeSpan", "Time" }
+                };
+
 
         // Map of data type to Breeze validation type
         static Dictionary<string, string> ValidationTypeMap = new Dictionary<string, string>() {
