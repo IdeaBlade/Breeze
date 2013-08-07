@@ -113,8 +113,8 @@ namespace Breeze.Nhibernate.WebApi {
     protected override void SaveChangesCore(SaveWorkState saveWorkState) {
       var saveMap = saveWorkState.SaveMap;
       var tx = session.Transaction;
-      var hasExistingTransaction = (tx != null);
-      if (!hasExistingTransaction) tx = session.BeginTransaction();
+      var hasExistingTransaction = tx.IsActive;
+      if (!hasExistingTransaction) tx.Begin(BreezeConfig.Instance.GetTransactionSettings().IsolationLevelAs);
       try {
         ProcessSaves(saveMap);
 
