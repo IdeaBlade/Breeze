@@ -74,7 +74,11 @@ namespace Breeze.Nhibernate.WebApi {
       return wrapper;
     }
 
-
+    public override object[] GetKeyValues(EntityInfo entityInfo) {
+      var classMeta = session.SessionFactory.GetClassMetadata(entityInfo.Entity.GetType());
+      var keyValues = GetIdentifierAsArray(entityInfo.Entity, classMeta);
+      return keyValues;
+    }
 
     #region Metadata
 
@@ -369,4 +373,5 @@ namespace Breeze.Nhibernate.WebApi {
 
     #endregion
   }
+
 }

@@ -141,6 +141,10 @@ namespace Breeze.WebApi {
 
     protected abstract void SaveChangesCore(SaveWorkState saveWorkState);
 
+    public virtual object[] GetKeyValues(EntityInfo entityInfo) {
+      throw new NotImplementedException();
+    }
+
     protected virtual EntityInfo CreateEntityInfo() {
       return new EntityInfo();
     }
