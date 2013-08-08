@@ -73,8 +73,15 @@ namespace Breeze.Nhibernate.WebApi {
     }
 
     public override object[] GetKeyValues(EntityInfo entityInfo) {
-      var classMeta = session.SessionFactory.GetClassMetadata(entityInfo.Entity.GetType());
-      var keyValues = GetIdentifierAsArray(entityInfo.Entity, classMeta);
+      return GetKeyValues(entityInfo.Entity);
+    }
+
+    public object[] GetKeyValues(object entity) {
+      var classMeta = session.SessionFactory.GetClassMetadata(entity.GetType());
+      if (classMeta == null) {
+        throw new ArgumentException("Metadata not found for type " + entity.GetType());
+      }
+      var keyValues = GetIdentifierAsArray(entity, classMeta);
       return keyValues;
     }
 

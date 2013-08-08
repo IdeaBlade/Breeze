@@ -145,7 +145,7 @@ namespace Sample_WebApi.Controllers {
         ? new NorthwindIBContext_CF(EntityConnection)
         : new NorthwindIBContext_CF();
 #elif DATABASEFIRST_OLD
-        ? new NorthwindIBContext_EDMX(EntityConnection)
+        ? new NorthwindIBContext_EDMX((System.Data.EntityClient.EntityConnection)EntityConnection)
         : new NorthwindIBContext_EDMX();
 #elif DATABASEFIRST_NEW
         ? new NorthwindIBContext_EDMX_2012(EntityConnection)
