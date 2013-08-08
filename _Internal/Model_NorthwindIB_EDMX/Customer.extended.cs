@@ -6,6 +6,19 @@ using System.Text;
 
 namespace Models.NorthwindIB.EDMX {
   
+  [AttributeUsage(AttributeTargets.Class)] // NEW
+  public class CustomerValidator : ValidationAttribute {
+    public override Boolean IsValid(Object value) {
+      var cust = value as Customer;
+      if (cust != null && cust.CompanyName.ToLower() == "error") {
+        ErrorMessage = "This customer is not valid!";
+        return false;
+      }
+      return true;
+    }
+  }
+
+
   [AttributeUsage(AttributeTargets.Property)]
   public class CustomValidator : ValidationAttribute {
     public override Boolean IsValid(Object value) {
@@ -24,22 +37,22 @@ namespace Models.NorthwindIB.EDMX {
   }
 
   [MetadataType(typeof(CustomerMetaData))]
+  [CustomerValidator]
   public partial class Customer {
 
-    public class CustomerMetaData {
-
-
-      [CustomValidator]
-      public string ContactName {
-        get;
-        set;
-      }
-
-
-
-    }
   }
 
 
-  
+  public class CustomerMetaData {
+
+
+    [CustomValidator]
+    public string ContactName {
+      get;
+      set;
+    }
+
+
+
+  }
 }

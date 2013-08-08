@@ -273,6 +273,11 @@ namespace Sample_WebApi.Controllers {
         }
       }
 
+#if DATABASEFIRST_OLD
+      DataAnnotationsValidator.AddDescriptor(typeof(Customer), typeof(CustomerMetaData));
+      var validator = new DataAnnotationsValidator(this);
+      validator.ValidateEntities(saveMap, true);
+#endif
       return base.BeforeSaveEntities(saveMap);
     }
 
