@@ -681,7 +681,7 @@
             ok(e.entityErrors, "should be a server error");
             ok(e.entityErrors.length === 1, "should be only one server error");
             var errors = cust1.entityAspect.getValidationErrors();
-            ok(errors[0].errorMessage === errors[0].errorMessage, "error message should appear on the cust");
+            ok(errors[0].errorMessage === e.entityErrors[0].errorMessage, "error message should appear on the cust");
         }).fin(start);
     });
 

@@ -7,10 +7,8 @@ using NHibernate.Metadata;
 using NHibernate.Type;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
-using System.Text;
 
 namespace Breeze.Nhibernate.WebApi {
   public class NHContext : ContextProvider, IDisposable {
@@ -187,24 +185,6 @@ namespace Breeze.Nhibernate.WebApi {
     private void ProcessEntity(EntityInfo entityInfo, IClassMetadata classMeta) {
       var entity = entityInfo.Entity;
       var state = entityInfo.EntityState;
-
-      // Perform validation on the entity, based on DataAnnotations.  TODO move this to a pluggable interceptor
-      var validationResults = new List<ValidationResult>();
-      if (!Validator.TryValidateObject(entity, new ValidationContext(entity), validationResults, true)) {
-        var entityTypeName = entityInfo.Entity.GetType().FullName;
-        var keyValues = GetIdentifierAsArray(entityInfo.Entity, classMeta);
-        foreach (var vr in validationResults) {
-          entityErrors.Add(new EntityError() {
-            EntityTypeName = entityTypeName,
-            ErrorMessage = vr.ErrorMessage,
-            ErrorName = "ValidationError",
-            KeyValues = keyValues,
-            PropertyName = vr.MemberNames.First()
-          });
-
-        }
-        return;
-      }
 
       // Restore the old value of the concurrency column so Hibernate will be able to save the entity
       if (classMeta.IsVersioned) {

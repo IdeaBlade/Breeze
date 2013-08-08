@@ -271,11 +271,9 @@ namespace Sample_WebApi.Controllers {
             saveMap[type].Add(enInfo);
           }
         }
-        return saveMap;
       }
 
       return base.BeforeSaveEntities(saveMap);
-      // return saveMap;
     }
 
   }
