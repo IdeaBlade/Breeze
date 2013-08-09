@@ -116,10 +116,10 @@ namespace Breeze.Nhibernate.WebApi {
 
     /// <summary>
     /// Persist the changes to the entities in the saveMap.
-    /// This implements the abstract method in ContextProvider
+    /// This implements the abstract method in ContextProvider.
+    /// Assigns saveWorkState.KeyMappings, which map the temporary keys to their real generated keys.
     /// </summary>
     /// <param name="saveMap">Map of Type -> List of entities of that type</param>
-    /// <returns>List of KeyMappings, which map the temporary keys to their real generated keys</returns>
     protected override void SaveChangesCore(SaveWorkState saveWorkState) {
       var saveMap = saveWorkState.SaveMap;
       var tx = session.Transaction;
@@ -127,10 +127,6 @@ namespace Breeze.Nhibernate.WebApi {
       if (!hasExistingTransaction) tx.Begin(BreezeConfig.Instance.GetTransactionSettings().IsolationLevelAs);
       try {
         ProcessSaves(saveMap);
-
-        if (entityErrors.Any()) {
-          throw new EntityErrorsException(entityErrors);
-        }
 
         session.Flush();
         RemoveRelationships(saveMap);
@@ -146,7 +142,7 @@ namespace Breeze.Nhibernate.WebApi {
             KeyValues = null,
             PropertyName = pve.PropertyName
         });
-        throw new EntityErrorsException(entityErrors);
+        saveWorkState.EntityErrors = entityErrors;
       } catch (Exception) {
         if (tx.IsActive) tx.Rollback();
         throw;

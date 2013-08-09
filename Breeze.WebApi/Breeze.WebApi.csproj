@@ -100,6 +100,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BreezeControllerAttribute.cs" />
+    <Compile Include="BreezeMetadataValidator.cs" />
     <Compile Include="DataAnnotationsValidator.cs" />
     <Compile Include="Legacy\LegacyBreezeControllerAttribute.cs" />
     <Compile Include="ContextProvider.cs" />

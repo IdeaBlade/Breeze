@@ -13,9 +13,14 @@ namespace Sample_WebApi.Controllers
         public NorthwindNHContext(NHContext sourceContext) : base(sourceContext) { }
 
         protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
+          var meta = this.GetMetadata();
+          var bvalidator = new BreezeMetadataValidator(this, meta);
+          bvalidator.ValidateEntities(saveMap, true);
+
           DataAnnotationsValidator.AddDescriptor(typeof(Customer), typeof(CustomerMetaData));
           var validator = new DataAnnotationsValidator(this);
           validator.ValidateEntities(saveMap, true);
+
           return base.BeforeSaveEntities(saveMap);
         }
 
