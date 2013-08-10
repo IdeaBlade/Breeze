@@ -7,9 +7,23 @@
 (function () {
     'use strict';
 
-    var dir = angular.module('breeze.directives', []);
+    var module = angular.module('breeze.directives', []);
 
-    dir.directive('zValidate', function () {
+    module.value('breeze.directives.config', {
+        // Configurable template for displaying validation errors
+        // Usage:
+        //     app.run(['breeze.directives.config', function(config) {
+        //         config.zValidateTemplate =
+        //             '<span class="invalid"><i class="icon-warning-sign"></i>'+
+        //             'OMG! I can\'t believe that the %error%</span>';
+        //     }]);
+        // This default template assumes bootstrap.js
+        zValidateTemplate: '<span class="invalid"><i class="icon-warning-sign"></i>%error%</span>' 
+    });
+    
+    module.directive('zValidate', ['breeze.directives.config', zValidate]);
+    
+    function zValidate(config) {
         //Usage:
         //    <input data-ng-model='vm.session.firstName' data-z-validate />
         //    <input data-ng-model='vm.session.track' data-z-validate='trackId' />
@@ -40,7 +54,7 @@
                 errEl = errEl.hasClass('invalid') ? errEl : null;
 
                 if (newValue) {
-                    var html = '<span class="invalid"><i class="icon-warning-sign"></i>' + newValue + '</span>';
+                    var html = config.zValidateTemplate.replace(/%error%/, newValue);
                     if (errEl) {
                         errEl.replaceWith(html);
                     } else {
@@ -121,5 +135,5 @@
 
             function aspectFromEntity() { return scope.entityAspect; }
         }
-    });
+    }
 })();
