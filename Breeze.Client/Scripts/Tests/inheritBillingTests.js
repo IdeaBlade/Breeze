@@ -265,13 +265,7 @@
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(target, "idAndOwner", {
-            get: function () {
-                return this.id + ":" + this.owner || "";
-            },
-            enumerable: true,
-            configurable: true
-        });
+
 
         Object.defineProperty(target, "miscData", {
             get: function () {
@@ -279,6 +273,14 @@
             },
             set: function (value) {
                 this["_miscData"] = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        Object.defineProperty(target, "idAndOwner", {
+            get: function () {
+                return this.getProperty && this.getProperty("id") + ":" + this.getProperty("owner") || "";
             },
             enumerable: true,
             configurable: true

@@ -28,7 +28,7 @@
             if (p === "_$typeName") continue;
             if (p === "_pendingSets") continue;
             if (p === "_backingStore") continue;
-            if (p === "_alreadyWrappedProps") continue;
+            if (p === "_$extra") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);
@@ -151,7 +151,8 @@
 
     // This method is called during Metadata initialization to correct "wrap" properties.
     function movePropDefsToProto(proto) {
-        var alreadyWrapped = proto._alreadyWrappedProps || {};
+        var extra = proto._$extra;
+        var alreadyWrapped = extra.alreadyWrappedProps || {};
         var stype = proto.entityType || proto.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
@@ -167,7 +168,7 @@
             }
             alreadyWrapped[propName] = true;
         });
-        proto._alreadyWrappedProps = alreadyWrapped;
+        extra.alreadyWrappedProps = alreadyWrapped;
     }
 
     // This method is called when an instance is first created via materialization or createEntity.

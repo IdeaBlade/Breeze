@@ -6970,7 +6970,11 @@ var EntityType = (function () {
 
         var proto = aCtor.prototype;
 
-        if (!proto._alreadyWrappedProps) {
+        // place for extra breeze related data
+        extra = proto._$extra || {};
+        proto._$extra = extra;
+        
+        if (!extra.initialized) {
             var instance = new aCtor();
             calcUnmappedProperties(this, instance);
         } 
@@ -6984,13 +6988,10 @@ var EntityType = (function () {
 
         // defaultPropertyInterceptor is a 'global' (but internal to breeze) function;
         proto._$interceptor = interceptor || defaultPropertyInterceptor;
-
-
+                
         __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
-
-        if (!proto._alreadyWrappedProps) {
-            proto._alreadyWrappedProps = {};
-        }
+        extra.initialized = true;
+        
         this._ctor = aCtor;
     };
 
@@ -7391,6 +7392,9 @@ var EntityType = (function () {
                     isUnmapped: true
                 });
                 entityType.addProperty(newProp);
+                entityType.subtypes.forEach(function (st) {
+                    st.addProperty(new DataProperty(newProp));
+                });
             }
         });
     }
