@@ -1,27 +1,54 @@
-﻿/*
+﻿/* 
+ * Breeze Angular directives
+ *
+ *  
+ *  Usage:
+ *     // Make it a dependency of your app module:
+ *     var app = angular.module('app', ['breeze.directives']); 
+ *
  * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
  * Licensed under the MIT License
  * http://opensource.org/licenses/mit-license.php
  * Author: Ward Bell
  */
+
 (function () {
     'use strict';
 
     var module = angular.module('breeze.directives', []);
 
-    module.value('breeze.directives.config', {
-        // Configurable template for displaying validation errors
-        // Usage:
-        //     app.run(['breeze.directives.config', function(config) {
-        //         config.zValidateTemplate =
-        //             '<span class="invalid"><i class="icon-warning-sign"></i>'+
-        //             'OMG! I can\'t believe that the %error%</span>';
-        //     }]);
-        // This default template assumes bootstrap.js
-        zValidateTemplate: '<span class="invalid"><i class="icon-warning-sign"></i>%error%</span>' 
+    /* Configure the breeze directives
+    *  
+    *  zValidateTemplate: template for display of validation errors
+    * 
+    *  Usage:
+    *      Either during the app's Angular config phase ...
+    *      app.config(['zDirectivesConfigProvider', function(cfg) {
+    *          cfg.zValidateTemplate =
+    *              '<span class="invalid"><i class="icon-warning-sign"></i>' +
+    *              'Oh No!!! %error%</span>';
+    *      }]);
+    *      
+    *      // ... or during the app's Angular run phase:
+    *      app.run(['zDirectivesConfig', function(cfg) {
+    *          cfg.zValidateTemplate =
+    *              '<span class="invalid"><i class="icon-warning-sign"></i>' +
+    *              'So sad!!! %error%</span>';
+    *      }]);
+    */
+    module.provider('zDirectivesConfig', function() {
+        // The default zValidate template for display of validation errors assumes bootstrap.js
+        this.zValidateTemplate =
+            '<span class="invalid"><i class="icon-warning-sign"></i>%error%</span>';
+
+        this.$get = function() {
+            return {
+                zValidateTemplate: this.zValidateTemplate
+            };
+        };
     });
     
-    module.directive('zValidate', ['breeze.directives.config', zValidate]);
+    module.directive('zValidate', ['zDirectivesConfig', zValidate]);
     
     function zValidate(config) {
         //Usage:
