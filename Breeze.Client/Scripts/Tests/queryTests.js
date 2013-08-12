@@ -26,6 +26,31 @@
         }
     });
 
+    test("empty clauses", function () {
+
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where().orderBy().select().expand().take().skip();
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("empty clauses - 2", function () {
+
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(null).orderBy(null).select(null).expand(null).take(null).skip(null);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
 
     test("OData predicate", function () {
         var manager = newEm();

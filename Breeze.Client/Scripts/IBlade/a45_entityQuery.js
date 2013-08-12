@@ -225,7 +225,7 @@ var EntityQuery = (function () {
     **/
     proto.where = function (predicate) {
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (predicate == null) {
             eq.wherePredicate = null;
             return eq;
         }
@@ -276,7 +276,7 @@ var EntityQuery = (function () {
     **/
     proto.orderBy = function (propertyPaths) {
         // deliberately don't pass in isDesc
-        return orderByCore(this, normalizePropertyPaths(propertyPaths));
+        return orderByCore(this, propertyPaths);
     };
 
     /**
@@ -301,7 +301,7 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.orderByDesc = function (propertyPaths) {
-        return orderByCore(this, normalizePropertyPaths(propertyPaths), true);
+        return orderByCore(this, propertyPaths, true);
     };
         
     /**
@@ -340,7 +340,7 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.select = function (propertyPaths) {
-        return selectCore(this, normalizePropertyPaths(propertyPaths));
+        return selectCore(this, propertyPaths);
     };
 
 
@@ -359,7 +359,7 @@ var EntityQuery = (function () {
     proto.skip = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (count == null) {
             eq.skipCount = null;
         } else {
             eq.skipCount = count;
@@ -396,7 +396,7 @@ var EntityQuery = (function () {
     proto.take = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (count == null) {
             eq.takeCount = null;
         } else {
             eq.takeCount = count;
@@ -427,7 +427,7 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.expand = function (propertyPaths) {
-        return expandCore(this, normalizePropertyPaths(propertyPaths));
+        return expandCore(this, propertyPaths);
     };
 
     /**
@@ -947,11 +947,12 @@ var EntityQuery = (function () {
     function orderByCore(that, propertyPaths, isDesc) {
         var newClause;
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.orderByClause = null;
             return eq;
         }
 
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         newClause = OrderByClause.create(propertyPaths, isDesc);
 
         if (eq.orderByClause) {
@@ -964,20 +965,22 @@ var EntityQuery = (function () {
         
     function selectCore(that, propertyPaths) {
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.selectClause = null;
             return eq;
         }
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         eq.selectClause = new SelectClause(propertyPaths);
         return eq;
     }
         
     function expandCore(that, propertyPaths) {
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.expandClause = null;
             return eq;
         }
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         eq.expandClause = new ExpandClause(propertyPaths);
         return eq;
     }
