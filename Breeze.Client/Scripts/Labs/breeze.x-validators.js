@@ -79,7 +79,6 @@
         return makeRegExpValidator(
          'url',
           reUrlProtocolRequired,  
-        ///^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
         "The %displayName% '%value%' is not a valid url.");
     };
     
