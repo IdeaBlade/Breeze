@@ -869,26 +869,6 @@ declare module breeze {
         message?: string;
     }
 
-
-    class Config {
-        static ajax: string;
-        static dataService: string;
-        static functionRegistry: Object;
-        static getAdapter(interfaceName: string, adapterName: string): Object;
-        static getAdapterInstance(interfaceName: string, adapterName: string): Object;
-        static initializeAdapterInstance(interfaceName: string, adapterName: string, isDefault: boolean): void;
-        static initializeAdapterInstances(config: Object): void;
-        static interfaceInitialized: Event;
-        static interfaceRegistry: Object;
-        static objectRegistry: Object;
-        static registerAdapter(interfaceName: string): void;
-        static registerFunction(fn: Function, fnName: string): void;
-        static registerType(ctor: Function, typeName: string): void;
-        //static setProperties(config: Object): void; //deprecated
-        static stringifyPad: string;
-        static typeRegistry: Object;
-    }
-
     var metadataVersion: string;
     var remoteAccess_odata: string;
     var remoteAccess_webApi: string;
