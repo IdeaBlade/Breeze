@@ -616,9 +616,10 @@ var Validator = (function () {
         creditCardProperty.validators.push(Validator.creditCard());
     @method creditCard
     @static
+    @param [context] {Object} optional parameters to pass through to validation constructor
     @return {Validator} A new Validator
     **/
-    ctor.creditCard = function() {
+    ctor.creditCard = function(context) {
         function valFn(v) {
             if (v == null || v === '') return true;
             if (typeof (v) !== 'string') return false;
@@ -626,7 +627,7 @@ var Validator = (function () {
             if (!v || /\D/.test(v)) return false; // all digits, not empty
             return luhn(v);
         };
-        return new ctor('creditCard', valFn);
+        return new ctor('creditCard', valFn, context);
     };
 
     // http://rosettacode.org/wiki/Luhn_test_of_credit_card_numbers#JavaScript
@@ -675,12 +676,13 @@ var Validator = (function () {
         emailProperty.validators.push(Validator.emailAddress());
     @method emailAddress
     @static
+    @param [context] {Object} optional parameters to pass through to validation constructor
     @return {Validator} A new Validator
     **/
-    ctor.emailAddress = function() {
+    ctor.emailAddress = function(context) {
         // See https://github.com/srkirkland/DataAnnotationsExtensions/blob/master/DataAnnotationsExtensions/EmailAttribute.cs
         var reEmailAddress = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/;
-        return makeRegExpValidator('emailAddress', reEmailAddress);
+        return makeRegExpValidator('emailAddress', reEmailAddress, null, context);
     };
 
     /**
@@ -703,12 +705,13 @@ var Validator = (function () {
         phoneProperty.validators.push(Validator.phone());
     @method phone
     @static
+    @param [context] {Object} optional parameters to pass through to validation constructor
     @return {Validator} A new Validator
     **/
-    ctor.phone = function() {
+    ctor.phone = function(context) {
         // See https://github.com/srkirkland/DataAnnotationsExtensions/blob/master/DataAnnotationsExtensions/Expressions.cs
         var rePhone = /^((\+|(0(\d+)?[-/.\s]?))[1-9]\d{0,2}[-/.\s]?)?((\(\d{1,6}\)|\d{1,6})[-/.\s]?)?(\d+[-/.\s]?)+\d+$/;
-        return makeRegExpValidator('phone', rePhone);
+        return makeRegExpValidator('phone', rePhone, null, context);
     };
 
     /**
@@ -720,13 +723,14 @@ var Validator = (function () {
         // Validates that the value of the Person.website property is a URL.
         websiteProperty.validators.push(Validator.url());
     @method url
-    @stati
+    @static
+    @param [context] {Object} optional parameters to pass through to validation constructor
     @return {Validator} A new Validator
     **/
-    ctor.url = function() {
+    ctor.url = function(context) {
         //See https://github.com/srkirkland/DataAnnotationsExtensions/blob/master/DataAnnotationsExtensions/UrlAttribute.cs
         var reUrlProtocolRequired = /^(https?|ftp):\/\/(((([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-fA-F]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|([a-zA-Z][\-a-zA-Z0-9]*)|((([a-zA-Z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-zA-Z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-zA-Z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-zA-Z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-zA-Z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-zA-Z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-fA-F]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-fA-F]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-fA-F]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-fA-F]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/;
-        return makeRegExpValidator('url', reUrlProtocolRequired);
+        return makeRegExpValidator('url', reUrlProtocolRequired, null, context);
     };
 
     /**
@@ -752,11 +756,12 @@ var Validator = (function () {
     @param validatorName {String} name of this validator
     @param expression {String | RegExp} regular expression to apply
     @param [defaultMessage] {String} default message for failed validations
+    @param [context] {Object} optional parameters to pass through to validation constructor
     @return {Validator} A new Validator
     **/
     ctor.makeRegExpValidator = makeRegExpValidator;
 
-    function makeRegExpValidator(validatorName, expression, defaultMessage) {
+    function makeRegExpValidator(validatorName, expression, defaultMessage, context) {
         if (defaultMessage) {
             ctor.messageTemplates[validatorName] = defaultMessage;
         }
@@ -767,7 +772,7 @@ var Validator = (function () {
             if (typeof (v) !== 'string') return false;
             return re.test(v);
         };
-        return new ctor(validatorName, valFn);
+        return new ctor(validatorName, valFn, context);
     };
     
     // register all validators
