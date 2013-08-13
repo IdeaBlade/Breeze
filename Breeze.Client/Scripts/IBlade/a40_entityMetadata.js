@@ -1788,8 +1788,8 @@ var EntityType = (function () {
     }
 
    
-    function calcUnmappedProperties(entityType, instance) {
-        var metadataPropNames = entityType.getPropertyNames();
+    function calcUnmappedProperties(stype, instance) {
+        var metadataPropNames = stype.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
         trackablePropNames.forEach(function (pn) {
             if (metadataPropNames.indexOf(pn) === -1) {
@@ -1799,9 +1799,13 @@ var EntityType = (function () {
                     isNullable: true,
                     isUnmapped: true
                 });
-                entityType.getSelfAndSubtypes().forEach(function (st) {
-                    st.addProperty(new DataProperty(newProp));
-                });
+                if (stype.subtypes) {
+                    stype.getSelfAndSubtypes().forEach(function (st) {
+                        st.addProperty(new DataProperty(newProp));
+                    });
+                } else {
+                    stype.addProperty(newProp);
+                }
             }
         });
     }
