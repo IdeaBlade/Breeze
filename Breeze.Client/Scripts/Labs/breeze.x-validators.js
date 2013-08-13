@@ -50,14 +50,14 @@
         var customerType = em.metadataStore.getEntityType("Customer");
         var regionProperty = customerType.getProperty("Region");
         // Validates that the value of Customer.Region is 2 char uppercase alpha.
-        regionProperty.validators.push(Validator.regExp( {expression: '^[A-Z]{2}$'} );
-    @method regExp
+        regionProperty.validators.push(Validator.regularExpression( {expression: '^[A-Z]{2}$'} );
+    @method regularExpression
     @static
     @param context {Object} 
     @param context.expression {String} String form of the regular expression to apply
     @return {Validator} A new Validator
     **/
-    ctor.regExp = function(context) {
+    ctor.regularExpression = function(context) {
 
         function valFn(v, ctx) {
             // do not invalidate if empty; use a separate required test
@@ -71,11 +71,11 @@
 
             return re.test(v);
         };
-        return new ctor('regExp', valFn, context);
+        return new ctor('regularExpression', valFn, context);
     };
 
     // TODO: relocate default message set when incorporating in breeze.Validator
-    Validator.messageTemplates.regExp =
+    Validator.messageTemplates.regularExpression =
         "The %displayName% '%value%' does not match '%expression%'.";
 
     /**
@@ -161,7 +161,7 @@
     var reUrlProtocolRequired = /^(https?|ftp):\/\/(((([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-fA-F]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|([a-zA-Z][\-a-zA-Z0-9]*)|((([a-zA-Z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-zA-Z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-zA-Z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-zA-Z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-zA-Z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-zA-Z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-fA-F]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-fA-F]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-fA-F]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-zA-Z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-fA-F]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/;
 
     /* register these validators */
-    Validator.registerFactory(ctor.regExp, 'regExp');
+    Validator.registerFactory(ctor.regularExpression, 'regularExpression');
     Validator.register(ctor.creditCard());
     Validator.register(ctor.emailAddress());
     Validator.register(ctor.phone());
