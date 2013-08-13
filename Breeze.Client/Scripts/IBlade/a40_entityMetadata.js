@@ -1799,8 +1799,7 @@ var EntityType = (function () {
                     isNullable: true,
                     isUnmapped: true
                 });
-                entityType.addProperty(newProp);
-                entityType.subtypes.forEach(function (st) {
+                entityType.getSelfAndSubtypes().forEach(function (st) {
                     st.addProperty(new DataProperty(newProp));
                 });
             }

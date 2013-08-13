@@ -220,12 +220,7 @@
                     return;
                 }
                 var accessorFn = getAccessorFn(bs);
-                if (this._$interceptor) {
-                    this._$interceptor(property, value, accessorFn);
-
-                } else {
-                    accessorFn(value);
-                }
+                this._$interceptor(property, value, accessorFn);
             },
             enumerable: true,
             configurable: true
@@ -248,25 +243,23 @@
         // if a read only property descriptor - no need to change it.
         if (!propDescr.set) return;
             
-        var accessorFn = function () {
+        var getAccessorFn = function(entity) {
+            return function() {
                 if (arguments.length == 0) {
-                    return propDescr.get();
+                    return propDescr.get.bind(entity)();
                 } else {
-                    propDescr.set(arguments[0]);
+                    propDescr.set.bind(entity)(arguments[0]);
                 }
-            };
+            }
+        };
+   
             
         var newDescr = {
             get: function () {
-                return propDescr.get();
+                return propDescr.get.bind(this)();
             },
             set: function (value) {
-                if (this._$interceptor) {
-                    this._$interceptor(property, value, accessorFn);
-
-                } else {
-                    accessorFn(value);
-                }
+                this._$interceptor(property, value, getAccessorFn(this));
             },
             enumerable: propDescr.enumerable,
             configurable: true

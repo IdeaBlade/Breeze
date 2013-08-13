@@ -7391,8 +7391,7 @@ var EntityType = (function () {
                     isNullable: true,
                     isUnmapped: true
                 });
-                entityType.addProperty(newProp);
-                entityType.subtypes.forEach(function (st) {
+                entityType.getSelfAndSubtypes().forEach(function (st) {
                     st.addProperty(new DataProperty(newProp));
                 });
             }
@@ -12067,28 +12066,40 @@ var EntityManager = (function () {
 
 
     function processServerErrors(saveContext, error) {
-        var entityErrors = error.entityErrors;
-        if (!entityErrors) return;
+        var serverErrors = error.entityErrors;
+        if (!serverErrors) return;
         var entityManager = saveContext.entityManager;
         var metadataStore = entityManager.metadataStore;
-        entityErrors.forEach(function (serr) {
-            if (!serr.keyValues) return;
-            var entityType = metadataStore._getEntityType(serr.entityTypeName);
-            var ekey = new EntityKey(entityType, serr.keyValues);
-            var entity = entityManager.findEntityByKey(ekey);
-            if (!entity) return;
-            serr.entity = entity;
-            
-            var context = serr.propertyName ?
-                {   propertyName: serr.propertyName,
+        error.entityErrors = serverErrors.map(function (serr) {
+            var entity = null;
+            if (serr.keyValues) {
+                var entityType = metadataStore._getEntityType(serr.entityTypeName);
+                var ekey = new EntityKey(entityType, serr.keyValues);
+                entity = entityManager.findEntityByKey(ekey);
+            } 
+           
+            if (entity) {
+                var context = serr.propertyName ?
+                {
+                    propertyName: serr.propertyName,
                     property: entityType.getProperty(serr.propertyName)
                 } : {
                 };
-            var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
-            
-            var ve = new ValidationError(null, context, serr.errorMessage, key);
-            ve.isServerError = true;
-            entity.entityAspect.addValidationError(ve);
+                var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
+
+                var ve = new ValidationError(null, context, serr.errorMessage, key);
+                ve.isServerError = true;
+                entity.entityAspect.addValidationError(ve);
+            }
+
+            var entityError = {
+                entity: entity,
+                errorName: serr.errorName,
+                errorMessage: serr.errorMessage,
+                propertyName: serr.propertyName,
+                isServerError: true
+            };
+            return entityError;
         });
     }
     
