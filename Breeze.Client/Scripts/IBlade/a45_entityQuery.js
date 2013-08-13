@@ -225,7 +225,7 @@ var EntityQuery = (function () {
     **/
     proto.where = function (predicate) {
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (predicate == null) {
             eq.wherePredicate = null;
             return eq;
         }
@@ -276,7 +276,7 @@ var EntityQuery = (function () {
     **/
     proto.orderBy = function (propertyPaths) {
         // deliberately don't pass in isDesc
-        return orderByCore(this, normalizePropertyPaths(propertyPaths));
+        return orderByCore(this, propertyPaths);
     };
 
     /**
@@ -301,7 +301,7 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.orderByDesc = function (propertyPaths) {
-        return orderByCore(this, normalizePropertyPaths(propertyPaths), true);
+        return orderByCore(this, propertyPaths, true);
     };
         
     /**
@@ -340,7 +340,7 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.select = function (propertyPaths) {
-        return selectCore(this, normalizePropertyPaths(propertyPaths));
+        return selectCore(this, propertyPaths);
     };
 
 
@@ -359,7 +359,7 @@ var EntityQuery = (function () {
     proto.skip = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (count == null) {
             eq.skipCount = null;
         } else {
             eq.skipCount = count;
@@ -396,7 +396,7 @@ var EntityQuery = (function () {
     proto.take = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (count == null) {
             eq.takeCount = null;
         } else {
             eq.takeCount = count;
@@ -427,7 +427,7 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.expand = function (propertyPaths) {
-        return expandCore(this, normalizePropertyPaths(propertyPaths));
+        return expandCore(this, propertyPaths);
     };
 
     /**
@@ -947,11 +947,12 @@ var EntityQuery = (function () {
     function orderByCore(that, propertyPaths, isDesc) {
         var newClause;
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.orderByClause = null;
             return eq;
         }
 
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         newClause = OrderByClause.create(propertyPaths, isDesc);
 
         if (eq.orderByClause) {
@@ -964,20 +965,22 @@ var EntityQuery = (function () {
         
     function selectCore(that, propertyPaths) {
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.selectClause = null;
             return eq;
         }
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         eq.selectClause = new SelectClause(propertyPaths);
         return eq;
     }
         
     function expandCore(that, propertyPaths) {
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.expandClause = null;
             return eq;
         }
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         eq.expandClause = new ExpandClause(propertyPaths);
         return eq;
     }
@@ -1424,7 +1427,6 @@ var Predicate = (function () {
     **/
     ctor.create = function (property, operator, value ) {
         if (Array.isArray(property)) {
-
             return new SimplePredicate(property[0], property[1], property[2]);
         } else {
             return new SimplePredicate(property, operator, value);
@@ -1449,7 +1451,9 @@ var Predicate = (function () {
     **/
     ctor.and = function (predicates) {
         predicates = argsToPredicates(arguments);
-        if (predicates.length === 1) {
+        if (predicates.length === 0) {
+            return null;
+        } else if (predicates.length === 1) {
             return predicates[0];
         } else {
             return new CompositePredicate("and", predicates);
@@ -1474,7 +1478,9 @@ var Predicate = (function () {
     **/
     ctor.or = function (predicates) {
         predicates = argsToPredicates(arguments);
-        if (predicates.length === 1) {
+        if (predicates.length === 0) {
+            return null;
+        } else if (predicates.length === 1) {
             return predicates[0];
         } else {
             return new CompositePredicate("or", predicates);
@@ -1590,16 +1596,19 @@ var Predicate = (function () {
     **/
 
     function argsToPredicates(argsx) {
+        var args;
         if (argsx.length === 1 && Array.isArray(argsx[0])) {
-            return argsx[0];
+            args = argsx[0];
         } else {
             var args = __arraySlice(argsx);
-            if (Predicate.isPredicate(args[0])) {
-                return args;
-            } else {
-                return [Predicate.create(args)];
+            if (!Predicate.isPredicate(args[0])) {
+                args = [Predicate.create(args)];
             }
         }
+        // remove any null or undefined elements from the array.
+        return args.filter(function (arg) {
+            return arg != null;
+        });
     }
 
     return ctor;

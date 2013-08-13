@@ -30,6 +30,50 @@
         });
         return;
     };
+
+    test("ko computed wierdness", function () {
+        var xxx = {};
+        xxx.lastName = ko.computed({
+            read: function () {
+                return this._lastName;
+            },
+            write: function (newValue) {
+                this._lastName = newValue.toUpperCase();
+            },
+            owner: xxx
+        });
+
+        xxx.lastName("smith");
+
+        var lastName = xxx.lastName();
+        // NOT SMITH - lastName is actually undefined here.
+        ok(lastName !== "SMITH", "is not smith because of ko issue");
+
+        // But we can make it work ....
+
+        // -- hack: create a dummy variable --- 
+
+        xxx.dummy = ko.observable(null);
+        xxx.lastName = ko.computed({
+            read: function () {
+                this.dummy();
+                return this._lastName;
+            },
+            write: function (newValue) {
+                this._lastName = newValue.toUpperCase();
+                this.dummy.valueHasMutated();
+            },
+            owner: xxx
+        });
+
+        xxx.lastName("smith");
+
+        var lastName = xxx.lastName();
+        // now it works -- lastName is actually null here.
+        ok(lastName === "SMITH", "should be all uppercase");
+
+
+    });
     
     test("registerEntityType", function () {
 

@@ -154,7 +154,7 @@
 
     function prepareServerErrors(saveContext, errors) {
         var err = new Error();
-        err.message = "Server side errors encountered - see the serverErrors collection on this object for more detail";
+        err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";
         var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
         err.entityErrors = errors.map(function (e) {
             return {

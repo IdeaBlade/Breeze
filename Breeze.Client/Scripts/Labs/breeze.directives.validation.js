@@ -1,15 +1,56 @@
-﻿/*
+﻿/* 
+ * Breeze Angular directives
+ *
+ *  
+ *  Usage:
+ *     // Make it a dependency of your app module:
+ *     var app = angular.module('app', ['breeze.directives']); 
+ *
  * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
  * Licensed under the MIT License
  * http://opensource.org/licenses/mit-license.php
  * Author: Ward Bell
  */
+
 (function () {
     'use strict';
 
-    var dir = angular.module('breeze.directives', []);
+    var module = angular.module('breeze.directives', []);
 
-    dir.directive('zValidate', function () {
+    /* Configure the breeze directives
+    *  
+    *  zValidateTemplate: template for display of validation errors
+    * 
+    *  Usage:
+    *      Either during the app's Angular config phase ...
+    *      app.config(['zDirectivesConfigProvider', function(cfg) {
+    *          cfg.zValidateTemplate =
+    *              '<span class="invalid"><i class="icon-warning-sign"></i>' +
+    *              'Oh No!!! %error%</span>';
+    *      }]);
+    *      
+    *      // ... or during the app's Angular run phase:
+    *      app.run(['zDirectivesConfig', function(cfg) {
+    *          cfg.zValidateTemplate =
+    *              '<span class="invalid"><i class="icon-warning-sign"></i>' +
+    *              'So sad!!! %error%</span>';
+    *      }]);
+    */
+    module.provider('zDirectivesConfig', function() {
+        // The default zValidate template for display of validation errors assumes bootstrap.js
+        this.zValidateTemplate =
+            '<span class="invalid"><i class="icon-warning-sign"></i>%error%</span>';
+
+        this.$get = function() {
+            return {
+                zValidateTemplate: this.zValidateTemplate
+            };
+        };
+    });
+    
+    module.directive('zValidate', ['zDirectivesConfig', zValidate]);
+    
+    function zValidate(config) {
         //Usage:
         //    <input data-ng-model='vm.session.firstName' data-z-validate />
         //    <input data-ng-model='vm.session.track' data-z-validate='trackId' />
@@ -40,7 +81,7 @@
                 errEl = errEl.hasClass('invalid') ? errEl : null;
 
                 if (newValue) {
-                    var html = '<span class="invalid"><i class="icon-warning-sign"></i>' + newValue + '</span>';
+                    var html = config.zValidateTemplate.replace(/%error%/, newValue);
                     if (errEl) {
                         errEl.replaceWith(html);
                     } else {
@@ -121,5 +162,5 @@
 
             function aspectFromEntity() { return scope.entityAspect; }
         }
-    });
+    }
 })();

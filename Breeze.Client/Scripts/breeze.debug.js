@@ -6970,7 +6970,11 @@ var EntityType = (function () {
 
         var proto = aCtor.prototype;
 
-        if (!proto._alreadyWrappedProps) {
+        // place for extra breeze related data
+        extra = proto._$extra || {};
+        proto._$extra = extra;
+        
+        if (!extra.initialized) {
             var instance = new aCtor();
             calcUnmappedProperties(this, instance);
         } 
@@ -6984,13 +6988,10 @@ var EntityType = (function () {
 
         // defaultPropertyInterceptor is a 'global' (but internal to breeze) function;
         proto._$interceptor = interceptor || defaultPropertyInterceptor;
-
-
+                
         __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
-
-        if (!proto._alreadyWrappedProps) {
-            proto._alreadyWrappedProps = {};
-        }
+        extra.initialized = true;
+        
         this._ctor = aCtor;
     };
 
@@ -7390,7 +7391,9 @@ var EntityType = (function () {
                     isNullable: true,
                     isUnmapped: true
                 });
-                entityType.addProperty(newProp);
+                entityType.getSelfAndSubtypes().forEach(function (st) {
+                    st.addProperty(new DataProperty(newProp));
+                });
             }
         });
     }
@@ -8712,7 +8715,7 @@ var EntityQuery = (function () {
     **/
     proto.where = function (predicate) {
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (predicate == null) {
             eq.wherePredicate = null;
             return eq;
         }
@@ -8763,7 +8766,7 @@ var EntityQuery = (function () {
     **/
     proto.orderBy = function (propertyPaths) {
         // deliberately don't pass in isDesc
-        return orderByCore(this, normalizePropertyPaths(propertyPaths));
+        return orderByCore(this, propertyPaths);
     };
 
     /**
@@ -8788,7 +8791,7 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.orderByDesc = function (propertyPaths) {
-        return orderByCore(this, normalizePropertyPaths(propertyPaths), true);
+        return orderByCore(this, propertyPaths, true);
     };
         
     /**
@@ -8827,7 +8830,7 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.select = function (propertyPaths) {
-        return selectCore(this, normalizePropertyPaths(propertyPaths));
+        return selectCore(this, propertyPaths);
     };
 
 
@@ -8846,7 +8849,7 @@ var EntityQuery = (function () {
     proto.skip = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (count == null) {
             eq.skipCount = null;
         } else {
             eq.skipCount = count;
@@ -8883,7 +8886,7 @@ var EntityQuery = (function () {
     proto.take = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (count == null) {
             eq.takeCount = null;
         } else {
             eq.takeCount = count;
@@ -8914,7 +8917,7 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.expand = function (propertyPaths) {
-        return expandCore(this, normalizePropertyPaths(propertyPaths));
+        return expandCore(this, propertyPaths);
     };
 
     /**
@@ -9434,11 +9437,12 @@ var EntityQuery = (function () {
     function orderByCore(that, propertyPaths, isDesc) {
         var newClause;
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.orderByClause = null;
             return eq;
         }
 
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         newClause = OrderByClause.create(propertyPaths, isDesc);
 
         if (eq.orderByClause) {
@@ -9451,20 +9455,22 @@ var EntityQuery = (function () {
         
     function selectCore(that, propertyPaths) {
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.selectClause = null;
             return eq;
         }
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         eq.selectClause = new SelectClause(propertyPaths);
         return eq;
     }
         
     function expandCore(that, propertyPaths) {
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.expandClause = null;
             return eq;
         }
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         eq.expandClause = new ExpandClause(propertyPaths);
         return eq;
     }
@@ -9911,7 +9917,6 @@ var Predicate = (function () {
     **/
     ctor.create = function (property, operator, value ) {
         if (Array.isArray(property)) {
-
             return new SimplePredicate(property[0], property[1], property[2]);
         } else {
             return new SimplePredicate(property, operator, value);
@@ -9936,7 +9941,9 @@ var Predicate = (function () {
     **/
     ctor.and = function (predicates) {
         predicates = argsToPredicates(arguments);
-        if (predicates.length === 1) {
+        if (predicates.length === 0) {
+            return null
+        } else if (predicates.length === 1) {
             return predicates[0];
         } else {
             return new CompositePredicate("and", predicates);
@@ -9961,7 +9968,9 @@ var Predicate = (function () {
     **/
     ctor.or = function (predicates) {
         predicates = argsToPredicates(arguments);
-        if (predicates.length === 1) {
+        if (predicates.length === 0) {
+            return null;
+        } else if (predicates.length === 1) {
             return predicates[0];
         } else {
             return new CompositePredicate("or", predicates);
@@ -10077,16 +10086,19 @@ var Predicate = (function () {
     **/
 
     function argsToPredicates(argsx) {
+        var args;
         if (argsx.length === 1 && Array.isArray(argsx[0])) {
-            return argsx[0];
+            args = argsx[0];
         } else {
             var args = __arraySlice(argsx);
-            if (Predicate.isPredicate(args[0])) {
-                return args;
-            } else {
-                return [Predicate.create(args)];
+            if (!Predicate.isPredicate(args[0])) {
+                args = [Predicate.create(args)];
             }
         }
+        // remove any null or undefined elements from the array.
+        return args.filter(function (arg) {
+            return arg != null;
+        });
     }
 
     return ctor;
@@ -12060,28 +12072,40 @@ var EntityManager = (function () {
 
 
     function processServerErrors(saveContext, error) {
-        var entityErrors = error.entityErrors;
-        if (!entityErrors) return;
+        var serverErrors = error.entityErrors;
+        if (!serverErrors) return;
         var entityManager = saveContext.entityManager;
         var metadataStore = entityManager.metadataStore;
-        entityErrors.forEach(function (serr) {
-            if (!serr.keyValues) return;
-            var entityType = metadataStore._getEntityType(serr.entityTypeName);
-            var ekey = new EntityKey(entityType, serr.keyValues);
-            var entity = entityManager.findEntityByKey(ekey);
-            if (!entity) return;
-            serr.entity = entity;
-            
-            var context = serr.propertyName ?
-                {   propertyName: serr.propertyName,
+        error.entityErrors = serverErrors.map(function (serr) {
+            var entity = null;
+            if (serr.keyValues) {
+                var entityType = metadataStore._getEntityType(serr.entityTypeName);
+                var ekey = new EntityKey(entityType, serr.keyValues);
+                entity = entityManager.findEntityByKey(ekey);
+            } 
+           
+            if (entity) {
+                var context = serr.propertyName ?
+                {
+                    propertyName: serr.propertyName,
                     property: entityType.getProperty(serr.propertyName)
                 } : {
                 };
-            var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
-            
-            var ve = new ValidationError(null, context, serr.errorMessage, key);
-            ve.isServerError = true;
-            entity.entityAspect.addValidationError(ve);
+                var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
+
+                var ve = new ValidationError(null, context, serr.errorMessage, key);
+                ve.isServerError = true;
+                entity.entityAspect.addValidationError(ve);
+            }
+
+            var entityError = {
+                entity: entity,
+                errorName: serr.errorName,
+                errorMessage: serr.errorMessage,
+                propertyName: serr.propertyName,
+                isServerError: true
+            };
+            return entityError;
         });
     }
     
@@ -13902,7 +13926,7 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     function prepareServerErrors(saveContext, errors) {
         var err = new Error();
-        err.message = "Server side errors encountered - see the serverErrors collection on this object for more detail";
+        err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";
         var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
         err.entityErrors = errors.map(function (e) {
             return {
@@ -14604,7 +14628,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             if (p === "_$typeName") continue;
             if (p === "_pendingSets") continue;
             if (p === "_backingStore") continue;
-            if (p === "_alreadyWrappedProps") continue;
+            if (p === "_$extra") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);
@@ -14727,7 +14751,8 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     // This method is called during Metadata initialization to correct "wrap" properties.
     function movePropDefsToProto(proto) {
-        var alreadyWrapped = proto._alreadyWrappedProps || {};
+        var extra = proto._$extra;
+        var alreadyWrapped = extra.alreadyWrappedProps || {};
         var stype = proto.entityType || proto.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
@@ -14743,7 +14768,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             }
             alreadyWrapped[propName] = true;
         });
-        proto._alreadyWrappedProps = alreadyWrapped;
+        extra.alreadyWrappedProps = alreadyWrapped;
     }
 
     // This method is called when an instance is first created via materialization or createEntity.
@@ -14795,12 +14820,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                     return;
                 }
                 var accessorFn = getAccessorFn(bs);
-                if (this._$interceptor) {
-                    this._$interceptor(property, value, accessorFn);
-
-                } else {
-                    accessorFn(value);
-                }
+                this._$interceptor(property, value, accessorFn);
             },
             enumerable: true,
             configurable: true
@@ -14823,25 +14843,23 @@ breeze.AbstractDataServiceAdapter = (function () {
         // if a read only property descriptor - no need to change it.
         if (!propDescr.set) return;
             
-        var accessorFn = function () {
+        var getAccessorFn = function(entity) {
+            return function() {
                 if (arguments.length == 0) {
-                    return propDescr.get();
+                    return propDescr.get.bind(entity)();
                 } else {
-                    propDescr.set(arguments[0]);
+                    propDescr.set.bind(entity)(arguments[0]);
                 }
-            };
+            }
+        };
+   
             
         var newDescr = {
             get: function () {
-                return propDescr.get();
+                return propDescr.get.bind(this)();
             },
             set: function (value) {
-                if (this._$interceptor) {
-                    this._$interceptor(property, value, accessorFn);
-
-                } else {
-                    accessorFn(value);
-                }
+                this._$interceptor(property, value, getAccessorFn(this));
             },
             enumerable: propDescr.enumerable,
             configurable: true
@@ -14905,6 +14923,7 @@ breeze.AbstractDataServiceAdapter = (function () {
         for (var p in entity) {
             if (p === "entityType") continue;
             if (p === "_$typeName") continue;
+            if (p === "_$extra") continue;
             var val = entity[p];
             if (ko.isObservable(val)) {
                 names.push(p);
@@ -14926,12 +14945,45 @@ breeze.AbstractDataServiceAdapter = (function () {
             // allow set property chaining.
             return this;
         };
+
+        
+        isolateES5Props(proto);
+
     };
+
+    function isolateES5Props(proto) {
+        
+        var stype = proto.entityType || proto.complexType;
+        es5Descriptors = {};
+        stype.getProperties().forEach(function (prop) {
+            propDescr = getES5PropDescriptor(proto, prop);
+            if (propDescr) {
+                es5Descriptors[prop.name] = propDescr;
+            }
+        })
+        if (!__isEmpty(es5Descriptors)) {
+            var extra = proto._$extra;
+            extra.es5Descriptors = es5Descriptors;
+            extra.koDummy = ko.observable(null);
+        }
+        
+    }
+
+    function getES5PropDescriptor(proto, prop) {
+        var propName = prop.name;
+        if (proto.hasOwnProperty(propName)) {
+            return Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(proto, propName);
+        } else {
+            var nextProto = Object.getPrototypeOf(proto);
+            return nextProto ? getES5PropDescriptor(nextProto, prop) : null;
+        }
+    }
 
     ctor.prototype.startTracking = function (entity, proto) {
         // create ko's for each property and assign defaultValues
         // force unmapped properties to the end
         var stype = entity.entityType || entity.complexType;
+        var es5Descriptors = proto._$extra.es5Descriptors || {};
         stype.getProperties().sort(function (p1, p2) {
             var v1 = p1.isUnmapped ? 1 :  0;
             var v2 = p2.isUnmapped ? 1 :  0;
@@ -14939,82 +14991,114 @@ breeze.AbstractDataServiceAdapter = (function () {
         }).forEach(function(prop) {
             var propName = prop.name;
             var val = entity[propName];
+            var propDescr = es5Descriptors[propName];
             var koObj;
-            // check if property is already exposed as a ko object
-            if (ko.isObservable(val)) {
-                // if so
+            
+            // check if property is an ES5 property
+            if (propDescr) {             
+                var getFn = propDescr.get.bind(entity);
+                if (propDescr.set) {
+                    var setFn = propDescr.set.bind(entity);
+                    var rawAccessorFn = function (newValue) {
+                        if (arguments.length === 0) {
+                            return getFn();
+                        } else {
+                            setFn(newValue);
+                        }
+                    }
+                    koObj = ko.computed({
+                        read: function() {
+                            entity._$extra.koDummy();
+                            return getFn();
+                        },
+                        write: function(newValue) {
+                            entity._$interceptor(prop, newValue, rawAccessorFn);
+                            entity._$extra.koDummy.valueHasMutated();
+                            return entity;
+                        }
+                    });
+                } else {
+                    koObj = ko.computed({
+                        read: getFn,
+                        write: function() {}
+
+                    });
+                }
+            // check if property is already exposed as a ko object               
+            } else if (ko.isObservable(val)) {
                 if (prop.isNavigationProperty) {
                     throw new Error("Cannot assign a navigation property in an entity ctor.: " + propName);
                 }
                 koObj = val;
+            // otherwise
             } else {
-                // if not
-                if (prop.isDataProperty) {
-                    if (prop.isComplexProperty) {
-                        // TODO: right now we create Empty complexObjects here - these should actually come from the entity
-                        if (prop.isScalar) {
-                            val = prop.dataType._createInstanceCore(entity, prop);
-                        } else {
-                            val = breeze.makeComplexArray([], entity, prop);
-                        }
-                    } else if (!prop.isScalar) {
-                        val = breeze.makePrimitiveArray([], entity, prop);
-                    } else if (val === undefined) {
-                        val = prop.defaultValue;
-                     }
-                    koObj = ko.observable(val);
-                } else if (prop.isNavigationProperty) {
-                    if (val !== undefined) {
-                        throw new Error("Cannot assign a navigation property in an entity ctor.: " + propName);
-                    }
-                    if (prop.isScalar) {
-                        // TODO: change this to nullEntity later.
-                        koObj = ko.observable(null);
-                    } else {
-                        val = breeze.makeRelationArray([], entity, prop);
-                        koObj = ko.observableArray(val);
+                var val = initializeValueForProp(entity, prop, val);
+                koObj = prop.isScalar ? ko.observable(val) : ko.observableArray(val);
+            }
 
-                        val._koObj = koObj;
-                        // new code to suppress extra breeze notification when 
-                        // ko's array methods are called.
-                        koObj.subscribe(onBeforeChange, null, "beforeChange");
-                        // code to insure that any direct breeze changes notify ko
-                        val.arrayChanged.subscribe(onArrayChanged);
-   
-                        //// old code to suppress extra breeze notification when 
-                        //// ko's array methods are called.
-                        //koObj.subscribe(function(b) {
-                        //    koObj._suppressBreeze = true;
-                        //}, null, "beforeChange");
-                        //// code to insure that any direct breeze changes notify ko
-                        //val.arrayChanged.subscribe(function(args) {
-                        //    if (koObj._suppressBreeze) {
-                        //        koObj._suppressBreeze = false;
-                        //    } else {
-                        //        koObj.valueHasMutated();
-                        //    }
-                        //});
-                        
-                        koObj.equalityComparer = function() {
-                            throw new Error("Collection navigation properties may NOT be set.");
-                        };
-                        
-
-                    }
+        
+            if (prop.isScalar) {
+                if (propDescr) {
+                    Object.defineProperty(entity, propName, {
+                        enumerable: true,
+                        configurable: true,
+                        writable: true,
+                        value: koObj
+                    });
                 } else {
-                    throw new Error("unknown property: " + propName);
+                    var koExt = koObj.extend({ intercept: { instance: entity, property: prop } });
+                    entity[propName] = koExt;
                 }
-            }
-            if (prop.isNavigationProperty && !prop.isScalar) {
-                entity[propName] = koObj;
             } else {
-                var koExt = koObj.extend({ intercept: { instance: entity, property: prop } });
-                entity[propName] = koExt;
+                val._koObj = koObj;
+                // code to suppress extra breeze notification when 
+                // ko's array methods are called.
+                koObj.subscribe(onBeforeChange, null, "beforeChange");
+                // code to insure that any direct breeze changes notify ko
+                val.arrayChanged.subscribe(onArrayChanged);
+
+                koObj.equalityComparer = function () {
+                    throw new Error("Collection navigation properties may NOT be set.");
+                };
+                entity[propName] = koObj;
             }
+        
 
         });
-
+        
     };
+
+    function initializeValueForProp(entity, prop, val) {
+        if (prop.isDataProperty) {
+            if (prop.isComplexProperty) {
+                // TODO: right now we create Empty complexObjects here - these should actually come from the entity
+                if (prop.isScalar) {
+                    val = prop.dataType._createInstanceCore(entity, prop);
+                } else {
+                    val = breeze.makeComplexArray([], entity, prop);
+                }
+            } else if (!prop.isScalar) {
+                val = breeze.makePrimitiveArray([], entity, prop);
+            } else if (val === undefined) {
+                val = prop.defaultValue;
+            }
+
+        } else if (prop.isNavigationProperty) {
+            if (val !== undefined) {
+                throw new Error("Cannot assign a navigation property in an entity ctor.: " + prop.name);
+            }
+            if (prop.isScalar) {
+                // TODO: change this to nullEntity later.
+                val = null;
+            } else {
+                val = breeze.makeRelationArray([], entity, prop);
+            }
+        }  else {
+            throw new Error("unknown property: " + prop.name);
+        }
+        return val;
+    }
+    
     
     function onBeforeChange(args) {
         args._koObj._suppressBreeze = true;

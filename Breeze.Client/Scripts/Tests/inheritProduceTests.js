@@ -232,6 +232,55 @@
 
     });
 
+    test("query ItemsOfProduce and modify ", function () {
+        var em = newEmX();
+        registerItemOfProduceWithES5(em, "ItemOfProduce");
+
+        var q = EntityQuery.from("ItemsOfProduce")
+            .using(em).take(2);
+        stop();
+
+        q.execute().then(function (data) {
+            var r = data.results;
+            ok(r.length == 2, "should have found two 'ItemsOfProduce'");
+
+            var r0value = r[0].getProperty("quantityPerUnit");
+            var r1value = r[1].getProperty("quantityPerUnit");
+            ok(r0value != null, "value should not be null");
+            r[0].setProperty("quantityPerUnit", "zzzz");
+            var r0valueNew = r[0].getProperty("quantityPerUnit");
+            var r1valueNew = r[1].getProperty("quantityPerUnit");
+
+            ok(r0valueNew === "ZZZZ", "r0ValueNew should have changed");
+            ok(r1valueNew === r1value, "r1ValueNew should not have changed");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("query ItemsOfProduce unique quantityPerProduct values", function () {
+        var em = newEmX();
+        registerItemOfProduceWithES5(em, "ItemOfProduce");
+
+        var q = EntityQuery.from("ItemsOfProduce")
+            .using(em);
+        stop();
+        
+        q.execute().then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should have found some 'ItemsOfProduce'");
+            var uniqueValues = {};
+            var count = 0;
+            r.forEach(function (item) {
+                var value = item.getProperty("quantityPerUnit");
+                if (!uniqueValues[value]) {
+                    uniqueValues[value] = true;
+                    count = count + 1;
+                }
+            });
+            ok(count > 1, "count shoud be greater than 1")
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("query ItemsOfProduce - ES5", function () {
         var em = newEmX();
         registerItemOfProduceWithES5(em, "ItemOfProduce");
@@ -247,12 +296,16 @@
                 return f.entityType.isSubtypeOf(iopType);
             }), "every item is a subtype");
             ok(r.every(function (f) {
+                var name = f.getProperty("name");
+                return name.length > 1;
+            }), "every should have a name");
+            ok(r.every(function (f) {
                 var miscData = f.getProperty("miscData");
                 return miscData === "asdf";
             }), "every item has miscData == asdf");
             ok(r.every(function (f) {
                 var u = f.getProperty("quantityPerUnit");
-                return u.length > 1 && u.toUpperCase() === u;
+                return u.length > 0 && u.toUpperCase() === u;
             }), "every item has uppercase quantityPerUnit property");
             ok(r.every(function (f) {
                 var amount = f.getProperty("amountOnHand");
@@ -280,12 +333,16 @@
                 return f.entityType.isSubtypeOf(iopType);
             }), "every item is a subtype");
             ok(r.every(function (f) {
+                var name = f.getProperty("name");
+                return name.length > 1;
+            }), "every should have a name");
+            ok(r.every(function (f) {
                 var miscData = f.getProperty("miscData");
                 return miscData === "asdf";
             }), "every item has miscData == asdf");
             ok(r.every(function (f) {
                 var u = f.getProperty("quantityPerUnit");
-                return u.length > 1 && u.toUpperCase() === u;
+                return u.length > 0 && u.toUpperCase() === u;
             }), "every item has uppercase quantityPerUnit property");
             ok(r.every(function (f) {
                 var amount = f.getProperty("amountOnHand");
@@ -313,12 +370,16 @@
                 return f.entityType.isSubtypeOf(iopType);
             }), "every item is a subtype");
             ok(r.every(function (f) {
+                var name = f.getProperty("name");
+                return name.length > 1;
+            }), "every should have a name");
+            ok(r.every(function (f) {
                 var miscData = f.getProperty("miscData");
                 return miscData === "asdf";
             }), "every item has miscData == asdf");
             ok(r.every(function (f) {
                 var u = f.getProperty("quantityPerUnit");
-                return u.length > 1 && u.toUpperCase() === u;
+                return u.length > 0 && u.toUpperCase() === u;
             }), "every item has uppercase quantityPerUnit property");
             ok(r.every(function (f) {
                 var amount = f.getProperty("amountOnHand");
@@ -351,46 +412,38 @@
         var entityType = registerItemOfProduceWithES5(em, baseTypeName, rootCtor);
     }
 
-    //function registerWithAdditionalBaseClass(em, baseTypeName) {
-    //    var entity = registerItemOfProduceWithES5(em, baseTypeName);
-    //    var entityCtor = entity.getCtor();
-
-    //    var ctor = function () { };
-    //    Object.defineProperty(ctor.prototype, "onBase", {
-    //        get: function () {
-    //            return this["_onBase"] || "I am on base";
-    //        },
-    //        set: function (value) {
-    //            this["_onBase"] = value;
-    //        },
-    //        enumerable: true,
-    //        configurable: true
-    //    });
-
-    //    entityCtor.prototype = new ctor();
-
-    //}
-
-
     function registerItemOfProduceWithES5(em, baseTypeName, rootCtor) {
 
         var baseCtor = models.ItemOfProduceWithES5(rootCtor);
-        em.metadataStore.registerEntityTypeCtor(baseTypeName, baseCtor);
         var baseType = em.metadataStore.getEntityType(baseTypeName);
-        var descendents = baseType.getSelfAndSubtypes();
 
-        var subtype, newCtor, i;
-        var subCtor = baseCtor;
-        for (var i = 1, len = descendents.length; i < len; i++) {
-            subtype = descendents[i];
-            newCtor = function () { };
-            newCtor.prototype = new subCtor();
-            subCtor = newCtor;
-            em.metadataStore.registerEntityTypeCtor(subtype.name, newCtor);
-        }
+        registerSelfAndSubtypes(em, baseType, baseCtor);
+
+        //var descendents = baseType.getSelfAndSubtypes();
+
+        //var subtype, newCtor, i;
+        //var subCtor = baseCtor;
+        //for (var i = 1, len = descendents.length; i < len; i++) {
+        //    subtype = descendents[i];
+        //    newCtor = function () { };
+        //    newCtor.prototype = new subCtor();
+        //    subCtor = newCtor;
+        //    em.metadataStore.registerEntityTypeCtor(subtype.name, newCtor);
+        //}
         return baseType;
+
+        
     }
 
+    function registerSelfAndSubtypes(em, baseType, baseCtor) {
+        em.metadataStore.registerEntityTypeCtor(baseType.name, baseCtor);
+        baseType.subtypes.forEach(function (subtype) {
+            newCtor = function () { };
+            newCtor.prototype = new baseCtor();
+            registerSelfAndSubtypes(em, subtype, newCtor);
+        });
+
+    }
 
 
     var models = {};
@@ -438,7 +491,7 @@
         });
         Object.defineProperty(target, "amountOnHand", {
             get: function () {
-                return this.unitsInStock + ":" + this.quantityPerUnit || "";
+                return this.getProperty && this.getProperty("unitsInStock") + ":" + this.getProperty("quantityPerUnit") || "";
             },
             enumerable: true,
             configurable: true
