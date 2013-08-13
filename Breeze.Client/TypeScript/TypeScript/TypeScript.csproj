@@ -49,6 +49,7 @@
       <DependentUpon>breeze-tests.ts</DependentUpon>
     </Content>
     <Content Include="breeze-tests.ts" />
+    <Content Include="Q.d.ts" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

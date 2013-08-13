@@ -1,6 +1,7 @@
 /// <reference path="breeze.d.ts" />
 //import breeze = module(breeze);
 var core = breeze.core;
+var config = breeze.config;
 
 function test_dataType() {
     var typ = breeze.DataType.DateTime;
@@ -813,4 +814,25 @@ function test_corefns() {
     b = core.stringStartsWith(s, "pre");
     b = core.stringEndsWith(s, "suf");
     s = core.formatString("My %1 is full of %2", "hovercraft", "eels");
+}
+
+function test_config() {
+    var s;
+    s = config.ajax;
+    s = config.dataService;
+    var o;
+    o = config.functionRegistry;
+    o = config.getAdapter("myInterfaceName", "myAdapterName");
+    o = config.getAdapterInstance("myInterfaceName", "myAdapterName");
+    config.initializeAdapterInstance("myInterfaceName", "myAdapterName", true);
+    config.initializeAdapterInstances({ x: 3, y: "not" });
+    s = config.interfaceInitialized.type;
+    o = config.interfaceRegistry;
+    o = config.objectRegistry;
+    config.registerAdapter("myAdapterName");
+    var f1;
+    config.registerFunction(f1, "myFunction");
+    config.registerType(f1, "myCtor");
+    s = config.stringifyPad;
+    o = config.typeRegistry;
 }

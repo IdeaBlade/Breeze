@@ -2,6 +2,7 @@
 
 //import breeze = module(breeze);
 import core = breeze.core; //module(breezeCore);
+import config = breeze.config;
 
 
 function test_dataType() {
@@ -844,4 +845,25 @@ function test_corefns() {
     b = core.stringEndsWith(s, "suf");
     s = core.formatString("My %1 is full of %2", "hovercraft", "eels");
 
+}
+
+function test_config() {
+    var s: string;
+    s = config.ajax;
+    s = config.dataService;
+    var o: Object;
+    o = config.functionRegistry;
+    o = config.getAdapter("myInterfaceName", "myAdapterName");
+    o = config.getAdapterInstance("myInterfaceName", "myAdapterName");
+    config.initializeAdapterInstance("myInterfaceName", "myAdapterName", true);
+    config.initializeAdapterInstances({ x: 3, y: "not" });
+    s = config.interfaceInitialized.type;
+    o = config.interfaceRegistry;
+    o = config.objectRegistry;
+    config.registerAdapter("myAdapterName");
+    var f1: Function;
+    config.registerFunction(f1, "myFunction");
+    config.registerType(f1, "myCtor");
+    s = config.stringifyPad;
+    o = config.typeRegistry;
 }

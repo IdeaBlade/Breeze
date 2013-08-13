@@ -6,6 +6,7 @@
 // Updated Jan 14 2011 - Jay Traband ( www.ideablade.com).
 // Updated Aug 11 2013 - Steve Schmitt ( www.ideablade.com).
 
+/// <reference path="Q.d.ts" />
 
 declare module breeze.core {
 
@@ -53,20 +54,21 @@ declare module breeze.core {
         unsubscribe(unsubKey: number): boolean;
     }
 
-    function objectForEach(obj: Object, kvfn: Function): void;
+    function objectForEach(obj: Object, kvfn: (key:string, value:any) => void): void;
 
     function extend(target: Object, source: Object): Object;
-    function propEq(propertyName: string, value: any): Function;
-    function pluck(propertyName: string): Function;
-    function arrayEquals(a1:Array, a2:Array, equalsFn: Function): boolean;
-    function arrayFirst(a1:Array, predicate: Function): any;
-    function arrayIndexOf(a1: Array, predicate: Function): number;
-    function arrayRemoveItem(array: Array, predicateOrItem: any, shouldRemoveMultiple: boolean): any;
-    function arrayZip(a1: Array, a2: Array, callback: Function): Array;
+    function propEq(propertyName: string, value: any): (obj: Object) => boolean;
+    function pluck(propertyName: string): (obj: Object) => any;
+    function arrayEquals(a1:Array, a2:Array, equalsFn: (e1:any, e2:any) => boolean): boolean;
+    function arrayFirst(a1:Array, predicate: (e:any) => boolean): any;
+    function arrayIndexOf(a1: Array, predicate: (e: any) => boolean): number;
+    function arrayRemoveItem(array: Array, item: any, shouldRemoveMultiple: boolean): any;
+    function arrayRemoveItem(array: Array, predicate: (e: any) => boolean, shouldRemoveMultiple: boolean): any;
+    function arrayZip(a1: Array, a2: Array, callback: (e1:any, e2:any) => any): Array;
 
     function requireLib(libnames: string, errMessage: string): Object;
-    function using(obj: Object, property: string, tempValue: any, fn: Function): any;
-    function memoize(fn:Function): Function;
+    function using(obj: Object, property: string, tempValue: any, fn: () => any): any;
+    function memoize(fn:(...any) => any): any;
     function getUuid(): string;
     function durationToSeconds(duration: string): number;
 
@@ -281,8 +283,8 @@ declare module breeze {
         getValidationErrors(property: string): ValidationError[];
         getValidationErrors(property: IProperty): ValidationError[];
 
-        loadNavigationProperty(navigationProperty: string, callback?: Function, errorCallback?: Function): Promise;
-        loadNavigationProperty(navigationProperty: NavigationProperty, callback?: Function, errorCallback?: Function): Promise;
+        loadNavigationProperty(navigationProperty: string, callback?: Function, errorCallback?: Function): Q.Promise;
+        loadNavigationProperty(navigationProperty: NavigationProperty, callback?: Function, errorCallback?: Function): Q.Promise;
 
         rejectChanges(): void;
 
@@ -351,15 +353,15 @@ declare module breeze {
         createEmptyCopy(): EntityManager;
         createEntity(typeName: string, config?: {}, entityState?: EntityStateSymbol) : Entity;
         detachEntity(entity: Entity): boolean;
-        executeQuery(query: string, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise;
-        executeQuery(query: EntityQuery, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise;
+        executeQuery(query: string, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Q.Promise;
+        executeQuery(query: EntityQuery, callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Q.Promise;
 
         executeQueryLocally(query: EntityQuery): Entity[];
         exportEntities(entities?: Entity[]): string;
-        fetchEntityByKey(typeName: string, keyValue: any, checkLocalCacheFirst?: boolean): Promise;
-        fetchEntityByKey(typeName: string, keyValues: any[], checkLocalCacheFirst?: boolean): Promise;
-        fetchEntityByKey(entityKey: EntityKey): Promise;
-        fetchMetadata(callback?: (schema: any) => void , errorCallback?: breeze.core.ErrorCallback): Promise;
+        fetchEntityByKey(typeName: string, keyValue: any, checkLocalCacheFirst?: boolean): Q.Promise;
+        fetchEntityByKey(typeName: string, keyValues: any[], checkLocalCacheFirst?: boolean): Q.Promise;
+        fetchEntityByKey(entityKey: EntityKey): Q.Promise;
+        fetchMetadata(callback?: (schema: any) => void , errorCallback?: breeze.core.ErrorCallback): Q.Promise;
         generateTempKeyValue(entity: Entity): any;
         getChanges(): Entity[];
         getChanges(entityTypeName: string): Entity[];
@@ -391,7 +393,7 @@ declare module breeze {
         importEntities(exportedString: string, config?: { mergeStrategy?: MergeStrategySymbol; }): EntityManager;
 
         rejectChanges(): Entity[];
-        saveChanges(entities?: Entity[], saveOptions?: SaveOptions, callback?: SaveChangesSuccessCallback, errorCallback?: SaveChangesErrorCallback): Promise;
+        saveChanges(entities?: Entity[], saveOptions?: SaveOptions, callback?: SaveChangesSuccessCallback, errorCallback?: SaveChangesErrorCallback): Q.Promise<SaveResult>;
         setProperties(config: EntityManagerProperties): void;
     }
 
@@ -423,7 +425,7 @@ declare module breeze {
     }
 
     interface SaveChangesSuccessCallback {
-        (saveResult: { entities: Entity[]; keyMappings: any; XHR: XMLHttpRequest; }): void;
+        (saveResult: SaveResult): void;
     }
 
     interface SaveChangesErrorCallback {
@@ -461,7 +463,7 @@ declare module breeze {
 
         constructor (resourceName?: string);
 
-        execute(callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Promise;
+        execute(callback?: ExecuteQuerySuccessCallback, errorCallback?: ExecuteQueryErrorCallback): Q.Promise;
         executeLocally(): Entity[];
         expand(propertyPaths: string[]): EntityQuery;
         expand(propertyPaths: string): EntityQuery;
@@ -613,8 +615,8 @@ declare module breeze {
         addDataService(dataService: DataService): void;
         addEntityType(structuralType: IStructuralType): void;
         exportMetadata(): string;
-        fetchMetadata(dataService: string, callback?: (data) => void , errorCallback?: breeze.core.ErrorCallback): Promise;
-        fetchMetadata(dataService: DataService, callback?: (data) => void , errorCallback?: breeze.core.ErrorCallback): Promise;
+        fetchMetadata(dataService: string, callback?: (data) => void , errorCallback?: breeze.core.ErrorCallback): Q.Promise;
+        fetchMetadata(dataService: DataService, callback?: (data) => void , errorCallback?: breeze.core.ErrorCallback): Q.Promise;
         getDataService(serviceName: string): DataService;
         getEntityType(entityTypeName: string, okIfNotFound?: boolean): IStructuralType;
         getEntityTypes(): IStructuralType[];
@@ -708,12 +710,6 @@ declare module breeze {
         (property: string, operator: FilterQueryOpSymbol, value: any, valueIsLiteral?: boolean): Predicate;
     }
 
-    class Promise {
-        fail(errorCallback: Function): Promise;
-        fin(finallyCallback: Function): Promise;
-        then(callback: Function): Promise;
-    }
-
     class QueryOptions {
         static defaultInstance: QueryOptions;
         fetchStrategy: FetchStrategySymbol;
@@ -750,6 +746,12 @@ declare module breeze {
         resourceName?: string;
         dataService?: DataService;
         tag?: string;
+    }
+
+    interface SaveResult {
+        entities: Entity[];
+        keyMappings: any;
+        XHR: XMLHttpRequest;
     }
 
     class ValidationError {
@@ -821,39 +823,6 @@ declare module breeze {
         message?: string;
     }
 
-    class Core {
-        static objectForEach(obj: Object, kvfn: Function): void;
-
-        static extend(target: Object, source: Object): Object;
-        static propEq(propertyName: string, value: any): Function;
-        static pluck(propertyName: string): Function;
-        static arrayEquals(a1:Array, a2:Array, equalsFn: Function): boolean;
-        static arrayFirst(a1:Array, predicate: Function): any;
-        static arrayIndexOf(a1: Array, predicate: Function): number;
-        static arrayRemoveItem(array: Array, predicateOrItem: any, shouldRemoveMultiple: boolean): any;
-        static arrayZip(a1: Array, a2: Array, callback: Function): Array;
-
-        static requireLib(libnames: string, errMessage: string): Object;
-        static using(obj: Object, property: string, tempValue: any, fn: Function): any;
-        static memoize(fn:Function): Function;
-        static getUuid(): string;
-        static durationToSeconds(duration: string): number;
-
-
-        static isDate(o: any): boolean;
-        static isGuid(o: any): boolean;
-        static isDuration(o: any): boolean;
-        static isFunction(o: any): boolean;
-        static isEmpty(o: any): boolean;
-        static isNumeric(o: any): boolean;
-
-        static stringStartsWith(str: string, prefix: string): boolean;
-        static stringEndsWith(str: string, suffix: string): boolean;
-        static formatString(format: string, ...args: any[]): string;
-
-    }
-    var core2: Core;
-
 
     class Config {
         static ajax: string;
@@ -873,10 +842,30 @@ declare module breeze {
         static stringifyPad: string;
         static typeRegistry: Object;
     }
-    var config: Config;
+    //var config: Config;
     var metadataVersion: string;
     var remoteAccess_odata: string;
     var remoteAccess_webApi: string;
     var version: string;
+}
+
+declare module breeze.config {
+    var ajax: string;
+    var dataService: string;
+    var functionRegistry: Object;
+    function getAdapter(interfaceName: string, adapterName: string): Object;
+    function getAdapterInstance(interfaceName: string, adapterName: string): Object;
+    function initializeAdapterInstance(interfaceName: string, adapterName: string, isDefault: boolean): void;
+    function initializeAdapterInstances(config: Object): void;
+    var interfaceInitialized: Event;
+    var interfaceRegistry: Object;
+    var objectRegistry: Object;
+    function registerAdapter(interfaceName: string): void;
+    function registerFunction(fn: Function, fnName: string): void;
+    function registerType(ctor: Function, typeName: string): void;
+    //static setProperties(config: Object): void; //deprecated
+    var stringifyPad: string;
+    var typeRegistry: Object;
+
 }
 
