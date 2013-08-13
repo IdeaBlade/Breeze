@@ -34,22 +34,25 @@
 
 	function getSaveErrorMessage(error) {
 		var msg = error.message;
-		var badEntities = error.entityErrors;
-		if (badEntities && badEntities.length) {
-			return getValidationMessages(badEntities);
+		var entityErrors = error.entityErrors;
+		if (entityErrors && entityErrors.length) {
+			return getValidationMessages(entityErrors);
 		}
 		return msg;
 	}
 
-	function getValidationMessages(badEntities) {
-		var isServerError = badEntities[0].isServerError;
-		// workaround for missing `isServerError` from server
-		isServerError = isServerError || isServerError === undefined;
+	function getValidationMessages(entityErrors) {
+		var isServerError = entityErrors[0].isServerError;
 
 		try {
-			return badEntities.map(function(entityError) {
-				clearServerErrorsOnNextChange(isServerError, entityError.entity);
-				var name = getErrantEntityName(entityError);
+		    return entityErrors.map(function(entityError) {
+		        var name = '';
+		        var entity = entityError.entity;
+		        if (entity) {
+		            clearServerErrorsOnNextChange(isServerError, entity);
+		            name = getErrantEntityName(entity);
+		        }
+
 				return name + '\'' + entityError.errorMessage + '\'';
 			}).join('; <br/>');
 		} catch (e) {
@@ -58,26 +61,16 @@
 		}
 	}
 
-	// Workaround for breeze client/server error reporting inconsistencies
-	function getErrantEntityName(entityError) {
-		var id, name;
-		var fullTypeName = entityError.entityTypeName;
-		if (fullTypeName) {
-			name = fullTypeName.substr(0, fullTypeName.indexOf(':'));
-			id = entityError.keyValues.join(',');
-		} else {
-			var entity = entityError.entity;
-			if (!entity) { return ""; }
-			var key = entity.entityAspect.getKey();
-			name = key.entityType.shortName;
-			id = key.values.join(',');
-		}
+	function getErrantEntityName(entity) {
+		var key = entity.entityAspect.getKey();
+		var name = key.entityType.shortName;
+		var id = key.values.join(',');
 		return name + ' (' + id + ') - ';
 	}
 
 	function clearServerErrorsOnNextChange(isServerError, badEntity) {
 
-		if (!isServerError || !badEntity ||
+		if (!isServerError || 
 			badEntity.entityAspect.entityState.isDetached()) { return; }
 
 		// implemented as a one-time, propertyChanged eventhandler that
