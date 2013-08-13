@@ -1,5 +1,4 @@
 /// <reference path="breeze.d.ts" />
-//import breeze = module(breeze);
 var core = breeze.core;
 var config = breeze.config;
 
@@ -218,7 +217,7 @@ function test_entityManager() {
     var custumer = custType.createEntity();
     var customerId = em.generateTempKeyValue(custumer);
     em1.saveChanges().then(function (data) {
-        var sameCust1 = data.results[0];
+        var sameCust1 = data.entities[0];
     });
     var changedEntities = em1.getChanges();
     var custType = em1.metadataStore.getEntityType("Customer");
@@ -791,15 +790,24 @@ function test_corefns() {
     var b;
     var n;
 
-    b = core.arrayEquals(a1, a2, f1);
-    b = core.arrayFirst(a1, f1);
-    n = core.arrayIndexOf(a1, f1);
+    var f3 = function (e1, e2) {
+        return e1 == e2;
+    };
+    var f4 = function (e1) {
+        return false;
+    };
+    b = core.arrayEquals(a1, a2, f3);
+    b = core.arrayFirst(a1, f4);
+    n = core.arrayIndexOf(a1, f4);
     b = core.arrayRemoveItem(a1, "whatever", false);
-    a3 = core.arrayZip(a1, a2, f1);
+    a3 = core.arrayZip(a1, a2, f3);
 
+    var f5 = function () {
+        return false;
+    };
     o1 = core.requireLib("libc,stdio", "Library not found");
-    o1 = core.using(o2, "something", "x", f1);
-    f2 = core.memoize(f1);
+    o1 = core.using(o2, "something", "x", f5);
+    f2 = core.memoize(f4);
     var s;
     s = core.getUuid();
     n = core.durationToSeconds(s);

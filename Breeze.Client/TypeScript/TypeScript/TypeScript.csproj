@@ -36,18 +36,9 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="breeze-tests.min.js.map">
-      <DependentUpon>breeze-tests.js</DependentUpon>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="breeze.d.ts" />
-    <Content Include="breeze-tests.js">
-      <DependentUpon>breeze-tests.ts</DependentUpon>
-    </Content>
-    <Content Include="breeze-tests.min.js">
-      <DependentUpon>breeze-tests.ts</DependentUpon>
-    </Content>
     <Content Include="breeze-tests.ts" />
     <Content Include="Q.d.ts" />
   </ItemGroup>
