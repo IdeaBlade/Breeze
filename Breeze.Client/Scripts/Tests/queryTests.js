@@ -26,6 +26,71 @@
         }
     });
 
+    test("empty predicates", function () {
+
+        var manager = newEm();
+        var predicate1 = Predicate.create("employeeID", "<", 6);
+        var predicate2 = Predicate.create("employeeID", ">", 4);
+        var predicates = Predicate.and([undefined, predicate1, null, predicate2, null]);
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(predicates);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+            var empId = data.results[0].getProperty("employeeID");
+            ok(empId === 5, "should be 5");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("empty predicates 2", function () {
+
+        var manager = newEm();
+        var predicate1 = Predicate.create("employeeID", "<", 6);
+        var predicates = Predicate.and([]);
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(predicates);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 6, "there should be records returned");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("empty predicates 3", function () {
+
+        var manager = newEm();
+        var predicate1 = Predicate.create("employeeID", "<", 6);
+        var predicates = Predicate.and([null, undefined, predicate1]);
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(predicates);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+            var empId = data.results[0].getProperty("employeeID");
+            ok(empId < 6, "should <  6");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("empty predicates 4", function () {
+
+        var manager = newEm();
+        var predicates = Predicate.and([undefined, null, null]);
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(predicates);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 6, "there should be records returned");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+
     test("empty clauses", function () {
 
         var manager = newEm();

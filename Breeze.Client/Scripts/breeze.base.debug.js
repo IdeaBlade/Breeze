@@ -9917,7 +9917,6 @@ var Predicate = (function () {
     **/
     ctor.create = function (property, operator, value ) {
         if (Array.isArray(property)) {
-
             return new SimplePredicate(property[0], property[1], property[2]);
         } else {
             return new SimplePredicate(property, operator, value);
@@ -9942,7 +9941,9 @@ var Predicate = (function () {
     **/
     ctor.and = function (predicates) {
         predicates = argsToPredicates(arguments);
-        if (predicates.length === 1) {
+        if (predicates.length === 0) {
+            return null
+        } else if (predicates.length === 1) {
             return predicates[0];
         } else {
             return new CompositePredicate("and", predicates);
@@ -9967,7 +9968,9 @@ var Predicate = (function () {
     **/
     ctor.or = function (predicates) {
         predicates = argsToPredicates(arguments);
-        if (predicates.length === 1) {
+        if (predicates.length === 0) {
+            return null;
+        } else if (predicates.length === 1) {
             return predicates[0];
         } else {
             return new CompositePredicate("or", predicates);
@@ -10083,16 +10086,19 @@ var Predicate = (function () {
     **/
 
     function argsToPredicates(argsx) {
+        var args;
         if (argsx.length === 1 && Array.isArray(argsx[0])) {
-            return argsx[0];
+            args = argsx[0];
         } else {
             var args = __arraySlice(argsx);
-            if (Predicate.isPredicate(args[0])) {
-                return args;
-            } else {
-                return [Predicate.create(args)];
+            if (!Predicate.isPredicate(args[0])) {
+                args = [Predicate.create(args)];
             }
         }
+        // remove any null or undefined elements from the array.
+        return args.filter(function (arg) {
+            return arg != null;
+        });
     }
 
     return ctor;

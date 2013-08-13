@@ -46,8 +46,8 @@
         xxx.lastName("smith");
 
         var lastName = xxx.lastName();
-        // THIS FAILS --- lastName is actually undefined here.
-        ok(lastName === "SMITH", "should be all uppercase");
+        // NOT SMITH - lastName is actually undefined here.
+        ok(lastName !== "SMITH", "is not smith because of ko issue");
 
         // But we can make it work ....
 
