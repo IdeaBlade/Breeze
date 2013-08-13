@@ -205,7 +205,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1354"><code>a45_entityQuery.js:1354</code></a>
+            Defined in: <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1364"><code>a45_entityQuery.js:1364</code></a>
         </div>
     
 
@@ -384,12 +384,6 @@ method that would modify a Predicate actually returns a new Predicate.</p>
                     
                 </li>
             
-                <li class="arg">
-                    
-                        <code class="optional">[valueIsLiteral]</code>
-                    
-                </li>
-            
             </ul><span class="paren">)</span>
         </div>
     
@@ -419,7 +413,7 @@ method that would modify a Predicate actually returns a new Predicate.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1360"><code>a45_entityQuery.js:1360</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1370"><code>a45_entityQuery.js:1370</code></a>
         
         </p>
 
@@ -481,25 +475,9 @@ method that would modify a Predicate actually returns a new Predicate.</p>
                         <ul>
 <li>This will be treated as either a property expression or a literal depending on context.  In general, 
         if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-        In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.</li>
-</ul>
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name optional">[valueIsLiteral]</code>
-                        <span class="type">Boolean</span>
-                        <span class="flag optional" title="This parameter is optional.">optional</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <ul>
-<li>Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.</li>
+        In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value' property and an 'isLiteral' property set to either true or false.
+        Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a 'value' property and a 'dataType'property set
+        to one of the breeze.DataType enumeration instances.</li>
 </ul>
                     </div>
 
@@ -572,7 +550,7 @@ var query = new EntityQuery("Customers").where(p2);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1499"><code>a45_entityQuery.js:1499</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1516"><code>a45_entityQuery.js:1516</code></a>
         
         </p>
 
@@ -603,7 +581,7 @@ var query = new EntityQuery("Customers").where(p2);
                     
 
                     <div class="param-description">
-                         
+                        <p>Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.</p>
                     </div>
 
                     
@@ -684,7 +662,7 @@ var newPred = p1.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1430"><code>a45_entityQuery.js:1430</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1443"><code>a45_entityQuery.js:1443</code></a>
         
         </p>
 
@@ -715,7 +693,7 @@ var newPred = p1.and(preds);
                     
 
                     <div class="param-description">
-                         
+                        <p>Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.</p>
                     </div>
 
                     
@@ -773,12 +751,6 @@ var newPred = Predicate.and(preds);
                     
                 </li>
             
-                <li class="arg">
-                    
-                        <code class="optional">[valueIsLiteral]</code>
-                    
-                </li>
-            
             </ul><span class="paren">)</span>
         </div>
     
@@ -810,7 +782,7 @@ var newPred = Predicate.and(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1401"><code>a45_entityQuery.js:1401</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1413"><code>a45_entityQuery.js:1413</code></a>
         
         </p>
 
@@ -872,25 +844,9 @@ var newPred = Predicate.and(preds);
                         <ul>
 <li>This will be treated as either a property expression or a literal depending on context.  In general, 
         if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-        In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.</li>
-</ul>
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name optional">[valueIsLiteral]</code>
-                        <span class="type">Boolean</span>
-                        <span class="flag optional" title="This parameter is optional.">optional</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <ul>
-<li>Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.</li>
+        In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value' property and an 'isLiteral' property set to either true or false.
+        Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a 'value' property and a 'dataType'property set
+        to one of the breeze.DataType enumeration instances.</li>
 </ul>
                     </div>
 
@@ -967,7 +923,7 @@ var p1 = Predicate.create(predArgs);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1386"><code>a45_entityQuery.js:1386</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1398"><code>a45_entityQuery.js:1398</code></a>
         
         </p>
 
@@ -1068,7 +1024,7 @@ if (Predicate.isPredicate(p1)) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1480"><code>a45_entityQuery.js:1480</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1497"><code>a45_entityQuery.js:1497</code></a>
         
         </p>
 
@@ -1161,7 +1117,7 @@ var not_p1 = Predicate.not(p1);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1549"><code>a45_entityQuery.js:1549</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1566"><code>a45_entityQuery.js:1566</code></a>
         
         </p>
 
@@ -1244,7 +1200,7 @@ var not_p1 = Predicate.not(p1);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1455"><code>a45_entityQuery.js:1455</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1470"><code>a45_entityQuery.js:1470</code></a>
         
         </p>
 
@@ -1275,7 +1231,7 @@ var not_p1 = Predicate.not(p1);
                     
 
                     <div class="param-description">
-                         
+                        <p>Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.</p>
                     </div>
 
                     
@@ -1350,7 +1306,7 @@ var newPred = Predicate.or(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1524"><code>a45_entityQuery.js:1524</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1541"><code>a45_entityQuery.js:1541</code></a>
         
         </p>
 
@@ -1381,7 +1337,7 @@ var newPred = Predicate.or(preds);
                     
 
                     <div class="param-description">
-                         
+                        <p>Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.</p>
                     </div>
 
                     
@@ -1454,7 +1410,7 @@ var newPred = p1.or(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1569"><code>a45_entityQuery.js:1569</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1586"><code>a45_entityQuery.js:1586</code></a>
         
         </p>
 
@@ -1524,7 +1480,7 @@ var newPred = p1.or(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1575"><code>a45_entityQuery.js:1575</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1592"><code>a45_entityQuery.js:1592</code></a>
         
         </p>
 
@@ -1600,7 +1556,7 @@ var newPred = p1.or(preds);
             
         
         
-        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1581"><code>a45_entityQuery.js:1581</code></a>
+        <a href="..&#x2F;files&#x2F;a45_entityQuery.js.html#l1598"><code>a45_entityQuery.js:1598</code></a>
         
         </p>
 

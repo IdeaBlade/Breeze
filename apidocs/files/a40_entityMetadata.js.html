@@ -299,8 +299,10 @@ var MetadataStore = (function () {
             structuralType = structuralType.isComplexType ? new ComplexType(structuralType) : new EntityType(structuralType);
         }
 
+        
         if (!structuralType.isComplexType) {
-            if (structuralType.keyProperties.length === 0) {
+
+            if (structuralType.keyProperties.length === 0 &amp;&amp; !structuralType.isAbstract) {
                 throw new Error(&quot;Unable to add &quot; + structuralType.name +
                     &quot; to this MetadataStore.  An EntityType must have at least one property designated as a key property - See the &#x27;DataProperty.isPartOfKey&#x27; property.&quot;);
             }
@@ -406,8 +408,8 @@ var MetadataStore = (function () {
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
         if (this.isEmpty()) {
-            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance;
-            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || LocalQueryComparisonOptions.defaultInstance;
+            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || this.namingConvention;
+            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || this.localQueryComparisonOptions;
         } else {
             if (ncName &amp;&amp; this.namingConvention.name !== ncName) {
                 throw new Error(&quot;Cannot import metadata with a different &#x27;namingConvention&#x27; from the current MetadataStore&quot;);
@@ -427,8 +429,8 @@ var MetadataStore = (function () {
         var structuralTypeMap = this._structuralTypeMap;
         
         json.structuralTypes.forEach(function (stype) {
-            var structuralType = structuralTypeFromJson(that, stype);
-            structuralTypeMap[structuralType.name] = structuralType;
+            structuralTypeFromJson(that, stype);
+            
         });
         __extend(this._resourceEntityTypeMap, json.resourceEntityTypeMap);
         __extend(this._incompleteTypeMap, json.incompleteTypeMap);
@@ -776,18 +778,18 @@ var MetadataStore = (function () {
         &#x2F;&#x2F; baseType may not have been imported yet so we need to defer handling this type until later.
         if (json.baseTypeName) {
             stype.baseTypeName = json.baseTypeName;
-            var baseEntityType = metadataStore._getEntityType(json.baseTypeName);
+            var baseEntityType = metadataStore._getEntityType(json.baseTypeName, true);
             if (baseEntityType) {
                 completeStructuralTypeFromJson(metadataStore, json, stype, baseEntityType);
             } else {
-                __getArray(metadataStore.deferredTypes, baseTypeName).push({ json: json, stype: stype });
+                __getArray(metadataStore._deferredTypes, json.baseTypeName).push({ json: json, stype: stype });
                 
             }
         } else {
             completeStructuralTypeFromJson(metadataStore, json, stype, null);
         }
 
-        &#x2F;&#x2F; sype may or may not have been added to the metadataStore at this point.
+        &#x2F;&#x2F; stype may or may not have been added to the metadataStore at this point.
         return stype;
     }
 
@@ -1579,7 +1581,11 @@ var EntityType = (function () {
 
         var proto = aCtor.prototype;
 
-        if (!proto._alreadyWrappedProps) {
+        &#x2F;&#x2F; place for extra breeze related data
+        extra = proto._$extra || {};
+        proto._$extra = extra;
+        
+        if (!extra.initialized) {
             var instance = new aCtor();
             calcUnmappedProperties(this, instance);
         } 
@@ -1593,13 +1599,10 @@ var EntityType = (function () {
 
         &#x2F;&#x2F; defaultPropertyInterceptor is a &#x27;global&#x27; (but internal to breeze) function;
         proto._$interceptor = interceptor || defaultPropertyInterceptor;
-
-
+                
         __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
-
-        if (!proto._alreadyWrappedProps) {
-            proto._alreadyWrappedProps = {};
-        }
+        extra.initialized = true;
+        
         this._ctor = aCtor;
     };
 
@@ -1862,7 +1865,7 @@ var EntityType = (function () {
         if (dp.isComplexProperty) {
             this.complexProperties.push(dp);
         }
-
+        
         if (dp.concurrencyMode &amp;&amp; dp.concurrencyMode !== &quot;None&quot;) {
             this.concurrencyProperties.push(dp);
         }
@@ -1988,8 +1991,8 @@ var EntityType = (function () {
     }
 
    
-    function calcUnmappedProperties(entityType, instance) {
-        var metadataPropNames = entityType.getPropertyNames();
+    function calcUnmappedProperties(stype, instance) {
+        var metadataPropNames = stype.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
         trackablePropNames.forEach(function (pn) {
             if (metadataPropNames.indexOf(pn) === -1) {
@@ -1999,7 +2002,13 @@ var EntityType = (function () {
                     isNullable: true,
                     isUnmapped: true
                 });
-                entityType.addProperty(newProp);
+                if (stype.subtypes) {
+                    stype.getSelfAndSubtypes().forEach(function (st) {
+                        st.addProperty(new DataProperty(newProp));
+                    });
+                } else {
+                    stype.addProperty(newProp);
+                }
             }
         });
     }

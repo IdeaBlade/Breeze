@@ -419,16 +419,17 @@ var EntityQuery = (function () {
                 when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.
         - a value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-                In most cases this works well, but you can also force the interpretation by setting the next parameter &#x27;valueIsLiteral&#x27; to true.
-        - an optional [valueIsLiteral] {Boolean} parameter - Used to force the &#x27;value&#x27; parameter to be treated as a literal - otherwise this will be inferred based on the context.
-
+                In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a &#x27;value&#x27; property and an &#x27;isLiteral&#x27; property set to either true or false.
+                Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a &#x27;value&#x27; property and a &#x27;dataType&#x27;property set
+                to one of the breeze.DataType enumeration instances.       
+    - or a null or undefined ( this causes any existing where clause to be removed)
    
     @return {EntityQuery}
     @chainable
     **&#x2F;
     proto.where = function (predicate) {
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (predicate == null) {
             eq.wherePredicate = null;
             return eq;
         }
@@ -473,13 +474,14 @@ var EntityQuery = (function () {
             var query = new EntityQuery(&quot;Customers&quot;)
             .orderBy(&quot;Region desc, CompanyName desc&quot;);
     @method orderBy
-    @param propertyPaths {String|Array of String} A comma-separated (&#x27;,&#x27;) string of property paths or an array of property paths. Each property path can optionally end with &quot; desc&quot; to force a descending sort order.
+    @param propertyPaths {String|Array of String} A comma-separated (&#x27;,&#x27;) string of property paths or an array of property paths. 
+    Each property path can optionally end with &quot; desc&quot; to force a descending sort order. If &#x27;propertyPaths&#x27; is either null or omitted then all ordering is removed. 
     @return {EntityQuery}
     @chainable
     **&#x2F;
     proto.orderBy = function (propertyPaths) {
         &#x2F;&#x2F; deliberately don&#x27;t pass in isDesc
-        return orderByCore(this, normalizePropertyPaths(propertyPaths));
+        return orderByCore(this, propertyPaths);
     };
 
     &#x2F;**
@@ -499,12 +501,13 @@ var EntityQuery = (function () {
             .orderByDesc(&quot;Category.CategoryName&quot;);
 
     @method orderByDesc
-    @param propertyPaths {String|Array of String} A comma-separated (&#x27;,&#x27;) string of property paths or an array of property paths.
+    @param propertyPaths {String|Array of String} A comma-separated (&#x27;,&#x27;) string of property paths or an array of property paths. 
+    If &#x27;propertyPaths&#x27; is either null or omitted then all ordering is removed. 
     @return {EntityQuery}
     @chainable
     **&#x2F;
     proto.orderByDesc = function (propertyPaths) {
-        return orderByCore(this, normalizePropertyPaths(propertyPaths), true);
+        return orderByCore(this, propertyPaths, true);
     };
         
     &#x2F;**
@@ -539,11 +542,12 @@ var EntityQuery = (function () {
             .select(&quot;Customer.CompanyName, Customer, OrderDate&quot;);
     @method select
     @param propertyPaths {String|Array of String} A comma-separated (&#x27;,&#x27;) string of property paths or an array of property paths.
+    If &#x27;propertyPaths&#x27; is either null or omitted then any existing projection on the query is removed. 
     @return {EntityQuery}
     @chainable
     **&#x2F;
     proto.select = function (propertyPaths) {
-        return selectCore(this, normalizePropertyPaths(propertyPaths));
+        return selectCore(this, propertyPaths);
     };
 
 
@@ -555,14 +559,14 @@ var EntityQuery = (function () {
             .where(&quot;CompanyName&quot;, &quot;startsWith&quot;, &quot;C&quot;)
             .skip(5);
     @method skip
-    @param count {Number} The number of entities to return. If omitted this clears the 
+    @param count {Number} The number of entities to return. If omitted or null any existing skip count on the query is removed. 
     @return {EntityQuery}
     @chainable
     **&#x2F;
     proto.skip = function (count) {
         assertParam(count, &quot;count&quot;).isOptional().isNumber().check();
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (count == null) {
             eq.skipCount = null;
         } else {
             eq.skipCount = count;
@@ -577,7 +581,8 @@ var EntityQuery = (function () {
         var query = new EntityQuery(&quot;Customers&quot;)
             .top(5);
     @method top
-    @param count {Number} The number of entities to return.
+    @param count {Number} The number of entities to return. 
+    If &#x27;count&#x27; is either null or omitted then any existing &#x27;top&#x27; count on the query is removed. 
     @return {EntityQuery}
     @chainable
     **&#x2F;
@@ -593,13 +598,14 @@ var EntityQuery = (function () {
             .take(5);
     @method take
     @param count {Number} The number of entities to return.
+    If &#x27;count&#x27; is either null or omitted then any existing &#x27;take&#x27; count on the query is removed. 
     @return {EntityQuery}
     @chainable
     **&#x2F;
     proto.take = function (count) {
         assertParam(count, &quot;count&quot;).isOptional().isNumber().check();
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (count == null) {
             eq.takeCount = null;
         } else {
             eq.takeCount = count;
@@ -625,12 +631,13 @@ var EntityQuery = (function () {
             .expand(&quot;Customer, OrderDetails, OrderDetails.Product&quot;)
     @method expand
     @param propertyPaths {String|Array of String} A comma-separated list of navigation property names or an array of navigation property names. Each Navigation Property name can be followed
-    by a &#x27;.&#x27; and another navigation property name to enable identifying a multi-level relationship
+    by a &#x27;.&#x27; and another navigation property name to enable identifying a multi-level relationship. 
+    If &#x27;propertyPaths&#x27; is either null or omitted then any existing &#x27;expand&#x27; clause on the query is removed. 
     @return {EntityQuery}
     @chainable
     **&#x2F;
     proto.expand = function (propertyPaths) {
-        return expandCore(this, normalizePropertyPaths(propertyPaths));
+        return expandCore(this, propertyPaths);
     };
 
     &#x2F;**
@@ -1150,11 +1157,12 @@ var EntityQuery = (function () {
     function orderByCore(that, propertyPaths, isDesc) {
         var newClause;
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.orderByClause = null;
             return eq;
         }
 
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         newClause = OrderByClause.create(propertyPaths, isDesc);
 
         if (eq.orderByClause) {
@@ -1167,20 +1175,22 @@ var EntityQuery = (function () {
         
     function selectCore(that, propertyPaths) {
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.selectClause = null;
             return eq;
         }
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         eq.selectClause = new SelectClause(propertyPaths);
         return eq;
     }
         
     function expandCore(that, propertyPaths) {
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.expandClause = null;
             return eq;
         }
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         eq.expandClause = new ExpandClause(propertyPaths);
         return eq;
     }
@@ -1574,15 +1584,17 @@ var Predicate = (function () {
     @param operator {FilterQueryOp|String}
     @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-                In most cases this works well, but you can also force the interpretation by setting the next parameter &#x27;valueIsLiteral&#x27; to true.
-    @param [valueIsLiteral] {Boolean} - Used to force the &#x27;value&#x27; parameter to be treated as a literal - otherwise this will be inferred based on the context.
+                In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a &#x27;value&#x27; property and an &#x27;isLiteral&#x27; property set to either true or false.
+                Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a &#x27;value&#x27; property and a &#x27;dataType&#x27;property set
+                to one of the breeze.DataType enumeration instances.
+    
     **&#x2F;
-    var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
+    var ctor = function (propertyOrExpr, operator, value ) {
         if (arguments[0].prototype === true) {
             &#x2F;&#x2F; used to construct prototype
             return this;
         }
-        return new SimplePredicate(propertyOrExpr, operator, value, valueIsLiteral);
+        return new SimplePredicate(propertyOrExpr, operator, value);
     };
     var proto = ctor.prototype;
 
@@ -1618,15 +1630,16 @@ var Predicate = (function () {
     @param operator {FilterQueryOp|String}
     @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-                In most cases this works well, but you can also force the interpretation by setting the next parameter &#x27;valueIsLiteral&#x27; to true.
-    @param [valueIsLiteral] {Boolean} - Used to force the &#x27;value&#x27; parameter to be treated as a literal - otherwise this will be inferred based on the context.
+                In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a &#x27;value&#x27; property and an &#x27;isLiteral&#x27; property set to either true or false.
+                Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a &#x27;value&#x27; property and a &#x27;dataType&#x27;property set
+                to one of the breeze.DataType enumeration instances.
+    
     **&#x2F;
-    ctor.create = function (property, operator, value, valueIsLiteral) {
+    ctor.create = function (property, operator, value ) {
         if (Array.isArray(property)) {
-            valueIsLiteral = (property.length === 4) ? property[3] : false;
-            return new SimplePredicate(property[0], property[1], property[2], valueIsLiteral);
+            return new SimplePredicate(property[0], property[1], property[2]);
         } else {
-            return new SimplePredicate(property, operator, value, valueIsLiteral);
+            return new SimplePredicate(property, operator, value);
         }
     };
 
@@ -1643,12 +1656,14 @@ var Predicate = (function () {
         var preds = [p1, p2, p3];
         var newPred = Predicate.and(preds);
     @method and
-    @param predicates* {multiple Predicates|Array of Predicate}
+    @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
     @static
     **&#x2F;
     ctor.and = function (predicates) {
         predicates = argsToPredicates(arguments);
-        if (predicates.length === 1) {
+        if (predicates.length === 0) {
+            return null;
+        } else if (predicates.length === 1) {
             return predicates[0];
         } else {
             return new CompositePredicate(&quot;and&quot;, predicates);
@@ -1668,12 +1683,14 @@ var Predicate = (function () {
         var preds = [p1, p2, p3];
         var newPred = Predicate.or(preds);
     @method or
-    @param predicates* {multiple Predicates|Array of Predicate}
+    @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
     @static
     **&#x2F;
     ctor.or = function (predicates) {
         predicates = argsToPredicates(arguments);
-        if (predicates.length === 1) {
+        if (predicates.length === 0) {
+            return null;
+        } else if (predicates.length === 1) {
             return predicates[0];
         } else {
             return new CompositePredicate(&quot;or&quot;, predicates);
@@ -1716,7 +1733,7 @@ var Predicate = (function () {
         var p4 = Predicate.create(&quot;ShipCity&quot;, &quot;startswith&quot;, &quot;F&quot;)
             .and(&quot;Size&quot;, &quot;gt&quot;, 2000);
     @method and
-    @param predicates* {multiple Predicates|Array of Predicate}
+    @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
     **&#x2F;
     proto.and = function (predicates) {
         predicates = argsToPredicates(arguments);
@@ -1741,7 +1758,7 @@ var Predicate = (function () {
         var p4 = Predicate.create(&quot;ShipCity&quot;, &quot;startswith&quot;, &quot;F&quot;)
             .or(&quot;Size&quot;, &quot;gt&quot;, 2000);
     @method or
-    @param predicates* {multiple Predicates|Array of Predicate}
+    @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
     **&#x2F;
     proto.or = function (predicates) {
         predicates = argsToPredicates(arguments);
@@ -1789,16 +1806,19 @@ var Predicate = (function () {
     **&#x2F;
 
     function argsToPredicates(argsx) {
+        var args;
         if (argsx.length === 1 &amp;&amp; Array.isArray(argsx[0])) {
-            return argsx[0];
+            args = argsx[0];
         } else {
             var args = __arraySlice(argsx);
-            if (Predicate.isPredicate(args[0])) {
-                return args;
-            } else {
-                return [Predicate.create(args)];
+            if (!Predicate.isPredicate(args[0])) {
+                args = [Predicate.create(args)];
             }
         }
+        &#x2F;&#x2F; remove any null or undefined elements from the array.
+        return args.filter(function (arg) {
+            return arg != null;
+        });
     }
 
     return ctor;
@@ -1808,13 +1828,16 @@ var Predicate = (function () {
 &#x2F;&#x2F; Does not need to be exposed.
 var SimplePredicate = (function () {
 
-    var ctor = function(propertyOrExpr, operator, value, valueIsLiteral) {
+    var ctor = function(propertyOrExpr, operator, value) {
         assertParam(propertyOrExpr, &quot;propertyOrExpr&quot;).isString().isOptional().check();
-
-        assertParam(operator, &quot;operator&quot;).isEnumOf(FilterQueryOp).or().isString().check();
-        assertParam(value, &quot;value&quot;).isRequired(true).check();
-        assertParam(valueIsLiteral).isOptional().isBoolean().check();
-
+        if (arguments.length == 3 &amp;&amp; operator != null) {
+            assertParam(operator, &quot;operator&quot;).isEnumOf(FilterQueryOp).or().isString().check();
+            assertParam(value, &quot;value&quot;).isRequired(true).check();
+        } else {
+            this._odataExpr = propertyOrExpr;
+            return;
+        }
+        
         this._filterQueryOp = FilterQueryOp.from(operator);
         if (!this._filterQueryOp) {
             throw new Error(&quot;Unknown query operation: &quot; + operator);
@@ -1828,8 +1851,16 @@ var SimplePredicate = (function () {
             }
         }
 
-        this._value = value;
-        this._valueIsLiteral = valueIsLiteral;
+        &#x2F;&#x2F; _datatype is just a guess here - it will only be used if we aren&#x27;t certain from the rest of the expression.
+        if ((value != null) &amp;&amp; (typeof (value) === &quot;object&quot;) &amp;&amp; value.value !== undefined) {
+            this._dataType = value.dataType || DataType.fromValue(value.value);
+            this._value = value.value;
+            this._isLiteral = value.isLiteral;
+        } else {
+            this._dataType = DataType.fromValue(value);
+            this._value = value;
+            this._isLiteral = undefined;
+        }
     };
         
     var proto = new Predicate({ prototype: true });
@@ -1837,6 +1868,9 @@ var SimplePredicate = (function () {
         
 
     proto.toOdataFragment = function (entityType) {
+        if (this._odataExpr) {
+            return this._odataExpr;
+        }
         if (this._filterQueryOp == FilterQueryOp.IsTypeOf) {
             var oftype = entityType.metadataStore.getEntityType(this._value);
             var typeName = oftype.namespace + &#x27;.&#x27; + oftype.shortName;
@@ -1850,7 +1884,7 @@ var SimplePredicate = (function () {
         if (this._fnNode2) {
             v2Expr = this._fnNode2.toOdataFragment(entityType);
         } else {
-            var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+            var dataType = this._fnNode1.dataType || this._dataType;
             v2Expr = dataType.fmtOData(this._value);
         }
         if (this._filterQueryOp.isFunction) {
@@ -1865,10 +1899,15 @@ var SimplePredicate = (function () {
         }
     };
 
+   
+
     proto.toFunction = function (entityType) {
+        if (this._odataExpr) {
+            throw new Exception(&quot;OData predicateexpressions cannot be interpreted locally&quot;);
+        }
         this.validate(entityType);
 
-        var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+        var dataType = this._fnNode1.dataType || this._dataType;
         var predFn = getPredicateFn(entityType, this._filterQueryOp, dataType);
         var v1Fn = this._fnNode1.fn;
             
@@ -1896,7 +1935,7 @@ var SimplePredicate = (function () {
             this.dataType = this._fnNode1.dataType;
         }
 
-        if (this._fnNode2 === undefined &amp;&amp; !this._valueIsLiteral) {
+        if (this._fnNode2 === undefined &amp;&amp; !this._isLiteral) {
             this._fnNode2 = FnNode.create(this._value, entityType);
         }
 
@@ -1905,6 +1944,7 @@ var SimplePredicate = (function () {
     &#x2F;&#x2F; internal functions
 
     &#x2F;&#x2F; TODO: still need to handle localQueryComparisonOptions for guids.
+
         
     function getPredicateFn(entityType, filterQueryOp, dataType) {
         var lqco = entityType.metadataStore.localQueryComparisonOptions;
