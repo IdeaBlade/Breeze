@@ -44,12 +44,14 @@ namespace Breeze.WebApi {
     }
 
     /// <summary>
-    /// Validate a single entity
+    /// Validates a single entity.
+    /// Skips validation (returns true) if entity is marked Deleted.
     /// </summary>
     /// <param name="entityInfo">contains the entity to validate</param>
     /// <param name="entityErrors">An EntityError is added to this list for each error found in the entity</param>
     /// <returns>true if entity is valid, false if invalid.</returns>
     public bool ValidateEntity(EntityInfo entityInfo, List<EntityError> entityErrors) {
+      if (entityInfo.EntityState == EntityState.Deleted) return true;
       // Perform validation on the entity, based on DataAnnotations.  
       var entity = entityInfo.Entity;
       var validationResults = new List<ValidationResult>();
