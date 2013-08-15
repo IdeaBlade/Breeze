@@ -300,6 +300,10 @@
                 return name.length > 1;
             }), "every should have a name");
             ok(r.every(function (f) {
+                var rowVer = f.getProperty("rowVersion");
+                return rowVer === 3;
+            }), "every item should have a rowVer of three - ( three initializers fired)");
+            ok(r.every(function (f) {
                 var miscData = f.getProperty("miscData");
                 return miscData === "asdf";
             }), "every item has miscData == asdf");
@@ -408,8 +412,10 @@
             enumerable: true,
             configurable: true
         });
-
-        var entityType = registerItemOfProduceWithES5(em, baseTypeName, rootCtor);
+        var initFn = function (entity) {
+            entity.setProperty("initString", "myBaseClass");
+        }
+        var entityType = registerItemOfProduceWithES5(em, baseTypeName, rootCtor, initFn);
     }
 
     function registerItemOfProduceWithES5(em, baseTypeName, rootCtor) {
@@ -419,30 +425,28 @@
 
         registerSelfAndSubtypes(em, baseType, baseCtor);
 
-        //var descendents = baseType.getSelfAndSubtypes();
-
-        //var subtype, newCtor, i;
-        //var subCtor = baseCtor;
-        //for (var i = 1, len = descendents.length; i < len; i++) {
-        //    subtype = descendents[i];
-        //    newCtor = function () { };
-        //    newCtor.prototype = new subCtor();
-        //    subCtor = newCtor;
-        //    em.metadataStore.registerEntityTypeCtor(subtype.name, newCtor);
-        //}
         return baseType;
-
-        
     }
 
     function registerSelfAndSubtypes(em, baseType, baseCtor) {
-        em.metadataStore.registerEntityTypeCtor(baseType.name, baseCtor);
+        em.metadataStore.registerEntityTypeCtor(baseType.name, baseCtor, entityInitializeFn(baseCtor._$typeName));
         baseType.subtypes.forEach(function (subtype) {
             newCtor = function () { };
             newCtor.prototype = new baseCtor();
             registerSelfAndSubtypes(em, subtype, newCtor);
         });
 
+    }
+
+    function entityInitializeFn(typeName) {
+        return function (entity) {
+            var rowVer = entity.getProperty("rowVersion");
+            rowVer = (rowVer == null) ? 1 : rowVer + 1;
+            entity.setProperty("rowVersion", rowVer);
+            var initString = entity.getProperty("initString");
+            initString = (initString == null) ? typeName : initString + "," + typeName;
+            entity.setProperty("initString", initString);
+        }
     }
 
 
@@ -472,7 +476,8 @@
             if (baseCtor) ctor.prototype = new baseCtor();
             createProduceES5Props(ctor.prototype);
         }
-        
+
+       
         return ctor;
 
     };
@@ -503,6 +508,17 @@
             },
             set: function (value) {
                 this["_miscData"] = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+
+        Object.defineProperty(target, "initString", {
+            get: function () {
+                return this["_initString"] || "";
+            },
+            set: function (value) {
+                this["_initString"] = value;
             },
             enumerable: true,
             configurable: true
