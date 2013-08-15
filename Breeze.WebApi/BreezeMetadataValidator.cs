@@ -56,12 +56,14 @@ namespace Breeze.WebApi {
     }
 
     /// <summary>
-    /// Validate a single entity
+    /// Validates a single entity.
+    /// Skips validation (returns true) if entity is marked Deleted.
     /// </summary>
     /// <param name="entityInfo">contains the entity to validate</param>
     /// <param name="entityErrors">An EntityError is added to this list for each error found in the entity</param>
     /// <returns>true if entity is valid, false if invalid.</returns>
     public bool ValidateEntity(EntityInfo entityInfo, List<EntityError> entityErrors) {
+      if (entityInfo.EntityState == EntityState.Deleted) return true;
       bool isValid = true;
       var entity = entityInfo.Entity;
       var entityType = entity.GetType();
@@ -169,6 +171,10 @@ namespace Breeze.WebApi {
       internal override string Validate(object value) {
         if (value == null) {
           return "A value is required.";
+        }
+        var s = value as string;
+        if (s != null && String.IsNullOrWhiteSpace(s)) {
+            return "A value is required.";
         }
         return null;
       }

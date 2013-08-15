@@ -50,7 +50,7 @@ namespace Zza.Controllers
 
         private HttpResponseMessage ValidationError(Exception ex)
         {
-            return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex); 
+            return Request.CreateErrorResponse(HttpStatusCode.Forbidden, ex); 
         }
 
         // ~/breeze/ZzaEf/Customers
