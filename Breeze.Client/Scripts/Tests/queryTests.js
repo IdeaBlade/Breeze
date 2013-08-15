@@ -39,6 +39,7 @@
         manager.executeQuery(query).then(function (data) {
             var result = data.results[0];
             orderDate = result.getProperty("orderDate");
+            ok(core.isDate(orderDate), "orderDate should be of 'Date type'");
             var manager2 = newEm();
             var query = new breeze.EntityQuery()
                 .from("Orders")
@@ -46,7 +47,8 @@
                 .select("orderDate");
             manager2.executeQuery(query).then(function (data) {
                 orderDate2 = data.results[0];
-            }).fail(testFns.handleFail).fin(start);
+                ok(core.isDate(orderDate2), "orderDate2 should be of 'Date type'");
+            }).fail(testFns.handleFail);
         }).fail(testFns.handleFail).fin(start);
 
     });
