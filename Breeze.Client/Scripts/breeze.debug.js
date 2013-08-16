@@ -7071,7 +7071,7 @@ var EntityType = (function () {
     @return {Entity} The new entity.
     **/
     proto.createEntity = function (initialValues) {
-        var instance = this._createEntityCore();
+        var instance = this._createInstanceCore();
             
         if (initialValues) {
             __objectForEach(initialValues, function (key, value) {
@@ -7083,7 +7083,7 @@ var EntityType = (function () {
         return instance;
     };
 
-    proto._createEntityCore = function() {
+    proto._createInstanceCore = function() {
         var aCtor = this.getEntityCtor();
         var instance = new aCtor();
         new EntityAspect(instance);
@@ -7650,7 +7650,7 @@ var ComplexType = (function () {
     The short, unqualified, name for this ComplexType.
 
     __readOnly__
-    @property shortName {String} 
+    +@property shortName {String} 
     **/
 
     /**
@@ -7674,25 +7674,16 @@ var ComplexType = (function () {
     @method createInstance
     @param initialValues {Object} Configuration object containing initial values for the instance. 
     **/
-    proto.createInstance = function (initialValues) {
-        var instance = this._createInstanceCore();
+    // This method is actually the EntityType.createEntity method renamed 
 
-        if (initialValues) {
-            __objectForEach(initialValues, function (key, value) {
-                instance.setProperty(key, value);
-            });
-        }
-
-        this._initializeInstance(instance);
-        return instance;
-    };
 
     proto._createInstanceCore = function (parent, parentProperty ) {
         var aCtor = this.getCtor();
         var instance = new aCtor();
         new ComplexAspect(instance, parent, parentProperty);
+        // TODO: don't think that this is needed anymore - createInstance call will do this 
         //if (parent) {
-        //    instance.complexAspect._postInitialize();
+        //    this._initializeInstance(instance);
         //}
         return instance;
     };
@@ -7745,6 +7736,7 @@ var ComplexType = (function () {
     proto.addValidator = EntityType.prototype.addValidator;
     proto.getProperty = EntityType.prototype.getProperty;
     proto.getPropertyNames = EntityType.prototype.getPropertyNames;
+    proto.createInstance = EntityType.prototype.createEntity;  // name change
     proto._addDataProperty = EntityType.prototype._addDataProperty;
     proto._updateNames = EntityType.prototype._updateNames;
     proto._updateCps = EntityType.prototype._updateCps;
@@ -13004,7 +12996,7 @@ var EntityManager = (function () {
                     targetEntity = null;
                 }
             } else {
-                targetEntity = entityType._createEntityCore();
+                targetEntity = entityType._createInstanceCore();
                 updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
                 if (newTempKey !== undefined) {
                     // fixup pk
@@ -13369,7 +13361,7 @@ var EntityManager = (function () {
             }
 
         } else {
-            targetEntity = entityType._createEntityCore();
+            targetEntity = entityType._createInstanceCore();
             if (targetEntity.initializeFrom) {
                 // allows any injected post ctor activity to be performed by modelLibrary impl.
                 targetEntity.initializeFrom(node);
@@ -13453,7 +13445,8 @@ var EntityManager = (function () {
         var oldVal;
         if (dp.isComplexProperty) {
             oldVal = target.getProperty(dp.name);
-            var cdataProps = dp.dataType.dataProperties;
+            var complexType = dp.dataType;
+            var cdataProps = complexType.dataProperties;
             if (dp.isScalar) {
                 updateTargetFromRaw(oldVal, rawVal, cdataProps, isClient);
             } else {
@@ -13461,8 +13454,9 @@ var EntityManager = (function () {
                 oldVal.length = 0;
                 if (Array.isArray(rawVal)) {
                     rawVal.forEach(function (rawCo) {
-                        var newCo = dp.dataType._createInstanceCore(target, dp);
+                        var newCo = complexType._createInstanceCore(target, dp);
                         updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
+                        complexType._initializeInstance(newCo);
                         oldVal.push(newCo);
                     });
                 }

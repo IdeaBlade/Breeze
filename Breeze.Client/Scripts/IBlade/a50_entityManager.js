@@ -1734,7 +1734,7 @@ var EntityManager = (function () {
                     targetEntity = null;
                 }
             } else {
-                targetEntity = entityType._createEntityCore();
+                targetEntity = entityType._createInstanceCore();
                 updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
                 if (newTempKey !== undefined) {
                     // fixup pk
@@ -2099,7 +2099,7 @@ var EntityManager = (function () {
             }
 
         } else {
-            targetEntity = entityType._createEntityCore();
+            targetEntity = entityType._createInstanceCore();
             if (targetEntity.initializeFrom) {
                 // allows any injected post ctor activity to be performed by modelLibrary impl.
                 targetEntity.initializeFrom(node);
@@ -2183,7 +2183,8 @@ var EntityManager = (function () {
         var oldVal;
         if (dp.isComplexProperty) {
             oldVal = target.getProperty(dp.name);
-            var cdataProps = dp.dataType.dataProperties;
+            var complexType = dp.dataType;
+            var cdataProps = complexType.dataProperties;
             if (dp.isScalar) {
                 updateTargetFromRaw(oldVal, rawVal, cdataProps, isClient);
             } else {
@@ -2191,8 +2192,9 @@ var EntityManager = (function () {
                 oldVal.length = 0;
                 if (Array.isArray(rawVal)) {
                     rawVal.forEach(function (rawCo) {
-                        var newCo = dp.dataType._createInstanceCore(target, dp);
+                        var newCo = complexType._createInstanceCore(target, dp);
                         updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
+                        complexType._initializeInstance(newCo);
                         oldVal.push(newCo);
                     });
                 }
