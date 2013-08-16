@@ -1335,7 +1335,7 @@ var EntityType = (function () {
             });
         }
             
-        instance.entityAspect._postInitialize();
+        this._initializeInstance(instance);
         return instance;
     };
 
@@ -1344,6 +1344,23 @@ var EntityType = (function () {
         var instance = new aCtor();
         new EntityAspect(instance);
         return instance;
+    };
+
+    proto._initializeInstance = function (instance) {
+        if (this.baseEntityType) {
+            this.baseEntityType._initializeInstance(instance);
+        }
+        var initFn = this.initializationFn;
+        if (initFn) {
+            if (typeof initFn === "string") {
+                initFn = instance[initFn];
+            }
+            initFn(instance);
+        }
+        // not needed for complexObjects
+        if (instance.entityAspect) {
+            instance.entityAspect._initialized = true;
+        }
     };
 
     /**
@@ -1361,9 +1378,9 @@ var EntityType = (function () {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
             aCtor = createCtor ? createCtor(this) : createEmptyCtor();
         }
-        if (r.initFn) {
-            aCtor._$initializationFn = r.initFn;
-        }
+        
+        this.initializationFn = r.initFn;
+        
         aCtor.prototype._$typeName = this.name;
         this._setCtor(aCtor);
         return aCtor;
@@ -1922,7 +1939,7 @@ var ComplexType = (function () {
             });
         }
 
-        instance.complexAspect._postInitialize();
+        this._initializeInstance(instance);
         return instance;
     };
 
@@ -1930,9 +1947,9 @@ var ComplexType = (function () {
         var aCtor = this.getCtor();
         var instance = new aCtor();
         new ComplexAspect(instance, parent, parentProperty);
-        if (parent) {
-            instance.complexAspect._postInitialize();
-        }
+        //if (parent) {
+        //    instance.complexAspect._postInitialize();
+        //}
         return instance;
     };
         
@@ -1987,6 +2004,7 @@ var ComplexType = (function () {
     proto._addDataProperty = EntityType.prototype._addDataProperty;
     proto._updateNames = EntityType.prototype._updateNames;
     proto._updateCps = EntityType.prototype._updateCps;
+    proto._initializeInstance = EntityType.prototype._initializeInstance;
     // note the name change.
     proto.getCtor = EntityType.prototype.getEntityCtor;
     proto._setCtor = EntityType.prototype._setCtor;

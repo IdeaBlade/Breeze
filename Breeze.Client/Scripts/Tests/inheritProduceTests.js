@@ -301,8 +301,13 @@
             }), "every should have a name");
             ok(r.every(function (f) {
                 var rowVer = f.getProperty("rowVersion");
-                return rowVer === 3;
-            }), "every item should have a rowVer of three - ( three initializers fired)");
+                var expected = f.entityType.shortName !== "Fruit" ? 3 : 2;
+                return rowVer === expected;
+            }), "should have the correct rowVer" );
+            ok(r.every(function (f) {
+                    var initString = f.getProperty("initString");
+                    return initString.indexOf("ItemOfProduce") === 0;
+            }), "every item should have an initString starting with 'ItemOfProduce");
             ok(r.every(function (f) {
                 var miscData = f.getProperty("miscData");
                 return miscData === "asdf";
@@ -324,6 +329,7 @@
 
     test("query Fruits - ES5", function () {
         var em = newEmX();
+        // initializer only down to Fruit - not ItemOfProduce.
         registerItemOfProduceWithES5(em, "Fruit");
 
         var q = EntityQuery.from("Fruits")
@@ -340,6 +346,15 @@
                 var name = f.getProperty("name");
                 return name.length > 1;
             }), "every should have a name");
+            ok(r.every(function (f) {
+                var rowVer = f.getProperty("rowVersion");
+                var expected = f.entityType.shortName !== "Fruit" ? 2 : 1;
+                return rowVer === expected;
+            }), "should have the correct rowVer");
+            ok(r.every(function (f) {
+                var initString = f.getProperty("initString");
+                return initString.indexOf("Fruit") === 0;
+            }), "every item should have an initString starting with 'ItemOfProduce");
             ok(r.every(function (f) {
                 var miscData = f.getProperty("miscData");
                 return miscData === "asdf";
@@ -378,6 +393,15 @@
                 return name.length > 1;
             }), "every should have a name");
             ok(r.every(function (f) {
+                var rowVer = f.getProperty("rowVersion");
+                var expected = f.entityType.shortName !== "Fruit" ? 3 : 2;
+                return rowVer === expected;
+            }), "should have the correct rowVer");
+            ok(r.every(function (f) {
+                var initString = f.getProperty("initString");
+                return initString.indexOf("ItemOfProduce") === 0;
+            }), "every item should have an initString starting with 'ItemOfProduce");
+            ok(r.every(function (f) {
                 var miscData = f.getProperty("miscData");
                 return miscData === "asdf";
             }), "every item has miscData == asdf");
@@ -412,10 +436,9 @@
             enumerable: true,
             configurable: true
         });
-        var initFn = function (entity) {
-            entity.setProperty("initString", "myBaseClass");
-        }
-        var entityType = registerItemOfProduceWithES5(em, baseTypeName, rootCtor, initFn);
+        // no easy way to add another initFn without registering a new base type for itemOfProduce with breeze ( right now basetype are coming for EF)
+        // hence no test to add an initFn at this level. i.e. possible but not easy to test in current env.
+        var entityType = registerItemOfProduceWithES5(em, baseTypeName, rootCtor);
     }
 
     function registerItemOfProduceWithES5(em, baseTypeName, rootCtor) {
@@ -429,7 +452,7 @@
     }
 
     function registerSelfAndSubtypes(em, baseType, baseCtor) {
-        em.metadataStore.registerEntityTypeCtor(baseType.name, baseCtor, entityInitializeFn(baseCtor._$typeName));
+        em.metadataStore.registerEntityTypeCtor(baseType.name, baseCtor, entityInitializeFn(baseType.name));
         baseType.subtypes.forEach(function (subtype) {
             newCtor = function () { };
             newCtor.prototype = new baseCtor();
@@ -444,7 +467,7 @@
             rowVer = (rowVer == null) ? 1 : rowVer + 1;
             entity.setProperty("rowVersion", rowVer);
             var initString = entity.getProperty("initString");
-            initString = (initString == null) ? typeName : initString + "," + typeName;
+            initString = (initString == null || initString == "") ? typeName : initString + "," + typeName;
             entity.setProperty("initString", initString);
         }
     }

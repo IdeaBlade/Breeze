@@ -519,7 +519,7 @@ var EntityManager = (function () {
         var aspect = entity.entityAspect;
         if (!aspect) {
             aspect = new EntityAspect(entity);
-            aspect._postInitialize(entity);
+            // aspect._postInitialize(entity);
         }
         var manager = aspect.entityManager;
         if (manager) {
@@ -1752,7 +1752,7 @@ var EntityManager = (function () {
                         });
                     }
                 }
-                targetEntity.entityAspect._postInitialize();
+                // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                 if (entityChanged) {
                     entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
@@ -2105,7 +2105,7 @@ var EntityManager = (function () {
                 targetEntity.initializeFrom(node);
             }
             updateEntity(targetEntity, node, mappingContext);
-            targetEntity.entityAspect._postInitialize();
+            // entityType._initializeInstance(targetEntity);
             if (meta.extra) {
                 targetEntity.entityAspect.extraMetadata = meta.extra;
             }

@@ -66,17 +66,7 @@ var EntityAspect = (function() {
     };
     var proto = ctor.prototype;
 
-    proto._postInitialize = function() {
-        var entity = this.entity;
-        var entityCtor = entity.entityType.getEntityCtor();
-        var initFn = entityCtor._$initializationFn;
-        if (initFn) {
-            if (typeof initFn === "string") {
-                initFn = entity[initFn];
-            }
-            initFn(entity);
-        }
-    };
+  
 
     Event.bubbleEvent(proto, function() {
         return this.entityManager;
@@ -856,19 +846,6 @@ var ComplexAspect = (function() {
         var aspect = parent.complexAspect || parent.entityAspect;
         return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
     }
-
-    proto._postInitialize = function() {
-        var co = this.complexObject;
-        var aCtor = co.complexType.getCtor();
-        var initFn = aCtor._$initializationFn;
-        if (initFn) {
-            if (typeof initFn === "string") {
-                co[initFn](co);
-            } else {
-                aCtor._$initializationFn(co);
-            }
-        }
-    };
 
     return ctor;
 

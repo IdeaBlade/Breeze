@@ -3306,17 +3306,7 @@ var EntityAspect = (function() {
     };
     var proto = ctor.prototype;
 
-    proto._postInitialize = function() {
-        var entity = this.entity;
-        var entityCtor = entity.entityType.getEntityCtor();
-        var initFn = entityCtor._$initializationFn;
-        if (initFn) {
-            if (typeof initFn === "string") {
-                initFn = entity[initFn];
-            }
-            initFn(entity);
-        }
-    };
+  
 
     Event.bubbleEvent(proto, function() {
         return this.entityManager;
@@ -3378,12 +3368,14 @@ var EntityAspect = (function() {
                 var newValue = propertyChangedArgs.newValue;
             });
     @event propertyChanged 
-    @param entity {Entity} The entity whose property is changing.
-    @param propertyName {String} The property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
+    @param entity {Entity} The entity whose property has changed.
+    @param property {DataProperty} The DataProperty that changed.
+    @param propertyName {String} The name of the property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
     queries, imports and saves that require a merge. The remaining parameters will not exist in this case either. This will actually be a "property path"
     for any properties of a complex type.
     @param oldValue {Object} The old value of this property before the change.
     @param newValue {Object} The new value of this property after the change.
+    @param parent {Object} The immediate parent object for the changed property.  This will be different from the 'entity' for any complex type or nested complex type properties.
     @readOnly
     **/
 
@@ -4094,19 +4086,6 @@ var ComplexAspect = (function() {
         var aspect = parent.complexAspect || parent.entityAspect;
         return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
     }
-
-    proto._postInitialize = function() {
-        var co = this.complexObject;
-        var aCtor = co.complexType.getCtor();
-        var initFn = aCtor._$initializationFn;
-        if (initFn) {
-            if (typeof initFn === "string") {
-                co[initFn](co);
-            } else {
-                aCtor._$initializationFn(co);
-            }
-        }
-    };
 
     return ctor;
 
@@ -7100,7 +7079,7 @@ var EntityType = (function () {
             });
         }
             
-        instance.entityAspect._postInitialize();
+        this._initializeInstance(instance);
         return instance;
     };
 
@@ -7109,6 +7088,23 @@ var EntityType = (function () {
         var instance = new aCtor();
         new EntityAspect(instance);
         return instance;
+    };
+
+    proto._initializeInstance = function (instance) {
+        if (this.baseEntityType) {
+            this.baseEntityType._initializeInstance(instance);
+        }
+        var initFn = this.initializationFn;
+        if (initFn) {
+            if (typeof initFn === "string") {
+                initFn = instance[initFn];
+            }
+            initFn(instance);
+        }
+        // not needed for complexObjects
+        if (instance.entityAspect) {
+            instance.entityAspect._initialized = true;
+        }
     };
 
     /**
@@ -7126,9 +7122,9 @@ var EntityType = (function () {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
             aCtor = createCtor ? createCtor(this) : createEmptyCtor();
         }
-        if (r.initFn) {
-            aCtor._$initializationFn = r.initFn;
-        }
+        
+        this.initializationFn = r.initFn;
+        
         aCtor.prototype._$typeName = this.name;
         this._setCtor(aCtor);
         return aCtor;
@@ -7687,7 +7683,7 @@ var ComplexType = (function () {
             });
         }
 
-        instance.complexAspect._postInitialize();
+        this._initializeInstance(instance);
         return instance;
     };
 
@@ -7695,9 +7691,9 @@ var ComplexType = (function () {
         var aCtor = this.getCtor();
         var instance = new aCtor();
         new ComplexAspect(instance, parent, parentProperty);
-        if (parent) {
-            instance.complexAspect._postInitialize();
-        }
+        //if (parent) {
+        //    instance.complexAspect._postInitialize();
+        //}
         return instance;
     };
         
@@ -7752,6 +7748,7 @@ var ComplexType = (function () {
     proto._addDataProperty = EntityType.prototype._addDataProperty;
     proto._updateNames = EntityType.prototype._updateNames;
     proto._updateCps = EntityType.prototype._updateCps;
+    proto._initializeInstance = EntityType.prototype._initializeInstance;
     // note the name change.
     proto.getCtor = EntityType.prototype.getEntityCtor;
     proto._setCtor = EntityType.prototype._setCtor;
@@ -11140,6 +11137,11 @@ var EntityGroup = (function () {
         // entity should already have an aspect.
         var ix;
         var aspect = entity.entityAspect;
+        if (!aspect._initialized) {
+            this.entityType._initializeInstance(entity);
+        }
+        delete aspect._initialized;  
+            
         var keyInGroup = aspect.getKey()._keyInGroup;
         ix = this._indexMap[keyInGroup];
         if (ix >= 0) {
@@ -11787,7 +11789,7 @@ var EntityManager = (function () {
         var aspect = entity.entityAspect;
         if (!aspect) {
             aspect = new EntityAspect(entity);
-            aspect._postInitialize(entity);
+            // aspect._postInitialize(entity);
         }
         var manager = aspect.entityManager;
         if (manager) {
@@ -13020,7 +13022,7 @@ var EntityManager = (function () {
                         });
                     }
                 }
-                targetEntity.entityAspect._postInitialize();
+                // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                 if (entityChanged) {
                     entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
@@ -13373,7 +13375,7 @@ var EntityManager = (function () {
                 targetEntity.initializeFrom(node);
             }
             updateEntity(targetEntity, node, mappingContext);
-            targetEntity.entityAspect._postInitialize();
+            // entityType._initializeInstance(targetEntity);
             if (meta.extra) {
                 targetEntity.entityAspect.extraMetadata = meta.extra;
             }
