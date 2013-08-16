@@ -955,8 +955,9 @@
     test("unmapped save with ES5 props", function () {
 
         // use a different metadata store for this em - so we don't polute other tests
-        var em1 = newEm();
+        var em1 = newEm(testFns.newMs());
         var Customer = testFns.models.CustomerWithES5Props();
+
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
         var q = new EntityQuery("Customers")
