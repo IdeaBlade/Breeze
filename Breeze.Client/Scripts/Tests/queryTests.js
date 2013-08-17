@@ -45,10 +45,12 @@
                 .from("Orders")
                 .where("orderID", "==", 10248)
                 .select("orderDate");
-            manager2.executeQuery(query).then(function (data) {
-                orderDate2 = data.results[0];
-                ok(core.isDate(orderDate2), "orderDate2 should be of 'Date type'");
-            }).fail(testFns.handleFail);
+            return manager2.executeQuery(query);
+        }).then(function (data2) {
+            orderDate2 = data2.results[0].orderDate;
+            ok(!core.isDate(orderDate2), "orderDate2 is not a date - ugh'");
+            var orderDate2a = breeze.DataType.parseDateFromServer(orderDate2);
+            ok(orderDate.getTime() === orderDate2a.getTime(), "should be the same date");
         }).fail(testFns.handleFail).fin(start);
 
     });
