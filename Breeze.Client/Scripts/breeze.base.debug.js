@@ -9483,7 +9483,7 @@ var EntityQuery = (function () {
         queryOptions["$expand"] = toExpandString();
         queryOptions["$select"] = toSelectString();
         queryOptions["$inlinecount"] = toInlineCountString();
-        queryOptions = __extend(queryOptions, this.parameters);
+        //queryOptions = __extend(queryOptions, this.parameters);
             
         var qoText = toQueryOptionsString(queryOptions);
         return this.resourceName + qoText;
@@ -14035,6 +14035,7 @@ breeze.AbstractDataServiceAdapter = (function () {
         var that = this;
         var params = {
             url: mappingContext.url,
+            data: mappingContext.query.parameters,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 try {

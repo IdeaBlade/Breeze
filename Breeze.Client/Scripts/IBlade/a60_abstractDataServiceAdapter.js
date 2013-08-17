@@ -83,6 +83,7 @@
         var that = this;
         var params = {
             url: mappingContext.url,
+            data: mappingContext.query.parameters,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 try {

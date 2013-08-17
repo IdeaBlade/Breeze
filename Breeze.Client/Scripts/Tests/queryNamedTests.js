@@ -65,6 +65,46 @@
 
     });
 
+    test("named query withParameters using an object", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
+        var em = newEm();
+
+        var query = EntityQuery.from("SearchCustomers")
+            .withParameters( { CompanyName: "A", ContactNames: ["B", "C"] , City: "Los Angeles",  } );
+        stop();
+        em.executeQuery(query, function (data) {
+            var results = data.results;
+            ok(data.results.length === 3, "should be 3 results");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("named query withParameters using a array of objects", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
+        var em = newEm();
+        var qbeArray = [
+            { CompanyName: "A", ContactNames: ["B", "C"], City: "Los Angeles", },
+            { CompanyName: "C", ContactNames: ["D", "E"], City: "San Diego" }
+            ];
+                   
+        var query = EntityQuery.from("SearchCustomers2")
+            .withParameters({ qbeList: qbeArray });
+        stop();
+        em.executeQuery(query, function (data) {
+            var results = data.results;
+            ok(data.results.length === 3, "should be 3 results");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     test("named query not returning results in same order as in server", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - this endpoint not yet implemented");
