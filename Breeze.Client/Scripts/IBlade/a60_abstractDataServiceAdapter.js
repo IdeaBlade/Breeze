@@ -134,10 +134,10 @@
             contentType: "application/json",
             data: bundle,
             success: function (data, textStatus, XHR) {
-                var errors = data.Errors || data.errors;
-                if (errors) {
+                var entityErrors = data.Errors || data.errors;
+                if (entityErrors) {
                     // anticipatable errors on server - concurrency...
-                    var err = prepareServerErrors(saveContext, errors);
+                    var err = prepareServerErrors(saveContext, entityErrors);
                     deferred.reject(err);
                 } else {
                     var saveResult = that._prepareSaveResult(saveContext, data);
@@ -146,18 +146,31 @@
                 
             },
             error: function (XHR, textStatus, errorThrown) {
-                that._handleXHRError(deferred, XHR);
+                var entityErrors = extractErrors(XHR);
+                if (entityErrors) {
+                    // anticipatable errors on server - validation, possibly others
+                    var err = prepareServerErrors(saveContext, entityErrors);
+                    deferred.reject(err);
+                } else {
+                    that._handleXHRError(deferred, XHR);
+                }
             }
         });
 
         return deferred.promise;
     };
 
-    function prepareServerErrors(saveContext, errors) {
+    function extractErrors(XHR) {
+        if (!XHR.responseText) return null;
+        var responseObj = JSON.parse(XHR.responseText);
+        return responseObj && responseObj.EntityErrors;
+    }
+
+    function prepareServerErrors(saveContext, entityErrors) {
         var err = new Error();
         err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";
         var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
-        err.entityErrors = errors.map(function (e) {
+        err.entityErrors = entityErrors.map(function (e) {
             return {
                 errorName: e.ErrorName,
                 entityTypeName: MetadataStore.normalizeTypeName(e.EntityTypeName),

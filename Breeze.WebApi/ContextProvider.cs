@@ -7,8 +7,11 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Transactions;
+using System.Web.Http;
 using System.Xml.Linq;
 
 namespace Breeze.WebApi {
@@ -84,7 +87,17 @@ namespace Breeze.WebApi {
           OpenAndSave(SaveWorkState);
         }
       } catch (EntityErrorsException e) {
-        SaveWorkState.EntityErrors = e.EntityErrors;
+        // SaveWorkState.EntityErrors = e.EntityErrors;
+        var error = new SaveError(e.EntityErrors);
+        var resp = new HttpResponseMessage(e.StatusCode) {
+          Content = new ObjectContent(typeof(SaveError), error, JsonFormatter.Create()),
+          ReasonPhrase = e.Message ?? "Entity Errors exception"
+        };
+        throw new HttpResponseException(resp);
+      } catch(Exception e2) {
+        if (!HandleSaveException(e2, SaveWorkState)) {
+          throw;
+        }
       } finally {
         CloseDbConnection();
       }
@@ -93,6 +106,11 @@ namespace Breeze.WebApi {
 
     }
 
+    // allows subclasses to plug in own save exception handling
+    // either throw an exception here, return false or return true and modify the saveWorkState.
+    protected virtual bool HandleSaveException(Exception e, SaveWorkState saveWorkState) {
+      return false;
+    }
 
     private void OpenAndSave(SaveWorkState saveWorkState) {
       
@@ -412,11 +430,27 @@ namespace Breeze.WebApi {
     public Object RealValue;
   }
 
+  public class SaveError {
+    public SaveError(IEnumerable<EntityError> entityErrors) {
+      EntityErrors = entityErrors.ToList();
+    }
+    public List<EntityError> EntityErrors { get; protected set; }
+  }
+
   public class EntityErrorsException : Exception {
     public EntityErrorsException(IEnumerable<EntityError> entityErrors) {
       EntityErrors = entityErrors.ToList();
+      StatusCode = HttpStatusCode.Forbidden;
     }
 
+    public EntityErrorsException(String message, IEnumerable<EntityError> entityErrors)
+      : base(message) {
+      EntityErrors = entityErrors.ToList();
+      StatusCode = HttpStatusCode.Forbidden;
+    }
+
+
+    public HttpStatusCode StatusCode { get; set; }
     public List<EntityError> EntityErrors { get; protected set; }
   }
 

@@ -403,7 +403,10 @@ namespace Sample_WebApi.Controllers {
           return new EFEntityError(oi, "WrongMethod", "Cannot save orders with this save method", "OrderID");
 #endif
         });
-        throw new EntityErrorsException(errors);
+        var ex =  new EntityErrorsException("test of custom exception message", errors);
+        // if you want to see a different error status code use this.
+        // ex.StatusCode = HttpStatusCode.Conflict; // Conflict = 409 ; default is Forbidden (403).
+        throw ex;
       }
       return saveMap;
     }
