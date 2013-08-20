@@ -1,4 +1,10 @@
 metadata.js
-Zza/test/testdata/*.*
-!smallOrderTestData.js
+metadata.breeze.js
+mongo.metadata.js
+
 Zza.Interfaces/Breeze.WebApi.dll
+
+#not ready to check in the node_modules
+
+#Zza mongoDb data shouldn't be under VCS unless added explicitly to VCS
+Zza.ExpressServer/data

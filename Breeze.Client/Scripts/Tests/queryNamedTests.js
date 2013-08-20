@@ -31,7 +31,86 @@
         return;
     }
 
+    test("named query first or default", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
+
+        var em = newEm();
+
+        var query = EntityQuery.from("CustomerFirstOrDefault");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            ok(data.results.length === 0);
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("named query withParameters using an array", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
+        var em = newEm();
+        
+        var query = EntityQuery.from("SearchEmployees")
+            .withParameters({ employeeIds: [1, 4] });
+        stop();
+        em.executeQuery(query, function (data) {
+            var results = data.results;
+            ok(data.results.length === 2, "should be 2 results");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("named query withParameters using an object", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
+        var em = newEm();
+
+        var query = EntityQuery.from("SearchCustomers")
+            .withParameters( { CompanyName: "A", ContactNames: ["B", "C"] , City: "Los Angeles",  } );
+        stop();
+        em.executeQuery(query, function (data) {
+            var results = data.results;
+            ok(data.results.length === 3, "should be 3 results");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("named query withParameters using a array of objects", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
+        var em = newEm();
+        var qbeArray = [
+            { CompanyName: "A", ContactNames: ["B", "C"], City: "Los Angeles", },
+            { CompanyName: "C", ContactNames: ["D", "E"], City: "San Diego" }
+            ];
+                   
+        var query = EntityQuery.from("SearchCustomers2")
+            .withParameters({ qbeList: qbeArray });
+        stop();
+        em.executeQuery(query, function (data) {
+            var results = data.results;
+            ok(data.results.length === 3, "should be 3 results");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     test("named query not returning results in same order as in server", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
+
         var em = newEm();
 
         var query = EntityQuery.from("CustomersOrderedStartingWith")
@@ -42,9 +121,9 @@
         stop();
         em.executeQuery(query, function (data) {
             var results = data.results;
-            var firstCustName = results[0].getProperty("companyName");
-
-            ok(firstCustName.indexOf("Chop-suey") === 0, "order is wrong");
+            testFns.assertIsSorted(results, "companyName", breeze.DataType.String, false, false)
+            // var firstCustName = results[0].getProperty("companyName");
+            // ok(firstCustName.indexOf("Chop-suey") === 0, "order is wrong");
         }).fail(testFns.handleFail).fin(start);
 
     });
@@ -499,5 +578,44 @@
             ok(r.length > 0);
         }).fail(testFns.handleFail).fin(start);
     });
-    
+
+
+    test("server returns HttpResponseMessage containing Customers", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this is WebApi specific");
+            return;
+        }
+
+        stop();
+        var em = newEm();
+
+        var query = new EntityQuery()
+            .from("CustomersAsHRM")
+            .where("companyName", "startsWith", "A")
+            .orderBy("companyName")
+            .expand("orders")
+            .take(4);
+        var queryUrl = query._toUri(em.metadataStore);
+
+        em.executeQuery(query, function (data) {
+            var customers = data.results;
+            var len = customers.length;
+            ok(len == 4, "customers.length should be 4, was " + len);
+            testFns.assertIsSorted(customers, "companyName", breeze.DataType.String, false, em.metadataStore.localQueryComparisonOptions.isCaseSensitive);
+            len = (len > 4) ? 4 : len;
+            for (var i = 0; i < len; i++) {
+                var c = customers[i];
+                var companyName = c.getProperty("companyName");
+                ok(companyName, 'should have a companyName property');
+                ok(companyName.indexOf('A') == 0, 'companyName should start with A, was ' + companyName);
+                var ckey = c.entityAspect.getKey();
+                ok(ckey, "missing key");
+                var c2 = em.findEntityByKey(ckey);
+                ok(c2 === c, "cust not cached");
+                var orders = c.getProperty("orders");
+                ok(orders.length > 1, "customer should have several orders");
+            }
+        }).fail(testFns.handleFail).fin(start);
+    });
+
 })(breezeTestFns);

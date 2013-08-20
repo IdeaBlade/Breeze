@@ -10,6 +10,20 @@
     <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
     <link rel="shortcut icon" type="image/png" href="..&#x2F;assets/favicon.png">
     <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;combo?3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
+	<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34729465-1']);
+  _gaq.push(['_setDomainName', 'breezejs.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
 </head>
 <body class="yui3-skin-sam">
 <script type="text/javascript">
@@ -42,9 +56,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 		<li>
-			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
 		
 	</ul>
 </div>
@@ -255,8 +269,9 @@ var EntityManager = (function () {
 
         updateWithConfig(this, config, true);
 
-        this.entityChanged = new Event(&quot;entityChanged_entityManager&quot;, this);
-        this.hasChangesChanged = new Event(&quot;hasChangesChanged_entityManager&quot;, this);
+        this.entityChanged = new Event(&quot;entityChanged&quot;, this);
+        this.validationErrorsChanged = new Event(&quot;validationErrorsChanged&quot;, this);
+        this.hasChangesChanged = new Event(&quot;hasChangesChanged&quot;, this);
             
         this.clear();
             
@@ -398,6 +413,28 @@ var EntityManager = (function () {
     @readOnly
     **&#x2F;
 
+    &#x2F;**
+    An {{#crossLink &quot;Event&quot;}}{{&#x2F;crossLink}} that fires whenever validationErrors change for any entity in this EntityManager.
+    @example                    
+        var em = new EntityManager( {serviceName: &quot;breeze&#x2F;NorthwindIBModel&quot; });
+        em.validationErrorsChanged.subscribe(function(changeArgs) {
+            &#x2F;&#x2F; This code will be executed any time any entity within the entityManager experiences a change to its validationErrors collection. 
+            function (validationChangeArgs) {
+                var entity == validationChangeArgs.entity; 
+                var errorsAdded = validationChangeArgs.added;
+                var errorsCleared = validationChangeArgs.removed;
+                &#x2F;&#x2F; ... do something interesting with the order.
+            });
+        });
+    });
+    @event validationErrorsChanged 
+    @param entity {Entity} The entity on which the validation errors have been added or removed.
+    @param added {Array of ValidationError} An array containing any newly added {{#crossLink &quot;ValidationError&quot;}}{{&#x2F;crossLink}}s
+    @param removed {Array of ValidationError} An array containing any newly removed {{#crossLink &quot;ValidationError&quot;}}{{&#x2F;crossLink}}s. This is those
+    errors that have been &#x27;fixed&#x27;
+    @readOnly
+    **&#x2F;
+
     &#x2F;&#x2F; class methods 
           
     &#x2F;**
@@ -455,7 +492,9 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
     @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink &quot;MergeStrategy&quot;}}{{&#x2F;crossLink}} to use when 
     merging into an existing EntityManager.
-    @return {EntityManager} A new EntityManager.
+    @return {EntityManager} A new EntityManager.  Note that the return value of this method call is different from that 
+    provided by the same named method on an EntityManager instance. Use that method if you need additional information
+    regarding the imported entities.
     **&#x2F;
     ctor.importEntities = function (exportedString, config) {
         var em = new EntityManager();
@@ -537,7 +576,10 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
         @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink &quot;MergeStrategy&quot;}}{{&#x2F;crossLink}} to use when 
         merging into an existing EntityManager.
-    @chainable
+    @return result {Object} 
+
+        result.entities {Array of Entities} The entities that were imported.
+        result.tempKeyMap {Object} Mapping from original EntityKey in the import bundle to its corresponding EntityKey in this EntityManager. 
     **&#x2F;
     proto.importEntities = function (exportedString, config) {
         config = config || {};
@@ -559,22 +601,30 @@ var EntityManager = (function () {
         json.tempKeys.forEach(function (k) {
             var oldKey = EntityKey.fromJSON(k, that.metadataStore);
             &#x2F;&#x2F; try to use oldKey if not already used in this keyGenerator.
-            tempKeyMap[oldKey.toString()] = that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]);
+            tempKeyMap[oldKey.toString()] = new EntityKey(oldKey.entityType, that.keyGenerator.generateTempKeyValue(oldKey.entityType, oldKey.values[0]));
         });
+        var entitiesToLink = [];
         config.tempKeyMap = tempKeyMap;
         __wrapExecution(function() {
             that._pendingPubs = [];
         }, function(state) {
             that._pendingPubs.forEach(function(fn) { fn(); });
             that._pendingPubs = null;
-        }, function() {
+        }, function () {
             __objectForEach(json.entityGroupMap, function(entityTypeName, jsonGroup) {
                 var entityType = that.metadataStore._getEntityType(entityTypeName, true);
                 var targetEntityGroup = findOrCreateEntityGroup(that, entityType);
-                importEntityGroup(targetEntityGroup, jsonGroup, config);
+                var entities = importEntityGroup(targetEntityGroup, jsonGroup, config);
+                Array.prototype.push.apply(entitiesToLink, entities);
+            });
+            entitiesToLink.forEach(function (entity) {
+                that._linkRelatedEntities(entity);
             });
         });
-        return this;
+        return {
+            entities: entitiesToLink,
+            tempKeyMapping: tempKeyMap
+        };
     };
 
         
@@ -995,14 +1045,17 @@ var EntityManager = (function () {
         @param [callback.saveResult.entities] {Array of Entity} The saved entities - with any temporary keys converted into &#x27;real&#x27; keys.  
         These entities are actually references to entities in the EntityManager cache that have been updated as a result of the
         save.
-        @param [callback.saveResult.keyMappings] {Object} Map of OriginalEntityKey, NewEntityKey
+        @param [callback.saveResult.keyMappings] {Array of keyMappings} Each keyMapping has the following properties: &#x27;entityTypeName&#x27;, &#x27;tempValue&#x27; and &#x27;realValue&#x27;
         @param [callback.saveResult.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
 
     @param [errorCallback] {Function} Function called on failure.
             
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
-        @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param [errorCallback.error.entityErrors] { Array of server side errors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
+        @param [errorCallback.error.XHR] {XMLHttpRequest} Any error that cannot be represented as a server error (above) will be returned in this format. 
+        This includes timeouts, server failures, database locking issues etc. 
+        
     @return {Promise} Promise
     **&#x2F;
     proto.saveChanges = function (entities, saveOptions, callback, errorCallback) {
@@ -1031,6 +1084,8 @@ var EntityManager = (function () {
                 return Q.reject(err);
             }
         }
+
+        clearServerErrors(entitiesToSave);
             
         if (this.validationOptions.validateOnSave) {
             var failedEntities = entitiesToSave.filter(function (entity) {
@@ -1039,15 +1094,15 @@ var EntityManager = (function () {
                 return !isValid;
             });
             if (failedEntities.length &gt; 0) {
-                var valError = new Error(&quot;Validation error&quot;);
-                valError.entitiesWithErrors = failedEntities;
+                var valError = new Error(&quot;Client side validation errors encountered - see the entityErrors collection on this object for more detail&quot;);
+                valError.entityErrors = createEntityErrors(failedEntities);
                 if (errorCallback) errorCallback(valError);
                 return Q.reject(valError);
             }
         }
             
         updateConcurrencyProperties(entitiesToSave);
-        
+       
        
         var dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
         var saveContext = {
@@ -1093,12 +1148,85 @@ var EntityManager = (function () {
             if (callback) callback(saveResult);
             return Q.resolve(saveResult);
         }, function (error) {
+            processServerErrors(saveContext, error);
             markIsBeingSaved(entitiesToSave, false);
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
         });
 
     };
+
+    function clearServerErrors(entities) {
+        entities.forEach(function (entity) {
+            var serverKeys = [];
+            var valErrors = entity.entityAspect._validationErrors;
+            __objectForEach(valErrors, function (key, ve) {
+                if (ve.isServerError) serverKeys.push(key);
+            });
+            if (serverKeys.length === 0) return;
+            serverKeys.forEach(function(key) {
+                delete valErrors[key];
+            });
+            entity.hasValidationErrors = !__isEmpty(valErrors);
+        });
+
+    }
+
+
+    function createEntityErrors(entities) {
+        var entityErrors = [];
+        entities.forEach(function (entity) {
+            __objectForEach(entity.entityAspect._validationErrors, function (key, ve) {
+                entityErrors.push({
+                    entity: entity,
+                    errorName: ve.validator.name,
+                    errorMessage: ve.errorMessage,
+                    propertyName: ve.propertyName,
+                    isServerError: ve.isServerError,
+                });
+            });
+        });
+        return entityErrors;
+    }
+
+
+    function processServerErrors(saveContext, error) {
+        var serverErrors = error.entityErrors;
+        if (!serverErrors) return;
+        var entityManager = saveContext.entityManager;
+        var metadataStore = entityManager.metadataStore;
+        error.entityErrors = serverErrors.map(function (serr) {
+            var entity = null;
+            if (serr.keyValues) {
+                var entityType = metadataStore._getEntityType(serr.entityTypeName);
+                var ekey = new EntityKey(entityType, serr.keyValues);
+                entity = entityManager.findEntityByKey(ekey);
+            } 
+           
+            if (entity) {
+                var context = serr.propertyName ?
+                {
+                    propertyName: serr.propertyName,
+                    property: entityType.getProperty(serr.propertyName)
+                } : {
+                };
+                var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
+
+                var ve = new ValidationError(null, context, serr.errorMessage, key);
+                ve.isServerError = true;
+                entity.entityAspect.addValidationError(ve);
+            }
+
+            var entityError = {
+                entity: entity,
+                errorName: serr.errorName,
+                errorMessage: serr.errorMessage,
+                propertyName: serr.propertyName,
+                isServerError: true
+            };
+            return entityError;
+        });
+    }
     
     function haveSameContents(arr1, arr2) {
         if (arr1.length !== arr2.length) {
@@ -1143,7 +1271,7 @@ var EntityManager = (function () {
     proto.getEntityByKey = function () {
         var entityKey = createEntityKey(this, arguments).entityKey;
         var group;
-        var subtypes = entityKey._subTypes;
+        var subtypes = entityKey._subtypes;
         if (subtypes) {
             for (var i = 0, j = subtypes.length; i &lt; j; i++) {
                 group = this._findEntityGroup(subtypes[i]);
@@ -1773,17 +1901,19 @@ var EntityManager = (function () {
         var dataProps = entityType.dataProperties;
         var keyProps = entityType.keyProperties;
         
-        var entityChanged = entityGroup.entityManager.entityChanged;
+        var em = entityGroup.entityManager;
+        var entityChanged = em.entityChanged;
+        var entitiesToLink = [];
         jsonGroup.entities.forEach(function (rawEntity) {
             var newAspect = rawEntity.entityAspect;
             
             var entityKey = getEntityKeyFromRawEntity(rawEntity, entityType, true);
             var entityState = EntityState.fromName(newAspect.entityState);
-            var newTempKeyValue;
+            var newTempKey;
             if (entityState.isAdded()) {
-                newTempKeyValue = tempKeyMap[entityKey.toString()];
+                newTempKey = tempKeyMap[entityKey.toString()];
                 &#x2F;&#x2F; merge added records with non temp keys
-                targetEntity = (newTempKeyValue === undefined) ? entityGroup.findEntityByKey(entityKey) : null;
+                targetEntity = (newTempKey === undefined) ? entityGroup.findEntityByKey(entityKey) : null;
             } else {
                 targetEntity = entityGroup.findEntityByKey(entityKey);
             }
@@ -1795,22 +1925,23 @@ var EntityManager = (function () {
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
                         if (!entityState.isUnchanged()) {
-                            entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                            em._notifyStateChange(targetEntity, true);
                         }
                     } else {
                         if (entityState.isUnchanged()) {
-                            entityGroup.entityManager._notifyStateChange(targetEntity, false);
+                            em._notifyStateChange(targetEntity, false);
                         }
                     }
                 } else {
+                    entitiesToLink.push(targetEntity);
                     targetEntity = null;
                 }
             } else {
                 targetEntity = entityType._createEntityCore();
                 updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
-                if (newTempKeyValue !== undefined) {
+                if (newTempKey !== undefined) {
                     &#x2F;&#x2F; fixup pk
-                    targetEntity.setProperty(entityType.keyProperties[0].name, newTempKeyValue);
+                    targetEntity.setProperty(entityType.keyProperties[0].name, newTempKey.values[0]);
 
                     &#x2F;&#x2F; fixup foreign keys
                     if (newAspect.tempNavPropNames) {
@@ -1819,8 +1950,8 @@ var EntityManager = (function () {
                             var fkPropName = np.relatedDataProperties[0].name;
                             var oldFkValue = targetEntity.getProperty(fkPropName);
                             var fk = new EntityKey(np.entityType, [oldFkValue]);
-                            var newFkValue = tempKeyMap[fk.toString()];
-                            targetEntity.setProperty(fkPropName, newFkValue);
+                            var newFk = tempKeyMap[fk.toString()];
+                            targetEntity.setProperty(fkPropName, newFk.values[0]);
                         });
                     }
                 }
@@ -1829,7 +1960,7 @@ var EntityManager = (function () {
                 if (entityChanged) {
                     entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
                     if (!entityState.isUnchanged()) {
-                        entityGroup.entityManager._notifyStateChange(targetEntity, true);
+                        em._notifyStateChange(targetEntity, true);
                     }
                 }
             }
@@ -1839,9 +1970,11 @@ var EntityManager = (function () {
                 if (entityState.isModified()) {
                     targetEntity.entityAspect.originalValuesMap = newAspect.originalValues;
                 }
-                entityGroup.entityManager._linkRelatedEntities( targetEntity);
+                entitiesToLink.push(targetEntity);
+
             }
         });
+        return entitiesToLink;
     }
 
      function promiseWithCallbacks(promise, callback, errorCallback) {
@@ -2021,8 +2154,9 @@ var EntityManager = (function () {
 
                 }, function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);
+
                     if (!Array.isArray(nodes)) {
-                        nodes = [nodes];
+                        nodes = (nodes == null) ? [] : [nodes];
                     }
                     var results = nodes.map(function (node) {
                         var r = visitAndMerge(node, mappingContext, { nodeType: &quot;root&quot; });
@@ -2258,11 +2392,13 @@ var EntityManager = (function () {
             } else {
                 &#x2F;&#x2F; clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                rawVal.forEach(function (rawCo) {
-                    var newCo = dp.dataType._createInstanceCore(target, dp);
-                    updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
-                    oldVal.push(newCo);
-                });
+                if (Array.isArray(rawVal)) {
+                    rawVal.forEach(function (rawCo) {
+                        var newCo = dp.dataType._createInstanceCore(target, dp);
+                        updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
+                        oldVal.push(newCo);
+                    });
+                }
             }
         } else {
             var val;
@@ -2273,10 +2409,12 @@ var EntityManager = (function () {
                 oldVal = target.getProperty(dp.name);
                 &#x2F;&#x2F; clear the old array and push new complex objects into it.
                 oldVal.length = 0;
-                rawVal.forEach(function (rv) {
-                    val = parseRawValue(dp, rv);
-                    oldVal.push(val);
-                });
+                if (Array.isArray(rawVal)) {
+                    rawVal.forEach(function (rv) {
+                        val = parseRawValue(dp, rv);
+                        oldVal.push(val);
+                    });
+                }
             }
         }
     }
@@ -2290,11 +2428,18 @@ var EntityManager = (function () {
     }
 
     function getPropertyFromClientRaw(rawEntity, dp) {
-        return rawEntity[dp.name];
+        var val = rawEntity[dp.name];
+        return val !== undefined ? val : dp.defaultValue;
     }
 
     function getPropertyFromServerRaw(rawEntity, dp) {
-        return rawEntity[dp.nameOnServer || dp.isUnmapped &amp;&amp; dp.name];
+        if (dp.isUnmapped) {
+            return rawEntity[dp.nameOnServer || dp.name];
+        } else {
+            var val = rawEntity[dp.nameOnServer];
+            return val !== undefined ? val : dp.defaultValue;
+        }
+        
     }
 
     function parseRawValue(dp, val) {

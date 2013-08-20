@@ -144,8 +144,10 @@
     <Compile Include="Controllers\BreezeConfig.cs" />
     <Compile Include="Controllers\MetadataTestController.cs" />
     <Compile Include="Controllers\InheritanceController.cs" />
-    <Compile Include="Controllers\NHConfig.cs" />
-    <Compile Include="Controllers\NorthwindContext.cs" />
+    <Compile Include="Controllers\NorthwindNHConfig.cs" />
+    <Compile Include="Controllers\NorthwindNHContext.cs" />
+    <Compile Include="Controllers\ProduceNHConfig.cs" />
+    <Compile Include="Controllers\ProduceNHContext.cs" />
     <Compile Include="Controllers\ProduceTPHController.cs" />
     <Compile Include="Controllers\NonEFModels.cs" />
     <Compile Include="Controllers\NonEFModelController.cs" />
@@ -238,6 +240,10 @@
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\saveTests.js">
       <Link>Scripts\Tests\saveTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\saveTransactionTests.js">
+      <Link>Scripts\Tests\saveTransactionTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\testFns.js">
@@ -373,6 +379,7 @@
     <Content Include="Images\twitter.png" />
     <Content Include="Images\windowsLive.png" />
     <None Include="App_Data\metadataTest.json" />
+    <None Include="copyscripts.bat" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -409,9 +416,17 @@
       <Project>{deadb93b-f375-42b7-b41c-9d02d3199e77}</Project>
       <Name>Model_NorthwindIB_EDMX_2012</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Model_NorthwindIB_EDMX_Oracle\Model_NorthwindIB_EDMX_Oracle.csproj">
+      <Project>{c5c44af0-5975-4c58-8ad4-ed5f5fde7f9a}</Project>
+      <Name>Model_NorthwindIB_EDMX_Oracle</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model_NorthwindIB_NH\Model_NorthwindIB_NH.csproj">
       <Project>{afc1c3a8-40d5-4db3-82be-19730091a4f2}</Project>
       <Name>Model_NorthwindIB_NH</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Model_Produce_NH\Model_Produce_NH.csproj">
+      <Project>{a8e227ae-1b18-4d25-9887-398fb0d7832b}</Project>
+      <Name>Model_Produce_NH</Name>
     </ProjectReference>
     <ProjectReference Include="..\Model_TPH\Model_TPH.csproj">
       <Project>{73bb1c2b-bf56-4257-a3dc-56fe5163d2af}</Project>

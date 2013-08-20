@@ -1,0 +1,29 @@
+The normal flush.cmd removes the "Debug" directory ... which happens to be a required Express node module!
+
+The flush.cmd in this directory may work IF AND ONLY IF that instruction is commented out as in:
+
+    REM for /R %%i in (.) do rmdir "%%i\Debug" /s /q
+    for /R %%i in (.) do rmdir "%%i\Release" /s /q
+    ...
+	
+If you run it by accident, the Mongo server will not start and you will see an error like this one:
+                                                                      ^
+	Error: Cannot find module 'debug'
+		at Function.Module._resolveFilename (module.js:338:15)
+		at Function.Module._load (module.js:280:25)
+		at Module.require (module.js:362:17)
+		at require (module.js:378:17)
+		at Object.<anonymous> (C:\Users\Ward\Documents\GitHub\Breeze\Samples_Unpublished\Zza\Zza.ExpressServer\node_modules\express\node_modules\connect\lib\proto.js:15:13)
+		at Module._compile (module.js:449:26)
+		at Object.Module._extensions..js (module.js:467:10)
+		at Module.load (module.js:356:32)
+		at Function.Module._load (module.js:312:12)
+		at Module.require (module.js:362:17)
+
+	Process finished with exit code 1
+
+To recover, launch a command window and re-install express as follows:
+
+    cd C:\Users\Ward\Documents\GitHub\Breeze\Samples_Unpublished\Zza\Zza.ExpressServer
+	npm install express
+	

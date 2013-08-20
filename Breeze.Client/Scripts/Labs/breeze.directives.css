@@ -1,0 +1,42 @@
+﻿/*
+ * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
+ * Licensed under the MIT License
+ * http://opensource.org/licenses/mit-license.php
+ * Author: Ward Bell
+ */
+
+/*#region validation */
+.invalid {
+    position: absolute;
+    display: none;
+    min-width: 200px;
+    min-height: 20px;
+    max-width: 450px;
+    max-height: 40px;
+}
+
+input:invalid,
+select:invalid {
+    border: red solid 1px !important;
+}
+
+    input:invalid + .invalid,
+    select:invalid + .invalid {
+        visibility: visible;
+        display: inline-block;
+        background-color: rgb(189, 54, 47);
+        margin: 0 0 0 6px;
+        padding: 4px 10px;
+        border-radius: 3px 3px 3px 3px !important;
+        background-position: 15px center;
+        background-repeat: no-repeat;
+        -webkit-box-shadow: 0 0 12px #999999;
+        box-shadow: 0 0 12px #999999;
+        color: #ffffff;
+        opacity: 0.8;
+    }
+
+.invalid > i {
+    margin-right: 8px;
+}
+/*#endregion */

@@ -106,6 +106,11 @@ namespace DocCode.DataAccess
             get { return Context.Regions; }
         }
 
+        public IQueryable<Supplier> Suppliers
+        {
+            get { return Context.Suppliers; }
+        }
+
         public IQueryable<Territory> Territories
         {
             get { return Context.Territories; }

@@ -1,89 +1,44 @@
 ﻿(function () {
     'use strict';
     angular.module('app').factory('util',       
-        ['breeze','config','logger','$q','$timeout','$rootScope', util]);
+        ['config','logger','$q','$timeout','$rootScope', util]);
 
-    function util(breeze, config, logger, $q, $timeout, $rootScope) {
+    function util(config, logger, $q, $timeout, $rootScope) {
 
         extendString();
-        extendQ();
+        breeze.core.extendQ($rootScope, $q);
         
         var service = {
             // bundle these so util clients don't have to get them
             $q: $q,
             $timeout: $timeout,
-            breeze: breeze,
             config: config,
             logger: logger,
   
             // actual utilities
-            $apply: $apply,
-            to$q: to$q,
+            $broadcast: $broadcast,
+            //to$q: to$q,
+            
             emptyGuid: '00000000-0000-0000-0000-000000000000',
             newGuidComb: newGuidComb,
             filterById: filterById,
             filterByName: filterByName,
             filterByType: filterByType,
+            getEntityByIdFromObj: getEntityByIdFromObj,
+            getEntityManager: getEntityManager,
             getSaveErrorMessages: getSaveErrorMessages,
             getEntityValidationErrMsgs: getEntityValidationErrMsgs,
-            segmentArray: segmentArray,
-            groupArray: groupArray
+            deal: deal,
+            groupArray: groupArray,
+            keyArray: keyArray
         };
         
         return service;
- 
-        /*********************************************************
-        * @method $apply {Void} easy access to $rootScope.$apply
-        * @param [func]{function} optional niladic function to call
-        *********************************************************/
-        function $apply() {
-            if ($rootScope.$$phase) {
-                // from http://docs.angularjs.org/api/ng.$rootScope.Scope
-                if (arguments[0]) {
-                    try {
-                        $rootScope.$eval(arguments[0]);
-                    } catch(e) {
-                        logger.error(e);
-                    }
-                }
-            } else {
-                $rootScope.$apply.apply($rootScope, arguments);
-            }           
-        }
         
-        /*********************************************************
-        * @method to$q {Promise} Convert a Q.js promise into an angular $q
-        * @param promiseQ {Promise} the Q.js promise to convert
-        * @param [skipApply] {Boolean} should not call $apply right now
-        *        @default false
-        * The Q promise must return some value when they succeed or
-        * rethrow the error if they fail. Else this method logs a warning.
-        *********************************************************/
-        function to$q(promiseQ, skipApply) {
-            var d = $q.defer();
-            promiseQ
-                .then(function (data) {
-                    if (data === undefined) {
-                        logger.warning("Programming error: no data. "+
-                        "Perhaps success callback didn't return a value or " +
-                         "fail callback didn't re-throw error");
-                    }
-                    d.resolve(data);
-                })
-               .fail(function (error) {
-                    d.reject(error);
-                });
-            
-            if (!skipApply) promiseQ.fin($apply);
-            return d.promise;
-        }
-        // monkey patch this method into Q.js' promise prototype
-        function extendQ() {
-            var promise = Q.defer().promise;
-            var fn = Object.getPrototypeOf(promise);
-            if (fn.to$q) return; // already extended
-            fn.to$q = function(no$apply) { return to$q(this, no$apply); };
-        }
+        function $broadcast() {
+            return $rootScope.$broadcast.apply($rootScope, arguments);
+        }      
+        
         /*********************************************************
         * Generate a new GuidCOMB Id (sequential for MS SQL Server)
         * @method newGuidComb {String}
@@ -131,6 +86,23 @@
                 return array.filter(function (x) { return re.test(x.type); });
             };
         }
+
+        /** Complex type helpers **/
+        function getEntityByIdFromObj(obj, typeName, id)  {
+            var em = getEntityManager(obj);
+            return (em) ? em.getEntityByKey(typeName, id) : null;
+        }
+
+        function getEntityManager(obj){
+            if (obj.complexAspect) {
+                return obj.complexAspect.getEntityAspect().entityManager;
+            } else if (obj.entityAspect) {
+                return obj.entityAspect.entityManager;
+            }   else {
+                return null;
+            }
+        }
+
         /*********************************************************
         * Handle save error messages
         *********************************************************/
@@ -218,19 +190,20 @@
         }
 
         /*********************************************************
-        * Divide an array into segments, e.g. segmentArray([1,2,3,4,5,6,7], 3) -> [[1,4,7],[2,5],[3,6]]
+        * Deal an array of things into "hands" as if dealing cards. 
+        * e.g. deal([1,2,3,4,5,6,7], 3) -> [[1,4,7],[2,5],[3,6]]
         *********************************************************/
-        function segmentArray(arr, numSegments) {
-            var segments = new Array(numSegments);
-            var i = 0, len = arr.length, seg;
-            for (i = 0; i < numSegments; i++) {
-                segments[i] = [];
+        function deal(arr, numHands) {
+            var hands = new Array(numHands);
+            var i, len = arr.length, hand;
+            for (i = 0; i < numHands; i++) {
+                hands[i] = [];
             }
             for (i = 0; i < len; i++) {
-                seg = Math.ceil(i % numSegments);
-                segments[seg].push(arr[i]);
+                hand = Math.ceil(i % numHands);
+                hands[hand].push(arr[i]);
             }
-            return segments;
+            return hands;
         }
 
         /*********************************************************
@@ -261,6 +234,23 @@
                 group[valueName].push(o);
             });
             return groupList;
+        }
+
+        /*********************************************************
+        // Convert an array into an object.  The returned object has keys defined by the keyfn,
+        // and values from the original array.  If there are duplicate keys, the resulting object
+        // has the value of the last key.
+        // arr: array of objects
+        // keyfn: function to get the desired group key from each object
+        // See utilSpec.js for an example.
+        *********************************************************/
+        function keyArray(arr, keyfn) {
+            var map = {};
+            arr.forEach(function (o) {
+                var key = keyfn(o);
+                map[key] = o;
+            });
+            return map;
         }
 
     }

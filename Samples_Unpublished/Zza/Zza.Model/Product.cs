@@ -20,6 +20,8 @@ namespace Zza.Model
         public virtual string Image { get; set; }
         [Required]
         public virtual bool HasOptions { get; set; }
+        [Required]
+        public virtual bool IsPremium { get; set; }
         public virtual bool? IsVegetarian { get; set; }
         public virtual bool? WithTomatoSauce { get; set; }
         [MaxLength(10)]

@@ -10,7 +10,7 @@ var __config = (function () {
     __config.functionRegistry = {};
     __config.typeRegistry = {};
     __config.objectRegistry = {};
-    __config.interfaceInitialized = new Event("interfaceInitialized_config", __config);
+    __config.interfaceInitialized = new Event("interfaceInitialized", __config);
 
     var InterfaceDef = function(name) {
         this.name = name;

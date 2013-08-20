@@ -21,15 +21,9 @@
 
 })(function () {  
     var breeze = {
-        version: "1.3.6",
+        version: "1.4.1",
         metadataVersion: "1.0.5"
     };
 
-    // legacy properties - will not be supported after 6/1/2013
-    breeze.entityModel = breeze;
-    breeze.entityTracking_backingStore = "backingStore";
-    breeze.entityTracking_ko = "ko";
-    breeze.entityTracking_backbone = "backbone";
-    breeze.remoteAccess_odata = "odata";
-    breeze.remoteAccess_webApi = "webApi";
+
     

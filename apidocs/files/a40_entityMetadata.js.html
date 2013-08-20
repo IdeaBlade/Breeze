@@ -10,6 +10,20 @@
     <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
     <link rel="shortcut icon" type="image/png" href="..&#x2F;assets/favicon.png">
     <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;combo?3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
+	<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34729465-1']);
+  _gaq.push(['_setDomainName', 'breezejs.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
 </head>
 <body class="yui3-skin-sam">
 <script type="text/javascript">
@@ -42,9 +56,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 		<li>
-			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
 		
 	</ul>
 </div>
@@ -285,8 +299,10 @@ var MetadataStore = (function () {
             structuralType = structuralType.isComplexType ? new ComplexType(structuralType) : new EntityType(structuralType);
         }
 
+        
         if (!structuralType.isComplexType) {
-            if (structuralType.keyProperties.length === 0) {
+
+            if (structuralType.keyProperties.length === 0 &amp;&amp; !structuralType.isAbstract) {
                 throw new Error(&quot;Unable to add &quot; + structuralType.name +
                     &quot; to this MetadataStore.  An EntityType must have at least one property designated as a key property - See the &#x27;DataProperty.isPartOfKey&#x27; property.&quot;);
             }
@@ -355,7 +371,7 @@ var MetadataStore = (function () {
             &quot;dataServices&quot;: this.dataServices,
             &quot;structuralTypes&quot;: __objectMapToArray(this._structuralTypeMap),
             &quot;resourceEntityTypeMap&quot;: this._resourceEntityTypeMap
-        }, __config.stringifyPad);
+        }, null, __config.stringifyPad);
         return result;
     };
 
@@ -392,8 +408,8 @@ var MetadataStore = (function () {
         var ncName = json.namingConvention;
         var lqcoName = json.localQueryComparisonOptions;
         if (this.isEmpty()) {
-            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || NamingConvention.defaultInstance;
-            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || LocalQueryComparisonOptions.defaultInstance;
+            this.namingConvention = __config._fetchObject(NamingConvention, ncName) || this.namingConvention;
+            this.localQueryComparisonOptions = __config._fetchObject(LocalQueryComparisonOptions, lqcoName) || this.localQueryComparisonOptions;
         } else {
             if (ncName &amp;&amp; this.namingConvention.name !== ncName) {
                 throw new Error(&quot;Cannot import metadata with a different &#x27;namingConvention&#x27; from the current MetadataStore&quot;);
@@ -413,8 +429,8 @@ var MetadataStore = (function () {
         var structuralTypeMap = this._structuralTypeMap;
         
         json.structuralTypes.forEach(function (stype) {
-            var structuralType = structuralTypeFromJson(that, stype);
-            structuralTypeMap[structuralType.name] = structuralType;
+            structuralTypeFromJson(that, stype);
+            
         });
         __extend(this._resourceEntityTypeMap, json.resourceEntityTypeMap);
         __extend(this._incompleteTypeMap, json.incompleteTypeMap);
@@ -467,7 +483,7 @@ var MetadataStore = (function () {
            
     @method getDataService
     @param serviceName {String} The service name.
-    @return {Boolean}
+    @return {DataService}
     **&#x2F;
     proto.getDataService = function (serviceName) {
         assertParam(serviceName, &quot;serviceName&quot;).isString().check();
@@ -762,18 +778,18 @@ var MetadataStore = (function () {
         &#x2F;&#x2F; baseType may not have been imported yet so we need to defer handling this type until later.
         if (json.baseTypeName) {
             stype.baseTypeName = json.baseTypeName;
-            var baseEntityType = metadataStore._getEntityType(json.baseTypeName);
+            var baseEntityType = metadataStore._getEntityType(json.baseTypeName, true);
             if (baseEntityType) {
                 completeStructuralTypeFromJson(metadataStore, json, stype, baseEntityType);
             } else {
-                __getArray(metadataStore.deferredTypes, baseTypeName).push({ json: json, stype: stype });
+                __getArray(metadataStore._deferredTypes, json.baseTypeName).push({ json: json, stype: stype });
                 
             }
         } else {
             completeStructuralTypeFromJson(metadataStore, json, stype, null);
         }
 
-        &#x2F;&#x2F; sype may or may not have been added to the metadataStore at this point.
+        &#x2F;&#x2F; stype may or may not have been added to the metadataStore at this point.
         return stype;
     }
 
@@ -1178,7 +1194,7 @@ var CsdlMetadataParser = (function () {
                 shortTypeName: entityTypeName,
                 namespace: &quot;&quot;,
                 typeName: entityTypeName,
-                isAnon: true
+                isAnonymous: true
             };
         }
         var entityTypeNameNoAssembly = entityTypeName.split(&quot;,&quot;)[0];
@@ -1562,26 +1578,31 @@ var EntityType = (function () {
 
     &#x2F;&#x2F; May make public later.
     proto._setCtor = function (aCtor, interceptor) {
-        var instance = new aCtor();
+
         var proto = aCtor.prototype;
-            
+
+        &#x2F;&#x2F; place for extra breeze related data
+        extra = proto._$extra || {};
+        proto._$extra = extra;
+        
+        if (!extra.initialized) {
+            var instance = new aCtor();
+            calcUnmappedProperties(this, instance);
+        } 
+
         if (this._$typeName === &quot;EntityType&quot;) {
             &#x2F;&#x2F; insure that all of the properties are on the &#x27;template&#x27; instance before watching the class.
-            calcUnmappedProperties(this, instance);
             proto.entityType = this;
         } else {
-            calcUnmappedProperties(this, instance);
             proto.complexType = this;
         }
 
-        if (interceptor) {
-            proto._$interceptor = interceptor;
-        } else {
-            proto._$interceptor = defaultPropertyInterceptor;
-        }
-
+        &#x2F;&#x2F; defaultPropertyInterceptor is a &#x27;global&#x27; (but internal to breeze) function;
+        proto._$interceptor = interceptor || defaultPropertyInterceptor;
+                
         __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
-
+        extra.initialized = true;
+        
         this._ctor = aCtor;
     };
 
@@ -1844,7 +1865,7 @@ var EntityType = (function () {
         if (dp.isComplexProperty) {
             this.complexProperties.push(dp);
         }
-
+        
         if (dp.concurrencyMode &amp;&amp; dp.concurrencyMode !== &quot;None&quot;) {
             this.concurrencyProperties.push(dp);
         }
@@ -1931,12 +1952,18 @@ var EntityType = (function () {
                 fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np) {
                     return np.invForeignKeyNames &amp;&amp; np.invForeignKeyNames.indexOf(fkProp.name) &gt;= 0;
                 });
-                entityType.foreignKeyProperties.push(fkProp);
+                &#x2F;&#x2F; entityType.foreignKeyProperties.push(fkProp);
+                addUniqueItem(entityType.foreignKeyProperties, fkProp);
             });
         }
         
         resolveRelated(np);
         return true;
+    }
+
+    function addUniqueItem(collection, item) {
+        var ix = collection.indexOf(item);
+        if (ix === -1) collection.push(item);
     }
 
     &#x2F;&#x2F; sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
@@ -1949,9 +1976,11 @@ var EntityType = (function () {
         var fkProps = fkNames.map(function (fkName) {
             return parentEntityType.getDataProperty(fkName);
         });
-        Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
+        var fkPropCollection = parentEntityType.foreignKeyProperties;
+        &#x2F;&#x2F; Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
 
         fkProps.forEach(function (dp) {
+            addUniqueItem(fkPropCollection, dp);
             dp.relatedNavigationProperty = np;
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
@@ -1962,8 +1991,8 @@ var EntityType = (function () {
     }
 
    
-    function calcUnmappedProperties(entityType, instance) {
-        var metadataPropNames = entityType.getPropertyNames();
+    function calcUnmappedProperties(stype, instance) {
+        var metadataPropNames = stype.getPropertyNames();
         var trackablePropNames = __modelLibraryDef.getDefaultInstance().getTrackablePropertyNames(instance);
         trackablePropNames.forEach(function (pn) {
             if (metadataPropNames.indexOf(pn) === -1) {
@@ -1973,7 +2002,13 @@ var EntityType = (function () {
                     isNullable: true,
                     isUnmapped: true
                 });
-                entityType.addProperty(newProp);
+                if (stype.subtypes) {
+                    stype.getSelfAndSubtypes().forEach(function (st) {
+                        st.addProperty(new DataProperty(newProp));
+                    });
+                } else {
+                    stype.addProperty(newProp);
+                }
             }
         });
     }

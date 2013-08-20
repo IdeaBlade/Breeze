@@ -5,7 +5,7 @@
 
             var ctor = function(targetObject) {
                 this.handleError = function(error) {
-                    if (error.message.match(/validation error/i)) {
+                    if (error.entityErrors) {
                         error.message = util.getSaveValidationErrorMessage(error);
                     }
 

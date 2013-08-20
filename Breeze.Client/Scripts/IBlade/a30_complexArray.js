@@ -120,7 +120,7 @@ breeze.makeComplexArray = (function() {
     function makeComplexArray(arr, parent, parentProperty) {
 
         observableArray.initializeParent(arr, parent, parentProperty);
-        arr.arrayChanged = new Event("arrayChanged_complexArray", arr);
+        arr.arrayChanged = new Event("arrayChanged", arr);
         __extend(arr, observableArray.mixin);
         return __extend(arr, complexArrayMixin);
     }

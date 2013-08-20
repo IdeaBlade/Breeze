@@ -33,6 +33,51 @@
     //    }).fail(testFns.handleFail).fin(start);
     //});
 
+
+    /*********************************************************
+    * local cache query for all Suppliers in region 'Papa'
+    *********************************************************/
+    test("local cache query for all Suppliers in region 'Papa'", 2, function () {
+
+        var query = new breeze.EntityQuery("Suppliers");
+        var em = newEm(); // creates a new EntityManager configured with metadata
+        stop();
+        em.executeQuery(query)
+          .then(querySucceeded)
+          .fail(testFns.handleFail)
+          .fin(start);
+
+        function querySucceeded(data) {
+            var count = data.results.length;
+            ok(count > 0, "supplier query returned " + count);
+
+            var predicate = breeze.Predicate.create('supplierID', '==', 0)
+                .or('companyName', '==', 'Papa');
+
+            var localQuery = breeze.EntityQuery
+                            .from('Suppliers')
+                            .where(predicate)
+                            .toType('Supplier');
+
+            var suppliers = em.executeQueryLocally(localQuery);
+            // Defect #2486 Fails with "Invalid ISO8601 duration 'Papa'"
+            equal(suppliers.length, 0, "local query should succeed with no results");
+        }
+    });
+    
+    test("Insure that this is Not a duration query even without type mapping", function () {
+        var em = newEm();
+        var q = EntityQuery.from("AltCustomers").where('companyName', '==', 'Papa');
+        stop();
+        em.executeQuery(q).then(function (data) {
+            ok(true);
+            ok(data.results.length === 0);
+        }).fail(function (error) {
+            ok(false, error.message);
+        }).fin(start);
+    });
+
+
     test("Query Involving Multiple Entities on Server", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "N/A for MONGO - server side interception methods have not yet been implemented.");

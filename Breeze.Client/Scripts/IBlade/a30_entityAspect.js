@@ -41,9 +41,11 @@ var EntityAspect = (function () {
         this.entityState = EntityState.Detached;
         this.isBeingSaved = false;
         this.originalValues = {};
+        this.hasValidationErrors = false;
         this._validationErrors = {};
-        this.validationErrorsChanged = new Event("validationErrorsChanged_entityAspect", this);
-        this.propertyChanged = new Event("propertyChanged_entityAspect", this);
+        
+        this.validationErrorsChanged = new Event("validationErrorsChanged", this);
+        this.propertyChanged = new Event("propertyChanged", this);
         // in case this is the NULL entityAspect. - used with ComplexAspects that have no parent.
 
         // lists that control many-to-many links between entities
@@ -116,20 +118,9 @@ var EntityAspect = (function () {
                 this.setModified();
         }
     };
+    
 
-    proto._postInitialize = function () {
-        var entity = this.entity;
-        var entityCtor = entity.entityType.getEntityCtor();
-        var initFn = entityCtor._$initializationFn;
-        if (initFn) {
-            if (typeof initFn === "string") {
-                initFn = entity[initFn];
-            }
-            initFn(entity);
-        }
-    };
-
-    Event.bubbleEvent(proto, function () {
+    Event.bubbleEvent(proto, function() {
         return this.entityManager;
     });
 
@@ -162,6 +153,13 @@ var EntityAspect = (function () {
     **/
 
     /**
+    Whether this entity has any validation errors.
+
+    __readOnly__
+    @property hasValidationErrors {Boolean}
+    **/
+
+    /**
     The 'original values' of this entity where they are different from the 'current values'. 
     This is a map where the key is a property name and the value is the 'original value' of the property.
 
@@ -182,12 +180,14 @@ var EntityAspect = (function () {
                 var newValue = propertyChangedArgs.newValue;
             });
     @event propertyChanged 
-    @param entity {Entity} The entity whose property is changing.
-    @param propertyName {String} The property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
+    @param entity {Entity} The entity whose property has changed.
+    @param property {DataProperty} The DataProperty that changed.
+    @param propertyName {String} The name of the property that changed. This value will be 'null' for operations that replace the entire entity.  This includes
     queries, imports and saves that require a merge. The remaining parameters will not exist in this case either. This will actually be a "property path"
     for any properties of a complex type.
     @param oldValue {Object} The old value of this property before the change.
     @param newValue {Object} The new value of this property after the change.
+    @param parent {Object} The immediate parent object for the changed property.  This will be different from the 'entity' for any complex type or nested complex type properties.
     @readOnly
     **/
 
@@ -459,7 +459,7 @@ var EntityAspect = (function () {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var entityAspect = target.entityAspect || target.complexAspect.getEntityAspect();
-
+            
         stype.getProperties().forEach(function (p) {
             var value = target.getProperty(p.name);
             var propName = aspect.getPropertyPath(p.name);
@@ -475,7 +475,7 @@ var EntityAspect = (function () {
                 }
             }
         });
-
+            
 
         // then entity level
         stype.validators.forEach(function (validator) {
@@ -483,7 +483,7 @@ var EntityAspect = (function () {
         });
         return ok;
     }
-
+    
 
     /**
     Performs validation on a specific property of this entity, any errors encountered during the validation are available via the 
@@ -518,7 +518,7 @@ var EntityAspect = (function () {
             context.property = property;
             context.propertyName = property.name;
         }
-
+            
         return this._validateProperty(value, context);
     };
 
@@ -556,7 +556,7 @@ var EntityAspect = (function () {
     };
 
     /**
-    Adds a validation error for a specified property.
+    Adds a validation error.
     @method addValidationError
     @param validationError {ValidationError} 
     **/
@@ -568,16 +568,16 @@ var EntityAspect = (function () {
     };
 
     /**
-    Removes a validation error for a specified property.
+    Removes a validation error.
     @method removeValidationError
-    @param validator {Validator}
-    @param [property] {DataProperty|NavigationProperty}
+    @param validationErrorOrKey {ValidationError|String} Either a ValidationError or a ValidationError 'key' value
     **/
-    proto.removeValidationError = function (validator, property) {
-        assertParam(validator, "validator").isString().or().isInstanceOf(Validator).check();
-        assertParam(property, "property").isOptional().isEntityProperty().check();
+    proto.removeValidationError = function (validationErrorOrKey) {
+        assertParam(validationErrorOrKey, "validationErrorOrKey").isString().or().isInstanceOf(ValidationError).or().isInstanceOf(Validator).check();
+        
+        var key = (typeof (validationErrorOrKey) === "string") ? validationErrorOrKey : validationErrorOrKey.key;
         this._processValidationOpAndPublish(function (that) {
-            that._removeValidationError(validator, property && property.name);
+            that._removeValidationError(key);
         });
     };
 
@@ -593,10 +593,11 @@ var EntityAspect = (function () {
                     that._pendingValidationResult.removed.push(valError);
                 }
             });
+            that.hasValidationErrors = !__isEmpty(this._validationErrors);
         });
     };
 
-
+   
 
     // returns null for np's that do not have a parentKey
     proto.getParentKey = function (navigationProperty) {
@@ -636,23 +637,24 @@ var EntityAspect = (function () {
     // internal methods
 
     proto._detach = function () {
-
+            
         this.entityGroup = null;
         this.entityManager = null;
         this.entityState = EntityState.Detached;
         this.originalValues = {};
         this._validationErrors = {};
+        this.hasValidationErrors = false;
         this.validationErrorsChanged.clear();
         this.propertyChanged.clear();
     };
-
+    
 
     // called from defaultInterceptor.
     proto._validateProperty = function (value, context) {
         var ok = true;
         this._processValidationOpAndPublish(function (that) {
             context.property.validators.forEach(function (validator) {
-                ok = ok && validate(that, validator, value, context);
+                ok = validate(that, validator, value, context) && ok;
             });
         });
         return ok;
@@ -668,6 +670,9 @@ var EntityAspect = (function () {
                 validationFn(this);
                 if (this._pendingValidationResult.added.length > 0 || this._pendingValidationResult.removed.length > 0) {
                     this.validationErrorsChanged.publish(this._pendingValidationResult);
+                    // this might be a detached entity hence the guard below.
+                    this.entityManager && this.entityManager.validationErrorsChanged.publish(this._pendingValidationResult);
+                    
                 }
             } finally {
                 this._pendingValidationResult = undefined;
@@ -677,14 +682,15 @@ var EntityAspect = (function () {
 
     proto._addValidationError = function (validationError) {
         this._validationErrors[validationError.key] = validationError;
+        this.hasValidationErrors = true;
         this._pendingValidationResult.added.push(validationError);
     };
 
-    proto._removeValidationError = function (validator, propertyPath) {
-        var key = ValidationError.getKey(validator, propertyPath);
+    proto._removeValidationError = function (key) {
         var valError = this._validationErrors[key];
         if (valError) {
             delete this._validationErrors[key];
+            this.hasValidationErrors = !__isEmpty(this._validationErrors);
             this._pendingValidationResult.removed.push(valError);
         }
     };
@@ -766,7 +772,8 @@ var EntityAspect = (function () {
             aspect._addValidationError(ve);
             return false;
         } else {
-            aspect._removeValidationError(validator, context ? context.propertyName : null);
+            var key = ValidationError.getKey(validator, context ? context.propertyName: null);
+            aspect._removeValidationError(key);
             return true;
         }
     }
@@ -776,7 +783,7 @@ var EntityAspect = (function () {
 })();
 
 var ComplexAspect = (function () {
-
+        
     /**
     An ComplexAspect instance is associated with every complex object instance and is accessed via the complex object's 'complexAspect' property. 
      
@@ -838,7 +845,7 @@ var ComplexAspect = (function () {
     __readOnly__
     @property complexObject {Entity} 
     **/
-
+        
     /**
     The parent object that to which this aspect belongs; this will either be an entity or another complex object.
 
@@ -852,21 +859,21 @@ var ComplexAspect = (function () {
     __readOnly__
     @property parentProperty {DataProperty}
     **/
-
+        
     /**
     The EntityAspect for the top level entity tht contains this complex object.
 
     __readOnly__
     @property entityAspect {String}
     **/
-
+        
     /**
     The 'property path' from the top level entity that contains this complex object to this object.
 
     __readOnly__
     @property propertyPath {String}
     **/
-
+        
     /**
     The 'original values' of this complex object where they are different from the 'current values'. 
     This is a map where the key is a property name and the value is the 'original value' of the property.
@@ -892,19 +899,6 @@ var ComplexAspect = (function () {
         var aspect = parent.complexAspect || parent.entityAspect;
         return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
     }
-
-    proto._postInitialize = function () {
-        var co = this.complexObject;
-        var aCtor = co.complexType.getCtor();
-        var initFn = aCtor._$initializationFn;
-        if (initFn) {
-            if (typeof initFn === "string") {
-                co[initFn](co);
-            } else {
-                aCtor._$initializationFn(co);
-            }
-        }
-    };
 
     return ctor;
 

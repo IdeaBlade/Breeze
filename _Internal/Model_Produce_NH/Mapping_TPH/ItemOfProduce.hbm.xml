@@ -1,0 +1,48 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.Produce.NH" assembly="Model_Produce_NH">
+  <class name="ItemOfProduce" table="`ItemOfProduce`" schema="`dbo`" dynamic-update="true">
+    <id name="Id" type="System.Guid">
+      <generator class="guid.comb" />
+    </id>
+    <discriminator formula="case when ItemSubtype in ('Apple','Strawberry','Tomato','WhitePotato') then ItemType+':'+ItemSubtype else ItemType+':Other' end" type="string" length="70"/>
+    <property name="ItemNumber" type="string" length="8" not-null="true" />
+    <property name="UnitPrice" type="decimal" />
+    <property name="QuantityPerUnit" type="string" length="20" />
+    <property name="UnitsInStock" type="short" />
+    <property name="UnitsOnOrder" type="short" not-null="true" />
+    <property name="RowVersion" type="int" />
+
+    <subclass name="Fruit" extends="ItemOfProduce" discriminator-value="Fruit:Other">
+      <property name="Name" type="string" length="50" not-null="true" />
+      <property name="USDACategory" type="string" length="50" />
+      <subclass name="Apple" extends="Fruit" discriminator-value="Fruit:Apple">
+        <property name="Variety" type="string" length="50" />
+        <property name="Description" type="string" length="250" />
+        <property name="Photo" type="System.Byte[]" />
+      </subclass>
+      <subclass name="Strawberry" extends="Fruit" discriminator-value="Fruit:Strawberry">
+        <property name="Variety" type="string" length="50" not-null="true" />
+        <property name="Description" type="string" length="250" />
+        <property name="Photo" type="System.Byte[]" />
+      </subclass>
+    </subclass>
+    <subclass name="Vegetable" extends="ItemOfProduce" discriminator-value="Vegetable:Other">
+      <property name="Name" type="string" length="50" not-null="true" />
+      <property name="USDACategory" type="string" length="50" />
+      <property name="AboveGround" type="bool" />
+      <subclass name="Tomato" extends="Vegetable" discriminator-value="Vegetable:Tomato">
+        <property name="Variety" type="string" length="50" not-null="true" />
+        <property name="Description" type="string" length="250" />
+        <property name="Determinate" type="bool" />
+        <property name="Photo" type="System.Byte[]" />
+      </subclass>
+      <subclass name="WhitePotato" extends="Vegetable" discriminator-value="Vegetable:WhitePotato">
+        <property name="Variety" type="string" length="50" not-null="true" />
+        <property name="SkinColor" type="string" length="20" />
+        <property name="Eyes" column="`Eyes`" type="string" length="20" />
+        <property name="PrimaryUses" column="`PrimaryUses`" type="string" length="50" />
+        <property name="Photo" type="System.Byte[]" />
+      </subclass>
+    </subclass>
+
+  </class>
+</hibernate-mapping>

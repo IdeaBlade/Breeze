@@ -92,6 +92,16 @@ namespace Breeze.WebApi {
 
       var elementType = TypeFns.GetElementType(queryable.GetType());
 
+      string inlinecountString = queryOptions.RawValues.InlineCount;
+      if (!string.IsNullOrWhiteSpace(inlinecountString)) {
+        if (inlinecountString == "allpages") {
+          if (result is IQueryable) {
+            var inlineCount = (Int64)Queryable.Count((dynamic)result);
+            queryOptions.Request.SetInlineCount(inlineCount);
+          }
+        }
+      }
+
       var orderByClauses = orderByQueryString.Split(',').ToList();
       var isThenBy = false;
       orderByClauses.ForEach(obc => {
@@ -115,6 +125,10 @@ namespace Breeze.WebApi {
         var func = BuildIQueryableFunc(elementType, method, count);
         result = func(result);
       }
+
+
+
+
       return result;
     }
 

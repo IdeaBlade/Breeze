@@ -5,10 +5,10 @@ namespace Models.NorthwindIB.NH
 
     public partial class Supplier
     {
+        private Location _location;
         public Supplier()
         {
             this.Products = new HashSet<Product>();
-            this.Location = new Location();
         }
 
         public virtual int SupplierID { get; set; }
@@ -20,7 +20,11 @@ namespace Models.NorthwindIB.NH
         public virtual string HomePage { get; set; }
         public virtual int RowVersion { get; set; }
 
-        public virtual Location Location { get; set; }
+        public virtual Location Location
+        {
+            get { return _location ?? (_location = new Location()); }
+            set { _location = value; }
+        }
 
         public virtual ICollection<Product> Products { get; set; }
     }

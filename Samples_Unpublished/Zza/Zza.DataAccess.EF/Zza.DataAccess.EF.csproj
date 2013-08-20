@@ -32,7 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.WebApi, Version=1.2.9.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">
+    <Reference Include="Breeze.WebApi">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Zza.Interfaces\Breeze.WebApi.dll</HintPath>
     </Reference>
@@ -46,6 +46,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Data.Entity" />
   </ItemGroup>
   <ItemGroup>

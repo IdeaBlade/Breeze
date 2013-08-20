@@ -32,11 +32,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.Nhibernate.WebApi, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Breeze.Nhibernate.WebApi">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\Breeze.Nhibernate.WebApi.dll</HintPath>
     </Reference>
-    <Reference Include="Breeze.WebApi, Version=1.2.9.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">
+    <Reference Include="Breeze.WebApi">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Zza.Interfaces\Breeze.WebApi.dll</HintPath>
     </Reference>

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters;
+using System.Transactions;
 using System.Xml;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -114,6 +115,15 @@ namespace Breeze.WebApi {
       "Irony",
       "Breeze.WebApi"
     };
+
+    /// <summary>
+    /// Returns TransactionSettings.Default.  Override to return different settings.
+    /// </summary>
+    /// <returns></returns>
+    public virtual TransactionSettings GetTransactionSettings()
+    {
+        return TransactionSettings.Default;
+    }
 
     private static Object __lock = new Object();
     private static BreezeConfig __instance;

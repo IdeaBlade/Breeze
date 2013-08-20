@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using Breeze.WebApi;
@@ -51,6 +53,13 @@ namespace DocCode.Controllers
         public IQueryable<Customer> CustomersAndOrders()
         {
             return _repository.CustomersAndOrders;
+        }
+
+        [HttpGet]
+        [BreezeQueryable]
+        public HttpResponseMessage CustomersAsHRM()
+        {
+            return Request.CreateResponse(HttpStatusCode.OK, _repository.Customers);
         }
 
         [HttpGet]
@@ -107,8 +116,33 @@ namespace DocCode.Controllers
         }
 
         [HttpGet]
+        public IQueryable<ProductDto> ProductDtos(int? supplierID=null)
+        {
+            // TODO: move the following into the repository where it belongs
+            var query = _repository.Products
+                .Where(x => x.CategoryID == 1); // a surrogate for a security filter
+
+            if (supplierID != null)
+            {
+                query = query.Where(x => x.SupplierID == supplierID);
+            }
+
+            return query.Select(x => new ProductDto
+                    {
+                        ProductID = x.ProductID, 
+                        ProductName = x.ProductName
+                    });
+        }
+
+        [HttpGet]
         public IQueryable<Region> Regions() {
             return _repository.Regions;
+        }
+
+        [HttpGet]
+        public IQueryable<Supplier> Suppliers()
+        {
+            return _repository.Suppliers;
         }
 
         [HttpGet]

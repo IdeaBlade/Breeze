@@ -10,6 +10,20 @@
     <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
     <link rel="shortcut icon" type="image/png" href="..&#x2F;assets/favicon.png">
     <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;combo?3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
+	<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34729465-1']);
+  _gaq.push(['_setDomainName', 'breezejs.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
 </head>
 <body class="yui3-skin-sam">
 <script type="text/javascript">
@@ -42,9 +56,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 		<li>
-			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
 		
 	</ul>
 </div>
@@ -411,19 +425,12 @@ var Event = (function() {
         assertParam(eventName, &quot;eventName&quot;).isNonEmptyString().check();
         assertParam(obj, &quot;obj&quot;).isObject().check();
         assertParam(isEnabled, &quot;isEnabled&quot;).isBoolean().isOptional().or().isFunction().check();
-        eventName = getFullEventName(eventName);
         if (!obj._$eventMap) {
             obj._$eventMap = {};
         }
         obj._$eventMap[eventName] = isEnabled;
     };
 
-    ctor._enableFast = function(event, obj, isEnabled) {
-        if (!obj._$eventMap) {
-            obj._$eventMap = {};
-        }
-        obj._$eventMap[event.name] = isEnabled;
-    };
 
     &#x2F;**
     Returns whether for a specific event and a specific object and its children, notification is enabled or disabled or not set. 
@@ -442,7 +449,8 @@ var Event = (function() {
         if (!obj._getEventParent) {
             throw new Error(&quot;This object does not support event enabling&#x2F;disabling&quot;);
         }
-        return ctor._isEnabled(obj, getFullEventName(eventName));
+        &#x2F;&#x2F; return ctor._isEnabled(obj, getFullEventName(eventName));
+        return ctor._isEnabled(obj, eventName);
     };
 
     ctor._isEnabled = function(eventName, obj) {
@@ -467,18 +475,6 @@ var Event = (function() {
             }
         }
     };
-
-    function getFullEventName(eventName) {
-        if (__eventNameMap[eventName]) return eventName;
-        &#x2F;&#x2F; find the closest event name that matches
-        var fullEventName = __arrayFirst(Object.keys(__eventNameMap), function(name) {
-            return name.indexOf(eventName) === 0;
-        });
-        if (!fullEventName) {
-            throw new Error(&quot;Unable to find any registered event that matches: &quot; + eventName);
-        }
-        return fullEventName;
-    }
 
     function fallbackErrorHandler(e) {
         &#x2F;&#x2F; TODO: maybe log this 

@@ -83,11 +83,12 @@
         var that = this;
         var params = {
             url: mappingContext.url,
+            data: mappingContext.query.parameters,
             dataType: 'json',
             success: function(data, textStatus, XHR) {
                 try {
                     var rData;
-                    if (data.Results) {
+                    if (data && data.Results) {
                         rData = { results: data.Results, inlineCount: data.InlineCount, XHR: XHR };
                     } else {
                         rData = { results: data, XHR: XHR };
@@ -133,11 +134,10 @@
             contentType: "application/json",
             data: bundle,
             success: function (data, textStatus, XHR) {
-                var error = data.Error || data.error;
-                if (error) {
+                var entityErrors = data.Errors || data.errors;
+                if (entityErrors) {
                     // anticipatable errors on server - concurrency...
-                    var err = that._createError(XHR);
-                    err.message = error;
+                    var err = prepareServerErrors(saveContext, entityErrors);
                     deferred.reject(err);
                 } else {
                     var saveResult = that._prepareSaveResult(saveContext, data);
@@ -146,12 +146,41 @@
                 
             },
             error: function (XHR, textStatus, errorThrown) {
-                that._handleXHRError(deferred, XHR);
+                var entityErrors = extractErrors(XHR);
+                if (entityErrors) {
+                    // anticipatable errors on server - validation, possibly others
+                    var err = prepareServerErrors(saveContext, entityErrors);
+                    deferred.reject(err);
+                } else {
+                    that._handleXHRError(deferred, XHR);
+                }
             }
         });
 
         return deferred.promise;
     };
+
+    function extractErrors(XHR) {
+        if (!XHR.responseText) return null;
+        var responseObj = JSON.parse(XHR.responseText);
+        return responseObj && responseObj.EntityErrors;
+    }
+
+    function prepareServerErrors(saveContext, entityErrors) {
+        var err = new Error();
+        err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";
+        var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
+        err.entityErrors = entityErrors.map(function (e) {
+            return {
+                errorName: e.ErrorName,
+                entityTypeName: MetadataStore.normalizeTypeName(e.EntityTypeName),
+                keyValues: e.KeyValues,
+                propertyName: e.PropertyName && propNameFn(e.PropertyName),
+                errorMessage: e.ErrorMessage
+            };
+        });
+        return err;
+    }
 
     ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
         throw new Error("Need a concrete implementation of _prepareSaveBundle");

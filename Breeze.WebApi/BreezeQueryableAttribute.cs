@@ -36,30 +36,26 @@ namespace Breeze.WebApi {
     /// <param name="request"></param>
     /// <returns></returns>
     protected QueryHelper GetQueryHelper(HttpRequestMessage request) {
-        object qh;
-        if (!request.Properties.TryGetValue(QUERY_HELPER_KEY, out qh))
-        {
-            qh = NewQueryHelper();
-            request.Properties.Add(QUERY_HELPER_KEY, qh);
-        }
-        return (QueryHelper)qh;
+      object qh;
+      if (!request.Properties.TryGetValue(QUERY_HELPER_KEY, out qh)) {
+        qh = NewQueryHelper();
+        request.Properties.Add(QUERY_HELPER_KEY, qh);
+      }
+      return (QueryHelper)qh;
     }
 
-    protected virtual QueryHelper NewQueryHelper()
-    {
-        return new QueryHelper(GetODataQuerySettings());
+    protected virtual QueryHelper NewQueryHelper() {
+      return new QueryHelper(GetODataQuerySettings());
     }
 
-    public ODataQuerySettings GetODataQuerySettings()
-    {
-        var settings = new ODataQuerySettings()
-        {
-            EnableConstantParameterization = this.EnableConstantParameterization,
-            EnsureStableOrdering = this.EnsureStableOrdering,
-            HandleNullPropagation = this.HandleNullPropagation,
-            PageSize = this.PageSize > 0 ? this.PageSize : (int?) null
-        };
-        return settings;
+    public ODataQuerySettings GetODataQuerySettings() {
+      var settings = new ODataQuerySettings() {
+        EnableConstantParameterization = this.EnableConstantParameterization,
+        EnsureStableOrdering = this.EnsureStableOrdering,
+        HandleNullPropagation = this.HandleNullPropagation,
+        PageSize = this.PageSize > 0 ? this.PageSize : (int?)null
+      };
+      return settings;
     }
 
     /// <summary>
@@ -82,23 +78,16 @@ namespace Breeze.WebApi {
       var request = actionExecutedContext.Request;
       var returnType = actionExecutedContext.ActionContext.ActionDescriptor.ReturnType;
       var queryHelper = GetQueryHelper(request);
-      if (typeof(IEnumerable).IsAssignableFrom(returnType))
-      {
-          // QueryableAttribute only applies for IQueryable and IEnumerable return types
-          base.OnActionExecuted(actionExecutedContext);
-          if (!response.TryGetContentValue(out responseObject)) {
-              return;
-          }
-          var queryResult = queryHelper.ApplySelectAndExpand(responseObject as IQueryable, request.RequestUri.ParseQueryString());
-          queryHelper.WrapResult(request, response, queryResult);
-      }
-      else
-      {
-          // We may still need to execute the query and wrap the results.
-          if (responseObject is IEnumerable)
-          {
-              queryHelper.WrapResult(request, response, responseObject);
-          }
+      if (typeof(IEnumerable).IsAssignableFrom(returnType) || responseObject is IEnumerable) {
+        // QueryableAttribute only applies for IQueryable and IEnumerable return types
+        base.OnActionExecuted(actionExecutedContext);
+        if (!response.TryGetContentValue(out responseObject)) {
+          return;
+        }
+        var queryResult = queryHelper.ApplySelectAndExpand(responseObject as IQueryable, request.RequestUri.ParseQueryString());
+        queryHelper.WrapResult(request, response, queryResult);
+      } else {
+        // For non-IEnumerable results, post-processing must be done manually by the developer.
       }
 
       queryHelper.ConfigureFormatter(actionExecutedContext.Request, responseObject as IQueryable);

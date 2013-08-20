@@ -216,16 +216,17 @@ var EntityQuery = (function () {
                 when if a string is provided and any string that matches one of the FilterQueryOp aliases will be accepted.
         - a value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-                In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
-        - an optional [valueIsLiteral] {Boolean} parameter - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
-
+                In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value' property and an 'isLiteral' property set to either true or false.
+                Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a 'value' property and a 'dataType'property set
+                to one of the breeze.DataType enumeration instances.       
+    - or a null or undefined ( this causes any existing where clause to be removed)
    
     @return {EntityQuery}
     @chainable
     **/
     proto.where = function (predicate) {
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (predicate == null) {
             eq.wherePredicate = null;
             return eq;
         }
@@ -270,13 +271,14 @@ var EntityQuery = (function () {
             var query = new EntityQuery("Customers")
             .orderBy("Region desc, CompanyName desc");
     @method orderBy
-    @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths. Each property path can optionally end with " desc" to force a descending sort order.
+    @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths. 
+    Each property path can optionally end with " desc" to force a descending sort order. If 'propertyPaths' is either null or omitted then all ordering is removed. 
     @return {EntityQuery}
     @chainable
     **/
     proto.orderBy = function (propertyPaths) {
         // deliberately don't pass in isDesc
-        return orderByCore(this, normalizePropertyPaths(propertyPaths));
+        return orderByCore(this, propertyPaths);
     };
 
     /**
@@ -296,12 +298,13 @@ var EntityQuery = (function () {
             .orderByDesc("Category.CategoryName");
 
     @method orderByDesc
-    @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths.
+    @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths. 
+    If 'propertyPaths' is either null or omitted then all ordering is removed. 
     @return {EntityQuery}
     @chainable
     **/
     proto.orderByDesc = function (propertyPaths) {
-        return orderByCore(this, normalizePropertyPaths(propertyPaths), true);
+        return orderByCore(this, propertyPaths, true);
     };
         
     /**
@@ -336,29 +339,31 @@ var EntityQuery = (function () {
             .select("Customer.CompanyName, Customer, OrderDate");
     @method select
     @param propertyPaths {String|Array of String} A comma-separated (',') string of property paths or an array of property paths.
+    If 'propertyPaths' is either null or omitted then any existing projection on the query is removed. 
     @return {EntityQuery}
     @chainable
     **/
     proto.select = function (propertyPaths) {
-        return selectCore(this, normalizePropertyPaths(propertyPaths));
+        return selectCore(this, propertyPaths);
     };
 
 
     /**
     Returns a new query that skips the specified number of entities when returning results.
+    Any existing 'skip' can be cleared by calling 'skip' with no arguments.
     @example
         var query = new EntityQuery("Customers")
             .where("CompanyName", "startsWith", "C")
             .skip(5);
     @method skip
-    @param count {Number} The number of entities to return. If omitted this clears the 
+    @param count {Number} The number of entities to return. If omitted or null any existing skip count on the query is removed. 
     @return {EntityQuery}
     @chainable
     **/
     proto.skip = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (count == null) {
             eq.skipCount = null;
         } else {
             eq.skipCount = count;
@@ -368,11 +373,13 @@ var EntityQuery = (function () {
         
     /**
     Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.
+    Any existing 'top' can be cleared by calling 'top' with no arguments.
     @example
         var query = new EntityQuery("Customers")
             .top(5);
     @method top
-    @param count {Number} The number of entities to return.
+    @param count {Number} The number of entities to return. 
+    If 'count' is either null or omitted then any existing 'top' count on the query is removed. 
     @return {EntityQuery}
     @chainable
     **/
@@ -381,19 +388,21 @@ var EntityQuery = (function () {
     };
 
     /**
-    Returns a new query that returns only the specified number of entities when returning results - Same as 'top'
+    Returns a new query that returns only the specified number of entities when returning results - Same as 'top'.  
+    Any existing take can be cleared by calling take with no arguments.
     @example
         var query = new EntityQuery("Customers")
             .take(5);
     @method take
     @param count {Number} The number of entities to return.
+    If 'count' is either null or omitted then any existing 'take' count on the query is removed. 
     @return {EntityQuery}
     @chainable
     **/
     proto.take = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
         var eq = this._clone();
-        if (arguments.length === 0) {
+        if (count == null) {
             eq.takeCount = null;
         } else {
             eq.takeCount = count;
@@ -419,12 +428,13 @@ var EntityQuery = (function () {
             .expand("Customer, OrderDetails, OrderDetails.Product")
     @method expand
     @param propertyPaths {String|Array of String} A comma-separated list of navigation property names or an array of navigation property names. Each Navigation Property name can be followed
-    by a '.' and another navigation property name to enable identifying a multi-level relationship
+    by a '.' and another navigation property name to enable identifying a multi-level relationship. 
+    If 'propertyPaths' is either null or omitted then any existing 'expand' clause on the query is removed. 
     @return {EntityQuery}
     @chainable
     **/
     proto.expand = function (propertyPaths) {
-        return expandCore(this, normalizePropertyPaths(propertyPaths));
+        return expandCore(this, propertyPaths);
     };
 
     /**
@@ -817,7 +827,7 @@ var EntityQuery = (function () {
         queryOptions["$expand"] = toExpandString();
         queryOptions["$select"] = toSelectString();
         queryOptions["$inlinecount"] = toInlineCountString();
-        queryOptions = __extend(queryOptions, this.parameters);
+        //queryOptions = __extend(queryOptions, this.parameters);
             
         var qoText = toQueryOptionsString(queryOptions);
         return this.resourceName + qoText;
@@ -870,7 +880,7 @@ var EntityQuery = (function () {
 
         function toTopString() {
             var count = eq.takeCount;
-            if (!count) return;
+            if (count==null) return;
             return count.toString();
         }
 
@@ -879,7 +889,13 @@ var EntityQuery = (function () {
             for (var qoName in queryOptions) {
                 var qoValue = queryOptions[qoName];
                 if (qoValue !== undefined) {
-                    qoStrings.push(qoName + "=" + encodeURIComponent(qoValue));
+                    if (qoValue instanceof Array) {
+                        qoValue.forEach(function (qov) {
+                            qoStrings.push(qoName + "=" + encodeURIComponent(qov));
+                        });
+                    }  else {
+                        qoStrings.push(qoName + "=" + encodeURIComponent(qoValue));
+                    }
                 }
             }
 
@@ -938,11 +954,12 @@ var EntityQuery = (function () {
     function orderByCore(that, propertyPaths, isDesc) {
         var newClause;
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.orderByClause = null;
             return eq;
         }
 
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         newClause = OrderByClause.create(propertyPaths, isDesc);
 
         if (eq.orderByClause) {
@@ -955,20 +972,22 @@ var EntityQuery = (function () {
         
     function selectCore(that, propertyPaths) {
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.selectClause = null;
             return eq;
         }
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         eq.selectClause = new SelectClause(propertyPaths);
         return eq;
     }
         
     function expandCore(that, propertyPaths) {
         var eq = that._clone();
-        if (!propertyPaths) {
+        if (propertyPaths==null) {
             eq.expandClause = null;
             return eq;
         }
+        propertyPaths = normalizePropertyPaths(propertyPaths);
         eq.expandClause = new ExpandClause(propertyPaths);
         return eq;
     }
@@ -1044,11 +1063,10 @@ var FnNode = (function() {
     var RX_COMMA_DELIM1 = /('[^']*'|[^,]+)/g ;
     var RX_COMMA_DELIM2 = /("[^"]*"|[^,]+)/g ;
         
+    // entityType will only be passed in for rhs expr.
     var ctor = function (source, tokens, entityType) {
         var parts = source.split(":");
-        if (entityType) {
-            this.isValidated = true;
-        }
+        this.isRealNode = true;
         if (parts.length === 1) {
             var value = parts[0].trim();
             this.value = value;
@@ -1066,7 +1084,7 @@ var FnNode = (function() {
                     if (entityType) {
                         if (entityType.getProperty(value, false) == null) {
                             // not a real FnNode;
-                            this.isValidated = false;
+                            this.isRealNode = false;
                             return;
                         }
                     }
@@ -1074,7 +1092,7 @@ var FnNode = (function() {
                     this.fn = createPropFunction(value);
                 } else {
                     if (entityType) {
-                        this.isValidated = false;
+                        this.isRealNode = false;
                         return;
                     }
                     this.fn = function (entity) { return value; };
@@ -1103,10 +1121,10 @@ var FnNode = (function() {
                 var commaMatchStr = source.indexOf("'") >= 0 ? RX_COMMA_DELIM1 : RX_COMMA_DELIM2;
                 var args = argSource.match(commaMatchStr);
                 this.fnNodes = args.map(function(a) {
-                    return new FnNode(a, tokens);
+                    return new FnNode(a, tokens );
                 });
             } catch (e) {
-                this.isValidated = false;
+                this.isRealNode = false;
             }
         }
     };
@@ -1126,12 +1144,19 @@ var FnNode = (function() {
             var repl = ":" + i++;
             source = source.replace(token, repl);
         }
-        var node = new FnNode(source, tokens, entityType);
-        if (!node.dataType && operator && operator.isStringFn) {
-            node.dataType = DataType.String;
+        
+        var node = new FnNode(source, tokens, operator ? null : entityType);
+        if (node.isRealNode) {
+            if (!node.dataType && operator && operator.isStringFn) {
+                node.dataType = DataType.String;
+            }
+            node._validate(entityType);
+            return node;
+        } else {
+            return null;
         }
-        // isValidated may be undefined
-        return node.isValidated === false ? null : node;
+        
+        
     };
 
     proto.toString = function() {
@@ -1146,20 +1171,8 @@ var FnNode = (function() {
         }
     };
 
-    proto.updateWithEntityType = function(entityType) {
-        if (this.propertyPath) {
-            if (entityType.isAnonymous) return;
-            var prop = entityType.getProperty(this.propertyPath);
-            if (!prop) {
-                var msg = __formatString("Unable to resolve propertyPath.  EntityType: '%1'   PropertyPath: '%2'", entityType.name, this.propertyPath);
-                throw new Error(msg);
-            }
-            this.dataType = prop.dataType;
-        }
-    };
-
     proto.toOdataFragment = function (entityType) {
-        this.updateWithEntityType(entityType);
+        this._validate(entityType);
         if (this.fnName) {
             var args = this.fnNodes.map(function(fnNode) {
                 return fnNode.toOdataFragment(entityType);
@@ -1178,12 +1191,17 @@ var FnNode = (function() {
         }
     };
 
-    proto.validate = function(entityType) {
+    proto._validate = function(entityType) {
         // will throw if not found;
-        if (this.isValidated !== undefined) return;            
+        if (this.isValidated) return;            
         this.isValidated = true;
         if (this.propertyPath) {
+            if (entityType.isAnonymous) return;
             var prop = entityType.getProperty(this.propertyPath, true);
+            if (!prop) {
+                var msg = __formatString("Unable to resolve propertyPath.  EntityType: '%1'   PropertyPath: '%2'", entityType.name, this.propertyPath);
+                throw new Error(msg);
+            }
             if (prop.isDataProperty) {
                 this.dataType = prop.dataType;
             } else {
@@ -1191,10 +1209,12 @@ var FnNode = (function() {
             }
         } else if (this.fnNodes) {
             this.fnNodes.forEach(function(node) {
-                node.validate(entityType);
+                node._validate(entityType);
             });
         }
     };
+
+
         
     function createPropFunction(propertyPath) {
         var properties = propertyPath.split('.');
@@ -1361,15 +1381,17 @@ var Predicate = (function () {
     @param operator {FilterQueryOp|String}
     @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-                In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
-    @param [valueIsLiteral] {Boolean} - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
+                In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value' property and an 'isLiteral' property set to either true or false.
+                Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a 'value' property and a 'dataType'property set
+                to one of the breeze.DataType enumeration instances.
+    
     **/
-    var ctor = function (propertyOrExpr, operator, value, valueIsLiteral) {
+    var ctor = function (propertyOrExpr, operator, value ) {
         if (arguments[0].prototype === true) {
             // used to construct prototype
             return this;
         }
-        return new SimplePredicate(propertyOrExpr, operator, value, valueIsLiteral);
+        return new SimplePredicate(propertyOrExpr, operator, value);
     };
     var proto = ctor.prototype;
 
@@ -1405,15 +1427,16 @@ var Predicate = (function () {
     @param operator {FilterQueryOp|String}
     @param value {Object} - This will be treated as either a property expression or a literal depending on context.  In general, 
                 if the value can be interpreted as a property expression it will be, otherwise it will be treated as a literal. 
-                In most cases this works well, but you can also force the interpretation by setting the next parameter 'valueIsLiteral' to true.
-    @param [valueIsLiteral] {Boolean} - Used to force the 'value' parameter to be treated as a literal - otherwise this will be inferred based on the context.
+                In most cases this works well, but you can also force the interpretation by making the value argument itself an object with a 'value' property and an 'isLiteral' property set to either true or false.
+                Breeze also tries to infer the dataType of any literal based on context, if this fails you can force this inference by making the value argument an object with a 'value' property and a 'dataType'property set
+                to one of the breeze.DataType enumeration instances.
+    
     **/
-    ctor.create = function (property, operator, value, valueIsLiteral) {
+    ctor.create = function (property, operator, value ) {
         if (Array.isArray(property)) {
-            valueIsLiteral = (property.length === 4) ? property[3] : false;
-            return new SimplePredicate(property[0], property[1], property[2], valueIsLiteral);
+            return new SimplePredicate(property[0], property[1], property[2]);
         } else {
-            return new SimplePredicate(property, operator, value, valueIsLiteral);
+            return new SimplePredicate(property, operator, value);
         }
     };
 
@@ -1430,12 +1453,14 @@ var Predicate = (function () {
         var preds = [p1, p2, p3];
         var newPred = Predicate.and(preds);
     @method and
-    @param predicates* {multiple Predicates|Array of Predicate}
+    @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
     @static
     **/
     ctor.and = function (predicates) {
         predicates = argsToPredicates(arguments);
-        if (predicates.length === 1) {
+        if (predicates.length === 0) {
+            return null;
+        } else if (predicates.length === 1) {
             return predicates[0];
         } else {
             return new CompositePredicate("and", predicates);
@@ -1455,12 +1480,14 @@ var Predicate = (function () {
         var preds = [p1, p2, p3];
         var newPred = Predicate.or(preds);
     @method or
-    @param predicates* {multiple Predicates|Array of Predicate}
+    @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
     @static
     **/
     ctor.or = function (predicates) {
         predicates = argsToPredicates(arguments);
-        if (predicates.length === 1) {
+        if (predicates.length === 0) {
+            return null;
+        } else if (predicates.length === 1) {
             return predicates[0];
         } else {
             return new CompositePredicate("or", predicates);
@@ -1503,7 +1530,7 @@ var Predicate = (function () {
         var p4 = Predicate.create("ShipCity", "startswith", "F")
             .and("Size", "gt", 2000);
     @method and
-    @param predicates* {multiple Predicates|Array of Predicate}
+    @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
     **/
     proto.and = function (predicates) {
         predicates = argsToPredicates(arguments);
@@ -1528,7 +1555,7 @@ var Predicate = (function () {
         var p4 = Predicate.create("ShipCity", "startswith", "F")
             .or("Size", "gt", 2000);
     @method or
-    @param predicates* {multiple Predicates|Array of Predicate}
+    @param predicates* {multiple Predicates|Array of Predicate} Any null or undefined values passed in will be automatically filtered out before constructing the composite predicate.
     **/
     proto.or = function (predicates) {
         predicates = argsToPredicates(arguments);
@@ -1576,16 +1603,19 @@ var Predicate = (function () {
     **/
 
     function argsToPredicates(argsx) {
+        var args;
         if (argsx.length === 1 && Array.isArray(argsx[0])) {
-            return argsx[0];
+            args = argsx[0];
         } else {
             var args = __arraySlice(argsx);
-            if (Predicate.isPredicate(args[0])) {
-                return args;
-            } else {
-                return [Predicate.create(args)];
+            if (!Predicate.isPredicate(args[0])) {
+                args = [Predicate.create(args)];
             }
         }
+        // remove any null or undefined elements from the array.
+        return args.filter(function (arg) {
+            return arg != null;
+        });
     }
 
     return ctor;
@@ -1595,28 +1625,39 @@ var Predicate = (function () {
 // Does not need to be exposed.
 var SimplePredicate = (function () {
 
-    var ctor = function(propertyOrExpr, operator, value, valueIsLiteral) {
+    var ctor = function(propertyOrExpr, operator, value) {
         assertParam(propertyOrExpr, "propertyOrExpr").isString().isOptional().check();
-
-        assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
-        assertParam(value, "value").isRequired(true).check();
-        assertParam(valueIsLiteral).isOptional().isBoolean().check();
-
+        if (arguments.length == 3 && operator != null) {
+            assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
+            assertParam(value, "value").isRequired(true).check();
+        } else {
+            this._odataExpr = propertyOrExpr;
+            return;
+        }
+        
         this._filterQueryOp = FilterQueryOp.from(operator);
         if (!this._filterQueryOp) {
             throw new Error("Unknown query operation: " + operator);
         }
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
-            this._fnNode1 = FnNode.create(propertyOrExpr, null, this._filterQueryOp);
+            // this._fnNode1 = FnNode.create(propertyOrExpr, null, this._filterQueryOp);
         } else {
             if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
                 throw new Error("propertyOrExpr cannot be null except when using the 'IsTypeOf' operator");
             }
         }
 
-        this._value = value;
-        this._valueIsLiteral = valueIsLiteral;
+        // _datatype is just a guess here - it will only be used if we aren't certain from the rest of the expression.
+        if ((value != null) && (typeof (value) === "object") && value.value !== undefined) {
+            this._dataType = value.dataType || DataType.fromValue(value.value);
+            this._value = value.value;
+            this._isLiteral = value.isLiteral;
+        } else {
+            this._dataType = DataType.fromValue(value);
+            this._value = value;
+            this._isLiteral = undefined;
+        }
     };
         
     var proto = new Predicate({ prototype: true });
@@ -1624,20 +1665,23 @@ var SimplePredicate = (function () {
         
 
     proto.toOdataFragment = function (entityType) {
+        if (this._odataExpr) {
+            return this._odataExpr;
+        }
         if (this._filterQueryOp == FilterQueryOp.IsTypeOf) {
             var oftype = entityType.metadataStore.getEntityType(this._value);
             var typeName = oftype.namespace + '.' + oftype.shortName;
             return this._filterQueryOp.operator + "(" + DataType.String.fmtOData(typeName) + ")";
         }
+
+        this.validate(entityType);
+
         var v1Expr = this._fnNode1 && this._fnNode1.toOdataFragment(entityType);
         var v2Expr;
-        if (this.fnNode2 === undefined && !this._valueIsLiteral) {
-            this.fnNode2 = FnNode.create(this._value, entityType);
-        }
-        if (this.fnNode2) {
-            v2Expr = this.fnNode2.toOdataFragment(entityType);
+        if (this._fnNode2) {
+            v2Expr = this._fnNode2.toOdataFragment(entityType);
         } else {
-            var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+            var dataType = this._fnNode1.dataType || this._dataType;
             v2Expr = dataType.fmtOData(this._value);
         }
         if (this._filterQueryOp.isFunction) {
@@ -1652,16 +1696,20 @@ var SimplePredicate = (function () {
         }
     };
 
+   
+
     proto.toFunction = function (entityType) {
-        var dataType = this._fnNode1.dataType || DataType.fromValue(this._value);
+        if (this._odataExpr) {
+            throw new Exception("OData predicateexpressions cannot be interpreted locally");
+        }
+        this.validate(entityType);
+
+        var dataType = this._fnNode1.dataType || this._dataType;
         var predFn = getPredicateFn(entityType, this._filterQueryOp, dataType);
         var v1Fn = this._fnNode1.fn;
-        if (this.fnNode2 === undefined && !this._valueIsLiteral) {
-            this.fnNode2 = FnNode.create(this._value, entityType);
-        }
             
-        if (this.fnNode2) {
-            var v2Fn = this.fnNode2.fn;
+        if (this._fnNode2) {
+            var v2Fn = this._fnNode2.fn;
             return function(entity) {
                 return predFn(v1Fn(entity), v2Fn(entity));
             };
@@ -1679,15 +1727,21 @@ var SimplePredicate = (function () {
     };
 
     proto.validate = function (entityType) {
-        if (!this._fnNode1) return;
-        // throw if not valid
-        this._fnNode1.validate(entityType);
-        this.dataType = this._fnNode1.dataType;
+        if (this._fnNode1 === undefined && this._propertyOrExpr) {
+            this._fnNode1 = FnNode.create(this._propertyOrExpr, entityType, this._filterQueryOp);
+            this.dataType = this._fnNode1.dataType;
+        }
+
+        if (this._fnNode2 === undefined && !this._isLiteral) {
+            this._fnNode2 = FnNode.create(this._value, entityType);
+        }
+
     };
         
     // internal functions
 
     // TODO: still need to handle localQueryComparisonOptions for guids.
+
         
     function getPredicateFn(entityType, filterQueryOp, dataType) {
         var lqco = entityType.metadataStore.localQueryComparisonOptions;

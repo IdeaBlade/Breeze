@@ -1,16 +1,15 @@
 /// <reference path="breeze.d.ts" />
 
-import breeze = module(breeze);
-import core = module(breezeCore);
+import core = breeze.core;
+import config = breeze.config;
 
 
 function test_dataType() {
     var typ = breeze.DataType.DateTime;
     var nm = typ.getName();
-    var isNumber = typ.isNumeric;
     var dv = typ.defaultValue;
     var symbs = breeze.DataType.getSymbols();
-    var x = typ.parentEnum === <breezeCore.IEnum> breeze.DataType;
+    var x = typ.parentEnum === <breeze.core.IEnum> breeze.DataType;
     var isFalse = breeze.DataType.contains(breeze.DataType.Double);
     var dt = breeze.DataType.fromName("Decimal");
     
@@ -225,7 +224,7 @@ function test_entityManager() {
     var customerId = em.generateTempKeyValue(custumer);
     em1.saveChanges()
         .then(function (data) {
-            var sameCust1 = data.results[0];
+            var sameCust1 = data.entities[0];
         });
     var changedEntities = em1.getChanges();
     var custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
@@ -740,38 +739,38 @@ function test_validator() {
     var orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
     var freightProperty = orderType.getProperty("Freight");
     regionProperty.validators.push(breeze.Validator.byte());
-    var orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
+    orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
     var orderDateProperty = orderType.getProperty("OrderDate");
     orderDateProperty.validators.push(breeze.Validator.date());
     var v0 = breeze.Validator.maxLength({ maxLength: 5, displayName: "City" });
     v0.validate("adasdfasdf");
     var errMessage = v0.getMessage();
-    var custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
+    custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
     var customerIdProperty = custType.getProperty("CustomerID");
     customerIdProperty.validators.push(breeze.Validator.guid());
-    var orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
-    var freightProperty = orderType.getProperty("Freight");
+    orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
+    freightProperty = orderType.getProperty("Freight");
     freightProperty.validators.push(breeze.Validator.int16());
-    var orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
-    var freightProperty = orderType.getProperty("Freight");
+    orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
+    freightProperty = orderType.getProperty("Freight");
     freightProperty.validators.push(breeze.Validator.int32());
-    var orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
-    var freightProperty = orderType.getProperty("Freight");
+    orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
+    freightProperty = orderType.getProperty("Freight");
     freightProperty.validators.push(breeze.Validator.int64());
-    var custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
+    custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
     var regionProperty = custType.getProperty("Region");
     regionProperty.validators.push(breeze.Validator.maxLength({ maxLength: 5 }));
-    var orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
-    var freightProperty = orderType.getProperty("Freight");
+    orderType = <breeze.EntityType> em1.metadataStore.getEntityType("Order");
+    freightProperty = orderType.getProperty("Freight");
     freightProperty.validators.push(breeze.Validator.number());
-    var custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
-    var regionProperty = custType.getProperty("Region");
+    custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
+    regionProperty = custType.getProperty("Region");
     regionProperty.validators.push(breeze.Validator.required());
-    var custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
-    var regionProperty = custType.getProperty("Region");
+    custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
+    regionProperty = custType.getProperty("Region");
     regionProperty.validators.push(breeze.Validator.string());
-    var custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
-    var regionProperty = custType.getProperty("Region");
+    custType = <breeze.EntityType> em1.metadataStore.getEntityType("Customer");
+     regionProperty = custType.getProperty("Region");
     regionProperty.validators.push(breeze.Validator.stringLength({ minLength: 2, maxLength: 5 }));
     var validator = breeze.Validator.maxLength({ maxLength: 5, displayName: "City" });
     var result = validator.validate("asdf");
@@ -799,4 +798,74 @@ function test_demo() {
         .from("Employees");
 
     manager.executeQuery(query).then(function (data) { });
+}
+
+function test_corefns() {
+    var o1: Object;
+    var kvfn = function (p) { return p; }
+    core.objectForEach(o1, kvfn);
+
+    var o2: Object;
+    var o3: Object;
+    o3 = core.extend(o1, o2);
+
+    var f1: Function;
+    var f2: Function;
+    f1 = core.propEq("name", "Joe");
+    f1 = core.pluck("name");
+
+    var a1: Array;
+    var a2: Array;
+    var a3: Array;
+    var b: boolean;
+    var n: number;
+
+    var f3 = function (e1: any, e2: any) { return e1 == e2; };
+    var f4 = function (e1: any) { return false; };
+    b = core.arrayEquals(a1, a2, f3);
+    b = core.arrayFirst(a1, f4);
+    n = core.arrayIndexOf(a1, f4);
+    b = core.arrayRemoveItem(a1, "whatever", false);
+    a3 = core.arrayZip(a1, a2, f3);
+
+    var f5 = function () { return false; };
+    o1 = core.requireLib("libc,stdio", "Library not found");
+    o1 = core.using(o2, "something", "x", f5);
+    f2 = core.memoize(f4);
+    var s: string;
+    s = core.getUuid();
+    n = core.durationToSeconds(s);
+
+    b = core.isDate(s);
+    b = core.isGuid(s);
+    b = core.isDuration(s);
+    b = core.isFunction(s);
+    b = core.isEmpty(s);
+    b = core.isNumeric(s);
+
+    b = core.stringStartsWith(s, "pre");
+    b = core.stringEndsWith(s, "suf");
+    s = core.formatString("My %1 is full of %2", "hovercraft", "eels");
+
+}
+
+function test_config() {
+    var s: string;
+    s = config.ajax;
+    s = config.dataService;
+    var o: Object;
+    o = config.functionRegistry;
+    o = config.getAdapter("myInterfaceName", "myAdapterName");
+    o = config.getAdapterInstance("myInterfaceName", "myAdapterName");
+    config.initializeAdapterInstance("myInterfaceName", "myAdapterName", true);
+    config.initializeAdapterInstances({ x: 3, y: "not" });
+    s = config.interfaceInitialized.type;
+    o = config.interfaceRegistry;
+    o = config.objectRegistry;
+    config.registerAdapter("myAdapterName");
+    var f1: Function;
+    config.registerFunction(f1, "myFunction");
+    config.registerType(f1, "myCtor");
+    s = config.stringifyPad;
+    o = config.typeRegistry;
 }

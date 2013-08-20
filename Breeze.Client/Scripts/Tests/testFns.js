@@ -269,6 +269,9 @@ breezeTestFns = (function (breeze) {
         if (error.handled === true) return;
         
         if (error instanceof (Error)) {
+            if (error.message.indexOf("assertion outside test context") >= 0) {
+                alert(error.message);
+            }
             var msg = (error.message || "") + ((error.responseText && " responseText: " + error.responseText) || "");
             ok(false, "Failed: " + msg);
         } else {
@@ -439,6 +442,83 @@ breezeTestFns = (function (breeze) {
             };
         }
     };
+
+    models.CustomerWithES5Props = function () {
+
+        var ctor; 
+        if (testFns.modelLibrary == "ko") {
+            ctor = function () {
+                
+            };
+            createES5Props(ctor.prototype);
+
+            
+        } else if (testFns.modelLibrary == "backbone") {
+            ctor = Backbone.Model.extend({
+                initialize: function(attr, options) {
+                    createES5Props(this.attributes);
+                }
+            });
+            
+
+        } else {
+            ctor = function () {
+                
+            };
+            createES5Props(ctor.prototype);
+        }
+        return ctor;
+
+
+    };
+
+    function createES5Props(target) {
+        Object.defineProperty(target, "companyName", {
+            get: function () {
+                return this["_companyName"] || null;
+            },
+            set: function (value) {
+                this["_companyName"] = value.toUpperCase();
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(target, "idAndName", {
+            get: function () {
+                return this.customerID + ":" + this._companyName || "";
+            },
+            enumerable: true,
+            configurable: true
+        });
+        
+        Object.defineProperty(target, "miscData", {
+            get: function () {
+                return this["_miscData"] || "asdf";
+            },
+            set: function(value) {
+                this["_miscData"] = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+    }
+        
+
+    // Object.defineProperty(proto, "firstName", makePropDescription("firstName"));
+    function makePropDescription(propName) {
+        return {
+            get: function () {
+                return this["_" + propName];
+            },
+            set: function (value) {
+                this["_" + propName] = value.toUpperCase();
+            },
+            enumerable: true,
+            configurable: true
+        };
+    }
+
+    
 
     models.Product = function () {
         var init = function (entity) {

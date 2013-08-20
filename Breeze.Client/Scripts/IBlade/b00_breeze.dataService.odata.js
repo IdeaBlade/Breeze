@@ -30,8 +30,29 @@
     ctor.prototype.executeQuery = function (mappingContext) {
 
         var deferred = Q.defer();
+        var url = mappingContext.url;
 
-        OData.read(mappingContext.url,
+        var paramSeparation = '?';
+        if (mappingContext.url.indexOf('?') > -1)
+            paramSeparation = '&';
+        if (mappingContext.query && mappingContext.query.parameters) {
+            var queryOptions = mappingContext.query.parameters;
+            for (var qoName in queryOptions) {
+                var qoValue = queryOptions[qoName];
+                if (qoValue !== undefined) {
+                    if (qoValue instanceof Array) {
+                        qoValue.forEach(function (qov) {
+                            url += paramSeparation + (qoName + "=" + encodeURIComponent(qov));
+                        });
+                    } else {
+                        url += paramSeparation + (qoName + "=" + encodeURIComponent(qoValue));
+                    }
+                }
+                paramSeparation = '&';
+            }
+        }
+
+        OData.read(url,
             function (data, response) {
                 return deferred.resolve({ results: data.results, inlineCount: data.__count });
             },
@@ -237,6 +258,11 @@
                 request.method = "POST";
                 request.data = helper.unwrapInstance(entity, true);
                 tempKeys[id] = aspect.getKey();
+                // should be a PATCH/MERGE
+                if (!request.data || Object.keys(request.data).length == 0) {
+                    id--;
+                    return;
+                }
             } else if (aspect.entityState.isModified()) {
                 updateDeleteMergeRequest(request, aspect, prefix);
                 request.method = "MERGE";

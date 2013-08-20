@@ -19,6 +19,11 @@ var EntityGroup = (function () {
         // entity should already have an aspect.
         var ix;
         var aspect = entity.entityAspect;
+        if (!aspect._initialized) {
+            this.entityType._initializeInstance(entity);
+        }
+        delete aspect._initialized;  
+            
         var keyInGroup = aspect.getKey()._keyInGroup;
         ix = this._indexMap[keyInGroup];
         if (ix >= 0) {

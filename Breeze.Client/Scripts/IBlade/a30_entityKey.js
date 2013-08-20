@@ -33,7 +33,6 @@ var EntityKey = (function () {
     @param keyValues {value|Array of values} A single value or an array of values.
     **/
     var ctor = function (entityType, keyValues) {
-        
         assertParam(entityType, "entityType").isInstanceOf(EntityType).check();
         var subtypes = entityType.getSelfAndSubtypes();
         if (subtypes.length > 1) {

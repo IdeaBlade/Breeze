@@ -1,7 +1,7 @@
 ﻿/* TestFns with Jasmine dependencies */
 (function () {
     'use strict';
-    var fns = zzaTestFns;
+    var fns = testFns;
 
     fns.createSmallOrder = createSmallOrder;
 

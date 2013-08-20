@@ -28,14 +28,14 @@ namespace DocCode.App_Start {
         // Simplistic. Prefer Darrel Miller's API Router for complex routing
         // https://github.com/tavis-software/ApiRouter#readme
 
-        // Breeze Metadata call when "multi" is the manager's service name
+        // Breeze Metadata call re-routed when "multi" is the manager's service name
         GlobalConfiguration.Configuration.Routes.MapHttpRoute(
             name: "MultiControllerMetadataApi",
             routeTemplate: "multi/metadata",
             defaults: new {controller = "multi", action = "Metadata"}
             );
 
-        // Breeze SaveChanges call when "multi" is the manager's service name
+        // Breeze SaveChanges call re-routed when "multi" is the manager's service name
         GlobalConfiguration.Configuration.Routes.MapHttpRoute(
             name: "MultiControllerSaveChangesApi",
             routeTemplate: "multi/savechanges",

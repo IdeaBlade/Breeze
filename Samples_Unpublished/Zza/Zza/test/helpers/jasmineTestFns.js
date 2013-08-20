@@ -6,7 +6,7 @@
     extendAsyncSpec();
     addCustomMatchers();
 
-    var fns = zzaTestFns;
+    var fns = testFns;
     fns.breezeTest = breezeTest;
     fns.initialize = initialize;
     fns.failed = failed;

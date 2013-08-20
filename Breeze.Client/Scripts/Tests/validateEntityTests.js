@@ -12,6 +12,7 @@
     var EntityKey = breeze.EntityKey;
     var EntityState = breeze.EntityState;
     var Validator = breeze.Validator;
+    var ValidationError = breeze.ValidationError;
 
 
     var newEm = testFns.newEm;
@@ -75,7 +76,8 @@
         // Clear out the "alwaysWrong" error
         // Must do manually because that rule is now gone
         // and, therefore, can't cleanup after itself
-        cust.entityAspect.removeValidationError(alwaysWrong);
+        var valKey = ValidationError.getKey(alwaysWrong);
+        cust.entityAspect.removeValidationError(valKey);
 
         cust.entityAspect.validateEntity(); // re-validate
 
@@ -220,24 +222,32 @@
         var custType = em.metadataStore.getEntityType("Customer");
         var cust1 = custType.createEntity();
         em.attachEntity(cust1);
-        var lastNotification;
+        var lastNotification, emNotification;
         var notificationCount = 0;
+        var emNotificationCount = 0;
         cust1.entityAspect.validationErrorsChanged.subscribe(function (args) {
             lastNotification = args;
             notificationCount++;
+        });
+        em.validationErrorsChanged.subscribe(function (args) {
+            emLastNotification = args;
+            emNotificationCount++;
         });
         var s = "long value long value";
         s = s + s + s + s + s + s + s + s + s + s + s + s;
         cust1.setProperty("companyName", s);
         ok(lastNotification.added, "last notification should have been 'added'");
+        ok(lastNotification === emLastNotification, "both lastNotifications should be the same");
         ok(lastNotification.added[0].property.name === "companyName", "companyName should have been added"); // maxLength
         ok(lastNotification.removed[0].property.name === "companyName", "companyName should have been removed"); // required
         ok(notificationCount === 1, "should have been 1 notification");
         cust1.setProperty("companyName", "much shorter");
+        ok(lastNotification === emLastNotification, "both lastNotifications should be the same");
         ok(lastNotification.removed, "last notification should have been 'removed'");
         ok(lastNotification.removed[0].property.name === "companyName");
         ok(notificationCount === 2, "should have been 2 notifications");
         cust1.setProperty("companyName", "");
+        ok(lastNotification === emLastNotification, "both lastNotifications should be the same");
         ok(lastNotification.added, "last notification should have been 'added'");
         ok(lastNotification.added[0].property.name === "companyName");
         ok(notificationCount === 3, "should have been 3 notifications");
@@ -260,6 +270,7 @@
         cust1.setProperty("companyName", s);
         cust1.setProperty("companyName", "much shorter");
         cust1.setProperty("companyName", "");
+        ok(cust1.entityAspect.hasValidationErrors, "should still have val errors");
         ok(notificationCount === 0, "should have been no notifications");
     });
 
@@ -277,6 +288,7 @@
         var s = "long value long value";
         s = s + s + s + s + s + s + s + s + s + s + s + s;
         cust1.setProperty("companyName", s);
+        ok(cust1.entityAspect.hasValidationErrors, "should have val errors");
         var errors = cust1.entityAspect.getValidationErrors("companyName");
         ok(errors.length === 1);
         errors = cust1.entityAspect.getValidationErrors("foo");
@@ -300,6 +312,7 @@
         var cust1 = custType.createEntity();
         cust1.setProperty("country", "GER");
         em.attachEntity(cust1);
+        ok(cust1.entityAspect.hasValidationErrors, "should have val errors");
         var valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 2, "length should be 2");
         cust1.setProperty("country", "US");
@@ -327,12 +340,14 @@
         var valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0");
         cust1.setProperty("country", "USA");
+        ok(!cust1.entityAspect.hasValidationErrors, "should NOT have val errors");
         valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0");
         var isOk = cust1.entityAspect.validateEntity();
         ok(!isOk, "validateEntity should have returned false");
         valErrors = cust1.entityAspect.getValidationErrors();
-        ok(valErrors.length === 1, "length should be 0");
+        ok(valErrors.length === 1, "length should be 1");
+        ok(cust1.entityAspect.hasValidationErrors, "should have val errors");
     });
     
     test("custom entity validation - register validator", function () {
@@ -354,13 +369,16 @@
         cust1.setProperty("companyName", "Test1Co");
         cust1.setProperty("country", "GER");
         em2.attachEntity(cust1);
+        ok(!cust1.entityAspect.hasValidationErrors, "should not have val errors");
         var valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0");
         cust1.setProperty("country", "USA");
         valErrors = cust1.entityAspect.getValidationErrors();
+        ok(!cust1.entityAspect.hasValidationErrors, "should not have val errors 2");
         ok(valErrors.length === 0, "length should be 0");
         var isOk = cust1.entityAspect.validateEntity();
         ok(!isOk, "validateEntity should have returned false");
+        ok(cust1.entityAspect.hasValidationErrors, "should now have val errors");
         valErrors = cust1.entityAspect.getValidationErrors();
         ok(valErrors.length === 1, "length should be 0");
     });
@@ -384,10 +402,12 @@
         order1.setProperty("freight", 0);
         valErrors = order1.entityAspect.getValidationErrors();
         ok(valErrors.length === 1, "length should be 1");
+        ok(order1.entityAspect.hasValidationErrors, "should now have val errors");
         var ix = valErrors[0].errorMessage.indexOf("between the values of 100 and 500");
         order1.setProperty("freight", 200);
         valErrors = order1.entityAspect.getValidationErrors();
         ok(valErrors.length === 0, "length should be 0");
+        ok(!order1.entityAspect.hasValidationErrors, "should not have val errors");
         
     });
     

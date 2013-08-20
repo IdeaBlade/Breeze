@@ -3,8 +3,9 @@
     <id name="Id" type="int" unsaved-value="0">
       <generator class="native" />
     </id>
+    <many-to-one name="TimeGroup" column="`TimeGroupId`" class="TimeGroup" />
     <property name="MaxTime" type="TimeAsTimeSpan" not-null="true" />
     <property name="MinTime" type="TimeAsTimeSpan" />
-    <property name="TimeGroupId" type="int" />
+    <property name="TimeGroupId" type="int" insert="false" update="false"/>
   </class>
 </hibernate-mapping>

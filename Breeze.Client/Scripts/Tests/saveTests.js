@@ -32,6 +32,79 @@
         teardown: function () { }
     });
 
+    test("exceptions thrown on server", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+
+        var em = newEm();
+
+        var q = new EntityQuery("Orders").take(1);
+        stop();
+        var order;
+        var freight;
+        q.using(em).execute().then(function (data) {
+            order = data.results[0];
+            freight = order.getProperty("freight") + .5;
+            order.setProperty("freight", freight);
+
+            var so = new SaveOptions({ resourceName: "SaveAndThrow", tag: "SaveAndThrow" });
+
+            return em.saveChanges(null, so);
+        }).then(function (sr) {
+            ok("should not get here");
+
+        }).fail(function (e) {
+            ok(e);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("delete entity with Int32 property set to null", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - employeeId is not an integer on Mongo");
+            return;
+        }
+        var em = newEm();
+        var c1 = em.createEntity("Order", { employeeID: 1 });
+        stop();
+        //save entity with non-null value on Int32 field
+        em.saveChanges().then(function (sr) {
+            var order = sr.entities[0];
+            var empID0 = order.getProperty(testFns.employeeKeyName);
+            ok(empID0 != null, "empID0 should not be null");
+
+            //set the Int32 field to null
+            order.setProperty(testFns.employeeKeyName, null);
+            //resave entity
+            return em.saveChanges();
+        }).then(function (sr) {
+            var order = sr.entities[0];
+            var empID1 = order.getProperty(testFns.employeeKeyName);
+            ok(empID1 === null, "value should be null");
+
+            //mark entity as deleted
+            order.entityAspect.setDeleted();
+            //resave (i.e. delete) entity - the error should occur past this point
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    // Breeze does not YET support an option to requery after save. 
+    // When it does let's resurrect this test.
+    //test("check if save requeried saved entities", function () {
+    //    var em = newEm();
+    //    var c1 = em.createEntity("TimeGroup", { comment: "trigger" });
+    //    stop();
+    //    em.saveChanges().then(function (sr) {
+    //        var comment = sr.entities[0].comment;
+    //        ok(comment === "happy", "should have requeried the value updated by trigger");
+    //    }).fail(testFns.handleFail).fin(start);
+    //});
+
     test("check unmapped property on server", function () {
         // this test does not fail. Must debug server and 'dig' to find unmapped property value since it's not available in the interceptors
         // var em = newEm();
@@ -60,6 +133,11 @@
 
     test("check initializer is hit for entities added/saved on server", function () {
         // var em = newEm();
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
+            return;
+        }
 
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var ordInitializer = function (ord) {
@@ -152,7 +230,7 @@
         }).fail(testFns.handleFail).fin(start);
 
     });
-    
+
     test("save data with alt resource and server side add", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
@@ -299,6 +377,27 @@
             return em1.saveChanges();
         }).then(function (sr) {
             
+            var e = sr.entities;
+            ok(e.length === 1, "1 record should have been saved");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("save update with ES5 props and unmapped changes", function () {
+        var em1 = newEm(testFns.newMs());
+        var Customer = testFns.models.CustomerWithES5Props();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        var q = new EntityQuery("Customers").take(1);
+        em1.executeQuery(q).then(function (data) {
+            var custType = em1.metadataStore.getEntityType("Customer");
+            var cust = data.results[0];
+            var oldContactName = cust.getProperty("contactName");
+            var oldMiscData = cust.getProperty("miscData");
+            testFns.morphStringProp(cust, "contactName");
+            testFns.morphStringProp(cust, "miscData");
+            return em1.saveChanges();
+        }).then(function (sr) {
+
             var e = sr.entities;
             ok(e.length === 1, "1 record should have been saved");
         }).fail(testFns.handleFail).fin(start);
@@ -463,7 +562,104 @@
             
     });
 
-    test("save with server side entity level validation error", function () {
+    test("save/adds with EntityErrorsException", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - Mongo does not YET support server side validation");
+            return;
+        };
+
+
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        var cust1 = zzz.cust1;
+        var so = new SaveOptions({ resourceName: "SaveWithEntityErrorsException", tag: "entityErrorsException" });
+        stop();
+        em.saveChanges(null, so).then(function (sr) {
+            ok(false, "should not get here");
+
+        }).fail(function (e) {
+            ok(e.entityErrors, "should have server errors");
+            ok(e.entityErrors.length === 2, "2 order entities should have failed");
+            ok(zzz.order1.entityAspect.getValidationErrors().length === 1);
+            var order2Errs = zzz.order2.entityAspect.getValidationErrors();
+            ok(order2Errs.length === 1, "should be 1 error for order2");
+            ok(order2Errs[0].propertyName === "orderID", "errant property should have been 'orderID'");
+            // now save it properly
+            return em.saveChanges();
+        }).then(function(sr) {
+            ok(sr.entities.length === 4, "should have saved ok");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("save/mods with EntityErrorsException", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - Mongo does not YET support server side validation");
+            return;
+        };
+
+
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        var cust1 = zzz.cust1;
+        
+        stop();
+        em.saveChanges().then(function (sr) {
+            zzz.cust1.setProperty("contactName", "foo");
+            zzz.cust2.setProperty("contactName", "foo");
+            zzz.order1.setProperty("freight", 888.11);
+            zzz.order2.setProperty("freight", 888.11);
+            ok(zzz.cust1.entityAspect.entityState.isModified(), "cust1 should be modified");
+            ok(zzz.order1.entityAspect.entityState.isModified(), "order1 should be modified");
+            var so = new SaveOptions({ resourceName: "SaveWithEntityErrorsException", tag: "entityErrorsException" });
+            return em.saveChanges(null, so);
+        }).then(function(sr2) {
+            ok(false, "should not get here");
+        }).fail(function (e) {
+            ok(e.entityErrors, "should have server errors");
+            ok(e.entityErrors.length === 2, "2 order entities should have failed");
+            ok(zzz.order1.entityAspect.getValidationErrors().length === 1);
+            var order2Errs = zzz.order2.entityAspect.getValidationErrors();
+            ok(order2Errs.length === 1, "should be 1 error for order2");
+            ok(order2Errs[0].propertyName === "orderID", "errant property should have been 'orderID'");
+            // now save it properly
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(sr.entities.length === 4, "should have saved ok");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("save with client side validation error", function () {
+
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        var cust1 = zzz.cust1;
+        cust1.setProperty("companyName", null);
+        stop();
+        em.saveChanges().then(function (sr) {
+            ok(false, "should not get here");
+        }).fail(function (e) {
+            ok(e.entityErrors, "should be a  entityError");
+            ok(e.entityErrors.length === 1, "should be only one error");
+            ok(!e.entityErrors[0].isServerError, "should NOT be a server error");
+            var errors = cust1.entityAspect.getValidationErrors();
+            ok(errors[0].errorMessage === errors[0].errorMessage, "error message should appear on the cust");
+
+        }).fin(start);
+    });
+
+    test("save with server side entity level validation error", 3, function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
@@ -481,10 +677,48 @@
         stop();
         em.saveChanges().then(function(sr) {
             ok(false, "should not get here");
-        }).fail(function(e) {
-            ok(e.message.toLowerCase().indexOf("validation errors") >= 0, "should be a validation error message");
+        }).fail(function (e) {
+            ok(e.entityErrors, "should be a server error");
+            ok(e.entityErrors.length === 1, "should be only one server error");
+            var errors = cust1.entityAspect.getValidationErrors();
+            ok(errors[0].errorMessage === e.entityErrors[0].errorMessage, "error message should appear on the cust");
         }).fin(start);
     });
+
+    test("save with server side entity level validation error + repeat", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Skipped test - Mongo does not YET support server side validation");
+            return;
+        };
+
+        var em = newEm();
+        var zzz = createParentAndChildren(em);
+        var cust1 = zzz.cust1;
+        cust1.setProperty("companyName", "error");
+        stop();
+        em.saveChanges().then(function (sr) {
+            ok(false, "should not get here");
+        }).fail(function (e) {
+            ok(e.entityErrors, "should be a server error");
+            ok(e.entityErrors.length === 1, "should be only one server error");
+            var errors = cust1.entityAspect.getValidationErrors();
+            ok(errors.length === 1, "should only be 1 error");
+            ok(errors[0].errorMessage === e.entityErrors[0].errorMessage, "error message should appear on the cust");
+            return em.saveChanges();
+        }).fail(function(e2) {
+            ok(e2.entityErrors, "should be a server error");
+            ok(e2.entityErrors.length === 1, "should be only one server error");
+           var errors = cust1.entityAspect.getValidationErrors();
+           ok(errors.length === 1, "should only be 1 error");
+           ok(errors[0].errorMessage === e2.entityErrors[0].errorMessage, "error message should appear on the cust");
+        }).fin(start);
+    });
+
     
     test("delete unsaved entity", function () {
         var realEm = newEm();
@@ -650,7 +884,12 @@
         }).then(function(sr) {
             ok(false, "shouldn't get here - except with DATABASEFIRST_OLD");
         }).fail(function (error) {
-            ok(error.message.indexOf("the word 'Error'") > 0, "incorrect error message");
+            ok(error.entityErrors, "should be some server errors");
+            ok(error.entityErrors.length === 1, "should be 1 server error");
+            ok(error.entityErrors[0].errorMessage.indexOf("the word 'Error'") > 0, "incorrect error message");
+            var custErrors = cust1.entityAspect.getValidationErrors();
+            ok(error.entityErrors[0].errorMessage === custErrors[0].errorMessage);
+            // ok(error.message.indexOf("the word 'Error'") > 0, "incorrect error message");
         }).fin(start);
 
 
@@ -707,6 +946,34 @@
             ok(!em1.hasChanges(), "should not have changes");
             return em1.saveChanges();
         }).then(function(sr) {
+            var saved = sr.entities;
+            ok(saved.length === 0);
+            ok(!em1.hasChanges());
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("unmapped save with ES5 props", function () {
+
+        // use a different metadata store for this em - so we don't polute other tests
+        var em1 = newEm(testFns.newMs());
+        var Customer = testFns.models.CustomerWithES5Props();
+
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        stop();
+        var q = new EntityQuery("Customers")
+            .where("companyName", "startsWith", "C");
+        q.using(em1).execute().then(function (data) {
+            var customers = data.results;
+            customers.every(function (c) {
+                ok(c.getProperty("miscData") == "asdf", "miscData should == 'asdf'");
+
+            });
+            var cust = customers[0];
+            cust.setProperty("miscData", "xxx");
+            ok(cust.entityAspect.entityState == EntityState.Unchanged);
+            ok(!em1.hasChanges(), "should not have changes");
+            return em1.saveChanges();
+        }).then(function (sr) {
             var saved = sr.entities;
             ok(saved.length === 0);
             ok(!em1.hasChanges());

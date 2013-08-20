@@ -1,41 +1,43 @@
 ﻿describe('dataservice', function () {
     'use strict';
     var ds, loggerStub, manager;
-    var fns = zzaTestFns;
-    var FakeLogger = fns.FakeLogger;
+    var fns = testFns;
     var EntityState = breeze.EntityState;
     var async = new AsyncSpec(this);
-    
+ 
+    //#region test setup and teardown
     beforeEach(module('app'));
 
+    // stub a fake logger
     beforeEach(function () {
-        
-        module(function ($provide) {
-            loggerStub = sinon.stub(new FakeLogger);
-            $provide.value('logger', loggerStub);
-        });
-
-        inject(function (entityManagerProvider) {
-            var origFn = entityManagerProvider.newManager;
-            entityManagerProvider.newManager = function () {               
-                manager = origFn(); // test manager
-                fns.addLookupsToManager(manager);
-                fns.setManagerToFetchFromCache(manager);
-                return manager;
-            };
+        module(function ($provide) {           
+            loggerStub = sinon.stub(new fns.FakeLogger);
+            $provide.value('logger', loggerStub);           
         });
     });
-
+    
+    // Create managers preloaded with test data and defaulted to local query
+    beforeEach(inject(function (entityManagerFactory) {
+        var newManager = entityManagerFactory.newManager; // original version
+        entityManagerFactory.newManager = function() {
+            manager = newManager();
+            fns.addLookupsToManager(manager); // test data
+            fns.setManagerToFetchFromCache(manager); // so we don't go anywhere
+            return manager;
+        };
+    }));
+    
+    // get the configured dataservice so we can test it
     beforeEach(inject(function (dataservice) {
         ds = dataservice;
     }));
 
     afterEach(function () {
-        manager.clear(); // detach entities manager's entities
-        manager = null; // free to GC
-        ds = null;
+        manager.clear(); // detach entities manager's entities (paranoia)
     });
 
+    //#endregion
+    
     it('should be created', function () {
         expect(ds).toBeTruthy();
     });

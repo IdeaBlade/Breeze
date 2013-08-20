@@ -10,6 +10,20 @@
     <link rel="stylesheet" href="..&#x2F;assets/css/main.css" id="site_styles">
     <link rel="shortcut icon" type="image/png" href="..&#x2F;assets/favicon.png">
     <script src="http:&#x2F;&#x2F;yui.yahooapis.com&#x2F;combo?3.5.1&#x2F;build&#x2F;yui&#x2F;yui-min.js"></script>
+	<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34729465-1']);
+  _gaq.push(['_setDomainName', 'breezejs.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
 </head>
 <body class="yui3-skin-sam">
 <script type="text/javascript">
@@ -42,9 +56,9 @@
 		<li>
 			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
 		<li>
-			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
 		<li>
-			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>	
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
 		
 	</ul>
 </div>
@@ -502,6 +516,13 @@
                                 
                             </li>
                         
+                            <li class="index-item event">
+                                <a href="#event_validationErrorsChanged">validationErrorsChanged</a>
+
+                                
+                                
+                            </li>
+                        
                     </ul>
                 </div>
             
@@ -787,7 +808,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l442"><code>a50_entityManager.js:442</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l478"><code>a50_entityManager.js:478</code></a>
         
         </p>
 
@@ -915,7 +936,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l463"><code>a50_entityManager.js:463</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l499"><code>a50_entityManager.js:499</code></a>
         
         </p>
 
@@ -1033,7 +1054,7 @@ em1.attachEntity(cust1, EntityState.Added);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l392"><code>a50_entityManager.js:392</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l428"><code>a50_entityManager.js:428</code></a>
         
         </p>
 
@@ -1104,7 +1125,7 @@ em1.clear();
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l420"><code>a50_entityManager.js:420</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l456"><code>a50_entityManager.js:456</code></a>
         
         </p>
 
@@ -1209,7 +1230,7 @@ var em2 = em1.createEmptyCopy();
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l214"><code>a50_entityManager.js:214</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l237"><code>a50_entityManager.js:237</code></a>
         
         </p>
 
@@ -1368,7 +1389,7 @@ var emp4 = em1.createEntity("Employee", { id: 435, lastName: Smith", firstName: 
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l517"><code>a50_entityManager.js:517</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l553"><code>a50_entityManager.js:553</code></a>
         
         </p>
 
@@ -1499,7 +1520,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l592"><code>a50_entityManager.js:592</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l628"><code>a50_entityManager.js:628</code></a>
         
         </p>
 
@@ -1826,7 +1847,7 @@ would have been applied.
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l689"><code>a50_entityManager.js:689</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l725"><code>a50_entityManager.js:725</code></a>
         
         </p>
 
@@ -1953,7 +1974,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p><
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l279"><code>a50_entityManager.js:279</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l304"><code>a50_entityManager.js:304</code></a>
         
         </p>
 
@@ -2099,7 +2120,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l973"><code>a50_entityManager.js:973</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1087"><code>a50_entityManager.js:1087</code></a>
         
         </p>
 
@@ -2262,7 +2283,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l998"><code>a50_entityManager.js:998</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1112"><code>a50_entityManager.js:1112</code></a>
         
         </p>
 
@@ -2409,7 +2430,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l543"><code>a50_entityManager.js:543</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l579"><code>a50_entityManager.js:579</code></a>
         
         </p>
 
@@ -2599,7 +2620,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1047"><code>a50_entityManager.js:1047</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1161"><code>a50_entityManager.js:1161</code></a>
         
         </p>
 
@@ -2718,7 +2739,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1064"><code>a50_entityManager.js:1064</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1178"><code>a50_entityManager.js:1178</code></a>
         
         </p>
 
@@ -2852,7 +2873,7 @@ em1.saveChanges()
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1167"><code>a50_entityManager.js:1167</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1281"><code>a50_entityManager.js:1281</code></a>
         
         </p>
 
@@ -2986,7 +3007,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1220"><code>a50_entityManager.js:1220</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1334"><code>a50_entityManager.js:1334</code></a>
         
         </p>
 
@@ -3142,7 +3163,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l930"><code>a50_entityManager.js:930</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1044"><code>a50_entityManager.js:1044</code></a>
         
         </p>
 
@@ -3272,7 +3293,7 @@ var employee = em1.getEntityByKey("Employee", 1);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l942"><code>a50_entityManager.js:942</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1056"><code>a50_entityManager.js:1056</code></a>
         
         </p>
 
@@ -3389,7 +3410,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1105"><code>a50_entityManager.js:1105</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1219"><code>a50_entityManager.js:1219</code></a>
         
         </p>
 
@@ -3531,7 +3552,7 @@ if ( em1.hasChanges( [custType, orderType]) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l251"><code>a50_entityManager.js:251</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l274"><code>a50_entityManager.js:274</code></a>
         
         </p>
 
@@ -3614,7 +3635,9 @@ merging into an existing EntityManager.</p>
                     
                         <span class="type"><a href="..\classes\EntityManager.html" class="crosslink">EntityManager</a></span>:
                     
-                    A new EntityManager.
+                    A new EntityManager.  Note that the return value of this method call is different from that 
+provided by the same named method on an EntityManager instance. Use that method if you need additional information
+regarding the imported entities.
                 
             </div>
         </div>
@@ -3665,7 +3688,9 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
     
 
     
-
+        <span class="returns-inline">
+            <span class="type">Object</span>
+        </span>
     
 
     
@@ -3675,7 +3700,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
     
 
     
-        <span class="flag chainable">chainable</span>
+
     
 
     
@@ -3691,7 +3716,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l322"><code>a50_entityManager.js:322</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l347"><code>a50_entityManager.js:347</code></a>
         
         </p>
 
@@ -3766,6 +3791,23 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
     
 
     
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type">Object</span>:
+                    
+                    result  
+
+<pre><code>result.entities {Array of Entities} The entities that were imported.
+result.tempKeyMap {Object} Mapping from original EntityKey in the import bundle to its corresponding EntityKey in this EntityManager.
+</code></pre>
+                
+            </div>
+        </div>
+    
 
     
         <div class="example">
@@ -3834,7 +3876,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1197"><code>a50_entityManager.js:1197</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1311"><code>a50_entityManager.js:1311</code></a>
         
         </p>
 
@@ -3946,7 +3988,7 @@ var entities = em1.rejectChanges();
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l761"><code>a50_entityManager.js:761</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l797"><code>a50_entityManager.js:797</code></a>
         
         </p>
 
@@ -4051,12 +4093,12 @@ EntityManager/saveOptions if null.</p>
                                         <li class="param">
                                             
                                                 <code class="param-name optional">[keyMappings]</code>
-                                                <span class="type">Object</span>
+                                                <span class="type">Array of keyMappings</span>
                                                 <span class="flag optional" title="This parameter is optional.">optional</span>
                                             
 
                                             <div class="param-description">
-                                                Map of OriginalEntityKey, NewEntityKey
+                                                Each keyMapping has the following properties: 'entityTypeName', 'tempValue' and 'realValue'
                                             </div>
                                         </li>
                                         
@@ -4115,13 +4157,26 @@ EntityManager/saveOptions if null.</p>
                                         
                                         <li class="param">
                                             
+                                                <code class="param-name optional">[entityErrors]</code>
+                                                <span class="type">Array of server side errors</span>
+                                                <span class="flag optional" title="This parameter is optional.">optional</span>
+                                            
+
+                                            <div class="param-description">
+                                                These are typically validation errors but are generally any error that can be easily isolated to a single entity.
+                                            </div>
+                                        </li>
+                                        
+                                        <li class="param">
+                                            
                                                 <code class="param-name optional">[XHR]</code>
                                                 <span class="type">XMLHttpRequest</span>
                                                 <span class="flag optional" title="This parameter is optional.">optional</span>
                                             
 
                                             <div class="param-description">
-                                                The raw XMLHttpRequest returned from the server.
+                                                Any error that cannot be represented as a server error (above) will be returned in this format. 
+    This includes timeouts, server failures, database locking issues etc.
                                             </div>
                                         </li>
                                         
@@ -4235,7 +4290,7 @@ em.saveChanges(entitiesToSave, saveOptions).then(function(saveResult) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l80"><code>a50_entityManager.js:80</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l81"><code>a50_entityManager.js:81</code></a>
         
         </p>
 
@@ -4413,7 +4468,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l148"><code>a50_entityManager.js:148</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l149"><code>a50_entityManager.js:149</code></a>
         
         </p>
 
@@ -4459,7 +4514,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l183"><code>a50_entityManager.js:183</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l184"><code>a50_entityManager.js:184</code></a>
         
         </p>
 
@@ -4505,7 +4560,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l155"><code>a50_entityManager.js:155</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l156"><code>a50_entityManager.js:156</code></a>
         
         </p>
 
@@ -4552,7 +4607,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l162"><code>a50_entityManager.js:162</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l163"><code>a50_entityManager.js:163</code></a>
         
         </p>
 
@@ -4598,7 +4653,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l169"><code>a50_entityManager.js:169</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l170"><code>a50_entityManager.js:170</code></a>
         
         </p>
 
@@ -4644,7 +4699,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l141"><code>a50_entityManager.js:141</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l142"><code>a50_entityManager.js:142</code></a>
         
         </p>
 
@@ -4690,7 +4745,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l176"><code>a50_entityManager.js:176</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l177"><code>a50_entityManager.js:177</code></a>
         
         </p>
 
@@ -4746,7 +4801,7 @@ may be set.</p>
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l193"><code>a50_entityManager.js:193</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l194"><code>a50_entityManager.js:194</code></a>
         
         </p>
 
@@ -4859,7 +4914,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1141"><code>a50_entityManager.js:1141</code></a>
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l1255"><code>a50_entityManager.js:1255</code></a>
         
         </p>
 
@@ -4922,6 +4977,123 @@ em.entityChanged.subscribe(function(changeArgs) {
 em.hasChangesChanged.subscribe(function(args) {
     var hasChangesChanged = args.hasChanges;
     var entityManager = args.entityManager;
+});
+</code></pre>
+
+<p>});</p>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="event_validationErrorsChanged" class="events item">
+    <h3 class="name"><code>validationErrorsChanged</code></h3>
+    <span class="type"></span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a50_entityManager.js.html#l213"><code>a50_entityManager.js:213</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>An <a href="..\classes\Event.html" class="crosslink">Event</a> that fires whenever validationErrors change for any entity in this EntityManager.</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Event Payload:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">entity</code>
+                        <span class="type">Entity</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>The entity on which the validation errors have been added or removed.</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">added</code>
+                        <span class="type">Array of ValidationError</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>An array containing any newly added <a href="..\classes\ValidationError.html" class="crosslink">ValidationError</a>s</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">removed</code>
+                        <span class="type">Array of ValidationError</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>An array containing any newly removed <a href="..\classes\ValidationError.html" class="crosslink">ValidationError</a>s. This is those
+errors that have been 'fixed'</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>var em = new EntityManager( {serviceName: "breeze/NorthwindIBModel" });
+em.validationErrorsChanged.subscribe(function(changeArgs) {
+    // This code will be executed any time any entity within the entityManager experiences a change to its validationErrors collection. 
+    function (validationChangeArgs) {
+        var entity == validationChangeArgs.entity; 
+        var errorsAdded = validationChangeArgs.added;
+        var errorsCleared = validationChangeArgs.removed;
+        // ... do something interesting with the order.
+    });
 });
 </code></pre>
 

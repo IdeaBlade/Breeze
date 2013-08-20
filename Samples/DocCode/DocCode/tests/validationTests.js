@@ -6,6 +6,7 @@
     * Breeze configuration and module setup 
     *********************************************************/
     var Validator = breeze.Validator;
+    var ValidationError = breeze.ValidationError;
 
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
@@ -482,7 +483,7 @@
         // Clear out the "alwaysWrong" error
         // Must do manually because that rule is now gone
         // and, therefore, can't cleanup after itself
-        cust.entityAspect.removeValidationError(alwaysWrong);
+        cust.entityAspect.removeValidationError(ValidationError.getKey(alwaysWrong));
 
         cust.entityAspect.validateEntity(); // re-validate
 
@@ -529,7 +530,7 @@
             "should have 1 error after add: \"{0}\"".format(errmsgs));
 
         // Now remove that error
-        cust.entityAspect.removeValidationError(fakeValidator);
+        cust.entityAspect.removeValidationError(fakeError);
 
         cust.entityAspect.validateEntity(); // re-validate
 

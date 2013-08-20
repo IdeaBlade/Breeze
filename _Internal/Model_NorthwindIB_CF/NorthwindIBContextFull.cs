@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Data.Common;
 using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -44,6 +45,16 @@ namespace Models.NorthwindIB.CF {
     // Use the constructor to target a specific named connection string
     public NorthwindIBContext_CF() :
       base(nameOrConnectionString: "NorthwindIBContext_CF") {
+      // Disable proxy creation as this messes up the data service.
+      this.Configuration.ProxyCreationEnabled = false;
+      this.Configuration.LazyLoadingEnabled = false;
+
+      // Create Northwind if it doesn't already exist.
+      //this.Database.CreateIfNotExists();
+    }
+
+    public NorthwindIBContext_CF(DbConnection connection) :
+      base(connection, false) {
       // Disable proxy creation as this messes up the data service.
       this.Configuration.ProxyCreationEnabled = false;
       this.Configuration.LazyLoadingEnabled = false;

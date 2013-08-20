@@ -26,16 +26,264 @@
         }
     });
 
-    test("inlineCount null when ordering results by navigation property", function () {
-        var em = newEm();
-        var query = new breeze.EntityQuery.from("Orders")
-        .where("employeeID", "equals", 1)
-        .orderBy("customer.companyName")
-        .inlineCount();
+    test("test date in projection", function () {
 
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Orders")
+            .where("orderID", "==", 10248);
+
+        var orderDate;
+        var orderDate2;
         stop();
+        manager.executeQuery(query).then(function (data) {
+            var result = data.results[0];
+            orderDate = result.getProperty("orderDate");
+            ok(core.isDate(orderDate), "orderDate should be of 'Date type'");
+            var manager2 = newEm();
+            var query = new breeze.EntityQuery()
+                .from("Orders")
+                .where("orderID", "==", 10248)
+                .select("orderDate");
+            return manager2.executeQuery(query);
+        }).then(function (data2) {
+            orderDate2 = data2.results[0].orderDate;
+            ok(!core.isDate(orderDate2), "orderDate2 is not a date - ugh'");
+            var orderDate2a = breeze.DataType.parseDateFromServer(orderDate2);
+            ok(orderDate.getTime() === orderDate2a.getTime(), "should be the same date");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("empty predicates", function () {
+
+        var manager = newEm();
+        var predicate1 = Predicate.create("employeeID", "<", 6);
+        var predicate2 = Predicate.create("employeeID", ">", 4);
+        var predicates = Predicate.and([undefined, predicate1, null, predicate2, null]);
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(predicates);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+            var empId = data.results[0].getProperty("employeeID");
+            ok(empId === 5, "should be 5");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("empty predicates 2", function () {
+
+        var manager = newEm();
+        var predicate1 = Predicate.create("employeeID", "<", 6);
+        var predicates = Predicate.and([]);
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(predicates);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 6, "there should be records returned");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("empty predicates 3", function () {
+
+        var manager = newEm();
+        var predicate1 = Predicate.create("employeeID", "<", 6);
+        var predicates = Predicate.and([null, undefined, predicate1]);
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(predicates);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+            var empId = data.results[0].getProperty("employeeID");
+            ok(empId < 6, "should <  6");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("empty predicates 4", function () {
+
+        var manager = newEm();
+        var predicates = Predicate.and([undefined, null, null]);
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(predicates);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 6, "there should be records returned");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+
+    test("empty clauses", function () {
+
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where().orderBy().select().expand().take().skip();
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("empty clauses - 2", function () {
+
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(null).orderBy(null).select(null).expand(null).take(null).skip(null);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("OData predicate", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where("EmployeeID add ReportsToEmployeeID gt 3");
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+            try {
+                manager.executeQueryLocally(query);
+                ok(false, "shouldn't get here");
+            } catch (e) {
+                ok(e, "should throw an exception");
+            }
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("OData predicate combined with regular predicate", function () {
+        var manager = newEm();
+        var predicate = Predicate.create("EmployeeID add ReportsToEmployeeID gt 3").and("employeeID", "<", 9999);
+        
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(predicate);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "there should be records returned");
+            try {
+                manager.executeQueryLocally(query);
+                ok(false, "shouldn't get here");
+            } catch (e) {
+                ok(e, "should throw an exception");
+            }
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+
+    test("take(0)", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers")
+            .take(0);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length === 0, "should be no records returned");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("take(0) with inlinecount", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers")
+            .take(0)
+            .inlineCount();
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length === 0, "should be no records returned");
+            ok(data.inlineCount > 0, "should have an inlinecount");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("check getEntityByKey", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers");
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var cust1 = data.results[0];
+            var key = cust1.getProperty(testFns.customerKeyName);
+            var cust2 = manager.getEntityByKey("Customer", key);
+            ok(cust1 === cust2);
+        }).fail(function (e) {
+            ok(false, e.message);
+        }).fin(start);
+    });
+
+    test("local cache query for all Suppliers in fax 'Papa'", function () {
+
+        var query = new breeze.EntityQuery("Suppliers");
+        var em = newEm(); // creates a new EntityManager configured with metadata
+        stop();
+        em.executeQuery(query)
+            .then(function (data) {
+                var count = data.results.length;
+                ok(count > 0, "supplier query returned " + count);
+
+                var predicate = breeze.Predicate.create('supplierID', '==', 0)
+                    .or('fax', '==', 'Papa');
+
+                var localQuery = breeze.EntityQuery
+                    .from('Suppliers')
+                    .where(predicate)
+                    .toType('Supplier');
+
+                var suppliers = em.executeQueryLocally(localQuery);
+                // Defect #2486 Fails with "Invalid ISO8601 duration 'Papa'"
+                equal(suppliers.length, 0, "local query should succeed with no results");
+            }).fail(testFns.handleFail).fin(start);
+    });
+
+
+    test("inlineCount when ordering results by simple navigation path", function () {
+        var em = newEm();
+        var pred = new Predicate("employeeID", ">", 1).and("employeeID", "<", 6);
+        var query = new breeze.EntityQuery.from("Orders")
+        .where(pred)
+        .orderBy("customerID");
+        // .orderBy("customer.companyName")
+        stop();
+        var totalCount;
         em.executeQuery(query).then(function (data) {
-            ok(data.inlineCount != null, "inlineCount should not be null");
+            totalCount = data.results.length;
+            ok(totalCount > 3, "totalCount should be > 3");
+            var q2 = query.inlineCount(true).take(3);
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            ok(data2.results.length === 3);
+            ok(data2.inlineCount === totalCount, "inlineCount should equal totalCount");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("inlineCount when ordering results by nested navigation path", function () {
+        var em = newEm();
+        var pred = new Predicate("employeeID", ">", 1).and("employeeID", "<", 6);
+        var query = new breeze.EntityQuery.from("Orders")
+        .where(pred)
+        // .orderBy("customerID");
+        .orderBy("customer.companyName")
+        stop();
+        var totalCount;
+        em.executeQuery(query).then(function (data) {
+            totalCount = data.results.length;
+            ok(totalCount > 3, "totalCount should be > 3");
+            var q2 = query.inlineCount(true).take(3);
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            ok(data2.results.length === 3);
+            ok(data2.inlineCount === totalCount, "inlineCount should equal totalCount");
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -576,7 +824,8 @@
     test("query with two fields & contains literal forced", function () {
         var em = newEm();
         var q = EntityQuery.from("Employees")
-            .where("lastName", "startsWith", "firstName", true)
+            .where("lastName", "startsWith", { value: "firstName", isLiteral: true })
+            // .where("lastName", "startsWith", "firstName", true)
             .take(20);
         stop();
         em.executeQuery(q).then(function (data) {
@@ -737,11 +986,11 @@
 
     test("hasChanges after query 2", function () {
         var em = newEm();
-        var query = EntityQuery.from("Customers").take(20);
+        var query = EntityQuery.from("Customers").where("companyName", "startsWith", "An").take(2);
         stop();
         em.executeQuery(query).then(function (data) {
             var r = data.results;
-            ok(r.length === 20);
+            ok(r.length === 2);
             ok(!em.hasChanges());
             return r[0].entityAspect.loadNavigationProperty("orders");
         }).then(function (data2) {

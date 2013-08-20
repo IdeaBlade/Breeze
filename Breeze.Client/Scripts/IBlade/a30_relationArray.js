@@ -211,7 +211,7 @@ breeze.makeRelationArray = (function () {
     function makeRelationArray(arr, parentEntity, navigationProperty) {
         arr.parentEntity = parentEntity;
         arr.navigationProperty = navigationProperty;
-        arr.arrayChanged = new Event("arrayChanged_entityCollection", arr);
+        arr.arrayChanged = new Event("arrayChanged", arr);
         // array of pushes currently in process on this relation array - used to prevent recursion.
         arr._addsInProcess = [];
         // need to use mixins here instead of inheritance because we are starting from an existing array object.

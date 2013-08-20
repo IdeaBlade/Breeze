@@ -1,0 +1,1485 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="Model.NorthwindIB.Oracle.Store" Alias="Self" Provider="Oracle.DataAccess.Client" ProviderManifestToken="11.1" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityContainer Name="ModelNorthwindIBOracleStoreContainer">
+          <EntitySet Name="CATEGORY" EntityType="Model.NorthwindIB.Oracle.Store.CATEGORY" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="COMMENT_" EntityType="Model.NorthwindIB.Oracle.Store.COMMENT_" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="CUSTOMER" EntityType="Model.NorthwindIB.Oracle.Store.CUSTOMER" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="EMPLOYEE" EntityType="Model.NorthwindIB.Oracle.Store.EMPLOYEE" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="EMPLOYEETERRITORY" EntityType="Model.NorthwindIB.Oracle.Store.EMPLOYEETERRITORY" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="EMPLOYEETERRITORYNOPAYLOAD" EntityType="Model.NorthwindIB.Oracle.Store.EMPLOYEETERRITORYNOPAYLOAD" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="GEOSPATIAL" EntityType="Model.NorthwindIB.Oracle.Store.GEOSPATIAL" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="INTERNATIONALORDER" EntityType="Model.NorthwindIB.Oracle.Store.INTERNATIONALORDER" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="NEXTID" EntityType="Model.NorthwindIB.Oracle.Store.NEXTID" store:Type="Tables" store:Schema="DBO_NORTHWINDIB" store:Name="NEXTID">
+            <DefiningQuery>SELECT 
+      "NEXTID"."NAME" AS "NAME", 
+      "NEXTID"."NEXTID" AS "NEXTID"
+      FROM "DBO_NORTHWINDIB"."NEXTID" "NEXTID"</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="ORDER_" EntityType="Model.NorthwindIB.Oracle.Store.ORDER_" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="ORDERDETAIL" EntityType="Model.NorthwindIB.Oracle.Store.ORDERDETAIL" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="PREVIOUSEMPLOYEE" EntityType="Model.NorthwindIB.Oracle.Store.PREVIOUSEMPLOYEE" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="PRODUCT" EntityType="Model.NorthwindIB.Oracle.Store.PRODUCT" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="REGION" EntityType="Model.NorthwindIB.Oracle.Store.REGION" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="ROLE" EntityType="Model.NorthwindIB.Oracle.Store.ROLE" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="SUPPLIER" EntityType="Model.NorthwindIB.Oracle.Store.SUPPLIER" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="TERRITORY" EntityType="Model.NorthwindIB.Oracle.Store.TERRITORY" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="TIMEGROUP" EntityType="Model.NorthwindIB.Oracle.Store.TIMEGROUP" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="TIMELIMIT" EntityType="Model.NorthwindIB.Oracle.Store.TIMELIMIT" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="UNUSUALDATE" EntityType="Model.NorthwindIB.Oracle.Store.UNUSUALDATE" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="USER_" EntityType="Model.NorthwindIB.Oracle.Store.USER_" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <EntitySet Name="USERROLE" EntityType="Model.NorthwindIB.Oracle.Store.USERROLE" store:Type="Tables" Schema="DBO_NORTHWINDIB" />
+          <AssociationSet Name="FK_EMPLOYEE_EMPLOYEE" Association="Model.NorthwindIB.Oracle.Store.FK_EMPLOYEE_EMPLOYEE">
+            <End Role="EMPLOYEE" EntitySet="EMPLOYEE" />
+            <End Role="EMPLOYEE1" EntitySet="EMPLOYEE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EMPLOYEETERRITORY_EMPLOYEE" Association="Model.NorthwindIB.Oracle.Store.FK_EMPLOYEETERRITORY_EMPLOYEE">
+            <End Role="EMPLOYEE" EntitySet="EMPLOYEE" />
+            <End Role="EMPLOYEETERRITORY" EntitySet="EMPLOYEETERRITORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EMPLOYEETERRITORY_TERRITORY" Association="Model.NorthwindIB.Oracle.Store.FK_EMPLOYEETERRITORY_TERRITORY">
+            <End Role="TERRITORY" EntitySet="TERRITORY" />
+            <End Role="EMPLOYEETERRITORY" EntitySet="EMPLOYEETERRITORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EMPLOYEETERRITORYNOPAYLOA_1" Association="Model.NorthwindIB.Oracle.Store.FK_EMPLOYEETERRITORYNOPAYLOA_1">
+            <End Role="TERRITORY" EntitySet="TERRITORY" />
+            <End Role="EMPLOYEETERRITORYNOPAYLOAD" EntitySet="EMPLOYEETERRITORYNOPAYLOAD" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EMPLOYEETERRITORYNOPAYLOAD_" Association="Model.NorthwindIB.Oracle.Store.FK_EMPLOYEETERRITORYNOPAYLOAD_">
+            <End Role="EMPLOYEE" EntitySet="EMPLOYEE" />
+            <End Role="EMPLOYEETERRITORYNOPAYLOAD" EntitySet="EMPLOYEETERRITORYNOPAYLOAD" />
+          </AssociationSet>
+          <AssociationSet Name="FK_INTERNATIONALORDER_ORDER" Association="Model.NorthwindIB.Oracle.Store.FK_INTERNATIONALORDER_ORDER">
+            <End Role="ORDER_" EntitySet="ORDER_" />
+            <End Role="INTERNATIONALORDER" EntitySet="INTERNATIONALORDER" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ORDER_CUSTOMER" Association="Model.NorthwindIB.Oracle.Store.FK_ORDER_CUSTOMER">
+            <End Role="CUSTOMER" EntitySet="CUSTOMER" />
+            <End Role="ORDER_" EntitySet="ORDER_" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ORDER_EMPLOYEE" Association="Model.NorthwindIB.Oracle.Store.FK_ORDER_EMPLOYEE">
+            <End Role="EMPLOYEE" EntitySet="EMPLOYEE" />
+            <End Role="ORDER_" EntitySet="ORDER_" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ORDERDETAIL_ORDER" Association="Model.NorthwindIB.Oracle.Store.FK_ORDERDETAIL_ORDER">
+            <End Role="ORDER_" EntitySet="ORDER_" />
+            <End Role="ORDERDETAIL" EntitySet="ORDERDETAIL" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ORDERDETAIL_PRODUCT" Association="Model.NorthwindIB.Oracle.Store.FK_ORDERDETAIL_PRODUCT">
+            <End Role="PRODUCT" EntitySet="PRODUCT" />
+            <End Role="ORDERDETAIL" EntitySet="ORDERDETAIL" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODUCT_CATEGORY" Association="Model.NorthwindIB.Oracle.Store.FK_PRODUCT_CATEGORY">
+            <End Role="CATEGORY" EntitySet="CATEGORY" />
+            <End Role="PRODUCT" EntitySet="PRODUCT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODUCT_SUPPLIER" Association="Model.NorthwindIB.Oracle.Store.FK_PRODUCT_SUPPLIER">
+            <End Role="SUPPLIER" EntitySet="SUPPLIER" />
+            <End Role="PRODUCT" EntitySet="PRODUCT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TERRITORY_REGION" Association="Model.NorthwindIB.Oracle.Store.FK_TERRITORY_REGION">
+            <End Role="REGION" EntitySet="REGION" />
+            <End Role="TERRITORY" EntitySet="TERRITORY" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TIMELIMITTIMEGROUP" Association="Model.NorthwindIB.Oracle.Store.FK_TIMELIMITTIMEGROUP">
+            <End Role="TIMEGROUP" EntitySet="TIMEGROUP" />
+            <End Role="TIMELIMIT" EntitySet="TIMELIMIT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_USERROLE_ROLE" Association="Model.NorthwindIB.Oracle.Store.FK_USERROLE_ROLE">
+            <End Role="ROLE" EntitySet="ROLE" />
+            <End Role="USERROLE" EntitySet="USERROLE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_USERROLE_USER" Association="Model.NorthwindIB.Oracle.Store.FK_USERROLE_USER">
+            <End Role="USER_" EntitySet="USER_" />
+            <End Role="USERROLE" EntitySet="USERROLE" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="CATEGORY">
+          <Key>
+            <PropertyRef Name="CATEGORYID" />
+          </Key>
+          <Property Name="CATEGORYID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
+          <Property Name="CATEGORYNAME" Type="nvarchar2" Nullable="false" MaxLength="15" />
+          <Property Name="DESCRIPTION" Type="nclob" />
+          <Property Name="PICTURE" Type="blob" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <EntityType Name="COMMENT_">
+          <Key>
+            <PropertyRef Name="CREATEDON" />
+            <PropertyRef Name="SEQNUM" />
+          </Key>
+          <Property Name="CREATEDON" Type="date" Nullable="false" />
+          <Property Name="COMMENT1" Type="nclob" />
+          <Property Name="SEQNUM" Type="number" Nullable="false" Precision="3" />
+        </EntityType>
+        <EntityType Name="CUSTOMER">
+          <Key>
+            <PropertyRef Name="CUSTOMERID" />
+          </Key>
+          <Property Name="CUSTOMERID" Type="char" Nullable="false" MaxLength="36" StoreGeneratedPattern="Identity" />
+          <Property Name="CUSTOMERID_OLD" Type="nchar" MaxLength="5" />
+          <Property Name="COMPANYNAME" Type="nvarchar2" Nullable="false" MaxLength="40" />
+          <Property Name="CONTACTNAME" Type="nvarchar2" MaxLength="30" />
+          <Property Name="CONTACTTITLE" Type="nvarchar2" MaxLength="30" />
+          <Property Name="ADDRESS" Type="nvarchar2" MaxLength="60" />
+          <Property Name="CITY" Type="nvarchar2" MaxLength="15" />
+          <Property Name="REGION" Type="nvarchar2" MaxLength="15" />
+          <Property Name="POSTALCODE" Type="nvarchar2" MaxLength="10" />
+          <Property Name="COUNTRY" Type="nvarchar2" MaxLength="15" />
+          <Property Name="PHONE" Type="nvarchar2" MaxLength="24" />
+          <Property Name="FAX" Type="nvarchar2" MaxLength="24" />
+          <Property Name="ROWVERSION" Type="number" Precision="10" />
+        </EntityType>
+        <EntityType Name="EMPLOYEE">
+          <Key>
+            <PropertyRef Name="EMPLOYEEID" />
+          </Key>
+          <Property Name="EMPLOYEEID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
+          <Property Name="LASTNAME" Type="nvarchar2" Nullable="false" MaxLength="30" />
+          <Property Name="FIRSTNAME" Type="nvarchar2" Nullable="false" MaxLength="30" />
+          <Property Name="TITLE" Type="nvarchar2" MaxLength="30" />
+          <Property Name="TITLEOFCOURTESY" Type="nvarchar2" MaxLength="25" />
+          <Property Name="BIRTHDATE" Type="date" />
+          <Property Name="HIREDATE" Type="date" />
+          <Property Name="ADDRESS" Type="nvarchar2" MaxLength="60" />
+          <Property Name="CITY" Type="nvarchar2" MaxLength="15" />
+          <Property Name="REGION" Type="nvarchar2" MaxLength="15" />
+          <Property Name="POSTALCODE" Type="nvarchar2" MaxLength="10" />
+          <Property Name="COUNTRY" Type="nvarchar2" MaxLength="15" />
+          <Property Name="HOMEPHONE" Type="nvarchar2" MaxLength="24" />
+          <Property Name="EXTENSION" Type="nvarchar2" MaxLength="4" />
+          <Property Name="PHOTO" Type="blob" />
+          <Property Name="NOTES" Type="nclob" />
+          <Property Name="PHOTOPATH" Type="nvarchar2" MaxLength="255" />
+          <Property Name="REPORTSTOEMPLOYEEID" Type="number" Precision="10" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+          <Property Name="FULLNAME" Type="nvarchar2" Nullable="false" MaxLength="62" />
+        </EntityType>
+        <EntityType Name="EMPLOYEETERRITORY">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
+          <Property Name="EMPLOYEEID" Type="number" Nullable="false" Precision="10" />
+          <Property Name="TERRITORYID" Type="number" Nullable="false" Precision="10" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <EntityType Name="EMPLOYEETERRITORYNOPAYLOAD">
+          <Key>
+            <PropertyRef Name="EMPLOYEEID" />
+            <PropertyRef Name="TERRITORYID" />
+          </Key>
+          <Property Name="EMPLOYEEID" Type="number" Nullable="false" Precision="10" />
+          <Property Name="TERRITORYID" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <EntityType Name="GEOSPATIAL">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
+          <Property Name="GEOMETRY1" Type="blob" />
+          <Property Name="GEOGRAPHY1" Type="blob" />
+        </EntityType>
+        <EntityType Name="INTERNATIONALORDER">
+          <Key>
+            <PropertyRef Name="ORDERID" />
+          </Key>
+          <Property Name="ORDERID" Type="number" Nullable="false" Precision="10" />
+          <Property Name="CUSTOMSDESCRIPTION" Type="nvarchar2" Nullable="false" MaxLength="100" />
+          <Property Name="EXCISETAX" Type="number" Nullable="false" Precision="19" Scale="4" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <!--Errors Found During Generation:
+      warning 6002: The table/view 'DBO_NORTHWINDIB.NEXTID' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.
+      -->
+        <EntityType Name="NEXTID">
+          <Key>
+            <PropertyRef Name="NAME" />
+            <PropertyRef Name="NEXTID" />
+          </Key>
+          <Property Name="NAME" Type="nvarchar2" Nullable="false" MaxLength="50" />
+          <Property Name="NEXTID" Type="number" Nullable="false" Precision="19" />
+        </EntityType>
+        <EntityType Name="ORDER_">
+          <Key>
+            <PropertyRef Name="ORDERID" />
+          </Key>
+          <Property Name="ORDERID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
+          <Property Name="CUSTOMERID" Type="char" MaxLength="36" />
+          <Property Name="EMPLOYEEID" Type="number" Precision="10" />
+          <Property Name="ORDERDATE" Type="date" />
+          <Property Name="REQUIREDDATE" Type="date" />
+          <Property Name="SHIPPEDDATE" Type="date" />
+          <Property Name="FREIGHT" Type="number" Precision="19" Scale="4" />
+          <Property Name="SHIPNAME" Type="nvarchar2" MaxLength="40" />
+          <Property Name="SHIPADDRESS" Type="nvarchar2" MaxLength="60" />
+          <Property Name="SHIPCITY" Type="nvarchar2" MaxLength="15" />
+          <Property Name="SHIPREGION" Type="nvarchar2" MaxLength="15" />
+          <Property Name="SHIPPOSTALCODE" Type="nvarchar2" MaxLength="10" />
+          <Property Name="SHIPCOUNTRY" Type="nvarchar2" MaxLength="15" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <EntityType Name="ORDERDETAIL">
+          <Key>
+            <PropertyRef Name="ORDERID" />
+            <PropertyRef Name="PRODUCTID" />
+          </Key>
+          <Property Name="ORDERID" Type="number" Nullable="false" Precision="10" />
+          <Property Name="PRODUCTID" Type="number" Nullable="false" Precision="10" />
+          <Property Name="UNITPRICE" Type="number" Nullable="false" Precision="19" Scale="4" />
+          <Property Name="QUANTITY" Type="number" Nullable="false" Precision="5" />
+          <Property Name="DISCOUNT" Type="binary_float" Nullable="false" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <EntityType Name="PREVIOUSEMPLOYEE">
+          <Key>
+            <PropertyRef Name="EMPLOYEEID" />
+          </Key>
+          <Property Name="EMPLOYEEID" Type="number" Nullable="false" Precision="10" />
+          <Property Name="LASTNAME" Type="nvarchar2" Nullable="false" MaxLength="20" />
+          <Property Name="FIRSTNAME" Type="nvarchar2" Nullable="false" MaxLength="10" />
+          <Property Name="TITLE" Type="nvarchar2" MaxLength="30" />
+          <Property Name="TITLEOFCOURTESY" Type="nvarchar2" MaxLength="25" />
+          <Property Name="BIRTHDATE" Type="date" />
+          <Property Name="HIREDATE" Type="date" />
+          <Property Name="ADDRESS" Type="nvarchar2" MaxLength="60" />
+          <Property Name="CITY" Type="nvarchar2" MaxLength="15" />
+          <Property Name="REGION" Type="nvarchar2" MaxLength="15" />
+          <Property Name="POSTALCODE" Type="nvarchar2" MaxLength="10" />
+          <Property Name="COUNTRY" Type="nvarchar2" MaxLength="15" />
+          <Property Name="HOMEPHONE" Type="nvarchar2" MaxLength="24" />
+          <Property Name="EXTENSION" Type="nvarchar2" MaxLength="4" />
+          <Property Name="PHOTO" Type="blob" />
+          <Property Name="NOTES" Type="nclob" />
+          <Property Name="PHOTOPATH" Type="nvarchar2" MaxLength="255" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <EntityType Name="PRODUCT">
+          <Key>
+            <PropertyRef Name="PRODUCTID" />
+          </Key>
+          <Property Name="PRODUCTID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
+          <Property Name="PRODUCTNAME" Type="nvarchar2" Nullable="false" MaxLength="40" />
+          <Property Name="SUPPLIERID" Type="number" Precision="10" />
+          <Property Name="CATEGORYID" Type="number" Precision="10" />
+          <Property Name="QUANTITYPERUNIT" Type="nvarchar2" MaxLength="20" />
+          <Property Name="UNITPRICE" Type="number" Precision="19" Scale="4" />
+          <Property Name="UNITSINSTOCK" Type="number" Precision="5" />
+          <Property Name="UNITSONORDER" Type="number" Precision="5" />
+          <Property Name="REORDERLEVEL" Type="number" Precision="5" />
+          <Property Name="DISCONTINUED" Type="number" Nullable="false" Precision="1" />
+          <Property Name="DISCONTINUEDDATE" Type="date" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <EntityType Name="REGION">
+          <Key>
+            <PropertyRef Name="REGIONID" />
+          </Key>
+          <Property Name="REGIONID" Type="number" Nullable="false" Precision="10" />
+          <Property Name="REGIONDESCRIPTION" Type="nvarchar2" Nullable="false" MaxLength="50" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <EntityType Name="ROLE">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="number" Nullable="false" Precision="19" StoreGeneratedPattern="Identity" />
+          <Property Name="NAME" Type="nvarchar2" Nullable="false" MaxLength="50" />
+          <Property Name="DESCRIPTION" Type="nvarchar2" />
+          <Property Name="ROLETYPE" Type="number" Precision="10" />
+          <Property Name="TS" Type="raw" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="SUPPLIER">
+          <Key>
+            <PropertyRef Name="SUPPLIERID" />
+          </Key>
+          <Property Name="SUPPLIERID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
+          <Property Name="COMPANYNAME" Type="nvarchar2" Nullable="false" MaxLength="40" />
+          <Property Name="CONTACTNAME" Type="nvarchar2" MaxLength="30" />
+          <Property Name="CONTACTTITLE" Type="nvarchar2" MaxLength="30" />
+          <Property Name="ADDRESS" Type="nvarchar2" MaxLength="60" />
+          <Property Name="CITY" Type="nvarchar2" MaxLength="15" />
+          <Property Name="REGION" Type="nvarchar2" MaxLength="15" />
+          <Property Name="POSTALCODE" Type="nvarchar2" MaxLength="10" />
+          <Property Name="COUNTRY" Type="nvarchar2" MaxLength="15" />
+          <Property Name="PHONE" Type="nvarchar2" MaxLength="24" />
+          <Property Name="FAX" Type="nvarchar2" MaxLength="24" />
+          <Property Name="HOMEPAGE" Type="nclob" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <EntityType Name="TERRITORY">
+          <Key>
+            <PropertyRef Name="TERRITORYID" />
+          </Key>
+          <Property Name="TERRITORYID" Type="number" Nullable="false" Precision="10" />
+          <Property Name="TERRITORYDESCRIPTION" Type="nvarchar2" Nullable="false" MaxLength="50" />
+          <Property Name="REGIONID" Type="number" Nullable="false" Precision="10" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="10" />
+        </EntityType>
+        <EntityType Name="TIMEGROUP">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
+          <Property Name="COMMENT_" Type="nvarchar2" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="TIMELIMIT">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
+          <Property Name="MAXTIME" Type="varchar2" MaxLength="200" Nullable="false" />
+          <Property Name="MINTIME" Type="varchar2" MaxLength="200" />
+          <Property Name="TIMEGROUPID" Type="number" Precision="10" />
+        </EntityType>
+        <EntityType Name="UNUSUALDATE">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="number" Nullable="false" Precision="10" StoreGeneratedPattern="Identity" />
+          <Property Name="CREATIONDATE" Type="timestamp with time zone" Nullable="false" />
+          <Property Name="MODIFICATIONDATE" Type="date" Nullable="false" />
+          <Property Name="CREATIONDATE2" Type="timestamp with time zone" />
+          <Property Name="MODIFICATIONDATE2" Type="date"  />
+        </EntityType>
+        <EntityType Name="USER_">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="number" Nullable="false" Precision="19" StoreGeneratedPattern="Identity" />
+          <Property Name="USERNAME" Type="varchar2" Nullable="false" MaxLength="100" />
+          <Property Name="USERPASSWORD" Type="varchar2" MaxLength="200" />
+          <Property Name="FIRSTNAME" Type="varchar2" Nullable="false" MaxLength="100" />
+          <Property Name="LASTNAME" Type="varchar2" Nullable="false" MaxLength="100" />
+          <Property Name="EMAIL" Type="varchar2" Nullable="false" MaxLength="100" />
+          <Property Name="ROWVERSION" Type="number" Nullable="false" Precision="19" Scale="4" />
+          <Property Name="CREATEDBY" Type="varchar2" Nullable="false" MaxLength="100" />
+          <Property Name="CREATEDBYUSERID" Type="number" Nullable="false" Precision="19" />
+          <Property Name="CREATEDDATE" Type="date" Nullable="false" />
+          <Property Name="MODIFIEDBY" Type="varchar2" Nullable="false" MaxLength="100" />
+          <Property Name="MODIFIEDBYUSERID" Type="number" Nullable="false" Precision="19" />
+          <Property Name="MODIFIEDDATE" Type="date" Nullable="false" />
+        </EntityType>
+        <EntityType Name="USERROLE">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="number" Nullable="false" Precision="19" StoreGeneratedPattern="Identity" />
+          <Property Name="USERID" Type="number" Nullable="false" Precision="19" />
+          <Property Name="ROLEID" Type="number" Nullable="false" Precision="19" />
+        </EntityType>
+        <Association Name="FK_EMPLOYEE_EMPLOYEE">
+          <End Role="EMPLOYEE" Type="Model.NorthwindIB.Oracle.Store.EMPLOYEE" Multiplicity="0..1" />
+          <End Role="EMPLOYEE1" Type="Model.NorthwindIB.Oracle.Store.EMPLOYEE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EMPLOYEE">
+              <PropertyRef Name="EMPLOYEEID" />
+            </Principal>
+            <Dependent Role="EMPLOYEE1">
+              <PropertyRef Name="REPORTSTOEMPLOYEEID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EMPLOYEETERRITORY_EMPLOYEE">
+          <End Role="EMPLOYEE" Type="Model.NorthwindIB.Oracle.Store.EMPLOYEE" Multiplicity="1" />
+          <End Role="EMPLOYEETERRITORY" Type="Model.NorthwindIB.Oracle.Store.EMPLOYEETERRITORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EMPLOYEE">
+              <PropertyRef Name="EMPLOYEEID" />
+            </Principal>
+            <Dependent Role="EMPLOYEETERRITORY">
+              <PropertyRef Name="EMPLOYEEID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EMPLOYEETERRITORY_TERRITORY">
+          <End Role="TERRITORY" Type="Model.NorthwindIB.Oracle.Store.TERRITORY" Multiplicity="1" />
+          <End Role="EMPLOYEETERRITORY" Type="Model.NorthwindIB.Oracle.Store.EMPLOYEETERRITORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TERRITORY">
+              <PropertyRef Name="TERRITORYID" />
+            </Principal>
+            <Dependent Role="EMPLOYEETERRITORY">
+              <PropertyRef Name="TERRITORYID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EMPLOYEETERRITORYNOPAYLOA_1">
+          <End Role="TERRITORY" Type="Model.NorthwindIB.Oracle.Store.TERRITORY" Multiplicity="1" />
+          <End Role="EMPLOYEETERRITORYNOPAYLOAD" Type="Model.NorthwindIB.Oracle.Store.EMPLOYEETERRITORYNOPAYLOAD" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TERRITORY">
+              <PropertyRef Name="TERRITORYID" />
+            </Principal>
+            <Dependent Role="EMPLOYEETERRITORYNOPAYLOAD">
+              <PropertyRef Name="TERRITORYID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EMPLOYEETERRITORYNOPAYLOAD_">
+          <End Role="EMPLOYEE" Type="Model.NorthwindIB.Oracle.Store.EMPLOYEE" Multiplicity="1" />
+          <End Role="EMPLOYEETERRITORYNOPAYLOAD" Type="Model.NorthwindIB.Oracle.Store.EMPLOYEETERRITORYNOPAYLOAD" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EMPLOYEE">
+              <PropertyRef Name="EMPLOYEEID" />
+            </Principal>
+            <Dependent Role="EMPLOYEETERRITORYNOPAYLOAD">
+              <PropertyRef Name="EMPLOYEEID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_INTERNATIONALORDER_ORDER">
+          <End Role="ORDER_" Type="Model.NorthwindIB.Oracle.Store.ORDER_" Multiplicity="1" />
+          <End Role="INTERNATIONALORDER" Type="Model.NorthwindIB.Oracle.Store.INTERNATIONALORDER" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="ORDER_">
+              <PropertyRef Name="ORDERID" />
+            </Principal>
+            <Dependent Role="INTERNATIONALORDER">
+              <PropertyRef Name="ORDERID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ORDER_CUSTOMER">
+          <End Role="CUSTOMER" Type="Model.NorthwindIB.Oracle.Store.CUSTOMER" Multiplicity="0..1" />
+          <End Role="ORDER_" Type="Model.NorthwindIB.Oracle.Store.ORDER_" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CUSTOMER">
+              <PropertyRef Name="CUSTOMERID" />
+            </Principal>
+            <Dependent Role="ORDER_">
+              <PropertyRef Name="CUSTOMERID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ORDER_EMPLOYEE">
+          <End Role="EMPLOYEE" Type="Model.NorthwindIB.Oracle.Store.EMPLOYEE" Multiplicity="0..1" />
+          <End Role="ORDER_" Type="Model.NorthwindIB.Oracle.Store.ORDER_" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EMPLOYEE">
+              <PropertyRef Name="EMPLOYEEID" />
+            </Principal>
+            <Dependent Role="ORDER_">
+              <PropertyRef Name="EMPLOYEEID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ORDERDETAIL_ORDER">
+          <End Role="ORDER_" Type="Model.NorthwindIB.Oracle.Store.ORDER_" Multiplicity="1" />
+          <End Role="ORDERDETAIL" Type="Model.NorthwindIB.Oracle.Store.ORDERDETAIL" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ORDER_">
+              <PropertyRef Name="ORDERID" />
+            </Principal>
+            <Dependent Role="ORDERDETAIL">
+              <PropertyRef Name="ORDERID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ORDERDETAIL_PRODUCT">
+          <End Role="PRODUCT" Type="Model.NorthwindIB.Oracle.Store.PRODUCT" Multiplicity="1" />
+          <End Role="ORDERDETAIL" Type="Model.NorthwindIB.Oracle.Store.ORDERDETAIL" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT">
+              <PropertyRef Name="PRODUCTID" />
+            </Principal>
+            <Dependent Role="ORDERDETAIL">
+              <PropertyRef Name="PRODUCTID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODUCT_CATEGORY">
+          <End Role="CATEGORY" Type="Model.NorthwindIB.Oracle.Store.CATEGORY" Multiplicity="0..1" />
+          <End Role="PRODUCT" Type="Model.NorthwindIB.Oracle.Store.PRODUCT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CATEGORY">
+              <PropertyRef Name="CATEGORYID" />
+            </Principal>
+            <Dependent Role="PRODUCT">
+              <PropertyRef Name="CATEGORYID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODUCT_SUPPLIER">
+          <End Role="SUPPLIER" Type="Model.NorthwindIB.Oracle.Store.SUPPLIER" Multiplicity="0..1" />
+          <End Role="PRODUCT" Type="Model.NorthwindIB.Oracle.Store.PRODUCT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SUPPLIER">
+              <PropertyRef Name="SUPPLIERID" />
+            </Principal>
+            <Dependent Role="PRODUCT">
+              <PropertyRef Name="SUPPLIERID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TERRITORY_REGION">
+          <End Role="REGION" Type="Model.NorthwindIB.Oracle.Store.REGION" Multiplicity="1" />
+          <End Role="TERRITORY" Type="Model.NorthwindIB.Oracle.Store.TERRITORY" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="REGION">
+              <PropertyRef Name="REGIONID" />
+            </Principal>
+            <Dependent Role="TERRITORY">
+              <PropertyRef Name="REGIONID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TIMELIMITTIMEGROUP">
+          <End Role="TIMEGROUP" Type="Model.NorthwindIB.Oracle.Store.TIMEGROUP" Multiplicity="0..1" />
+          <End Role="TIMELIMIT" Type="Model.NorthwindIB.Oracle.Store.TIMELIMIT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TIMEGROUP">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="TIMELIMIT">
+              <PropertyRef Name="TIMEGROUPID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_USERROLE_ROLE">
+          <End Role="ROLE" Type="Model.NorthwindIB.Oracle.Store.ROLE" Multiplicity="1" />
+          <End Role="USERROLE" Type="Model.NorthwindIB.Oracle.Store.USERROLE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ROLE">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="USERROLE">
+              <PropertyRef Name="ROLEID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_USERROLE_USER">
+          <End Role="USER_" Type="Model.NorthwindIB.Oracle.Store.USER_" Multiplicity="1" />
+          <End Role="USERROLE" Type="Model.NorthwindIB.Oracle.Store.USERROLE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER_">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="USERROLE">
+              <PropertyRef Name="USERID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="Model.NorthwindIB.Oracle" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="Entities" p1:LazyLoadingEnabled="true">
+          <EntitySet Name="Categories" EntityType="Model.NorthwindIB.Oracle.Category" />
+          <EntitySet Name="Comments" EntityType="Model.NorthwindIB.Oracle.Comment" />
+          <EntitySet Name="Customers" EntityType="Model.NorthwindIB.Oracle.Customer" />
+          <EntitySet Name="Employees" EntityType="Model.NorthwindIB.Oracle.Employee" />
+          <EntitySet Name="EmployeeTerritories" EntityType="Model.NorthwindIB.Oracle.EmployeeTerritory" />
+          <EntitySet Name="Geospatials" EntityType="Model.NorthwindIB.Oracle.Geospatial" />
+          <EntitySet Name="InternationalOrders" EntityType="Model.NorthwindIB.Oracle.InternationalOrder" />
+          <EntitySet Name="NextIds1" EntityType="Model.NorthwindIB.Oracle.NextId" />
+          <EntitySet Name="Orders" EntityType="Model.NorthwindIB.Oracle.Order" />
+          <EntitySet Name="OrderDetails" EntityType="Model.NorthwindIB.Oracle.OrderDetail" />
+          <EntitySet Name="PreviousEmployees" EntityType="Model.NorthwindIB.Oracle.PreviousEmployee" />
+          <EntitySet Name="Products" EntityType="Model.NorthwindIB.Oracle.Product" />
+          <EntitySet Name="Regions" EntityType="Model.NorthwindIB.Oracle.Region" />
+          <EntitySet Name="Roles" EntityType="Model.NorthwindIB.Oracle.Role" />
+          <EntitySet Name="Suppliers" EntityType="Model.NorthwindIB.Oracle.Supplier" />
+          <EntitySet Name="Territories" EntityType="Model.NorthwindIB.Oracle.Territory" />
+          <EntitySet Name="TimeGroups" EntityType="Model.NorthwindIB.Oracle.TimeGroup" />
+          <EntitySet Name="TimeLimits" EntityType="Model.NorthwindIB.Oracle.TimeLimit" />
+          <EntitySet Name="UnusualDates" EntityType="Model.NorthwindIB.Oracle.UnusualDate" />
+          <EntitySet Name="Users" EntityType="Model.NorthwindIB.Oracle.User" />
+          <EntitySet Name="UserRoles" EntityType="Model.NorthwindIB.Oracle.UserRole" />
+          <AssociationSet Name="FK_PRODUCT_CATEGORY" Association="Model.NorthwindIB.Oracle.FK_PRODUCT_CATEGORY">
+            <End Role="CATEGORY" EntitySet="Categories" />
+            <End Role="PRODUCT" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ORDER_CUSTOMER" Association="Model.NorthwindIB.Oracle.FK_ORDER_CUSTOMER">
+            <End Role="CUSTOMER" EntitySet="Customers" />
+            <End Role="ORDER_" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EMPLOYEE_EMPLOYEE" Association="Model.NorthwindIB.Oracle.FK_EMPLOYEE_EMPLOYEE">
+            <End Role="EMPLOYEE" EntitySet="Employees" />
+            <End Role="EMPLOYEE1" EntitySet="Employees" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EMPLOYEETERRITORY_EMPLOYEE" Association="Model.NorthwindIB.Oracle.FK_EMPLOYEETERRITORY_EMPLOYEE">
+            <End Role="EMPLOYEE" EntitySet="Employees" />
+            <End Role="EMPLOYEETERRITORY" EntitySet="EmployeeTerritories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ORDER_EMPLOYEE" Association="Model.NorthwindIB.Oracle.FK_ORDER_EMPLOYEE">
+            <End Role="EMPLOYEE" EntitySet="Employees" />
+            <End Role="ORDER_" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EMPLOYEETERRITORY_TERRITORY" Association="Model.NorthwindIB.Oracle.FK_EMPLOYEETERRITORY_TERRITORY">
+            <End Role="TERRITORY" EntitySet="Territories" />
+            <End Role="EMPLOYEETERRITORY" EntitySet="EmployeeTerritories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_INTERNATIONALORDER_ORDER" Association="Model.NorthwindIB.Oracle.FK_INTERNATIONALORDER_ORDER">
+            <End Role="ORDER_" EntitySet="Orders" />
+            <End Role="INTERNATIONALORDER" EntitySet="InternationalOrders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ORDERDETAIL_ORDER" Association="Model.NorthwindIB.Oracle.FK_ORDERDETAIL_ORDER">
+            <End Role="ORDER_" EntitySet="Orders" />
+            <End Role="ORDERDETAIL" EntitySet="OrderDetails" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ORDERDETAIL_PRODUCT" Association="Model.NorthwindIB.Oracle.FK_ORDERDETAIL_PRODUCT">
+            <End Role="PRODUCT" EntitySet="Products" />
+            <End Role="ORDERDETAIL" EntitySet="OrderDetails" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODUCT_SUPPLIER" Association="Model.NorthwindIB.Oracle.FK_PRODUCT_SUPPLIER">
+            <End Role="SUPPLIER" EntitySet="Suppliers" />
+            <End Role="PRODUCT" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TERRITORY_REGION" Association="Model.NorthwindIB.Oracle.FK_TERRITORY_REGION">
+            <End Role="REGION" EntitySet="Regions" />
+            <End Role="TERRITORY" EntitySet="Territories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_USERROLE_ROLE" Association="Model.NorthwindIB.Oracle.FK_USERROLE_ROLE">
+            <End Role="ROLE" EntitySet="Roles" />
+            <End Role="USERROLE" EntitySet="UserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TIMELIMITTIMEGROUP" Association="Model.NorthwindIB.Oracle.FK_TIMELIMITTIMEGROUP">
+            <End Role="TIMEGROUP" EntitySet="TimeGroups" />
+            <End Role="TIMELIMIT" EntitySet="TimeLimits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_USERROLE_USER" Association="Model.NorthwindIB.Oracle.FK_USERROLE_USER">
+            <End Role="USER_" EntitySet="Users" />
+            <End Role="USERROLE" EntitySet="UserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="EMPLOYEETERRITORYNOPAYLOAD" Association="Model.NorthwindIB.Oracle.EMPLOYEETERRITORYNOPAYLOAD">
+            <End Role="TERRITORY" EntitySet="Territories" />
+            <End Role="EMPLOYEE" EntitySet="Employees" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Category">
+          <Key>
+            <PropertyRef Name="CategoryID" />
+          </Key>
+          <Property Name="CategoryID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CategoryName" Type="String" Nullable="false" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="Picture" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Products" Relationship="Model.NorthwindIB.Oracle.FK_PRODUCT_CATEGORY" FromRole="CATEGORY" ToRole="PRODUCT" />
+        </EntityType>
+        <EntityType Name="Comment">
+          <Key>
+            <PropertyRef Name="CreatedOn" />
+            <PropertyRef Name="SeqNum" />
+          </Key>
+          <Property Name="CreatedOn" Type="DateTime" Nullable="false" />
+          <Property Name="Comment1" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="SeqNum" Type="Byte" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Customer">
+          <Key>
+            <PropertyRef Name="CustomerID" />
+          </Key>
+          <Property Name="CustomerID" Type="String" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CustomerID_OLD" Type="String" MaxLength="5" Unicode="true" FixedLength="true" />
+          <Property Name="CompanyName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
+          <Property Name="ContactName" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="ContactTitle" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="Address" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
+          <Property Name="City" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Region" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="PostalCode" Type="String" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="Country" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Phone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <Property Name="Fax" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <Property Name="RowVersion" Type="Int32" />
+          <NavigationProperty Name="Orders" Relationship="Model.NorthwindIB.Oracle.FK_ORDER_CUSTOMER" FromRole="CUSTOMER" ToRole="ORDER_" />
+        </EntityType>
+        <EntityType Name="Employee">
+          <Key>
+            <PropertyRef Name="EmployeeID" />
+          </Key>
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LastName" Type="String" Nullable="false" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="FirstName" Type="String" Nullable="false" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="Title" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="TitleOfCourtesy" Type="String" MaxLength="25" Unicode="true" FixedLength="false" />
+          <Property Name="BirthDate" Type="DateTime" />
+          <Property Name="HireDate" Type="DateTime" />
+          <Property Name="Address" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
+          <Property Name="City" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Region" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="PostalCode" Type="String" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="Country" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="HomePhone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <Property Name="Extension" Type="String" MaxLength="4" Unicode="true" FixedLength="false" />
+          <Property Name="Photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="PhotoPath" Type="String" MaxLength="255" Unicode="true" FixedLength="false" />
+          <Property Name="ReportsToEmployeeID" Type="Int32" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <Property Name="FullName" Type="String" Nullable="false" MaxLength="62" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="DirectReports" Relationship="Model.NorthwindIB.Oracle.FK_EMPLOYEE_EMPLOYEE" FromRole="EMPLOYEE" ToRole="EMPLOYEE1" />
+          <NavigationProperty Name="Manager" Relationship="Model.NorthwindIB.Oracle.FK_EMPLOYEE_EMPLOYEE" FromRole="EMPLOYEE1" ToRole="EMPLOYEE" />
+          <NavigationProperty Name="EmployeeTerritories" Relationship="Model.NorthwindIB.Oracle.FK_EMPLOYEETERRITORY_EMPLOYEE" FromRole="EMPLOYEE" ToRole="EMPLOYEETERRITORY" />
+          <NavigationProperty Name="Orders" Relationship="Model.NorthwindIB.Oracle.FK_ORDER_EMPLOYEE" FromRole="EMPLOYEE" ToRole="ORDER_" />
+          <NavigationProperty Name="Territories" Relationship="Model.NorthwindIB.Oracle.EMPLOYEETERRITORYNOPAYLOAD" FromRole="EMPLOYEE" ToRole="TERRITORY" />
+        </EntityType>
+        <EntityType Name="EmployeeTerritory">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" />
+          <Property Name="TerritoryID" Type="Int32" Nullable="false" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Employee" Relationship="Model.NorthwindIB.Oracle.FK_EMPLOYEETERRITORY_EMPLOYEE" FromRole="EMPLOYEETERRITORY" ToRole="EMPLOYEE" />
+          <NavigationProperty Name="Territory" Relationship="Model.NorthwindIB.Oracle.FK_EMPLOYEETERRITORY_TERRITORY" FromRole="EMPLOYEETERRITORY" ToRole="TERRITORY" />
+        </EntityType>
+        <EntityType Name="Geospatial">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Geometry1" Type="Binary" />
+          <Property Name="Geography1" Type="Binary" />
+        </EntityType>
+        <EntityType Name="InternationalOrder">
+          <Key>
+            <PropertyRef Name="OrderID" />
+          </Key>
+          <Property Name="OrderID" Type="Int32" Nullable="false" />
+          <Property Name="CustomsDescription" Type="String" Nullable="false" MaxLength="100" Unicode="true" FixedLength="false" />
+          <Property Name="ExciseTax" Type="Decimal" Nullable="false" Precision="19" Scale="4" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Order" Relationship="Model.NorthwindIB.Oracle.FK_INTERNATIONALORDER_ORDER" FromRole="INTERNATIONALORDER" ToRole="ORDER_" />
+        </EntityType>
+        <EntityType Name="NextId">
+          <Key>
+            <PropertyRef Name="Name" />
+            <PropertyRef Name="NextId1" />
+          </Key>
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="NextId1" Type="Int64" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Order">
+          <Key>
+            <PropertyRef Name="OrderID" />
+          </Key>
+          <Property Name="OrderID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CustomerID" Type="String" />
+          <Property Name="EmployeeID" Type="Int32" />
+          <Property Name="OrderDate" Type="DateTime" />
+          <Property Name="RequiredDate" Type="DateTime" />
+          <Property Name="ShippedDate" Type="DateTime" />
+          <Property Name="Freight" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="ShipName" Type="String" MaxLength="40" Unicode="true" FixedLength="false" />
+          <Property Name="ShipAddress" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
+          <Property Name="ShipCity" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="ShipRegion" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="ShipPostalCode" Type="String" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="ShipCountry" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Customer" Relationship="Model.NorthwindIB.Oracle.FK_ORDER_CUSTOMER" FromRole="ORDER_" ToRole="CUSTOMER" />
+          <NavigationProperty Name="Employee" Relationship="Model.NorthwindIB.Oracle.FK_ORDER_EMPLOYEE" FromRole="ORDER_" ToRole="EMPLOYEE" />
+          <NavigationProperty Name="InternationalOrder" Relationship="Model.NorthwindIB.Oracle.FK_INTERNATIONALORDER_ORDER" FromRole="ORDER_" ToRole="INTERNATIONALORDER" />
+          <NavigationProperty Name="OrderDetails" Relationship="Model.NorthwindIB.Oracle.FK_ORDERDETAIL_ORDER" FromRole="ORDER_" ToRole="ORDERDETAIL" />
+        </EntityType>
+        <EntityType Name="OrderDetail">
+          <Key>
+            <PropertyRef Name="OrderID" />
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="OrderID" Type="Int32" Nullable="false" />
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="UnitPrice" Type="Decimal" Nullable="false" Precision="19" Scale="4" />
+          <Property Name="Quantity" Type="Int16" Nullable="false" />
+          <Property Name="Discount" Type="Single" Nullable="false" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Order" Relationship="Model.NorthwindIB.Oracle.FK_ORDERDETAIL_ORDER" FromRole="ORDERDETAIL" ToRole="ORDER_" />
+          <NavigationProperty Name="Product" Relationship="Model.NorthwindIB.Oracle.FK_ORDERDETAIL_PRODUCT" FromRole="ORDERDETAIL" ToRole="PRODUCT" />
+        </EntityType>
+        <EntityType Name="PreviousEmployee">
+          <Key>
+            <PropertyRef Name="EmployeeID" />
+          </Key>
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" />
+          <Property Name="LastName" Type="String" Nullable="false" MaxLength="20" Unicode="true" FixedLength="false" />
+          <Property Name="FirstName" Type="String" Nullable="false" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="Title" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="TitleOfCourtesy" Type="String" MaxLength="25" Unicode="true" FixedLength="false" />
+          <Property Name="BirthDate" Type="DateTime" />
+          <Property Name="HireDate" Type="DateTime" />
+          <Property Name="Address" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
+          <Property Name="City" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Region" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="PostalCode" Type="String" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="Country" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="HomePhone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <Property Name="Extension" Type="String" MaxLength="4" Unicode="true" FixedLength="false" />
+          <Property Name="Photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="PhotoPath" Type="String" MaxLength="255" Unicode="true" FixedLength="false" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Product">
+          <Key>
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="ProductID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProductName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
+          <Property Name="SupplierID" Type="Int32" />
+          <Property Name="CategoryID" Type="Int32" />
+          <Property Name="QuantityPerUnit" Type="String" MaxLength="20" Unicode="true" FixedLength="false" />
+          <Property Name="UnitPrice" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="UnitsInStock" Type="Int16" />
+          <Property Name="UnitsOnOrder" Type="Int16" />
+          <Property Name="ReorderLevel" Type="Int16" />
+          <Property Name="Discontinued" Type="Boolean" Nullable="false" />
+          <Property Name="DiscontinuedDate" Type="DateTime" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Category" Relationship="Model.NorthwindIB.Oracle.FK_PRODUCT_CATEGORY" FromRole="PRODUCT" ToRole="CATEGORY" />
+          <NavigationProperty Name="OrderDetails" Relationship="Model.NorthwindIB.Oracle.FK_ORDERDETAIL_PRODUCT" FromRole="PRODUCT" ToRole="ORDERDETAIL" />
+          <NavigationProperty Name="Supplier" Relationship="Model.NorthwindIB.Oracle.FK_PRODUCT_SUPPLIER" FromRole="PRODUCT" ToRole="SUPPLIER" />
+        </EntityType>
+        <EntityType Name="Region">
+          <Key>
+            <PropertyRef Name="RegionID" />
+          </Key>
+          <Property Name="RegionID" Type="Int32" Nullable="false" />
+          <Property Name="RegionDescription" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Territories" Relationship="Model.NorthwindIB.Oracle.FK_TERRITORY_REGION" FromRole="REGION" ToRole="TERRITORY" />
+        </EntityType>
+        <EntityType Name="Role">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="Description" Type="String" MaxLength="2000" Unicode="true" FixedLength="false" />
+          <Property Name="Ts" Type="Binary" MaxLength="50" FixedLength="false" />
+          <Property Type="Model.NorthwindIB.Oracle.RoleType" Name="RoleType" />
+          <NavigationProperty Name="UserRoles" Relationship="Model.NorthwindIB.Oracle.FK_USERROLE_ROLE" FromRole="ROLE" ToRole="USERROLE" />
+        </EntityType>
+        <EnumType Name="RoleType" a:ExternalTypeName="Models.NorthwindIB.Oracle.RoleType" xmlns:a="http://schemas.microsoft.com/ado/2006/04/codegeneration" />
+        <EntityType Name="Supplier">
+          <Key>
+            <PropertyRef Name="SupplierID" />
+          </Key>
+          <Property Name="SupplierID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CompanyName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
+          <Property Name="ContactName" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="ContactTitle" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="Phone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <Property Name="Fax" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <Property Name="HomePage" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Products" Relationship="Model.NorthwindIB.Oracle.FK_PRODUCT_SUPPLIER" FromRole="SUPPLIER" ToRole="PRODUCT" />
+          <Property Name="Location" Type="Model.NorthwindIB.Oracle.Location" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Territory">
+          <Key>
+            <PropertyRef Name="TerritoryID" />
+          </Key>
+          <Property Name="TerritoryID" Type="Int32" Nullable="false" />
+          <Property Name="TerritoryDescription" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="RegionID" Type="Int32" Nullable="false" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="EmployeeTerritories" Relationship="Model.NorthwindIB.Oracle.FK_EMPLOYEETERRITORY_TERRITORY" FromRole="TERRITORY" ToRole="EMPLOYEETERRITORY" />
+          <NavigationProperty Name="Region" Relationship="Model.NorthwindIB.Oracle.FK_TERRITORY_REGION" FromRole="TERRITORY" ToRole="REGION" />
+          <NavigationProperty Name="Employees" Relationship="Model.NorthwindIB.Oracle.EMPLOYEETERRITORYNOPAYLOAD" FromRole="TERRITORY" ToRole="EMPLOYEE" />
+        </EntityType>
+        <EntityType Name="TimeGroup">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Comment" Type="String" MaxLength="100" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="TimeLimits" Relationship="Model.NorthwindIB.Oracle.FK_TIMELIMITTIMEGROUP" FromRole="TIMEGROUP" ToRole="TIMELIMIT" />
+        </EntityType>
+        <EntityType Name="TimeLimit">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="MaxTime" Type="String" MaxLength="200" Nullable="false" />
+          <Property Name="MinTime" Type="String" MaxLength="200" />
+          <Property Name="TimeGroupId" Type="Int32" />
+          <NavigationProperty Name="TimeGroup" Relationship="Model.NorthwindIB.Oracle.FK_TIMELIMITTIMEGROUP" FromRole="TIMELIMIT" ToRole="TIMEGROUP" />
+        </EntityType>
+        <EntityType Name="UnusualDate">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CreationDate" Type="DateTimeOffset" Nullable="false" />
+          <Property Name="ModificationDate" Type="DateTime" Nullable="false" />
+          <Property Name="CreationDate2" Type="DateTimeOffset" Nullable="true" />
+          <Property Name="ModificationDate2" Type="DateTime" Nullable="true" />
+        </EntityType>
+        <EntityType Name="User">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="UserName" Type="String" Nullable="false" MaxLength="100" Unicode="false" FixedLength="false" />
+          <Property Name="UserPassword" Type="String" MaxLength="200" Unicode="false" FixedLength="false" />
+          <Property Name="FirstName" Type="String" Nullable="false" MaxLength="100" Unicode="false" FixedLength="false" />
+          <Property Name="LastName" Type="String" Nullable="false" MaxLength="100" Unicode="false" FixedLength="false" />
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="100" Unicode="false" FixedLength="false" />
+          <Property Name="RowVersion" Type="Decimal" Nullable="false" Precision="19" Scale="4" />
+          <Property Name="CreatedBy" Type="String" Nullable="false" MaxLength="100" Unicode="false" FixedLength="false" />
+          <Property Name="CreatedByUserId" Type="Int64" Nullable="false" />
+          <Property Name="CreatedDate" Type="DateTime" Nullable="false" />
+          <Property Name="ModifiedBy" Type="String" Nullable="false" MaxLength="100" Unicode="false" FixedLength="false" />
+          <Property Name="ModifiedByUserId" Type="Int64" Nullable="false" />
+          <Property Name="ModifiedDate" Type="DateTime" Nullable="false" />
+          <NavigationProperty Name="UserRoles" Relationship="Model.NorthwindIB.Oracle.FK_USERROLE_USER" FromRole="USER_" ToRole="USERROLE" />
+        </EntityType>
+        <EntityType Name="UserRole">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="UserId" Type="Int64" Nullable="false" />
+          <Property Name="RoleId" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="Role" Relationship="Model.NorthwindIB.Oracle.FK_USERROLE_ROLE" FromRole="USERROLE" ToRole="ROLE" />
+          <NavigationProperty Name="User" Relationship="Model.NorthwindIB.Oracle.FK_USERROLE_USER" FromRole="USERROLE" ToRole="USER_" />
+        </EntityType>
+        <Association Name="FK_PRODUCT_CATEGORY">
+          <End Role="CATEGORY" Type="Model.NorthwindIB.Oracle.Category" Multiplicity="0..1" />
+          <End Role="PRODUCT" Type="Model.NorthwindIB.Oracle.Product" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CATEGORY">
+              <PropertyRef Name="CategoryID" />
+            </Principal>
+            <Dependent Role="PRODUCT">
+              <PropertyRef Name="CategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ORDER_CUSTOMER">
+          <End Role="CUSTOMER" Type="Model.NorthwindIB.Oracle.Customer" Multiplicity="0..1" />
+          <End Role="ORDER_" Type="Model.NorthwindIB.Oracle.Order" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CUSTOMER">
+              <PropertyRef Name="CustomerID" />
+            </Principal>
+            <Dependent Role="ORDER_">
+              <PropertyRef Name="CustomerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EMPLOYEE_EMPLOYEE">
+          <End Role="EMPLOYEE" Type="Model.NorthwindIB.Oracle.Employee" Multiplicity="0..1" />
+          <End Role="EMPLOYEE1" Type="Model.NorthwindIB.Oracle.Employee" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EMPLOYEE">
+              <PropertyRef Name="EmployeeID" />
+            </Principal>
+            <Dependent Role="EMPLOYEE1">
+              <PropertyRef Name="ReportsToEmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EMPLOYEETERRITORY_EMPLOYEE">
+          <End Role="EMPLOYEE" Type="Model.NorthwindIB.Oracle.Employee" Multiplicity="1" />
+          <End Role="EMPLOYEETERRITORY" Type="Model.NorthwindIB.Oracle.EmployeeTerritory" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EMPLOYEE">
+              <PropertyRef Name="EmployeeID" />
+            </Principal>
+            <Dependent Role="EMPLOYEETERRITORY">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ORDER_EMPLOYEE">
+          <End Role="EMPLOYEE" Type="Model.NorthwindIB.Oracle.Employee" Multiplicity="0..1" />
+          <End Role="ORDER_" Type="Model.NorthwindIB.Oracle.Order" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EMPLOYEE">
+              <PropertyRef Name="EmployeeID" />
+            </Principal>
+            <Dependent Role="ORDER_">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EMPLOYEETERRITORY_TERRITORY">
+          <End Role="TERRITORY" Type="Model.NorthwindIB.Oracle.Territory" Multiplicity="1" />
+          <End Role="EMPLOYEETERRITORY" Type="Model.NorthwindIB.Oracle.EmployeeTerritory" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TERRITORY">
+              <PropertyRef Name="TerritoryID" />
+            </Principal>
+            <Dependent Role="EMPLOYEETERRITORY">
+              <PropertyRef Name="TerritoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_INTERNATIONALORDER_ORDER">
+          <End Role="ORDER_" Type="Model.NorthwindIB.Oracle.Order" Multiplicity="1" />
+          <End Role="INTERNATIONALORDER" Type="Model.NorthwindIB.Oracle.InternationalOrder" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="ORDER_">
+              <PropertyRef Name="OrderID" />
+            </Principal>
+            <Dependent Role="INTERNATIONALORDER">
+              <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ORDERDETAIL_ORDER">
+          <End Role="ORDER_" Type="Model.NorthwindIB.Oracle.Order" Multiplicity="1" />
+          <End Role="ORDERDETAIL" Type="Model.NorthwindIB.Oracle.OrderDetail" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ORDER_">
+              <PropertyRef Name="OrderID" />
+            </Principal>
+            <Dependent Role="ORDERDETAIL">
+              <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ORDERDETAIL_PRODUCT">
+          <End Role="PRODUCT" Type="Model.NorthwindIB.Oracle.Product" Multiplicity="1" />
+          <End Role="ORDERDETAIL" Type="Model.NorthwindIB.Oracle.OrderDetail" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCT">
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="ORDERDETAIL">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODUCT_SUPPLIER">
+          <End Role="SUPPLIER" Type="Model.NorthwindIB.Oracle.Supplier" Multiplicity="0..1" />
+          <End Role="PRODUCT" Type="Model.NorthwindIB.Oracle.Product" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SUPPLIER">
+              <PropertyRef Name="SupplierID" />
+            </Principal>
+            <Dependent Role="PRODUCT">
+              <PropertyRef Name="SupplierID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TERRITORY_REGION">
+          <End Role="REGION" Type="Model.NorthwindIB.Oracle.Region" Multiplicity="1" />
+          <End Role="TERRITORY" Type="Model.NorthwindIB.Oracle.Territory" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="REGION">
+              <PropertyRef Name="RegionID" />
+            </Principal>
+            <Dependent Role="TERRITORY">
+              <PropertyRef Name="RegionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_USERROLE_ROLE">
+          <End Role="ROLE" Type="Model.NorthwindIB.Oracle.Role" Multiplicity="1" />
+          <End Role="USERROLE" Type="Model.NorthwindIB.Oracle.UserRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ROLE">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="USERROLE">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TIMELIMITTIMEGROUP">
+          <End Role="TIMEGROUP" Type="Model.NorthwindIB.Oracle.TimeGroup" Multiplicity="0..1" />
+          <End Role="TIMELIMIT" Type="Model.NorthwindIB.Oracle.TimeLimit" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TIMEGROUP">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TIMELIMIT">
+              <PropertyRef Name="TimeGroupId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_USERROLE_USER">
+          <End Role="USER_" Type="Model.NorthwindIB.Oracle.User" Multiplicity="1" />
+          <End Role="USERROLE" Type="Model.NorthwindIB.Oracle.UserRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USER_">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="USERROLE">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="EMPLOYEETERRITORYNOPAYLOAD">
+          <End Role="TERRITORY" Type="Model.NorthwindIB.Oracle.Territory" Multiplicity="*" />
+          <End Role="EMPLOYEE" Type="Model.NorthwindIB.Oracle.Employee" Multiplicity="*" />
+        </Association>
+        <ComplexType Name="Location" >
+          <Property Type="String" Name="Address" Nullable="true" MaxLength="60" />
+          <Property Type="String" Name="City" Nullable="true" MaxLength="15" />
+          <Property Type="String" Name="Region" Nullable="true" MaxLength="15" />
+          <Property Type="String" Name="PostalCode" Nullable="true" MaxLength="10" />
+          <Property Type="String" Name="Country" Nullable="true" MaxLength="15" />
+        </ComplexType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="ModelNorthwindIBOracleStoreContainer" CdmEntityContainer="Entities">
+          <EntitySetMapping Name="Categories">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Category">
+              <MappingFragment StoreEntitySet="CATEGORY">
+                <ScalarProperty Name="CategoryID" ColumnName="CATEGORYID" />
+                <ScalarProperty Name="CategoryName" ColumnName="CATEGORYNAME" />
+                <ScalarProperty Name="Description" ColumnName="DESCRIPTION" />
+                <ScalarProperty Name="Picture" ColumnName="PICTURE" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Comments">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Comment">
+              <MappingFragment StoreEntitySet="COMMENT_">
+                <ScalarProperty Name="CreatedOn" ColumnName="CREATEDON" />
+                <ScalarProperty Name="Comment1" ColumnName="COMMENT1" />
+                <ScalarProperty Name="SeqNum" ColumnName="SEQNUM" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Customers">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Customer">
+              <MappingFragment StoreEntitySet="CUSTOMER">
+                <ScalarProperty Name="CustomerID" ColumnName="CUSTOMERID" />
+                <ScalarProperty Name="CustomerID_OLD" ColumnName="CUSTOMERID_OLD" />
+                <ScalarProperty Name="CompanyName" ColumnName="COMPANYNAME" />
+                <ScalarProperty Name="ContactName" ColumnName="CONTACTNAME" />
+                <ScalarProperty Name="ContactTitle" ColumnName="CONTACTTITLE" />
+                <ScalarProperty Name="Address" ColumnName="ADDRESS" />
+                <ScalarProperty Name="City" ColumnName="CITY" />
+                <ScalarProperty Name="Region" ColumnName="REGION" />
+                <ScalarProperty Name="PostalCode" ColumnName="POSTALCODE" />
+                <ScalarProperty Name="Country" ColumnName="COUNTRY" />
+                <ScalarProperty Name="Phone" ColumnName="PHONE" />
+                <ScalarProperty Name="Fax" ColumnName="FAX" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Employees">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Employee">
+              <MappingFragment StoreEntitySet="EMPLOYEE">
+                <ScalarProperty Name="EmployeeID" ColumnName="EMPLOYEEID" />
+                <ScalarProperty Name="LastName" ColumnName="LASTNAME" />
+                <ScalarProperty Name="FirstName" ColumnName="FIRSTNAME" />
+                <ScalarProperty Name="Title" ColumnName="TITLE" />
+                <ScalarProperty Name="TitleOfCourtesy" ColumnName="TITLEOFCOURTESY" />
+                <ScalarProperty Name="BirthDate" ColumnName="BIRTHDATE" />
+                <ScalarProperty Name="HireDate" ColumnName="HIREDATE" />
+                <ScalarProperty Name="Address" ColumnName="ADDRESS" />
+                <ScalarProperty Name="City" ColumnName="CITY" />
+                <ScalarProperty Name="Region" ColumnName="REGION" />
+                <ScalarProperty Name="PostalCode" ColumnName="POSTALCODE" />
+                <ScalarProperty Name="Country" ColumnName="COUNTRY" />
+                <ScalarProperty Name="HomePhone" ColumnName="HOMEPHONE" />
+                <ScalarProperty Name="Extension" ColumnName="EXTENSION" />
+                <ScalarProperty Name="Photo" ColumnName="PHOTO" />
+                <ScalarProperty Name="Notes" ColumnName="NOTES" />
+                <ScalarProperty Name="PhotoPath" ColumnName="PHOTOPATH" />
+                <ScalarProperty Name="ReportsToEmployeeID" ColumnName="REPORTSTOEMPLOYEEID" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+                <ScalarProperty Name="FullName" ColumnName="FULLNAME" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="EmployeeTerritories">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.EmployeeTerritory">
+              <MappingFragment StoreEntitySet="EMPLOYEETERRITORY">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="EmployeeID" ColumnName="EMPLOYEEID" />
+                <ScalarProperty Name="TerritoryID" ColumnName="TERRITORYID" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Geospatials">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Geospatial">
+              <MappingFragment StoreEntitySet="GEOSPATIAL">
+                <ScalarProperty Name="Id" ColumnName="ID" />
+                <ScalarProperty Name="Geometry1" ColumnName="GEOMETRY1" />
+                <ScalarProperty Name="Geography1" ColumnName="GEOGRAPHY1" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="InternationalOrders">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.InternationalOrder">
+              <MappingFragment StoreEntitySet="INTERNATIONALORDER">
+                <ScalarProperty Name="OrderID" ColumnName="ORDERID" />
+                <ScalarProperty Name="CustomsDescription" ColumnName="CUSTOMSDESCRIPTION" />
+                <ScalarProperty Name="ExciseTax" ColumnName="EXCISETAX" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="NextIds1">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.NextId">
+              <MappingFragment StoreEntitySet="NEXTID">
+                <ScalarProperty Name="Name" ColumnName="NAME" />
+                <ScalarProperty Name="NextId1" ColumnName="NEXTID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Orders">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Order">
+              <MappingFragment StoreEntitySet="ORDER_">
+                <ScalarProperty Name="OrderID" ColumnName="ORDERID" />
+                <ScalarProperty Name="CustomerID" ColumnName="CUSTOMERID" />
+                <ScalarProperty Name="EmployeeID" ColumnName="EMPLOYEEID" />
+                <ScalarProperty Name="OrderDate" ColumnName="ORDERDATE" />
+                <ScalarProperty Name="RequiredDate" ColumnName="REQUIREDDATE" />
+                <ScalarProperty Name="ShippedDate" ColumnName="SHIPPEDDATE" />
+                <ScalarProperty Name="Freight" ColumnName="FREIGHT" />
+                <ScalarProperty Name="ShipName" ColumnName="SHIPNAME" />
+                <ScalarProperty Name="ShipAddress" ColumnName="SHIPADDRESS" />
+                <ScalarProperty Name="ShipCity" ColumnName="SHIPCITY" />
+                <ScalarProperty Name="ShipRegion" ColumnName="SHIPREGION" />
+                <ScalarProperty Name="ShipPostalCode" ColumnName="SHIPPOSTALCODE" />
+                <ScalarProperty Name="ShipCountry" ColumnName="SHIPCOUNTRY" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="OrderDetails">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.OrderDetail">
+              <MappingFragment StoreEntitySet="ORDERDETAIL">
+                <ScalarProperty Name="OrderID" ColumnName="ORDERID" />
+                <ScalarProperty Name="ProductID" ColumnName="PRODUCTID" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UNITPRICE" />
+                <ScalarProperty Name="Quantity" ColumnName="QUANTITY" />
+                <ScalarProperty Name="Discount" ColumnName="DISCOUNT" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PreviousEmployees">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.PreviousEmployee">
+              <MappingFragment StoreEntitySet="PREVIOUSEMPLOYEE">
+                <ScalarProperty Name="EmployeeID" ColumnName="EMPLOYEEID" />
+                <ScalarProperty Name="LastName" ColumnName="LASTNAME" />
+                <ScalarProperty Name="FirstName" ColumnName="FIRSTNAME" />
+                <ScalarProperty Name="Title" ColumnName="TITLE" />
+                <ScalarProperty Name="TitleOfCourtesy" ColumnName="TITLEOFCOURTESY" />
+                <ScalarProperty Name="BirthDate" ColumnName="BIRTHDATE" />
+                <ScalarProperty Name="HireDate" ColumnName="HIREDATE" />
+                <ScalarProperty Name="Address" ColumnName="ADDRESS" />
+                <ScalarProperty Name="City" ColumnName="CITY" />
+                <ScalarProperty Name="Region" ColumnName="REGION" />
+                <ScalarProperty Name="PostalCode" ColumnName="POSTALCODE" />
+                <ScalarProperty Name="Country" ColumnName="COUNTRY" />
+                <ScalarProperty Name="HomePhone" ColumnName="HOMEPHONE" />
+                <ScalarProperty Name="Extension" ColumnName="EXTENSION" />
+                <ScalarProperty Name="Photo" ColumnName="PHOTO" />
+                <ScalarProperty Name="Notes" ColumnName="NOTES" />
+                <ScalarProperty Name="PhotoPath" ColumnName="PHOTOPATH" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Products">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Product">
+              <MappingFragment StoreEntitySet="PRODUCT">
+                <ScalarProperty Name="ProductID" ColumnName="PRODUCTID" />
+                <ScalarProperty Name="ProductName" ColumnName="PRODUCTNAME" />
+                <ScalarProperty Name="SupplierID" ColumnName="SUPPLIERID" />
+                <ScalarProperty Name="CategoryID" ColumnName="CATEGORYID" />
+                <ScalarProperty Name="QuantityPerUnit" ColumnName="QUANTITYPERUNIT" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UNITPRICE" />
+                <ScalarProperty Name="UnitsInStock" ColumnName="UNITSINSTOCK" />
+                <ScalarProperty Name="UnitsOnOrder" ColumnName="UNITSONORDER" />
+                <ScalarProperty Name="ReorderLevel" ColumnName="REORDERLEVEL" />
+                <ScalarProperty Name="Discontinued" ColumnName="DISCONTINUED" />
+                <ScalarProperty Name="DiscontinuedDate" ColumnName="DISCONTINUEDDATE" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Regions">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Region">
+              <MappingFragment StoreEntitySet="REGION">
+                <ScalarProperty Name="RegionID" ColumnName="REGIONID" />
+                <ScalarProperty Name="RegionDescription" ColumnName="REGIONDESCRIPTION" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Roles">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Role">
+              <MappingFragment StoreEntitySet="ROLE">
+                <ScalarProperty Name="Id" ColumnName="ID" />
+                <ScalarProperty Name="Name" ColumnName="NAME" />
+                <ScalarProperty Name="Description" ColumnName="DESCRIPTION" />
+                <ScalarProperty Name="RoleType" ColumnName="ROLETYPE" />
+                <ScalarProperty Name="Ts" ColumnName="TS" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Suppliers">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Supplier">
+              <MappingFragment StoreEntitySet="SUPPLIER">
+                <ScalarProperty Name="SupplierID" ColumnName="SUPPLIERID" />
+                <ScalarProperty Name="CompanyName" ColumnName="COMPANYNAME" />
+                <ScalarProperty Name="ContactName" ColumnName="CONTACTNAME" />
+                <ScalarProperty Name="ContactTitle" ColumnName="CONTACTTITLE" />
+                <ScalarProperty Name="Phone" ColumnName="PHONE" />
+                <ScalarProperty Name="Fax" ColumnName="FAX" />
+                <ScalarProperty Name="HomePage" ColumnName="HOMEPAGE" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+                <ComplexProperty Name="Location">
+                  <ScalarProperty Name="Country" ColumnName="COUNTRY" />
+                  <ScalarProperty Name="PostalCode" ColumnName="POSTALCODE" />
+                  <ScalarProperty Name="Region" ColumnName="REGION" />
+                  <ScalarProperty Name="City" ColumnName="CITY" />
+                  <ScalarProperty Name="Address" ColumnName="ADDRESS" />
+                </ComplexProperty>
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Territories">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.Territory">
+              <MappingFragment StoreEntitySet="TERRITORY">
+                <ScalarProperty Name="TerritoryID" ColumnName="TERRITORYID" />
+                <ScalarProperty Name="TerritoryDescription" ColumnName="TERRITORYDESCRIPTION" />
+                <ScalarProperty Name="RegionID" ColumnName="REGIONID" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TimeGroups">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.TimeGroup">
+              <MappingFragment StoreEntitySet="TIMEGROUP">
+                <ScalarProperty Name="Id" ColumnName="ID" />
+                <ScalarProperty Name="Comment" ColumnName="COMMENT_" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TimeLimits">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.TimeLimit">
+              <MappingFragment StoreEntitySet="TIMELIMIT">
+                <ScalarProperty Name="Id" ColumnName="ID" />
+                <ScalarProperty Name="MaxTime" ColumnName="MAXTIME" />
+                <ScalarProperty Name="MinTime" ColumnName="MINTIME" />
+                <ScalarProperty Name="TimeGroupId" ColumnName="TIMEGROUPID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UnusualDates">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.UnusualDate">
+              <MappingFragment StoreEntitySet="UNUSUALDATE">
+                <ScalarProperty Name="Id" ColumnName="ID" />
+                <ScalarProperty Name="CreationDate" ColumnName="CREATIONDATE" />
+                <ScalarProperty Name="ModificationDate" ColumnName="MODIFICATIONDATE" />
+                <ScalarProperty Name="CreationDate2" ColumnName="CREATIONDATE2" />
+                <ScalarProperty Name="ModificationDate2" ColumnName="MODIFICATIONDATE2" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Users">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.User">
+              <MappingFragment StoreEntitySet="USER_">
+                <ScalarProperty Name="Id" ColumnName="ID" />
+                <ScalarProperty Name="UserName" ColumnName="USERNAME" />
+                <ScalarProperty Name="UserPassword" ColumnName="USERPASSWORD" />
+                <ScalarProperty Name="FirstName" ColumnName="FIRSTNAME" />
+                <ScalarProperty Name="LastName" ColumnName="LASTNAME" />
+                <ScalarProperty Name="Email" ColumnName="EMAIL" />
+                <ScalarProperty Name="RowVersion" ColumnName="ROWVERSION" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CREATEDBY" />
+                <ScalarProperty Name="CreatedByUserId" ColumnName="CREATEDBYUSERID" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CREATEDDATE" />
+                <ScalarProperty Name="ModifiedBy" ColumnName="MODIFIEDBY" />
+                <ScalarProperty Name="ModifiedByUserId" ColumnName="MODIFIEDBYUSERID" />
+                <ScalarProperty Name="ModifiedDate" ColumnName="MODIFIEDDATE" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserRoles">
+            <EntityTypeMapping TypeName="Model.NorthwindIB.Oracle.UserRole">
+              <MappingFragment StoreEntitySet="USERROLE">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="UserId" ColumnName="USERID" />
+                <ScalarProperty Name="RoleId" ColumnName="ROLEID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <AssociationSetMapping Name="EMPLOYEETERRITORYNOPAYLOAD" TypeName="Model.NorthwindIB.Oracle.EMPLOYEETERRITORYNOPAYLOAD" StoreEntitySet="EMPLOYEETERRITORYNOPAYLOAD">
+            <EndProperty Name="TERRITORY">
+              <ScalarProperty Name="TerritoryID" ColumnName="TERRITORYID" />
+            </EndProperty>
+            <EndProperty Name="EMPLOYEE">
+              <ScalarProperty Name="EmployeeID" ColumnName="EMPLOYEEID" />
+            </EndProperty>
+          </AssociationSetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams>
+      <Diagram DiagramId="e0975a32748643b69f47ea45d60a58d0" Name="Diagram1">
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Category" Width="1.5" PointX="8.25" PointY="4.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Comment" Width="1.5" PointX="5.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Customer" Width="1.5" PointX="8.25" PointY="11.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Employee" Width="1.5" PointX="5.25" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.EmployeeTerritory" Width="1.5" PointX="7.5" PointY="8" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Geospatial" Width="1.5" PointX="7.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.InternationalOrder" Width="1.5" PointX="12.75" PointY="8.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.NextId" Width="1.5" PointX="12.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Order" Width="1.5" PointX="10.5" PointY="7.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.OrderDetail" Width="1.5" PointX="12.75" PointY="5.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.PreviousEmployee" Width="1.5" PointX="0.75" PointY="13.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Product" Width="1.5" PointX="10.5" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Region" Width="1.5" PointX="0.75" PointY="5.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Role" Width="1.5" PointX="0.75" PointY="2.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Supplier" Width="1.5" PointX="8.25" PointY="16.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.Territory" Width="1.5" PointX="3" PointY="5.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.TimeGroup" Width="1.5" PointX="10.75" PointY="13.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.TimeLimit" Width="1.5" PointX="13" PointY="13.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.UnusualDate" Width="1.5" PointX="2.75" PointY="13.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.User" Width="1.5" PointX="0.75" PointY="8.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.NorthwindIB.Oracle.UserRole" Width="1.5" PointX="3" PointY="2.125" IsExpanded="true" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_PRODUCT_CATEGORY" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_ORDER_CUSTOMER" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_EMPLOYEE_EMPLOYEE" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_EMPLOYEETERRITORY_EMPLOYEE" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_ORDER_EMPLOYEE" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_EMPLOYEETERRITORY_TERRITORY" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_INTERNATIONALORDER_ORDER" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_ORDERDETAIL_ORDER" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_ORDERDETAIL_PRODUCT" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_PRODUCT_SUPPLIER" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_TERRITORY_REGION" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_USERROLE_ROLE" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_TIMELIMITTIMEGROUP" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.FK_USERROLE_USER" ManuallyRouted="false" />
+        <AssociationConnector Association="Model.NorthwindIB.Oracle.EMPLOYEETERRITORYNOPAYLOAD" ManuallyRouted="false" />
+      </Diagram>
+    </Diagrams>
+  </Designer>
+</edmx:Edmx>
