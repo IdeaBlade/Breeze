@@ -6,9 +6,19 @@
  */
 
 /*#region validation */
+
+.icon-asterisk.icon-asterisk-invalid {
+    color: red;
+    margin: 2px;
+}
+
 .invalid {
     position: absolute;
     display: none;
+    -moz-min-width: 200px;
+    -ms-min-width: 200px;
+    -o-min-width: 200px;
+    -webkit-min-width: 200px;
     min-width: 200px;
     min-height: 20px;
     max-width: 450px;
@@ -25,14 +35,17 @@ select:invalid {
         visibility: visible;
         display: inline-block;
         background-color: rgb(189, 54, 47);
-        margin: 0 0 0 6px;
+        margin: -1px 0 0 16px;
         padding: 4px 10px;
+        -ms-border-radius: 3px 3px 3px 3px !important;
         border-radius: 3px 3px 3px 3px !important;
         background-position: 15px center;
         background-repeat: no-repeat;
         -webkit-box-shadow: 0 0 12px #999999;
+        -ms-box-shadow: 0 0 12px #999999;
         box-shadow: 0 0 12px #999999;
         color: #ffffff;
+        -ms-opacity: 0.8;
         opacity: 0.8;
     }
 
