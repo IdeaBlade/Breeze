@@ -1,4 +1,9 @@
 ﻿/*
+ * CSS to accompany the breeze.directives
+ * such as breeze.directives.validation.js
+ *
+ * v.1.0
+ *
  * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
  * Licensed under the MIT License
  * http://opensource.org/licenses/mit-license.php
@@ -6,10 +11,24 @@
  */
 
 /*#region validation */
-
-.icon-asterisk.icon-asterisk-invalid {
+.icon-asterisk-invalid {
     color: red;
-    margin: 2px;
+    margin: 0.2em;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+input ~ .icon-asterisk-invalid,
+select ~ .icon-asterisk-invalid {
+    margin: 0.2em;
+    position: relative;
+}
+input ~ .icon-asterisk-invalid {
+    top: 0.4em;
+}
+
+select ~ .icon-asterisk-invalid {
+    top: 0.2em;
 }
 
 .invalid {
@@ -35,7 +54,7 @@ select:invalid {
         visibility: visible;
         display: inline-block;
         background-color: rgb(189, 54, 47);
-        margin: -1px 0 0 16px;
+        margin: 0.3em 0 0 2em;
         padding: 4px 10px;
         -ms-border-radius: 3px 3px 3px 3px !important;
         border-radius: 3px 3px 3px 3px !important;
@@ -49,6 +68,9 @@ select:invalid {
         opacity: 0.8;
     }
 
+    select:invalid + .invalid {
+        margin: 0.1em 0 0 2em;
+    }
 .invalid > i {
     margin-right: 8px;
 }
