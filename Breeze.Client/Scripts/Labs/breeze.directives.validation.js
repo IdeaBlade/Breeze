@@ -68,7 +68,7 @@
                 
                 // Add/remove the error message HTML (errEl) and styling 
                 // errEl, if it exists, is a sibling of this element with an 'invalid' class
-                var errEl = element.nextAll('.invalid').first();
+                var errEl = element.nextAll('.invalid')[0];
                 
                 if (newValue) {
                     var html = config.zValidateTemplate.replace(/%error%/, newValue);
