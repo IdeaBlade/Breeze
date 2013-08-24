@@ -112,8 +112,11 @@
 
         var helper = saveContext.entityManager.helper;
         var url = saveContext.dataService.makeUrl("$batch");
-
+        
         var requestData = createChangeRequests(saveContext, saveBundle);
+        var innerEntities = requestData.__innerEntities || [];
+        delete requestData.__innerEntities;
+
         var tempKeys = saveContext.tempKeys;
         var contentKeys = saveContext.contentKeys;
         OData.request({
@@ -122,7 +125,7 @@
             method: "POST",
             data: requestData
         }, function (data, response) {
-            var entities = [];
+            var entities = innerEntities;
             var keyMappings = [];
             var saveResult = { entities: entities, keyMappings: keyMappings };
             data.__batchResponses.forEach(function (br) {
@@ -190,6 +193,8 @@
     });
 
     function createChangeRequests(saveContext, saveBundle) {
+        var innerEntities = [];
+        var createdCREntities = [];
         var linksRequest = [];
         var changeRequests = [];
         var tempKeys = [];
@@ -199,6 +204,7 @@
         var helper = entityManager.helper;
         var id = 0;
         saveBundle.entities.forEach(function (entity) {
+            createdCREntities.push(entity);
             var aspect = entity.entityAspect;
             id = id + 1; // we are deliberately skipping id=0 because Content-ID = 0 seems to be ignored.
             var request = { headers: { "Content-ID": id, "DataServiceVersion": "2.0" } };
@@ -218,11 +224,14 @@
                     if (!inseredLink.entity.entityAspect.entityState.isAdded()
                         && !inseredLink.entity.entityAspect.entityState.isDeleted()) {
                         var linkRequest = { headers: { "Content-ID": id, "DataServiceVersion": "3.0" } };
-                        // POST /OData/OData.svc/Categories(1)/$links/Products
-                        linkRequest.requestUri = aspect.extraMetadata.id
-                            + "/$links/" + inseredLink.np.name;
-                        //linkRequest.requestUri = prefix + entity.entityType.defaultResourceName + "(" + getId(entity) + ")"
-                        //    + "/$links/" + inseredLink.np.name;
+                        if (aspect.extraMetadata) {
+                            linkRequest.requestUri = aspect.extraMetadata.uri
+                                + "/$links/" + inseredLink.np.name;
+                        }
+                        else {
+                            linkRequest.requestUri = location.origin + prefix + aspect.entity.entityType.defaultResourceName + "(" + getId(entity) + ")"
+                                + "/$links/" + inseredLink.np.name;
+                        }
                         linkRequest.method = "POST";
 
                         var baseType = inseredLink.entity.entityType;
@@ -239,27 +248,31 @@
                 });
 
                 aspect.removedLinks.forEach(function (removedLink) {
-                    if (!removedLink.entity.entityAspect.entityState.isAdded()
-                        && !removedLink.entity.entityAspect.entityState.isDeleted()) {
-                        var linkRequest = { headers: { "Content-ID": id, "DataServiceVersion": "3.0" } };
-                        // DELETE /OData/OData.svc/Categories(1)/$links/Products(10)
-                        linkRequest.requestUri = aspect.extraMetadata.id
-                            + "/$links/" + removedLink.np.name + "(" + getId(removedLink.entity) + ")";
-                        //linkRequest.requestUri = prefix + entity.entityType.defaultResourceName + "(" + getId(entity) + ")"
-                        //    + "/$links/" + removedLink.np.name + "(" + getId(removedLink.entity) + ")";
-                        linkRequest.method = "DELETE";
-                        linksRequest.push(linkRequest);
+                    if (createdCREntities.indexOf(removedLink.entity) == -1) {
+                        if (!removedLink.entity.entityAspect.entityState.isAdded()
+                            && !removedLink.entity.entityAspect.entityState.isDeleted()) {
+                            var linkRequest = { headers: { "Content-ID": id, "DataServiceVersion": "3.0" } };
+                            // DELETE /OData/OData.svc/Categories(1)/$links/Products(10)
+                            linkRequest.requestUri = aspect.extraMetadata.uri
+                                + "/$links/" + removedLink.np.name + "(" + getId(removedLink.entity) + ")";
+                            //linkRequest.requestUri = prefix + entity.entityType.defaultResourceName + "(" + getId(entity) + ")"
+                            //    + "/$links/" + removedLink.np.name + "(" + getId(removedLink.entity) + ")";
+                            linkRequest.method = "DELETE";
+                            linksRequest.push(linkRequest);
+                        }
                     }
                 });
             }
 
             if (aspect.entityState.isAdded()) {
+                var options = {};
                 insertRequest(request, entity.entityType);
                 request.method = "POST";
-                request.data = helper.unwrapInstance(entity, true);
+                request.data = helper.unwrapInstance(entity, true, options);
                 tempKeys[id] = aspect.getKey();
                 // should be a PATCH/MERGE
-                if (!request.data || Object.keys(request.data).length == 0) {
+                if (options.isIgnored || Object.keys(request.data).length == 0) {
+                    innerEntities.push(entity);
                     id--;
                     return;
                 }
@@ -269,6 +282,7 @@
                 request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, true);
                 // should be a PATCH/MERGE
                 if (Object.keys(request.data).length == 0) {
+                    innerEntities.push(entity);
                     id--;
                     return;
                 }
@@ -289,6 +303,7 @@
         saveContext.contentKeys = contentKeys;
         saveContext.tempKeys = tempKeys;
         return {
+            __innerEntities: innerEntities,
             __batchRequests: [{
                 __changeRequests: changeRequests
             }]
