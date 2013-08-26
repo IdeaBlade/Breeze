@@ -87,7 +87,7 @@
         // Get info about the data bound entity property
         function getInfo(scope, attrs) {
             var entityPath = null, propertyPath = null;
-            var ngModel = attrs.ngModel;
+            var ngModel = attrs.ngModel || attrs.ngBind;
             var valPath = attrs.zValidate;
 
             if (!ngModel && !valPath) { // need some path info from attrs
