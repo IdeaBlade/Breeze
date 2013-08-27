@@ -1,0 +1,101 @@
+one:
+  id: 1
+  start: 2014-03-29 08:00:00.000
+  duration: 45
+  is_session_slot: false
+
+two:
+  id: 2
+  start: 2014-03-29 09:00:00.000
+  duration: 60
+  is_session_slot: true
+
+tree:
+  id: 3
+  start: 2014-03-29 10:10:00.000
+  duration: 60
+  is_session_slot: true
+
+four:
+  id: 4
+  start: 2014-03-29 11:20:00.000
+  duration: 60
+  is_session_slot: true
+
+five:
+  id: 5
+  start: 2014-03-29 12:20:00.000
+  duration: 60
+  is_session_slot: false
+
+six:
+  id: 6
+  start: 2014-03-29 13:30:00.000
+  duration: 60
+  is_session_slot: true
+
+seven:
+  id: 7
+  start: 2014-03-29 14:40:00.000
+  duration: 60
+  is_session_slot: true
+
+eight:
+  id: 8
+  start: 2014-03-29 15:50:00.000
+  duration: 60
+  is_session_slot: true
+
+nine:
+  id: 9
+  start: 2014-03-29 17:00:00.000
+  duration: 30
+  is_session_slot: false
+
+ten:
+  id: 10
+  start: 2014-03-30 08:00:00.000
+  duration: 45
+  is_session_slot: false
+
+eleven:
+  id: 11
+  start: 2014-03-30 09:00:00.000
+  duration: 60
+  is_session_slot: true
+
+twelve:
+  id: 12
+  start: 2014-03-30 10:10:00.000
+  duration: 60
+  is_session_slot: true
+
+thirteen:
+  id: 13
+  start: 2014-03-30 11:20:00.000
+  duration: 60
+  is_session_slot: 1
+
+fourteen:
+  id: 14
+  start: 2014-03-30 12:30:00.000
+  duration: 60
+  is_session_slot: false
+
+fifteen:
+  id: 15
+  start: 2014-03-30 13:40:00.000
+  duration: 60
+  is_session_slot: true
+
+sixteen:
+  id: 16
+  start: 2014-03-30 14:50:00.000
+  duration: 60
+  is_session_slot: 1
+
+seventeen:
+  id: 17
+  start: 2014-03-30 16:00:00.000
+  duration: 60
+  is_session_slot: true

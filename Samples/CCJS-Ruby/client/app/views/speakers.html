@@ -1,0 +1,20 @@
+﻿<section class="view">
+    <header>
+        <a class="btn btn-info btn-force-refresh pull-right responsive-button" 
+            data-bind="click: refresh" href="#"><i class="icon-refresh"></i> <span class="text">Refresh</span></a>
+        <h3 class="page-title" data-bind="text: title"></h3>
+        <div class="article-counter">
+            <address data-bind="text: speakers().length"></address>
+            <address>found</address>
+        </div>
+    </header>
+    <section class="view-list" data-bind="foreach: speakers">
+        <article class="article-container-full-width">
+            <div>
+                <img data-bind="attr: { src: imageName }" class="img-polaroid"/>
+                <address data-bind="text: firstName"></address>
+                <address data-bind="text: lastName"></address>
+            </div>
+        </article>
+    </section>
+</section>

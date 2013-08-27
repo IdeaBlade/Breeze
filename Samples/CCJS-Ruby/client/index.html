@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>CCJS-HotTowel</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+
+    <link href="Content/ie10mobile.css" rel="stylesheet" />
+    <link href="Content/bootstrap.css" rel="stylesheet" />
+    <link href="Content/bootstrap-responsive.css" rel="stylesheet" />
+    <link href="Content/font-awesome.css" rel="stylesheet" />
+    <link href="Content/durandal.css" rel="stylesheet" />
+    <link href="Content/toastr.css" rel="stylesheet" />
+    <link href="Content/styles.css" rel="stylesheet" />
+
+    <script>
+        // Must be first. IE10 mobile viewport fix
+        if (navigator.userAgent.match(/IEMobile\/10\.0/)) {
+            var msViewportStyle = document.createElement("style");
+            var mq = "@@-ms-viewport{width:auto!important}";
+            msViewportStyle.appendChild(document.createTextNode(mq));
+            document.getElementsByTagName("head")[0].appendChild(msViewportStyle);
+        }
+    </script>
+    <script src="Scripts/modernizr-2.6.2.js"></script>
+</head>
+<body>
+    <div id="applicationHost">
+        <div class="page-splash"></div>
+        <div class="page-splash-message">
+            Ruby CodeCamper JumpStart
+        </div>
+        <div class="progress progress-striped active page-progress-bar">
+            <div class="bar" style="width: 100%;"></div>
+        </div>
+    </div>
+
+    <script src="Scripts/jquery-1.9.1.js"></script>
+    <script src="Scripts/knockout-2.2.1.debug.js"></script>
+    <script src="Scripts/sammy-0.7.4.js"></script>
+    <script src="Scripts/bootstrap.js"></script>
+    <script src="Scripts/toastr.js"></script>
+    <script src="Scripts/moment.js"></script>
+    <script src="Scripts/q.js"></script>
+    <script src="Scripts/breeze.debug.js"></script>
+    <script src="Scripts/breeze.saveErrorExtensions.js"></script>
+
+    <script src="/App/durandal/amd/require.js" data-main="App/main"></script>
+ </body>
+</html>
