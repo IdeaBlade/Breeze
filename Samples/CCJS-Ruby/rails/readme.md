@@ -3,7 +3,7 @@
 
 This "rails" directory holds the Ruby on Rails code and database data for the CCJS-Ruby sample.
 
-Assuming you have Ruby and MySql installed in your environment, there are four principle steps to running the application. 
+Assuming you have Ruby and MySql and some kind of web server installed in your environment, there are four principle steps to running the application. 
 
 ##1. Ruby-CCJS Setup
 
@@ -18,7 +18,7 @@ b. Copy database.yml from the source (Ruby on Rails) to ~\>ccjs_ruby\rails/confi
 
 c. Update database.yml with your MySQL user credentials
 
-d. Create the project database
+d. Create the project database (make sure MySQL is running first!)
 
 	~\ccjs_ruby\rails>bundle exec rake db:create
 
