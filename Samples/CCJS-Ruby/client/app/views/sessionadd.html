@@ -1,0 +1,57 @@
+﻿<section class="view">
+    <h3 class="page-title" data-bind="text: title"></h3>
+    <div class="button-bar">
+        <button class="btn btn-info"
+            data-bind="click: cancel, enable: canSave"><i class="icon-undo"> Cancel</i></button>
+        <button class="btn btn-info"
+           data-bind="click: save, enable: canSave"><i class="icon-save"> Save</i></button>
+    </div>
+    <div data-bind="with: session">
+        <div class="titleblock">
+            <label for="title">Title</label>
+            <input id="title" data-bind="value: title" placeholder="Session title" />
+        </div>
+        <div class="details-left">
+            <div>
+                <label>Track</label>
+                <select data-bind="options: $parent.tracks, optionsText: 'name', value: track">
+                </select>
+            </div>
+            <div>
+                <label>Time slot</label>
+                <select data-bind="options: $parent.timeSlots, optionsText: 'name', value: timeSlot">
+                </select>
+            </div>
+            <div>
+                <label>Room</label>
+                <select data-bind="options: $parent.rooms, optionsText: 'name', value: room">
+                </select>
+            </div>
+            <div>
+                <label>Code</label>
+                <input data-bind="value: code" placeholder="Code"/>
+            </div>
+            <div>
+                <label>Level</label>
+                <input data-bind="value: level" placeholder="Level"/>
+            </div>
+            <div>
+                <label>Tags</label>
+                <input data-bind="value: tagsFormatted" placeholder="Tags"/>
+            </div>
+            <div data-bind="with: speaker">
+                <img data-bind="attr: { src: imageName }" class="img-polaroid"/>
+                <address data-bind="text: fullName"></address>
+                <select data-bind="options: $root.speakers, optionsText: 'fullName', value: $parent.speaker">
+                </select>
+            </div>
+        </div>
+        <div class="details-right">
+            <div>
+                <label>Description</label>
+                <textarea data-bind="value: description, valueUpdate: 'afterkeydown'" 
+                          placeholder="Session description"></textarea>
+            </div>
+        </div>
+    </div>
+</section>

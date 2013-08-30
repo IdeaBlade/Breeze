@@ -1,0 +1,11 @@
+keynote: 
+  id: 1
+  title: Keynote
+  code: KEY01
+  speaker_id: 1
+  track_id: 1
+  time_slot_id: 1,
+  room_id: 1,
+  level: Beginner
+  tags: Keynote
+  description: Change the World

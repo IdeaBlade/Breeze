@@ -287,6 +287,15 @@ based on <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_creditCard">creditCard</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_date">date</a>
 
                                 
@@ -297,6 +306,15 @@ based on <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</
                         
                             <li class="index-item method">
                                 <a href="#method_duration">duration</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_emailAddress">emailAddress</a>
 
                                 
                                     <span class="flag static">static</span>
@@ -348,6 +366,15 @@ based on <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_makeRegExpValidator">makeRegExpValidator</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_maxLength">maxLength</a>
 
                                 
@@ -366,6 +393,15 @@ based on <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</
                             </li>
                         
                             <li class="index-item method">
+                                <a href="#method_phone">phone</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
                                 <a href="#method_register">register</a>
 
                                 
@@ -376,6 +412,15 @@ based on <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</
                         
                             <li class="index-item method">
                                 <a href="#method_registerFactory">registerFactory</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_regularExpression">regularExpression</a>
 
                                 
                                     <span class="flag static">static</span>
@@ -403,6 +448,15 @@ based on <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</
                         
                             <li class="index-item method">
                                 <a href="#method_stringLength">stringLength</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_url">url</a>
 
                                 
                                     <span class="flag static">static</span>
@@ -533,7 +587,10 @@ based on <a href="..\classes\DataProperty.html" class="crosslink">DataProperty</
 basic "Validator" construction methods are also provided as static methods to this class. These methods
 provide a simpler syntax for creating basic validations.</p>
 
-<p>However, sometimes a custom validator will be required.</p>
+<p>Many of these stock validators are inspired by and implemented to conform to the validators defined at
+http://msdn.microsoft.com/en-us/library/system.componentmodel.dataannotations.aspx</p>
+
+<p>Sometimes a custom validator will be required.</p>
     </div>
 
     
@@ -807,7 +864,7 @@ freightProperty.validators.push(numericRangeValidator({ min: 100, max: 500 }));
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l541"><code>a25_validate.js:541</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l549"><code>a25_validate.js:549</code></a>
         
         </p>
 
@@ -893,7 +950,7 @@ discontinuedProperty.validators.push(Validator.bool());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l524"><code>a25_validate.js:524</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l532"><code>a25_validate.js:532</code></a>
         
         </p>
 
@@ -942,6 +999,128 @@ regionProperty.validators.push(Validator.byte());
 </div>
 
                 
+                    <div id="method_creditCard" class="method item">
+    <h3 class="name"><code>creditCard</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code class="optional">[context]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l607"><code>a25_validate.js:607</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns a credit card number validator
+Performs a luhn algorithm checksum test for plausability
+catches simple mistakes; only service knows for sure</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[context]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>optional parameters to pass through to validation constructor</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>:
+                    
+                    A new Validator
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>// Assume em is a preexisting EntityManager.
+var personType = em.metadataStore.getEntityType("Person");
+var creditCardProperty = personType.getProperty("creditCard");
+// Validates that the value of the Person.creditCard property is credit card.
+creditCardProperty.validators.push(Validator.creditCard());
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_date" class="method item">
     <h3 class="name"><code>date</code></h3>
 
@@ -980,7 +1159,7 @@ regionProperty.validators.push(Validator.byte());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l568"><code>a25_validate.js:568</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l576"><code>a25_validate.js:576</code></a>
         
         </p>
 
@@ -1067,7 +1246,7 @@ orderDateProperty.validators.push(Validator.date());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l425"><code>a25_validate.js:425</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l433"><code>a25_validate.js:433</code></a>
         
         </p>
 
@@ -1115,6 +1294,126 @@ elapsedTimeProperty.validators.push(Validator.duration());
 </div>
 
                 
+                    <div id="method_emailAddress" class="method item">
+    <h3 class="name"><code>emailAddress</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code class="optional">[context]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l669"><code>a25_validate.js:669</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns the email address validator</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[context]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>optional parameters to pass through to validation constructor</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>:
+                    
+                    A new Validator
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>// Assume em is a preexisting EntityManager.
+var personType = em.metadataStore.getEntityType("Person");
+var emailProperty = personType.getProperty("email");
+// Validates that the value of the Person.email property is an email address.
+emailProperty.validators.push(Validator.emailAddress());
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_getMessage" class="method item">
     <h3 class="name"><code>getMessage</code></h3>
 
@@ -1151,7 +1450,7 @@ elapsedTimeProperty.validators.push(Validator.duration());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l215"><code>a25_validate.js:215</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l218"><code>a25_validate.js:218</code></a>
         
         </p>
 
@@ -1234,7 +1533,7 @@ var errMessage = v0.getMessage());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l405"><code>a25_validate.js:405</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l413"><code>a25_validate.js:413</code></a>
         
         </p>
 
@@ -1320,7 +1619,7 @@ customerIdProperty.validators.push(Validator.guid());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l508"><code>a25_validate.js:508</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l516"><code>a25_validate.js:516</code></a>
         
         </p>
 
@@ -1406,7 +1705,7 @@ freightProperty.validators.push(Validator.int16());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l493"><code>a25_validate.js:493</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l501"><code>a25_validate.js:501</code></a>
         
         </p>
 
@@ -1491,7 +1790,7 @@ freightProperty.validators.push(Validator.int32());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l470"><code>a25_validate.js:470</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l478"><code>a25_validate.js:478</code></a>
         
         </p>
 
@@ -1532,6 +1831,200 @@ var orderType = em1.metadataStore.getEntityType("Order");
 var freightProperty - orderType.getProperty("Freight");
 // Validates that the value of the Freight property on Order is within the range of a 64 bit integer.
 freightProperty.validators.push(Validator.int64());
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_makeRegExpValidator" class="method item">
+    <h3 class="name"><code>makeRegExpValidator</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>validatorName</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>expression</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[defaultMessage]</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code class="optional">[context]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l736"><code>a25_validate.js:736</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Creates a regular expression validator with a fixed expression.
+Many of the stock validators are built with this factory method.
+Their expressions are often derived from 
+https://github.com/srkirkland/DataAnnotationsExtensions/blob/master/DataAnnotationsExtensions
+You can try many of them at http://dataannotationsextensions.org/</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">validatorName</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>name of this validator</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">expression</code>
+                        <span class="type">String | RegExp</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>regular expression to apply</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[defaultMessage]</code>
+                        <span class="type">String</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>default message for failed validations</p>
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[context]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>optional parameters to pass through to validation constructor</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>:
+                    
+                    A new Validator
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>// Make a zipcode validator
+function zipValidator = Validator.makeRegExpValidator(
+    "zipVal,  
+    /^\d{5}([\-]\d{4})?$/,  
+    "The %displayName% '%value%' is not a valid U.S. zipcode");
+// Register it.
+Validator.register(zipValidator);
+// Add it to a data property. Assume em is a preexisting EntityManager.
+var custType = em.metadataStore.getEntityType("Customer");
+var zipProperty = custType.getProperty("PostalCode");
+zipProperty.validators.push(zipValidator);
 </code></pre>
             </div>
         </div>
@@ -1587,7 +2080,7 @@ freightProperty.validators.push(Validator.int64());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l335"><code>a25_validate.js:335</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l343"><code>a25_validate.js:343</code></a>
         
         </p>
 
@@ -1713,7 +2206,7 @@ regionProperty.validators.push(Validator.maxLength( {maxLength: 5}));
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l445"><code>a25_validate.js:445</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l453"><code>a25_validate.js:453</code></a>
         
         </p>
 
@@ -1754,6 +2247,139 @@ var orderType = em1.metadataStore.getEntityType("Order");
 var freightProperty - orderType.getProperty("Freight");
 // Validates that the value of the Freight property on Order is a number.
 freightProperty.validators.push(Validator.number());
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_phone" class="method item">
+    <h3 class="name"><code>phone</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code class="optional">[context]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l688"><code>a25_validate.js:688</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns the phone validator
+Provides basic assertions on the format and will help to eliminate most nonsense input
+Matches:
+  International dialing prefix: {{}, +, 0, 0000} (with or without a trailing break character, if not '+': [-/. ])</p>
+
+<blockquote>
+  <p>((+)|(0(\d+)?[-/.\s]))
+    Country code: {{}, 1, ..., 999} (with or without a trailing break character: [-/. ])
+  [1-9]\d{,2}[-/.\s]?
+    Area code: {(0), ..., (000000), 0, ..., 000000} (with or without a trailing break character: [-/. ])
+  (((\d{1,6})|\d{1,6})[-/.\s]?)?
+    Local: {0, ...}+ (with or without a trailing break character: [-/. ])
+  (\d+[-/.\s]?)+\d+</p>
+</blockquote>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[context]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>optional parameters to pass through to validation constructor</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>:
+                    
+                    A new Validator
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>// Assume em is a preexisting EntityManager.
+var customerType = em.metadataStore.getEntityType("Customer");
+var phoneProperty = customerType.getProperty("phone");
+// Validates that the value of the Customer.phone property is phone.
+phoneProperty.validators.push(Validator.phone());
 </code></pre>
             </div>
         </div>
@@ -1805,7 +2431,7 @@ freightProperty.validators.push(Validator.number());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l257"><code>a25_validate.js:257</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l260"><code>a25_validate.js:260</code></a>
         
         </p>
 
@@ -1900,7 +2526,7 @@ freightProperty.validators.push(Validator.number());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l267"><code>a25_validate.js:267</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l270"><code>a25_validate.js:270</code></a>
         
         </p>
 
@@ -1960,6 +2586,142 @@ freightProperty.validators.push(Validator.number());
 </div>
 
                 
+                    <div id="method_regularExpression" class="method item">
+    <h3 class="name"><code>regularExpression</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>context</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l640"><code>a25_validate.js:640</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns a regular expression validator; the expression must be specified</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">context</code>
+                        <span class="type">Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                         
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name">expression</code>
+                                    <span class="type">String</span>
+                                
+
+                                <div class="param-description">
+                                    <p>String form of the regular expression to apply</p>
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>:
+                    
+                    A new Validator
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>// Add validator to a property. Assume em is a preexisting EntityManager.
+var customerType = em.metadataStore.getEntityType("Customer");
+var regionProperty = customerType.getProperty("Region");
+// Validates that the value of Customer.Region is 2 char uppercase alpha.
+regionProperty.validators.push(Validator.regularExpression( {expression: '^[A-Z]{2}$'} );
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_required" class="method item">
     <h3 class="name"><code>required</code></h3>
 
@@ -1998,7 +2760,7 @@ freightProperty.validators.push(Validator.number());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l311"><code>a25_validate.js:311</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l319"><code>a25_validate.js:319</code></a>
         
         </p>
 
@@ -2084,7 +2846,7 @@ regionProperty.validators.push(Validator.required());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l385"><code>a25_validate.js:385</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l393"><code>a25_validate.js:393</code></a>
         
         </p>
 
@@ -2180,7 +2942,7 @@ regionProperty.validators.push(Validator.string());
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l358"><code>a25_validate.js:358</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l366"><code>a25_validate.js:366</code></a>
         
         </p>
 
@@ -2282,6 +3044,126 @@ regionProperty.validators.push(Validator.stringLength( {minLength: 2, maxLength:
 </div>
 
                 
+                    <div id="method_url" class="method item">
+    <h3 class="name"><code>url</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code class="optional">[context]</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>
+        </span>
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l717"><code>a25_validate.js:717</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Returns the URL (protocol required) validator</p>
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[context]</code>
+                        <span class="type">Object</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>optional parameters to pass through to validation constructor</p>
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+                
+                    
+                        <span class="type"><a href="..\classes\Validator.html" class="crosslink">Validator</a></span>:
+                    
+                    A new Validator
+                
+            </div>
+        </div>
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <pre class="code prettyprint"><code>// Assume em is a preexisting EntityManager.
+var personType = em.metadataStore.getEntityType("Person");
+var websiteProperty = personType.getProperty("website");
+// Validates that the value of the Person.website property is a URL.
+websiteProperty.validators.push(Validator.url());
+</code></pre>
+            </div>
+        </div>
+    
+</div>
+
+                
                     <div id="method_validate" class="method item">
     <h3 class="name"><code>validate</code></h3>
 
@@ -2334,7 +3216,7 @@ regionProperty.validators.push(Validator.stringLength( {minLength: 2, maxLength:
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l167"><code>a25_validate.js:167</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l170"><code>a25_validate.js:170</code></a>
         
         </p>
 
@@ -2462,7 +3344,7 @@ var sameValidator = result.validator;
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l158"><code>a25_validate.js:158</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l161"><code>a25_validate.js:161</code></a>
         
         </p>
 
@@ -2511,7 +3393,7 @@ var sameValidator = result.validator;
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l278"><code>a25_validate.js:278</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l281"><code>a25_validate.js:281</code></a>
         
         </p>
 
@@ -2577,7 +3459,7 @@ Validator.messageTemplates["countryIsUS", "'%displayName%' must start with 'US'"
             
         
         
-        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l151"><code>a25_validate.js:151</code></a>
+        <a href="..&#x2F;files&#x2F;a25_validate.js.html#l154"><code>a25_validate.js:154</code></a>
         
         </p>
 

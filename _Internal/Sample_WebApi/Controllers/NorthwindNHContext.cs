@@ -1,5 +1,8 @@
 ﻿using Breeze.Nhibernate.WebApi;
+using Breeze.WebApi;
 using Models.NorthwindIB.NH;
+using System;
+using System.Collections.Generic;
 
 namespace Sample_WebApi.Controllers
 {
@@ -8,6 +11,18 @@ namespace Sample_WebApi.Controllers
         public NorthwindNHContext() : base(NorthwindNHConfig.OpenSession(), NorthwindNHConfig.Configuration) { }
 
         public NorthwindNHContext(NHContext sourceContext) : base(sourceContext) { }
+
+        protected override Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
+          var meta = this.GetMetadata();
+          var bvalidator = new BreezeMetadataValidator(this, meta);
+          bvalidator.ValidateEntities(saveMap, true);
+
+          DataAnnotationsValidator.AddDescriptor(typeof(Customer), typeof(CustomerMetaData));
+          var validator = new DataAnnotationsValidator(this);
+          validator.ValidateEntities(saveMap, true);
+
+          return base.BeforeSaveEntities(saveMap);
+        }
 
         public NorthwindNHContext Context
         {

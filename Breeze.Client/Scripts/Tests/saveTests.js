@@ -681,7 +681,7 @@
             ok(e.entityErrors, "should be a server error");
             ok(e.entityErrors.length === 1, "should be only one server error");
             var errors = cust1.entityAspect.getValidationErrors();
-            ok(errors[0].errorMessage === errors[0].errorMessage, "error message should appear on the cust");
+            ok(errors[0].errorMessage === e.entityErrors[0].errorMessage, "error message should appear on the cust");
         }).fin(start);
     });
 
@@ -955,8 +955,9 @@
     test("unmapped save with ES5 props", function () {
 
         // use a different metadata store for this em - so we don't polute other tests
-        var em1 = newEm();
+        var em1 = newEm(testFns.newMs());
         var Customer = testFns.models.CustomerWithES5Props();
+
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
         stop();
         var q = new EntityQuery("Customers")

@@ -492,7 +492,9 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
     @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink &quot;MergeStrategy&quot;}}{{&#x2F;crossLink}} to use when 
     merging into an existing EntityManager.
-    @return {EntityManager} A new EntityManager.
+    @return {EntityManager} A new EntityManager.  Note that the return value of this method call is different from that 
+    provided by the same named method on an EntityManager instance. Use that method if you need additional information
+    regarding the imported entities.
     **&#x2F;
     ctor.importEntities = function (exportedString, config) {
         var em = new EntityManager();
@@ -576,8 +578,8 @@ var EntityManager = (function () {
         merging into an existing EntityManager.
     @return result {Object} 
 
-        result.entities {Array of Entities}
-        result.tempKeyMap {Object} Object keyed by original EntityKey where value is current EntityKey
+        result.entities {Array of Entities} The entities that were imported.
+        result.tempKeyMap {Object} Mapping from original EntityKey in the import bundle to its corresponding EntityKey in this EntityManager. 
     **&#x2F;
     proto.importEntities = function (exportedString, config) {
         config = config || {};
@@ -1189,28 +1191,40 @@ var EntityManager = (function () {
 
 
     function processServerErrors(saveContext, error) {
-        var entityErrors = error.entityErrors;
-        if (!entityErrors) return;
+        var serverErrors = error.entityErrors;
+        if (!serverErrors) return;
         var entityManager = saveContext.entityManager;
         var metadataStore = entityManager.metadataStore;
-        entityErrors.forEach(function (serr) {
-            if (!serr.keyValues) return;
-            var entityType = metadataStore._getEntityType(serr.entityTypeName);
-            var ekey = new EntityKey(entityType, serr.keyValues);
-            var entity = entityManager.findEntityByKey(ekey);
-            if (!entity) return;
-            serr.entity = entity;
-            
-            var context = serr.propertyName ?
-                {   propertyName: serr.propertyName,
+        error.entityErrors = serverErrors.map(function (serr) {
+            var entity = null;
+            if (serr.keyValues) {
+                var entityType = metadataStore._getEntityType(serr.entityTypeName);
+                var ekey = new EntityKey(entityType, serr.keyValues);
+                entity = entityManager.findEntityByKey(ekey);
+            } 
+           
+            if (entity) {
+                var context = serr.propertyName ?
+                {
+                    propertyName: serr.propertyName,
                     property: entityType.getProperty(serr.propertyName)
                 } : {
                 };
-            var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
-            
-            var ve = new ValidationError(null, context, serr.errorMessage, key);
-            ve.isServerError = true;
-            entity.entityAspect.addValidationError(ve);
+                var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
+
+                var ve = new ValidationError(null, context, serr.errorMessage, key);
+                ve.isServerError = true;
+                entity.entityAspect.addValidationError(ve);
+            }
+
+            var entityError = {
+                entity: entity,
+                errorName: serr.errorName,
+                errorMessage: serr.errorMessage,
+                propertyName: serr.propertyName,
+                isServerError: true
+            };
+            return entityError;
         });
     }
     

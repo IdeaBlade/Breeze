@@ -68,8 +68,7 @@ namespace Sample_WebApi.Controllers {
           byte seq = (byte)(realint % 512);
           AddComment(km.EntityTypeName + ':' + km.RealValue, seq);
         }
-      }
-      else if (tag == "UpdateProduceKeyMapping.After") {
+      } else if (tag == "UpdateProduceKeyMapping.After") {
         if (!keyMappings.Any()) throw new Exception("UpdateProduce.After: No key mappings available");
         var km = keyMappings[0];
         UpdateProduceDescription(km.EntityTypeName + ':' + km.RealValue);
@@ -85,19 +84,19 @@ namespace Sample_WebApi.Controllers {
 #if (CODEFIRST_PROVIDER || DATABASEFIRST_NEW || DATABASEFIRST_OLD)
     /* hack to set the current DbTransaction onto the DbCommand.  Transaction comes from EF private properties. */
     public void SetCurrentTransaction(System.Data.Common.DbCommand command) {
-        if (EntityTransaction != null) {
-          // get private member via reflection
-          var bindingFlags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Instance;
-          var etype = EntityTransaction.GetType();
-          var stProp = etype.GetProperty("StoreTransaction", bindingFlags);
-          var transaction = stProp.GetValue(EntityTransaction, null);
-          var dbTransaction = transaction as System.Data.Common.DbTransaction;
-          if (dbTransaction != null) {
-              command.Transaction = dbTransaction;
-          }
+      if (EntityTransaction != null) {
+        // get private member via reflection
+        var bindingFlags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Instance;
+        var etype = EntityTransaction.GetType();
+        var stProp = etype.GetProperty("StoreTransaction", bindingFlags);
+        var transaction = stProp.GetValue(EntityTransaction, null);
+        var dbTransaction = transaction as System.Data.Common.DbTransaction;
+        if (dbTransaction != null) {
+          command.Transaction = dbTransaction;
         }
+      }
     }
-#endif    
+#endif
 
     // Test performing a raw db insert to NorthwindIB using the base connection
     private int AddComment(string comment, byte seqnum) {
@@ -140,15 +139,15 @@ namespace Sample_WebApi.Controllers {
 
     // Use another Context to simulate lookup.  Returns Margaret Peacock if employeeId is not specified.
     private Employee LookupEmployeeInSeparateContext(bool existingConnection, int employeeId = 4) {
-      var context2 = existingConnection 
+      var context2 = existingConnection
 #if CODEFIRST_PROVIDER
         ? new NorthwindIBContext_CF(EntityConnection)
         : new NorthwindIBContext_CF();
 #elif DATABASEFIRST_OLD
-        ? new NorthwindIBContext_EDMX(EntityConnection)
+        ? new NorthwindIBContext_EDMX((System.Data.EntityClient.EntityConnection)EntityConnection)
         : new NorthwindIBContext_EDMX();
 #elif DATABASEFIRST_NEW
-        ? new NorthwindIBContext_EDMX_2012(EntityConnection)
+ ? new NorthwindIBContext_EDMX_2012(EntityConnection)
         : new NorthwindIBContext_EDMX_2012();
 #elif ORACLE_EDMX
         ? new NorthwindIBContext_EDMX_Oracle(EntityConnection)
@@ -211,8 +210,7 @@ namespace Sample_WebApi.Controllers {
           var order = (Order)info.Entity;
           AddComment(order.ShipAddress, seq++);
         }
-      }
-      else if (tag == "UpdateProduceShipAddress.Before") {
+      } else if (tag == "UpdateProduceShipAddress.Before") {
         var orderInfos = saveMap[typeof(Order)];
         var order = (Order)orderInfos[0].Entity;
         UpdateProduceDescription(order.ShipAddress);
@@ -221,9 +219,9 @@ namespace Sample_WebApi.Controllers {
       } else if (tag == "LookupEmployeeInSeparateContext.SameConnection.Before") {
         LookupEmployeeInSeparateContext(true);
       } else if (tag == "ValidationError.Before") {
-        foreach(var type in saveMap.Keys) {
+        foreach (var type in saveMap.Keys) {
           var list = saveMap[type];
-          foreach(var entityInfo in list) {
+          foreach (var entityInfo in list) {
             var entity = entityInfo.Entity;
             var entityError = new EntityError() {
               EntityTypeName = type.Name,
@@ -235,13 +233,10 @@ namespace Sample_WebApi.Controllers {
               entityError.KeyValues = new object[] { order.OrderID };
               entityError.PropertyName = "OrderDate";
             }
-          
+
           }
         }
-      }
-
-
-      else if (tag == "increaseProductPrice") {
+      } else if (tag == "increaseProductPrice") {
         Dictionary<Type, List<EntityInfo>> saveMapAdditions = new Dictionary<Type, List<EntityInfo>>();
         foreach (var type in saveMap.Keys) {
           if (type == typeof(Category)) {
@@ -271,11 +266,14 @@ namespace Sample_WebApi.Controllers {
             saveMap[type].Add(enInfo);
           }
         }
-        return saveMap;
       }
 
+#if DATABASEFIRST_OLD
+      DataAnnotationsValidator.AddDescriptor(typeof(Customer), typeof(CustomerMetaData));
+      var validator = new DataAnnotationsValidator(this);
+      validator.ValidateEntities(saveMap, true);
+#endif
       return base.BeforeSaveEntities(saveMap);
-      // return saveMap;
     }
 
   }
@@ -393,9 +391,22 @@ namespace Sample_WebApi.Controllers {
       List<EntityInfo> orderInfos;
       if (saveMap.TryGetValue(typeof(Order), out orderInfos)) {
         var errors = orderInfos.Select(oi => {
+#if NHIBERNATE
+          return new EntityError() {
+            EntityTypeName = typeof(Order).FullName,
+            ErrorMessage = "Cannot save orders with this save method",
+            ErrorName = "WrongMethod",
+            KeyValues = new object[] { ((Order) oi.Entity).OrderID },
+            PropertyName = "OrderID"
+          };
+#else
           return new EFEntityError(oi, "WrongMethod", "Cannot save orders with this save method", "OrderID");
+#endif
         });
-        throw new EntityErrorsException(errors);
+        var ex =  new EntityErrorsException("test of custom exception message", errors);
+        // if you want to see a different error status code use this.
+        // ex.StatusCode = HttpStatusCode.Conflict; // Conflict = 409 ; default is Forbidden (403).
+        throw ex;
       }
       return saveMap;
     }
@@ -676,6 +687,43 @@ namespace Sample_WebApi.Controllers {
       return query;
     }
 
+    [HttpGet]
+    public IQueryable<Customer> SearchCustomers([FromUri] CustomerQBE qbe) {
+      // var query = ContextProvider.Context.Customers.Where(c =>
+      //    c.CompanyName.StartsWith(qbe.CompanyName));
+      var ok = qbe != null && qbe.CompanyName != null & qbe.ContactNames.Length > 0 && qbe.City.Length > 1;
+      if (!ok) {
+        throw new Exception("qbe error");
+      }
+      // just testing that qbe actually made it in not attempted to write qbe logic here
+      // so just return first 3 customers.
+      return ContextProvider.Context.Customers.Take(3);
+    }
+
+    [HttpGet]
+    public IQueryable<Customer> SearchCustomers2([FromUri] CustomerQBE[] qbeList) {
+
+      if (qbeList.Length < 2) {
+        throw new Exception("all least two items must be passed in");
+      }
+      var ok = qbeList.All(qbe => {
+        return qbe.CompanyName != null & qbe.ContactNames.Length > 0 && qbe.City.Length > 1;
+      });
+      if (!ok) {
+        throw new Exception("qbeList error");
+      }
+      // just testing that qbe actually made it in not attempted to write qbe logic here
+      // so just return first 3 customers.
+      return ContextProvider.Context.Customers.Take(3);
+    }
+
+
+
+    public class CustomerQBE {
+      public String CompanyName { get; set; }
+      public String[] ContactNames { get; set; }
+      public String City { get; set; }
+    }
 
     [HttpGet]
     public IQueryable<Customer> CustomersOrderedStartingWith(string companyName) {
@@ -913,7 +961,7 @@ namespace Sample_WebApi.Controllers {
       return ContextProvider.Context.TimeLimits;
     }
 #endif
-  #endregion
+    #endregion
 
   #region named queries
 
@@ -976,7 +1024,7 @@ namespace Sample_WebApi.Controllers {
     }
 
 
-  #endregion
+    #endregion
   }
 
 #endif

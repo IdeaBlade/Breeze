@@ -8,9 +8,9 @@
     <many-to-one name="Employee" column="`EmployeeID`" class="Employee" />
     <property name="CustomerID" type="System.Guid" insert="false" update="false" />
     <property name="EmployeeID" type="int" insert="false" update="false" />
-    <property name="OrderDate" type="DateTime" />
-    <property name="RequiredDate" type="DateTime" />
-    <property name="ShippedDate" type="DateTime" />
+    <property name="OrderDate" type="Timestamp" />
+    <property name="RequiredDate" type="Timestamp" />
+    <property name="ShippedDate" type="Timestamp" />
     <property name="Freight" type="decimal" />
     <property name="ShipName" type="string" length="40" />
     <property name="ShipAddress" type="string" length="60" />

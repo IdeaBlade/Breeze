@@ -6,7 +6,7 @@
     <version name="RowVersion" type="int" />
     <property name="CategoryName" type="string" length="15" not-null="true" />
     <property name="Description" type="string" />
-    <property name="Picture" type="System.Byte[]" />
+    <property name="Picture" type="System.Byte[]" length="10000000"/>
     <!--Foreign key to Product (Product)-->
     <set name="Products" table="`Product`" schema="`dbo`" cascade="all-delete-orphan" inverse="true">
       <key column="`CategoryID`" foreign-key="FK_Product_Category" />

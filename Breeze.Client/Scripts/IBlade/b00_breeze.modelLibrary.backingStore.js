@@ -28,7 +28,7 @@
             if (p === "_$typeName") continue;
             if (p === "_pendingSets") continue;
             if (p === "_backingStore") continue;
-            if (p === "_alreadyWrappedProps") continue;
+            if (p === "_$extra") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);
@@ -151,7 +151,8 @@
 
     // This method is called during Metadata initialization to correct "wrap" properties.
     function movePropDefsToProto(proto) {
-        var alreadyWrapped = proto._alreadyWrappedProps || {};
+        var extra = proto._$extra;
+        var alreadyWrapped = extra.alreadyWrappedProps || {};
         var stype = proto.entityType || proto.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
@@ -167,7 +168,7 @@
             }
             alreadyWrapped[propName] = true;
         });
-        proto._alreadyWrappedProps = alreadyWrapped;
+        extra.alreadyWrappedProps = alreadyWrapped;
     }
 
     // This method is called when an instance is first created via materialization or createEntity.
@@ -219,12 +220,7 @@
                     return;
                 }
                 var accessorFn = getAccessorFn(bs);
-                if (this._$interceptor) {
-                    this._$interceptor(property, value, accessorFn);
-
-                } else {
-                    accessorFn(value);
-                }
+                this._$interceptor(property, value, accessorFn);
             },
             enumerable: true,
             configurable: true
@@ -247,25 +243,23 @@
         // if a read only property descriptor - no need to change it.
         if (!propDescr.set) return;
             
-        var accessorFn = function () {
+        var getAccessorFn = function(entity) {
+            return function() {
                 if (arguments.length == 0) {
-                    return propDescr.get();
+                    return propDescr.get.bind(entity)();
                 } else {
-                    propDescr.set(arguments[0]);
+                    propDescr.set.bind(entity)(arguments[0]);
                 }
-            };
+            }
+        };
+   
             
         var newDescr = {
             get: function () {
-                return propDescr.get();
+                return propDescr.get.bind(this)();
             },
             set: function (value) {
-                if (this._$interceptor) {
-                    this._$interceptor(property, value, accessorFn);
-
-                } else {
-                    accessorFn(value);
-                }
+                this._$interceptor(property, value, getAccessorFn(this));
             },
             enumerable: propDescr.enumerable,
             configurable: true

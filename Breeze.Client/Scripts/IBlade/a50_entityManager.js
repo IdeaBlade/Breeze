@@ -519,7 +519,7 @@ var EntityManager = (function () {
         var aspect = entity.entityAspect;
         if (!aspect) {
             aspect = new EntityAspect(entity);
-            aspect._postInitialize(entity);
+            // aspect._postInitialize(entity);
         }
         var manager = aspect.entityManager;
         if (manager) {
@@ -988,28 +988,40 @@ var EntityManager = (function () {
 
 
     function processServerErrors(saveContext, error) {
-        var entityErrors = error.entityErrors;
-        if (!entityErrors) return;
+        var serverErrors = error.entityErrors;
+        if (!serverErrors) return;
         var entityManager = saveContext.entityManager;
         var metadataStore = entityManager.metadataStore;
-        entityErrors.forEach(function (serr) {
-            if (!serr.keyValues) return;
-            var entityType = metadataStore._getEntityType(serr.entityTypeName);
-            var ekey = new EntityKey(entityType, serr.keyValues);
-            var entity = entityManager.findEntityByKey(ekey);
-            if (!entity) return;
-            serr.entity = entity;
-            
-            var context = serr.propertyName ?
-                {   propertyName: serr.propertyName,
+        error.entityErrors = serverErrors.map(function (serr) {
+            var entity = null;
+            if (serr.keyValues) {
+                var entityType = metadataStore._getEntityType(serr.entityTypeName);
+                var ekey = new EntityKey(entityType, serr.keyValues);
+                entity = entityManager.findEntityByKey(ekey);
+            } 
+           
+            if (entity) {
+                var context = serr.propertyName ?
+                {
+                    propertyName: serr.propertyName,
                     property: entityType.getProperty(serr.propertyName)
                 } : {
                 };
-            var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
-            
-            var ve = new ValidationError(null, context, serr.errorMessage, key);
-            ve.isServerError = true;
-            entity.entityAspect.addValidationError(ve);
+                var key = ValidationError.getKey(serr.errorName || serr.errorMessage, serr.propertyName);
+
+                var ve = new ValidationError(null, context, serr.errorMessage, key);
+                ve.isServerError = true;
+                entity.entityAspect.addValidationError(ve);
+            }
+
+            var entityError = {
+                entity: entity,
+                errorName: serr.errorName,
+                errorMessage: serr.errorMessage,
+                propertyName: serr.propertyName,
+                isServerError: true
+            };
+            return entityError;
         });
     }
     
@@ -1732,7 +1744,7 @@ var EntityManager = (function () {
                     targetEntity = null;
                 }
             } else {
-                targetEntity = entityType._createEntityCore();
+                targetEntity = entityType._createInstanceCore();
                 updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
                 if (newTempKey !== undefined) {
                     // fixup pk
@@ -1750,7 +1762,7 @@ var EntityManager = (function () {
                         });
                     }
                 }
-                targetEntity.entityAspect._postInitialize();
+                // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                 if (entityChanged) {
                     entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
@@ -2097,13 +2109,13 @@ var EntityManager = (function () {
             }
 
         } else {
-            targetEntity = entityType._createEntityCore();
+            targetEntity = entityType._createInstanceCore();
             if (targetEntity.initializeFrom) {
                 // allows any injected post ctor activity to be performed by modelLibrary impl.
                 targetEntity.initializeFrom(node);
             }
             updateEntity(targetEntity, node, mappingContext);
-            targetEntity.entityAspect._postInitialize();
+            // entityType._initializeInstance(targetEntity);
             if (meta.extra) {
                 targetEntity.entityAspect.extraMetadata = meta.extra;
             }
@@ -2181,7 +2193,8 @@ var EntityManager = (function () {
         var oldVal;
         if (dp.isComplexProperty) {
             oldVal = target.getProperty(dp.name);
-            var cdataProps = dp.dataType.dataProperties;
+            var complexType = dp.dataType;
+            var cdataProps = complexType.dataProperties;
             if (dp.isScalar) {
                 updateTargetFromRaw(oldVal, rawVal, cdataProps, isClient);
             } else {
@@ -2189,8 +2202,9 @@ var EntityManager = (function () {
                 oldVal.length = 0;
                 if (Array.isArray(rawVal)) {
                     rawVal.forEach(function (rawCo) {
-                        var newCo = dp.dataType._createInstanceCore(target, dp);
+                        var newCo = complexType._createInstanceCore(target, dp);
                         updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
+                        complexType._initializeInstance(newCo);
                         oldVal.push(newCo);
                     });
                 }

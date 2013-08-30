@@ -108,5 +108,120 @@
         r = v0.validate(new Date(2001, 9, 11));
         ok(r == null, "should be null");
     });
+ 
 
+    test("creditCard validation", function() {
+        var v0 = Validator.creditCard();
+        valFail(v0, "asdf");
+        valFail(v0, "4388576020733634");
+        
+        valGood(v0, null);
+        valGood(v0, "4388576020733633");
+    });
+    
+    test("emailAddress validation", function() {
+        var v0 = Validator.emailAddress();
+        valFail(v0, "asdf");
+        valFail(v0, "1234567");
+        valFail(v0, "john.doe@abc"); // missing '.com'
+        
+        valGood(v0, null);
+        valGood(v0, "john.doe@abc.com");
+    });
+
+    test("phone validation", function() {
+        var v0 = Validator.phone();
+        valFail(v0, "asdf");
+        valFail(v0, "Pennsylvania 6500");
+        valFail(v0, "5");
+        
+        valGood(v0, null);
+        valGood(v0, "(510) 686-8275");
+        valGood(v0, "01 510 686-8275");
+        valGood(v0, "+1 510 686-8275");
+        
+        // these pass too. You might not expect that
+        valGood(v0, "51");
+        valGood(v0, "1234567");
+        valGood(v0, "123456789012345678901234567890");
+    });
+
+    test("regularExpression validation for a US State abbreviation", function() {
+        var v0 = Validator.regularExpression({ expression: '^[A-Z]{2}$' });
+        valFail(v0, "asdf");
+        valFail(v0, "1234567");
+        valFail(v0, "ca");
+        valFail(v0, "C1");
+
+        valGood(v0, null);
+        valGood(v0, "CA");
+    });
+    
+    test("url validation", function() {
+        var v0 = Validator.url();
+        valFail(v0, "asdf");
+        valFail(v0, "1234567");
+        valFail(v0, "traband.contoso.com"); // missing protocol
+
+        // This passes but shouldn't (won't in .NET). 
+        // A JS/.NET regex diff? Need to fix
+        valGood(v0, "http://traband"); // SHOULD make this test fail
+        
+        valGood(v0, null);
+        valGood(v0, "http://traband.contoso.com");
+        valGood(v0, "https://traband.contoso.com");
+        valGood(v0, "ftp://traband.contoso.com");
+        valGood(v0, "http://traband.contoso.commiepinko");
+    });
+    
+    // from CCJS
+    test("makeRegExpValidator creates a twitter validator", function() {
+        var v0 = Validator.makeRegExpValidator(
+           'twitter', /^@([a-zA-Z]+)([a-zA-Z0-9_]+)$/,
+           "Invalid Twitter User Name: '%value%'");
+        
+        valFail(v0, "asdf");
+        valFail(v0, "1234567");
+        valFail(v0, "@1234567");
+        valFail(v0, "a@b1234567");
+        valFail(v0, "@J");
+        
+        valGood(v0, null);
+        valGood(v0, "@jaytraband");
+        valGood(v0, "@Jay_Traband22");
+        valGood(v0, "@b1234567");
+    });
+    
+    // from the example in the code
+    test("makeRegExpValidator creates a zip validator", function() {
+        var v0 = Validator.makeRegExpValidator(
+           'zipVal', /^\d{5}([\-]\d{4})?$/,
+           "The %displayName% '%value%' is not a valid U.S. zipcode");
+
+        valFail(v0, "asdf");
+        valFail(v0, "1234567");
+
+        valGood(v0, null);
+        valGood(v0, "94801");
+        valGood(v0, "94801-1234");
+    });
+    
+    function valFail(validator, arg) {
+        var r = validator.validate(arg);
+        if (arg === undefined) arg = 'undefined';
+        if (r == null) {
+            ok(false, '\'' + arg + '\' should be invalid but got no error');
+        } else {
+            ok(true, '\'' + arg + '\' should be (and is) invalid; msg is ' + r.errorMessage);
+        }
+    }
+    function valGood(validator, arg) {
+        var r = validator.validate(arg);
+        if (arg === undefined) arg = 'undefined';
+        if (r == null) {
+            ok(true, '\'' + arg + '\' should be (and is) valid');
+        } else {
+            ok(false, '\'' + arg + '\' should be valid but isn\'t; msg is ' + r.errorMessage);
+        }
+    }
 })(breezeTestFns);

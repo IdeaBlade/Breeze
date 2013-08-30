@@ -1,0 +1,12 @@
+# Ignore bundler config
+/.bundle
+
+# Ignore all logfiles and tempfiles.
+/log/*.log
+/tmp
+
+# Ignore database config
+/config/database.yml
+
+# Ignore Web Storm ide files
+.idea
