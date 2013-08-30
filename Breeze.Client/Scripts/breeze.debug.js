@@ -15019,7 +15019,13 @@ breeze.AbstractDataServiceAdapter = (function () {
             enumerable: true,
             configurable: true
         };
-        Object.defineProperty(proto, propName, descr);
+        try {
+            Object.defineProperty(proto, propName, descr);    
+        } catch(e) {
+            // IE8 doesn't have a Object.defineProperty sham
+            // https://github.com/kriskowal/es5-shim/issues/5
+            proto[propName] = descr;
+        }
     }
 
     function wrapPropDescription(proto, property) {
@@ -15058,7 +15064,13 @@ breeze.AbstractDataServiceAdapter = (function () {
             enumerable: propDescr.enumerable,
             configurable: true
         };
-        Object.defineProperty(proto, property.name, newDescr);
+        try {
+            Object.defineProperty(proto, property.name, newDescr);
+        } catch(e) {
+            // IE8 doesn't have a Object.defineProperty sham
+            // https://github.com/kriskowal/es5-shim/issues/5
+            proto[property.name] = newDescr;
+        }
     };
         
 
@@ -15233,12 +15245,19 @@ breeze.AbstractDataServiceAdapter = (function () {
         
             if (prop.isScalar) {
                 if (propDescr) {
-                    Object.defineProperty(entity, propName, {
+                    var tmpDescr = {
                         enumerable: true,
                         configurable: true,
                         writable: true,
                         value: koObj
-                    });
+                    };
+                    try {
+                        Object.defineProperty(entity, propName, tmpDescr);
+                    } catch(e) {
+                        // IE8 doesn't have a Object.defineProperty sham
+                        // https://github.com/kriskowal/es5-shim/issues/5
+                        entity[propName] = tmpDescr;
+                    }
                 } else {
                     var koExt = koObj.extend({ intercept: { instance: entity, property: prop } });
                     entity[propName] = koExt;
