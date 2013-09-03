@@ -1,0 +1,39 @@
+windows:
+  id: 1
+  name: Windows 8
+
+javascript:
+  id: 2
+  name: JavaScript
+
+css:
+  id: 3
+  name: CSS
+
+aspnet:
+  id: 4
+  name: ASP.NET
+
+net:
+  id: 5
+  name: .NET
+
+data:
+  id: 6
+  name: Data
+
+mobile:
+  id: 7
+  name: Mobile
+
+cloud:
+  id: 8
+  name: Cloud
+
+practices:
+  id: 9
+  name: Practices
+
+design:
+  id: 10
+  name: Design

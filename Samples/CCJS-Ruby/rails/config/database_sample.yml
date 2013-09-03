@@ -1,0 +1,23 @@
+setup: &setup
+  adapter:  mysql2
+  encoding: utf8
+  pool:     5
+  socket:   /tmp/mysql.sock
+
+development:
+  database: ccjs_ruby_development
+  username: user
+  password: password
+  <<: *setup
+
+test:
+  database: ccjs_ruby_test
+  username: user
+  password: password
+  <<: *setup
+
+production:
+  database: ccjs_ruby_production
+  username: user
+  password: password
+  <<: *setup

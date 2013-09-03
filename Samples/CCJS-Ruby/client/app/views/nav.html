@@ -1,0 +1,33 @@
+﻿<nav class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <a class="brand" href="/">
+            <span class="title">Code Camper</span> 
+            <span class="jump-start-title" data-bind="text: appSubtitle"></span>
+        </a>
+        <div class="loader pull-right" data-bind="css: { active: router.isNavigating }">
+            <i class="icon-spinner icon-2x icon-spin"></i>
+        </div>
+    </div>
+    <div class="navbar-inner navbar-secondary">
+        <div class="btn-group" data-bind="foreach: router.visibleRoutes">
+            <a data-bind="css: { active: isActive },
+                attr: { href: hash },
+                html: caption" 
+                class="btn btn-info"></a>
+        </div>
+        <div class="btn-group">
+          <a class="btn btn-info dropdown-toggle responsive-button" data-toggle="dropdown"><i class="icon-user"></i> <span class="text">Admin</span> <span class="caret"></span></a>
+            <ul class="dropdown-menu pull-right">
+                <!-- ko foreach: adminRoutes -->
+                <li><a data-bind="click: $parent.addSession, html: caption" href="#"></a></li>
+                <!-- /ko -->
+                <li class="divider"></li>
+                <li><a href="#" data-bind="click: clearStorage"><i class="icon-trash"></i> Clear Storage</a></li>
+                <li><a href="#" data-bind="click: toggleDebugMessages">
+                        <i data-bind="css: { 'icon-check': debugEnabled, 'icon-check-empty': !debugEnabled() }"></i> 
+                        Debug Messages</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,25 @@
+﻿<section id="sessions-view" class="view">
+    <header>
+        <a class="btn btn-info btn-force-refresh pull-right responsive-button" 
+           data-bind="click: refresh" href="#"><i class="icon-refresh"></i> <span class="text">Refresh</span></a>
+        <h3 class="page-title" data-bind="text: title"></h3>
+        <div class="article-counter">
+            <address data-bind="text: sessions().length"></address>
+            <address>found</address>
+        </div>
+    </header>
+    <section class="view-list" data-bind="foreach: sessions">
+        <article class="article-left-content">
+            <div class="session-brief" title="Go to session details">
+                <img data-bind="attr: { src: speaker().imageName }" class="img-polaroid"/>
+                <span data-bind="text: timeSlot().name"></span> at <span data-bind="text: room().name"></span>
+                <small data-bind="text: level" class="right"></small>
+                <small data-bind="text: track().name" class="right"></small>
+                <small data-bind="text: code" class="right"></small>
+                <h1 data-bind="text: title"></h1>
+                <address data-bind="text: speaker().fullName"></address>
+                <small data-bind="text: tagsFormatted"></small>
+            </div>
+        </article>
+    </section>
+</section>
