@@ -96,6 +96,7 @@ var x = {
               },
               {
                   "name": "categoryName",
+                  "displayName": "Category name",
                   "dataType": "String",
                   "isNullable": false,
                   "defaultValue": "",

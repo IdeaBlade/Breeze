@@ -2044,6 +2044,7 @@ var DataProperty = (function () {
     @param [config.nameOnServer] {String} Same as above but the name is that defined on the server.
     Either this or the 'name' above must be specified. Whichever one is specified the other will be computed using
     the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
+    @param [config.displayName] {String}
     @param [config.dataType=DataType.String] {DataType}
     @param [config.complexTypeName] {String}
     @param [config.isNullable=true] {Boolean}
@@ -2058,6 +2059,7 @@ var DataProperty = (function () {
         assertConfig(config)
             .whereParam("name").isString().isOptional()
             .whereParam("nameOnServer").isString().isOptional()
+            .whereParam("displayName").isString().isOptional()
             .whereParam("dataType").isEnumOf(DataType).isOptional().or().isString().or().isInstanceOf(ComplexType)
             .whereParam("complexTypeName").isOptional()
             .whereParam("isNullable").isBoolean().isOptional().withDefault(true)
@@ -2302,6 +2304,7 @@ var NavigationProperty = (function () {
     @param [config.nameOnServer] {String} Same as above but the name is that defined on the server.
     Either this or the 'name' above must be specified. Whichever one is specified the other will be computed using
     the NamingConvention on the MetadataStore associated with the EntityType to which this will be added.
+    @param [config.displayName] {String}
     @param config.entityTypeName {String} The fully qualified name of the type of entity that this property will return.  This type
     need not yet have been created, but it will need to get added to the relevant MetadataStore before this EntityType will be 'complete'.
     The entityType name is constructed as: {shortName} + ":#" + {namespace}
@@ -2318,6 +2321,7 @@ var NavigationProperty = (function () {
         assertConfig(config)
             .whereParam("name").isString().isOptional()
             .whereParam("nameOnServer").isString().isOptional()
+            .whereParam("displayName").isString().isOptional()
             .whereParam("entityTypeName").isString()
             .whereParam("isScalar").isBoolean()
             .whereParam("associationName").isString().isOptional()
