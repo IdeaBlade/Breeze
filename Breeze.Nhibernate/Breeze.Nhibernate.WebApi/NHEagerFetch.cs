@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Breeze.Nhibernate.WebApi
+namespace Breeze.WebApi.NH
 {
     /// <summary>
     /// Converts OData-style $expand clauses into NHibernate Fetch commands.

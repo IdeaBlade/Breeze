@@ -8,11 +8,12 @@ using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
 
 #if NHIBERNATE
-using Breeze.Nhibernate.WebApi;
+using Breeze.WebApi.NH;
 using Models.Produce.NH;
 using NHibernate;
 using NHibernate.Linq;
 #else
+using Breeze.WebApi.EF;
 using ProduceTPH;
 #endif
 

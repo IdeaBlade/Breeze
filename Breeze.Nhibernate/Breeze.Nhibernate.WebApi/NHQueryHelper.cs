@@ -9,7 +9,7 @@ using System.Net.Http.Formatting;
 using System.Reflection;
 using System.Web.Http.OData.Query;
 
-namespace Breeze.Nhibernate.WebApi
+namespace Breeze.WebApi.NH
 {
     public class NHQueryHelper : QueryHelper
     {

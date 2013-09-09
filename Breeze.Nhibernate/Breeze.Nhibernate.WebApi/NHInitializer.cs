@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Breeze.Nhibernate.WebApi
+namespace Breeze.WebApi.NH
 {
     public class NHInitializer
     {

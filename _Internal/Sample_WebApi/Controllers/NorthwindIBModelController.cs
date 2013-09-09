@@ -1,7 +1,7 @@
 ﻿// Only one of the next 5 should be uncommented.
-//#define CODEFIRST_PROVIDER
+#define CODEFIRST_PROVIDER
 //#define DATABASEFIRST_OLD
-#define DATABASEFIRST_NEW
+//#define DATABASEFIRST_NEW
 //#define ORACLE_EDMX
 //#define NHIBERNATE
 
@@ -12,10 +12,10 @@ using System;
 using System.Net;
 using System.Linq;
 using System.Web.Http;
-using System.Web.Http.OData;
+// using System.Web.Http.OData;
 using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
-using System.Web.Http.OData.Query;
+// using System.Web.Http.OData.Query;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -24,20 +24,24 @@ using System.IO;
 using System.Web;
 
 #if CODEFIRST_PROVIDER
+using Breeze.WebApi.EF;
 using Models.NorthwindIB.CF;
 using Foo;
 using System.ComponentModel.DataAnnotations;
 #elif DATABASEFIRST_OLD
+using Breeze.WebApi.EF;
 using Models.NorthwindIB.EDMX;
 #elif DATABASEFIRST_NEW
+using Breeze.WebApi.EF;
 using Models.NorthwindIB.EDMX_2012;
 #elif ORACLE_EDMX
+using Breeze.WebApi.EF;
 using Models.NorthwindIB.Oracle;
 #elif NHIBERNATE
-using Models.NorthwindIB.NH;
-using Breeze.Nhibernate.WebApi;
+using Breeze.WebApi.NH;
 using NHibernate;
 using NHibernate.Linq;
+using Models.NorthwindIB.NH;
 #endif
 
 namespace Sample_WebApi.Controllers {

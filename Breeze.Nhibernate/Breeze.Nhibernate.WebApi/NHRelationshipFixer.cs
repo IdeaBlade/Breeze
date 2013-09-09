@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Breeze.Nhibernate.WebApi
+namespace Breeze.WebApi.NH
 {
     /// <summary>
     /// Utility class for re-establishing the relationships between entities prior to saving them in Nhibernate.

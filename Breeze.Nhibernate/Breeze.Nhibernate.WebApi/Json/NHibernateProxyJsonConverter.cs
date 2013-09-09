@@ -3,7 +3,7 @@ using NHibernate;
 using NHibernate.Proxy;
 using System;
 
-namespace Breeze.Nhibernate.WebApi
+namespace Breeze.WebApi.NH
 {
     /// <summary>
     /// JsonConverter for handling NHibernate proxies.  

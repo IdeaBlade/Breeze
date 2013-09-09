@@ -6,7 +6,7 @@ using NHibernate.Proxy;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Breeze.Nhibernate.WebApi
+namespace Breeze.WebApi.NH
 {
     /// <summary>
     /// Newtonsoft.Json ContractResolver that can be configured to exclude certain properties by name.

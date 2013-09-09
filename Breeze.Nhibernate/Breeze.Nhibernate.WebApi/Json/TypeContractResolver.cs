@@ -6,7 +6,7 @@ using NHibernate.Proxy;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Breeze.Nhibernate.WebApi
+namespace Breeze.WebApi.NH
 {
     /// <summary>
     /// Newtonsoft.Json ContractResolver that only includes certain types from a given assembly.

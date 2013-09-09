@@ -1,4 +1,4 @@
-﻿using Breeze.Nhibernate.WebApi;
+﻿using Breeze.WebApi.NH;
 using Models.Produce.NH;
 
 namespace Sample_WebApi.Controllers {

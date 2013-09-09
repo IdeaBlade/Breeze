@@ -1,1 +1,1 @@
-c:\mongo\mongodb\bin\mongod -dbpath c:\mongo\data
+c:\mongoDB\bin\mongod -dbpath c:\mongoDB\data

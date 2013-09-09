@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
-namespace Breeze.Nhibernate.WebApi {
+namespace Breeze.WebApi.NH {
   public class NHContext : ContextProvider, IDisposable {
     private ISession session;
     protected Configuration configuration;

@@ -14385,7 +14385,8 @@ breeze.AbstractDataServiceAdapter = (function () {
                 // TODO: may be able to make this more efficient by caching of the previous value.
                 var entityTypeName = MetadataStore.normalizeTypeName(node.__metadata.type);
                 var et = entityTypeName && mappingContext.entityManager.metadataStore.getEntityType(entityTypeName, true);
-                if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
+                // if (et && et._mappedPropertiesCount === Object.keys(node).length - 1) {
+                if (et && et._mappedPropertiesCount <= Object.keys(node).length - 1) {
                     result.entityType = et;
                     result.extra = node.__metadata;
                 }

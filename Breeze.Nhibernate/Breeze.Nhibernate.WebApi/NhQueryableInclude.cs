@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 
 
-namespace Breeze.Nhibernate.WebApi
+namespace Breeze.WebApi.NH
 {
     /// <summary>
     /// Extends NhQueryable to add an Include function.

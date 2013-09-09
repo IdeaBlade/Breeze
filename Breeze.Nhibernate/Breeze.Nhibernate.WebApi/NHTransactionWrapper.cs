@@ -1,7 +1,7 @@
 ﻿using NHibernate;
 using System.Data;
 
-namespace Breeze.Nhibernate.WebApi {
+namespace Breeze.WebApi.NH {
   public class NHTransactionWrapper : IDbTransaction {
     ITransaction _itran;
     IDbConnection _connection;
