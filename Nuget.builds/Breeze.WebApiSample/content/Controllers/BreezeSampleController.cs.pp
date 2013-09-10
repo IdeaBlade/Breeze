@@ -3,6 +3,7 @@ using System.Web.Http;
 using Newtonsoft.Json.Linq;
 
 using Breeze.WebApi;
+using Breeze.WebApi.EF;
 
 using $rootnamespace$.Models;
 namespace $rootnamespace$.Controllers {

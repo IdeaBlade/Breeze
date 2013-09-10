@@ -1,4 +1,5 @@
 ﻿using Breeze.WebApi;
+using Breeze.WebApi.EF;
 using DomainModel;
 using Newtonsoft.Json.Linq;
 
