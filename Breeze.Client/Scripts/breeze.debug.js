@@ -12241,7 +12241,7 @@ var EntityManager = (function () {
                     errorName: ve.validator.name,
                     errorMessage: ve.errorMessage,
                     propertyName: ve.propertyName,
-                    isServerError: ve.isServerError,
+                    isServerError: ve.isServerError
                 });
             });
         });
