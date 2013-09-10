@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.4.1",
+        version: "1.4.2",
         metadataVersion: "1.0.5"
     };
 

@@ -10,17 +10,18 @@ Visit http://www.breezejs.com/documentation/start-nuget to learn more.
 
 The following files and references were add to this project.
 
-Two referenced assemblies
+Four referenced assemblies
 
 	Breeze.WebApi
-	Irony
+	Breeze.WebApi.EF
+	Breeze.WebApi.NH
 	Entity Framework
 
 Five scripts
 
 	Scripts/breeze.min.js
 	Scripts/breeze.debug.js
-    Scripts/breeze.intellisense.js
+	Scripts/breeze.intellisense.js
 	Scripts/q.js
 	Scripts/q.min.js
 

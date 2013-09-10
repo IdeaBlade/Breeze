@@ -1906,7 +1906,7 @@ var ComplexType = (function () {
     The short, unqualified, name for this ComplexType.
 
     __readOnly__
-    +@property shortName {String} 
+    @property shortName {String} 
     **/
 
     /**

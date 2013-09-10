@@ -852,7 +852,7 @@ var ValidationError = (function () {
     @method <ctor> ValidationError
 
     @param validator {Validator || null} The Validator used to create this error, if any.
-    @param context { ContextObject || null) The Context object used in conjunction with the Validator to create this error.
+    @param context { ContextObject || null} The Context object used in conjunction with the Validator to create this error.
     @param errorMessage { String} The actual error message
     @param [key] {String} An optional key used to define a key for this error. One will be created automatically if not provided here. 
     **/
