@@ -41,13 +41,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Breeze.WebApi">
-      <HintPath>..\packages\Breeze.WebApi.1.4.1\lib\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\packages\Breeze.WebApi.1.4.2\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
-    <Reference Include="EntityFramework">
+    <Reference Include="Breeze.WebApi.EF">
+      <HintPath>..\packages\Breeze.WebApi.1.4.2\lib\Breeze.WebApi.EF.dll</HintPath>
+    </Reference>
+    <Reference Include="Breeze.WebApi.NH">
+      <HintPath>..\packages\Breeze.WebApi.1.4.2\lib\Breeze.WebApi.NH.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="Irony">
-      <HintPath>..\packages\Breeze.WebApi.1.4.1\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -61,7 +65,8 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -70,7 +75,7 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Net.Http.Formatting">
+    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.4.0.30506.0\lib\net40\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
@@ -80,17 +85,19 @@
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Configuration" />
-    <Reference Include="System.Web.Http">
+    <Reference Include="System.Web.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.4.0.30506.0\lib\net40\System.Web.Http.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http.OData">
+    <Reference Include="System.Web.Http.OData, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.AspNet.WebApi.OData.4.0.30506\lib\net40\System.Web.Http.OData.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Http.WebHost">
+    <Reference Include="System.Web.Http.WebHost, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.4.0.30506.0\lib\net40\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
-    <Reference Include="WebActivator">
+    <Reference Include="WebActivator, Version=1.5.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WebActivator.1.5.3\lib\net40\WebActivator.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -135,6 +142,7 @@
     </Content>
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\q.js" />
+    <Content Include="Scripts\q.min.js" />
     <Content Include="Scripts\qunit.js" />
     <Content Include="Scripts\_references.js" />
   </ItemGroup>

@@ -43,8 +43,8 @@ function packageNuget($srcDir, $folderName, $versionNum, $isBase) {
     copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.js $destDir\content\Scripts 
     copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.min.js $destDir\content\Scripts 
     copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\lib\
-    copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.EF.dll $destDir\lib\
-    copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.NH.dll $destDir\lib\
+    copy-item $srcDir\Breeze.WebApi.EF\Breeze.WebApi.EF.dll $destDir\lib\
+    copy-item $srcDir\Breeze.WebApi.NH\Breeze.WebApi.NH.dll $destDir\lib\
   }
 
   $input = get-content $nuspecFile  

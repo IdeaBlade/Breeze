@@ -111,7 +111,6 @@
     <Compile Include="TypeFns.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="Breeze.WebApi.snk" />
     <None Include="packages.config" />
   </ItemGroup>
