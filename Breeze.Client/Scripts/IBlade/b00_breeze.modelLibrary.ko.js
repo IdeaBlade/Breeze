@@ -73,8 +73,9 @@
             return this;
         };
 
-        
-        isolateES5Props(proto);
+        if (proto.getPrototypeOf) {
+            isolateES5Props(proto);
+        }
 
     };
 

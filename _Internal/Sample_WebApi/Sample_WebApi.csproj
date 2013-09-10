@@ -366,13 +366,13 @@
       <Project>{9bde026e-ce0a-42f1-a508-4be30124dd67}</Project>
       <Name>Breeze.Client</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Breeze.Nhibernate\Breeze.Nhibernate.WebApi\Breeze.WebApi.NH.csproj">
-      <Project>{9df09802-357c-4e82-b98e-032445fb2747}</Project>
-      <Name>Breeze.WebApi.NH</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Breeze.WebApi.EF\Breeze.WebApi.EF.csproj">
       <Project>{ef0b0330-34f3-4115-9e0d-8a8b7df16a9c}</Project>
       <Name>Breeze.WebApi.EF</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Breeze.WebApi.NH\Breeze.WebApi.NH.csproj">
+      <Project>{9df09802-357c-4e82-b98e-032445fb2747}</Project>
+      <Name>Breeze.WebApi.NH</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Breeze.WebApi\Breeze.WebApi.csproj">
       <Project>{4d9ce4e7-dca1-4458-ba63-2c3f7907b754}</Project>

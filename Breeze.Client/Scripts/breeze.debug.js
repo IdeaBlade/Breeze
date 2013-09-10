@@ -12241,7 +12241,7 @@ var EntityManager = (function () {
                     errorName: ve.validator.name,
                     errorMessage: ve.errorMessage,
                     propertyName: ve.propertyName,
-                    isServerError: ve.isServerError,
+                    isServerError: ve.isServerError
                 });
             });
         });
@@ -15141,8 +15141,9 @@ breeze.AbstractDataServiceAdapter = (function () {
             return this;
         };
 
-        
-        isolateES5Props(proto);
+        if (proto.getPrototypeOf) {
+            isolateES5Props(proto);
+        }
 
     };
 
