@@ -30,7 +30,8 @@
         <file src="content\Scripts\breeze.debug.js" target="content\Scripts\breeze.debug.js" />
 		<file src="content\Scripts\breeze.min.js" target="content\Scripts\breeze.min.js" />
         <file src="lib\Breeze.WebApi.dll" target="lib\Breeze.WebApi.dll" />
-        <file src="lib\Irony.dll" target="lib\Irony.dll" />
+		<file src="lib\Breeze.WebApi.EF.dll" target="lib\Breeze.WebApi.EF.dll" />
+		<file src="lib\Breeze.WebApi.NH.dll" target="lib\Breeze.WebApi.NH.dll" />
 		<file src="tools\install.ps1" target="tools\install.ps1" />
         <file src="readme.txt" target="readme.txt" />
     </files>
