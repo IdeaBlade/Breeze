@@ -3,36 +3,25 @@
     <metadata>
         <id>{{id}}</id>
         <version>{{version}}</version>
-        <title>Breeze for ASP.NET Web Api projects</title>
+        <title>Breeze Client and Server for ASP.NET Web Api - Entity Framework projects</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
         <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>The files and references that are essential for a Breeze ASP.NET Web Api application.  We recommend installing this package shortly after creating a project with the "ASP.NET Empty Web Application" template or one of the MVC 4 templates such as the "ASP.NET MVC 4 Empty" template.  To see an example Breeze application, try the  'Breeze.WebApiSample' package which creates a simple MVC4 WebApi app.</description>
-        <summary>Breeze ASP.NET Web Api support package</summary>
+        <description>The files and references that are essential for a Breeze ASP.NET Web Api Entity Framework application.  We recommend installing this package shortly after creating a project with the "ASP.NET Empty Web Application" template or one of the MVC 4 templates such as the "ASP.NET MVC 4 Empty" template.  To see an example Breeze application, try the  'Breeze.WebApiSample' package which creates a simple MVC4 WebApi app.</description>
+        <summary>Breeze ASP.NET Web Api for Entity Framework support package</summary>
         <copyright>Copyright IdeaBlade 2012</copyright>
         <language>en-US</language>
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        
         <tags>javascript WebApi EntityFramework Breeze SPA</tags>
 		<dependencies>
-            <dependency id="Microsoft.AspNet.WebApi"/>
-            <dependency id="Microsoft.AspNet.WebApi.OData"/>
-            <dependency id="WebActivator" />
-            <dependency id="EntityFramework" version="[4.4,6)" />
-            <dependency id="Q" />
+		    <dependency id="Breeze.Client" version="{{version}}" />
+			<dependency id="Breeze.Server.WebApi.EF" version="{{version}}" />
 		</dependencies>
     </metadata>
     <files>
-        <file src="content\App_Start\BreezeWebApiConfig.cs.pp" target="content\App_Start\BreezeWebApiConfig.cs.pp" />
-        <file src="content\Scripts\breeze.intellisense.js" target="content\Scripts\breeze.intellisense.js" />
-        <file src="content\Scripts\breeze.debug.js" target="content\Scripts\breeze.debug.js" />
-		<file src="content\Scripts\breeze.min.js" target="content\Scripts\breeze.min.js" />
-        <file src="lib\Breeze.WebApi.dll" target="lib\Breeze.WebApi.dll" />
-		<file src="lib\Breeze.WebApi.EF.dll" target="lib\Breeze.WebApi.EF.dll" />
-		<file src="lib\Breeze.WebApi.NH.dll" target="lib\Breeze.WebApi.NH.dll" />
-		<file src="tools\install.ps1" target="tools\install.ps1" />
         <file src="readme.txt" target="readme.txt" />
     </files>
 </package>

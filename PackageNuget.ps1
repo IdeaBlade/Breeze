@@ -16,7 +16,7 @@ function checkIfCurrent([string] $filePath, [int] $minutesOld) {
             $fileName = $_.fullName
             write-host "The $fileName file is too old" 
         }
-        pauseAndThrow("")
+        # pauseAndThrow("")
     }        
 }
 
@@ -38,10 +38,11 @@ function packageNuget($srcDir, $folderName, $versionNum, $isBase) {
   # remove old nupkg files
   gci $destDir *.nupkg -force | foreach ($_) {  remove-item $_.fullname -Force }
  
-  if ($isBase) {
+  if ($isBase -eq 'client') {
     copy-item $srcDir\Breeze.Client\Scripts\breeze*.js $destDir\content\Scripts 
     copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.js $destDir\content\Scripts 
     copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.min.js $destDir\content\Scripts 
+  } elseif ($isBase -eq 'server') {
     copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\lib\
     copy-item $srcDir\Breeze.WebApi.EF\Breeze.WebApi.EF.dll $destDir\lib\
     copy-item $srcDir\Breeze.WebApi.NH\Breeze.WebApi.NH.dll $destDir\lib\
@@ -74,8 +75,13 @@ checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
 $versionNum = getBreezeVersion $srcDir
 
-packageNuget $srcDir 'Breeze.WebApi' $versionNum $true
-packageNuget $srcDir 'Breeze.WebApiSample' $versionNum $false
+packageNuget $srcDir 'Breeze.Client' $versionNum 'client'
+packageNuget $srcDir 'Breeze.Server.WebApi.Core' $versionNum 'server'
+packageNuget $srcDir 'Breeze.Server.WebApi.EF' $versionNum 'na'
+packageNuget $srcDir 'Breeze.WebApi.Sample' $versionNum 'na'
+
+# this next one is obsolete - but safe because it is just a copy of Breeze.WebApi.EF
+packageNuget $srcDir 'Breeze.WebApi' $versionNum 'na'  
 
 Write-Host "Press any key to continue ..."
 cmd /c pause | out-null
