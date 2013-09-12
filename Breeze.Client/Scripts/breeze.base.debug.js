@@ -10259,19 +10259,23 @@ var Predicate = (function () {
     **/
 
     function argsToPredicates(argsx) {
-        var args;
+        assertParam(argsx,'arguments').hasProperty('length').check();
+        var args = argsx;
         if (argsx.length === 1 && Array.isArray(argsx[0])) {
             args = argsx[0];
-        } else {
-            var args = __arraySlice(argsx);
+        } 
+        // convert Arguments to Array
+        args = __arraySlice(args);
+        // remove any null or undefined elements from the array.
+        if(Array.isArray(args)) {
+            args = args.filter(function(arg){
+                return !! arg;
+            });
             if (!Predicate.isPredicate(args[0])) {
                 args = [Predicate.create(args)];
             }
         }
-        // remove any null or undefined elements from the array.
-        return args.filter(function (arg) {
-            return arg != null;
-        });
+        return args;        
     }
 
     return ctor;
