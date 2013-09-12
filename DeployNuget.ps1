@@ -25,12 +25,15 @@ function deployNuget($srcDir, $folderName) {
 # srcDir is the location of this script file
 $srcDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
+deployNuget $srcDir 'Breeze.Client'
+deployNuget $srcDir 'Breeze.Server.WebApi.Core'
+deployNuget $srcDir 'Breeze.Server.WebApi.EF'
+deployNuget $srcDir 'Breeze.Server.WebApi.NH'
 
 deployNuget $srcDir 'Breeze.WebApi'
-deployNuget $srcDir 'Breeze.WebApiSample'
+deployNuget $srcDir 'Breeze.WebApi.Sample'
 
-#Breeze.WebApi
-#Breeze.WebApiSample
+
 
 Write-Host "Press any key to continue ..."
 cmd /c pause | out-null

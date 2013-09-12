@@ -16,7 +16,7 @@ function checkIfCurrent([string] $filePath, [int] $minutesOld) {
             $fileName = $_.fullName
             write-host "The $fileName file is too old" 
         }
-        # pauseAndThrow("")
+        pauseAndThrow("")
     }        
 }
 
@@ -78,6 +78,7 @@ $versionNum = getBreezeVersion $srcDir
 packageNuget $srcDir 'Breeze.Client' $versionNum 'client'
 packageNuget $srcDir 'Breeze.Server.WebApi.Core' $versionNum 'server'
 packageNuget $srcDir 'Breeze.Server.WebApi.EF' $versionNum 'na'
+packageNuget $srcDir 'Breeze.Server.WebApi.NH' $versionNum 'na'
 packageNuget $srcDir 'Breeze.WebApi.Sample' $versionNum 'na'
 
 # this next one is obsolete - but safe because it is just a copy of Breeze.WebApi.EF

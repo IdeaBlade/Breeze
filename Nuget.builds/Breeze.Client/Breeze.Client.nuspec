@@ -3,15 +3,15 @@
     <metadata>
         <id>Breeze.Client</id>
         <version>1.4.2</version>
-        <title>Breeze Javascript client</title>
+        <title>Breeze Client - Javascript</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
         <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>The files and references that are essential for a Breeze client side javascript application.  </description>
-        <summary>Breeze client javascript support package - You may want to use one of the other Breeze nuget packages in order to get integrated support for EntityFramework, NHibernate etc</summary>
+        <description>The files and references that are essential for a Breeze client side javascript application. You may want to use one of the other Breeze nuget packages in order to get integrated support for EntityFramework, NHibernate etc </description>
+        <summary>Breeze Client - Javascript</summary>
         <copyright>Copyright IdeaBlade 2012</copyright>
         <language>en-US</language>
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        
