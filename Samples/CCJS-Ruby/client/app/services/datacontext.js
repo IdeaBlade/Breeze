@@ -14,10 +14,11 @@ define([
         var entityNames = model.entityNames;
         var storage = new DataContextStorage(manager);
         var ajaxInterceptor = new breeze.AjaxRestInterceptor();
+        ajaxInterceptor.enable();
         breeze.config.initializeAdapterInstance("dataService", "ccjs_active_record", true);
         breeze.saveErrorMessageService.getEntityName = function(){}; // don't show entity name in error message
 
-        ajaxInterceptor.enable();
+
 
         var getSpeakerPartials = function (speakersObservable, forceRemote) {
             if (!forceRemote) {

@@ -5,7 +5,7 @@ class Breeze::SettingsController < ApplicationController
 
   # Metadata information
   def metadata
-    render json: SPEAKERS_METADATA
+    render json: METADATA
   end
 
   # Rooms, Tracks and Time Slots information

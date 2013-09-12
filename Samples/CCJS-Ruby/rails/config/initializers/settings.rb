@@ -1,4 +1,4 @@
-SPEAKERS_METADATA = '{
+METADATA = '{
   "metadataVersion": "1.0.5",
   "namingConvention": "rubyNamingConvention",
   "localQueryComparisonOptions": "caseInsensitiveSQL",
