@@ -14,6 +14,7 @@ using System.Linq;
 using System.Web.Http;
 // using System.Web.Http.OData;
 using Breeze.WebApi;
+using Breeze.WebApi.EF;
 using Newtonsoft.Json.Linq;
 // using System.Web.Http.OData.Query;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ using System.IO;
 using System.Web;
 
 #if CODEFIRST_PROVIDER
-using Breeze.WebApi.EF;
+
 using Models.NorthwindIB.CF;
 using Foo;
 using System.ComponentModel.DataAnnotations;
