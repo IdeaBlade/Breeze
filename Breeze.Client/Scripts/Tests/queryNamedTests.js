@@ -31,7 +31,7 @@
         return;
     }
 
-    test("named query first or default", function () {
+    test("first or default", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - this endpoint not yet implemented");
             return;
@@ -47,7 +47,7 @@
 
     });
 
-    test("named query withParameters using an array", function () {
+    test("withParameters using an array", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - this endpoint not yet implemented");
             return;
@@ -65,7 +65,7 @@
 
     });
 
-    test("named query withParameters using an object", function () {
+    test("withParameters using an object", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - this endpoint not yet implemented");
             return;
@@ -83,7 +83,7 @@
 
     });
 
-    test("named query withParameters using a array of objects", function () {
+    test("withParameters using a array of objects", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - this endpoint not yet implemented");
             return;
@@ -105,7 +105,7 @@
 
     });
 
-    test("named query not returning results in same order as in server", function () {
+    test("not returning results in same order as in server", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - this endpoint not yet implemented");
             return;
@@ -217,7 +217,7 @@
             r = data.results;
             ok(r.length > 0, "should be some results");
             var allok = r.every(function(r) {
-                return r.getProperty("companyName").substr(0, 1) === "C";
+                return r.getProperty("companyName").toUpperCase().substr(0, 1) === "C";
             });
             ok(allok, "all customers should have company names starting with 'c'");
             q2 = q.where("fax", "!=", null);
@@ -278,7 +278,7 @@
             var r = data.results;
             ok(r.length > 0, "should be some results");
             var allok = r.every(function (r) {
-                return r.getProperty("companyName").substr(0, 1) === "C";
+                return r.getProperty("companyName").toUpperCase().substr(0, 1) === "C";
             });
             ok(allok, "all customers should have company names starting with 'c'");
         }).fail(testFns.handleFail).fin(start);

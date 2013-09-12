@@ -1,0 +1,53 @@
+﻿@{Layout = null;}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Breeze Sample</title>
+    <link rel="stylesheet" href="/Content/breezesample.css"/>
+</head>
+<body>
+    <header>
+        <div class="content-wrapper">
+            <div class="float-left">
+                <p class="site-title">
+                    <a href="~/">Breeze Sample</a>
+                </p>
+            </div>
+        </div>
+    </header>
+    <div id="body">
+        <section id="content" class="content-wrapper main-content">
+
+            <div data-bind="visible: show" style="display: none">
+                <a href="#" data-bind="click: save">Save</a>&nbsp;
+                    <input type="checkbox" data-bind="checked: includeDone" />
+                include done 
+  
+                    <ul data-bind="foreach: todos">
+                        <li>
+                            <form>
+                                <input type="checkbox" data-bind="checked: IsDone" />
+                                <input type="text" data-bind="value: Description, css: { done: IsDone }" />
+                            </form>
+                        </li>
+                    </ul>
+            </div>
+
+            <div id="logmessages"></div>
+            <p style="color: darkgray;margin-top: 20px">Delete App_Start/BreezeClientSampleRouteConfig.cs to restore default routing to the MVC home controller.<em/></p>   
+
+        </section>
+    </div> 
+    <!--3rd party library scripts -->
+    <script src="/Scripts/jquery-1.7.1.min.js"></script>
+    <script src="/Scripts/knockout-2.1.0.js"></script>
+    <script src="/Scripts/q.js"></script>
+    <script src="/Scripts/breeze.debug.js"></script>
+
+    <!-- Application scripts -->
+    <script src="/Scripts/app/logger.js"></script>
+    <script src="/Scripts/app/sampleViewModel.js"></script>
+</body>
+</html>

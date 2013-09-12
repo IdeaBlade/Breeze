@@ -1,12 +1,13 @@
 using System.Linq;
 using System.Web.Http;
 using Breeze.WebApi;
+using Breeze.WebApi.EF;
 using CarBones.Models;
 using Newtonsoft.Json.Linq;
 
 namespace CarBones.Controllers
 {
-    [JsonFormatter, ODataActionFilter]
+    [BreezeController]
     public class CarBonesController : ApiController
     {
         readonly EFContextProvider<CarBonesContext> _contextProvider =

@@ -3,12 +3,13 @@ using System.Linq;
 using System.Web.Http;
 
 using Breeze.WebApi;
+using Breeze.WebApi.EF;
 using Breeze.Learn.Models;
 
 using Newtonsoft.Json.Linq;
 
 namespace Breeze.Learn.Controllers {
-
+  [BreezeController]
   public class NorthwindController : ApiController {
 
     readonly EFContextProvider<NorthwindContext> ContextProvider =

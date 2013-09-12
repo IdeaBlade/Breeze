@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Breeze.WebApi;
+using Breeze.WebApi.EF;
 using Inheritance.Models;
 using Newtonsoft.Json.Linq;
 

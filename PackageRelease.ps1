@@ -89,7 +89,8 @@ copy-item $srcDir\Breeze.Client\TypeScript\TypeScript\breeze.d.ts $destDir\TypeS
 copy-item $srcDir\Breeze.Client\Metadata\*.* $destDir\Metadata
 new-item $destDir\WebApi -type Directory
 copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\WebApi
-copy-item $srcDir\ThirdParty\Irony.dll $destDir\WebApi
+copy-item $srcDir\Breeze.WebApi.EF\Breeze.WebApi.EF.dll $destDir\WebApi
+copy-item $srcDir\Breeze.WebApi.NH\Breeze.WebApi.NH.dll $destDir\WebApi
 copy-item $srcDir\readme.txt $destDir\readme.txt
 
 "Version: $VersionNum" | out-file $destDir\version.txt

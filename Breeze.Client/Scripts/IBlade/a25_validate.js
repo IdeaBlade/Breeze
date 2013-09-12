@@ -306,7 +306,7 @@ var Validator = (function () {
         guid: "'%displayName%' must be a GUID",
         integer: "'%displayName%' must be an integer",
         integerRange: "'%displayName%' must be an integer between the values of %minValue% and %maxValue%",
-        maxLength: "'%displayName%' must be a string with less than %maxLength% characters",
+        maxLength: "'%displayName%' must be a string with %maxLength% characters or less",
         number: "'%displayName%' must be a number",
         phone: "The %displayName% '%value%' is not a valid phone number",
         regularExpression: "The %displayName% '%value%' does not match '%expression%'",
@@ -852,7 +852,7 @@ var ValidationError = (function () {
     @method <ctor> ValidationError
 
     @param validator {Validator || null} The Validator used to create this error, if any.
-    @param context { ContextObject || null) The Context object used in conjunction with the Validator to create this error.
+    @param context { ContextObject || null} The Context object used in conjunction with the Validator to create this error.
     @param errorMessage { String} The actual error message
     @param [key] {String} An optional key used to define a key for this error. One will be created automatically if not provided here. 
     **/

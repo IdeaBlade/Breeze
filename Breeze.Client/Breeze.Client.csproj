@@ -169,6 +169,9 @@
     <Content Include="Scripts\IBlade\node_modules\uglify-js\test\compress\switch.js" />
     <Content Include="Scripts\IBlade\node_modules\uglify-js\test\run-tests.js" />
     <Content Include="Scripts\IBlade\node_modules\uglify-js\tools\node.js" />
+    <Content Include="Scripts\jquery-1.8.2.intellisense.js" />
+    <Content Include="Scripts\jquery-1.8.2.js" />
+    <Content Include="Scripts\jquery-1.8.2.min.js" />
     <Content Include="Scripts\Tests\saveTransactionTests.js" />
     <Content Include="Scripts\Tests\testFns.js" />
     <None Include="Scripts\IBlade\_head.jsfrag" />

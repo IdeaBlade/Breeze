@@ -161,7 +161,7 @@
             "should have one validation error about 'foo'.");
 
         var errMsg = errs[0].errorMessage;
-        ok(/foo.*less than/.test(errMsg),
+        ok(/foo.*or less/.test(errMsg),
             "error message, \"{0}\", should complain that 'foo' is too long."
             .format(errMsg));
 

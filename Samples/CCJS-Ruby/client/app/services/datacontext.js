@@ -8,16 +8,22 @@ define([
     'services/breeze.ajaxrestinterceptor',
     'services/breeze.ccjsActiveRecordDataServiceAdapter'],
     function (system, model, DataContextStorage, config, logger, jsonResultAdapter) {
-        var EntityQuery = breeze.EntityQuery;
-        var manager = configureBreezeManager();
-        var orderBy = model.orderBy;
-        var entityNames = model.entityNames;
-        var storage = new DataContextStorage(manager);
-        var ajaxInterceptor = new breeze.AjaxRestInterceptor();
-        breeze.config.initializeAdapterInstance("dataService", "ccjs_active_record", true);
-        breeze.saveErrorMessageService.getEntityName = function(){}; // don't show entity name in error message
 
+        var manager = configureBreezeManager();
+
+        jsonResultAdapter.initialize(manager);
+
+        var ajaxInterceptor = new breeze.AjaxRestInterceptor();
         ajaxInterceptor.enable();
+
+        breeze.config.initializeAdapterInstance("dataService", "ccjs_active_record", true);
+
+        var EntityQuery = breeze.EntityQuery;
+        var entityNames = model.entityNames;
+        var orderBy = model.orderBy;
+        var storage = new DataContextStorage(manager);
+
+        breeze.saveErrorMessageService.getEntityName = function(){}; // don't show entity name in error message
 
         var getSpeakerPartials = function (speakersObservable, forceRemote) {
             if (!forceRemote) {
@@ -261,11 +267,10 @@ define([
                 }
             });
 
-
             rubyNamingConvention.setAsDefault();
+
             var mgr = new breeze.EntityManager(config.remoteServiceName);
             model.configureMetadataStore(mgr.metadataStore);
-            jsonResultAdapter.initialize(mgr);
             return mgr;
         }
 

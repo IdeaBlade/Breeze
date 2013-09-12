@@ -166,6 +166,55 @@
 
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("create an entity instance with a populated complex type", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Location = testFns.models.Location();
+        var locationType = em.metadataStore.getEntityType("Location");
+        em.metadataStore.registerEntityTypeCtor("Location", Location, "init");
+
+        var newLocation = locationType.createInstance();
+        newLocation.setProperty("extraName", "newValue");
+        newLocation.setProperty("city", "bar");
+        var supplier = em.createEntity("Supplier", { location: newLocation });     
+
+        var location0 = supplier.getProperty("location");
+        ok(location0.getProperty("city") === "bar", "city should have value 'bar'");
+        ok(location0.getProperty("extraName") === "newValue", "extraName should have value 'newValue'");
+        ok(location0 != newLocation, "locations should not be the same object");
+
+        
+    });
+
+    // TODO: right now this will fail because we don't yet support attaching an entity created with new that has populated complexTypes.
+    // change needs to be made to each of the modelLibraries. 
+    //test("new an entity instance with a populated complex type", function () {
+    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+    //    var Supplier = testFns.models.Supplier();
+        
+
+    //    em.metadataStore.registerEntityTypeCtor("Supplier", Supplier);
+
+    //    var Location = testFns.models.Location();
+    //    var locationType = em.metadataStore.getEntityType("Location");
+    //    em.metadataStore.registerEntityTypeCtor("Location", Location, "init");
+        
+    //    var supplier = new Supplier();
+    //    supplier.companyName = "Foo";
+    //    var location = { extraName: "newValue", city: "bar" };
+    //    supplier.location = location;
+    //    em.addEntity(supplier);
+
+    //    companyName0 = supplier.getProperty("companyName");
+    //    ok(companyName0 === "Foo", "companyName should be Foo");
+    //    var location0 = supplier.getProperty("location");
+    //    ok(location0.getProperty("city") === "bar", "city should have value 'bar'");
+    //    ok(location0.getProperty("extraName") === "newValue", "extraName should have value 'newValue'");
+    //    ok(location0 != location, "locations should not be the same object");
+
+
+    //});
+
     
     test("rejectChanges", function () {
         var em = newEm();

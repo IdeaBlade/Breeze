@@ -406,6 +406,23 @@ breezeTestFns = (function (breeze) {
 
     testFns.models = {};
     var models = testFns.models;
+
+    models.Supplier = function() {
+        if (testFns.modelLibrary == "ko") {
+            return function () {
+        
+            };
+        } else if (testFns.modelLibrary == "backbone") {
+            return Backbone.Model.extend({
+                defaults: {
+                    
+                }
+            });
+        } else {
+            return function () {
+            };
+        }
+    };
     
     models.Customer = function () {
         if (testFns.modelLibrary == "ko") {

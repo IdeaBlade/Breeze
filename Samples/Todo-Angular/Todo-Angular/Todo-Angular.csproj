@@ -42,13 +42,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Breeze.WebApi">
-      <HintPath>..\packages\Breeze.WebApi.1.4.1\lib\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\packages\Breeze.Server.WebApi.Core.1.4.2\lib\Breeze.WebApi.dll</HintPath>
+    </Reference>
+    <Reference Include="Breeze.WebApi.EF">
+      <HintPath>..\packages\Breeze.Server.WebApi.EF.1.4.2\lib\Breeze.WebApi.EF.dll</HintPath>
+    </Reference>
+    <Reference Include="Breeze.WebApi.NH">
+      <HintPath>..\packages\Breeze.WebApi.1.4.2\lib\Breeze.WebApi.NH.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="Irony">
-      <HintPath>..\packages\Breeze.WebApi.1.4.1\lib\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">

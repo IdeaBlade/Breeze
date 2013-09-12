@@ -1,5 +1,6 @@
 ﻿using System.Web.Http;
 using Breeze.WebApi;
+using Breeze.WebApi.EF;
 using DomainModel;
 
 namespace TempHire.Controllers

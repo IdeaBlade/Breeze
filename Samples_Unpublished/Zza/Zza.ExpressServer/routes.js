@@ -109,13 +109,13 @@ function lookups(req, res, next) {
     getAll('ProductSize','ProductSize');
 
     function getAll(collectionName, entityType) {
+        queryCountDown += 1;
         db.collection(collectionName, {strict: true} , function (err, collection) {
             if (err) {
                 err = { statusCode: 404, message: "Unable to locate: " + collectionName, error: err };
                 done(err, null);
                 return;
             }
-            queryCountDown += 1;
             src = collection.find().toArray(function (err, results) {
                 queryCountDown -= 1;
                 if (err) {

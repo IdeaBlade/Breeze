@@ -119,7 +119,7 @@
 
 
         var cust = customerType.createEntity();
-        cust.setProperty("companyName", "compName");
+        cust.setProperty("companyName", "Test_compName");
         em.addEntity(cust);
 
         var entitiesToSave = new Array(cust);
