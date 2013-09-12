@@ -14,8 +14,8 @@ define(
         }
       
         // Extend the visitNode method of a source JsonResultsAdapter
-        // to set Session.isPartial and Person.isPartial to false
-        // when a query returns those entity types.
+        // to set Session.isPartial and Person.isPartial to true
+        // when a query returns partial entity data.
         function createCustomAdapter(sourceAdapter) {
 
             var baseVisitNode = sourceAdapter.visitNode;
@@ -23,7 +23,7 @@ define(
             var visitNode = function (node, mappingContext, nodeContext) {
                 // With .NET server the  projected typename is unpronouncable
                 // In Rails version where we control the projected type name.
-                // if type name contains 'partial' .. , it's a projection
+                // if type name contains 'partial' .. , it's a partial entity
                 node.isPartial =  /partial/i.test(node.$type) 
                 return baseVisitNode(node, mappingContext, nodeContext);
             };
