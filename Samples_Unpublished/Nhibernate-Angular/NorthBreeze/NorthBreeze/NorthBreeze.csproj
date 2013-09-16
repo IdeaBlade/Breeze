@@ -38,18 +38,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.Nhibernate.WebApi">
-      <HintPath>..\..\..\..\Breeze.Nhibernate\Breeze.Nhibernate.WebApi\bin\Debug\Breeze.Nhibernate.WebApi.dll</HintPath>
-    </Reference>
     <Reference Include="Breeze.WebApi">
       <HintPath>..\..\..\..\Breeze.WebApi\Breeze.WebApi.dll</HintPath>
+    </Reference>
+    <Reference Include="Breeze.WebApi.NH">
+      <HintPath>..\..\..\..\Breeze.WebApi.NH\Breeze.WebApi.NH.dll</HintPath>
     </Reference>
     <Reference Include="Iesi.Collections, Version=1.0.1.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Iesi.Collections.3.2.0.4000\lib\Net35\Iesi.Collections.dll</HintPath>
-    </Reference>
-    <Reference Include="Irony">
-      <HintPath>..\..\..\..\Breeze.WebApi\bin\Debug\Irony.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm, Version=5.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -119,6 +116,7 @@
     <Content Include="App\filters.js" />
     <Content Include="App\logger.js" />
     <Content Include="App\dataservice.js" />
+    <Content Include="App\metadata.js" />
     <Content Include="App\services.js" />
     <Content Include="App\style.css" />
     <Content Include="App\views\customers.html" />
@@ -133,7 +131,7 @@
     <Content Include="Scripts\angular.js" />
     <Content Include="Scripts\breeze.debug.js" />
     <Content Include="Scripts\jquery-1.9.1.js" />
-    <Content Include="Scripts\ng-grid-2.0.5.js" />
+    <Content Include="Scripts\ng-grid-2.0.7.debug.js" />
     <Content Include="Scripts\q.js" />
     <Content Include="Scripts\toastr.js" />
     <Content Include="Web.config" />
@@ -143,6 +141,7 @@
     <Compile Include="Controllers\NHConfig.cs" />
     <Compile Include="Controllers\NorthBreezeController.cs" />
     <Compile Include="Controllers\NorthwindContext.cs" />
+    <Compile Include="Controllers\NorthwindSqlContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

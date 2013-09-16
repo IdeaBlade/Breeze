@@ -6,12 +6,18 @@
     <div>
         <h3>Edit Customer</h3>
         <form class="form-horizontal">
+            <!-- We do field-level validation based on the validation rules in the metadata,
+                and twitter bootstrap styles to show invalid fields.  See the breezeinput directive -->
+
+            <!-- here's what the HTML looks like without the breezeinput directive -->
             <div class="control-group" ng-class="{ error: customer.entityAspect.getValidationErrors('CompanyName').length }">
                 <label class="control-label" for="CompanyName">Company Name</label>
                 <div class="controls">
                     <input type="text" id="CompanyName" ng-model="customer.CompanyName">
                 </div>
             </div>
+
+            <!-- breezeinput directive emits the above HTML for each input box -->
             <breezeinput label="Company Name" ng-model="customer.CompanyName"></breezeinput>
             <breezeinput label="Contact Name" ng-model="customer.ContactName"></breezeinput>
             <breezeinput label="Contact Title" ng-model="customer.ContactTitle"></breezeinput>
