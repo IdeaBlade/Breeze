@@ -13230,7 +13230,7 @@ var EntityManager = (function () {
                             fn();
                         });
                     }
-                    return { results: results, query: query, entityManager: em, XHR: data.XHR, inlineCount: data.inlineCount };
+                    return { results: results, query: query, entityManager: em, httpResponse: data.httpResponse, inlineCount: data.inlineCount };
                 });
                 return Q.resolve(result);
             }).fail(function (e) {
@@ -13986,43 +13986,34 @@ breeze.AbstractDataServiceAdapter = (function () {
 
         var that = this;
         ajaxImpl.ajax({
+            type: "GET",
             url: url,
             dataType: 'json',
-            success: function (data, textStatus, XHR) {
-                var error;
+            success: function (httpResponse) {
+                
                 // might have been fetched by another query
                 if (metadataStore.hasMetadataFor(serviceName)) {
                     return deferred.resolve("already fetched");
                 }
-                var metadata = typeof (data) === "string" ? JSON.parse(data) : data;
-                
-                if (metadata) {
-                    try {
-                        metadataStore.importMetadata(metadata);
-                    } catch (e) {
-                        error = new Error("Metadata import failed for " + url + "; Unable to process returned metadata:" + e.message);
-                    }
-                } else {
-                    error = new Error("Metadata query failed for: " + url);
-                }
-
-                if (error) {
-                    return deferred.reject(error)
+                var data = httpResponse.data;
+                try {
+                    var metadata = typeof (data) === "string" ? JSON.parse(data) : data;
+                    metadataStore.importMetadata(metadata);
+                } catch(e) {
+                    var errMsg = "Unable to either parse or import metadata: " + e.message;
+                    return handleHttpError(deferred, httpResponse, "Metadata query failed for: " + url + ". " + errMsg);
                 }
 
                 // import may have brought in the service.
                 if (!metadataStore.hasMetadataFor(serviceName)) {
                     metadataStore.addDataService(dataService);
                 }
-                
-                XHR.onreadystatechange = null;
-                XHR.abort = null;
 
                 deferred.resolve(metadata);
                 
             },
-            error: function (XHR, textStatus, errorThrown) {
-                that._handleXHRError(deferred, XHR, "Metadata query failed for: " + url);
+            error: function (httpResponse) {
+                handleHttpError(deferred, httpResponse, "Metadata query failed for: " + url);
             }
         });
         return deferred.promise;
@@ -14034,32 +14025,32 @@ breeze.AbstractDataServiceAdapter = (function () {
 
         var that = this;
         var params = {
+            type: "GET",
             url: mappingContext.url,
-            data: mappingContext.query.parameters,
+            params: mappingContext.query.parameters,
             dataType: 'json',
-            success: function(data, textStatus, XHR) {
+            success: function (httpResponse) {
+                var data = httpResponse.data;
                 try {
                     var rData;
                     if (data && data.Results) {
-                        rData = { results: data.Results, inlineCount: data.InlineCount, XHR: XHR };
+                        rData = { results: data.Results, inlineCount: data.InlineCount, httpResponse: httpResponse };
                     } else {
-                        rData = { results: data, XHR: XHR };
+                        rData = { results: data, httpResponse: httpResponse };
                     }
                     
                     deferred.resolve(rData);
-                    XHR.onreadystatechange = null;
-                    XHR.abort = null;
-                } catch(e) {
-                    var error = e instanceof Error ? e : that._createError(XHR);
-                    // needed because it doesn't look like jquery calls .fail if an error occurs within the function
-                    deferred.reject(error);
-                    XHR.onreadystatechange = null;
-                    XHR.abort = null;
+                } catch (e) {
+                    if (e instanceof Error) {
+                        deferred.reject(e);
+                    } else {
+                        handleHttpError(httpResponse)
+                    }
                 }
 
             },
-            error: function(XHR, textStatus, errorThrown) {
-                that._handleXHRError(deferred, XHR);
+            error: function(httpResponse) {
+                handleHttpError(deferred, httpResponse);
             }
         };
         if (mappingContext.dataService.useJsonp) {
@@ -14080,59 +14071,34 @@ breeze.AbstractDataServiceAdapter = (function () {
 
         var that = this;
         ajaxImpl.ajax({
-            url: url,
             type: "POST",
+            url: url,
             dataType: 'json',
             contentType: "application/json",
             data: bundle,
-            success: function (data, textStatus, XHR) {
+            success: function (httpResponse) {
+                var data = httpResponse.data;
+                httpResponse.saveContext = saveContext;
                 var entityErrors = data.Errors || data.errors;
                 if (entityErrors) {
-                    // anticipatable errors on server - concurrency...
-                    var err = prepareServerErrors(saveContext, entityErrors);
-                    deferred.reject(err);
+                    handleHttpError(deferred, httpResponse);
                 } else {
                     var saveResult = that._prepareSaveResult(saveContext, data);
                     deferred.resolve(saveResult);
                 }
                 
             },
-            error: function (XHR, textStatus, errorThrown) {
-                var entityErrors = extractErrors(XHR);
-                if (entityErrors) {
-                    // anticipatable errors on server - validation, possibly others
-                    var err = prepareServerErrors(saveContext, entityErrors);
-                    deferred.reject(err);
-                } else {
-                    that._handleXHRError(deferred, XHR);
-                }
+            error: function (httpResponse) {
+                httpResponse.saveContext = saveContext;
+                handleHttpError(deferred, httpResponse);
             }
         });
 
         return deferred.promise;
     };
 
-    function extractErrors(XHR) {
-        if (!XHR.responseText) return null;
-        var responseObj = JSON.parse(XHR.responseText);
-        return responseObj && responseObj.EntityErrors;
-    }
 
-    function prepareServerErrors(saveContext, entityErrors) {
-        var err = new Error();
-        err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";
-        var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
-        err.entityErrors = entityErrors.map(function (e) {
-            return {
-                errorName: e.ErrorName,
-                entityTypeName: MetadataStore.normalizeTypeName(e.EntityTypeName),
-                keyValues: e.KeyValues,
-                propertyName: e.PropertyName && propNameFn(e.PropertyName),
-                errorMessage: e.ErrorMessage
-            };
-        });
-        return err;
-    }
+
 
     ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
         throw new Error("Need a concrete implementation of _prepareSaveBundle");
@@ -14151,40 +14117,196 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     });
    
-    ctor.prototype._handleXHRError = function(deferred, XHR, messagePrefix) {
-        var err = this._createError(XHR);
+    function handleHttpError(deferred, httpResponse, messagePrefix) {
+        var err = createHttpError(httpResponse);
         if (messagePrefix) {
             err.message = messagePrefix + "; " + err.message;
         }
-        deferred.reject(err);
-        XHR.onreadystatechange = null;
-        XHR.abort = null;
+        return deferred.reject(err);
     };
 
-    ctor.prototype._createError = function(XHR) {
+    function createHttpError(httpResponse) {
         var err = new Error();
-        err.XHR = XHR;
-        
-        err.responseText = XHR.responseText;
-        err.status = XHR.status;
-        err.statusText = XHR.statusText;
-        err.message = XHR.statusText;
-        if (err.responseText) {
+        err.httpResponse = httpResponse;
+        err.status = httpResponse.status;
+        var errObj = httpResponse.data;
+        // some ajax providers will convert errant result into an object ( angular), others will not (jQuery)
+        // if not do it here.
+        if (typeof errObj === "string") {
             try {
-                var responseObj = JSON.parse(XHR.responseText);
-                err.detail = responseObj;
-                var source = responseObj.InnerException || responseObj;
-                err.message = source.ExceptionMessage || source.Message || XHR.responseText;
-            } catch (e) {
-                err.message = err.message + ": " + err.responseText;
-            }
+                errObj = JSON.parse(errObj);
+            } catch (e) { };
         }
+        
+        if (errObj) {
+            var entityErrors = errObj.EntityErrors || errObj.entityErrors || errObj.Errors || errObj.errors;
+            if (entityErrors && httpResponse.saveContext) {
+                processEntityErrors(err, entityErrors, httpResponse.saveContext);
+            } else {
+                errObj = errObj.InnerException || errObj;
+                err.message = errObj.ExceptionMessage || errObj.Message;
+            }
+        } else {
+            err.message = httpResponse.error && httpResponse.error.toString();
+        }
+        
         return err;
     };
+
+    function processEntityErrors(err, entityErrors, saveContext) {
+        err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";
+        var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
+        err.entityErrors = entityErrors.map(function (e) {
+            return {
+                errorName: e.ErrorName,
+                entityTypeName: MetadataStore.normalizeTypeName(e.EntityTypeName),
+                keyValues: e.KeyValues,
+                propertyName: e.PropertyName && propNameFn(e.PropertyName),
+                errorMessage: e.ErrorMessage
+            };
+        });
+
+    }
     
     return ctor;
 
 })();
+// needs Angular
+(function(factory) {
+    // Module systems magic dance.
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"));
+    } else if (typeof define === "function" && define["amd"]) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define(["breeze"], factory);
+    }
+}(function(breeze) {
+    var core = breeze.core;
+    
+    var httpService;
+
+    var ctor = function () {
+        this.name = "angular";
+        this.defaultSettings = { };
+    };
+
+    ctor.prototype.initialize = function () {
+
+        var ng = core.requireLib("angular");
+        if (ng) {
+            var $injector = ng.injector(['ng']);
+            $injector.invoke(function ($http) {
+                httpService = $http;
+            });
+        }
+                
+    };
+
+    // See: http://victorblog.com/2012/12/20/make-angularjs-http-service-behave-like-jquery-ajax/
+
+    ctor.prototype.ajax = function (config) {
+        if (!httpService) {
+            throw new Error("Unable to locate angular for ajax adapter");
+        }
+        var ngConfig = {
+            method: config.type,
+            url: config.url,
+            dataType: config.dataType,
+            contentType: config.contentType,
+            crossDomain: config.crossDomain
+        }
+
+        if (config.params) {
+            // ngConfig.params = encodeParams(config.params);
+            var delim = (ngConfig.url.indexOf("?") >= 0) ? "&" : "?";
+            ngConfig.url = ngConfig.url + delim + encodeParams(config.params);
+        }
+
+        if (config.data) {
+            ngConfig.data = config.data;
+        }
+        
+        if (!core.isEmpty(this.defaultSettings)) {
+            var compositeConfig = core.extend({}, this.defaultSettings);
+            ngConfig = core.extend(compositeConfig, ngConfig);
+        }
+
+        httpService(ngConfig).success(function (data, status, headers, xconfig) {
+            // HACK: because $http returns a server side null as a string containing "null" - this is WRONG. 
+            if (data === "null") data = null;
+            var httpResponse = {
+                data: data,
+                status: status,
+                getHeaders: headers,
+                config: config
+            };
+            config.success(httpResponse);
+        }).error( function (data, status, headers, xconfig) {
+            var httpResponse = {
+                data: data,
+                status: status,
+                getHeaders: headers,
+                config: config
+            };
+            config.error(httpResponse);
+        });
+        
+    };
+
+    //function encodeParams(obj) {
+    //    for (var name in obj) {
+    //        var value = obj[name];
+    //        if (value instanceof Array) {
+    //            for (i = 0; i < value.length; ++i) {
+    //                value[i] = encodeParams(value[i]);
+    //            }
+    //            delete obj[name];
+    //            obj[name + "[]"] = value;
+    //        } else if (value instanceof Object) {
+    //            obj[name] = encodeParams(value);
+    //        }
+    //    }
+    //    return obj;
+    //}
+
+    function encodeParams(obj) {
+        var query = '';
+        var  key, subValue, innerObj;
+
+        for (var name in obj) {
+            var value = obj[name];
+
+            if (value instanceof Array) {
+                for (var i = 0; i < value.length; ++i) {
+                    subValue = value[i];
+                    fullSubName = name + '[' + i + ']';
+                    innerObj = {};
+                    innerObj[fullSubName] = subValue;
+                    query += encodeParams(innerObj) + '&';
+                }
+            } else if (value instanceof Object) {
+                for (var subName in value) {
+                    subValue = value[subName];
+                    fullSubName = name + '[' + subName + ']';
+                    innerObj = {};
+                    innerObj[fullSubName] = subValue;
+                    query += encodeParams(innerObj) + '&';
+                }
+            } else if (value !== undefined) {
+                query += encodeURIComponent(name) + '=' + encodeURIComponent(value) + '&';
+            }
+        }
+
+        return query.length ? query.substr(0, query.length - 1) : query;
+    }
+
+    
+    breeze.config.registerAdapter("ajax", ctor);
+    
+}));
 // needs JQuery
 (function(factory) {
     // Module systems magic dance.
@@ -14213,21 +14335,63 @@ breeze.AbstractDataServiceAdapter = (function () {
         jQuery = core.requireLib("jQuery");
     };
 
-    ctor.prototype.ajax = function (settings) {
+    ctor.prototype.ajax = function (config) {
         if (!jQuery) {
             throw new Error("Unable to locate jQuery");
         }
-        if (! core.isEmpty(this.defaultSettings)) {
-            var compositeSettings = core.extend({}, this.defaultSettings);
-            core.extend(compositeSettings, settings);
-            jQuery.ajax(compositeSettings);
-        } else {
-            jQuery.ajax(settings);
+        var jqConfig = {
+            type: config.type, 
+            url: config.url,
+            data: config.params || config.data,
+            dataType: config.dataType,
+            contentType: config.contentType,
+            crossDomain: config.crossDomain
         }
+        
+        if (!core.isEmpty(this.defaultSettings)) {
+            var compositeConfig = core.extend({}, this.defaultSettings);
+            jqConfig = core.extend(compositeConfig, jqConfig);
+        }
+        
+        jqConfig.success = function (data, textStatus, XHR) {
+            var httpResponse = {
+                data: data,
+                status: XHR.status,
+                getHeaders: getHeadersFn(XHR),
+                config: config
+            };
+            config.success(httpResponse);
+            XHR.onreadystatechange = null;
+            XHR.abort = null;
+        };
+        jqConfig.error = function (XHR, textStatus, errorThrown) {
+            var httpResponse = {
+                data: XHR.responseText,
+                status: XHR.status,
+                getHeaders: getHeadersFn(XHR),
+                error: errorThrown,
+                config: config
+            };
+            config.error(httpResponse);
+            XHR.onreadystatechange = null;
+            XHR.abort = null;
+        };
+        jQuery.ajax(jqConfig);
+
     };
 
     
-    // last param is true because for now we only have one impl.
+    function getHeadersFn(XHR) {
+        return function (headerName) {
+            if (headerName && headerName.length > 0) {
+                return XHR.getResponseHeader(headerName);
+            } else {
+                return XHR.getAllResponseHeaders();
+            };
+        };
+    }
+    
+
     breeze.config.registerAdapter("ajax", ctor);
     
 }));
@@ -15141,7 +15305,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             return this;
         };
 
-        if (proto.getPrototypeOf) {
+        if (Object.getPrototypeOf) {
             isolateES5Props(proto);
         }
 
