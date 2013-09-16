@@ -131,7 +131,6 @@
     <Content Include="Scripts\angular.js" />
     <Content Include="Scripts\breeze.debug.js" />
     <Content Include="Scripts\jquery-1.9.1.js" />
-    <Content Include="Scripts\ng-grid-2.0.7.debug.js" />
     <Content Include="Scripts\q.js" />
     <Content Include="Scripts\toastr.js" />
     <Content Include="Web.config" />
