@@ -32,13 +32,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Breeze.Nhibernate.WebApi">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Breeze.Nhibernate.WebApi.dll</HintPath>
-    </Reference>
     <Reference Include="Breeze.WebApi">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Zza.Interfaces\Breeze.WebApi.dll</HintPath>
+    </Reference>
+    <Reference Include="Breeze.WebApi.NH">
+      <HintPath>.\Breeze.WebApi.NH.dll</HintPath>
     </Reference>
     <Reference Include="Iesi.Collections">
       <HintPath>..\packages\Iesi.Collections.3.2.0.4000\lib\Net35\Iesi.Collections.dll</HintPath>
@@ -105,8 +103,14 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
+    <PreBuildEvent>IF EXIST "$(ProjectDir)..\..\..\Breeze.WebApi.NH\breeze.webapi.NH.dll" GOTO breezeSourceExists
+echo Source breeze.webapi.NH.dll was not found in '$(ProjectDir)..\..\..\Breeze.WebApi.NH\' and was not copied
+GOTO :done
+:breezeSourceExists
+echo Copying breeze.webapi.NH.dll from '$(ProjectDir)..\..\..\Breeze.WebApi.NH\' to $(ProjectDir)
+COPY "$(ProjectDir)..\..\..\Breeze.WebApi.NH\breeze.webapi.NH.dll" "$(ProjectDir)" /Y
+ :done
+</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
