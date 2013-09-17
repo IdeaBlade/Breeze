@@ -73,7 +73,7 @@
             return this;
         };
 
-        if (proto.getPrototypeOf) {
+        if (Object.getPrototypeOf) {
             isolateES5Props(proto);
         }
 

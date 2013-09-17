@@ -739,6 +739,10 @@ namespace Sample_WebApi.Controllers {
 
     [HttpGet]
     public IQueryable<Employee> EmployeesMultipleParams(int employeeID, string city) {
+      // HACK: 
+      if (city == "null") {
+        city = null;
+      }
       var emps = ContextProvider.Context.Employees.Where(emp => emp.EmployeeID == employeeID || emp.City.Equals(city));
       return emps;
     }

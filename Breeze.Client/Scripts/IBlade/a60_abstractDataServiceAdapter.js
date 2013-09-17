@@ -34,43 +34,34 @@
 
         var that = this;
         ajaxImpl.ajax({
+            type: "GET",
             url: url,
             dataType: 'json',
-            success: function (data, textStatus, XHR) {
-                var error;
+            success: function (httpResponse) {
+                
                 // might have been fetched by another query
                 if (metadataStore.hasMetadataFor(serviceName)) {
                     return deferred.resolve("already fetched");
                 }
-                var metadata = typeof (data) === "string" ? JSON.parse(data) : data;
-                
-                if (metadata) {
-                    try {
-                        metadataStore.importMetadata(metadata);
-                    } catch (e) {
-                        error = new Error("Metadata import failed for " + url + "; Unable to process returned metadata:" + e.message);
-                    }
-                } else {
-                    error = new Error("Metadata query failed for: " + url);
-                }
-
-                if (error) {
-                    return deferred.reject(error)
+                var data = httpResponse.data;
+                try {
+                    var metadata = typeof (data) === "string" ? JSON.parse(data) : data;
+                    metadataStore.importMetadata(metadata);
+                } catch(e) {
+                    var errMsg = "Unable to either parse or import metadata: " + e.message;
+                    return handleHttpError(deferred, httpResponse, "Metadata query failed for: " + url + ". " + errMsg);
                 }
 
                 // import may have brought in the service.
                 if (!metadataStore.hasMetadataFor(serviceName)) {
                     metadataStore.addDataService(dataService);
                 }
-                
-                XHR.onreadystatechange = null;
-                XHR.abort = null;
 
                 deferred.resolve(metadata);
                 
             },
-            error: function (XHR, textStatus, errorThrown) {
-                that._handleXHRError(deferred, XHR, "Metadata query failed for: " + url);
+            error: function (httpResponse) {
+                handleHttpError(deferred, httpResponse, "Metadata query failed for: " + url);
             }
         });
         return deferred.promise;
@@ -82,32 +73,32 @@
 
         var that = this;
         var params = {
+            type: "GET",
             url: mappingContext.url,
-            data: mappingContext.query.parameters,
+            params: mappingContext.query.parameters,
             dataType: 'json',
-            success: function(data, textStatus, XHR) {
+            success: function (httpResponse) {
+                var data = httpResponse.data;
                 try {
                     var rData;
                     if (data && data.Results) {
-                        rData = { results: data.Results, inlineCount: data.InlineCount, XHR: XHR };
+                        rData = { results: data.Results, inlineCount: data.InlineCount, httpResponse: httpResponse };
                     } else {
-                        rData = { results: data, XHR: XHR };
+                        rData = { results: data, httpResponse: httpResponse };
                     }
                     
                     deferred.resolve(rData);
-                    XHR.onreadystatechange = null;
-                    XHR.abort = null;
-                } catch(e) {
-                    var error = e instanceof Error ? e : that._createError(XHR);
-                    // needed because it doesn't look like jquery calls .fail if an error occurs within the function
-                    deferred.reject(error);
-                    XHR.onreadystatechange = null;
-                    XHR.abort = null;
+                } catch (e) {
+                    if (e instanceof Error) {
+                        deferred.reject(e);
+                    } else {
+                        handleHttpError(httpResponse)
+                    }
                 }
 
             },
-            error: function(XHR, textStatus, errorThrown) {
-                that._handleXHRError(deferred, XHR);
+            error: function(httpResponse) {
+                handleHttpError(deferred, httpResponse);
             }
         };
         if (mappingContext.dataService.useJsonp) {
@@ -128,59 +119,34 @@
 
         var that = this;
         ajaxImpl.ajax({
-            url: url,
             type: "POST",
+            url: url,
             dataType: 'json',
             contentType: "application/json",
             data: bundle,
-            success: function (data, textStatus, XHR) {
+            success: function (httpResponse) {
+                var data = httpResponse.data;
+                httpResponse.saveContext = saveContext;
                 var entityErrors = data.Errors || data.errors;
                 if (entityErrors) {
-                    // anticipatable errors on server - concurrency...
-                    var err = prepareServerErrors(saveContext, entityErrors);
-                    deferred.reject(err);
+                    handleHttpError(deferred, httpResponse);
                 } else {
                     var saveResult = that._prepareSaveResult(saveContext, data);
                     deferred.resolve(saveResult);
                 }
                 
             },
-            error: function (XHR, textStatus, errorThrown) {
-                var entityErrors = extractErrors(XHR);
-                if (entityErrors) {
-                    // anticipatable errors on server - validation, possibly others
-                    var err = prepareServerErrors(saveContext, entityErrors);
-                    deferred.reject(err);
-                } else {
-                    that._handleXHRError(deferred, XHR);
-                }
+            error: function (httpResponse) {
+                httpResponse.saveContext = saveContext;
+                handleHttpError(deferred, httpResponse);
             }
         });
 
         return deferred.promise;
     };
 
-    function extractErrors(XHR) {
-        if (!XHR.responseText) return null;
-        var responseObj = JSON.parse(XHR.responseText);
-        return responseObj && responseObj.EntityErrors;
-    }
 
-    function prepareServerErrors(saveContext, entityErrors) {
-        var err = new Error();
-        err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";
-        var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
-        err.entityErrors = entityErrors.map(function (e) {
-            return {
-                errorName: e.ErrorName,
-                entityTypeName: MetadataStore.normalizeTypeName(e.EntityTypeName),
-                keyValues: e.KeyValues,
-                propertyName: e.PropertyName && propNameFn(e.PropertyName),
-                errorMessage: e.ErrorMessage
-            };
-        });
-        return err;
-    }
+
 
     ctor.prototype._prepareSaveBundle = function(saveBundle, saveContext) {
         throw new Error("Need a concrete implementation of _prepareSaveBundle");
@@ -199,36 +165,56 @@
 
     });
    
-    ctor.prototype._handleXHRError = function(deferred, XHR, messagePrefix) {
-        var err = this._createError(XHR);
+    function handleHttpError(deferred, httpResponse, messagePrefix) {
+        var err = createHttpError(httpResponse);
         if (messagePrefix) {
             err.message = messagePrefix + "; " + err.message;
         }
-        deferred.reject(err);
-        XHR.onreadystatechange = null;
-        XHR.abort = null;
+        return deferred.reject(err);
     };
 
-    ctor.prototype._createError = function(XHR) {
+    function createHttpError(httpResponse) {
         var err = new Error();
-        err.XHR = XHR;
-        
-        err.responseText = XHR.responseText;
-        err.status = XHR.status;
-        err.statusText = XHR.statusText;
-        err.message = XHR.statusText;
-        if (err.responseText) {
+        err.httpResponse = httpResponse;
+        err.status = httpResponse.status;
+        var errObj = httpResponse.data;
+        // some ajax providers will convert errant result into an object ( angular), others will not (jQuery)
+        // if not do it here.
+        if (typeof errObj === "string") {
             try {
-                var responseObj = JSON.parse(XHR.responseText);
-                err.detail = responseObj;
-                var source = responseObj.InnerException || responseObj;
-                err.message = source.ExceptionMessage || source.Message || XHR.responseText;
-            } catch (e) {
-                err.message = err.message + ": " + err.responseText;
-            }
+                errObj = JSON.parse(errObj);
+            } catch (e) { };
         }
+        
+        if (errObj) {
+            var entityErrors = errObj.EntityErrors || errObj.entityErrors || errObj.Errors || errObj.errors;
+            if (entityErrors && httpResponse.saveContext) {
+                processEntityErrors(err, entityErrors, httpResponse.saveContext);
+            } else {
+                errObj = errObj.InnerException || errObj;
+                err.message = errObj.ExceptionMessage || errObj.Message;
+            }
+        } else {
+            err.message = httpResponse.error && httpResponse.error.toString();
+        }
+        
         return err;
     };
+
+    function processEntityErrors(err, entityErrors, saveContext) {
+        err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";
+        var propNameFn = saveContext.entityManager.metadataStore.namingConvention.serverPropertyNameToClient;
+        err.entityErrors = entityErrors.map(function (e) {
+            return {
+                errorName: e.ErrorName,
+                entityTypeName: MetadataStore.normalizeTypeName(e.EntityTypeName),
+                keyValues: e.KeyValues,
+                propertyName: e.PropertyName && propNameFn(e.PropertyName),
+                errorMessage: e.ErrorMessage
+            };
+        });
+
+    }
     
     return ctor;
 
