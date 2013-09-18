@@ -1,5 +1,5 @@
-﻿using Breeze.Nhibernate.WebApi;
-using Breeze.WebApi;
+﻿using Breeze.WebApi;
+using Breeze.WebApi.NH;
 using Models.NorthwindIB.NH;
 using Newtonsoft.Json.Linq;
 using System;
@@ -32,6 +32,23 @@ namespace NorthBreeze.Controllers
         public SaveResult SaveChanges(JObject saveBundle)
         {
             return northwind.SaveChanges(saveBundle);
+            //var sqlContext = new NorthwindSqlContext();
+            //return sqlContext.SaveChanges(saveBundle);
+        }
+
+        /// <summary>
+        /// Query customers using NorthwindSqlContext.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public IQueryable<Customer> SqlCustomers()
+        {
+            using (var sqlContext = new NorthwindSqlContext())
+            {
+                var custs = sqlContext.Customers();
+                return custs.AsQueryable();
+            }
+
         }
 
         [HttpGet]
@@ -51,6 +68,7 @@ namespace NorthBreeze.Controllers
         [HttpGet]
         public IQueryable<Order> OrdersTimes100()
         {
+            // for testing really big payloads
             var orders = northwind.Orders.ToList();
             var list = new List<Order>(orders.Count * 100);
             for (int i = 0; i < 2; i++)

@@ -1,4 +1,4 @@
-﻿using Breeze.Nhibernate.WebApi;
+﻿using Breeze.WebApi.NH;
 using Zza.Model;
 
 namespace Zza.DataAccess.NH

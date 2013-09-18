@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Breeze.Nhibernate.WebApi;
 using Breeze.WebApi;
+using Breeze.WebApi.NH;
 using Zza.Model;
 using Newtonsoft.Json.Linq;
 
@@ -32,6 +32,40 @@ namespace Zza.DataAccess.NH
         public IQueryable<Customer> Customers
         {
             get { return Context.Customers; }
+        }
+
+        public IQueryable<Order> Orders
+        {
+            get { return Context.Orders; }
+        }
+
+        public IQueryable<OrderStatus> OrderStatuses
+        {
+            get { return Context.OrderStatii; }
+        }
+
+        public IQueryable<Product> Products
+        {
+            get { return Context.Products; }
+        }
+
+        public IQueryable<ProductOption> ProductOptions
+        {
+            get { return Context.ProductOptions; }
+        }
+
+        public IQueryable<ProductSize> ProductSizes
+        {
+            get { return Context.ProductSizes; }
+        }
+
+        public object Lookups
+        {
+            get
+            {
+                var lookups = new { OrderStatuses, Products, ProductOptions, ProductSizes };
+                return lookups;
+            }
         }
 
     }
