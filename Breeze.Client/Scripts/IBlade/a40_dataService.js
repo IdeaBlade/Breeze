@@ -6,7 +6,7 @@ var DataService = (function () {
         
     /**
     A DataService instance is used to encapsulate the details of a single 'service'; this includes a serviceName, a dataService adapterInstance, 
-    and whether the service has server side metadata.  
+    and whether the service has server side metadata.  A customer jsonResultsAdapter can also be be specified.
 
     You can construct an EntityManager with either a serviceName or a DataService instance, if you use a serviceName then a DataService 
     is constructed for you.  (It can also be set via the EntityManager.setProperties method).

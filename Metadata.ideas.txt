@@ -1,0 +1,9 @@
+Use cases
+   1) Add a type 
+   2) Add a property to a type
+   3) Modify or remove a property on a type - 
+   4) Add custom info to an entityType
+   5) Add custom info to an entityProperty
+
+   Possible api - entityType.removeProperty - entityType.addProperty ( will replace if already exists)
+

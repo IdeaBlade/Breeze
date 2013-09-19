@@ -213,18 +213,18 @@
         }));
         et.addProperty(new DataProperty({
             name: "firstName",
-            dataType: DataType.String,
+            // dataType: DataType.String,
             isNullable: false,
         }));
         et.addProperty(new DataProperty({
             name: "lastName",
-            dataType: DataType.String,
+            // dataType: DataType.String,
             isNullable: false,
         }));
         et.addProperty(new DataProperty({
             name: "birthDate",
             dataType: DataType.DateTime,
-            isNullable: true
+            // isNullable: true
         }));
         et.addProperty(new NavigationProperty({
             name: "meals",
