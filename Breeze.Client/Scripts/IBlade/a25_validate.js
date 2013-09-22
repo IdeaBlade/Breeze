@@ -116,6 +116,27 @@ var Validator = (function () {
         // register the validator
         freightProperty.validators.push(numericRangeValidator({ min: 100, max: 500 }));
 
+    Breeze substitutes context values and functions for the tokens in the messageTemplate when preparing the runtime error message;
+    'displayName' is a pre-defined context function that is always available.
+
+    Please note that Breeze substitutes the empty string for falsey parameters. That usually works in your favor. 
+    Sometimes it doesn't as when the 'min' value is zero in which case the message text would have a hole 
+    where the 'min' value goes, saying: "... an integer between the values of and ...". That is not what you want.
+
+    To avoid this effect, you may can bake certain of the context values into the 'messageTemplate' itself
+    as shown in this revision to the pertinent part of the previous example:
+    @example
+        // ... as before 
+        // ... but bake the min/max values into the message template.
+        var template = breeze.core.formatString(
+            "'%displayName%' must be an integer between the values of %1 and %2",
+            context.min, context.max);
+        return new Validator("numericRange", valFn, {
+            messageTemplate: template,
+            min: context.min,
+            max: context.max
+        });
+
     @method <ctor> Validator
     @param name {String} The name of this validator.
     @param validatorFn {Function} A function to perform validation.
