@@ -107,7 +107,7 @@ var Validator = (function () {
             // The last parameter below is the 'context' object that will be passed into the 'ctx' parameter above
             // when this validator executes. Several other properties, such as displayName will get added to this object as well.
             return new Validator("numericRange", valFn, {
-                messageTemplate: "'%displayName%' must be an integer between the values of %min% and %max%",
+                messageTemplate: "'%displayName%' must be a number between the values of %min% and %max%",
                 min: context.min,
                 max: context.max
             });
@@ -129,7 +129,7 @@ var Validator = (function () {
         // ... as before 
         // ... but bake the min/max values into the message template.
         var template = breeze.core.formatString(
-            "'%displayName%' must be an integer between the values of %1 and %2",
+            "'%displayName%' must be a number between the values of %1 and %2",
             context.min, context.max);
         return new Validator("numericRange", valFn, {
             messageTemplate: template,
