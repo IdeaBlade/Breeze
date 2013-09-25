@@ -101,7 +101,7 @@
         
         ok(et.metadataStore === store, "should have set the metadataStore prop");
     });
-
+    
     test("create metadata and use it for save - CodeFirst only", function () {
 
         var em = createEmWithTimeGroupMetadata();
@@ -110,13 +110,13 @@
         ok(timeGroupType, "TimeGroup type is in the store");
 
         var timeGroup = em.createEntity('TimeGroup', {
-            comment: "This was added for a test"
+            Comment: "This was added for a test"
         });
 
         stop();
         em.saveChanges().then(function (data) {
 
-            var timeGroupId = timeGroup.getProperty("id");
+            var timeGroupId = timeGroup.getProperty("Id");
 
             ok(timeGroupId > 0, "the timeGroup Id is " + timeGroupId + ", indicating it has been saved");
 
@@ -124,7 +124,7 @@
 
 
     });
-
+    
     test("create metadata and insert using existing entity re-attached - CodeFirst only", function () {
 
         var em0 = createEmWithTimeGroupMetadata();
@@ -143,19 +143,46 @@
             timeGroup = data.results[0];
             em.detachEntity(timeGroup);
             em.attachEntity(timeGroup, breeze.EntityState.Added);
-            timeGroup.id = -1;
-            timeGroup.comment = "This was re-attached";
+            timeGroup.Id = -1;
+            timeGroup.Comment = "This was re-attached";
             return em.saveChanges();
         }).then(function (sr) {
-            var timeGroupId = timeGroup.getProperty("id");
+            var timeGroupId = timeGroup.getProperty("Id");
 
             ok(timeGroupId > 0, "the timeGroup Id is " + timeGroupId + ", indicating it has been saved");
         }).fail(testFns.handleFail).fin(start);
     });
 
-    function createEmWithTimeGroupMetadata() {
+ 
+    test("create metadata - multiple subtypes with same properties", function () {
 
-        breeze.NamingConvention.camelCase.setAsDefault();
+        var em = createEmWithTimeGroupMetadata(true);
+
+        var timeGroupType = em.metadataStore.getEntityType("TimeGroup");
+        ok(timeGroupType, "TimeGroup type is in the store");
+
+        var timeGroupType = em.metadataStore.getEntityType("FooBar");
+        ok(timeGroupType, "FooBar type is in the store");
+
+        var testComment = "This was added for a test";
+
+        var timeGroup = em.createEntity('TimeGroup')
+        timeGroup.Comment = testComment;
+        timeGroup.TimeLimits = [];
+        ok(timeGroup.Comment == testComment, "timeGroup.Comment matches");
+
+        var fooBar = em.createEntity('FooBar');
+        fooBar.Comment = testComment;
+        fooBar.TimeLimits = [];
+        ok(fooBar.Comment == testComment, "fooBar.Comment matches");
+
+
+    });
+
+
+    function createEmWithTimeGroupMetadata(addFooBar) {
+
+        //breeze.NamingConvention.camelCase.setAsDefault();
 
         var dso = new Object();
         dso.serviceName = testFns.serviceName;
@@ -167,12 +194,52 @@
 
         var manager = new breeze.EntityManager(emo);
         var store = manager.metadataStore;
-        var fn = domainModel.entities.TimeGroup.addEntityMetadata;
-        fn(store);
+
+        if (addFooBar) {
+            domainModel.entities.EntityRegistration.getEntityMetadata().forEach(function (f) {
+                f(store);
+            });
+        }
+        else {
+            domainModel.entities.TimeGroup.addEntityMetadata(store);
+        }
         return manager;
     }
 
+    var __extends = this.__extends || function (d, b) {
+        for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+        function __() { this.constructor = d; }
+        __.prototype = b.prototype;
+        d.prototype = new __();
+    };
+
     var domainModel;
+    (function (domainModel) {
+        (function (entities) {
+            var EntityRegistration = (function () {
+                function EntityRegistration() {
+                }
+                EntityRegistration.getEntityMetadata = function () {
+                    var ret = new Array();
+                    if (entities.CodeBase) {
+                        ret.push(entities.CodeBase.addEntityMetadata);
+                    }
+                    if (entities.FooBar) {
+                        ret.push(entities.FooBar.addEntityMetadata);
+                    }
+                    if (entities.TimeGroup) {
+                        ret.push(entities.TimeGroup.addEntityMetadata);
+                    }
+                    return ret;
+                }
+                return EntityRegistration;
+            })();
+            entities.EntityRegistration = EntityRegistration;
+        })(domainModel.entities || (domainModel.entities = {}));
+        var entities = domainModel.entities;
+    })(domainModel || (domainModel = {}));
+
+
     (function (domainModel) {
         (function (entities) {
             var EntityBase = (function () {
@@ -180,8 +247,58 @@
                 }
                 EntityBase.typeName = "EntityBase";
                 return EntityBase;
-            })(entities.EntityBase);
+            })();
             entities.EntityBase = EntityBase;
+        })(domainModel.entities || (domainModel.entities = {}));
+        var entities = domainModel.entities;
+    })(domainModel || (domainModel = {}));
+
+    (function (domainModel) {
+        (function (entities) {
+            var CodeBase = (function (_super) {
+                __extends(CodeBase, _super);
+                function CodeBase() {
+                    if (_super) {
+                        _super.apply(this, arguments);
+                    }
+                }
+                CodeBase.addEntityMetadata = function (store) {
+
+                    var eto;
+                    var dpo;
+                    var dp;
+                    var npo;
+                    var np;
+                    var et;
+                    var val;
+
+                    eto = new Object();
+                    eto.shortName = "CodeBase";
+                    eto.namespace = "Foo";
+                    eto.dataProperties = new Array();
+                    eto.navigationProperties = new Array();
+                    eto.autoGeneratedKeyType = breeze.AutoGeneratedKeyType.Identity;
+
+                    dpo = new Object();
+                    dpo.name = "Id";
+                    dpo.dataType = breeze.DataType.Int32;
+                    dpo.isNullable = false;
+                    dpo.isPartOfKey = true;
+                    dpo.validators = new Array();
+
+                    dp = new breeze.DataProperty(dpo);
+                    eto.dataProperties.push(dp);
+
+                    et = new breeze.EntityType(eto);
+
+                    et.guid = breeze.core.getUuid(); // to see track distinct entity types while debugging
+                    store.addEntityType(et);
+                    store.registerEntityTypeCtor("CodeBase", CodeBase);
+                };
+                CodeBase.typeName = "CodeBase";
+                return CodeBase;
+            })(entities.EntityBase);
+            entities.CodeBase = CodeBase;
         })(domainModel.entities || (domainModel.entities = {}));
         var entities = domainModel.entities;
     })(domainModel || (domainModel = {}));
@@ -190,6 +307,7 @@
     (function (domainModel) {
         (function (entities) {
             var TimeGroup = (function (_super) {
+                __extends(TimeGroup, _super);
                 function TimeGroup() {
                     if (_super) {
                         _super.apply(this, arguments);
@@ -213,7 +331,7 @@
                     eto.autoGeneratedKeyType = breeze.AutoGeneratedKeyType.Identity;
 
                     dpo = new Object();
-                    dpo.name = "id";
+                    dpo.name = "Id";
                     dpo.dataType = breeze.DataType.Int32;
                     dpo.isNullable = false;
                     dpo.isPartOfKey = true;
@@ -223,7 +341,7 @@
                     eto.dataProperties.push(dp);
 
                     dpo = new Object();
-                    dpo.name = "comment";
+                    dpo.name = "Comment";
                     dpo.dataType = breeze.DataType.String;
                     dpo.isNullable = false;
                     dpo.isPartOfKey = false;
@@ -236,7 +354,7 @@
                     dpo.validators.push(val);
 
                     npo = new Object();
-                    npo.name = "timeLimits";
+                    npo.name = "TimeLimits";
                     npo.associationName = "FK_TimeGroup_TimeLimits";
                     npo.validators = new Array();
                     npo.isScalar = false;
@@ -246,18 +364,93 @@
                     eto.navigationProperties.push(np);
 
                     et = new breeze.EntityType(eto);
+
+                    et.guid = breeze.core.getUuid(); // to see track distinct entity types while debugging
                     store.addEntityType(et);
 
                     store.registerEntityTypeCtor("TimeGroup", TimeGroup);
                 };
                 TimeGroup.typeName = "TimeGroup";
                 return TimeGroup;
-            })(entities.EntityBase);
+            })(entities.CodeBase);
             entities.TimeGroup = TimeGroup;
         })(domainModel.entities || (domainModel.entities = {}));
         var entities = domainModel.entities;
     })(domainModel || (domainModel = {}));
 
+
+    (function (domainModel) {
+        (function (entities) {
+            var FooBar = (function (_super) {
+                __extends(FooBar, _super);
+                function FooBar() {
+                    if (_super) {
+                        _super.apply(this, arguments);
+                    }
+                }
+                FooBar.addEntityMetadata = function (store) {
+
+                    var eto;
+                    var dpo;
+                    var dp;
+                    var npo;
+                    var np;
+                    var et;
+                    var val;
+
+                    eto = new Object();
+                    eto.shortName = "FooBar";
+                    eto.namespace = "Foo";
+                    eto.dataProperties = new Array();
+                    eto.navigationProperties = new Array();
+                    eto.autoGeneratedKeyType = breeze.AutoGeneratedKeyType.Identity;
+
+                    dpo = new Object();
+                    dpo.name = "Id";
+                    dpo.dataType = breeze.DataType.Int32;
+                    dpo.isNullable = false;
+                    dpo.isPartOfKey = true;
+                    dpo.validators = new Array();
+
+                    dp = new breeze.DataProperty(dpo);
+                    eto.dataProperties.push(dp);
+
+                    dpo = new Object();
+                    dpo.name = "Comment";
+                    dpo.dataType = breeze.DataType.String;
+                    dpo.isNullable = false;
+                    dpo.isPartOfKey = false;
+                    dpo.validators = new Array();
+
+                    dp = new breeze.DataProperty(dpo);
+                    eto.dataProperties.push(dp);
+
+                    val = breeze.Validator.required();
+                    dpo.validators.push(val);
+
+                    npo = new Object();
+                    npo.name = "TimeLimits";
+                    npo.associationName = "FK_TimeGroup_TimeLimits";
+                    npo.validators = new Array();
+                    npo.isScalar = false;
+                    npo.entityTypeName = "TimeLimit";
+
+                    np = new breeze.NavigationProperty(npo);
+                    eto.navigationProperties.push(np);
+
+                    et = new breeze.EntityType(eto);
+
+                    et.guid = breeze.core.getUuid(); // to see track distinct entity types while debugging
+                    store.addEntityType(et);
+                    store.registerEntityTypeCtor("FooBar", FooBar);
+                };
+                FooBar.typeName = "FooBar";
+                return FooBar;
+            })(entities.CodeBase);
+            entities.FooBar = FooBar;
+        })(domainModel.entities || (domainModel.entities = {}));
+        var entities = domainModel.entities;
+    })(domainModel || (domainModel = {}));
 
     test("external customer metadata", function () {
         if (testFns.DEBUG_ODATA) {
