@@ -455,7 +455,7 @@ declare module breeze {
     }
 
     interface SaveChangesErrorCallback {
-        (error: { XHR: XMLHttpRequest; }): void;
+        (error: { XHR: XMLHttpRequest; entitiesWithErrors: Entity[]; message?: string; stack?: string }): void;
     }
 
     class EntityChangedEventArgs {
