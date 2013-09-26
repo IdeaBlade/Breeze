@@ -32,25 +32,67 @@
 
     module("metadata", {
         setup: function () {
-            testFns.setup({ noMetadata: true }); //We don't need to set up metadata for these tests, because they do it themselves.
+            testFns.setup(); 
         },
         teardown: function () {
 
         }
     });
 
-    //test("add custom metadata", function() {
-    //    var store = new MetadataStore();
-    //    var em = new EntityManager({ serviceName: testFns.serviceName, metadataStore: store });
-    //    stop();
-    //    store.fetchMetadata(testFns.serviceName).then(function () {
-    //        ok(store.hasMetadataFor(testFns.serviceName));
-    //        store.importMetadata(customMetadata);
-            
-            
+    test("add custom metadata", function() {
+        var em = testFns.newEm();
+        var store = em.metadataStore;
+        
+        var custType = store.getEntityType("Customer");
+        var namespace = custType.namespace;
+        ok(store.hasMetadataFor(testFns.serviceName));
+        var customMetadata = makeCustomMetadata(namespace);
+        store.importMetadata(customMetadata);
+       
+        checkCustomType(custType);
+        checkCustomProp(custType, "customerID");
+        checkCustomProp(custType, "companyName");
+        checkCustomProp(custType, "orders");
+        
+    });
 
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
+    test("export/import custom metadata", function () {
+        var em = testFns.newEm();
+        var store = em.metadataStore;
+
+        var custType = store.getEntityType("Customer");
+        var namespace = custType.namespace;
+        ok(store.hasMetadataFor(testFns.serviceName));
+        var customMetadata = makeCustomMetadata(namespace);
+        store.importMetadata(customMetadata);
+        var exported = store.exportMetadata();
+        var store2 = new MetadataStore();
+        store2.importMetadata(exported);
+
+        var custType2 = store2.getEntityType("Customer");
+        checkCustomType(custType2);
+        checkCustomProp(custType2, "customerID");
+        checkCustomProp(custType2, "companyName");
+        checkCustomProp(custType2, "orders");
+
+    });
+
+    function checkCustomType(stype) {
+        ok(stype.custom, "stype.custom should exist");
+        ok(stype.custom.foo === 7, "stype.custom.foo should === 7");
+        ok(stype.custom.bar === stype.shortName, "stype.custom.bar should === stype.shortName");
+        ok(stype.custom.fooBar.x === 8, "stype.custom.fooBar.x should === 8");
+        ok(stype.custom.fooBar.z === true, "stype.custom.fooBar.z should === true");
+    }
+
+    function checkCustomProp(stype, name) {
+        var prop = stype.getProperty(name);
+        ok(prop.custom, "prop.custom should exist");
+        ok(prop.custom.fooDp === 7, "prop.custom.fooDp should === 7");
+        ok(prop.custom.barDp === name, "prop.custom.barDp should be the same as the property name");
+        ok(prop.custom.fooBarDp.x === 8, "prop.custom.fooBarDp.x should === 8");
+        ok(prop.custom.fooBarDp.z === true, "prop.custom.fooBarDp.z should === true");
+    }
 
     test("create metadata add entity Type", function () {
         var store = new MetadataStore();
@@ -522,9 +564,6 @@
     });
 
 
-
-
-
     function importMetadataWithInheritance (metadataJson) {
         var store = new MetadataStore({ namingConvention: breeze.NamingConvention.none });
         store.importMetadata(metadataJson);
@@ -686,39 +725,57 @@
     };
 
 
-    var customMetadata = {
-        "structuralTypes": [{
-            "shortName": "Customer",
-            "namespace": "Models.Produce",
-            "dataProperties": [
-              {
-                  "nameOnServer": "Id",
-                  "custom": {
-                      "fooDp": 7,
-                      "barDp": "asdfasdf",
-                      "fooBarDp": {
-                          "x": 8,
-                          "y": 9,
-                          "z": true
-                      }
-                  }
-              }],
-            "navigationProperties": [ 
-                {
-
+    makeCustomMetadata = function(namespace) {
+        return {
+            "structuralTypes": [{
+                "shortName": "Customer",
+                "namespace": namespace,
+                "dataProperties": [ { 
+                    "nameOnServer": "CustomerID",
+                    "custom": {
+                        "fooDp": 7,
+                        "barDp": "customerID",
+                        "fooBarDp": {
+                            "x": 8,
+                            "y": 9,
+                            "z": true
+                        }
+                    }
+                }, {
+                    "name": "companyName",
+                    "custom": {
+                        "fooDp": 7,
+                        "barDp": "companyName",
+                        "fooBarDp": {
+                            "x": 8,
+                            "y": 9,
+                            "z": true
+                        }
+                    }
+                } ],
+                "navigationProperties": [  {
+                    "name": "orders",
+                    "custom": {
+                        "fooDp": 7,
+                        "barDp": "orders",
+                        "fooBarDp": {
+                            "x": 8,
+                            "y": 9,
+                            "z": true
+                        }
+                    }
+                } ],
+                "custom": {
+                    "foo": 7,
+                    "bar": "Customer",
+                    "fooBar": {
+                        "x": 8,
+                        "y": 9,
+                        "z": true
+                    }
                 }
-            ],
-            "custom": {
-                "foo": 7,
-                "bar": "asdfasdf",
-                "fooBar": {
-                    "x": 8,
-                    "y": 9,
-                    "z": true
-                }
-            }
-        }]
-        
+            }]
+        };
     };
 
 })(breezeTestFns);

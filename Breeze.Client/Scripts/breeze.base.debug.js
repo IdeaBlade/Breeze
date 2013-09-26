@@ -6370,8 +6370,16 @@ var MetadataStore = (function () {
     function mergeProps(stype, jsonProps) {
         if (!jsonProps) return;
         jsonProps.forEach(function (jsonProp) {
+            var propName = jsonProp.name;
+            if (!propName) {
+                if (jsonProp.nameOnServer) {
+                    propName = stype.metadataStore.namingConvention.serverPropertyNameToClient(jsonProp.nameOnServer, {});
+                } else {
+                    throw new Error("Unable to complete 'importMetadata' - cannot locate a 'name' or 'nameOnServer' for one of the imported property nodes");
+                }
+            }
             if (jsonProp.custom) {
-                var prop = stype.getProperty(jsonProp.name, true);
+                var prop = stype.getProperty(propName, true);
                 prop.custom = jsonProp.custom;
             }
         });
