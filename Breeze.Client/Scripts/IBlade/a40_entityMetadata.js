@@ -1431,13 +1431,9 @@ var EntityType = (function () {
         // place for extra breeze related data
         extra = this._extra || {};
         this._extra = extra;
-        // extra = proto._$extra || {};
-        // proto._$extra = extra;
         
-        if (!extra.initialized) {
-            var instance = new aCtor();
-            calcUnmappedProperties(this, instance);
-        } 
+        var instance = new aCtor();
+        calcUnmappedProperties(this, instance);
 
         if (this._$typeName === "EntityType") {
             // insure that all of the properties are on the 'template' instance before watching the class.
@@ -1450,7 +1446,7 @@ var EntityType = (function () {
         proto._$interceptor = interceptor || defaultPropertyInterceptor;
                 
         __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
-        extra.initialized = true;
+        
         
         this._ctor = aCtor;
     };

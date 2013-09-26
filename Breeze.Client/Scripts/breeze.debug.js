@@ -7196,13 +7196,9 @@ var EntityType = (function () {
         // place for extra breeze related data
         extra = this._extra || {};
         this._extra = extra;
-        // extra = proto._$extra || {};
-        // proto._$extra = extra;
         
-        if (!extra.initialized) {
-            var instance = new aCtor();
-            calcUnmappedProperties(this, instance);
-        } 
+        var instance = new aCtor();
+        calcUnmappedProperties(this, instance);
 
         if (this._$typeName === "EntityType") {
             // insure that all of the properties are on the 'template' instance before watching the class.
@@ -7215,7 +7211,7 @@ var EntityType = (function () {
         proto._$interceptor = interceptor || defaultPropertyInterceptor;
                 
         __modelLibraryDef.getDefaultInstance().initializeEntityPrototype(proto);
-        extra.initialized = true;
+        
         
         this._ctor = aCtor;
     };
@@ -15049,7 +15045,6 @@ breeze.AbstractDataServiceAdapter = (function () {
             if (p === "_$typeName") continue;
             if (p === "_pendingSets") continue;
             if (p === "_backingStore") continue;
-            // if (p === "_$extra") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);
@@ -15174,7 +15169,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     function movePropDefsToProto(proto) {
         var stype = proto.entityType || proto.complexType;
         var extra = stype._extra;
-        // var extra = proto._$extra;
+
         var alreadyWrapped = extra.alreadyWrappedProps || {};
         
         stype.getProperties().forEach(function(prop) {
@@ -15346,12 +15341,17 @@ breeze.AbstractDataServiceAdapter = (function () {
         for (var p in entity) {
             if (p === "entityType") continue;
             if (p === "_$typeName") continue;
-            // if (p === "_$extra") continue;
-            var val = entity[p];
-            if (ko.isObservable(val)) {
-                names.push(p);
-            } else if (!core.isFunction(val)) {
-                names.push(p);
+            
+            var propDescr = getES5PropDescriptor(entity, p);
+            if (propDescr && propDescr.get) {          
+                names.push(p)
+            } else {
+                var val = entity[p];
+                if (ko.isObservable(val)) {
+                    names.push(p);
+                } else if (!core.isFunction(val)) {
+                    names.push(p);
+                }
             }
         }
         return names;
@@ -15380,28 +15380,27 @@ breeze.AbstractDataServiceAdapter = (function () {
         var stype = proto.entityType || proto.complexType;
         es5Descriptors = {};
         stype.getProperties().forEach(function (prop) {
-            propDescr = getES5PropDescriptor(proto, prop);
+            propDescr = getES5PropDescriptor(proto, prop.name);
             if (propDescr) {
                 es5Descriptors[prop.name] = propDescr;
             }
         })
         if (!__isEmpty(es5Descriptors)) {
             var extra = stype._extra;
-            // var extra = proto._$extra;
             extra.es5Descriptors = es5Descriptors;
             stype._koDummy = ko.observable(null);
-            // extra.koDummy = ko.observable(null);
+
         }
         
     }
 
-    function getES5PropDescriptor(proto, prop) {
-        var propName = prop.name;
+    function getES5PropDescriptor(proto, propName) {
+        
         if (proto.hasOwnProperty(propName)) {
             return Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(proto, propName);
         } else {
             var nextProto = Object.getPrototypeOf(proto);
-            return nextProto ? getES5PropDescriptor(nextProto, prop) : null;
+            return nextProto ? getES5PropDescriptor(nextProto, propName) : null;
         }
     }
 
@@ -15410,7 +15409,7 @@ breeze.AbstractDataServiceAdapter = (function () {
         // force unmapped properties to the end
         var stype = entity.entityType || entity.complexType;
         var es5Descriptors = stype._extra.es5Descriptors || {};
-        // var es5Descriptors = proto._$extra.es5Descriptors || {};
+        
         stype.getProperties().sort(function (p1, p2) {
             var v1 = p1.isUnmapped ? 1 :  0;
             var v2 = p2.isUnmapped ? 1 :  0;
@@ -15436,13 +15435,11 @@ breeze.AbstractDataServiceAdapter = (function () {
                     koObj = ko.computed({
                         read: function () {
                             stype._koDummy();
-                            // entity._$extra.koDummy();
                             return getFn();
                         },
                         write: function(newValue) {
                             entity._$interceptor(prop, newValue, rawAccessorFn);
                             stype._koDummy.valueHasMutated();
-                            // entity._$extra.koDummy.valueHasMutated();
                             return entity;
                         }
                     });
