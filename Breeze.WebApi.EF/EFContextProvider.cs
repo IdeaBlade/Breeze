@@ -133,7 +133,17 @@ namespace Breeze.WebApi.EF {
     #region Base implementation overrides
 
     protected override string BuildJsonMetadata() {
-      return GetMetadataFromContext(Context);
+      var json = GetMetadataFromContext(Context);
+      var altMetadata = BuildAltJsonMetadata();
+      if (altMetadata != null) {
+        json = "{ \"altMetadata\": " + altMetadata + "," + json.Substring(1);
+      }
+      return json;
+    }
+
+    protected virtual string BuildAltJsonMetadata() {
+      // default implementation
+      return null; // "{ \"foo\": 8, \"bar\": \"xxx\" }";
     }
 
     protected override EntityInfo CreateEntityInfo() {

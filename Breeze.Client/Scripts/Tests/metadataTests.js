@@ -39,6 +39,19 @@
         }
     });
 
+    //test("add custom metadata", function() {
+    //    var store = new MetadataStore();
+    //    var em = new EntityManager({ serviceName: testFns.serviceName, metadataStore: store });
+    //    stop();
+    //    store.fetchMetadata(testFns.serviceName).then(function () {
+    //        ok(store.hasMetadataFor(testFns.serviceName));
+    //        store.importMetadata(customMetadata);
+            
+            
+
+    //    }).fail(testFns.handleFail).fin(start);
+    //});
+
     test("create metadata add entity Type", function () {
         var store = new MetadataStore();
         var eto = {}
@@ -143,8 +156,8 @@
             timeGroup = data.results[0];
             em.detachEntity(timeGroup);
             em.attachEntity(timeGroup, breeze.EntityState.Added);
-            timeGroup.Id = -1;
-            timeGroup.Comment = "This was re-attached";
+            timeGroup.setProperty("Id", -1);
+            timeGroup.setProperty("Comment", "This was re-attached");
             return em.saveChanges();
         }).then(function (sr) {
             var timeGroupId = timeGroup.getProperty("Id");
@@ -170,12 +183,12 @@
         var timeGroup = em.createEntity('TimeGroup', {
             Comment: testComment1
         });
-        ok(timeGroup.Comment == testComment1, "timeGroup.Comment matches");
+        ok(timeGroup.getProperty("Comment") == testComment1, "timeGroup.Comment matches");
 
         var fooBar = em.createEntity('FooBar', {
             Comment: testComment2
         });
-        ok(fooBar.Comment == testComment2, "fooBar.Comment matches");
+        ok(fooBar.getProperty("Comment") == testComment2, "fooBar.Comment matches");
 
 
     });
@@ -363,12 +376,14 @@
         dso.serviceName = testFns.serviceName;
         dso.hasServerMetadata = false;
         var ds = new breeze.DataService(dso);
-
+        var store = new MetadataStore({ namingConvention: breeze.NamingConvention.none });
         var emo = new Object();
         emo.dataService = ds;
+        emo.metadataStore = store;
+        
 
         var manager = new breeze.EntityManager(emo);
-        var store = manager.metadataStore;
+        // var store = manager.metadataStore;
 
         if (addFooBar) {
             domainModel.entities.CodeBase.addEntityMetadata(store);
@@ -506,6 +521,10 @@
         Q.all([p1, p2]).fail(errFn).fin(start);
     });
 
+
+
+
+
     function importMetadataWithInheritance (metadataJson) {
         var store = new MetadataStore({ namingConvention: breeze.NamingConvention.none });
         store.importMetadata(metadataJson);
@@ -515,6 +534,22 @@
         ok(apple.getProperty("Variety") === "Jonathan");
         ok(apple.getProperty("Name") === "Apple");
         ok(apple.getProperty("Id") === 23);
+
+        var iopType = store.getEntityType("ItemOfProduce");
+        var customTypeInfo = iopType.custom;
+        
+        ok(iopType.custom, "iopType.custom should exist");
+        ok(iopType.custom.foo === 7, "iopType.custom.foo should === 7");
+        ok(iopType.custom.bar === 'asdfasdf', "iopType.custom.bar should === 'asdfasdf'");
+        ok(iopType.custom.fooBar.x === 8, "iopType.custom.fooBar.x should === 8");
+        ok(iopType.custom.fooBar.z === true, "iopType.custom.fooBar.z should === true");
+
+        var idProp = iopType.getProperty("Id");
+        ok(idProp.custom, "idProp.custom should exist");
+        ok(idProp.custom.fooDp === 7, "idProp.custom.fooDp should === 7");
+        ok(idProp.custom.barDp === 'asdfasdf', "idProp.custom.barDp should === 'asdfasdf'");
+        ok(idProp.custom.fooBarDp.x === 8, "idProp.custom.fooBarDp.x should === 8");
+        ok(idProp.custom.fooBarDp.z === true, "idProp.custom.fooBarDp.z should === true");
     }
 
     test("importMetadata - metadataItemFruitApple", function () {
@@ -561,6 +596,7 @@
         ],
         "navigationProperties": []
     };
+
     var fruitType = {
         "shortName": "Fruit",
         "namespace": "Models.Produce",
@@ -604,10 +640,27 @@
                 {
                     "name": "int32"
                 }
-              ]
-          }
-        ],
-        "navigationProperties": []
+              ],
+              "custom": {
+                  "fooDp": 7,
+                  "barDp": "asdfasdf",
+                  "fooBarDp": {
+                      "x": 8,
+                      "y": 9,
+                      "z": true
+                  }
+              }
+          } ],
+        "navigationProperties": [],
+        "custom": {
+            "foo": 7,
+            "bar": "asdfasdf",
+            "fooBar": {
+                "x": 8,
+                "y": 9,
+                "z": true
+            }
+        }
     };
     var resourceEntityTypeMap = {
         "Apples": "Apple:#Models.Produce",
@@ -632,5 +685,40 @@
         "resourceEntityTypeMap": resourceEntityTypeMap
     };
 
+
+    var customMetadata = {
+        "structuralTypes": [{
+            "shortName": "Customer",
+            "namespace": "Models.Produce",
+            "dataProperties": [
+              {
+                  "nameOnServer": "Id",
+                  "custom": {
+                      "fooDp": 7,
+                      "barDp": "asdfasdf",
+                      "fooBarDp": {
+                          "x": 8,
+                          "y": 9,
+                          "z": true
+                      }
+                  }
+              }],
+            "navigationProperties": [ 
+                {
+
+                }
+            ],
+            "custom": {
+                "foo": 7,
+                "bar": "asdfasdf",
+                "fooBar": {
+                    "x": 8,
+                    "y": 9,
+                    "z": true
+                }
+            }
+        }]
+        
+    };
 
 })(breezeTestFns);

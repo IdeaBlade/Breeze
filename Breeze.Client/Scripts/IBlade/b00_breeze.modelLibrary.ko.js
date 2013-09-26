@@ -50,7 +50,7 @@
         for (var p in entity) {
             if (p === "entityType") continue;
             if (p === "_$typeName") continue;
-            if (p === "_$extra") continue;
+            // if (p === "_$extra") continue;
             var val = entity[p];
             if (ko.isObservable(val)) {
                 names.push(p);
@@ -90,9 +90,11 @@
             }
         })
         if (!__isEmpty(es5Descriptors)) {
-            var extra = proto._$extra;
+            var extra = stype._extra;
+            // var extra = proto._$extra;
             extra.es5Descriptors = es5Descriptors;
-            extra.koDummy = ko.observable(null);
+            stype._koDummy = ko.observable(null);
+            // extra.koDummy = ko.observable(null);
         }
         
     }
@@ -111,7 +113,8 @@
         // create ko's for each property and assign defaultValues
         // force unmapped properties to the end
         var stype = entity.entityType || entity.complexType;
-        var es5Descriptors = proto._$extra.es5Descriptors || {};
+        var es5Descriptors = stype._extra.es5Descriptors || {};
+        // var es5Descriptors = proto._$extra.es5Descriptors || {};
         stype.getProperties().sort(function (p1, p2) {
             var v1 = p1.isUnmapped ? 1 :  0;
             var v2 = p2.isUnmapped ? 1 :  0;
@@ -135,13 +138,15 @@
                         }
                     }
                     koObj = ko.computed({
-                        read: function() {
-                            entity._$extra.koDummy();
+                        read: function () {
+                            stype._koDummy();
+                            // entity._$extra.koDummy();
                             return getFn();
                         },
                         write: function(newValue) {
                             entity._$interceptor(prop, newValue, rawAccessorFn);
-                            entity._$extra.koDummy.valueHasMutated();
+                            stype._koDummy.valueHasMutated();
+                            // entity._$extra.koDummy.valueHasMutated();
                             return entity;
                         }
                     });
