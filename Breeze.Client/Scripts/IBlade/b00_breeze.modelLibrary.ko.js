@@ -50,12 +50,17 @@
         for (var p in entity) {
             if (p === "entityType") continue;
             if (p === "_$typeName") continue;
-            // if (p === "_$extra") continue;
-            var val = entity[p];
-            if (ko.isObservable(val)) {
-                names.push(p);
-            } else if (!core.isFunction(val)) {
-                names.push(p);
+            
+            var propDescr = getES5PropDescriptor(entity, p);
+            if (propDescr && propDescr.get) {          
+                names.push(p)
+            } else {
+                var val = entity[p];
+                if (ko.isObservable(val)) {
+                    names.push(p);
+                } else if (!core.isFunction(val)) {
+                    names.push(p);
+                }
             }
         }
         return names;
@@ -84,28 +89,27 @@
         var stype = proto.entityType || proto.complexType;
         es5Descriptors = {};
         stype.getProperties().forEach(function (prop) {
-            propDescr = getES5PropDescriptor(proto, prop);
+            propDescr = getES5PropDescriptor(proto, prop.name);
             if (propDescr) {
                 es5Descriptors[prop.name] = propDescr;
             }
         })
         if (!__isEmpty(es5Descriptors)) {
             var extra = stype._extra;
-            // var extra = proto._$extra;
             extra.es5Descriptors = es5Descriptors;
             stype._koDummy = ko.observable(null);
-            // extra.koDummy = ko.observable(null);
+
         }
         
     }
 
-    function getES5PropDescriptor(proto, prop) {
-        var propName = prop.name;
+    function getES5PropDescriptor(proto, propName) {
+        
         if (proto.hasOwnProperty(propName)) {
             return Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(proto, propName);
         } else {
             var nextProto = Object.getPrototypeOf(proto);
-            return nextProto ? getES5PropDescriptor(nextProto, prop) : null;
+            return nextProto ? getES5PropDescriptor(nextProto, propName) : null;
         }
     }
 
@@ -114,7 +118,7 @@
         // force unmapped properties to the end
         var stype = entity.entityType || entity.complexType;
         var es5Descriptors = stype._extra.es5Descriptors || {};
-        // var es5Descriptors = proto._$extra.es5Descriptors || {};
+        
         stype.getProperties().sort(function (p1, p2) {
             var v1 = p1.isUnmapped ? 1 :  0;
             var v2 = p2.isUnmapped ? 1 :  0;
@@ -140,13 +144,11 @@
                     koObj = ko.computed({
                         read: function () {
                             stype._koDummy();
-                            // entity._$extra.koDummy();
                             return getFn();
                         },
                         write: function(newValue) {
                             entity._$interceptor(prop, newValue, rawAccessorFn);
                             stype._koDummy.valueHasMutated();
-                            // entity._$extra.koDummy.valueHasMutated();
                             return entity;
                         }
                     });

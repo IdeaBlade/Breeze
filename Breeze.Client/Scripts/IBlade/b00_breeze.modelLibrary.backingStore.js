@@ -28,7 +28,6 @@
             if (p === "_$typeName") continue;
             if (p === "_pendingSets") continue;
             if (p === "_backingStore") continue;
-            // if (p === "_$extra") continue;
             var val = entity[p];
             if (!core.isFunction(val)) {
                 names.push(p);
@@ -153,7 +152,7 @@
     function movePropDefsToProto(proto) {
         var stype = proto.entityType || proto.complexType;
         var extra = stype._extra;
-        // var extra = proto._$extra;
+
         var alreadyWrapped = extra.alreadyWrappedProps || {};
         
         stype.getProperties().forEach(function(prop) {
