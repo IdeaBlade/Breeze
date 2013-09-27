@@ -5,6 +5,7 @@
 
 // Updated Jan 14 2011 - Jay Traband ( www.ideablade.com).
 // Updated Aug 13 2013 - Steve Schmitt ( www.ideablade.com).
+// Updated Sep 26 2013 for Breeze 1.4.3 - Steve Schmitt ( www.ideablade.com).
 
 /// <reference path="Q.d.ts" />
 
@@ -447,15 +448,29 @@ declare module breeze {
     }
 
     interface ExecuteQueryErrorCallback {
-        (error: { query: EntityQuery; XHR: XMLHttpRequest; entityManager: EntityManager; message?: string; stack?:string }): void;
+        (error: { query: EntityQuery; httpResponse: HttpResponse; entityManager: EntityManager; message?: string; stack?:string }): void;
     }
 
     interface SaveChangesSuccessCallback {
         (saveResult: SaveResult): void;
     }
 
+    interface EntityError {
+        entity: Entity;
+        errorMessage: string;
+        errorName: string;
+        isServerError: boolean;
+        propertyName: string;
+    }
+
     interface SaveChangesErrorCallback {
-        (error: { XHR: XMLHttpRequest; entitiesWithErrors: Entity[]; message?: string; stack?: string }): void;
+        (error: {
+            entityErrors: EntityError[];
+            httpResponse: HttpResponse;
+            message: string;
+            stack?: string;
+            status?: number
+        }): void;
     }
 
     class EntityChangedEventArgs {
@@ -762,10 +777,19 @@ declare module breeze {
         mergeStrategy?: MergeStrategySymbol;
     }
 
+    interface HttpResponse {
+        config: any;
+        data: Entity[];
+        error?: any;
+        saveContext?: any;
+        status: number;
+        getHeaders(headerName: string): string
+    }
+
     interface QueryResult {
         results: Entity[];
         query: EntityQuery;
-        XHR: XMLHttpRequest;
+        httpResponse: HttpResponse;
         entityManager?: EntityManager;
         inlineCount?: number
     }
