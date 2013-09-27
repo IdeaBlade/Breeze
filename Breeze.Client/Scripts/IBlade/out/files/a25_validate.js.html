@@ -310,7 +310,7 @@ var Validator = (function () {
             // The last parameter below is the &#x27;context&#x27; object that will be passed into the &#x27;ctx&#x27; parameter above
             // when this validator executes. Several other properties, such as displayName will get added to this object as well.
             return new Validator(&quot;numericRange&quot;, valFn, {
-                messageTemplate: &quot;&#x27;%displayName%&#x27; must be an integer between the values of %min% and %max%&quot;,
+                messageTemplate: &quot;&#x27;%displayName%&#x27; must be a number between the values of %min% and %max%&quot;,
                 min: context.min,
                 max: context.max
             });
@@ -318,6 +318,27 @@ var Validator = (function () {
         // Assume that freightProperty is a DataEntityProperty that describes numeric values.
         // register the validator
         freightProperty.validators.push(numericRangeValidator({ min: 100, max: 500 }));
+
+    Breeze substitutes context values and functions for the tokens in the messageTemplate when preparing the runtime error message;
+    &#x27;displayName&#x27; is a pre-defined context function that is always available.
+
+    Please note that Breeze substitutes the empty string for falsey parameters. That usually works in your favor. 
+    Sometimes it doesn&#x27;t as when the &#x27;min&#x27; value is zero in which case the message text would have a hole 
+    where the &#x27;min&#x27; value goes, saying: &quot;... an integer between the values of and ...&quot;. That is not what you want.
+
+    To avoid this effect, you may can bake certain of the context values into the &#x27;messageTemplate&#x27; itself
+    as shown in this revision to the pertinent part of the previous example:
+    @example
+        // ... as before 
+        // ... but bake the min/max values into the message template.
+        var template = breeze.core.formatString(
+            &quot;&#x27;%displayName%&#x27; must be a number between the values of %1 and %2&quot;,
+            context.min, context.max);
+        return new Validator(&quot;numericRange&quot;, valFn, {
+            messageTemplate: template,
+            min: context.min,
+            max: context.max
+        });
 
     @method &lt;ctor&gt; Validator
     @param name {String} The name of this validator.

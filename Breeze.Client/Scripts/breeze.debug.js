@@ -5956,8 +5956,8 @@ var MetadataStore = (function () {
     @return {MetadataStore} This MetadataStore.
     @chainable
     **/
-    proto.importMetadata = function (exportedMetadata) {
-
+    proto.importMetadata = function (exportedMetadata, allowMerge) {
+        assertParam(allowMerge, "allowMerge").isOptional().isBoolean().check();
         this._deferredTypes = {};
         var json = (typeof (exportedMetadata) === "string") ? JSON.parse(exportedMetadata) : exportedMetadata;
 
@@ -5994,8 +5994,8 @@ var MetadataStore = (function () {
         });
         var structuralTypeMap = this._structuralTypeMap;
         
-        json.structuralTypes.forEach(function (stype) {
-            structuralTypeFromJson(that, stype);
+        json.structuralTypes && json.structuralTypes.forEach(function (stype) {
+            structuralTypeFromJson(that, stype, allowMerge);
         });
         __extend(this._resourceEntityTypeMap, json.resourceEntityTypeMap);
         __extend(this._incompleteTypeMap, json.incompleteTypeMap);
@@ -6326,11 +6326,15 @@ var MetadataStore = (function () {
         return types;
     }
 
-    function structuralTypeFromJson(metadataStore, json) {
+    function structuralTypeFromJson(metadataStore, json, allowMerge) {
         var typeName = qualifyTypeName(json.shortName, json.namespace);
         var stype = metadataStore._getEntityType(typeName, true);
         if (stype) {
-            return mergeStructuralType(stype, json);
+            if (allowMerge) {
+                return mergeStructuralType(stype, json);
+            } else {
+                throw new Error("Cannot import metadata for an existing EntityType unless the 'allowMerge' is set to true");
+            }
         }
         var config = {
             shortName: json.shortName,
@@ -6493,7 +6497,7 @@ var CsdlMetadataParser = (function () {
             throw new Error("Bad nav properties");
         }
         if (altMetadata) {
-            metadataStore.importMetadata(altMetadata);
+            metadataStore.importMetadata(altMetadata, true);
         }
         return metadataStore;
     }
@@ -8064,6 +8068,25 @@ var DataProperty = (function () {
     proto.isDataProperty = true;
     proto.isNavigationProperty = false;
 
+    /**
+    General purpose property set method
+    @example
+       // assume em1 is an EntityManager
+      var prop = myEntityType.getProperty("myProperty");
+      prop.setProperties( {
+          custom: { foo: 7, bar: "test" }
+      });
+    @method setProperties
+    @param config [object]
+    @param [config.custom] {Object}
+      
+    **/
+    proto.setProperties = function (config) {
+        assertConfig(config)
+            .whereParam("custom").isOptional()
+            .applyAll(this);
+    };
+
     proto.toJSON = function () {
         // do not serialize dataTypes that are complexTypes
         return __toJson(this, {
@@ -8260,6 +8283,25 @@ var NavigationProperty = (function () {
         
     proto.isDataProperty = false;
     proto.isNavigationProperty = true;
+
+    /**
+    General purpose property set method
+    @example
+       // assume myEntityType is an EntityType
+      var prop = myEntityType.getProperty("myProperty");
+      prop.setProperties( {
+          custom: { foo: 7, bar: "test" }
+      });
+    @method setProperties
+    @param config [object]
+    @param [config.custom] {Object}
+      
+    **/
+    proto.setProperties = function (config) {
+        assertConfig(config)
+            .whereParam("custom").isOptional()
+            .applyAll(this);
+    };
 
     proto.toJSON = function () {
         return __toJson(this, {

@@ -205,7 +205,7 @@
 
     
         <div class="foundat">
-            Defined in: <a href="../files/a40_entityMetadata.js.html#l2023"><code>a40_entityMetadata.js:2023</code></a>
+            Defined in: <a href="../files/a40_entityMetadata.js.html#l2114"><code>a40_entityMetadata.js:2114</code></a>
         </div>
     
 
@@ -260,6 +260,13 @@ directly via the constructor.</p>
                                 
                             </li>
                         
+                            <li class="index-item method">
+                                <a href="#method_setProperties">setProperties</a>
+
+                                
+                                
+                            </li>
+                        
                     </ul>
                 </div>
             
@@ -279,6 +286,13 @@ directly via the constructor.</p>
                         
                             <li class="index-item property">
                                 <a href="#property_concurrencyMode">concurrencyMode</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_custom">custom</a>
 
                                 
                                 
@@ -438,7 +452,7 @@ directly via the constructor.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2031"><code>a40_entityMetadata.js:2031</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2122"><code>a40_entityMetadata.js:2122</code></a>
         
         </p>
 
@@ -632,6 +646,20 @@ the NamingConvention on the MetadataStore associated with the EntityType to whic
                                 
                             </li>
                             
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[custom]</code>
+                                    <span class="type">Object</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
                         </ul>
                     
                 </li>
@@ -655,6 +683,126 @@ the NamingConvention on the MetadataStore associated with the EntityType to whic
 });
 // assuming personEntityType is a newly constructed EntityType
 personEntityType.addProperty(lastNameProperty);</code></pre>
+
+            </div>
+        </div>
+    
+</div>
+
+                
+                    <div id="method_setProperties" class="method item">
+    <h3 class="name"><code>setProperties</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>config</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="../files/a40_entityMetadata.js.html#l2337"><code>a40_entityMetadata.js:2337</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>General purpose property set method</p>
+
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">config</code>
+                        <span class="type">Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>[object]</p>
+
+                    </div>
+
+                    
+                        <ul class="params-list">
+                            
+                            <li class="param">
+                                
+                                    <code class="param-name optional">[custom]</code>
+                                    <span class="type">Object</span>
+                                    <span class="flag optional" title="This parameter is optional.">optional</span>
+                                
+
+                                <div class="param-description">
+                                    
+                                </div>
+
+                                
+                            </li>
+                            
+                        </ul>
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+        <div class="example">
+            <h4>Example:</h4>
+
+            <div class="example-content">
+                <p>   // assume em1 is an EntityManager
+  var prop = myEntityType.getProperty(&quot;myProperty&quot;);
+  prop.setProperties( {
+      custom: { foo: 7, bar: &quot;test&quot; }
+  });</p>
 
             </div>
         </div>
@@ -693,7 +841,7 @@ personEntityType.addProperty(lastNameProperty);</code></pre>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2140"><code>a40_entityMetadata.js:2140</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2233"><code>a40_entityMetadata.js:2233</code></a>
         
         </p>
 
@@ -739,7 +887,7 @@ personEntityType.addProperty(lastNameProperty);</code></pre>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2182"><code>a40_entityMetadata.js:2182</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2275"><code>a40_entityMetadata.js:2275</code></a>
         
         </p>
 
@@ -750,6 +898,52 @@ personEntityType.addProperty(lastNameProperty);</code></pre>
 
     <div class="description">
         <p><strong>Describe this</strong></p>
+<p><strong>readOnly</strong></p>
+
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_custom" class="property item">
+    <h3 class="name"><code>custom</code></h3>
+    <span class="type">Object</span>
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="../files/a40_entityMetadata.js.html#l2311"><code>a40_entityMetadata.js:2311</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>A free form object that can be used to define any custom metadata for this DataProperty. </p>
 <p><strong>readOnly</strong></p>
 
     </div>
@@ -785,7 +979,7 @@ personEntityType.addProperty(lastNameProperty);</code></pre>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2133"><code>a40_entityMetadata.js:2133</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2226"><code>a40_entityMetadata.js:2226</code></a>
         
         </p>
 
@@ -831,7 +1025,7 @@ personEntityType.addProperty(lastNameProperty);</code></pre>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2204"><code>a40_entityMetadata.js:2204</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2297"><code>a40_entityMetadata.js:2297</code></a>
         
         </p>
 
@@ -877,7 +1071,7 @@ personEntityType.addProperty(lastNameProperty);</code></pre>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2147"><code>a40_entityMetadata.js:2147</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2240"><code>a40_entityMetadata.js:2240</code></a>
         
         </p>
 
@@ -923,7 +1117,7 @@ personEntityType.addProperty(lastNameProperty);</code></pre>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2218"><code>a40_entityMetadata.js:2218</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2318"><code>a40_entityMetadata.js:2318</code></a>
         
         </p>
 
@@ -970,7 +1164,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2161"><code>a40_entityMetadata.js:2161</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2254"><code>a40_entityMetadata.js:2254</code></a>
         
         </p>
 
@@ -1016,7 +1210,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2226"><code>a40_entityMetadata.js:2226</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2326"><code>a40_entityMetadata.js:2326</code></a>
         
         </p>
 
@@ -1063,7 +1257,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2154"><code>a40_entityMetadata.js:2154</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2247"><code>a40_entityMetadata.js:2247</code></a>
         
         </p>
 
@@ -1109,7 +1303,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2168"><code>a40_entityMetadata.js:2168</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2261"><code>a40_entityMetadata.js:2261</code></a>
         
         </p>
 
@@ -1155,7 +1349,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2175"><code>a40_entityMetadata.js:2175</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2268"><code>a40_entityMetadata.js:2268</code></a>
         
         </p>
 
@@ -1201,7 +1395,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2189"><code>a40_entityMetadata.js:2189</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2282"><code>a40_entityMetadata.js:2282</code></a>
         
         </p>
 
@@ -1247,7 +1441,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2119"><code>a40_entityMetadata.js:2119</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2212"><code>a40_entityMetadata.js:2212</code></a>
         
         </p>
 
@@ -1293,7 +1487,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2126"><code>a40_entityMetadata.js:2126</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2219"><code>a40_entityMetadata.js:2219</code></a>
         
         </p>
 
@@ -1339,7 +1533,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2211"><code>a40_entityMetadata.js:2211</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2304"><code>a40_entityMetadata.js:2304</code></a>
         
         </p>
 
@@ -1385,7 +1579,7 @@ Allows polymorphic treatment of DataProperties and NavigationProperties.</p>
             
         
         
-        <a href="../files/a40_entityMetadata.js.html#l2196"><code>a40_entityMetadata.js:2196</code></a>
+        <a href="../files/a40_entityMetadata.js.html#l2289"><code>a40_entityMetadata.js:2289</code></a>
         
         </p>
 
