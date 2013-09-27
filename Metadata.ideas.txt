@@ -1,9 +1,13 @@
-Use cases
-   1) Add a type 
-   2) Add a property to a type
-   3) Modify or remove a property on a type - 
-   4) Add custom info to an entityType
-   5) Add custom info to an entityProperty
+Changes to Metadata api to support "custom" metadata.
 
-   Possible api - entityType.removeProperty - entityType.addProperty ( will replace if already exists)
+1) MetadataStore.importMetadata supports "custom" nodes at the entity and property levels. 
+	1) native format with "custom" nodes embedded in full metadata doc. ( this is what exported metadata with custom nodes will look like)
+	2) native format with standalone "custom" nodes keyed by either entityType or property name. 
+2) MetadataStore.addEntityType supports "custom" nodes (entity and property level).
+3) EntityType.setProperties will now accept a "custom" node.
+4) Either
+     1) DataProperty and NavigationProperty will support a setProperties method that will allow a "custom" node.
+	        or
+	 2) EntityType.addCustom(custom, [ property]) 
+
 
