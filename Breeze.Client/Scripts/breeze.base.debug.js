@@ -5873,6 +5873,10 @@ var MetadataStore = (function () {
         structuralType.metadataStore = this;
         // don't register anon types
         if (!structuralType.isAnonymous) {
+            if (this._structuralTypeMap[structuralType.name]) {
+                throw new Error("Type " + structuralType.name + " already exists in this MetadataStore.");
+            }
+
             this._structuralTypeMap[structuralType.name] = structuralType;
             this._shortNameMap[structuralType.shortName] = structuralType.name;
         }
@@ -7175,6 +7179,9 @@ var EntityType = (function () {
         var r = ctorRegistry[this.name] || ctorRegistry[this.shortName] || {};
         var aCtor = r.ctor || this._ctor;
 
+        if (aCtor && aCtor.prototype.entityType && aCtor.prototype.entityType.metadataStore !== this.metadataStore) {
+            throw new Error("Cannot register the same constructor for " + this.name + " in different metadata stores.  Please define a separate constructor for each metadata store.");
+        }
         if (r.ctor && forceRefresh) {
             this._extra = undefined;
         }
