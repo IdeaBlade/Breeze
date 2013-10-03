@@ -306,7 +306,7 @@ var Validator = (function () {
         guid: "'%displayName%' must be a GUID",
         integer: "'%displayName%' must be an integer",
         integerRange: "'%displayName%' must be an integer between the values of %minValue% and %maxValue%",
-        maxLength: "'%displayName%' must be a string with less than %maxLength% characters",
+        maxLength: "'%displayName%' must be a string with %maxLength% characters or less",
         number: "'%displayName%' must be a number",
         phone: "The %displayName% '%value%' is not a valid phone number",
         regularExpression: "The %displayName% '%value%' does not match '%expression%'",
