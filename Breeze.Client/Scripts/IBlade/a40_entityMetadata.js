@@ -568,7 +568,8 @@ var MetadataStore = (function () {
             if (allowMerge) {
                 return mergeStructuralType(stype, json);
             } else {
-                throw new Error("Cannot import metadata for an existing EntityType unless the 'allowMerge' is set to true");
+                // allow it but don't replace anything. 
+                return stype;
             }
         }
         var config = {
