@@ -1,17 +1,17 @@
-﻿define(['durandal/app', 'durandal/viewModel', 'durandal/system'],
-    function(app, viewModel, system) {
+﻿define(['durandal/app', 'durandal/activator', 'durandal/system', 'plugins/dialog'],
+    function(app, activator, system, dialog) {
 
         var Dialog = (function () {
 
             var ctor = function (obj, options) {
                 var self = this;
 
-                this.content = viewModel.activator(obj);
+                this.content = activator.create(obj);
                 this.commands = ko.observableArray(options);
 
                 this.invokeCommand = function (command) {
                     self.content().dialogResult = command;
-                    self.modal.close(command);
+                    dialog.close(self, command);
                 };
             };
 
@@ -39,7 +39,7 @@
         };
 
         function show(obj, options) {
-            var dialog = new Dialog(obj, options);
-            return app.showModal(dialog);
+            var dlg = new Dialog(obj, options);
+            return app.showDialog(dlg);
         }
 });

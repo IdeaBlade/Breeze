@@ -1,4 +1,4 @@
-﻿define(['durandal/system', 'durandal/plugins/router', 'services/logger', 'services/entitymanagerprovider', 'model/modelBuilder', 'services/errorhandler'],
+﻿define(['durandal/system', 'plugins/router', 'services/logger', 'services/entitymanagerprovider', 'model/modelBuilder', 'services/errorhandler'],
     function (system, router, logger, entitymanagerprovider, modelBuilder, errorhandler) {
 
         entitymanagerprovider.modelBuilder = modelBuilder.extendMetadata;
@@ -28,16 +28,26 @@
         }
 
         function bootPrivate() {
-            router.mapNav('home');
-            router.mapNav('resourcemgt', 'viewmodels/resourcemgt', 'Resource Management');
-            //router.mapRoute('resourcemgt/:id', 'viewmodels/resourcemgt', 'Resource Management', false);
             log('TempHire Loaded!', null, true);
-            return router.activate('home');
+
+            return router
+                .makeRelative({ moduleId: 'viewmodels' })
+                .map([
+                    { route: '', moduleId: 'home', title: 'Home', nav: true },
+                    //{ route: 'home', moduleId: 'home', title: 'Home', nav: true },
+                    { route: 'resourcemgt', moduleId: 'resourcemgt', title: 'Resource Management', nav: true }])
+                .mapUnknownRoutes('home', 'not-found')
+                .buildNavigationModel()
+                .activate();
         }
         
         function bootPublic() {
-            router.mapNav('login');
-            return router.activate('login');
+            return router
+                .makeRelative({ moduleId: 'viewmodels' })
+                .map([
+                    { route: '', moduleId: 'login', nav: true }])
+                .mapUnknownRoutes('login', 'not-found')
+                .activate();
         }
 
         function log(msg, data, showToast) {

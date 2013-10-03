@@ -3,8 +3,8 @@
         <a class="brand" href="/">
             <span class="title">TempHire Breeze</span> 
         </a>
-        <div class="btn-group" data-bind="foreach: router.visibleRoutes">
-            <a data-bind="css: { active: isActive }, attr: { href: hash }, text: name" 
+        <div class="btn-group" data-bind="foreach: router.navigationModel">
+            <a data-bind="css: { active: isActive }, attr: { href: hash }, html: title" 
                 class="btn btn-info" href="#"></a>
         </div>
         <div class="loader pull-right" data-bind="css: { active: router.isNavigating }">
