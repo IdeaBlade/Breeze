@@ -24,7 +24,7 @@
             ctor.prototype.canDeactivate = function (close) {
                 var self = this;
                 return this.content.canDeactivate(close)
-                    .finally(function() { self.content().dialogResult = null; });
+                    .fin(function() { self.content().dialogResult = null; });
             };
 
             ctor.prototype.deactivate = function(close) {

@@ -26,6 +26,35 @@
         }
     });
 
+    test("expand not working with paging", function () {
+        var manager = newEm();
+        var predicate = Predicate.create("orderID", "<", 10500);
+        stop();
+        var query = new breeze.EntityQuery()
+            .from("Orders")
+            .expand("orderDetails, orderDetails.product")
+            .where(predicate)
+            .inlineCount()
+            .orderBy("orderDate")
+            .take(2)
+            .skip(1)
+            .using(manager)
+            .execute()
+            .then(function (data) {
+                var localQuery = breeze.EntityQuery
+                    .from('OrderDetails');
+
+                var orderDetails = manager.executeQueryLocally(localQuery);
+                ok(orderDetails.length > 0, "should not be empty");
+
+                var localQuery2 = breeze.EntityQuery
+                    .from('Products');
+
+                var products = manager.executeQueryLocally(localQuery2);
+                ok(products.length > 0, "should not be empty");
+            }).fail(testFns.handleFail).fin(start);
+    });
+
     test("test date in projection", function () {
 
         var manager = newEm();

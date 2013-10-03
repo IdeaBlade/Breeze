@@ -5,8 +5,8 @@ using System.Web.Http;
 // http://blogs.msdn.com/b/davidebb/archive/2010/10/11/light-up-your-nupacks-with-startup-code-and-webactivator.aspx
 [assembly: WebActivator.PreApplicationStartMethod(
     typeof(Breeze.Learn.App_Start.BreezeConfig), "RegisterBreezePreStart")]
-[assembly: WebActivator.PostApplicationStartMethod(
-    typeof(Breeze.Learn.App_Start.BreezeConfig), "RegisterBreezePostStart")]
+//[assembly: WebActivator.PostApplicationStartMethod(
+//    typeof(Breeze.Learn.App_Start.BreezeConfig), "RegisterBreezePostStart")]
 
 namespace Breeze.Learn.App_Start {
   public static class BreezeConfig {
@@ -18,17 +18,17 @@ namespace Breeze.Learn.App_Start {
       );
     }
 
-    public static void RegisterBreezePostStart() {
-      // Use breeze configuration of Json.Net JsonFormatter instead of the default
-      GlobalConfiguration.Configuration.Formatters.Insert(
-          0, Breeze.WebApi.JsonFormatter.Create());
+    //public static void RegisterBreezePostStart() {
+    //  // Use breeze configuration of Json.Net JsonFormatter instead of the default
+    //  GlobalConfiguration.Configuration.Formatters.Insert(
+    //      0, Breeze.WebApi.JsonFormatter.Create());
 
-      // Apply query parameters, expressed as OData URI query strings, 
-      // to results of Web API controller methods that return IQueryable<T>
-      GlobalConfiguration.Configuration.Filters.Add(
-          new Breeze.WebApi.ODataActionFilter());
+    //  // Apply query parameters, expressed as OData URI query strings, 
+    //  // to results of Web API controller methods that return IQueryable<T>
+    //  GlobalConfiguration.Configuration.Filters.Add(
+    //      new Breeze.WebApi.ODataActionFilter());
 
 
-    }
+    //}
   }
 }

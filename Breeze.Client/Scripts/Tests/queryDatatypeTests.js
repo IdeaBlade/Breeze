@@ -66,6 +66,11 @@
     });
     
     test("Insure that this is Not a duration query even without type mapping", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "N/A for ODATA - server side interception methods have not yet been implemented.");
+            return;
+        }
+
         var em = newEm();
         var q = EntityQuery.from("AltCustomers").where('companyName', '==', 'Papa');
         stop();
@@ -81,6 +86,11 @@
     test("Query Involving Multiple Entities on Server", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "N/A for MONGO - server side interception methods have not yet been implemented.");
+            return;
+        }
+
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "N/A for ODATA - server side interception methods have not yet been implemented.");
             return;
         }
         var em = newEm();
@@ -153,6 +163,12 @@
             ok(true, "N/A for MONGO - these datatypes do not exist.");
             return;
         }
+
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "NA for OData - This table not yet exposed");
+            return;
+        }
+
         var em = newEm();
         var query = new EntityQuery("UnusualDates").take(10);
         var tlimitType = em.metadataStore.getEntityType("UnusualDate");
@@ -185,6 +201,12 @@
             ok(true, "N/A for MONGO - these datatypes do not exist.");
             return;
         }
+
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "NA for OData - This table not yet exposed");
+            return;
+        }
+
         var em = newEm();
         var dt1 = new Date(1950, 1, 1, 1, 1, 1);
         var p1 = Predicate.create("creationDate", ">", dt1).or("modificationDate", ">", dt1);
@@ -202,6 +224,12 @@
             ok(true, "N/A for MONGO - these datatypes do not exist.");
             return;
         }
+
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "NA for OData - This table not yet exposed");
+            return;
+        }
+
         var em = newEm();
         
         var p1 = Predicate.create("modificationDate2", "==", null);

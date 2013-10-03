@@ -5,7 +5,13 @@
 
     var serviceName = 'breeze/NorthBreeze'; // route to the same origin Web Api controller
 
-    var manager = new breeze.EntityManager(serviceName);
+    //var manager = new breeze.EntityManager(serviceName);  // gets metadata from /breeze/NorthBreeze/Metadata
+    var metadataStore = getMetadataStore();     // gets metadata from metadata.js
+    var manager = new breeze.EntityManager({
+        serviceName: serviceName,
+        metadataStore: metadataStore
+    });
+
     var _isSaving = false;
 
     return {
@@ -18,6 +24,30 @@
     };
 
     /*** implementation details ***/
+
+    function getMetadataStore() {
+        var store = new breeze.MetadataStore();
+
+        // Import metadata that were downloaded as a script file
+        if (!temp || !temp.metadata) {
+            throw new Error("'temp.metadata' is not defined; was metadata.js loaded?");
+        }
+        // Because of Breeze bug, must stringify metadata first.
+        store.importMetadata(JSON.stringify(temp.metadata));
+
+        // Associate these metadata data with the service
+        // if not already associated
+        if (!store.hasMetadataFor(serviceName)) {
+            store.addDataService(
+                new breeze.DataService({ serviceName: serviceName }));
+        }
+
+        // we don't need the app.metadata any more
+        temp.metadata = null;
+
+        return store;
+    }
+
 
     //#region main application operations
     function getAllCustomers() {
@@ -41,7 +71,16 @@
     }
 
     function getOrders(customer) {
-        return customer.entityAspect.loadNavigationProperty("Orders");
+        if (customer) {
+            return customer.entityAspect.loadNavigationProperty("Orders");
+        }
+        else {
+            var query = breeze.EntityQuery
+                    .from("Orders")
+                    .take(50);
+
+            return manager.executeQuery(query);
+        }
     }
 
     function getOrdersTimes100() {

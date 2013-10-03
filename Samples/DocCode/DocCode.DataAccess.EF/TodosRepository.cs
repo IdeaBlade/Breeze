@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Breeze.WebApi;
+using Breeze.WebApi.EF;
 using Newtonsoft.Json.Linq;
 using Todo.Models;
 

@@ -4,6 +4,7 @@ using Breeze.WebApi;
 using Newtonsoft.Json.Linq;
 using Zza.Interfaces;
 using Zza.Model;
+using Breeze.WebApi.EF;
 
 namespace Zza.DataAccess.EF
 {

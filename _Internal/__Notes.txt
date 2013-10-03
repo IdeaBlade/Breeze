@@ -41,8 +41,7 @@ Think about:
   6) Think about subclassing and extending simple datatypes.
   7) allowing case insensitive prop names anywhere you would otherwise HAVE to throw an exception
   8) orig value check on set to revert isModified if changing a value back to its original value
-  9) ability to suppress events during query and save or whenever.
-  10) Isolating Ajax from RemoteAccess api
+
       
 
 

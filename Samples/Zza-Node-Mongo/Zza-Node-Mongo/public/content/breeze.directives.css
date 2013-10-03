@@ -1,0 +1,77 @@
+﻿/*
+ * CSS to accompany the breeze.directives
+ * such as breeze.directives.validation.js
+ *
+ * v.1.0
+ *
+ * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
+ * Licensed under the MIT License
+ * http://opensource.org/licenses/mit-license.php
+ * Author: Ward Bell
+ */
+
+/*#region validation */
+.icon-asterisk-invalid {
+    color: red;
+    margin: 0.2em;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+input ~ .icon-asterisk-invalid,
+select ~ .icon-asterisk-invalid {
+    margin: 0.2em;
+    position: relative;
+}
+input ~ .icon-asterisk-invalid {
+    top: 0.4em;
+}
+
+select ~ .icon-asterisk-invalid {
+    top: 0.2em;
+}
+
+.invalid {
+    position: absolute;
+    display: none;
+    -moz-min-width: 200px;
+    -ms-min-width: 200px;
+    -o-min-width: 200px;
+    -webkit-min-width: 200px;
+    min-width: 200px;
+    min-height: 20px;
+    max-width: 450px;
+    max-height: 40px;
+}
+
+input:invalid,
+select:invalid {
+    border: red solid 1px !important;
+}
+
+    input:invalid + .invalid,
+    select:invalid + .invalid {
+        visibility: visible;
+        display: inline-block;
+        background-color: rgb(189, 54, 47);
+        margin: 0.3em 0 0 2em;
+        padding: 4px 10px;
+        -ms-border-radius: 3px 3px 3px 3px !important;
+        border-radius: 3px 3px 3px 3px !important;
+        background-position: 15px center;
+        background-repeat: no-repeat;
+        -webkit-box-shadow: 0 0 12px #999999;
+        -ms-box-shadow: 0 0 12px #999999;
+        box-shadow: 0 0 12px #999999;
+        color: #ffffff;
+        -ms-opacity: 0.8;
+        opacity: 0.8;
+    }
+
+    select:invalid + .invalid {
+        margin: 0.1em 0 0 2em;
+    }
+.invalid > i {
+    margin-right: 8px;
+}
+/*#endregion */

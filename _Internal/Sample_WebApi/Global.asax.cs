@@ -5,7 +5,7 @@
 #define NHIBERNATE
 
 using System.Web.Http;
-using System.Web.Mvc;
+// using System.Web.Mvc;
 using System.Web.Routing;
 
 #if CODEFIRST_PROVIDER
@@ -24,9 +24,8 @@ namespace Sample_WebApi {
 
   public class WebApiApplication : System.Web.HttpApplication {
     protected void Application_Start() {
-      AreaRegistration.RegisterAllAreas();
 
-      FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+      // May be needed later when OData model builder is "fixed" and supports fks.
 
       //var modelBuilder = new System.Web.Http.OData.Builder.ODataConventionModelBuilder();
       //modelBuilder.EntitySet<Customer>("Customers");
@@ -48,51 +47,15 @@ namespace Sample_WebApi {
       //  routePrefix: "odata",
       //  model: model);
 
+      // standard Breeze routing
 
-      // RouteConfig.RegisterRoutes(RouteTable.Routes);
-      var routes = RouteTable.Routes;
-      routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-
-      routes.MapHttpRoute(
-          name: "NorthwindIBModel",
-          routeTemplate: "breeze/NorthwindIBModel/{action}/{filter}",
-          defaults: new { controller = "NorthwindIBModel", filter = UrlParameter.Optional }
-      );
+      var routes = GlobalConfiguration.Configuration.Routes;
 
       routes.MapHttpRoute(
-          name: "NonEFModel",
-          routeTemplate: "breeze/NonEFModel/{action}/{filter}",
-          defaults: new { controller = "NonEFModel", filter = UrlParameter.Optional }
-      );
+           name: "SampleApi",
+           routeTemplate: "breeze/{controller}/{action}"
+       );
 
-      routes.MapHttpRoute(
-         name: "MetadataTest",
-         routeTemplate: "breeze/MetadataTest/{action}/{filter}",
-         defaults: new { controller = "MetadataTest", filter = UrlParameter.Optional }
-     );
-
-      routes.MapHttpRoute(
-          name: "ProduceTPH",
-          routeTemplate: "breeze/ProduceTPH/{action}/{filter}",
-          defaults: new { controller = "ProduceTPH", filter = UrlParameter.Optional }
-      );
-
-      routes.MapHttpRoute(
-       name: "Inheritance",
-       routeTemplate: "breeze/Inheritance/{action}/{filter}",
-       defaults: new { controller = "Inheritance", filter = UrlParameter.Optional }
-   );
-
-
-      //routes.MapRoute(
-      //    name: "Default",
-      //    url: "{controller}/{action}/{id}",
-      //    defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
-      //);
-
-
-                
-      
 
       // No longer needed and in fact will break this app.
       //// Use breeze's configuration of Json.Net JsonFormatter instead of the default

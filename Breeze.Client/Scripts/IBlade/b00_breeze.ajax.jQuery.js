@@ -26,21 +26,63 @@
         jQuery = core.requireLib("jQuery");
     };
 
-    ctor.prototype.ajax = function (settings) {
+    ctor.prototype.ajax = function (config) {
         if (!jQuery) {
             throw new Error("Unable to locate jQuery");
         }
-        if (! core.isEmpty(this.defaultSettings)) {
-            var compositeSettings = core.extend({}, this.defaultSettings);
-            core.extend(compositeSettings, settings);
-            jQuery.ajax(compositeSettings);
-        } else {
-            jQuery.ajax(settings);
+        var jqConfig = {
+            type: config.type, 
+            url: config.url,
+            data: config.params || config.data,
+            dataType: config.dataType,
+            contentType: config.contentType,
+            crossDomain: config.crossDomain
         }
+        
+        if (!core.isEmpty(this.defaultSettings)) {
+            var compositeConfig = core.extend({}, this.defaultSettings);
+            jqConfig = core.extend(compositeConfig, jqConfig);
+        }
+        
+        jqConfig.success = function (data, textStatus, XHR) {
+            var httpResponse = {
+                data: data,
+                status: XHR.status,
+                getHeaders: getHeadersFn(XHR),
+                config: config
+            };
+            config.success(httpResponse);
+            XHR.onreadystatechange = null;
+            XHR.abort = null;
+        };
+        jqConfig.error = function (XHR, textStatus, errorThrown) {
+            var httpResponse = {
+                data: XHR.responseText,
+                status: XHR.status,
+                getHeaders: getHeadersFn(XHR),
+                error: errorThrown,
+                config: config
+            };
+            config.error(httpResponse);
+            XHR.onreadystatechange = null;
+            XHR.abort = null;
+        };
+        jQuery.ajax(jqConfig);
+
     };
 
     
-    // last param is true because for now we only have one impl.
+    function getHeadersFn(XHR) {
+        return function (headerName) {
+            if (headerName && headerName.length > 0) {
+                return XHR.getResponseHeader(headerName);
+            } else {
+                return XHR.getAllResponseHeaders();
+            };
+        };
+    }
+    
+
     breeze.config.registerAdapter("ajax", ctor);
     
 }));

@@ -132,7 +132,7 @@
     *
     */
 
-    /**
+    /*
      * Javascript class that mimics how WCF serializes a object of type MongoDB.Bson.ObjectId
      * and converts between that format and the standard 24 character representation.
     */
@@ -204,7 +204,7 @@
             return new Date(this.timestamp * 1000);
         };
 
-        /**
+        /*
         * Turns a WCF representation of a BSON ObjectId into a 24 character string representation.
         */
         ObjectId.prototype.toString = function () {

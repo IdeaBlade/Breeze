@@ -5,7 +5,7 @@ intellisense.annotate(breeze.{{name}}, {
   '{{name}}': function() {
     /// <signature>
     ///   <summary>
-    {{#description.lines}}///   {{&.}}}
+    {{#description.lines}}///   {{&.}} }
     {{/description.lines}}///   </summary>
     {{#ctor.params}}///   <param name="{{name}}" type="{{type}}" {{#if elementType}}elementType="{{elementType}}" {{/if}}optional="{{optional}}">{{&description}}</param>
     {{/ctor.params}}/// </signature>
@@ -18,7 +18,7 @@ intellisense.annotate(breeze.{{../name}}.{{name}}.prototype, {
   '{{name}}': function() {
     /// <signature>
     ///   <summary>
-    {{#description.lines}}///   {{&.}}}
+    {{#description.lines}}///   {{&.}} }
     {{/description.lines}}///   </summary>
     {{#params}}///   <param name="{{name}}" type="{{type}}" {{#if elementType}}elementType="{{elementType}}" {{/if}}optional="{{optional}}">{{&description}}</param>
     {{/params}}{{#if return}}///   <returns type="{{return.type}}" {{#if return.elementType}}elementType="{{return.elementType}}" {{/if}}>{{&return.description}}</returns>{{/if}}
@@ -34,7 +34,7 @@ intellisense.annotate(breeze.{{../name}}.{{name}}, {
   '{{name}}': function() {
     /// <signature>
     ///   <summary>
-    {{#description.lines}}///   {{&.}}}
+    {{#description.lines}}///   {{&.}} }
     {{/description.lines}}///   </summary>
     {{#params}}///   <param name="{{name}}" type="{{type}}" optional="{{optional}}">{{&description}}</param>
     {{/params}}{{#if return}}///   <returns type="{{return.type}} {{#if return.elementType}}elementType="{{return.elementType}}" {{/if}}>{{&return.description}}</returns>{{/if}}

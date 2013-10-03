@@ -179,7 +179,7 @@
 
         employee.LastName( // 4. adds "too long"; removes "required", 
             "IamTheGreatestAndDontYouForgetIt");
-        assertLastErrMessageIs("'LastName' must be a string with less than");
+        assertLastErrMessageIs("'LastName' must be a string with");
 
         // removes errors one at a time
         // therefore should raise 'hasValidationErrors' 3x

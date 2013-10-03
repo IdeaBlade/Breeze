@@ -2,6 +2,7 @@
 using System.Data.Entity;
 using System.Linq;
 using Breeze.WebApi;
+using Breeze.WebApi.EF;
 using Newtonsoft.Json.Linq;
 using Northwind.Models;
 

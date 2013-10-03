@@ -6,7 +6,7 @@ namespace Models.NorthwindIB.NH {
   public class CustomerValidator : ValidationAttribute {
     public override Boolean IsValid(Object value) {
       var cust = value as Customer;
-      if (cust != null && cust.CompanyName.ToLower() == "error") {
+      if (cust != null && cust.CompanyName != null && cust.CompanyName.ToLower() == "error") {
         ErrorMessage = "This customer is not valid!";
         return false;
       }

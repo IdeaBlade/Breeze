@@ -1,4 +1,4 @@
-﻿using Breeze.Nhibernate.WebApi;
+﻿using Breeze.WebApi.NH;
 using Breeze.WebApi;
 using Models.NorthwindIB.NH;
 using System;

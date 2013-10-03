@@ -979,7 +979,7 @@ var EntityManager = (function () {
                     errorName: ve.validator.name,
                     errorMessage: ve.errorMessage,
                     propertyName: ve.propertyName,
-                    isServerError: ve.isServerError,
+                    isServerError: ve.isServerError
                 });
             });
         });
@@ -1978,7 +1978,7 @@ var EntityManager = (function () {
                             fn();
                         });
                     }
-                    return { results: results, query: query, entityManager: em, XHR: data.XHR, inlineCount: data.inlineCount };
+                    return { results: results, query: query, entityManager: em, httpResponse: data.httpResponse, inlineCount: data.inlineCount };
                 });
                 return Q.resolve(result);
             }).fail(function (e) {

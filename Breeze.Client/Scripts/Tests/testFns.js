@@ -162,7 +162,6 @@ breezeTestFns = (function (breeze) {
             window.localStorage.removeItem("qunit.next");
         }
         var doNext = oldNext != curNext;
-        
         if (doNext) {
             if (modelLibrary === "ko") {
                 modelLibrary = "backbone";
@@ -172,10 +171,11 @@ breezeTestFns = (function (breeze) {
                 modelLibrary = "ko";
             }
         }
-        
+        var ajaxLibrary = modelLibrary === "backingStore" ? "angular" : "jQuery";
         window.localStorage.setItem("modelLibrary", modelLibrary);
         core.config.initializeAdapterInstance("modelLibrary", modelLibrary, true);
         testFns.modelLibrary = core.config.getAdapterInstance("modelLibrary").name;
+        core.config.initializeAdapterInstance("ajax", ajaxLibrary, true);
         updateTitle();
     };
 
@@ -406,6 +406,23 @@ breezeTestFns = (function (breeze) {
 
     testFns.models = {};
     var models = testFns.models;
+
+    models.Supplier = function() {
+        if (testFns.modelLibrary == "ko") {
+            return function () {
+        
+            };
+        } else if (testFns.modelLibrary == "backbone") {
+            return Backbone.Model.extend({
+                defaults: {
+                    
+                }
+            });
+        } else {
+            return function () {
+            };
+        }
+    };
     
     models.Customer = function () {
         if (testFns.modelLibrary == "ko") {

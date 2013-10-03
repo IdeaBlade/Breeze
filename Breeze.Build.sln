@@ -1,6 +1,5 @@
-
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2011
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{870357DE-CA2C-4B2E-9AF2-3B822E26D57B}"
 	ProjectSection(SolutionItems) = preProject
 		_Internal\__Notes.txt = _Internal\__Notes.txt
@@ -16,6 +15,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.Client", "Breeze.Client\Breeze.Client.csproj", "{9BDE026E-CE0A-42F1-A508-4BE30124DD67}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.WebApi", "Breeze.WebApi\Breeze.WebApi.csproj", "{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.WebApi.EF", "Breeze.WebApi.EF\Breeze.WebApi.EF.csproj", "{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Breeze.WebApi.NH", "Breeze.WebApi.NH\Breeze.WebApi.NH.csproj", "{9DF09802-357C-4E82-B98E-032445FB2747}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
@@ -50,6 +53,26 @@ Global
 		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}.Release|x86.ActiveCfg = Release|Any CPU
+		{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{EF0B0330-34F3-4115-9E0D-8A8B7DF16A9C}.Release|x86.ActiveCfg = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9DF09802-357C-4E82-B98E-032445FB2747}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

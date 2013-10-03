@@ -119,7 +119,7 @@
 
 
         var cust = customerType.createEntity();
-        cust.setProperty("companyName", "compName");
+        cust.setProperty("companyName", "Test_compName");
         em.addEntity(cust);
 
         var entitiesToSave = new Array(cust);
@@ -1411,6 +1411,25 @@
             ok(error.message.toLowerCase().indexOf(frag) >= 0, "wrong error message: " + error.message);
 
         }).fin(start);
+    });
+
+    test("insert using existing entity re-attached", function () {
+        var em = newEm();
+        var q = new EntityQuery()
+            .from("TimeGroups")
+            .take(2);
+
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var tg = data.results[0];
+            em.detachEntity(tg);
+            tg.Id = -1;
+            em.attachEntity(tg, breeze.EntityState.Added);
+            tg.Comment = "This was re-attached";
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(true, "save successful");
+        }).fail(testFns.handleFail).fin(start);
     });
 
     test("insert with generated key", function () {
