@@ -11702,6 +11702,8 @@ var EntityManager = (function () {
         return entity;
     };
 
+   
+
     /**
     Creates a new EntityManager and imports a previously exported result into it.
     @example
@@ -11731,6 +11733,22 @@ var EntityManager = (function () {
     };
 
     // instance methods
+
+    /**
+    Calls EntityAspect.acceptChanges on every changed entity in this EntityManager. 
+    @method acceptChanges
+    **/
+    proto.acceptChanges = function () {
+        this.getChanges().forEach(function (entity) { entity.entityAspect.acceptChanges(); })
+    }
+
+    /**
+    Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. 
+    @method rejectChanges
+    **/
+    proto.rejectChanges = function () {
+        this.getChanges().forEach(function (entity) { entity.entityAspect.rejectChanges(); })
+    }
 
     /**
     Exports an entire EntityManager or just selected entities into a serialized string for external storage.

@@ -26,6 +26,34 @@
         }
     });
 
+    test("query with bad criteria", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+           .from("Employees")
+           .where("badPropName", "==", "7");
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(false, "shouldn't get here");
+        }).fail(function (e) {
+            ok(true, "should get here");
+        }).fin(start);
+
+    });
+
+    test("query with bad criteria - 2", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+           .from("AltCustomers")
+           .where("xxxx", "<", 7);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(false, "shouldn't get here");
+        }).fail(function (e) {
+            ok(true, "should get here");
+        }).fin(start);
+
+    });
+
     test("expand not working with paging", function () {
         var manager = newEm();
         var predicate = Predicate.create("orderID", "<", 10500);

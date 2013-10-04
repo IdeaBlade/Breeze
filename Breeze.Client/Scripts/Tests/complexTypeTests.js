@@ -35,6 +35,8 @@
         var locationInitializer = function (location) {
             location.setProperty("city", "FOO");
         };
+        em.metadataStore.registerEntityTypeCtor("Location", null, locationInitializer);
+
 
         var locationType = em.metadataStore.getEntityType("Location");
         var newLocation = locationType.createInstance();

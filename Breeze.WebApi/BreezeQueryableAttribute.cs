@@ -81,6 +81,9 @@ namespace Breeze.WebApi {
       if (typeof(IEnumerable).IsAssignableFrom(returnType) || responseObject is IEnumerable) {
         // QueryableAttribute only applies for IQueryable and IEnumerable return types
         base.OnActionExecuted(actionExecutedContext);
+        if (!actionExecutedContext.Response.IsSuccessStatusCode) {
+          return;
+        }
         if (!response.TryGetContentValue(out responseObject)) {
           return;
         }
