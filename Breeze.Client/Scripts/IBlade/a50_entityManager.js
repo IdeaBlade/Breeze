@@ -1752,6 +1752,7 @@ var EntityManager = (function () {
                         });
                     }
                 }
+                // Now performed in attachEntity
                 // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                 if (entityChanged) {

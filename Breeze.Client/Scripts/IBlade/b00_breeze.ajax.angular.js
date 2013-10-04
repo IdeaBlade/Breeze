@@ -14,6 +14,7 @@
     var core = breeze.core;
     
     var httpService;
+    var rootScope;
 
     var ctor = function () {
         this.name = "angular";
@@ -25,8 +26,9 @@
         var ng = core.requireLib("angular");
         if (ng) {
             var $injector = ng.injector(['ng']);
-            $injector.invoke(function ($http) {
+            $injector.invoke(function ($http, $rootScope) {
                 httpService = $http;
+                rootScope = $rootScope;
             });
         }
                 
@@ -80,7 +82,7 @@
             };
             config.error(httpResponse);
         });
-        
+        rootScope.$digest();
     };
 
     function encodeParams(obj) {

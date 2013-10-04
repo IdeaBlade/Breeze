@@ -1414,6 +1414,10 @@ var EntityType = (function () {
             }
             initFn(instance);
         }
+        this.complexProperties && this.complexProperties.forEach(function (cp) {
+            var ctInstance = instance.getProperty(cp.name);
+            cp.dataType._initializeInstance(ctInstance);
+        });
         // not needed for complexObjects
         if (instance.entityAspect) {
             instance.entityAspect._initialized = true;
@@ -2027,10 +2031,7 @@ var ComplexType = (function () {
         var aCtor = this.getCtor();
         var instance = new aCtor();
         new ComplexAspect(instance, parent, parentProperty);
-        // TODO: don't think that this is needed anymore - createInstance call will do this 
-        //if (parent) {
-        //    this._initializeInstance(instance);
-        //}
+        // initialization occurs during either attach or in createInstance call. 
         return instance;
     };
         

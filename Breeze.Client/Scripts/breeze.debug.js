@@ -7179,6 +7179,10 @@ var EntityType = (function () {
             }
             initFn(instance);
         }
+        this.complexProperties && this.complexProperties.forEach(function (cp) {
+            var ctInstance = instance.getProperty(cp.name);
+            cp.dataType._initializeInstance(ctInstance);
+        });
         // not needed for complexObjects
         if (instance.entityAspect) {
             instance.entityAspect._initialized = true;
@@ -7792,10 +7796,7 @@ var ComplexType = (function () {
         var aCtor = this.getCtor();
         var instance = new aCtor();
         new ComplexAspect(instance, parent, parentProperty);
-        // TODO: don't think that this is needed anymore - createInstance call will do this 
-        //if (parent) {
-        //    this._initializeInstance(instance);
-        //}
+        // initialization occurs during either attach or in createInstance call. 
         return instance;
     };
         
@@ -13182,6 +13183,7 @@ var EntityManager = (function () {
                         });
                     }
                 }
+                // Now performed in attachEntity
                 // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                 if (entityChanged) {
@@ -14355,6 +14357,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     var core = breeze.core;
     
     var httpService;
+    var rootScope;
 
     var ctor = function () {
         this.name = "angular";
@@ -14366,8 +14369,9 @@ breeze.AbstractDataServiceAdapter = (function () {
         var ng = core.requireLib("angular");
         if (ng) {
             var $injector = ng.injector(['ng']);
-            $injector.invoke(function ($http) {
+            $injector.invoke(function ($http, $rootScope) {
                 httpService = $http;
+                rootScope = $rootScope;
             });
         }
                 
@@ -14421,7 +14425,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             };
             config.error(httpResponse);
         });
-        
+        rootScope.$digest();
     };
 
     function encodeParams(obj) {

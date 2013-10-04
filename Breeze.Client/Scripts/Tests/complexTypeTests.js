@@ -27,6 +27,52 @@
         }
     });
 
+    test("initializer on complexType for createInstance", function () {
+
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Supplier = testFns.models.Supplier();
+
+        var locationInitializer = function (location) {
+            location.setProperty("city", "FOO");
+        };
+
+        var locationType = em.metadataStore.getEntityType("Location");
+        var newLocation = locationType.createInstance();
+        var city = newLocation.getProperty("city");
+        ok(city === "FOO", "city should === 'FOO'");
+
+    });
+
+    test("initializer on complexType during query",  function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Supplier = testFns.models.Supplier();
+
+        var locationInitializer = function (location) {
+            var city = location.getProperty("city");
+            ok(city, "city name should not be null");
+            location.setProperty("city", "Z" + city);
+        };
+
+        em.metadataStore.registerEntityTypeCtor("Location", null, locationInitializer);
+
+        var q = EntityQuery.from("Suppliers")
+          .where("companyName", "startsWith", "P");
+
+        
+        stop();
+        em.executeQuery(q).then(function (data) {
+            
+            var r = data.results;
+            ok(r.length > 0);
+            var supplier0 = r[0];
+            var location = supplier0.getProperty("location");
+            ok(location, "location should exist");
+            var city = location.getProperty("city");
+            ok(city.indexOf("Z") === 0, "city should start with 'Z'");
+        
+        }).fail(testFns.handleFail).fin(start);
+    });
+
 
     test("query complex", function () {
         var em = newEm();
