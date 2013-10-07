@@ -1,0 +1,13 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="InternationalOrder" table="`InternationalOrder`" dynamic-update="true">
+    <id name="OrderID" column="`OrderID`" type="int" unsaved-value="0">
+      <generator class="foreign">
+        <param name="property">Order</param>
+      </generator>
+    </id>
+    <version name="RowVersion" type="int" />
+    <one-to-one name="Order" class="Order" foreign-key="none" constrained="true"/>
+    <property name="CustomsDescription" type="string" length="100" not-null="true" />
+    <property name="ExciseTax" type="decimal" not-null="true" />
+  </class>
+</hibernate-mapping>

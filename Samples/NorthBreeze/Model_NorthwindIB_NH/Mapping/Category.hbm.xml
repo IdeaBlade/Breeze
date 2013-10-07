@@ -1,0 +1,16 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="Category" table="`Category`" dynamic-update="true">
+    <id name="CategoryID" column="`CategoryID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="RowVersion" type="int" />
+    <property name="CategoryName" type="string" length="15" not-null="true" />
+    <property name="Description" type="string" />
+    <property name="Picture" type="System.Byte[]" length="10000000"/>
+    <!--Foreign key to Product (Product)-->
+    <set name="Products" table="`Product`" cascade="all-delete-orphan" inverse="true">
+      <key column="`CategoryID`" foreign-key="FK_Product_Category" />
+      <one-to-many class="Product" />
+    </set>
+  </class>
+</hibernate-mapping>

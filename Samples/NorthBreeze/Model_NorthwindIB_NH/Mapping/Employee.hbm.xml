@@ -1,0 +1,42 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="Employee" table="`Employee`" dynamic-update="true">
+    <id name="EmployeeID" column="`EmployeeID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="RowVersion" type="int" />
+    <property name="LastName" type="string" length="30" not-null="true" />
+    <property name="FirstName" type="string" length="30" not-null="true" />
+    <property name="Title" type="string" length="30" />
+    <property name="TitleOfCourtesy" type="string" length="25" />
+    <property name="BirthDate" type="DateTime" />
+    <property name="HireDate" type="DateTime" />
+    <property name="Address" type="string" length="60" />
+    <property name="City" type="string" length="15" />
+    <property name="Region" type="string" length="15" />
+    <property name="PostalCode" type="string" length="10" />
+    <property name="Country" type="string" length="15" />
+    <property name="HomePhone" type="string" length="24" />
+    <property name="Extension" type="string" length="4" />
+    <property name="Photo" type="System.Byte[]" length="1073741823"/>
+    <property name="Notes" column="`Notes`" type="string" length="1073741823" />
+    <property name="PhotoPath" type="string" length="255" />
+    <many-to-one name="Manager" column="`ReportsToEmployeeID`" class="Employee" />
+    <property name="ReportsToEmployeeID" type="int" insert="false" update="false"/>
+    <property name="FullName" generated="always" />
+    <!--Foreign key to Employee (Employee)-->
+    <set name="DirectReports" table="`Employee`" cascade="all-delete-orphan" inverse="true">
+      <key column="`ReportsToEmployeeID`" foreign-key="FK_Employee_Employee" />
+      <one-to-many class="Employee" />
+    </set>
+    <!--Foreign key to EmployeeTerritory (EmployeeTerritory)-->
+    <set name="EmployeeTerritories" table="`EmployeeTerritory`" cascade="all-delete-orphan" inverse="true">
+      <key column="`EmployeeID`" foreign-key="FK_EmployeeTerritory_Employee" />
+      <one-to-many class="EmployeeTerritory" />
+    </set>
+    <!--Foreign key to Order (Order)-->
+    <set name="Orders" table="`Order`" cascade="all-delete-orphan" inverse="true">
+      <key column="`EmployeeID`" foreign-key="FK_Order_Employee" />
+      <one-to-many class="Order" />
+    </set>
+  </class>
+</hibernate-mapping>

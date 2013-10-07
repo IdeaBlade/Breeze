@@ -1,0 +1,26 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="Supplier" table="`Supplier`" dynamic-update="true">
+    <id name="SupplierID" column="`SupplierID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="RowVersion" type="int" />
+    <property name="CompanyName" type="string" length="40" not-null="true" />
+    <property name="ContactName" type="string" length="30" />
+    <property name="ContactTitle" type="string" length="30" />
+    <component name="Location" class="Location">
+      <property name="Address" type="string" length="60" />
+      <property name="City" type="string" length="15" />
+      <property name="Region" type="string" length="15" />
+      <property name="PostalCode" type="string" length="10" />
+      <property name="Country" type="string" length="15" />
+    </component>
+    <property name="Phone" type="string" length="24" />
+    <property name="Fax" type="string" length="24" />
+    <property name="HomePage" type="string" length="1073741823" />
+    <!--Foreign key to Product (Product)-->
+    <set name="Products" table="`Product`" cascade="all-delete-orphan" inverse="true">
+      <key column="`SupplierID`" foreign-key="FK_Product_Supplier" />
+      <one-to-many class="Product" />
+    </set>
+  </class>
+</hibernate-mapping>

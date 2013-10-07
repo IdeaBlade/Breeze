@@ -1,0 +1,19 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="Region" table="`Region`" dynamic-update="true">
+    <id name="RegionID" column="`RegionID`" type="int" unsaved-value="0">
+      <generator class="hilo">
+        <param name="table">NextId</param>
+        <param name="column">NextId</param>
+        <param name="max_lo">100</param>
+        <param name="where">Name = 'GLOBAL'</param>
+      </generator>
+    </id>
+    <version name="RowVersion" type="int" />
+    <property name="RegionDescription" type="string" length="50" not-null="true" />
+    <!--Foreign key to Territory (Territory)-->
+    <set name="Territories" table="`Territory`" cascade="all-delete-orphan" inverse="true">
+      <key column="`RegionID`" foreign-key="FK_Territory_Region" />
+      <one-to-many class="Territory" />
+    </set>
+  </class>
+</hibernate-mapping>

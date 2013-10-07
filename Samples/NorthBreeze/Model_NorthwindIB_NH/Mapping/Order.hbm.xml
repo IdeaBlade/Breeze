@@ -1,0 +1,29 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="Order" table="`Order`" dynamic-update="true">
+    <id name="OrderID" column="`OrderID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="RowVersion" type="int" />
+    <many-to-one name="Customer" column="`CustomerID`" class="Customer" />
+    <many-to-one name="Employee" column="`EmployeeID`" class="Employee" />
+    <property name="CustomerID" type="System.Guid" insert="false" update="false" />
+    <property name="EmployeeID" type="int" insert="false" update="false" />
+    <property name="OrderDate" type="Timestamp" />
+    <property name="RequiredDate" type="Timestamp" />
+    <property name="ShippedDate" type="Timestamp" />
+    <property name="Freight" type="decimal" />
+    <property name="ShipName" type="string" length="40" />
+    <property name="ShipAddress" type="string" length="60" />
+    <property name="ShipCity" type="string" length="15" />
+    <property name="ShipRegion" type="string" length="15" />
+    <property name="ShipPostalCode" type="string" length="10" />
+    <property name="ShipCountry" type="string" length="15" />
+    <!--Foreign key to InternationalOrder (InternationalOrder)-->
+    <many-to-one name="InternationalOrder" column="`OrderID`" class="InternationalOrder" insert="false" update="false" cascade="delete" />
+    <!--Foreign key to OrderDetail (OrderDetail)-->
+    <set name="OrderDetails" table="`OrderDetail`" cascade="all-delete-orphan" inverse="true">
+      <key column="`OrderID`" foreign-key="FK_OrderDetail_Order" />
+      <one-to-many class="OrderDetail" />
+    </set>
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,26 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="Territory" table="`Territory`" dynamic-update="true">
+    <id name="TerritoryID" column="`TerritoryID`" type="int" unsaved-value="0">
+      <generator class="hilo">
+        <param name="table">NextId</param>
+        <param name="column">NextId</param>
+        <param name="max_lo">100</param>
+        <param name="where">Name = 'GLOBAL'</param>
+      </generator>
+    </id>
+    <version name="RowVersion" type="int" />
+    <property name="TerritoryDescription" type="string" length="50" not-null="true" />
+    <many-to-one name="Region" column="`RegionID`" class="Region" />
+    <property name="RegionID" type="int" not-null="true" insert="false" update="false" />
+    <!--Foreign key to EmployeeTerritory (EmployeeTerritory)-->
+    <set name="EmployeeTerritories" table="`EmployeeTerritory`" cascade="all-delete-orphan" inverse="true">
+      <key column="`TerritoryID`" foreign-key="FK_EmployeeTerritory_Territory" />
+      <one-to-many class="EmployeeTerritory" />
+    </set>
+    <!--Foreign key to EmployeeTerritoryNoPayload (EmployeeTerritoryNoPayload)
+    <set name="Employees" table="`EmployeeTerritoryNoPayload`" cascade="all-delete-orphan" inverse="true">
+      <key column="`TerritoryID`" foreign-key="FK_EmployeeTerritoryNoPayload_Territory" />
+      <many-to-many class="Employee" column="EmployeeID"/>
+    </set>-->
+  </class>
+</hibernate-mapping>
