@@ -13461,7 +13461,7 @@ var EntityManager = (function () {
             return null;
         } else if (meta.nodeRefId) {
             var refValue = resolveRefEntity(meta.nodeRefId, mappingContext);
-            if (typeof refValue === "function") {
+            if (typeof refValue === "function" && assignFn != null) {
                 mappingContext.deferredFns.push(function () {
                     assignFn(refValue);
                 });
