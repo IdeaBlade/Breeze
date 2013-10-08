@@ -161,6 +161,10 @@
     });
     
     test("create metadata and use it for save - CodeFirst only", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "NA for OData - TimeList and Timegroup not yet added");
+            return;
+        }
 
         var em = createEmWithTimeGroupMetadata();
 
@@ -184,6 +188,11 @@
     });
     
     test("create metadata and insert using existing entity re-attached - CodeFirst only", function () {
+
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped tests - not applicable to OData");
+            return;
+        };
 
         var em0 = createEmWithTimeGroupMetadata();
 

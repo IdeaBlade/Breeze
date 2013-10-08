@@ -1414,6 +1414,11 @@
     });
 
     test("insert using existing entity re-attached", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped tests - not applicable to OData");
+            return;
+        };
+
         var em = newEm();
         var q = new EntityQuery()
             .from("TimeGroups")
