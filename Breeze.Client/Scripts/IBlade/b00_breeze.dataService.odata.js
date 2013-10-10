@@ -33,7 +33,12 @@
 
         OData.read(mappingContext.url,
             function (data, response) {
-                return deferred.resolve({ results: data.results, inlineCount: data.__count });
+                var inlineCount;
+                if (data.__count) {
+                    // OData can return data.__count as a string
+                    inlineCount = parseInt(data.__count, 10);
+                }
+                return deferred.resolve({ results: data.results, inlineCount: inlineCount });
             },
             function (error) {
                 return deferred.reject(createError(error, mappingContext.url));
@@ -50,6 +55,12 @@
         var serviceName = dataService.serviceName;
         var url = dataService.makeUrl('$metadata');
         
+        //OData.read({
+        //    requestUri: url,
+        //    headers: {
+        //        "Accept": "application/json",
+        //    }
+        //},
         OData.read(url,
             function (data) {
                 // data.dataServices.schema is an array of schemas. with properties of 
@@ -211,7 +222,7 @@
 
     function updateDeleteMergeRequest(request, aspect, prefix) {
         var extraMetadata = aspect.extraMetadata;
-        var uri = extraMetadata.uri;
+        var uri = extraMetadata.uri || extraMetadata.id;
         if (__stringStartsWith(uri, prefix)) {
             uri = uri.substring(prefix.length);
         }

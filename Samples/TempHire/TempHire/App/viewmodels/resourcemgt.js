@@ -1,5 +1,5 @@
-﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/details', 'durandal/plugins/router', 'durandal/app', 'services/errorhandler'],
-    function (unitofwork, logger, system, viewModel, details, router, app, errorhandler) {
+﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'durandal/activator', 'viewmodels/details', 'plugins/router', 'durandal/app', 'services/errorhandler'],
+    function (unitofwork, logger, system, activator, details, router, app, errorhandler) {
 
         return (function () {
 
@@ -9,15 +9,15 @@
 
                 this.title = "Resource Management";
                 this.staffingResources = ko.observableArray();
-                this.activeDetail = viewModel.activator();
+                this.activeDetail = activator.create();
                 this.activate = activate;
                 this.deactivate = deactivate;
                 this.canDeactivate = canDeactivate;
-                this.viewAttached = viewAttached;
+                this.attached = attached;
 
                 errorhandler.includeIn(this);
 
-                function activate(splat) {
+                function activate(id) {
                     app.on('saved', function(entities) {
                         loadList().fail(self.handleError);
                     }, this);
@@ -30,8 +30,8 @@
                         });
 
                     function querySucceeded() {
-                        if (splat.id) {
-                            return activateDetail(splat.id);
+                        if (id) {
+                            return activateDetail(id);
                         }
 
                         return true;
@@ -61,7 +61,7 @@
                     return self.activeDetail.canDeactivate(close);
                 }
 
-                function viewAttached(view) {
+                function attached(view) {
                     $(view).on('click', '.selectable-row', function () {
                         var staffingResource = ko.dataFor(this);
 

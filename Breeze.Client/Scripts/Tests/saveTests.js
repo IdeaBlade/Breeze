@@ -132,7 +132,10 @@
     });
 
     test("check initializer is hit for entities added/saved on server", function () {
-        // var em = newEm();
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
 
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
@@ -161,6 +164,12 @@
     });
 
     test("entities modified on server being saved as new entities", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+
         if (testFns.DEBUG_MONGO) {
             ok(true, "N/A for Mongo - test not yet implemented - requires server side async call");
             return;
@@ -184,6 +193,11 @@
     });
 
     test("save data with with additional entity added on server", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
         var em = newEm();
         
         var supplier = em.createEntity("Supplier", { companyName: "CompName" });
@@ -659,7 +673,7 @@
         }).fin(start);
     });
 
-    test("save with server side entity level validation error", 3, function () {
+    test("save with server side entity level validation error", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
@@ -863,6 +877,12 @@
     });
 
     test("save custom data annotation validation", function () {
+
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
             return;
@@ -1414,6 +1434,11 @@
     });
 
     test("insert using existing entity re-attached", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped tests - not applicable to OData");
+            return;
+        };
+
         var em = newEm();
         var q = new EntityQuery()
             .from("TimeGroups")

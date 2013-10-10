@@ -54,7 +54,7 @@
 
     });
 
-    test("expand not working with paging", function () {
+    test("expand not working with paging or inlinecount", function () {
         var manager = newEm();
         var predicate = Predicate.create("orderID", "<", 10500);
         stop();
@@ -71,6 +71,10 @@
             .then(function (data) {
                 var localQuery = breeze.EntityQuery
                     .from('OrderDetails');
+
+                // For ODATA this is a known bug: https://aspnetwebstack.codeplex.com/workitem/1037
+                // having to do with mixing expand and inlineCount 
+                // it sounds like it might already be fixed in the next major release but not yet avail.
 
                 var orderDetails = manager.executeQueryLocally(localQuery);
                 ok(orderDetails.length > 0, "should not be empty");
@@ -105,8 +109,13 @@
             return manager2.executeQuery(query);
         }).then(function (data2) {
             orderDate2 = data2.results[0].orderDate;
-            ok(!core.isDate(orderDate2), "orderDate2 is not a date - ugh'");
-            var orderDate2a = breeze.DataType.parseDateFromServer(orderDate2);
+            if (testFns.DEBUG_ODATA) {
+                ok(core.isDate(orderDate2), "orderDate2 is not a date - ugh'");
+                var orderDate2a = orderDate2;
+            } else {
+                ok(!core.isDate(orderDate2), "orderDate pojection should not be a date except with ODATA'");
+                var orderDate2a = breeze.DataType.parseDateFromServer(orderDate2);
+            }
             ok(orderDate.getTime() === orderDate2a.getTime(), "should be the same date");
         }).fail(testFns.handleFail).fin(start);
 
@@ -365,6 +374,8 @@
         }).fail(function (error) {
             if (testFns.DEBUG_MONGO) {
                 ok(error.message.indexOf("Unable to locate") >= 0, "Bad error message");
+            } else if (testFns.DEBUG_ODATA) {
+                ok(error.message.indexOf("Resource not found") >= 0, "Bad error message");
             } else {
                 ok(error.message.indexOf("No HTTP resource was found") >= 0, "Bad error message");
             }

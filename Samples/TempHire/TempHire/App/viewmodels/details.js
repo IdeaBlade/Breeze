@@ -1,5 +1,5 @@
-﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'durandal/viewModel', 'viewmodels/contacts', 'durandal/app', 'viewmodels/nameeditor', 'viewmodels/dialog', 'services/errorhandler'],
-    function(unitofwork, logger, system, viewModel, contacts, app, nameeditor, dialog, errorhandler) {
+﻿define(['services/unitofwork', 'services/logger', 'durandal/system', 'durandal/activator', 'viewmodels/contacts', 'durandal/app', 'viewmodels/nameeditor', 'viewmodels/dialog', 'services/errorhandler'],
+    function(unitofwork, logger, system, activator, contacts, app, nameeditor, dialog, errorhandler) {
 
         var Details = (function() {
 
@@ -13,7 +13,7 @@
                 var ref = unitofwork.get(id);
                 this.unitOfWork = ref.value();
 
-                this.contacts = viewModel.activator();
+                this.contacts = activator.create();
 
                 errorhandler.includeIn(this);
             };

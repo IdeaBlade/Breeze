@@ -13461,7 +13461,7 @@ var EntityManager = (function () {
             return null;
         } else if (meta.nodeRefId) {
             var refValue = resolveRefEntity(meta.nodeRefId, mappingContext);
-            if (typeof refValue === "function") {
+            if (typeof refValue === "function" && assignFn != null) {
                 mappingContext.deferredFns.push(function () {
                     assignFn(refValue);
                 });
@@ -14604,7 +14604,12 @@ breeze.AbstractDataServiceAdapter = (function () {
 
         OData.read(mappingContext.url,
             function (data, response) {
-                return deferred.resolve({ results: data.results, inlineCount: data.__count });
+                var inlineCount;
+                if (data.__count) {
+                    // OData can return data.__count as a string
+                    inlineCount = parseInt(data.__count, 10);
+                }
+                return deferred.resolve({ results: data.results, inlineCount: inlineCount });
             },
             function (error) {
                 return deferred.reject(createError(error, mappingContext.url));
@@ -14621,6 +14626,12 @@ breeze.AbstractDataServiceAdapter = (function () {
         var serviceName = dataService.serviceName;
         var url = dataService.makeUrl('$metadata');
         
+        //OData.read({
+        //    requestUri: url,
+        //    headers: {
+        //        "Accept": "application/json",
+        //    }
+        //},
         OData.read(url,
             function (data) {
                 // data.dataServices.schema is an array of schemas. with properties of 
