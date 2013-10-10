@@ -14809,7 +14809,7 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     function updateDeleteMergeRequest(request, aspect, prefix) {
         var extraMetadata = aspect.extraMetadata;
-        var uri = extraMetadata.uri;
+        var uri = extraMetadata.uri || extraMetadata.id;
         if (__stringStartsWith(uri, prefix)) {
             uri = uri.substring(prefix.length);
         }
