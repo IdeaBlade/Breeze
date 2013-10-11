@@ -2276,6 +2276,8 @@ var EntityManager = (function () {
             if (val && val.$value !== undefined) {
                 val = val.$value; // this will be a byte[] encoded as a string
             }
+        } else if (dp.dataType === DataType.Time) {
+            val = DataType.parseTimeFromServer(val);
         }
         return val;
     }
