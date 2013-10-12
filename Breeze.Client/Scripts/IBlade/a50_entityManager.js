@@ -2018,6 +2018,7 @@ var EntityManager = (function () {
         }
         nodeContext = nodeContext || {};
         var meta = mappingContext.dataService.jsonResultsAdapter.visitNode(node, mappingContext, nodeContext) || {};
+        node = meta.node || node;
         if (mappingContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
             meta.entityType = mappingContext.query._getToEntityType && mappingContext.query._getToEntityType(mappingContext.entityManager.metadataStore);
         }
@@ -2143,6 +2144,9 @@ var EntityManager = (function () {
         var result = { };
         __objectForEach(node, function(key, value) {
             var meta = jsonResultsAdapter.visitNode(value, mappingContext, { nodeType: "anonProp", propertyName: key }) || {};
+            // allows visitNode to change the value;
+            value = meta.node || value;
+
             if (meta.ignore) return;
                 
             var newKey = keyFn(key);
@@ -2272,6 +2276,8 @@ var EntityManager = (function () {
             if (val && val.$value !== undefined) {
                 val = val.$value; // this will be a byte[] encoded as a string
             }
+        } else if (dp.dataType === DataType.Time) {
+            val = DataType.parseTimeFromServer(val);
         }
         return val;
     }
@@ -2349,8 +2355,13 @@ var EntityManager = (function () {
         if (!relatedRawEntities) return null;
             
         // needed if what is returned is not an array and we expect one - this happens with __deferred in OData.
-        if (!Array.isArray(relatedRawEntities)) return null;
-
+        if (!Array.isArray(relatedRawEntities)) {
+            // return null;
+            relatedRawEntities = relatedRawEntities.results; // OData v3 will look like this with an expand
+            if (!relatedRawEntities) {
+                return null;
+            }
+        }
         var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
             return visitAndMerge(relatedRawEntity, mappingContext, { nodeType: "navPropItem", navigationProperty: navigationProperty });
         });

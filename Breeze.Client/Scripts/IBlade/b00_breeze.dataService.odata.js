@@ -30,8 +30,11 @@
     ctor.prototype.executeQuery = function (mappingContext) {
     
         var deferred = Q.defer();
-
-        OData.read(mappingContext.url,
+        // OData.read(mappingContext.url,
+        OData.read({
+                requestUri: mappingContext.url,
+                headers: { "DataServiceVersion": "2.0" }
+            },
             function (data, response) {
                 var inlineCount;
                 if (data.__count) {
@@ -169,6 +172,10 @@
                     result.extra = node.__metadata;
                 }
             }
+            // OData v3 - projection arrays will be inclosed in a results array
+            if (node.results) {
+                result.node = node.results;
+            }
 
             var propertyName = nodeContext.propertyName;
             result.ignore = node.__deferred != null || propertyName === "__metadata" ||
@@ -246,14 +253,18 @@
         if (response.body) {
             var nextErr;
             try {
-                var err = JSON.parse(response.body);
-                result.body = err;
+                var body = JSON.parse(response.body);
+                result.body = body;
+                // OData v3 logic
+                if (body['odata.error']) {
+                    body = body['odata.error'];
+                }
                 var msg = "";
                 do {
-                    nextErr = err.error || err.innererror;
-                    if (!nextErr) msg = msg + getMessage(err);
-                    nextErr = nextErr || err.internalexception;
-                    err = nextErr || err;
+                    nextErr = body.error || body.innererror;
+                    if (!nextErr) msg = msg + getMessage(body);
+                    nextErr = nextErr || body.internalexception;
+                    body = nextErr || body;
                 } while (nextErr);
                 if (msg.length > 0) {
                     result.message = msg;
@@ -265,9 +276,9 @@
         return result;
     }
 
-    function getMessage(error) {
-        var msg = error.message;
-        return (msg == null) ? "" : ((typeof (msg) === "string") ? msg : msg.value) + "; ";
+    function getMessage(body) {
+        var msg = body.message || "";
+        return ((typeof (msg) === "string") ? msg : msg.value) + "; ";
     }
 
     breeze.config.registerAdapter("dataService", ctor);

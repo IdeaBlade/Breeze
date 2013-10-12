@@ -5691,6 +5691,18 @@ var DataType = (function () {
    
     var _localTimeRegex = /.\d{3}$/;
 
+    DataType.parseTimeFromServer = function (source) {
+        if (typeof source === 'string') {
+            return source;
+        }
+        // ODATA v3 format
+        if (source && source.__edmType === 'Edm.Time') {
+            var seconds = Math.floor(source.ms / 1000);
+            return 'PT' + seconds + 'S';
+        }
+        return source;
+    }
+
     DataType.parseDateAsUTC = function (source) {
         if (typeof source === 'string') {
             // convert to UTC string if no time zone specifier.
@@ -13449,6 +13461,7 @@ var EntityManager = (function () {
         }
         nodeContext = nodeContext || {};
         var meta = mappingContext.dataService.jsonResultsAdapter.visitNode(node, mappingContext, nodeContext) || {};
+        node = meta.node || node;
         if (mappingContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
             meta.entityType = mappingContext.query._getToEntityType && mappingContext.query._getToEntityType(mappingContext.entityManager.metadataStore);
         }
@@ -13574,6 +13587,9 @@ var EntityManager = (function () {
         var result = { };
         __objectForEach(node, function(key, value) {
             var meta = jsonResultsAdapter.visitNode(value, mappingContext, { nodeType: "anonProp", propertyName: key }) || {};
+            // allows visitNode to change the value;
+            value = meta.node || value;
+
             if (meta.ignore) return;
                 
             var newKey = keyFn(key);
@@ -13703,6 +13719,8 @@ var EntityManager = (function () {
             if (val && val.$value !== undefined) {
                 val = val.$value; // this will be a byte[] encoded as a string
             }
+        } else if (dp.dataType === DataType.Time) {
+            val = DataType.parseTimeFromServer(val);
         }
         return val;
     }
@@ -13780,8 +13798,13 @@ var EntityManager = (function () {
         if (!relatedRawEntities) return null;
             
         // needed if what is returned is not an array and we expect one - this happens with __deferred in OData.
-        if (!Array.isArray(relatedRawEntities)) return null;
-
+        if (!Array.isArray(relatedRawEntities)) {
+            // return null;
+            relatedRawEntities = relatedRawEntities.results; // OData v3 will look like this with an expand
+            if (!relatedRawEntities) {
+                return null;
+            }
+        }
         var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
             return visitAndMerge(relatedRawEntity, mappingContext, { nodeType: "navPropItem", navigationProperty: navigationProperty });
         });
@@ -14601,8 +14624,11 @@ breeze.AbstractDataServiceAdapter = (function () {
     ctor.prototype.executeQuery = function (mappingContext) {
     
         var deferred = Q.defer();
-
-        OData.read(mappingContext.url,
+        // OData.read(mappingContext.url,
+        OData.read({
+                requestUri: mappingContext.url,
+                headers: { "DataServiceVersion": "2.0" }
+            },
             function (data, response) {
                 var inlineCount;
                 if (data.__count) {
@@ -14740,6 +14766,10 @@ breeze.AbstractDataServiceAdapter = (function () {
                     result.extra = node.__metadata;
                 }
             }
+            // OData v3 - projection arrays will be inclosed in a results array
+            if (node.results) {
+                result.node = node.results;
+            }
 
             var propertyName = nodeContext.propertyName;
             result.ignore = node.__deferred != null || propertyName === "__metadata" ||
@@ -14793,7 +14823,7 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     function updateDeleteMergeRequest(request, aspect, prefix) {
         var extraMetadata = aspect.extraMetadata;
-        var uri = extraMetadata.uri;
+        var uri = extraMetadata.uri || extraMetadata.id;
         if (__stringStartsWith(uri, prefix)) {
             uri = uri.substring(prefix.length);
         }
@@ -14817,14 +14847,18 @@ breeze.AbstractDataServiceAdapter = (function () {
         if (response.body) {
             var nextErr;
             try {
-                var err = JSON.parse(response.body);
-                result.body = err;
+                var body = JSON.parse(response.body);
+                result.body = body;
+                // OData v3 logic
+                if (body['odata.error']) {
+                    body = body['odata.error'];
+                }
                 var msg = "";
                 do {
-                    nextErr = err.error || err.innererror;
-                    if (!nextErr) msg = msg + getMessage(err);
-                    nextErr = nextErr || err.internalexception;
-                    err = nextErr || err;
+                    nextErr = body.error || body.innererror;
+                    if (!nextErr) msg = msg + getMessage(body);
+                    nextErr = nextErr || body.internalexception;
+                    body = nextErr || body;
                 } while (nextErr);
                 if (msg.length > 0) {
                     result.message = msg;
@@ -14836,9 +14870,9 @@ breeze.AbstractDataServiceAdapter = (function () {
         return result;
     }
 
-    function getMessage(error) {
-        var msg = error.message;
-        return (msg == null) ? "" : ((typeof (msg) === "string") ? msg : msg.value) + "; ";
+    function getMessage(body) {
+        var msg = body.message || "";
+        return ((typeof (msg) === "string") ? msg : msg.value) + "; ";
     }
 
     breeze.config.registerAdapter("dataService", ctor);
