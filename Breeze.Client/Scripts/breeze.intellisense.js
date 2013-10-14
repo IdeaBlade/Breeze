@@ -1,4 +1,4 @@
-﻿// Generated on: Fri Sep 27 2013 15:13:30 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Mon Oct 14 2013 11:47:58 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -2419,6 +2419,22 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   <param name="initialValues" type="Config object" optional="true">- Configuration object of the properties to set immediately after creation.</param>
     ///   <param name="entityState" type="breeze.breeze.EntityState" optional="true">- Configuration object of the properties to set immediately after creation.</param>
     ///   <returns type="Entity" >A new Entity of the specified type.</returns>
+    /// </signature>
+  },
+  'acceptChanges': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Calls EntityAspect.acceptChanges on every changed entity in this EntityManager. }
+    ///   </summary>
+    
+    /// </signature>
+  },
+  'rejectChanges': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. }
+    ///   </summary>
+    
     /// </signature>
   },
   'exportEntities': function() {

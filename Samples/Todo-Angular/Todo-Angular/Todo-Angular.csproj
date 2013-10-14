@@ -42,10 +42,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Breeze.WebApi">
-      <HintPath>..\packages\Breeze.Server.WebApi.Core.1.4.2\lib\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\packages\Breeze.Server.WebApi.Core.1.4.4\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="Breeze.WebApi.EF">
-      <HintPath>..\packages\Breeze.Server.WebApi.EF.1.4.2\lib\Breeze.WebApi.EF.dll</HintPath>
+      <HintPath>..\packages\Breeze.Server.WebApi.EF.1.4.4\lib\Breeze.WebApi.EF.dll</HintPath>
     </Reference>
     <Reference Include="Breeze.WebApi.NH">
       <HintPath>..\packages\Breeze.WebApi.1.4.2\lib\Breeze.WebApi.NH.dll</HintPath>

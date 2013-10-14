@@ -948,7 +948,8 @@ var EntityQuery = (function () {
 
         if (metadataStore.isEmpty()) {
             if (throwErrorIfNotFound) {
-                throw new Error(&quot;There is no metadata available for this query&quot;);
+                throw new Error(&quot;There is no metadata available for this query. &quot; +
+                    &quot;Are you querying the local cache before you&#x27;ve fetched metadata?&quot;);
             } else {
                 return null;
             }

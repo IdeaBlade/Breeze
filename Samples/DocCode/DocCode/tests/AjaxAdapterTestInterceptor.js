@@ -43,12 +43,12 @@
 
             ajaxInterceptor.ajax(ajaxConfig);
 
-            function success(data, textStatus, xhr) {
+            function success(httpResponse) {
                 ok(false, "request should have been blocked and failed");
             }
-            function error(xhr, textStatus, errorThrown) {
-                ok(/server requests are blocked/i.test(xhr.responseText),
-                    serverRequestBlockMessage(xhr));
+            function error(httpResponse) {
+                ok(/server requests are blocked/i.test(httpResponse.data),
+                    serverRequestBlockMessage(httpResponse));
             }
         });
     **/ 
@@ -67,16 +67,12 @@
     during instantiation and/or modified/reset later via the adapter's testAdapterConfig property.
 
     @param [config.defaultResponse] {Object} Response to return if there is no match with the ajax config.url
-        @param [config.defaultResponse.data] {Object} Faked JSON data
-        @param [config.defaultResponse.statusText="OK"]: {String} Faked status text
-        @param [config.defaultResponse.responseText]: {String} Faked XHR.responseText
+        @param [config.defaultResponse.data] {Object} Faked JSON data or error object
         @param [config.defaultResponse.status=200]: {Number} Faked XHR.status, the HTTP status Code
         @param [config.defaultResponse.headers] {Object} Faked headers as hash where key=header-name, value=header-value 
-        @param [config.defaultResponse.xhr] {Object} Faked XHR object as if returned by base ajax adapter 
         @param [config.defaultResponse.isError] {Boolean} true if should treat this call as an error.
         The test adapter follows the "success path" (calls ajaxSettings.Success) if 'isError' is false and the
         status is a 200. Otherwise it follows the "error path" (calls ajaxSettings.error).
-        @param [config.defaultResponse.errorThrown] {Error} Faked exception as if returned by base ajax adapter 
 
     @param [config.responses] {Array of Object} Each response is as defined for default response 
     with an additional 'url' property, a {String} url pattern to match the response to the ajax config.url.
@@ -97,19 +93,16 @@
     @param origAjaxSettings {Object) The original ajax configuation parameter from the caller
     @param [response] {Object} The test response object if there is one. 
 
-    afterSuccess(origAjaxSettings, response, data, textStatus, xhr);
+    afterSuccess(origAjaxSettings, response, httpResponse);
     @param origAjaxSettings {Object) The original ajax configuation parameter from the caller
-    @param [response] {Object} The test response object if there was one. 
-    @param data {Object} Data returned from the base adapter or faked. 
-    @param textStatus {String} Text status returned from the base adapter or faked. 
-    @param xhr {Object} XHR object returned from the base adapter or faked. 
+    @param [response] {Object} The test response object if there was one.    
+    @param [httpResponse] {Object} HttpResponse object returned from the base adapter or faked. 
 
-    afterError(origAjaxSettings, response, xhr, textStatus, errorThrown);
+    afterError(origAjaxSettings, response, httpResponse);
     @param origAjaxSettings {Object) The original ajax configuation parameter from the caller
     @param [response] {Object} The test response object if there was one.
-    @param xhr {Object} XHR object returned from the base adapter or faked. 
-    @param textStatus {String} Text status returned from the base adapter or faked. 
-    @param errorThrown {Error} The exception returned from the base adapter or faked. 
+    @param [httpResponse] {Object} HttpResponse object returned from the base adapter or faked. 
+
 
     urlMatcher(url, pattern)
     @param url {String} the ajax config.url
@@ -207,14 +200,14 @@
 
             // wrap success and fail fns
             var origSuccessFn = origAjaxSettings.success || noop;
-            ajaxSettings.success = function(data, textStatus, xhr) {
-                afterSuccess(origAjaxSettings, response, data, textStatus, xhr);
-                origSuccessFn(data, textStatus, xhr);
+            ajaxSettings.success = function(httpResponse) {
+                afterSuccess(origAjaxSettings, httpResponse);
+                origSuccessFn(httpResponse);
             };
             var origErrorFn = origAjaxSettings.error || noop;
-            ajaxSettings.error = function(xhr, textStatus, errorThrown) {
-                afterError(origAjaxSettings, response, xhr, textStatus, errorThrown);
-                origErrorFn(xhr, textStatus, errorThrown);
+            ajaxSettings.error = function(httpResponse) {
+                afterError(origAjaxSettings, response, httpResponse);
+                origErrorFn(httpResponse);
             };
 
             before(origAjaxSettings, response);
@@ -225,30 +218,28 @@
             }
 
             // Using fakeResponse
-            var fakeXhr = {
+            var fakeHttpResponse = {
                 // Breeze expects the following
-                statusText: response.statusText || "OK",
-                responseText: response.responseText || "",
                 status: response.status || 200,
-                getResponseHeader: createXhrGetResponseHeader(response),
-                getAllResponseHeaders: createXhrGetAllResponseHeaders(response),
+                
+                getHeaders: createGetHeaders(response),
                 // diagnostics; not in a real xhr
                 __fakeResponse: response,
                 __ajaxSettings: origAjaxSettings
             };
             if (response.xhr) {
-                fakeXhr = extend(fakeXhr, response.xhr);
+                fakeHttpResponse = extend(fakeHttpResponse, response);
             }
 
-            var isError = response.isError || fakeXhr.status < 200 || fakeXhr.status >= 300;
-            var fakeTextStatus = response.textStatus || (isError ? "Error" : "Success");
+            var isError = response.isError || fakeHttpResponse.status < 200 || fakeHttpResponse.status >= 300;
+            
 
             if (isError) {
-                var fakeErrorThrown = response.errorThrown || new Error("fake ajax error");
-                ajaxSettings.error(fakeXhr, fakeTextStatus, fakeErrorThrown);
+                fakeHttpResponse.data = response.data || new Error("fake ajax error");
+                ajaxSettings.error(fakeHttpResponse);
             } else {
-                var fakeData = response.data || [];
-                ajaxSettings.success(fakeData, fakeTextStatus, fakeXhr);
+                fakeHttpResponse.data = response.data || [];
+                ajaxSettings.success(fakeHttpResponse);
             }
         };
     }
@@ -274,10 +265,8 @@
                 // Outbound requests are disallowed; ensure a failing defaultResponse
                 var emsg = "Server requests are blocked by configuration";
                 adapterConfig.defaultResponse = adapterConfig.defaultResponse || {
-                    statusText: "Service Unavailable",
-                    responseText: emsg,
                     status: 503,
-                    errorThrown: new Error(emsg)
+                    data: new Error(emsg)
                 };
             }
             
@@ -315,19 +304,14 @@
         return (new RegExp(pattern)).test(url);
     }
 
-    function createXhrGetResponseHeader(response) {
-        return function (name) {
-            var headerObj = response.headers || {};
-            return headerObj[name] || null;
-        };
-    }
     
-    function createXhrGetAllResponseHeaders(response) {
-        return function () {
-            var headerObj = response.headers || {};
-            var headers = [];
-            for (var prop in headerObj) { headers.push(headerObj[prop]); }
-            return headers.join("\n");
+    function createGetHeaders(response) {
+        return function (headerName) {
+            if (headerName) {
+                return response.headers[headerName];
+            } else {
+                return response.headers;
+            }
         };
     }
 
