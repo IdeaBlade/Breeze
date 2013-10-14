@@ -574,6 +574,18 @@ var DataType = (function () {
    
     var _localTimeRegex = /.\d{3}$/;
 
+    DataType.parseTimeFromServer = function (source) {
+        if (typeof source === &#x27;string&#x27;) {
+            return source;
+        }
+        // ODATA v3 format
+        if (source &amp;&amp; source.__edmType === &#x27;Edm.Time&#x27;) {
+            var seconds = Math.floor(source.ms / 1000);
+            return &#x27;PT&#x27; + seconds + &#x27;S&#x27;;
+        }
+        return source;
+    }
+
     DataType.parseDateAsUTC = function (source) {
         if (typeof source === &#x27;string&#x27;) {
             // convert to UTC string if no time zone specifier.

@@ -474,6 +474,8 @@ var EntityManager = (function () {
         return entity;
     };
 
+   
+
     /**
     Creates a new EntityManager and imports a previously exported result into it.
     @example
@@ -503,6 +505,22 @@ var EntityManager = (function () {
     };
 
     // instance methods
+
+    /**
+    Calls EntityAspect.acceptChanges on every changed entity in this EntityManager. 
+    @method acceptChanges
+    **/
+    proto.acceptChanges = function () {
+        this.getChanges().forEach(function (entity) { entity.entityAspect.acceptChanges(); })
+    }
+
+    /**
+    Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. 
+    @method rejectChanges
+    **/
+    proto.rejectChanges = function () {
+        this.getChanges().forEach(function (entity) { entity.entityAspect.rejectChanges(); })
+    }
 
     /**
     Exports an entire EntityManager or just selected entities into a serialized string for external storage.
@@ -1955,6 +1973,7 @@ var EntityManager = (function () {
                         });
                     }
                 }
+                // Now performed in attachEntity
                 // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                 if (entityChanged) {
@@ -2202,6 +2221,7 @@ var EntityManager = (function () {
         }
         nodeContext = nodeContext || {};
         var meta = mappingContext.dataService.jsonResultsAdapter.visitNode(node, mappingContext, nodeContext) || {};
+        node = meta.node || node;
         if (mappingContext.query &amp;&amp; nodeContext.nodeType === &quot;root&quot; &amp;&amp; !meta.entityType) {
             meta.entityType = mappingContext.query._getToEntityType &amp;&amp; mappingContext.query._getToEntityType(mappingContext.entityManager.metadataStore);
         }
@@ -2214,7 +2234,7 @@ var EntityManager = (function () {
             return null;
         } else if (meta.nodeRefId) {
             var refValue = resolveRefEntity(meta.nodeRefId, mappingContext);
-            if (typeof refValue === &quot;function&quot;) {
+            if (typeof refValue === &quot;function&quot; &amp;&amp; assignFn != null) {
                 mappingContext.deferredFns.push(function () {
                     assignFn(refValue);
                 });
@@ -2327,6 +2347,9 @@ var EntityManager = (function () {
         var result = { };
         __objectForEach(node, function(key, value) {
             var meta = jsonResultsAdapter.visitNode(value, mappingContext, { nodeType: &quot;anonProp&quot;, propertyName: key }) || {};
+            // allows visitNode to change the value;
+            value = meta.node || value;
+
             if (meta.ignore) return;
                 
             var newKey = keyFn(key);
@@ -2456,6 +2479,8 @@ var EntityManager = (function () {
             if (val &amp;&amp; val.$value !== undefined) {
                 val = val.$value; // this will be a byte[] encoded as a string
             }
+        } else if (dp.dataType === DataType.Time) {
+            val = DataType.parseTimeFromServer(val);
         }
         return val;
     }
@@ -2533,8 +2558,13 @@ var EntityManager = (function () {
         if (!relatedRawEntities) return null;
             
         // needed if what is returned is not an array and we expect one - this happens with __deferred in OData.
-        if (!Array.isArray(relatedRawEntities)) return null;
-
+        if (!Array.isArray(relatedRawEntities)) {
+            // return null;
+            relatedRawEntities = relatedRawEntities.results; // OData v3 will look like this with an expand
+            if (!relatedRawEntities) {
+                return null;
+            }
+        }
         var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
             return visitAndMerge(relatedRawEntity, mappingContext, { nodeType: &quot;navPropItem&quot;, navigationProperty: navigationProperty });
         });

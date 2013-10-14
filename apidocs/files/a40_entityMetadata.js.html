@@ -771,7 +771,8 @@ var MetadataStore = (function () {
             if (allowMerge) {
                 return mergeStructuralType(stype, json);
             } else {
-                throw new Error(&quot;Cannot import metadata for an existing EntityType unless the &#x27;allowMerge&#x27; is set to true&quot;);
+                // allow it but don&#x27;t replace anything. 
+                return stype;
             }
         }
         var config = {
@@ -1616,6 +1617,10 @@ var EntityType = (function () {
             }
             initFn(instance);
         }
+        this.complexProperties &amp;&amp; this.complexProperties.forEach(function (cp) {
+            var ctInstance = instance.getProperty(cp.name);
+            cp.dataType._initializeInstance(ctInstance);
+        });
         // not needed for complexObjects
         if (instance.entityAspect) {
             instance.entityAspect._initialized = true;
@@ -2204,15 +2209,14 @@ var ComplexType = (function () {
     /**
     General purpose property set method
     @example
-         // assume em1 is an EntityManager
+        // assume em1 is an EntityManager
         var addresstType = em1.metadataStore.getEntityType(&quot;Address&quot;);
         addressType.setProperties( {
             custom: { foo: 7, bar: &quot;test&quot; }
         });
     @method setProperties
     @param config [object]
-         @param [config.custom] {Object}
-        
+    @param [config.custom] {Object}
     **/
     proto.setProperties = function (config) {
         assertConfig(config)
@@ -2230,10 +2234,7 @@ var ComplexType = (function () {
         var aCtor = this.getCtor();
         var instance = new aCtor();
         new ComplexAspect(instance, parent, parentProperty);
-        // TODO: don&#x27;t think that this is needed anymore - createInstance call will do this 
-        //if (parent) {
-        //    this._initializeInstance(instance);
-        //}
+        // initialization occurs during either attach or in createInstance call. 
         return instance;
     };
         
@@ -2540,15 +2541,14 @@ var DataProperty = (function () {
     /**
     General purpose property set method
     @example
-       // assume em1 is an EntityManager
-      var prop = myEntityType.getProperty(&quot;myProperty&quot;);
-      prop.setProperties( {
-          custom: { foo: 7, bar: &quot;test&quot; }
-      });
+        // assume em1 is an EntityManager
+        var prop = myEntityType.getProperty(&quot;myProperty&quot;);
+        prop.setProperties( {
+            custom: { foo: 7, bar: &quot;test&quot; }
+        });
     @method setProperties
     @param config [object]
     @param [config.custom] {Object}
-      
     **/
     proto.setProperties = function (config) {
         assertConfig(config)
@@ -2763,15 +2763,14 @@ var NavigationProperty = (function () {
     /**
     General purpose property set method
     @example
-       // assume myEntityType is an EntityType
-      var prop = myEntityType.getProperty(&quot;myProperty&quot;);
-      prop.setProperties( {
-          custom: { foo: 7, bar: &quot;test&quot; }
-      });
+        // assume myEntityType is an EntityType
+        var prop = myEntityType.getProperty(&quot;myProperty&quot;);
+        prop.setProperties( {
+            custom: { foo: 7, bar: &quot;test&quot; }
+        });
     @method setProperties
     @param config [object]
     @param [config.custom] {Object}
-      
     **/
     proto.setProperties = function (config) {
         assertConfig(config)

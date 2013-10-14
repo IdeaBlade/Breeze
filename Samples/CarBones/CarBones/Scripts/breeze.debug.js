@@ -14355,7 +14355,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                 processEntityErrors(err, entityErrors, httpResponse.saveContext);
             } else {
                 errObj = errObj.InnerException || errObj;
-                err.message = errObj.ExceptionMessage || errObj.Message;
+                err.message = errObj.ExceptionMessage || errObj.Message || errObj.toString();
             }
         } else {
             err.message = httpResponse.error && httpResponse.error.toString();
