@@ -26,12 +26,17 @@
         var ng = core.requireLib("angular");
         if (ng) {
             var $injector = ng.injector(['ng']);
-            $injector.invoke(function ($http, $rootScope) {
-                httpService = $http;
-                rootScope = $rootScope;
-            });
+            $injector.invoke(['$http', '$rootScope', function(xHttp, xRootScope) {
+                httpService = xHttp;
+                rootScope = xRootScope;
+            }]);
         }
                 
+    };
+
+    ctor.prototype.setHttp = function (http) {
+        httpService = http;
+        rootScope = null; // to suppress rootScope.digest
     };
 
     ctor.prototype.ajax = function (config) {
@@ -82,7 +87,7 @@
             };
             config.error(httpResponse);
         });
-        rootScope.$digest();
+        rootScope && rootScope.$digest();
     };
 
     function encodeParams(obj) {
