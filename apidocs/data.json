@@ -235,6 +235,16 @@
             "fors": {},
             "namespaces": {}
         },
+        "iface.ajaxInterface.js": {
+            "name": "iface.ajaxInterface.js",
+            "modules": {},
+            "classes": {
+                "ↈ_ajax_interface": 1,
+                "HttpResponse": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
         "iface.keyGeneratorInterface.js": {
             "name": "iface.keyGeneratorInterface.js",
             "modules": {},
@@ -304,6 +314,8 @@
                 "QueryOptions": 1,
                 "EntityManager": 1,
                 "SaveOptions": 1,
+                "ↈ_ajax_interface": 1,
+                "HttpResponse": 1,
                 "ↈ_keyGenerator_interface": 1,
                 "Promise": 1
             },
@@ -798,6 +810,34 @@
             "file": "a55_saveOptions.js",
             "line": 6,
             "description": "A SaveOptions instance is used to specify the 'options' under which a save will occur."
+        },
+        "ↈ_ajax_interface": {
+            "name": "ↈ_ajax_interface",
+            "shortname": "ↈ_ajax_interface",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "breeze",
+            "namespace": "",
+            "file": "iface.ajaxInterface.js",
+            "line": 5,
+            "description": "This is an interface description. Any class that implements the methods and properties defined here is considered a valid\nimplementation of this interface."
+        },
+        "HttpResponse": {
+            "name": "HttpResponse",
+            "shortname": "HttpResponse",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "breeze",
+            "namespace": "",
+            "file": "iface.ajaxInterface.js",
+            "line": 30,
+            "description": "A generic wrapper for any Http response returned by a server."
         },
         "ↈ_keyGenerator_interface": {
             "name": "ↈ_keyGenerator_interface",
@@ -2776,7 +2816,7 @@
                 }
             ],
             "return": {
-                "description": "\n\n    promiseData.results {Array of Entity}\n    promiseData.query {EntityQuery} The original query\n    promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.",
+                "description": "\n\n    promiseData.results {Array of Entity}\n    promiseData.query {EntityQuery} The original query\n    promiseData.httpResponse {httpResponse} The HttpResponse returned from the server.",
                 "type": "Promise"
             },
             "class": "EntityAspect",
@@ -6064,9 +6104,9 @@
                                     "type": "EntityQuery"
                                 },
                                 {
-                                    "name": "XHR",
-                                    "description": "The raw XMLHttpRequest returned from the server.",
-                                    "type": "XMLHttpRequest"
+                                    "name": "httpResponse",
+                                    "description": "The HttpResponse returned from the server.",
+                                    "type": "HttpResponse"
                                 },
                                 {
                                     "name": "inlineCount",
@@ -6094,9 +6134,9 @@
                                     "optional": true
                                 },
                                 {
-                                    "name": "XHR",
+                                    "name": "httpResponse",
                                     "description": "The raw XMLHttpRequest returned from the server.",
-                                    "type": "XMLHttpRequest",
+                                    "type": "HttpResponse",
                                     "optional": true
                                 }
                             ]
@@ -7325,9 +7365,9 @@
                                     "type": "EntityManager"
                                 },
                                 {
-                                    "name": "XHR",
-                                    "description": "The raw XMLHttpRequest returned from the server.",
-                                    "type": "XMLHttpRequest"
+                                    "name": "httpResponse",
+                                    "description": "The HttpResponse returned from the server.",
+                                    "type": "HttpResponse"
                                 },
                                 {
                                     "name": "inlineCount",
@@ -7361,9 +7401,9 @@
                                     "optional": true
                                 },
                                 {
-                                    "name": "XHR",
-                                    "description": "The raw XMLHttpRequest returned from the server.",
-                                    "type": "XMLHttpRequest",
+                                    "name": "httpResponse",
+                                    "description": "The HttpResponse returned from the server.",
+                                    "type": "HttpResponse",
                                     "optional": true
                                 }
                             ]
@@ -7372,7 +7412,7 @@
                 }
             ],
             "return": {
-                "description": "Promise\n\n    promiseData.results {Array of Entity}\n    promiseData.query {EntityQuery} The original query\n    promiseData.entityManager {EntityManager} The EntityManager.\n    promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.\n    promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of \n    items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates\n    would have been applied.",
+                "description": "Promise\n\n    promiseData.results {Array of Entity}\n    promiseData.query {EntityQuery} The original query\n    promiseData.entityManager {EntityManager} The EntityManager.\n    promiseData.httpResponse {HttpResponse} The  HttpResponse returned from the server.\n    promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of \n    items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates\n    would have been applied.",
                 "type": "Promise"
             },
             "class": "EntityManager",
@@ -7454,9 +7494,9 @@
                                     "optional": true
                                 },
                                 {
-                                    "name": "XHR",
-                                    "description": "The raw XMLHttpRequest returned from the server.",
-                                    "type": "XMLHttpRequest",
+                                    "name": "httpResponse",
+                                    "description": "The raw HttpResponse returned from the server.",
+                                    "type": "HttpResponse",
                                     "optional": true
                                 }
                             ]
@@ -7482,9 +7522,9 @@
                                     "optional": true
                                 },
                                 {
-                                    "name": "XHR",
-                                    "description": "Any error that cannot be represented as a server error (above) will be returned in this format. \n    This includes timeouts, server failures, database locking issues etc.",
-                                    "type": "XMLHttpRequest",
+                                    "name": "httpResponse",
+                                    "description": "The raw HttpResponse returned from the server.",
+                                    "type": "HttpResponse",
                                     "optional": true
                                 }
                             ]
@@ -7501,7 +7541,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1062,
+            "line": 1061,
             "description": "Attempts to locate an entity within this EntityManager by its key.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employee = em1.getEntityByKey(\"Employee\", 1);\n    // employee will either be an entity or null."
@@ -7529,7 +7569,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1074,
+            "line": 1073,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.getEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -7552,7 +7592,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1105,
+            "line": 1104,
             "description": "Attempts to fetch an entity from the server by its key with\nan option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy \nwill be used to merge any server side entity returned by this method.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -7586,7 +7626,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1130,
+            "line": 1129,
             "description": "Attempts to fetch an entity from the server by its {{#crossLink \"EntityKey\"}}{{/crossLink}} with\nan option to check the local cache first.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -7615,7 +7655,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1179,
+            "line": 1178,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.findEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -7640,7 +7680,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1196,
+            "line": 1195,
             "description": "Generates a temporary key for the specified entity.  This is used to insure that newly\ncreated entities have unique keys and to register that these keys are temporary and\nneed to be automatically replaced with 'real' key values once these entities are saved.\n\nThe EntityManager.keyGeneratorCtor property is used internally by this method to actually generate\nthe keys - See the  {{#crossLink \"~keyGenerator-interface\"}}{{/crossLink}} interface description to see\nhow a custom key generator can be plugged in.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var custumer = custType.createEntity();\n    var customerId = em.generateTempKeyValue(custumer);\n    // The 'customer' entity 'CustomerID' property is now set to a newly generated unique id value\n    // This property will change again after a successful save of the 'customer' entity.\n\n    em1.saveChanges()\n        .then( function( data) {\n            var sameCust1 = data.results[0];\n            // cust1 === sameCust1;\n            // but cust1.getProperty(\"CustomerId\") != customerId\n            // because the server will have generated a new id \n            // and the client will have been updated with this \n            // new id.\n        })"
@@ -7663,7 +7703,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1237,
+            "line": 1236,
             "description": "Returns whether there are any changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to determine if an EntityManager has any changes",
@@ -7690,7 +7730,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1273,
+            "line": 1272,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes.",
             "example": [
                 "                    \n    var em = new EntityManager( {serviceName: \"breeze/NorthwindIBModel\" });\n    em.hasChangesChanged.subscribe(function(args) {\n        var hasChangesChanged = args.hasChanges;\n        var entityManager = args.entityManager;\n    });\n});"
@@ -7715,7 +7755,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1299,
+            "line": 1298,
             "description": "Returns a array of all changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to get all of the changed entities within an EntityManager",
@@ -7742,7 +7782,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1329,
+            "line": 1328,
             "description": "Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var entities = em1.rejectChanges();"
@@ -7758,7 +7798,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1352,
+            "line": 1351,
             "description": "Returns a array of all entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s with the specified {{#crossLink \"EntityState\"}}{{/crossLink}}s.",
             "example": [
                 "\nThis method can be used to get all of the entities within an EntityManager",
@@ -7936,6 +7976,108 @@
             ],
             "chainable": 1,
             "class": "SaveOptions",
+            "module": "breeze"
+        },
+        {
+            "file": "iface.ajaxInterface.js",
+            "line": 12,
+            "description": "Performs an ajax request. This method takes a single argument — a configuration object — that is used to generate an HTTP request. The config object has two callback methods:  \n'success' and 'error' in addition to a number of properties that may be used to configure the request itself. Higher level Breeze constructs will wrap calls to the ajax adapter \ninto Promises. Individual adapters may add additional properties to the basic config object described below.",
+            "itemtype": "method",
+            "name": "ajax",
+            "params": [
+                {
+                    "name": "config",
+                    "description": "",
+                    "type": "Object",
+                    "props": [
+                        {
+                            "name": "url",
+                            "description": "Absolute or relative URL of the resource that is being requested.",
+                            "type": "String"
+                        },
+                        {
+                            "name": "type",
+                            "description": "HTTP method (e.g. 'GET', 'POST', etc)",
+                            "type": "String"
+                        },
+                        {
+                            "name": "data",
+                            "description": "Data to be sent as the request message data",
+                            "type": "Object|String",
+                            "optional": true
+                        },
+                        {
+                            "name": "params",
+                            "description": "Map of strings or objects which will be sent to the server in the query string in a form encoded format - url?key1=value1&key2=value2",
+                            "optional": true
+                        },
+                        {
+                            "name": "crossDomain",
+                            "description": "",
+                            "optional": true,
+                            "optdefault": "false"
+                        },
+                        {
+                            "name": "success",
+                            "description": "Function called on success.\n        successFunction(httpResponse)",
+                            "type": "Function"
+                        },
+                        {
+                            "name": "error",
+                            "description": "Function called on failure.\n        errorFunction(httpResponse)",
+                            "type": "Function"
+                        }
+                    ]
+                }
+            ],
+            "class": "ↈ_ajax_interface",
+            "module": "breeze"
+        },
+        {
+            "file": "iface.ajaxInterface.js",
+            "line": 36,
+            "description": "The response body.",
+            "itemtype": "property",
+            "name": "data",
+            "type": "Object",
+            "class": "HttpResponse",
+            "module": "breeze"
+        },
+        {
+            "file": "iface.ajaxInterface.js",
+            "line": 41,
+            "description": "HTTP status code of the response.",
+            "itemtype": "property",
+            "name": "status",
+            "type": "Number",
+            "class": "HttpResponse",
+            "module": "breeze"
+        },
+        {
+            "file": "iface.ajaxInterface.js",
+            "line": 46,
+            "description": "The configuration object that was used to generate the request.",
+            "itemtype": "property",
+            "name": "config",
+            "type": "Object",
+            "class": "HttpResponse",
+            "module": "breeze"
+        },
+        {
+            "file": "iface.ajaxInterface.js",
+            "line": 51,
+            "description": "A function to retrieve headers - a null headerName will return all headers.",
+            "itemtype": "method",
+            "name": "getHeader",
+            "params": [
+                {
+                    "name": "headerName",
+                    "description": "",
+                    "type": "String",
+                    "optional": true
+                }
+            ],
+            "class": "HttpResponse",
             "module": "breeze"
         },
         {

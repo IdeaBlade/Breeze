@@ -370,7 +370,7 @@ var EntityAspect = (function() {
 
         promiseData.results {Array of Entity}
         promiseData.query {EntityQuery} The original query
-        promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        promiseData.httpResponse {httpResponse} The HttpResponse returned from the server.
     **/
     proto.loadNavigationProperty = function (navigationProperty, callback, errorCallback) {
         var entity = this.entity;

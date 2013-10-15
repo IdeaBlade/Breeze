@@ -86,6 +86,7 @@
     <Content Include="Scripts\IBlade\a60_abstractDataServiceAdapter.js" />
     <Content Include="Scripts\IBlade\breeze.dataService.mongo.js" />
     <Content Include="Scripts\IBlade\b00_breeze.ajax.angular.js" />
+    <Content Include="Scripts\IBlade\iface.ajaxInterface.js" />
     <Content Include="Scripts\IBlade\iface.keyGeneratorInterface.js" />
     <Content Include="Scripts\IBlade\iface.promise.js" />
     <Content Include="Scripts\IBlade\node_modules\uglify-js\lib\ast.js" />

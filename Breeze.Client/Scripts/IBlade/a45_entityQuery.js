@@ -595,7 +595,7 @@ var EntityQuery = (function () {
         @param [callback.data] {Object} 
         @param callback.data.results {Array of Entity}
         @param callback.data.query {EntityQuery} The original query
-        @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param callback.data.httpResponse {HttpResponse} The HttpResponse returned from the server.
         @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
         would have been applied. 
@@ -605,7 +605,7 @@ var EntityQuery = (function () {
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.query] The query that caused the error.
-        @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param [errorCallback.error.httpResponse] {HttpResponse} The raw XMLHttpRequest returned from the server.
 
     @return {Promise}
     **/
