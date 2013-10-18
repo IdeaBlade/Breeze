@@ -120,6 +120,8 @@
             
                 <li><a href="../classes/FilterQueryOp.html">FilterQueryOp</a></li>
             
+                <li><a href="../classes/HttpResponse.html">HttpResponse</a></li>
+            
                 <li><a href="../classes/JsonResultsAdapter.html">JsonResultsAdapter</a></li>
             
                 <li><a href="../classes/LocalQueryComparisonOptions.html">LocalQueryComparisonOptions</a></li>
@@ -145,6 +147,8 @@
                 <li><a href="../classes/ValidationOptions.html">ValidationOptions</a></li>
             
                 <li><a href="../classes/Validator.html">Validator</a></li>
+            
+                <li><a href="../classes/ↈ_ajax_interface.html">ↈ_ajax_interface</a></li>
             
                 <li><a href="../classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
             
@@ -573,7 +577,7 @@ var EntityAspect = (function() {
 
         promiseData.results {Array of Entity}
         promiseData.query {EntityQuery} The original query
-        promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        promiseData.httpResponse {httpResponse} The HttpResponse returned from the server.
     **/
     proto.loadNavigationProperty = function (navigationProperty, callback, errorCallback) {
         var entity = this.entity;

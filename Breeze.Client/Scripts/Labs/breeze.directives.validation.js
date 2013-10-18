@@ -67,18 +67,18 @@
                 }
                 
                 // Add/remove the error message HTML (errEl) and styling 
-                // errEl, if it exists, is a sibling of this element with an 'invalid' class
-                var errEl = element.nextAll('.invalid')[0];
+                // errEl, if it exists, is the first sibling of this element with an 'invalid' class
+                var errEl = element.nextAll('.invalid').first();
                 
                 if (newValue) {
                     var html = config.zValidateTemplate.replace(/%error%/, newValue);
-                    if (errEl) {
+                    if (errEl.length) {
                         errEl.replaceWith(html);
                     } else {
                         errEl = angular.element(html);
                         element.after(errEl);
                     }
-                } else if (errEl) {
+                } else {
                     errEl.remove();
                 } 
             }

@@ -1,0 +1,11 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="UserRole" table="`UserRole`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="ID" column="`ID`" type="long" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <many-to-one name="User" column="`UserId`" class="User" />
+    <many-to-one name="Role" column="`RoleId`" class="Role" />
+    <property name="UserId" type="long" not-null="true" insert="false" update="false" />
+    <property name="RoleId" type="long" not-null="true" insert="false" update="false" />
+  </class>
+</hibernate-mapping>

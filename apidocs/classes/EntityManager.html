@@ -120,6 +120,8 @@
             
                 <li><a href="../classes/FilterQueryOp.html">FilterQueryOp</a></li>
             
+                <li><a href="../classes/HttpResponse.html">HttpResponse</a></li>
+            
                 <li><a href="../classes/JsonResultsAdapter.html">JsonResultsAdapter</a></li>
             
                 <li><a href="../classes/LocalQueryComparisonOptions.html">LocalQueryComparisonOptions</a></li>
@@ -145,6 +147,8 @@
                 <li><a href="../classes/ValidationOptions.html">ValidationOptions</a></li>
             
                 <li><a href="../classes/Validator.html">Validator</a></li>
+            
+                <li><a href="../classes/ↈ_ajax_interface.html">ↈ_ajax_interface</a></li>
             
                 <li><a href="../classes/ↈ_complexArray_.html">ↈ_complexArray_</a></li>
             
@@ -255,6 +259,13 @@
                         
                             <li class="index-item method">
                                 <a href="#method_&lt;ctor&gt; EntityManager">&lt;ctor&gt; EntityManager</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_acceptChanges">acceptChanges</a>
 
                                 
                                 
@@ -406,6 +417,13 @@
                         
                             <li class="index-item method">
                                 <a href="#method_importEntities">importEntities</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_rejectChanges">rejectChanges</a>
 
                                 
                                 
@@ -763,6 +781,61 @@ var entityManager = new EntityManager({
 </div>
 
                 
+                    <div id="method_acceptChanges" class="method item">
+    <h3 class="name"><code>acceptChanges</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="../files/a50_entityManager.js.html#l306"><code>a50_entityManager.js:306</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Calls EntityAspect.acceptChanges on every changed entity in this EntityManager.</p>
+
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
                     <div id="method_addEntity" class="method item">
     <h3 class="name"><code>addEntity</code></h3>
 
@@ -809,7 +882,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="../files/a50_entityManager.js.html#l478"><code>a50_entityManager.js:478</code></a>
+        <a href="../files/a50_entityManager.js.html#l496"><code>a50_entityManager.js:496</code></a>
         
         </p>
 
@@ -939,7 +1012,7 @@ em1.attachEntity(cust1, EntityState.Added);</code></pre>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l499"><code>a50_entityManager.js:499</code></a>
+        <a href="../files/a50_entityManager.js.html#l517"><code>a50_entityManager.js:517</code></a>
         
         </p>
 
@@ -1061,7 +1134,7 @@ em1.attachEntity(cust1, EntityState.Added);</code></pre>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l428"><code>a50_entityManager.js:428</code></a>
+        <a href="../files/a50_entityManager.js.html#l446"><code>a50_entityManager.js:446</code></a>
         
         </p>
 
@@ -1133,7 +1206,7 @@ em1.clear();
             
         
         
-        <a href="../files/a50_entityManager.js.html#l456"><code>a50_entityManager.js:456</code></a>
+        <a href="../files/a50_entityManager.js.html#l474"><code>a50_entityManager.js:474</code></a>
         
         </p>
 
@@ -1404,7 +1477,7 @@ var emp4 = em1.createEntity(&quot;Employee&quot;, { id: 435, lastName: Smith&quo
             
         
         
-        <a href="../files/a50_entityManager.js.html#l553"><code>a50_entityManager.js:553</code></a>
+        <a href="../files/a50_entityManager.js.html#l571"><code>a50_entityManager.js:571</code></a>
         
         </p>
 
@@ -1538,7 +1611,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="../files/a50_entityManager.js.html#l628"><code>a50_entityManager.js:628</code></a>
+        <a href="../files/a50_entityManager.js.html#l646"><code>a50_entityManager.js:646</code></a>
         
         </p>
 
@@ -1641,12 +1714,12 @@ em1.detachEntity(cust1);
                                         
                                         <li class="param">
                                             
-                                                <code class="param-name">XHR</code>
-                                                <span class="type">XMLHttpRequest</span>
+                                                <code class="param-name">httpResponse</code>
+                                                <span class="type"><a href="..\classes\HttpResponse.html" class="crosslink">HttpResponse</a></span>
                                             
 
                                             <div class="param-description">
-                                                The raw XMLHttpRequest returned from the server.
+                                                The HttpResponse returned from the server.
                                             </div>
                                         </li>
                                         
@@ -1730,13 +1803,13 @@ em1.detachEntity(cust1);
                                         
                                         <li class="param">
                                             
-                                                <code class="param-name optional">[XHR]</code>
-                                                <span class="type">XMLHttpRequest</span>
+                                                <code class="param-name optional">[httpResponse]</code>
+                                                <span class="type"><a href="..\classes\HttpResponse.html" class="crosslink">HttpResponse</a></span>
                                                 <span class="flag optional" title="This parameter is optional.">optional</span>
                                             
 
                                             <div class="param-description">
-                                                The raw XMLHttpRequest returned from the server.
+                                                The HttpResponse returned from the server.
                                             </div>
                                         </li>
                                         
@@ -1765,7 +1838,7 @@ em1.detachEntity(cust1);
 <pre><code>promiseData.results {Array of Entity}
 promiseData.query {EntityQuery} The original query
 promiseData.entityManager {EntityManager} The EntityManager.
-promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+promiseData.httpResponse {HttpResponse} The  HttpResponse returned from the server.
 promiseData.inlineCount {Integer} Only available if &#39;inlineCount(true)&#39; was applied to the query.  Returns the count of 
 items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
 would have been applied.</code></pre>
@@ -1864,7 +1937,7 @@ would have been applied.</code></pre>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l725"><code>a50_entityManager.js:725</code></a>
+        <a href="../files/a50_entityManager.js.html#l743"><code>a50_entityManager.js:743</code></a>
         
         </p>
 
@@ -1994,7 +2067,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l304"><code>a50_entityManager.js:304</code></a>
+        <a href="../files/a50_entityManager.js.html#l322"><code>a50_entityManager.js:322</code></a>
         
         </p>
 
@@ -2143,7 +2216,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );</c
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1087"><code>a50_entityManager.js:1087</code></a>
+        <a href="../files/a50_entityManager.js.html#l1104"><code>a50_entityManager.js:1104</code></a>
         
         </p>
 
@@ -2310,7 +2383,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1112"><code>a50_entityManager.js:1112</code></a>
+        <a href="../files/a50_entityManager.js.html#l1129"><code>a50_entityManager.js:1129</code></a>
         
         </p>
 
@@ -2460,7 +2533,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="../files/a50_entityManager.js.html#l579"><code>a50_entityManager.js:579</code></a>
+        <a href="../files/a50_entityManager.js.html#l597"><code>a50_entityManager.js:597</code></a>
         
         </p>
 
@@ -2651,7 +2724,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1161"><code>a50_entityManager.js:1161</code></a>
+        <a href="../files/a50_entityManager.js.html#l1178"><code>a50_entityManager.js:1178</code></a>
         
         </p>
 
@@ -2773,7 +2846,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1178"><code>a50_entityManager.js:1178</code></a>
+        <a href="../files/a50_entityManager.js.html#l1195"><code>a50_entityManager.js:1195</code></a>
         
         </p>
 
@@ -2909,7 +2982,7 @@ em1.saveChanges()
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1281"><code>a50_entityManager.js:1281</code></a>
+        <a href="../files/a50_entityManager.js.html#l1298"><code>a50_entityManager.js:1298</code></a>
         
         </p>
 
@@ -3045,7 +3118,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);</code></p
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1334"><code>a50_entityManager.js:1334</code></a>
+        <a href="../files/a50_entityManager.js.html#l1351"><code>a50_entityManager.js:1351</code></a>
         
         </p>
 
@@ -3203,7 +3276,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1044"><code>a50_entityManager.js:1044</code></a>
+        <a href="../files/a50_entityManager.js.html#l1061"><code>a50_entityManager.js:1061</code></a>
         
         </p>
 
@@ -3337,7 +3410,7 @@ var employee = em1.getEntityByKey(&quot;Employee&quot;, 1);
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1056"><code>a50_entityManager.js:1056</code></a>
+        <a href="../files/a50_entityManager.js.html#l1073"><code>a50_entityManager.js:1073</code></a>
         
         </p>
 
@@ -3457,7 +3530,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1219"><code>a50_entityManager.js:1219</code></a>
+        <a href="../files/a50_entityManager.js.html#l1236"><code>a50_entityManager.js:1236</code></a>
         
         </p>
 
@@ -3601,7 +3674,7 @@ if ( em1.hasChanges( [custType, orderType]) {
             
         
         
-        <a href="../files/a50_entityManager.js.html#l274"><code>a50_entityManager.js:274</code></a>
+        <a href="../files/a50_entityManager.js.html#l276"><code>a50_entityManager.js:276</code></a>
         
         </p>
 
@@ -3770,7 +3843,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="../files/a50_entityManager.js.html#l347"><code>a50_entityManager.js:347</code></a>
+        <a href="../files/a50_entityManager.js.html#l365"><code>a50_entityManager.js:365</code></a>
         
         </p>
 
@@ -3905,6 +3978,61 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
     
 
     
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="../files/a50_entityManager.js.html#l314"><code>a50_entityManager.js:314</code></a>
+        
+        </p>
+
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Calls EntityAspect.rejectChanges on every changed entity in this EntityManager.</p>
+
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="method_rejectChanges" class="method item">
+    <h3 class="name"><code>rejectChanges</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
         <span class="returns-inline">
             <span class="type">Array of Entity</span>
         </span>
@@ -3933,7 +4061,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1311"><code>a50_entityManager.js:1311</code></a>
+        <a href="../files/a50_entityManager.js.html#l1328"><code>a50_entityManager.js:1328</code></a>
         
         </p>
 
@@ -4047,7 +4175,7 @@ var entities = em1.rejectChanges();</code></pre>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l797"><code>a50_entityManager.js:797</code></a>
+        <a href="../files/a50_entityManager.js.html#l815"><code>a50_entityManager.js:815</code></a>
         
         </p>
 
@@ -4165,13 +4293,13 @@ EntityManager/saveOptions if null.</p>
                                         
                                         <li class="param">
                                             
-                                                <code class="param-name optional">[XHR]</code>
-                                                <span class="type">XMLHttpRequest</span>
+                                                <code class="param-name optional">[httpResponse]</code>
+                                                <span class="type"><a href="..\classes\HttpResponse.html" class="crosslink">HttpResponse</a></span>
                                                 <span class="flag optional" title="This parameter is optional.">optional</span>
                                             
 
                                             <div class="param-description">
-                                                The raw XMLHttpRequest returned from the server.
+                                                The raw HttpResponse returned from the server.
                                             </div>
                                         </li>
                                         
@@ -4230,14 +4358,13 @@ EntityManager/saveOptions if null.</p>
                                         
                                         <li class="param">
                                             
-                                                <code class="param-name optional">[XHR]</code>
-                                                <span class="type">XMLHttpRequest</span>
+                                                <code class="param-name optional">[httpResponse]</code>
+                                                <span class="type"><a href="..\classes\HttpResponse.html" class="crosslink">HttpResponse</a></span>
                                                 <span class="flag optional" title="This parameter is optional.">optional</span>
                                             
 
                                             <div class="param-description">
-                                                Any error that cannot be represented as a server error (above) will be returned in this format. 
-    This includes timeouts, server failures, database locking issues etc.
+                                                The raw HttpResponse returned from the server.
                                             </div>
                                         </li>
                                         
@@ -4978,7 +5105,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1255"><code>a50_entityManager.js:1255</code></a>
+        <a href="../files/a50_entityManager.js.html#l1272"><code>a50_entityManager.js:1272</code></a>
         
         </p>
 

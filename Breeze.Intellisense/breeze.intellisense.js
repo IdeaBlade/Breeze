@@ -1,4 +1,4 @@
-﻿// Generated on: Fri Sep 27 2013 15:13:30 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Tue Oct 15 2013 13:34:30 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -476,6 +476,14 @@ intellisense.annotate(breeze.breeze, {
     ///   A SaveOptions instance is used to specify the 'options' under which a save will occur. }
     ///   </summary>
     ///   <param name="config" type="Object" optional="true"></param>
+    /// </signature>
+  },
+
+  'HttpResponse': function() {
+    /// <signature>
+    ///   <summary>
+    ///   A generic wrapper for any Http response returned by a server. }
+    ///   </summary>
     /// </signature>
   },
 
@@ -2421,6 +2429,22 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   <returns type="Entity" >A new Entity of the specified type.</returns>
     /// </signature>
   },
+  'acceptChanges': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Calls EntityAspect.acceptChanges on every changed entity in this EntityManager. }
+    ///   </summary>
+    
+    /// </signature>
+  },
+  'rejectChanges': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. }
+    ///   </summary>
+    
+    /// </signature>
+  },
   'exportEntities': function() {
     /// <signature>
     ///   <summary>
@@ -2709,6 +2733,33 @@ intellisense.annotate(breeze.breeze.SaveOptions, {
   
   /// <field name="defaultInstance" type="breeze.breeze.SaveOptions" >The default value whenever SaveOptions are not specified.</field>
   'defaultInstance': null,
+  
+});
+
+intellisense.annotate(breeze.breeze.HttpResponse.prototype, {
+  
+  'getHeader': function() {
+    /// <signature>
+    ///   <summary>
+    ///   A function to retrieve headers - a null headerName will return all headers. }
+    ///   </summary>
+    ///   <param name="headerName" type="String" optional="true"></param>
+    
+    /// </signature>
+  },
+  
+  /// <field name="data" type="Object" >The response body.</field>
+  'data': null,
+  
+  /// <field name="status" type="Number" >HTTP status code of the response.</field>
+  'status': null,
+  
+  /// <field name="config" type="Object" >The configuration object that was used to generate the request.</field>
+  'config': null,
+  
+});
+intellisense.annotate(breeze.breeze.HttpResponse, {
+  
   
 });
 

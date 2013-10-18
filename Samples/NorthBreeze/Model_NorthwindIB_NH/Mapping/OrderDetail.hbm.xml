@@ -1,0 +1,15 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="OrderDetail" table="`OrderDetail`" dynamic-update="true">
+    <!--TODO- composite keys are a BAD IDEA-->
+    <composite-id>
+      <key-many-to-one column="`OrderID`" name="Order" class="Order" />
+      <key-many-to-one column="`ProductID`" name="Product" class="Product" />
+    </composite-id>
+    <version name="RowVersion" type="int" />
+    <property name="OrderID" type="int" not-null="true" insert="false" update="false" />
+    <property name="ProductID" type="int" not-null="true" insert="false" update="false" />
+    <property name="UnitPrice" type="decimal" not-null="true" />
+    <property name="Quantity" type="short" not-null="true" />
+    <property name="Discount" type="float" not-null="true" />
+  </class>
+</hibernate-mapping>

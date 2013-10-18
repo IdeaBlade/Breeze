@@ -64,12 +64,12 @@
 
         ajaxInterceptor.ajax(ajaxConfig);
 
-        function success(data, textStatus, xhr) {
+        function success(httpResponse) {
             ok(false, "request should have been blocked and failed");
         }
-        function error(xhr, textStatus, errorThrown) {
-            ok(/server requests are blocked/i.test(xhr.responseText),
-                serverRequestBlockMessage(xhr));
+        function error(httpResponse) {
+            ok(/server requests are blocked/i.test(httpResponse.data.message),
+                serverRequestBlockMessage(httpResponse));
         }
     });
     
@@ -88,12 +88,12 @@
 
         ajaxInterceptor.ajax(ajaxConfig);
 
-        function success(data, textStatus, xhr) {
+        function success(httpResponse) {
             ok(false, "request should have been blocked and failed");
         }
-        function error(xhr, textStatus, errorThrown) {
-            ok(/server requests are blocked/i.test(xhr.responseText),
-                serverRequestBlockMessage(xhr));
+        function error(httpResponse) {
+            ok(/server requests are blocked/i.test(httpResponse.data),
+                serverRequestBlockMessage(httpResponse));
         }
     });
 
@@ -106,8 +106,8 @@
 
         ajaxInterceptor.ajax(ajaxConfig);
 
-        function success(data, textStatus, xhr) {
-            deepEqual(data, expectedData,
+        function success(httpResponse) {
+            deepEqual(httpResponse.data, expectedData,
                 "request should have returned expected data: " +
                     JSON.stringify(expectedData));
         }
@@ -123,8 +123,8 @@
 
         ajaxInterceptor.ajax(ajaxConfig);
 
-        function success(data, textStatus, xhr) {
-            deepEqual(data, expectedData,
+        function success(httpResponse) {
+            deepEqual(httpResponse.data, expectedData,
                 "request should have returned expected data: " +
                     JSON.stringify(expectedData));
         }
@@ -143,8 +143,8 @@
 
         ajaxInterceptor.ajax(ajaxConfig);
 
-        function success(data, textStatus, xhr) {
-            deepEqual(data, expectedData,
+        function success(httpResponse) {
+            deepEqual(httpResponse.data, expectedData,
                 "request should have returned expected data.");
         }
     });
@@ -341,8 +341,8 @@
         }
 
         function expectedFail(error) {
-            ok(/server requests are blocked/i.test(error.responseText),
-                serverRequestBlockMessage(error.XHR));
+            ok(/server requests are blocked/i.test(error.httpResponse.data),
+                serverRequestBlockMessage(error.httpResponse));
         }
     });
     
@@ -356,16 +356,16 @@
             }, config || {} );
     };
     
-    function unexpectedAjaxAdapterError(xhr, textStatus, errorThrown) {
+    function unexpectedAjaxAdapterError(httpResponse) {
         ok(false,
-            "ajax adapter returned unexpected error, {0}-{1}: '{2}'".format(
-            xhr.status, xhr.statusText, errorThrown.message));
+            "ajax adapter returned unexpected error, {0}-{1}".format(
+            httpResponse.status, httpResponse.data));
     }
 
-    function serverRequestBlockMessage(xhr) {
-        return "blocked trip to server ({0}); error was {1}-{2}: '{3}'".format(
-            (xhr.__ajaxConfig && xhr.__ajaxConfig.url) || 'unknown url',
-            xhr.status, xhr.statusText, xhr.responseText);
+    function serverRequestBlockMessage(httpResponse) {
+        return "blocked trip to server ({0}); error was {1}-{2}".format(
+            (httpResponse.__ajaxConfig && httpResponse.__ajaxConfig.url) || 'unknown url',
+            httpResponse.status, httpResponse.data);
     }
     
     function entitySaveTester(entity, shouldSave) {

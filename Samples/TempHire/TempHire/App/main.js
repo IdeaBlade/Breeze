@@ -1,42 +1,56 @@
 ﻿require.config({
-    paths: { "text": "durandal/amd/text" }
+    baseUrl: '/App',
+    paths: {
+        'text': '../Scripts/text',
+        'durandal': '../Scripts/durandal',
+        'plugins': '../Scripts/durandal/plugins',
+        'transitions': '../Scripts/durandal/transitions'
+    }
 });
 
-define(['durandal/app', 'durandal/viewLocator', 'durandal/system', 'durandal/plugins/router', 'services/logger'],
-    function (app, viewLocator, system, router, logger) {
+define('jquery', function () { return jQuery; });
+define('knockout', ko);
 
-    // Enable debug message to show in the console 
-    system.debug(true);
+define(['durandal/app', 'durandal/viewLocator', 'durandal/system', 'plugins/router', 'services/logger'],
+    function(app, viewLocator, system, router, logger) {
 
-    app.start().then(function () {
+        // Enable debug message to show in the console 
+        system.debug(true);
 
-        // Q shim
-        system.defer = function (action) {
-            var deferred = Q.defer();
-            action.call(deferred, deferred);
-            var promise = deferred.promise;
-            deferred.promise = function () {
-                return promise;
+        app.title = 'TempHire';
+        
+        // Specify which plugins to install und their configuation
+        app.configurePlugins({
+            router: true,
+            dialog: true
+        });
+
+        app.start().then(function() {
+
+            // Q shim
+            system.defer = function(action) {
+                var deferred = Q.defer();
+                action.call(deferred, deferred);
+                var promise = deferred.promise;
+                deferred.promise = function() {
+                    return promise;
+                };
+
+                return deferred;
             };
 
-            return deferred;
-        };
-        
-        toastr.options.positionClass = 'toast-bottom-right';
-        toastr.options.backgroundpositionClass = 'toast-bottom-right';
+            toastr.options.positionClass = 'toast-bottom-right';
+            toastr.options.backgroundpositionClass = 'toast-bottom-right';
 
-        router.handleInvalidRoute = function (route, params) {
-            logger.logError('No Route Found', route, 'main', true);
-        };
+            //router.handleInvalidRoute = function(route, params) {
+            //    logger.logError('No Route Found', route, 'main', true);
+            //};
 
-        // When finding a viewmodel module, replace the viewmodel string 
-        // with view to find it partner view.
-        router.useConvention();
-        viewLocator.useConvention();
-        
-        // Adapt to touch devices
-        app.adaptToDevice();
-        //Show the app by setting the root view model for our application.
-        app.setRoot('viewmodels/shell', 'entrance');
+            // When finding a viewmodel module, replace the viewmodel string 
+            // with view to find it partner view.
+            viewLocator.useConvention();
+
+            //Show the app by setting the root view model for our application.
+            app.setRoot('viewmodels/shell', 'entrance');
+        });
     });
-});

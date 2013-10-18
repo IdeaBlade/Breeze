@@ -328,6 +328,27 @@
         em.addEntity(order2);
         ok(count === 1, "count should be 1");
         ok(em.hasChanges(), "should be changes");
+        em.rejectChanges();
+        ok(!em.hasChanges(), "should not be changes");
+
+    });
+
+    test("em.acceptChanges", function () {
+        var em = newEm();
+        var orderType = em.metadataStore.getEntityType("Order");
+
+        var saveNeeded = false;
+        
+        ok(!em.hasChanges(), "should be no changes");
+        var order1 = orderType.createEntity();
+        em.attachEntity(order1);
+        ok(!em.hasChanges(), "should be no changes");
+        var order2 = orderType.createEntity();
+        em.addEntity(order2);
+        ok(em.hasChanges(), "should be changes");
+        em.acceptChanges();
+        ok(!em.hasChanges(), "should not be changes");
+
     });
     
     test("hasChanges with rejectChanges", function () {
@@ -344,7 +365,7 @@
         ok(!em.hasChanges(), "should be no changes");
         var order1 = orderType.createEntity();
         em.attachEntity(order1);
-        order1.entityAspect.setModified();
+        order1.entityAspect.setModified();      
         ok(count === 1, "count should be 1");
         ok(em.hasChanges(), "should be no changes");
         var order2 = orderType.createEntity();

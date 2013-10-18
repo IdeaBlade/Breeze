@@ -271,6 +271,8 @@ var EntityManager = (function () {
         return entity;
     };
 
+   
+
     /**
     Creates a new EntityManager and imports a previously exported result into it.
     @example
@@ -300,6 +302,22 @@ var EntityManager = (function () {
     };
 
     // instance methods
+
+    /**
+    Calls EntityAspect.acceptChanges on every changed entity in this EntityManager. 
+    @method acceptChanges
+    **/
+    proto.acceptChanges = function () {
+        this.getChanges().forEach(function (entity) { entity.entityAspect.acceptChanges(); })
+    }
+
+    /**
+    Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. 
+    @method rejectChanges
+    **/
+    proto.rejectChanges = function () {
+        this.getChanges().forEach(function (entity) { entity.entityAspect.rejectChanges(); })
+    }
 
     /**
     Exports an entire EntityManager or just selected entities into a serialized string for external storage.
@@ -673,7 +691,7 @@ var EntityManager = (function () {
         @param callback.data.results {Array of Entity}
         @param callback.data.query {EntityQuery} The original query
         @param callback.data.entityManager {EntityManager} The EntityManager.
-        @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param callback.data.httpResponse {HttpResponse} The HttpResponse returned from the server.
         @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
         would have been applied. 
@@ -684,7 +702,7 @@ var EntityManager = (function () {
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.query] The query that caused the error.
         @param [errorCallback.error.entityManager] The query that caused the error.
-        @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param [errorCallback.error.httpResponse] {HttpResponse} The HttpResponse returned from the server.
             
 
     @return {Promise} Promise
@@ -692,7 +710,7 @@ var EntityManager = (function () {
         promiseData.results {Array of Entity}
         promiseData.query {EntityQuery} The original query
         promiseData.entityManager {EntityManager} The EntityManager.
-        promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        promiseData.httpResponse {HttpResponse} The  HttpResponse returned from the server.
         promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
         would have been applied. 
@@ -843,15 +861,14 @@ var EntityManager = (function () {
         These entities are actually references to entities in the EntityManager cache that have been updated as a result of the
         save.
         @param [callback.saveResult.keyMappings] {Array of keyMappings} Each keyMapping has the following properties: 'entityTypeName', 'tempValue' and 'realValue'
-        @param [callback.saveResult.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param [callback.saveResult.httpResponse] {HttpResponse} The raw HttpResponse returned from the server.
 
     @param [errorCallback] {Function} Function called on failure.
             
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.entityErrors] { Array of server side errors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
-        @param [errorCallback.error.XHR] {XMLHttpRequest} Any error that cannot be represented as a server error (above) will be returned in this format. 
-        This includes timeouts, server failures, database locking issues etc. 
+        @param [errorCallback.error.httpResponse] {HttpResponse}The raw HttpResponse returned from the server.
         
     @return {Promise} Promise
     **/
@@ -1762,6 +1779,7 @@ var EntityManager = (function () {
                         });
                     }
                 }
+                // Now performed in attachEntity
                 // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
                 if (entityChanged) {
@@ -2009,6 +2027,7 @@ var EntityManager = (function () {
         }
         nodeContext = nodeContext || {};
         var meta = mappingContext.dataService.jsonResultsAdapter.visitNode(node, mappingContext, nodeContext) || {};
+        node = meta.node || node;
         if (mappingContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
             meta.entityType = mappingContext.query._getToEntityType && mappingContext.query._getToEntityType(mappingContext.entityManager.metadataStore);
         }
@@ -2134,6 +2153,9 @@ var EntityManager = (function () {
         var result = { };
         __objectForEach(node, function(key, value) {
             var meta = jsonResultsAdapter.visitNode(value, mappingContext, { nodeType: "anonProp", propertyName: key }) || {};
+            // allows visitNode to change the value;
+            value = meta.node || value;
+
             if (meta.ignore) return;
                 
             var newKey = keyFn(key);
@@ -2263,6 +2285,8 @@ var EntityManager = (function () {
             if (val && val.$value !== undefined) {
                 val = val.$value; // this will be a byte[] encoded as a string
             }
+        } else if (dp.dataType === DataType.Time) {
+            val = DataType.parseTimeFromServer(val);
         }
         return val;
     }
@@ -2340,8 +2364,13 @@ var EntityManager = (function () {
         if (!relatedRawEntities) return null;
             
         // needed if what is returned is not an array and we expect one - this happens with __deferred in OData.
-        if (!Array.isArray(relatedRawEntities)) return null;
-
+        if (!Array.isArray(relatedRawEntities)) {
+            // return null;
+            relatedRawEntities = relatedRawEntities.results; // OData v3 will look like this with an expand
+            if (!relatedRawEntities) {
+                return null;
+            }
+        }
         var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
             return visitAndMerge(relatedRawEntity, mappingContext, { nodeType: "navPropItem", navigationProperty: navigationProperty });
         });

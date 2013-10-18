@@ -1,0 +1,12 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="EmployeeTerritory" table="`EmployeeTerritory`" dynamic-update="true">
+    <id name="ID" column="`ID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="RowVersion" type="int" />
+    <many-to-one name="Employee" column="`EmployeeID`" class="Employee" />
+    <many-to-one name="Territory" column="`TerritoryID`" class="Territory" />
+    <property name="EmployeeID" type="int" not-null="true" insert="false" update="false" />
+    <property name="TerritoryID" type="int" not-null="true" insert="false" update="false" />
+  </class>
+</hibernate-mapping>

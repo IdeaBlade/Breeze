@@ -1,0 +1,16 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="Role" table="`Role`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="Id" type="long" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="Ts" column="`Ts`" type="BinaryBlob" generated="always"/>
+    <property name="Name" type="string" length="50" not-null="true" />
+    <property name="Description" type="string" length="2000" />
+    <property name="RoleType" type="RoleType" />
+    <!--Foreign key to UserRole (UserRole)-->
+    <set name="UserRoles" table="`UserRole`" cascade="all-delete-orphan" inverse="true">
+      <key column="`RoleId`" foreign-key="FK_UserRole_Role" />
+      <one-to-many class="UserRole" />
+    </set>
+  </class>
+</hibernate-mapping>

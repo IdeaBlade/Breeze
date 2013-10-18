@@ -1,0 +1,25 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="Product" table="`Product`" dynamic-update="true">
+    <id name="ProductID" column="`ProductID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <property name="RowVersion" type="int" /><!-- Not marked as version property, for breeze test -->
+    <property name="ProductName" type="string" length="40" not-null="true" />
+    <many-to-one name="Supplier" column="`SupplierID`" class="Supplier" />
+    <many-to-one name="Category" column="`CategoryID`" class="Category" />
+    <property name="SupplierID" type="int" insert="false" update="false" />
+    <property name="CategoryID" type="int" insert="false" update="false" />
+    <property name="QuantityPerUnit" type="string" length="20" />
+    <property name="UnitPrice" type="decimal" />
+    <property name="UnitsInStock" type="short" />
+    <property name="UnitsOnOrder" type="short" />
+    <property name="ReorderLevel" type="short" />
+    <property name="Discontinued" type="bool" not-null="true" />
+    <property name="DiscontinuedDate" type="DateTime" />
+    <!--Foreign key to OrderDetail (OrderDetail)
+    <set name="OrderDetailCollection" table="`OrderDetail`" cascade="all-delete-orphan" inverse="true">
+      <key column="`ProductID`" foreign-key="FK_OrderDetail_Product" />
+      <one-to-many class="OrderDetail" />
+    </set>-->
+  </class>
+</hibernate-mapping>

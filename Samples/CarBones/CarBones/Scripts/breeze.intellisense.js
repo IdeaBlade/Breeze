@@ -1,4 +1,4 @@
-﻿// Generated on: Wed Sep 11 2013 19:13:21 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Mon Oct 14 2013 15:31:53 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1656,6 +1656,9 @@ intellisense.annotate(breeze.breeze.EntityType.prototype, {
   /// <field name="validators" type="Array" elementType="breeze.breeze.Validator" >The entity level validators associated with this EntityType. Validators can be added and removed from this collection.</field>
   'validators': null,
   
+  /// <field name="custom" type="Object" >A free form object that can be used to define any custom metadata for this EntityType. </field>
+  'custom': null,
+  
 });
 intellisense.annotate(breeze.breeze.EntityType, {
   
@@ -1664,6 +1667,15 @@ intellisense.annotate(breeze.breeze.EntityType, {
 
 intellisense.annotate(breeze.breeze.ComplexType.prototype, {
   
+  'setProperties': function() {
+    /// <signature>
+    ///   <summary>
+    ///   General purpose property set method }
+    ///   </summary>
+    ///   <param name="config" type="" optional="true">[object]</param>
+    
+    /// </signature>
+  },
   'createInstance': function() {
     /// <signature>
     ///   <summary>
@@ -1729,6 +1741,9 @@ intellisense.annotate(breeze.breeze.ComplexType.prototype, {
   /// <field name="validators" type="Array" elementType="breeze.breeze.Validator" >The entity level validators associated with this ComplexType. Validators can be added and removed from this collection.</field>
   'validators': null,
   
+  /// <field name="custom" type="Object" >A free form object that can be used to define any custom metadata for this ComplexType. </field>
+  'custom': null,
+  
 });
 intellisense.annotate(breeze.breeze.ComplexType, {
   
@@ -1737,6 +1752,15 @@ intellisense.annotate(breeze.breeze.ComplexType, {
 
 intellisense.annotate(breeze.breeze.DataProperty.prototype, {
   
+  'setProperties': function() {
+    /// <signature>
+    ///   <summary>
+    ///   General purpose property set method }
+    ///   </summary>
+    ///   <param name="config" type="" optional="true">[object]</param>
+    
+    /// </signature>
+  },
   
   /// <field name="name" type="String" >The name of this property</field>
   'name': null,
@@ -1780,6 +1804,9 @@ intellisense.annotate(breeze.breeze.DataProperty.prototype, {
   /// <field name="relatedNavigationProperty" type="breeze.breeze.NavigationProperty" >The navigation property related to this property.  Will only be set if this is a foreign key property. </field>
   'relatedNavigationProperty': null,
   
+  /// <field name="custom" type="Object" >A free form object that can be used to define any custom metadata for this DataProperty. </field>
+  'custom': null,
+  
   /// <field name="isDataProperty" type="Boolean" >Is this a DataProperty? - always true here  Allows polymorphic treatment of DataProperties and NavigationProperties.</field>
   'isDataProperty': null,
   
@@ -1794,6 +1821,15 @@ intellisense.annotate(breeze.breeze.DataProperty, {
 
 intellisense.annotate(breeze.breeze.NavigationProperty.prototype, {
   
+  'setProperties': function() {
+    /// <signature>
+    ///   <summary>
+    ///   General purpose property set method }
+    ///   </summary>
+    ///   <param name="config" type="" optional="true">[object]</param>
+    
+    /// </signature>
+  },
   
   /// <field name="parentEntityType" type="breeze.breeze.EntityType" >The  'EntityType' that this property belongs to. __readOnly__</field>
   'parentEntityType': null,
@@ -1824,6 +1860,9 @@ intellisense.annotate(breeze.breeze.NavigationProperty.prototype, {
   
   /// <field name="validators" type="Array" elementType="breeze.breeze.Validator" >The  'Validator's that are associated with this property. Validators can be added and removed from this collection.</field>
   'validators': null,
+  
+  /// <field name="custom" type="Object" >A free form object that can be used to define any custom metadata for this NavigationProperty. </field>
+  'custom': null,
   
   /// <field name="isDataProperty" type="Boolean" >Is this a DataProperty? - always false here  Allows polymorphic treatment of DataProperties and NavigationProperties.</field>
   'isDataProperty': null,
@@ -2380,6 +2419,22 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   <param name="initialValues" type="Config object" optional="true">- Configuration object of the properties to set immediately after creation.</param>
     ///   <param name="entityState" type="breeze.breeze.EntityState" optional="true">- Configuration object of the properties to set immediately after creation.</param>
     ///   <returns type="Entity" >A new Entity of the specified type.</returns>
+    /// </signature>
+  },
+  'acceptChanges': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Calls EntityAspect.acceptChanges on every changed entity in this EntityManager. }
+    ///   </summary>
+    
+    /// </signature>
+  },
+  'rejectChanges': function() {
+    /// <signature>
+    ///   <summary>
+    ///   Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. }
+    ///   </summary>
+    
     /// </signature>
   },
   'exportEntities': function() {

@@ -1,0 +1,24 @@
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" namespace="Models.NorthwindIB.NH" assembly="Model_NorthwindIB_NH">
+  <class name="User" table="`User`" dynamic-update="true">
+    <id name="Id" type="long" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <property name="RowVersion" type="decimal" not-null="true" />
+    <property name="UserName" type="string" length="100" not-null="true" />
+    <property name="UserPassword" type="string" length="200" />
+    <property name="FirstName" type="string" length="100" not-null="true" />
+    <property name="LastName" type="string" length="100" not-null="true" />
+    <property name="Email" type="string" length="100" not-null="true" />
+    <property name="CreatedBy" type="string" length="100" not-null="true" />
+    <property name="CreatedByUserId" type="long" not-null="true" />
+    <property name="CreatedDate" type="DateTime" not-null="true" />
+    <property name="ModifiedBy" type="string" length="100" not-null="true" />
+    <property name="ModifiedByUserId" type="long" not-null="true" />
+    <property name="ModifiedDate" type="DateTime" not-null="true" />
+    <!--Foreign key to UserRole (UserRole)-->
+    <set name="UserRoles" table="`UserRole`" cascade="all-delete-orphan" inverse="true">
+      <key column="`UserId`" foreign-key="FK_UserRole_User" />
+      <one-to-many class="UserRole" />
+    </set>
+  </class>
+</hibernate-mapping>

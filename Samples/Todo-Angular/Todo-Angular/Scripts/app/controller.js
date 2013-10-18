@@ -3,9 +3,15 @@
  *     $scope - context variable for the view to which the view binds
  *     $timeout - Angular equivalent of `setTimeout`
  */
-app.todoMain.controller('TodoCtrl', function ($scope, $timeout) {
+app.todoMain.controller('TodoCtrl', function ($scope, $timeout, $http) {
 
     var removeItem = breeze.core.arrayRemoveItem;
+    // Use the Breeze angular ajax adapter;
+
+    var instance = breeze.config.initializeAdapterInstance("ajax", "angular", true);
+    // Optional if you want to share $http but not necessary.
+    // instance.setHttp($http);
+
     var dataservice = window.app.dataservice;
     dataservice.$timeout = $timeout; // inject into dataservice
     var logger = window.app.logger;

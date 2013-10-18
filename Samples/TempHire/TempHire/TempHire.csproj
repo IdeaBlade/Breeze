@@ -44,13 +44,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WebGrease.1.1.0\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="Breeze.WebApi, Version=1.4.0.0, Culture=neutral, PublicKeyToken=f6085f1a45e2ac59, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Breeze.Server.WebApi.Core.1.4.2\lib\Breeze.WebApi.dll</HintPath>
+    <Reference Include="Breeze.WebApi">
+      <HintPath>..\packages\Breeze.Server.WebApi.Core.1.4.4\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
-    <Reference Include="Breeze.WebApi.EF, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Breeze.Server.WebApi.EF.1.4.2\lib\Breeze.WebApi.EF.dll</HintPath>
+    <Reference Include="Breeze.WebApi.EF">
+      <HintPath>..\packages\Breeze.Server.WebApi.EF.1.4.4\lib\Breeze.WebApi.EF.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -138,26 +136,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App\durandal\amd\almond-custom.js" />
-    <Content Include="App\durandal\amd\optimizer.exe" />
-    <Content Include="App\durandal\amd\r.js" />
-    <Content Include="App\durandal\amd\require.js" />
-    <Content Include="App\durandal\amd\text.js" />
-    <Content Include="App\durandal\app.js" />
-    <Content Include="App\durandal\composition.js" />
-    <Content Include="App\durandal\events.js" />
-    <Content Include="App\durandal\http.js" />
-    <Content Include="App\durandal\messageBox.html" />
-    <Content Include="App\durandal\messageBox.js" />
-    <Content Include="App\durandal\modalDialog.js" />
-    <Content Include="App\durandal\plugins\router.js" />
-    <Content Include="App\durandal\system.js" />
-    <Content Include="App\durandal\transitions\entrance.js" />
-    <Content Include="App\durandal\viewEngine.js" />
-    <Content Include="App\durandal\viewLocator.js" />
-    <Content Include="App\durandal\viewModel.js" />
-    <Content Include="App\durandal\viewModelBinder.js" />
-    <Content Include="App\durandal\widget.js" />
     <Content Include="App\main.js" />
     <Content Include="App\model\modelBuilder.js" />
     <Content Include="App\services\entitymanagerprovider.js" />
@@ -194,6 +172,8 @@
     <Content Include="Content\images\glyphicons-halflings-white.png" />
     <Content Include="Content\images\glyphicons-halflings.png" />
     <Content Include="Content\images\icon.png" />
+    <Content Include="Content\images\ios-startup-image-landscape.png" />
+    <Content Include="Content\images\ios-startup-image-portrait.png" />
     <Content Include="Content\toastr.css" />
     <Content Include="Content\toastr.min.css" />
     <Content Include="favicon.ico" />
@@ -202,6 +182,7 @@
     <Content Include="Content\bootstrap-responsive.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Scripts\almond-custom.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js">
       <DependentUpon>bootstrap.js</DependentUpon>
@@ -209,27 +190,43 @@
     <None Include="Scripts\breeze.intellisense.js" />
     <Content Include="Scripts\breeze.debug.js" />
     <Content Include="Scripts\breeze.min.js" />
-    <None Include="Scripts\jquery-1.9.1.intellisense.js" />
-    <Content Include="Scripts\jquery-1.9.1.js" />
-    <Content Include="Scripts\jquery-1.9.1.min.js" />
-    <Content Include="Scripts\knockout-2.2.1.debug.js">
-      <DependentUpon>knockout-2.2.1.js</DependentUpon>
-    </Content>
-    <Content Include="Scripts\knockout-2.2.1.js" />
+    <Content Include="Scripts\durandal\activator.js" />
+    <Content Include="Scripts\durandal\app.js" />
+    <Content Include="Scripts\durandal\binder.js" />
+    <Content Include="Scripts\durandal\composition.js" />
+    <Content Include="Scripts\durandal\events.js" />
+    <Content Include="Scripts\durandal\plugins\dialog.js" />
+    <Content Include="Scripts\durandal\plugins\history.js" />
+    <Content Include="Scripts\durandal\plugins\http.js" />
+    <Content Include="Scripts\durandal\plugins\observable.js" />
+    <Content Include="Scripts\durandal\plugins\router.js" />
+    <Content Include="Scripts\durandal\plugins\serializer.js" />
+    <Content Include="Scripts\durandal\plugins\widget.js" />
+    <Content Include="Scripts\durandal\system.js" />
+    <Content Include="Scripts\durandal\transitions\entrance.js" />
+    <Content Include="Scripts\durandal\viewEngine.js" />
+    <Content Include="Scripts\durandal\viewLocator.js" />
+    <None Include="Scripts\jquery-2.0.3.intellisense.js" />
+    <Content Include="Scripts\jquery-2.0.3.js" />
+    <Content Include="Scripts\jquery-2.0.3.min.js" />
+    <Content Include="Scripts\knockout-2.3.0.debug.js" />
+    <Content Include="Scripts\knockout-2.3.0.js" />
+    <Content Include="Scripts\moment+langs.js" />
+    <Content Include="Scripts\moment+langs.min.js" />
     <Content Include="Scripts\moment.js" />
     <Content Include="Scripts\moment.min.js">
       <DependentUpon>moment.js</DependentUpon>
     </Content>
     <Content Include="Scripts\q.js" />
     <Content Include="Scripts\q.min.js" />
-    <Content Include="Scripts\sammy-0.7.4.js" />
-    <Content Include="Scripts\sammy-0.7.4.min.js">
-      <DependentUpon>sammy-0.7.4.js</DependentUpon>
-    </Content>
+    <Content Include="Scripts\r.js" />
+    <Content Include="Scripts\require.js" />
+    <Content Include="Scripts\text.js" />
     <Content Include="Scripts\toastr.js" />
     <Content Include="Scripts\toastr.min.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Web.config" />
+    <Content Include="weyland-config.js" />
     <Content Include="_splash.cshtml" />
   </ItemGroup>
   <ItemGroup>
@@ -250,8 +247,10 @@
     <Compile Include="Services\UnitOfWork.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="packages.config" />
-    <Content Include="Scripts\jquery-1.9.1.min.map" />
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Scripts\jquery-2.0.3.min.map" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

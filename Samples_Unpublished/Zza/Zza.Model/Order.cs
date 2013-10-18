@@ -23,8 +23,8 @@ namespace Zza.Model
         public virtual DateTime OrderDate { get; set; }
         [MaxLength(100)]
         public virtual string Phone { get; set; }
-        [Required]
-        public virtual DateTime DeliveryDate { get; set; }
+
+        public virtual DateTime? DeliveryDate { get; set; }
         [Required]
         public virtual decimal DeliveryCharge { get; set; }
         [MaxLength(100)]

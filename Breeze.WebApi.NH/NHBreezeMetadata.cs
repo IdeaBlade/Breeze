@@ -139,12 +139,13 @@ namespace Breeze.WebApi.NH
             for (int i = 0; i < propNames.Length; i++)
             {
                 var propName = propNames[i];
-                if (!hasOwnProperty(pClass, propName)) continue;  // skip property defined on superclass
+                var pClassProp = pClass.GetProperty(propName);
+                if (!hasOwnProperty(pClass, pClassProp)) continue;  // skip property defined on superclass
 
                 var propType = propTypes[i];
                 if (!propType.IsAssociationType)    // skip association types until we handle all the data types, so the relatedDataPropertyMap will be populated.
                 {
-                    var propColumns = pClass.GetProperty(propName).ColumnIterator.ToList();
+                    var propColumns = pClassProp.ColumnIterator.ToList();
                     if (propType.IsComponentType)
                     {
                         // complex type
@@ -230,6 +231,11 @@ namespace Breeze.WebApi.NH
         bool hasOwnProperty(PersistentClass pClass, string propName) 
         {
             return pClass.GetProperty(propName).PersistentClass == pClass;
+        }
+
+        bool hasOwnProperty(PersistentClass pClass, Property prop)
+        {
+            return prop.PersistentClass == pClass;
         }
 
         /// <summary>
@@ -436,14 +442,17 @@ namespace Breeze.WebApi.NH
         }
 
         /// <summary>
-        /// Get the column name without square brackets around it.  E.g. "[OrderID]" -> "OrderID" 
+        /// Get the column name without square brackets or quotes around it.  E.g. "[OrderID]" -> OrderID 
         /// Because sometimes Hibernate gives us brackets, and sometimes it doesn't.
+        /// Double-quotes happen with SQL CE.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
         string UnBracket(string name)
         {
-            return (name[0] == '[') ? name.Substring(1, name.Length - 2) : name;
+            name = (name[0] == '[') ? name.Substring(1, name.Length - 2) : name;
+            name = (name[0] == '"') ? name.Substring(1, name.Length - 2) : name;
+            return name;
         }
 
         /// <summary>

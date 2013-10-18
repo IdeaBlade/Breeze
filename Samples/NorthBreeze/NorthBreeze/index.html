@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html lang="en" ng-app="NorthBreeze">
+<head>
+    <meta charset="utf-8">
+    <title>NorthBreeze AngularJS App</title>
+    <link rel="stylesheet" href="Content/ng-grid.css" /> 
+    <link rel="stylesheet" href="Content/bootstrap.css" />
+    <link rel="stylesheet" href="Content/toastr.css" />
+    <link rel="stylesheet" href="App/style.css" />
+
+</head>
+<body>
+
+<nav class="navbar navbar-fixed-top">
+    <div class="navbar-inner" ng-controller="RouteCtrl">
+        <a class="brand" href="#/">
+            <span class="title">NorthBreeze</span> 
+        </a>
+        <div class="btn-group">
+            <a ng-repeat="link in links" class="btn btn-info" ng-class="{active: $route.current.templateUrl == link.templateUrl}" href="#{{link.path}}">{{link.name}}</a>
+        </div>
+    </div>
+</nav>
+
+  <div ng-view style="margin: 50px"></div>
+
+<nav class="navbar navbar-fixed-bottom">
+    <div class="navbar-inner navbar-content-center" >
+        <span class="pull-left"><a href="http://www.breezejs.com" target="_blank">Rich data access by Breeze</a></span>
+        <span class="pull-right"></span>
+    </div>
+</nav>
+
+
+  <script src="Scripts/jquery-1.9.1.js"></script>
+  <script src="Scripts/q.js"></script>
+  <script src="Scripts/breeze.debug.js"></script>
+  <script src="Scripts/angular.js"></script>
+  <!--script src="Scripts/ng-grid-2.0.5.js"></script -->
+  <script type="text/javascript" src="http://angular-ui.github.com/ng-grid/lib/ng-grid.debug.js"></script>
+
+  <script src="Scripts/toastr.js"></script>
+
+  <script src="App/app.js"></script>
+  <script src="App/logger.js"></script>
+  <script src="App/dataservice.js"></script>
+  <script src="App/controllers.js"></script>
+  <script src="App/directives.js"></script>
+</body>
+</html>

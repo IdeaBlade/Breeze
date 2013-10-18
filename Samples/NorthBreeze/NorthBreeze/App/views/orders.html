@@ -1,0 +1,37 @@
+﻿<div>
+    <h3>Orders</h3>
+    <table class="table-striped table-bordered table-condensed table-small">
+        <thead>
+            <th>Order ID</th>
+            <th>Customer ID</th>
+            <th>Emp ID</th>
+            <th>Freight</th>
+            <th>Order Date</th>
+            <th>Required Date</th>
+            <th>Shipped Date</th>
+            <th>Name</th>
+            <th>Address</th>
+            <th>City</th>
+            <th>Region</th>
+            <th>PostCode</th>
+            <th>Country</th>
+            <th>Row Version</th>
+        </thead>
+        <tr ng-repeat="o in orders">
+            <td>{{o.OrderID}}</td>
+            <td>{{o.CustomerID}}</td>
+            <td>{{o.EmployeeID}}</td>
+            <td>{{o.Freight | currency}}</td>
+            <td>{{o.OrderDate | date:'shortDate'}}</td>
+            <td>{{o.RequiredDate | date:'shortDate'}}</td>
+            <td>{{o.ShippedDate | date:'shortDate'}}</td>
+            <td>{{o.ShipName}}</td>
+            <td>{{o.ShipAddress}}</td>
+            <td>{{o.ShipCity}}</td>
+            <td>{{o.ShipRegion}}</td>
+            <td>{{o.ShipPostalCode}}</td>
+            <td>{{o.ShipCountry}}</td>
+            <td>{{o.RowVersion}}</td>
+        </tr>
+    </table>
+</div>
