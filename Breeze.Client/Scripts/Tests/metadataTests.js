@@ -50,7 +50,7 @@
         store.importMetadata(customMetadata, true);
        
         checkCustomType(custType);
-        checkCustomProp(custType, "customerID");
+        checkCustomProp(custType, testFns.customerKeyName);
         checkCustomProp(custType, "companyName");
         checkCustomProp(custType, "orders");
         
@@ -71,7 +71,7 @@
 
         var custType2 = store2.getEntityType("Customer");
         checkCustomType(custType2);
-        checkCustomProp(custType2, "customerID");
+        checkCustomProp(custType2, testFns.customerKeyName);
         checkCustomProp(custType2, "companyName");
         checkCustomProp(custType2, "orders");
 
@@ -752,14 +752,17 @@
     };
 
 
-    makeCustomMetadata = function(namespace) {
+    makeCustomMetadata = function (namespace) {
+        if (testFns.DEBUG_MONGO) {
+            var custKeyName = "_id";
+        }
         return {
             "structuralTypes": [{
                 "shortName": "Customer",
                 "namespace": namespace,
                 "dataProperties": [ { 
-                    "nameOnServer": "CustomerID",
-                    "custom": makeCustomPropAnnot("customerID")
+                    "nameOnServer": custKeyName || "CustomerID",
+                    "custom": makeCustomPropAnnot(custKeyName || "customerID")
                 }, {
                     "name": "companyName",
                     "custom": makeCustomPropAnnot("companyName")

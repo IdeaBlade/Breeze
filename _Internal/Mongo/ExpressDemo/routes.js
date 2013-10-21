@@ -270,6 +270,12 @@ function executeQuery(db, collectionName, query, fn) {
             return;
         }
 
+        // Mongo doesn't handle limit = 0 as a real limit.
+        if (query.options.limit && query.options.limit === 0) {
+            fn(err, []);
+            return;
+        }
+
         var src = collection.find(query.filter || {}, query.select || {}, query.options || {});
         src.toArray(function (err, results) {
             results == results || [];

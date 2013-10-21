@@ -1416,7 +1416,13 @@ var EntityType = (function () {
         }
         this.complexProperties && this.complexProperties.forEach(function (cp) {
             var ctInstance = instance.getProperty(cp.name);
-            cp.dataType._initializeInstance(ctInstance);
+            if (Array.isArray(ctInstance)) {
+                ctInstance.forEach(function (ctInst) {
+                    cp.dataType._initializeInstance(ctInst);
+                });
+            } else {
+                cp.dataType._initializeInstance(ctInstance);
+            }
         });
         // not needed for complexObjects
         if (instance.entityAspect) {

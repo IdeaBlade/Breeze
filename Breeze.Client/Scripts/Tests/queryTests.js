@@ -56,7 +56,7 @@
 
     test("expand not working with paging or inlinecount", function () {
         var manager = newEm();
-        var predicate = Predicate.create("orderID", "<", 10500);
+        var predicate = Predicate.create(testFns.orderKeyName, "<", 10500);
         stop();
         var query = new breeze.EntityQuery()
             .from("Orders")
@@ -92,7 +92,7 @@
         var manager = newEm();
         var query = new breeze.EntityQuery()
             .from("Orders")
-            .where("orderID", "==", 10248);
+            .where(testFns.orderKeyName, "==", 10248);
 
         var orderDate;
         var orderDate2;
@@ -104,7 +104,7 @@
             var manager2 = newEm();
             var query = new breeze.EntityQuery()
                 .from("Orders")
-                .where("orderID", "==", 10248)
+                .where(testFns.orderKeyName, "==", 10248)
                 .select("orderDate");
             return manager2.executeQuery(query);
         }).then(function (data2) {
@@ -124,17 +124,23 @@
     test("empty predicates", function () {
 
         var manager = newEm();
-        var predicate1 = Predicate.create("employeeID", "<", 6);
-        var predicate2 = Predicate.create("employeeID", ">", 4);
-        var predicates = Predicate.and([undefined, predicate1, null, predicate2, null]);
+        var predicate1 = Predicate.create("lastName", "startsWith", "D");
+        var predicate2 = Predicate.create("firstName", "startsWith", "A");
+        var predicates = Predicate.or([undefined, predicate1, null, predicate2, null]);
         var query = new breeze.EntityQuery()
             .from("Employees")
             .where(predicates);
         stop();
         manager.executeQuery(query).then(function (data) {
             ok(data.results.length > 0, "there should be records returned");
-            var empId = data.results[0].getProperty("employeeID");
-            ok(empId === 5, "should be 5");
+            data.results.forEach(function (e) {
+                firstName = e.getProperty("firstName");
+                lastName = e.getProperty("lastName");
+                var ok1 = firstName && firstName.indexOf("A") === 0;
+                var ok2 = lastName && lastName.indexOf("D") === 0;
+                ok(ok1 || ok2, "predicate should be satisfied");
+            });
+            
         }).fail(testFns.handleFail).fin(start);
 
     });
@@ -142,7 +148,9 @@
     test("empty predicates 2", function () {
 
         var manager = newEm();
-        var predicate1 = Predicate.create("employeeID", "<", 6);
+        
+        // var predicate1 = Predicate.create("lastName", "startsWith", "D");
+        
         var predicates = Predicate.and([]);
         var query = new breeze.EntityQuery()
             .from("Employees")
@@ -157,7 +165,7 @@
     test("empty predicates 3", function () {
 
         var manager = newEm();
-        var predicate1 = Predicate.create("employeeID", "<", 6);
+        var predicate1 = Predicate.create("lastName", "startsWith", "D").or("firstName", "startsWith", "A");
         var predicates = Predicate.and([null, undefined, predicate1]);
         var query = new breeze.EntityQuery()
             .from("Employees")
@@ -213,6 +221,10 @@
     });
 
     test("OData predicate", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Mongo does not yet support the 'add' OData predicate");
+            return;
+        }
         var manager = newEm();
         var query = new breeze.EntityQuery()
             .from("Employees")
@@ -230,6 +242,10 @@
     });
 
     test("OData predicate combined with regular predicate", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Mongo does not yet support the 'add' OData predicate");
+            return;
+        }
         var manager = newEm();
         var predicate = Predicate.create("EmployeeID add ReportsToEmployeeID gt 3").and("employeeID", "<", 9999);
         
@@ -298,7 +314,7 @@
                 var count = data.results.length;
                 ok(count > 0, "supplier query returned " + count);
 
-                var predicate = breeze.Predicate.create('supplierID', '==', 0)
+                var predicate = breeze.Predicate.create(testFns.supplierKeyName, '==', 0)
                     .or('fax', '==', 'Papa');
 
                 var localQuery = breeze.EntityQuery
@@ -315,7 +331,8 @@
 
     test("inlineCount when ordering results by simple navigation path", function () {
         var em = newEm();
-        var pred = new Predicate("employeeID", ">", 1).and("employeeID", "<", 6);
+        // var pred = new Predicate("employeeID", ">", 1).and("employeeID", "<", 6);
+        var pred = new Predicate("shipCity", "startsWith", "A");
         var query = new breeze.EntityQuery.from("Orders")
         .where(pred)
         .orderBy("customerID");
@@ -335,7 +352,8 @@
 
     test("inlineCount when ordering results by nested navigation path", function () {
         var em = newEm();
-        var pred = new Predicate("employeeID", ">", 1).and("employeeID", "<", 6);
+        // var pred = new Predicate("employeeID", ">", 1).and("employeeID", "<", 6);
+        var pred = new Predicate("shipCity", "startsWith", "A");
         var query = new breeze.EntityQuery.from("Orders")
         .where(pred)
         // .orderBy("customerID");

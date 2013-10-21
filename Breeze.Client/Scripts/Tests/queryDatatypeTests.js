@@ -51,7 +51,7 @@
             var count = data.results.length;
             ok(count > 0, "supplier query returned " + count);
 
-            var predicate = breeze.Predicate.create('supplierID', '==', 0)
+            var predicate = breeze.Predicate.create(testFns.supplierKeyName, '==', 0)
                 .or('companyName', '==', 'Papa');
 
             var localQuery = breeze.EntityQuery

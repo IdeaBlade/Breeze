@@ -103,7 +103,7 @@
             entities = entities.concat(data.entitiesCreatedOnServer);
         }
 
-        return { entities: entities, keyMappings: data.keyMappings, XHR: data.XHR };
+        return { entities: entities, keyMappings: data.keyMappings, httpResponse: data.httpResponse };
     };
 
 
