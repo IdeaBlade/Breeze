@@ -1,0 +1,19 @@
+﻿using Breeze.WebApi2;
+using Newtonsoft.Json;
+
+namespace Sample_WebApi {
+#if CustomConfig
+  public class CustomBreezeConfig : BreezeConfig {
+
+    /// <summary>
+    /// Override to use a specialized JsonSerializer implementation.
+    /// </summary>
+    protected override JsonSerializerSettings CreateJsonSerializerSettings() {
+      var baseSettings = base.CreateJsonSerializerSettings();
+      baseSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+      return baseSettings;
+    }
+
+  }
+#endif
+}
