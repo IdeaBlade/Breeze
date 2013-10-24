@@ -39,8 +39,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>Breeze.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'OData-debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -82,6 +81,8 @@
     <Compile Include="TypeFns.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Breeze.ContextProvider.snk" />
+    <None Include="Breeze.snk" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
