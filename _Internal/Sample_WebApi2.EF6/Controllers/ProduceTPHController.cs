@@ -19,7 +19,7 @@ using ProduceTPH;
 #endif
 
 
-namespace Sample_WebApi.Controllers {
+namespace Sample_WebApi2.Controllers {
    
 #if NHIBERNATE
   public class ProduceTPHContextProvider  : ProduceNHContext {

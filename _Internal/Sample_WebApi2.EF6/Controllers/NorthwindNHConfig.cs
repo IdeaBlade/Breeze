@@ -2,7 +2,7 @@
 using NHibernate;
 using NHibernate.Cfg;
 
-namespace Sample_WebApi.Controllers
+namespace Sample_WebApi2.Controllers
 {
     public static class NorthwindNHConfig
     {

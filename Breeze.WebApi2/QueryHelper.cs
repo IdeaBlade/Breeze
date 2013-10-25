@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Web.Http.OData.Query;
 
 using Breeze.ContextProvider;
+using System.Collections.Generic;
 
 namespace Breeze.WebApi2 {
   public class QueryHelper {
@@ -220,7 +221,7 @@ namespace Breeze.WebApi2 {
     /// <param name="response"></param>
     /// <param name="responseObject"></param>
     /// <param name="queryable"></param>
-    public virtual void WrapResult(HttpRequestMessage request, HttpResponseMessage response, object queryResult) {
+    public virtual void WrapResult(HttpRequestMessage request, HttpResponseMessage response, IQueryable queryResult) {
       Object tmp;
       request.Properties.TryGetValue("MS_InlineCount", out tmp);
       var inlineCount = (Int64?)tmp;
@@ -229,16 +230,29 @@ namespace Breeze.WebApi2 {
       // execute the DbQueries here, so that any exceptions thrown can be properly returned.
       // if we wait to have the query executed within the serializer, some exceptions will not
       // serialize properly.
-      queryResult = Enumerable.ToList((dynamic)queryResult);
-      queryResult = PostExecuteQuery((IEnumerable)queryResult);
+      var listQueryResult = Enumerable.ToList((dynamic)queryResult);
+      var elementType = queryResult.ElementType;
+      if (elementType.Name.StartsWith("SelectAllAndExpand")) {
+        var prop = elementType.GetProperties().FirstOrDefault(pi => pi.Name == "Instance");
+        var mi = prop.GetGetMethod();
+        var lqr = (List<Object>)listQueryResult;
+        listQueryResult = (dynamic) lqr.Select(item => {
+          var instance = mi.Invoke(item, null);
+          return (Object) instance;
+        }).ToList();
+      }
 
-      if (queryResult != null || inlineCount.HasValue) {
+      // HierarchyNodeExpressionVisitor
+      listQueryResult = PostExecuteQuery((IEnumerable) listQueryResult);
+      
+      if (listQueryResult != null || inlineCount.HasValue) {
+        Object result = listQueryResult;
         if (inlineCount.HasValue) {
-          queryResult = new QueryResult() { Results = queryResult, InlineCount = inlineCount };
-        }
+          result = new QueryResult() { Results = listQueryResult, InlineCount = inlineCount };
+        } 
 
         var formatter = ((dynamic)response.Content).Formatter;
-        var oc = new ObjectContent(queryResult.GetType(), queryResult, formatter);
+        var oc = new ObjectContent(listQueryResult.GetType(), result, formatter);
         response.Content = oc;
       }
     }

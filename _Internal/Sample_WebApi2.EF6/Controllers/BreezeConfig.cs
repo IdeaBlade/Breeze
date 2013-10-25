@@ -1,7 +1,7 @@
 ﻿using Breeze.WebApi2;
 using Newtonsoft.Json;
 
-namespace Sample_WebApi {
+namespace Sample_WebApi2 {
 #if CustomConfig
   public class CustomBreezeConfig : BreezeConfig {
 

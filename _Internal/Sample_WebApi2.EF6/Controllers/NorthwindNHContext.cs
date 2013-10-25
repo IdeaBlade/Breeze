@@ -5,7 +5,7 @@ using Models.NorthwindIB.NH;
 using System;
 using System.Collections.Generic;
 
-namespace Sample_WebApi.Controllers
+namespace Sample_WebApi2.Controllers
 {
     public class NorthwindNHContext : NHContext
     {

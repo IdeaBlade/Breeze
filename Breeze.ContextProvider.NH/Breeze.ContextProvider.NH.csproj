@@ -7,8 +7,8 @@
     <ProjectGuid>{9DF09802-357C-4E82-B98E-032445FB2747}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Breeze.WebApi.NH</RootNamespace>
-    <AssemblyName>Breeze.WebApi.NH</AssemblyName>
+    <RootNamespace>Breeze.ContextProvider.NH</RootNamespace>
+    <AssemblyName>Breeze.ContextProvider.NH</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>

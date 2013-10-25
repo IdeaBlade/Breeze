@@ -46,7 +46,7 @@ using NHibernate.Linq;
 using Models.NorthwindIB.NH;
 #endif
 
-namespace Sample_WebApi.Controllers {
+namespace Sample_WebApi2.Controllers {
 
 
 #if CODEFIRST_PROVIDER

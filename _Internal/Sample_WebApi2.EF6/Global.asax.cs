@@ -18,7 +18,7 @@ ERROR - DOESNT EXIST FOR EF6
 using Models.NorthwindIB.EDMX_2012;
 #endif
 
-namespace Sample_WebApi {
+namespace Sample_WebApi2 {
   // Note: For instructions on enabling IIS6 or IIS7 classic mode, 
   // visit http://go.microsoft.com/?LinkId=9394801
 

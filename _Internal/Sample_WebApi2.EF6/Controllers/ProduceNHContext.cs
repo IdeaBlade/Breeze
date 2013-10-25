@@ -1,7 +1,7 @@
 ﻿using Breeze.ContextProvider.NH;
 using Models.Produce.NH;
 
-namespace Sample_WebApi.Controllers {
+namespace Sample_WebApi2.Controllers {
 
   public class ProduceNHContext : NHContext {
 

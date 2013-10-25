@@ -3,14 +3,14 @@ using Breeze.WebApi2;
 
 using Newtonsoft.Json.Linq;
 
-using Sample_WebApi.Models;
+using Sample_WebApi2.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Web.Http;
 
-namespace Sample_WebApi.Controllers {
+namespace Sample_WebApi2.Controllers {
 
 
   public class NonEFContextProvider  : ContextProvider {

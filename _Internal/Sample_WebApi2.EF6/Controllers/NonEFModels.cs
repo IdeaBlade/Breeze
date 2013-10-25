@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Sample_WebApi.Models {
+namespace Sample_WebApi2.Models {
 
   public class NonEFModelContext {
 
