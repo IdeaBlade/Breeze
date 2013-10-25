@@ -44,7 +44,25 @@ namespace Breeze.WebApi2 {
 
       var map = oldUri.ParseQueryString();
       var newQuery = map.Keys.Cast<String>()
-                        .Where(k => (k != "$orderby") && (k != "$top") && (k != "$skip"))
+                        .Where(k => (k.Trim().Length > 0) && (k != "$orderby") && (k != "$top") && (k != "$skip"))
+                        .Select(k => k + "=" + map[k])
+                        .ToAggregateString("&");
+
+      var newUrl = oldUri.Scheme + "://" + oldUri.Authority + oldUri.AbsolutePath + "?" + newQuery;
+      var newUri = new Uri(newUrl);
+
+      var newRequest = new HttpRequestMessage(request.Method, newUri);
+      var newQo = new ODataQueryOptions(queryOptions.Context, newRequest);
+      return newQo;
+    }
+
+    public static ODataQueryOptions RemoveSelectAndExpand(ODataQueryOptions queryOptions) {
+      var request = queryOptions.Request;
+      var oldUri = request.RequestUri;
+
+      var map = oldUri.ParseQueryString();
+      var newQuery = map.Keys.Cast<String>()
+                        .Where(k => (k.Trim().Length > 0) && (k != "$select") && (k != "$expand"))
                         .Select(k => k + "=" + map[k])
                         .ToAggregateString("&");
 
@@ -79,22 +97,48 @@ namespace Breeze.WebApi2 {
     /// <param name="querySettings"></param>
     /// <returns></returns>
     public static IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions, ODataQuerySettings querySettings) {
-      // if we see an extended order by we also need to process any skip/take operators as well.
+      
+      var expandQueryString = queryOptions.RawValues.Expand;
       var orderByQueryString = queryOptions.RawValues.OrderBy;
-      // HACK: this is a hack because on a bug in querySettings.EnsureStableOrdering = true that overrides
-      // any existing order by clauses, instead of appending to them.
-      querySettings.EnsureStableOrdering = false;
-      if (orderByQueryString == null || orderByQueryString.IndexOf('/') < 0) {
-        // Just let the default implementation handle it.
+      var selectQueryString = queryOptions.RawValues.Select;
+
+      ODataQueryOptions newQueryOptions = queryOptions;
+      if (selectQueryString != null) {
+        newQueryOptions = QueryHelper.RemoveSelectAndExpand(newQueryOptions);
+      }
+  
+      if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
+        newQueryOptions = QueryHelper.RemoveSelectAndExpand(newQueryOptions);
+        newQueryOptions = QueryHelper.RemoveExtendedOps(newQueryOptions);
+      } 
+      
+      if (newQueryOptions == queryOptions) {
         return queryOptions.ApplyTo(queryable, querySettings);
+      } else {
+        // apply default processing first with "unsupported" stuff removed. 
+        var q = newQueryOptions.ApplyTo(queryable, querySettings);
+        // then apply unsupported stuff. 
+        var qh = new QueryHelper(querySettings);
+        if (selectQueryString != null) {
+          q = qh.ApplySelect(q, selectQueryString);
+        }
+
+        if (expandQueryString != null) {
+          q = qh.ApplyExpand(q, queryOptions.RawValues.Expand);
+        }
+
+        if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
+          q = qh.ApplyNestedOrderBy(q, queryOptions);
+        }
+        return q;
       }
 
-      var newQueryOptions = QueryHelper.RemoveExtendedOps(queryOptions);
+      
+    }
 
-      var result = QueryHelper.ApplyQuery(queryable, newQueryOptions, querySettings);
-
+    private IQueryable ApplyNestedOrderBy(IQueryable queryable, ODataQueryOptions queryOptions) {
       var elementType = TypeFns.GetElementType(queryable.GetType());
-
+      var result = queryable;
       string inlinecountString = queryOptions.RawValues.InlineCount;
       if (!string.IsNullOrWhiteSpace(inlinecountString)) {
         if (inlinecountString == "allpages") {
@@ -105,7 +149,7 @@ namespace Breeze.WebApi2 {
         }
       }
 
-      var orderByClauses = orderByQueryString.Split(',').ToList();
+      var orderByClauses = queryOptions.RawValues.OrderBy.Split(',').ToList();
       var isThenBy = false;
       orderByClauses.ForEach(obc => {
         var func = QueryBuilder.BuildOrderByFunc(isThenBy, elementType, obc);
@@ -134,6 +178,65 @@ namespace Breeze.WebApi2 {
 
       return result;
     }
+    
+
+    //public static IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions, ODataQuerySettings querySettings) {
+
+    //  // if we see an extended orderby we also need to process any skip/take operators as well.
+    //  var orderByQueryString = queryOptions.RawValues.OrderBy;
+    //  // HACK: this is a hack because on a bug in querySettings.EnsureStableOrdering = true that overrides
+    //  // any existing order by clauses, instead of appending to them.
+    //  querySettings.EnsureStableOrdering = false;
+    //  if (orderByQueryString == null || orderByQueryString.IndexOf('/') < 0) {
+    //    // Just let the default implementation handle it.
+    //    return queryOptions.ApplyTo(queryable, querySettings);
+    //  }
+
+    //  var newQueryOptions = QueryHelper.RemoveExtendedOps(queryOptions);
+
+    //  var result = QueryHelper.ApplyQuery(queryable, newQueryOptions, querySettings);
+
+    //  var elementType = TypeFns.GetElementType(queryable.GetType());
+
+    //  string inlinecountString = queryOptions.RawValues.InlineCount;
+    //  if (!string.IsNullOrWhiteSpace(inlinecountString)) {
+    //    if (inlinecountString == "allpages") {
+    //      if (result is IQueryable) {
+    //        var inlineCount = (Int64)Queryable.Count((dynamic)result);
+    //        queryOptions.Request.SetInlineCount(inlineCount);
+    //      }
+    //    }
+    //  }
+
+    //  var orderByClauses = orderByQueryString.Split(',').ToList();
+    //  var isThenBy = false;
+    //  orderByClauses.ForEach(obc => {
+    //    var func = QueryBuilder.BuildOrderByFunc(isThenBy, elementType, obc);
+    //    result = func(result);
+    //    isThenBy = true;
+    //  });
+
+    //  var skipQueryString = queryOptions.RawValues.Skip;
+    //  if (!string.IsNullOrWhiteSpace(skipQueryString)) {
+    //    var count = int.Parse(skipQueryString);
+    //    var method = TypeFns.GetMethodByExample((IQueryable<String> q) => Queryable.Skip<String>(q, 999), elementType);
+    //    var func = BuildIQueryableFunc(elementType, method, count);
+    //    result = func(result);
+    //  }
+
+    //  var topQueryString = queryOptions.RawValues.Top;
+    //  if (!string.IsNullOrWhiteSpace(topQueryString)) {
+    //    var count = int.Parse(topQueryString);
+    //    var method = TypeFns.GetMethodByExample((IQueryable<String> q) => Queryable.Take<String>(q, 999), elementType);
+    //    var func = BuildIQueryableFunc(elementType, method, count);
+    //    result = func(result);
+    //  }
+
+
+
+
+    //  return result;
+    //}
 
     private static Func<IQueryable, IQueryable> BuildIQueryableFunc<TArg>(Type instanceType, MethodInfo method, TArg parameter, Type queryableBaseType = null) {
       if (queryableBaseType == null) {
@@ -151,33 +254,33 @@ namespace Breeze.WebApi2 {
     }
 
     /// <summary>
-    /// Apply the $select and $expand clauses to the queryable.
-    /// </summary>
-    /// <param name="queryable"></param>
-    /// <param name="map">From request.RequestUri.ParseQueryString(); contains $select or $expand</param>
-    /// <returns></returns>
-    /// <exception>Use of both 'expand' and 'select' in the same query is not currently supported</exception>
-    public virtual IQueryable ApplySelectAndExpand(IQueryable queryable, NameValueCollection map) {
-      var result = queryable;
-      var hasSelectOrExpand = false;
+    ///// Apply the $select and $expand clauses to the queryable.
+    ///// </summary>
+    ///// <param name="queryable"></param>
+    ///// <param name="map">From request.RequestUri.ParseQueryString(); contains $select or $expand</param>
+    ///// <returns></returns>
+    ///// <exception>Use of both 'expand' and 'select' in the same query is not currently supported</exception>
+    //public virtual IQueryable ApplySelectAndExpand(IQueryable queryable, NameValueCollection map) {
+    //  var result = queryable;
+    //  var hasSelectOrExpand = false;
 
-      var selectQueryString = map["$select"];
-      if (!string.IsNullOrWhiteSpace(selectQueryString)) {
-        result = ApplySelect(queryable, selectQueryString);
-        hasSelectOrExpand = true;
-      }
+    //  var selectQueryString = map["$select"];
+    //  if (!string.IsNullOrWhiteSpace(selectQueryString)) {
+    //    result = ApplySelect(queryable, selectQueryString);
+    //    hasSelectOrExpand = true;
+    //  }
 
-      var expandsQueryString = map["$expand"];
-      if (!string.IsNullOrWhiteSpace(expandsQueryString)) {
-        if (hasSelectOrExpand) {
-          throw new Exception("Use of both 'expand' and 'select' in the same query is not currently supported");
-        }
-        result = ApplyExpand(queryable, expandsQueryString);
-        hasSelectOrExpand = true;
-      }
+    //  var expandsQueryString = map["$expand"];
+    //  if (!string.IsNullOrWhiteSpace(expandsQueryString)) {
+    //    if (hasSelectOrExpand) {
+    //      throw new Exception("Use of both 'expand' and 'select' in the same query is not currently supported");
+    //    }
+    //    result = ApplyExpand(queryable, expandsQueryString);
+    //    hasSelectOrExpand = true;
+    //  }
 
-      return result;
-    }
+    //  return result;
+    //}
 
     /// <summary>
     /// Apply the select clause to the queryable
@@ -204,6 +307,7 @@ namespace Breeze.WebApi2 {
       });
       return queryable;
     }
+
 
     /// <summary>
     /// Perform any work after the query is executed.  Does nothing in this implementation but is available to derived classes.
@@ -252,7 +356,7 @@ namespace Breeze.WebApi2 {
         } 
 
         var formatter = ((dynamic)response.Content).Formatter;
-        var oc = new ObjectContent(listQueryResult.GetType(), result, formatter);
+        var oc = new ObjectContent(result.GetType(), result, formatter);
         response.Content = oc;
       }
     }
