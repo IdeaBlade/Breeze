@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Linq;
-using Breeze.WebApi;
-using Breeze.WebApi.EF;
+
+using Breeze.ContextProvider;
+using Breeze.ContextProvider.EF6;
 using Newtonsoft.Json.Linq;
 using Northwind.Models;
 

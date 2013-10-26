@@ -1,5 +1,5 @@
 ﻿using System.Web.Http;
-using Breeze.WebApi;
+using Breeze.WebApi2;
 using DocCode.DataAccess;
 
 namespace DocCode.Controllers

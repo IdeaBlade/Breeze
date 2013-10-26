@@ -14,7 +14,7 @@ using Models.Produce.NH;
 using NHibernate;
 using NHibernate.Linq;
 #else
-using Breeze.ContextProvider.EF;
+using Breeze.ContextProvider.EF6;
 using ProduceTPH;
 #endif
 

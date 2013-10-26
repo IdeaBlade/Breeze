@@ -30,7 +30,7 @@ using Newtonsoft.Json.Linq;
 using Breeze.ContextProvider;
 using BreezeCp = Breeze.ContextProvider;
 
-namespace Breeze.ContextProvider.EF {
+namespace Breeze.ContextProvider.EF6 {
 
   public interface IEFContextProvider {
     ObjectContext ObjectContext { get; }

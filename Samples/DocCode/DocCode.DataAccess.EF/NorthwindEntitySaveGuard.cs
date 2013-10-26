@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Breeze.WebApi;
+using Breeze.ContextProvider;
+// using Breeze.ContextProvider.EF6;
 using Northwind.Models;
 
 namespace DocCode.DataAccess

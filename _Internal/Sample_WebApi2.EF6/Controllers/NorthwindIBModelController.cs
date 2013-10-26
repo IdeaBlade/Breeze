@@ -26,18 +26,18 @@ using System.IO;
 using System.Web;
 
 #if CODEFIRST_PROVIDER
-using Breeze.ContextProvider.EF;
+using Breeze.ContextProvider.EF6;
 using Models.NorthwindIB.CF;
 using Foo;
 using System.ComponentModel.DataAnnotations;
 #elif DATABASEFIRST_OLD
-using Breeze.ContextProvider.EF;
+using Breeze.ContextProvider.EF6;
 using Models.NorthwindIB.EDMX;
 #elif DATABASEFIRST_NEW
-using Breeze.ContextProvider.EF;
+using Breeze.ContextProvider.EF6;
 using Models.NorthwindIB.EDMX_2012;
 #elif ORACLE_EDMX
-using Breeze.ContextProvider.EF;
+using Breeze.ContextProvider.EF6;
 using Models.NorthwindIB.Oracle;
 #elif NHIBERNATE
 using Breeze.ContextProvider.NH;

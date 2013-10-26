@@ -1,6 +1,6 @@
 ﻿using System.Data.Entity;
-using Breeze.WebApi;
-using Breeze.WebApi.EF;
+
+using Breeze.ContextProvider.EF6;
 using FooBar.Models;
 
 namespace DocCode.DataAccess

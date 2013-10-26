@@ -949,7 +949,8 @@
         var query = EntityQuery.from("Orders")
             .where("Freight", FilterQueryOp.GreaterThan, 500)
             .select("Customer.CompanyName")
-            .orderBy("Customer.CompanyName");
+            .orderBy("Customer.CompanyName")
+            .expand("Customer");
 
         verifyQuery(newEm, query,
             "orders w/ big freight costs",

@@ -2,7 +2,7 @@ using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Http;
-using Breeze.WebApi;
+using Breeze.WebApi2;
 using Northwind.Models;
 
 namespace DocCode.Controllers.MultiControllers
