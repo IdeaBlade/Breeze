@@ -10,8 +10,8 @@
         <projectUrl>http://www.breezejs.com</projectUrl>
         <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>The files and references that are essential for a Breeze ASP.NET Web Api server.  We recommend installing this package shortly after creating a project with the "ASP.NET Empty Web Application" template or one of the MVC 4 templates such as the "ASP.NET MVC 4 Empty" template.  To see an example Breeze application, try the  'Breeze.WebApiSample' package which creates a simple MVC4 WebApi app.</description>
-        <summary>Breeze Server - for ASP.NET Web Api (Core) - You may want to use one of the extended versions of this nuget package in order to get support for EntityFramework, NHibernate etc</summary>
+        <description>Core data access library for any Breeze Server</description>
+        <summary>Breeze Server - ContextProvider - Most commonly used in conjunction with Breeze.WebApi2 - You may want to use one of the extended versions of this nuget package in order to get support for EntityFramework, NHibernate etc</summary>
         <copyright>Copyright IdeaBlade 2012</copyright>
         <language>en-US</language>
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        

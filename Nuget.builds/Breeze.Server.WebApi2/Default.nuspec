@@ -3,15 +3,15 @@
     <metadata>
         <id>{{id}}</id>
         <version>{{version}}</version>
-        <title>Breeze Server - Web API 2</title>
+        <title>Breeze Server - for Web API 2</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
         <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>The files and references that are essential for a Breeze ASP.NET Web API2 server.  </description>
-        <summary>Breeze Server - Web API 2 </summary>
+        <description>The files and references that are essential for a Breeze ASP.NET Web API 2 server.</description>
+        <summary>Breeze Server - for Web API 2. This package is usually used in conjunction with one of the Breeze.ContextProvider.XXX packages.</summary>
         <copyright>Copyright IdeaBlade 2012, 2013</copyright>
         <language>en-US</language>
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        

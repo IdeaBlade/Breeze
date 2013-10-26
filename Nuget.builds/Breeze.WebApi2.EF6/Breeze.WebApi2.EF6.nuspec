@@ -3,14 +3,14 @@
     <metadata>
         <id>Breeze.WebApi2.EF6</id>
         <version>1.4.5</version>
-        <title>Breeze Client and Server - Web API 2 and Entity Framework 6</title>
+        <title>Breeze Client and Server - Javascript client and Web API 2 and Entity Framework 6 server</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
         <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>The files and references that are essential for a Breeze ASP.NET Web API 2 client and server.  </description>
+        <description>The files and references that are essential for a Breeze ASP.NET Web API 2 client and server on Entity Framework 6.</description>
         <summary>Breeze Client and Server - Web API 2 and Entity Framework 6</summary>
         <copyright>Copyright IdeaBlade 2012, 2013</copyright>
         <language>en-US</language>
