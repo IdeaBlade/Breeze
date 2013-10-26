@@ -1,4 +1,4 @@
-﻿// Generated on: Mon Oct 14 2013 15:31:53 GMT-0700 (Pacific Daylight Time)
+﻿// Generated on: Fri Oct 25 2013 21:09:22 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -476,6 +476,14 @@ intellisense.annotate(breeze.breeze, {
     ///   A SaveOptions instance is used to specify the 'options' under which a save will occur. }
     ///   </summary>
     ///   <param name="config" type="Object" optional="true"></param>
+    /// </signature>
+  },
+
+  'HttpResponse': function() {
+    /// <signature>
+    ///   <summary>
+    ///   A generic wrapper for any Http response returned by a server. }
+    ///   </summary>
     /// </signature>
   },
 
@@ -2725,6 +2733,33 @@ intellisense.annotate(breeze.breeze.SaveOptions, {
   
   /// <field name="defaultInstance" type="breeze.breeze.SaveOptions" >The default value whenever SaveOptions are not specified.</field>
   'defaultInstance': null,
+  
+});
+
+intellisense.annotate(breeze.breeze.HttpResponse.prototype, {
+  
+  'getHeader': function() {
+    /// <signature>
+    ///   <summary>
+    ///   A function to retrieve headers - a null headerName will return all headers. }
+    ///   </summary>
+    ///   <param name="headerName" type="String" optional="true"></param>
+    
+    /// </signature>
+  },
+  
+  /// <field name="data" type="Object" >The response body.</field>
+  'data': null,
+  
+  /// <field name="status" type="Number" >HTTP status code of the response.</field>
+  'status': null,
+  
+  /// <field name="config" type="Object" >The configuration object that was used to generate the request.</field>
+  'config': null,
+  
+});
+intellisense.annotate(breeze.breeze.HttpResponse, {
+  
   
 });
 

@@ -3,7 +3,7 @@
     <metadata>
         <id>{{id}}</id>
         <version>{{version}}</version>
-        <title>Breeze Server - for ASP.NET Web Api (Core)</title>
+        <title>Breeze Server - for ASP.NET Web Api on .NET 4.0 (Core)</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
@@ -17,8 +17,8 @@
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        
         <tags>javascript WebApi Breeze SPA</tags>
 		<dependencies>
-            <dependency id="Microsoft.AspNet.WebApi"/>
-            <dependency id="Microsoft.AspNet.WebApi.OData"/>
+			<dependency id="Microsoft.AspNet.WebApi" version="[4.0,5)"/>
+            <dependency id="Microsoft.AspNet.WebApi.OData" version="[4.0,5)"/>
             <dependency id="WebActivator" />
 		</dependencies>
     </metadata>

@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.4.4",
+        version: "1.4.5",
         metadataVersion: "1.0.5"
     };
 
@@ -3631,7 +3631,7 @@ var EntityAspect = (function() {
 
         promiseData.results {Array of Entity}
         promiseData.query {EntityQuery} The original query
-        promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        promiseData.httpResponse {httpResponse} The HttpResponse returned from the server.
     **/
     proto.loadNavigationProperty = function (navigationProperty, callback, errorCallback) {
         var entity = this.entity;
@@ -7193,7 +7193,13 @@ var EntityType = (function () {
         }
         this.complexProperties && this.complexProperties.forEach(function (cp) {
             var ctInstance = instance.getProperty(cp.name);
-            cp.dataType._initializeInstance(ctInstance);
+            if (Array.isArray(ctInstance)) {
+                ctInstance.forEach(function (ctInst) {
+                    cp.dataType._initializeInstance(ctInst);
+                });
+            } else {
+                cp.dataType._initializeInstance(ctInstance);
+            }
         });
         // not needed for complexObjects
         if (instance.entityAspect) {
@@ -9431,7 +9437,7 @@ var EntityQuery = (function () {
         @param [callback.data] {Object} 
         @param callback.data.results {Array of Entity}
         @param callback.data.query {EntityQuery} The original query
-        @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param callback.data.httpResponse {HttpResponse} The HttpResponse returned from the server.
         @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
         would have been applied. 
@@ -9441,7 +9447,7 @@ var EntityQuery = (function () {
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.query] The query that caused the error.
-        @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param [errorCallback.error.httpResponse] {HttpResponse} The raw XMLHttpRequest returned from the server.
 
     @return {Promise}
     **/
@@ -12134,7 +12140,7 @@ var EntityManager = (function () {
         @param callback.data.results {Array of Entity}
         @param callback.data.query {EntityQuery} The original query
         @param callback.data.entityManager {EntityManager} The EntityManager.
-        @param callback.data.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param callback.data.httpResponse {HttpResponse} The HttpResponse returned from the server.
         @param callback.data.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
         would have been applied. 
@@ -12145,7 +12151,7 @@ var EntityManager = (function () {
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.query] The query that caused the error.
         @param [errorCallback.error.entityManager] The query that caused the error.
-        @param [errorCallback.error.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param [errorCallback.error.httpResponse] {HttpResponse} The HttpResponse returned from the server.
             
 
     @return {Promise} Promise
@@ -12153,7 +12159,7 @@ var EntityManager = (function () {
         promiseData.results {Array of Entity}
         promiseData.query {EntityQuery} The original query
         promiseData.entityManager {EntityManager} The EntityManager.
-        promiseData.XHR {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        promiseData.httpResponse {HttpResponse} The  HttpResponse returned from the server.
         promiseData.inlineCount {Integer} Only available if 'inlineCount(true)' was applied to the query.  Returns the count of 
         items that would have been returned by the query before applying any skip or take operators, but after any filter/where predicates
         would have been applied. 
@@ -12304,15 +12310,14 @@ var EntityManager = (function () {
         These entities are actually references to entities in the EntityManager cache that have been updated as a result of the
         save.
         @param [callback.saveResult.keyMappings] {Array of keyMappings} Each keyMapping has the following properties: 'entityTypeName', 'tempValue' and 'realValue'
-        @param [callback.saveResult.XHR] {XMLHttpRequest} The raw XMLHttpRequest returned from the server.
+        @param [callback.saveResult.httpResponse] {HttpResponse} The raw HttpResponse returned from the server.
 
     @param [errorCallback] {Function} Function called on failure.
             
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.entityErrors] { Array of server side errors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
-        @param [errorCallback.error.XHR] {XMLHttpRequest} Any error that cannot be represented as a server error (above) will be returned in this format. 
-        This includes timeouts, server failures, database locking issues etc. 
+        @param [errorCallback.error.httpResponse] {HttpResponse}The raw HttpResponse returned from the server.
         
     @return {Promise} Promise
     **/
@@ -13646,8 +13651,10 @@ var EntityManager = (function () {
         var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
         var rawVal = fn(raw, dp);
         if (rawVal === undefined) return;
+        
         var oldVal;
         if (dp.isComplexProperty) {
+            if (rawVal === null) return; // rawVal may be null in nosql dbs where it was never defined for the given row.
             oldVal = target.getProperty(dp.name);
             var complexType = dp.dataType;
             var cdataProps = complexType.dataProperties;
@@ -14948,7 +14955,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             var entityTypeName = MetadataStore.normalizeTypeName(km.EntityTypeName);
             return { entityTypeName: entityTypeName, tempValue: km.TempValue, realValue: km.RealValue };
         });
-        return { entities: data.Entities, keyMappings: keyMappings, XHR: data.XHR };
+        return { entities: data.Entities, keyMappings: keyMappings, httpResponse: data.httpResponse };
     };
     
     ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({

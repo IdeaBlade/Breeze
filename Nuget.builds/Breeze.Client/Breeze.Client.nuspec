@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Client</id>
-        <version>1.4.4</version>
+        <version>1.4.5</version>
         <title>Breeze Client - Javascript</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
