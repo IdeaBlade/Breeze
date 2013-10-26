@@ -98,6 +98,10 @@ namespace Breeze.WebApi2 {
     /// <returns></returns>
     public static IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions, ODataQuerySettings querySettings) {
 
+      // HACK: this is a hack because on a bug in querySettings.EnsureStableOrdering = true that overrides
+      // any existing order by clauses, instead of appending to them.
+      querySettings.EnsureStableOrdering = false;
+
       // Basic idea here is the current WebApi OData cannot support the following operations
       // 1) "orderby" with  nested properties
       // 2) "select" with complex types
