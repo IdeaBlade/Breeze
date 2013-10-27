@@ -87,10 +87,13 @@ $expr = "copy $srcDir\Breeze.Client\Scripts\IBlade\b??_breeze.*.*.js $destDir\Sc
 copy-item $srcDir\Breeze.Client\Scripts\ThirdParty\q.*js $destDir\Scripts
 copy-item $srcDir\Breeze.Client\TypeScript\TypeScript\breeze.d.ts $destDir\TypeScript
 copy-item $srcDir\Breeze.Client\Metadata\*.* $destDir\Metadata
-new-item $destDir\WebApi -type Directory
-copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\WebApi
-copy-item $srcDir\Breeze.WebApi.EF\Breeze.WebApi.EF.dll $destDir\WebApi
-copy-item $srcDir\Breeze.WebApi.NH\Breeze.WebApi.NH.dll $destDir\WebApi
+new-item $destDir\Server -type Directory
+copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\Server
+copy-item $srcDir\Breeze.WebApi.EF\Breeze.WebApi.EF.dll $destDir\Server
+copy-item $srcDir\Breeze.WebApi.NH\Breeze.WebApi.NH.dll $destDir\Server
+copy-item $srcDir\Breeze.WebApi2\Breeze.WebApi2.dll $destDir\Server
+copy-item $srcDir\Breeze.ContextProvider\Breeze.ContextProvider.dll $destDir\Server
+copy-item $srcDir\Breeze.ContextProvider.EF6\Breeze.ContextProvider.EF6.dll $destDir\Server
 copy-item $srcDir\readme.txt $destDir\readme.txt
 
 "Version: $VersionNum" | out-file $destDir\version.txt

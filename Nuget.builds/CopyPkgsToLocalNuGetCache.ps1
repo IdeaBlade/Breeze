@@ -9,6 +9,8 @@ copy-item $srcDir\Breeze.Server.WebApi.Core\Breeze.Server.WebApi.Core.*.nupkg $e
 copy-item $srcDir\Breeze.Server.WebApi.EF\Breeze.Server.WebApi.EF.*.nupkg $env:LOCALAPPDATA\Nuget\Cache
 copy-item $srcDir\Breeze.Server.WebApi.NH\Breeze.Server.WebApi.NH.*.nupkg $env:LOCALAPPDATA\Nuget\Cache
 
+copy-item $srcDir\Breeze.Server.ContextProvider\Breeze.Server.ContextProvider.*.nupkg $env:LOCALAPPDATA\Nuget\Cache
+copy-item $srcDir\Breeze.Server.ContextProvider.EF6\Breeze.Server.ContextProvider.EF6.*.nupkg $env:LOCALAPPDATA\Nuget\Cache
+copy-item $srcDir\Breeze.Server.WebApi2\Breeze.Server.WebApi2.*.nupkg $env:LOCALAPPDATA\Nuget\Cache
+copy-item $srcDir\Breeze.WebApi2.EF6\Breeze.WebApi2.EF6.*.nupkg $env:LOCALAPPDATA\Nuget\Cache
 
-# copy Breeze.WebApi\Breeze.WebApi.*.nupkg "%LOCALAPPDATA%\NuGet\Cache" /-Y
-# copy Breeze.WebApiSample\Breeze.WebApiSample.*.nupkg "%LOCALAPPDATA%\NuGet\Cache" /-Y

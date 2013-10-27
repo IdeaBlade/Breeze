@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
-using Breeze.WebApi;
+using Breeze.ContextProvider;
+using Breeze.WebApi2;
 using Newtonsoft.Json.Linq;
 using DocCode.DataAccess;
 using Inheritance.Models;

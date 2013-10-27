@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>{{id}}</id>
+        <version>{{version}}</version>
+        <title>Breeze Server - for Web API 2</title>
+        <authors>Jay Traband</authors>
+        <owners>IdeaBlade</owners>
+        <licenseUrl>http://www.breezejs.com/license</licenseUrl>
+        <projectUrl>http://www.breezejs.com</projectUrl>
+        <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>The files and references that are essential for a Breeze ASP.NET Web API 2 server.</description>
+        <summary>Breeze Server - for Web API 2. This package is usually used in conjunction with one of the Breeze.ContextProvider.XXX packages.</summary>
+        <copyright>Copyright IdeaBlade 2012, 2013</copyright>
+        <language>en-US</language>
+        <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        
+        <tags>javascript WebApi Breeze SPA</tags>
+		<dependencies>
+		    <dependency id="Microsoft.AspNet.WebApi.OData" version="[5.0, 6.0)"/>
+			<dependency id="Microsoft.AspNet.WebApi.WebHost" version="[5.0, 6.0)" />			
+			<dependency id="Breeze.Server.ContextProvider" version="[{{version}}]" />
+			<dependency id="WebActivator" />
+		</dependencies>
+    </metadata>
+    <files>
+        <file src="content\App_Start\BreezeWebApiConfig.cs.pp" target="content\App_Start\BreezeWebApiConfig.cs.pp" />
+		<file src="lib\Breeze.WebApi2.dll" target="lib\Breeze.WebApi2.dll" />
+        <file src="readme.txt" target="readme.txt" />
+    </files>
+</package>

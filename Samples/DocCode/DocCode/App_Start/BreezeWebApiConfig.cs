@@ -1,6 +1,4 @@
-using System.Net.Http;
 using System.Web.Http;
-using System.Web.Http.Routing;
 
 [assembly: WebActivator.PreApplicationStartMethod(
     typeof(DocCode.App_Start.BreezeWebApiConfig), "RegisterBreezePreStart")]

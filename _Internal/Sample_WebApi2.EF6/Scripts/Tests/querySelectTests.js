@@ -150,7 +150,8 @@
         var query = new EntityQuery("Customers")
             .where("companyName", "startsWith", "C")
             .orderBy("companyName")
-            .select(["companyName", "orders"]);
+            .select(["companyName", "orders"])
+            .expand("orders");
         if (testFns.DEBUG_ODATA) {
             query = query.expand("orders");
         }        
@@ -187,6 +188,7 @@
             // .orderBy("customer.companyName");  - problem for the OData Web api provider.
         if (testFns.DEBUG_WEBAPI) {
             query = query.select("customer.companyName, customer, orderDate");
+            query = query.expand("customer");
         } else if (testFns.DEBUG_ODATA) {
             query = query.select("customer, orderDate");
             query = query.expand("customer");

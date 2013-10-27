@@ -44,7 +44,25 @@ namespace Breeze.WebApi2 {
 
       var map = oldUri.ParseQueryString();
       var newQuery = map.Keys.Cast<String>()
-                        .Where(k => (k != "$orderby") && (k != "$top") && (k != "$skip"))
+                        .Where(k => (k.Trim().Length > 0) && (k != "$orderby") && (k != "$top") && (k != "$skip"))
+                        .Select(k => k + "=" + map[k])
+                        .ToAggregateString("&");
+
+      var newUrl = oldUri.Scheme + "://" + oldUri.Authority + oldUri.AbsolutePath + "?" + newQuery;
+      var newUri = new Uri(newUrl);
+
+      var newRequest = new HttpRequestMessage(request.Method, newUri);
+      var newQo = new ODataQueryOptions(queryOptions.Context, newRequest);
+      return newQo;
+    }
+
+    public static ODataQueryOptions RemoveSelectAndExpand(ODataQueryOptions queryOptions) {
+      var request = queryOptions.Request;
+      var oldUri = request.RequestUri;
+
+      var map = oldUri.ParseQueryString();
+      var newQuery = map.Keys.Cast<String>()
+                        .Where(k => (k.Trim().Length > 0) && (k != "$select") && (k != "$expand"))
                         .Select(k => k + "=" + map[k])
                         .ToAggregateString("&");
 
@@ -79,22 +97,65 @@ namespace Breeze.WebApi2 {
     /// <param name="querySettings"></param>
     /// <returns></returns>
     public static IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions, ODataQuerySettings querySettings) {
-      // if we see an extended order by we also need to process any skip/take operators as well.
-      var orderByQueryString = queryOptions.RawValues.OrderBy;
+
       // HACK: this is a hack because on a bug in querySettings.EnsureStableOrdering = true that overrides
       // any existing order by clauses, instead of appending to them.
       querySettings.EnsureStableOrdering = false;
-      if (orderByQueryString == null || orderByQueryString.IndexOf('/') < 0) {
-        // Just let the default implementation handle it.
-        return queryOptions.ApplyTo(queryable, querySettings);
+
+      // Basic idea here is the current WebApi OData cannot support the following operations
+      // 1) "orderby" with  nested properties
+      // 2) "select" with complex types
+      // 3) "selects" of "nested" properties unless accompanied by the appropriate "expand".  
+      //     i.e. can't do Customers.select("orders") unless we also add expand("orders")
+
+      // The workaround here is to bypass "select" and "orderBy" processing under these conditions 
+      // This involves removing the "offending" queryOptions before asking the WebApi2 OData processing to do its thing
+      // and then post processing the resulting IQueryable. 
+      // We actually do this with all selects because it's easier than trying to determine if they are actually problematic. 
+
+      // Another approach that DOESN'T work is to let WebApi2 OData try to do it stuff and then only handle the cases where it throws an exception.
+      // This doesn't work because WebApi2 OData will actually just skip the portions of the query that it can't process and return what it can ( under some conditions). 
+
+      var expandQueryString = queryOptions.RawValues.Expand;
+      var orderByQueryString = queryOptions.RawValues.OrderBy;
+      var selectQueryString = queryOptions.RawValues.Select;
+
+      ODataQueryOptions newQueryOptions = queryOptions;
+      if (selectQueryString != null) {
+        newQueryOptions = QueryHelper.RemoveSelectAndExpand(newQueryOptions);
       }
 
-      var newQueryOptions = QueryHelper.RemoveExtendedOps(queryOptions);
+      if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
+        newQueryOptions = QueryHelper.RemoveSelectAndExpand(newQueryOptions);
+        newQueryOptions = QueryHelper.RemoveExtendedOps(newQueryOptions);
+      }
 
-      var result = QueryHelper.ApplyQuery(queryable, newQueryOptions, querySettings);
+      if (newQueryOptions == queryOptions) {
+        return queryOptions.ApplyTo(queryable, querySettings);
+      } else {
+        // apply default processing first with "unsupported" stuff removed. 
+        var q = newQueryOptions.ApplyTo(queryable, querySettings);
+        // then apply unsupported stuff. 
+        var qh = new QueryHelper(querySettings);
+        if (selectQueryString != null) {
+          q = qh.ApplySelect(q, selectQueryString);
+        } else if (expandQueryString != null) {
+          // don't bother doing an expand if there was already a select ( this code doesn't need it)
+          q = qh.ApplyExpand(q, queryOptions.RawValues.Expand);
+        }       
 
+        if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
+          q = qh.ApplyNestedOrderBy(q, queryOptions);
+        }
+        return q;
+      }
+
+
+    }
+
+    private IQueryable ApplyNestedOrderBy(IQueryable queryable, ODataQueryOptions queryOptions) {
       var elementType = TypeFns.GetElementType(queryable.GetType());
-
+      var result = queryable;
       string inlinecountString = queryOptions.RawValues.InlineCount;
       if (!string.IsNullOrWhiteSpace(inlinecountString)) {
         if (inlinecountString == "allpages") {
@@ -105,7 +166,7 @@ namespace Breeze.WebApi2 {
         }
       }
 
-      var orderByClauses = orderByQueryString.Split(',').ToList();
+      var orderByClauses = queryOptions.RawValues.OrderBy.Split(',').ToList();
       var isThenBy = false;
       orderByClauses.ForEach(obc => {
         var func = QueryBuilder.BuildOrderByFunc(isThenBy, elementType, obc);
@@ -150,34 +211,6 @@ namespace Breeze.WebApi2 {
       return func;
     }
 
-    /// <summary>
-    /// Apply the $select and $expand clauses to the queryable.
-    /// </summary>
-    /// <param name="queryable"></param>
-    /// <param name="map">From request.RequestUri.ParseQueryString(); contains $select or $expand</param>
-    /// <returns></returns>
-    /// <exception>Use of both 'expand' and 'select' in the same query is not currently supported</exception>
-    public virtual IQueryable ApplySelectAndExpand(IQueryable queryable, NameValueCollection map) {
-      var result = queryable;
-      var hasSelectOrExpand = false;
-
-      var selectQueryString = map["$select"];
-      if (!string.IsNullOrWhiteSpace(selectQueryString)) {
-        result = ApplySelect(queryable, selectQueryString);
-        hasSelectOrExpand = true;
-      }
-
-      var expandsQueryString = map["$expand"];
-      if (!string.IsNullOrWhiteSpace(expandsQueryString)) {
-        if (hasSelectOrExpand) {
-          throw new Exception("Use of both 'expand' and 'select' in the same query is not currently supported");
-        }
-        result = ApplyExpand(queryable, expandsQueryString);
-        hasSelectOrExpand = true;
-      }
-
-      return result;
-    }
 
     /// <summary>
     /// Apply the select clause to the queryable
@@ -204,6 +237,7 @@ namespace Breeze.WebApi2 {
       });
       return queryable;
     }
+
 
     /// <summary>
     /// Perform any work after the query is executed.  Does nothing in this implementation but is available to derived classes.
@@ -252,7 +286,7 @@ namespace Breeze.WebApi2 {
         } 
 
         var formatter = ((dynamic)response.Content).Formatter;
-        var oc = new ObjectContent(listQueryResult.GetType(), result, formatter);
+        var oc = new ObjectContent(result.GetType(), result, formatter);
         response.Content = oc;
       }
     }

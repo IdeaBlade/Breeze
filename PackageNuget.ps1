@@ -46,6 +46,11 @@ function packageNuget($srcDir, $folderName, $versionNum, $isBase) {
     copy-item $srcDir\Breeze.WebApi\Breeze.WebApi.dll $destDir\lib\
     copy-item $srcDir\Breeze.WebApi.EF\Breeze.WebApi.EF.dll $destDir\lib\
     copy-item $srcDir\Breeze.WebApi.NH\Breeze.WebApi.NH.dll $destDir\lib\
+  } elseif ($isBase -eq 'server2') {
+    copy-item $srcDir\Breeze.WebApi2\Breeze.WebApi2.dll $destDir\lib\
+    copy-item $srcDir\Breeze.ContextProvider\Breeze.ContextProvider.dll $destDir\lib\
+    copy-item $srcDir\Breeze.ContextProvider.EF6\Breeze.ContextProvider.EF6.dll $destDir\lib\
+    copy-item $srcDir\Breeze.ContextProvider.NH\Breeze.ContextProvider.NH.dll $destDir\lib\
   }
 
   $input = get-content $nuspecFile  
@@ -69,20 +74,28 @@ function packageNuget($srcDir, $folderName, $versionNum, $isBase) {
 $srcDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
 # Check that all files have been updated within the last 5 minutes
-$minutes = 30
-checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
+$minutes = 100
+# checkIfCurrent $srcDir\Breeze.webApi\Breeze.webApi.dll $minutes
 checkIfCurrent $srcDir\Breeze.Client\Scripts\breeze*.js $minutes
 
 $versionNum = getBreezeVersion $srcDir
 
 packageNuget $srcDir 'Breeze.Client' $versionNum 'client'
+
+# WebApi packages
 packageNuget $srcDir 'Breeze.Server.WebApi.Core' $versionNum 'server'
 packageNuget $srcDir 'Breeze.Server.WebApi.EF' $versionNum 'na'
 packageNuget $srcDir 'Breeze.Server.WebApi.NH' $versionNum 'na'
 packageNuget $srcDir 'Breeze.WebApi.Sample' $versionNum 'na'
-
-# this next one is obsolete - but safe because it is just a copy of Breeze.WebApi.EF
+#     composite package 
 packageNuget $srcDir 'Breeze.WebApi' $versionNum 'na'  
+
+# WebApi2 packages
+packageNuget $srcDir 'Breeze.Server.WebApi2' $versionNum 'server2'
+packageNuget $srcDir 'Breeze.Server.ContextProvider' $versionNum 'server2'
+packageNuget $srcDir 'Breeze.Server.ContextProvider.EF6' $versionNum 'server2'
+#     composite package 
+packageNuget $srcDir 'Breeze.WebApi2.EF6' $versionNum 'na'  
 
 Write-Host "Press any key to continue ..."
 cmd /c pause | out-null

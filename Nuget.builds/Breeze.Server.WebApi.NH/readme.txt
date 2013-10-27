@@ -1,4 +1,4 @@
-"Breeze for ASP.NET Web Api Entity Framework Server projects" ReadMe
+"Breeze for ASP.NET Web Api NHibernate projects" ReadMe
 -----------------------------------------------------------------
 This Breeze NuGet Package adds essential .NET Web Api libraries to your project.
 
@@ -12,8 +12,8 @@ The following files and references were added to this project.
 Referenced assemblies
 
 	Breeze.WebApi
-	Breeze.WebApi.EF
-	Entity Framework
+	Breeze.WebApi.NH
+	
 
 One configuration file
 
