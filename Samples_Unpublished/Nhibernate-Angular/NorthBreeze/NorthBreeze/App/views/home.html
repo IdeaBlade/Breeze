@@ -1,3 +1,29 @@
 ﻿<div>
-    Home.
+    Home
+    <div>
+        From GET
+        <table>
+            <tr ng-repeat="c in customersGET">
+                <td>{{c.CompanyName}}</td>
+                <td>{{c.ContactName}}</td>
+                <td>{{c.City}}</td>
+                <td>{{c.Country}}</td>
+                <td>{{c.Phone}}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div>
+        From POST
+        <table>
+            <tr ng-repeat="c in customersPOST">
+                <td>{{c.CompanyName}}</td>
+                <td>{{c.ContactName}}</td>
+                <td>{{c.City}}</td>
+                <td>{{c.Country}}</td>
+                <td>{{c.Phone}}</td>
+            </tr>
+        </table>
+    </div>
 </div>
+

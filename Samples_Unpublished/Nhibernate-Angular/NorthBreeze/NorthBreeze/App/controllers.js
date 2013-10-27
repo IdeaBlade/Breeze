@@ -7,7 +7,31 @@ app.controller('RouteCtrl', function ($scope, $route) {
 });
 
 
-app.controller('HomeCtrl', [function () {
+app.controller('HomeCtrl', ['$scope', function ($scope) {
+
+    app.dataservice.getSimilarCustomersGET()
+        .then(customersQuerySucceededGET)
+        .fail(queryFailed);
+
+    app.dataservice.getSimilarCustomersPOST()
+        .then(customersQuerySucceededPOST)
+        .fail(queryFailed);
+
+    function customersQuerySucceededGET(data) {
+        $scope.customersGET = data.results;
+        $scope.$apply();
+        app.logger.info("Fetched " + data.results.length + " Customers ");
+    }
+
+    function customersQuerySucceededPOST(data) {
+        $scope.customersPOST = data.results;
+        $scope.$apply();
+        app.logger.info("Fetched " + data.results.length + " Customers ");
+    }
+
+    function queryFailed(error) {
+        app.logger.error(error.message, "Query failed");
+    }
 
 }]);
 
@@ -95,7 +119,7 @@ app.controller('CustomerCtrl', ['$scope', function ($scope) {
     }
 
     function queryFailed(error) {
-        logger.error(error.message, "Query failed");
+        app.logger.error(error.message, "Query failed");
     }
 
 }]);
