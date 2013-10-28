@@ -1,6 +1,7 @@
 ﻿using System.Web.Http;
-using Breeze.WebApi;
-using Breeze.WebApi.EF;
+using Breeze.ContextProvider.EF6;
+using Breeze.WebApi2;
+
 using DomainModel;
 
 namespace TempHire.Controllers

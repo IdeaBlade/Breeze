@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
 using System.Web.Http;
-using Breeze.WebApi;
-using Breeze.WebApi.EF;
+using Breeze.ContextProvider;
+using Breeze.ContextProvider.EF6;
+using Breeze.WebApi2;
 using Todo.Models;
 using Newtonsoft.Json.Linq;
 
