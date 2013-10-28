@@ -10,8 +10,8 @@
         <projectUrl>http://www.breezejs.com</projectUrl>
         <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Core data access library for any Breeze Server working with Entity Framework v6</description>
-        <summary>Breeze Server - ContextProvider for Entity Framework 6.  This package is usually used in conjunction with the Breeze.WebApi2 package as well.</summary>
+        <description>Core data access library for a Breeze Server working with Entity Framework v6</description>
+        <summary>Breeze Server - ContextProvider for Entity Framework 6.  This package is usually used in conjunction with the Breeze.WebApi2 package.</summary>
         <copyright>Copyright IdeaBlade 2012, 2013</copyright>
         <language>en-US</language>
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        

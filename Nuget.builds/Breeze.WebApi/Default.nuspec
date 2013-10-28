@@ -10,7 +10,7 @@
         <projectUrl>http://www.breezejs.com</projectUrl>
         <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>The files and references that are essential for a Breeze ASP.NET Web API Entity Framework 5 application.  We recommend installing this package shortly after creating a project with the "ASP.NET Empty Web Application" template or one of the MVC 4 templates such as the "ASP.NET MVC 4 Empty" template.  To see an example Breeze application, try the  'Breeze.WebApiSample' package which creates a simple MVC4 WebApi app.</description>
+        <description>The files and references that are essential for a Breeze Legacy ASP.NET Web API Entity Framework 5 application.  We recommend installing this package shortly after creating a project with the "ASP.NET Empty Web Application" template or one of the MVC 4 templates such as the "ASP.NET MVC 4 Empty" template.  To see an example Breeze application, try the  'Breeze.WebApiSample' package which creates a simple MVC4 WebApi app.</description>
         <summary>Breeze Client and Server (obsolete) - Javascript client with Legacy ASP.NET Web API and Entity Framework 5 server</summary>
         <copyright>Copyright IdeaBlade 2012,2013</copyright>
         <language>en-US</language>
