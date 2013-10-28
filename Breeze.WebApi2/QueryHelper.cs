@@ -84,6 +84,7 @@ namespace Breeze.WebApi2 {
       return queryable;
     }
 
+
     public IQueryable ApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions) {
       return QueryHelper.ApplyQuery(queryable, queryOptions, this.querySettings);
     }
@@ -137,6 +138,11 @@ namespace Breeze.WebApi2 {
         var q = newQueryOptions.ApplyTo(queryable, querySettings);
         // then apply unsupported stuff. 
         var qh = new QueryHelper(querySettings);
+        
+        if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
+          q = qh.ApplyNestedOrderBy(q, queryOptions);
+        }
+
         if (selectQueryString != null) {
           q = qh.ApplySelect(q, selectQueryString);
         } else if (expandQueryString != null) {
@@ -144,9 +150,7 @@ namespace Breeze.WebApi2 {
           q = qh.ApplyExpand(q, queryOptions.RawValues.Expand);
         }       
 
-        if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
-          q = qh.ApplyNestedOrderBy(q, queryOptions);
-        }
+        
         return q;
       }
 

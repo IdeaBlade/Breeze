@@ -80,7 +80,7 @@ namespace Breeze.WebApi2 {
       var queryHelper = GetQueryHelper(request);
       if (typeof(IEnumerable).IsAssignableFrom(returnType) || responseObject is IEnumerable) {
         // QueryableAttribute only applies for IQueryable and IEnumerable return types
-        
+        // this calls ValidateQuery and then ApplyQuery        
         base.OnActionExecuted(actionExecutedContext);
         if (!actionExecutedContext.Response.IsSuccessStatusCode) {
           return;
@@ -88,7 +88,6 @@ namespace Breeze.WebApi2 {
         if (!response.TryGetContentValue(out responseObject)) {
           return;
         }
-        // var queryResult = queryHelper.ApplySelectAndExpand(responseObject as IQueryable, request.RequestUri.ParseQueryString());
         var queryResult = responseObject as IQueryable;
         queryHelper.WrapResult(request, response, queryResult);
       } else {
@@ -99,7 +98,16 @@ namespace Breeze.WebApi2 {
 
     }
 
-
+    public override void ValidateQuery(HttpRequestMessage request, ODataQueryOptions queryOptions) {
+      try {
+        base.ValidateQuery(request, queryOptions);
+      } catch (Exception e) {
+        // needed because Breeze CAN support this by bypassing the OData processing.
+        if (!e.Message.StartsWith("Only properties specified in $expand can be traversed in $select query options")) {
+          throw;
+        }
+      }
+    }
 
     /// <summary>
     /// All standard OData web api support is handled here (except select and expand).
