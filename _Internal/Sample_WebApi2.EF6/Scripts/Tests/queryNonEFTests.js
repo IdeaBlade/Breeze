@@ -59,7 +59,7 @@
                     firstName: { dataType: DataType.String, isNullable: false },
                     lastName: { dataType: DataType.String, isNullable: false },
                     birthDate: { dataType: DataType.DateTime }
-                },
+                }
             });
             ok(false, "should not get here")
         } catch (e) {
@@ -78,7 +78,7 @@
                     firstName: { dataType: DataType.String, isNullable: false },
                     lastName: { dataType: DataType.String, isNullable: false },
                     birthDate: { dataType: DataType.DateTime }
-                },
+                }
             });
             ok(true, "should get here")
         } catch (e) {
@@ -209,21 +209,21 @@
             name: "personId",
             dataType: DataType.Int32,
             isNullable: false,
-            isPartOfKey: true,
+            isPartOfKey: true
         }));
         et.addProperty(new DataProperty({
             name: "firstName",
             // dataType: DataType.String,
-            isNullable: false,
+            isNullable: false
         }));
         et.addProperty(new DataProperty({
             name: "lastName",
             // dataType: DataType.String,
-            isNullable: false,
+            isNullable: false
         }));
         et.addProperty(new DataProperty({
             name: "birthDate",
-            dataType: DataType.DateTime,
+            dataType: DataType.DateTime
             // isNullable: true
         }));
         et.addProperty(new NavigationProperty({
@@ -242,17 +242,17 @@
             name: "mealId",
             dataType: DataType.Int32,
             isNullable: false,
-            isPartOfKey: true,
+            isPartOfKey: true
         }));
         et.addProperty(new DataProperty({
             name: "personId",
             dataType: DataType.Int32,
-            isNullable: false,
+            isNullable: false
         }));
         et.addProperty(new DataProperty({
             name: "dateConsumed",
             dataType: DataType.DateTime,
-            isNullable: false,
+            isNullable: false
         }));
         et.addProperty(new NavigationProperty({
             name: "person",
@@ -265,7 +265,7 @@
             name: "dishes",
             entityTypeName: "Dish",
             isScalar: false,
-            associationName: "mealDishes",
+            associationName: "mealDishes"
         }));
         metadataStore.addEntityType(et);
         
@@ -277,17 +277,17 @@
             name: "dishId",
             dataType: DataType.Int32,
             isNullable: false,
-            isPartOfKey: true,
+            isPartOfKey: true
         }));
         et.addProperty(new DataProperty({
             name: "foodName",
             dataType: DataType.String,
-            isNullable: false,
+            isNullable: false
         }));
         et.addProperty(new DataProperty({
             name: "servingSize",
             dataType: DataType.Double,
-            isNullable: false,
+            isNullable: false
         }));
         et.addProperty(new NavigationProperty({
             name: "food",
@@ -306,12 +306,12 @@
             name: "foodName",
             dataType: DataType.String,
             isNullable: false,
-            isPartOfKey: true,
+            isPartOfKey: true
         }));
         et.addProperty(new DataProperty({
             name: "calories",
             dataType: DataType.Int32,
-            isNullable: false,
+            isNullable: false
         }));
         metadataStore.addEntityType(et);
     }

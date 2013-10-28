@@ -17,7 +17,7 @@
         var altServiceName = "breeze/MetadataTest";
 
         var dataService = new DataService({
-            serviceName: altServiceName,
+            serviceName: altServiceName
         });
         var altMs = new MetadataStore({
             // namingConvention: NamingConvention.camelCase

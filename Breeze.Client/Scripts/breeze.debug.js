@@ -15542,11 +15542,19 @@ breeze.AbstractDataServiceAdapter = (function () {
             return this;
         };
 
-        if (Object.getPrototypeOf) {
+        if (canIsolateES5Props()) {
             isolateES5Props(proto);
         }
 
     };
+
+    function canIsolateES5Props() {
+        try {
+            return Object.getPrototypeOf && Object.defineProperty({}, 'x', {});
+        } catch (e) {
+            return false;
+        }
+    }
 
     function isolateES5Props(proto) {
         

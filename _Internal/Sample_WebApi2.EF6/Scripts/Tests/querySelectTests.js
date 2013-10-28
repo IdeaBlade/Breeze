@@ -24,7 +24,7 @@
         }
     });
 
-    test("select company names of orders with Freight > 500", 2, function () {
+    test("select company names of orders with Freight > 500",  function () {
 
         var em = newEm();
                 

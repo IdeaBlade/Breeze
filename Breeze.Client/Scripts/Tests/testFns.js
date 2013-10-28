@@ -551,7 +551,7 @@ breezeTestFns = (function (breeze) {
         } else if (testFns.modelLibrary == "backbone") {
             return Backbone.Model.extend({
                 defaults: {
-                    isObsolete: false,
+                    isObsolete: false
                 },
                 init: init
             });
