@@ -349,7 +349,7 @@ var Validator = (function () {
     @static
     @return {Validator} A new Validator
     **/
-    ctor.required = function () {
+    ctor.required = function (context) {
         var valFn = function (v, ctx) {
             if (typeof v === "string") {
                 if (ctx && ctx.allowEmptyStrings) return true;
@@ -358,7 +358,7 @@ var Validator = (function () {
                 return v != null;
             }
         };
-        return new ctor("required", valFn);
+        return new ctor("required", valFn, context);
     };
 
     /**

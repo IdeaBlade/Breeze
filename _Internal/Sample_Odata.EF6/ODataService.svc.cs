@@ -6,16 +6,21 @@ using Models.NorthwindIB.EDMX_2012;
 using System.ServiceModel;
 using System;
 using System.Web;
+using System.Data.Services.Providers;
+
 
 // MAKE SURE YOU SET the ODATA define before running any ODATA tests.
 
 namespace Breeze_OData {
   // This attribute makes it possible to see errors on the client.
   [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
-  public class ODataService : DataService<NorthwindIBContext_CF> {
+  public class ODataService : EntityFrameworkDataService<NorthwindIBContext_CF> {
 
     // This method is called only once to initialize service-wide policies.
     public static void InitializeService(DataServiceConfiguration config) {
+
+      config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V3;
+
       // TODO: set rules to indicate which entity sets and service operations are visible, updatable, etc.
       // Examples:
       // config.SetEntitySetAccessRule("MyEntityset", EntitySetRights.AllRead);
@@ -40,8 +45,10 @@ namespace Breeze_OData {
         var x = e;
       }
 
+
       // config.SetEntitySetAccessRule("CustomersAndOrders", EntitySetRights.All);
-      config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V3;
+
+      
       config.UseVerboseErrors = true;
     }
 

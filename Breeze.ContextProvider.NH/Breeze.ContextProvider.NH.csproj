@@ -37,6 +37,9 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>Breeze.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'OData-debug|AnyCPU' ">
+    <OutputPath>bin\OData-debug\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Iesi.Collections">
       <HintPath>..\packages\Iesi.Collections.3.2.0.4000\lib\Net35\Iesi.Collections.dll</HintPath>

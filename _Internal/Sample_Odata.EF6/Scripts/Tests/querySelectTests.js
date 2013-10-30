@@ -23,6 +23,25 @@
         teardown: function () {
         }
     });
+
+    test("select company names of orders with Freight > 500",  function () {
+
+        var em = newEm();
+                
+        var query = EntityQuery.from("Orders")
+            .where("freight", FilterQueryOp.GreaterThan, 500)
+            .select("customer.companyName")
+            .orderBy("customer.companyName");
+            //.expand("customer");
+        var queryUrl = query._toUri(em.metadataStore);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var results = data.results;
+            ok(results.length > 0, "should be some results");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     
     test("select - complex type", function () {
         var em = newEm();

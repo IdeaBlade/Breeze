@@ -80,6 +80,56 @@
 
     });
 
+    test("required validation", function () {
+        var v0 = Validator.required();
+        var r0 = v0.validate("asdf");
+        ok(r0 === null);
+        var r0a = v0.validate("");
+        ok(r0a.errorMessage.indexOf("required"), v0.getMessage());
+        var data = {};
+        var r0b = v0.validate(data.notThere);
+        ok(r0b.errorMessage.indexOf("required") >= 0, v0.getMessage());
+
+    });
+
+
+    test("required validation allow empty strings", function () {
+        var v0 = Validator.required({ allowEmptyStrings: true });
+        var r0 = v0.validate("asdf");
+        ok(r0 === null);
+        var r0a = v0.validate("");
+        ok(r0 === null);
+        var data = {};
+        var r0b = v0.validate(data.notThere);
+        ok(r0b.errorMessage.indexOf("required") >= 0, v0.getMessage());
+
+    });
+
+    test("replace required validation", function () {
+        var oldVal = Validator.required;
+        try {
+            Validator.required = function (context) {
+                var valFn = function (v, ctx) {
+                    return v != null;
+                }
+                return new Validator("required", valFn, context);
+            };
+            Validator.registerFactory(Validator.required, "required");
+            var v0 = Validator.required();
+            var r0 = v0.validate("asdf");
+            ok(r0 === null);
+            var r0a = v0.validate("");
+            ok(r0 === null);
+            var data = {};
+            var r0b = v0.validate(data.notThere);
+            ok(r0b.errorMessage.indexOf("required") >= 0, v0.getMessage());
+        } finally {
+            Validator.required = oldVal;
+        }
+
+    });
+
+
     test("stringLength validation", function () {
         var v0 = Validator.stringLength({ minLength: 2, maxLength: 7 });
         var r0 = v0.validate("asdf");

@@ -2248,7 +2248,7 @@ var Validator = (function () {
     @static
     @return {Validator} A new Validator
     **/
-    ctor.required = function () {
+    ctor.required = function (context) {
         var valFn = function (v, ctx) {
             if (typeof v === "string") {
                 if (ctx && ctx.allowEmptyStrings) return true;
@@ -2257,7 +2257,7 @@ var Validator = (function () {
                 return v != null;
             }
         };
-        return new ctor("required", valFn);
+        return new ctor("required", valFn, context);
     };
 
     /**
@@ -15542,11 +15542,19 @@ breeze.AbstractDataServiceAdapter = (function () {
             return this;
         };
 
-        if (Object.getPrototypeOf) {
+        if (canIsolateES5Props()) {
             isolateES5Props(proto);
         }
 
     };
+
+    function canIsolateES5Props() {
+        try {
+            return Object.getPrototypeOf && Object.defineProperty({}, 'x', {});
+        } catch (e) {
+            return false;
+        }
+    }
 
     function isolateES5Props(proto) {
         
