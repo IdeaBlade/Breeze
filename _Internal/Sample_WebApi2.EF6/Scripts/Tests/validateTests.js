@@ -114,7 +114,8 @@
                 }
                 return new Validator("required", valFn, context);
             };
-            var v0 = Validator.required({ allowEmptyStrings: true });
+            Validator.registerFactory(Validator.required, "required");
+            var v0 = Validator.required();
             var r0 = v0.validate("asdf");
             ok(r0 === null);
             var r0a = v0.validate("");

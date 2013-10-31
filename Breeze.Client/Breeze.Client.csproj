@@ -174,6 +174,7 @@
     <Content Include="Scripts\jquery-1.8.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.8.2.js" />
     <Content Include="Scripts\jquery-1.8.2.min.js" />
+    <Content Include="Scripts\Tests\notrackingTests.js" />
     <Content Include="Scripts\Tests\saveTransactionTests.js" />
     <Content Include="Scripts\Tests\testFns.js" />
     <None Include="Scripts\IBlade\_head.jsfrag" />

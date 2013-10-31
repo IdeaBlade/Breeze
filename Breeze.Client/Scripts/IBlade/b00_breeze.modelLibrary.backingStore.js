@@ -148,7 +148,7 @@
 
     // private methods
 
-    // This method is called during Metadata initialization to correct "wrap" properties.
+    // This method is called during Metadata initialization to correctly "wrap" properties.
     function movePropDefsToProto(proto) {
         var stype = proto.entityType || proto.complexType;
         var extra = stype._extra;

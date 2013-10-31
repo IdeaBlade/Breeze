@@ -576,6 +576,7 @@ namespace Sample_WebApi2.Controllers {
     }
 
     [HttpGet]
+    [BreezeQueryable(MaxExpansionDepth = 3)]
     public IQueryable<Order> Orders() {
       var orders = ContextProvider.Context.Orders;
       return orders;
