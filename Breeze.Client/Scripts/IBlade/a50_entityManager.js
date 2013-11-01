@@ -1711,10 +1711,11 @@ var EntityManager = (function () {
         var em = entityGroup.entityManager;
         var entityChanged = em.entityChanged;
         var entitiesToLink = [];
+        var rawValueFn = DataProperty.getRawValueFromClient;
         jsonGroup.entities.forEach(function (rawEntity) {
             var newAspect = rawEntity.entityAspect;
             
-            var entityKey = entityType.getEntityKeyFromRawEntity(rawEntity, true);
+            var entityKey = entityType.getEntityKeyFromRawEntity(rawEntity, rawValueFn);
             var entityState = EntityState.fromName(newAspect.entityState);
             var newTempKey;
             if (entityState.isAdded()) {
@@ -1728,7 +1729,7 @@ var EntityManager = (function () {
             if (targetEntity) {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
-                    entityType._updateTargetFromRaw(targetEntity, rawEntity, true);
+                    entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
                         if (!entityState.isUnchanged()) {
@@ -1745,7 +1746,7 @@ var EntityManager = (function () {
                 }
             } else {
                 targetEntity = entityType._createInstanceCore();
-                entityType._updateTargetFromRaw(targetEntity, rawEntity, true);
+                entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
                 if (newTempKey !== undefined) {
                     // fixup pk
                     targetEntity.setProperty(entityType.keyProperties[0].name, newTempKey.values[0]);

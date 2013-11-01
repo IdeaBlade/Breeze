@@ -756,9 +756,6 @@
         }).then(function (data4) {
             s6 = testFns.sizeOf(breeze.config);
             ok(s5.size === s6.size, "sizes should be equal");
-            em2 = newEm();
-            return em2.executeQuery(query);
-
 
         }).fail(testFns.handleFail).fin(start);
     });

@@ -7420,20 +7420,21 @@ var EntityType = (function () {
     };
 
     
-    proto.getEntityKeyFromRawEntity = function (rawEntity, isClient) {
+    proto.getEntityKeyFromRawEntity = function (rawEntity, rawValueFn) {
         var keyValues = this.keyProperties.map(function (dp) {
-            var val = isClient ? dp.getRawClientValue(rawEntity) : dp.getRawServerValue(rawEntity);
+            var val = rawValueFn(rawEntity, dp);
             return parseRawValue(val, dp.dataType);
         });
         return new EntityKey(this, keyValues);
     };
 
-    proto._updateTargetFromRaw = function (target, raw, isClient) {
+    proto._updateTargetFromRaw = function (target, raw, rawValueFn) {
+
         this.dataProperties.forEach(function (dp) {
             // recursive call
-            updateTargetPropertyFromRaw(target, raw, dp, isClient);
+            updateTargetPropertyFromRaw(target, raw, dp, rawValueFn);
         });
-        if (isClient) {
+        if (rawValueFn.isClient) {
             // entityAspect/complexAspect info is only provided for client side sourced (i.e. imported) raw data.
             var aspectName = target.entityAspect ? "entityAspect" : "complexAspect";
             var originalValues = raw[aspectName].originalValuesMap;
@@ -7444,9 +7445,9 @@ var EntityType = (function () {
     }
 
     // target and source will be either entities or complex types
-    function updateTargetPropertyFromRaw(target, raw, dp, isClient) {
+    function updateTargetPropertyFromRaw(target, raw, dp, rawValueFn) {
 
-        rawVal = isClient ? dp.getRawClientValue(raw) : dp.getRawServerValue(raw);
+        var rawVal = rawValueFn(raw, dp);
         if (rawVal === undefined) return;
 
         var oldVal;
@@ -7455,14 +7456,14 @@ var EntityType = (function () {
             oldVal = target.getProperty(dp.name);
             var complexType = dp.dataType;
             if (dp.isScalar) {
-                complexType._updateTargetFromRaw(oldVal, rawVal, isClient);
+                complexType._updateTargetFromRaw(oldVal, rawVal, rawValueFn);
             } else {
                 // clear the old array and push new complex objects into it.
                 oldVal.length = 0;
                 if (Array.isArray(rawVal)) {
                     rawVal.forEach(function (rawCo) {
                         var newCo = complexType._createInstanceCore(target, dp);
-                        complexType._updateTargetFromRaw(newCo, rawCo, isClient);
+                        complexType._updateTargetFromRaw(newCo, rawCo, rawValueFn);
                         complexType._initializeInstance(newCo);
                         oldVal.push(newCo);
                     });
@@ -7487,6 +7488,9 @@ var EntityType = (function () {
             }
         }
     }
+
+
+
 
     function parseRawValue(val, dataType) {
         // undefined values will be the default for most unmapped properties EXCEPT when they are set
@@ -8082,6 +8086,21 @@ var DataProperty = (function () {
     var proto = ctor.prototype;
     proto._$typeName = "DataProperty";
 
+    ctor.getRawValueFromServer = function (rawEntity, dp) {
+        if (dp.isUnmapped) {
+            return rawEntity[dp.nameOnServer || dp.name];
+        } else {
+            var val = rawEntity[dp.nameOnServer];
+            return val !== undefined ? val : dp.defaultValue;
+        }
+    }
+
+    ctor.getRawValueFromClient = function (rawEntity, dp) {
+        var val = rawEntity[dp.name];
+        return val !== undefined ? val : dp.defaultValue;
+    }
+        
+
     /**
     The name of this property
 
@@ -8225,19 +8244,8 @@ var DataProperty = (function () {
             .applyAll(this);
     };
 
-    proto.getRawClientValue = function(rawEntity) {
-        var val = rawEntity[this.name];
-        return val !== undefined ? val : this.defaultValue;
-    },
-
-    proto.getRawServerValue = function(rawEntity) {
-        if (this.isUnmapped) {
-            return rawEntity[this.nameOnServer || this.name];
-        } else {
-            var val = rawEntity[this.nameOnServer];
-            return val !== undefined ? val : this.defaultValue;
-        }
-    },
+    
+   
 
     proto.toJSON = function () {
         // do not serialize dataTypes that are complexTypes
@@ -13263,10 +13271,11 @@ var EntityManager = (function () {
         var em = entityGroup.entityManager;
         var entityChanged = em.entityChanged;
         var entitiesToLink = [];
+        var rawValueFn = DataProperty.getRawValueFromClient;
         jsonGroup.entities.forEach(function (rawEntity) {
             var newAspect = rawEntity.entityAspect;
             
-            var entityKey = entityType.getEntityKeyFromRawEntity(rawEntity, true);
+            var entityKey = entityType.getEntityKeyFromRawEntity(rawEntity, rawValueFn);
             var entityState = EntityState.fromName(newAspect.entityState);
             var newTempKey;
             if (entityState.isAdded()) {
@@ -13280,7 +13289,7 @@ var EntityManager = (function () {
             if (targetEntity) {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
-                    entityType._updateTargetFromRaw(targetEntity, rawEntity, true);
+                    entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
                         if (!entityState.isUnchanged()) {
@@ -13297,7 +13306,7 @@ var EntityManager = (function () {
                 }
             } else {
                 targetEntity = entityType._createInstanceCore();
-                entityType._updateTargetFromRaw(targetEntity, rawEntity, true);
+                entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
                 if (newTempKey !== undefined) {
                     // fixup pk
                     targetEntity.setProperty(entityType.keyProperties[0].name, newTempKey.values[0]);
@@ -13895,7 +13904,7 @@ var MappingContext = (function () {
         var isSaving = this.query == null;
 
 
-        var entityKey = entityType.getEntityKeyFromRawEntity(node, false);
+        var entityKey = entityType.getEntityKeyFromRawEntity(node, DataProperty.getRawValueFromServer);
         var targetEntity = em.findEntityByKey(entityKey);
         if (targetEntity) {
             if (isSaving && targetEntity.entityAspect.entityState.isDeleted()) {
@@ -13985,8 +13994,7 @@ var MappingContext = (function () {
     proto.updateEntity = function(targetEntity, rawEntity) {
         this.updateEntityRef(targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
-
-        entityType._updateTargetFromRaw(targetEntity, rawEntity, false);
+        entityType._updateTargetFromRaw(targetEntity, rawEntity, DataProperty.getRawValueFromServer);
         var that = this;
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
@@ -14668,11 +14676,13 @@ breeze.AbstractDataServiceAdapter = (function () {
  
     var MetadataStore = breeze.MetadataStore;
     var JsonResultsAdapter = breeze.JsonResultsAdapter;
+    var DataProperty = breeze.DataProperty;
     
     var OData;
     
     var ctor = function () {
         this.name = "OData";
+
     };
 
     ctor.prototype.initialize = function () {
@@ -14763,6 +14773,7 @@ breeze.AbstractDataServiceAdapter = (function () {
         var requestData = createChangeRequests(saveContext, saveBundle);
         var tempKeys = saveContext.tempKeys;
         var contentKeys = saveContext.contentKeys;
+        var that = this;
         OData.request({
             headers : { "DataServiceVersion": "2.0" } ,
             requestUri: url,
@@ -14789,7 +14800,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                             var entityType = tempKey.entityType;
                             if (entityType.autoGeneratedKeyType !== AutoGeneratedKeyType.None) {
                                 var tempValue = tempKey.values[0];
-                                var realKey = entityType.getEntityKeyFromRawEntity(rawEntity, false);
+                                var realKey = entityType.getEntityKeyFromRawEntity(rawEntity, DataProperty.getRawValueFromServer);
                                 var keyMapping = { entityTypeName: entityType.name, tempValue: tempValue, realValue: realKey.values[0] };
                                 keyMappings.push(keyMapping);
                             }

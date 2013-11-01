@@ -113,7 +113,7 @@ var MappingContext = (function () {
         var isSaving = this.query == null;
 
 
-        var entityKey = entityType.getEntityKeyFromRawEntity(node, false);
+        var entityKey = entityType.getEntityKeyFromRawEntity(node, DataProperty.getRawValueFromServer);
         var targetEntity = em.findEntityByKey(entityKey);
         if (targetEntity) {
             if (isSaving && targetEntity.entityAspect.entityState.isDeleted()) {
@@ -203,8 +203,7 @@ var MappingContext = (function () {
     proto.updateEntity = function(targetEntity, rawEntity) {
         this.updateEntityRef(targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
-
-        entityType._updateTargetFromRaw(targetEntity, rawEntity, false);
+        entityType._updateTargetFromRaw(targetEntity, rawEntity, DataProperty.getRawValueFromServer);
         var that = this;
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
