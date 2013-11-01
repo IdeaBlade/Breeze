@@ -65,6 +65,7 @@
     <Content Include="Scripts\IBlade\a45_entityQuery.js" />
     <Content Include="Scripts\IBlade\a40_keyGenerator.js" />
     <Content Include="Scripts\IBlade\a30_relationArray.js" />
+    <Content Include="Scripts\IBlade\a55_mappingContext.js" />
     <Content Include="Scripts\IBlade\a50_entityManager.js" />
     <Content Include="Scripts\IBlade\b00_breeze.ajax.jQuery.js" />
     <Content Include="Scripts\IBlade\b00_breeze.dataService.odata.js" />

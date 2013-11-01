@@ -553,7 +553,7 @@ var EntityManager = (function () {
             if (entityState.isAdded()) {
                 checkEntityKey(that, entity);
             }
-            attachEntityCore(that, entity, entityState);
+            that._attachEntityCore(entity, entityState);
             attachRelatedEntities(that, entity, entityState);
         });
         if (this.validationOptions.validateOnAttach) {
@@ -938,20 +938,16 @@ var EntityManager = (function () {
             
             fixupKeys(that, saveResult.keyMappings);
             
-            var mappingContext = {
+            var mappingContext = new MappingContext( {
                 query: null, // tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
                 queryOptions: queryOptions,
-                dataService: dataService,
-                refMap: {},
-                deferredFns: []
-            };
+                dataService: dataService
+            });
 
             // Note that the visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
             // the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
-            var savedEntities = saveResult.entities.map(function (rawEntity) {
-                return visitAndMerge(rawEntity, mappingContext, { nodeType: "root" });
-            });
+            var savedEntities = mappingContext.visitAndMerge(saveResult.entities, { nodeType: "root" });
             markIsBeingSaved(entitiesToSave, false);
             // update _hasChanges after save.
             that._hasChanges = (isFullSave && haveSameContents(entitiesToSave, savedEntities)) ? false : that._hasChangesCore();
@@ -1711,9 +1707,6 @@ var EntityManager = (function () {
         var entityType = entityGroup.entityType;
         var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
         var targetEntity = null;
-
-        var dataProps = entityType.dataProperties;
-        var keyProps = entityType.keyProperties;
         
         var em = entityGroup.entityManager;
         var entityChanged = em.entityChanged;
@@ -1721,7 +1714,7 @@ var EntityManager = (function () {
         jsonGroup.entities.forEach(function (rawEntity) {
             var newAspect = rawEntity.entityAspect;
             
-            var entityKey = getEntityKeyFromRawEntity(rawEntity, entityType, true);
+            var entityKey = entityType.getEntityKeyFromRawEntity(rawEntity, true);
             var entityState = EntityState.fromName(newAspect.entityState);
             var newTempKey;
             if (entityState.isAdded()) {
@@ -1735,7 +1728,7 @@ var EntityManager = (function () {
             if (targetEntity) {
                 var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                 if (shouldOverwrite || wasUnchanged) {
-                    updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
+                    entityType._updateTargetFromRaw(targetEntity, rawEntity, true);
                     entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                     if (wasUnchanged) {
                         if (!entityState.isUnchanged()) {
@@ -1752,7 +1745,7 @@ var EntityManager = (function () {
                 }
             } else {
                 targetEntity = entityType._createInstanceCore();
-                updateTargetFromRaw(targetEntity, rawEntity, dataProps, true);
+                entityType._updateTargetFromRaw(targetEntity, rawEntity, true);
                 if (newTempKey !== undefined) {
                     // fixup pk
                     targetEntity.setProperty(entityType.keyProperties[0].name, newTempKey.values[0]);
@@ -1896,11 +1889,13 @@ var EntityManager = (function () {
         }
     }
 
-    function attachEntityCore(em, entity, entityState) {
-        var group = findOrCreateEntityGroup(em, entity.entityType);
+    proto._attachEntityCore = function (entity, entityState) {
+        var group = findOrCreateEntityGroup(this, entity.entityType);
         group.attachEntity(entity, entityState);
-        em._linkRelatedEntities(entity);
+        this._linkRelatedEntities(entity);
     }
+
+
 
     function attachRelatedEntities(em, entity, entityState) {
         var navProps = entity.entityType.navigationProperties;
@@ -1935,15 +1930,13 @@ var EntityManager = (function () {
 
             var url = dataService.makeUrl(metadataStore.toQueryString(query));
 
-            var mappingContext = {
+            var mappingContext = new MappingContext({
                     url: url,
                     query: query,
                     entityManager: em,
                     dataService: dataService,
                     queryOptions: queryOptions,
-                    refMap: {}, 
-                    deferredFns: []
-            };
+            });
             
             var validateOnQuery = em.validationOptions.validateOnQuery;
             
@@ -1973,19 +1966,15 @@ var EntityManager = (function () {
                     if (!Array.isArray(nodes)) {
                         nodes = (nodes == null) ? [] : [nodes];
                     }
-                    var results = nodes.map(function (node) {
-                        var r = visitAndMerge(node, mappingContext, { nodeType: "root" });
-                        // anon types and simple types will not have an entityAspect.
-                        if (validateOnQuery && r.entityAspect) {
-                            r.entityAspect.validateEntity();
-                        }
-                        return r;
-                    });
-                    if (mappingContext.deferredFns.length > 0) {
-                        mappingContext.deferredFns.forEach(function(fn) {
-                            fn();
+                    
+                    var results = mappingContext.visitAndMerge(nodes, { nodeType: "root" });
+                    if (validateOnQuery) {
+                        results.forEach(function (r) {
+                            // anon types and simple types will not have an entityAspect.
+                            r.entityAspect && r.entityAspect.validateEntity();
                         });
                     }
+                    mappingContext.processDeferred();
                     return { results: results, query: query, entityManager: em, httpResponse: data.httpResponse, inlineCount: data.inlineCount };
                 });
                 return Q.resolve(result);
@@ -2004,383 +1993,7 @@ var EntityManager = (function () {
             return Q.reject(e);
         }
     }
-               
-    function visitAndMerge(node, mappingContext, nodeContext) {
-        if (mappingContext.query == null && node.entityAspect) {
-            // don't bother merging a result from a save that was not returned from the server.
-            if (node.entityAspect.entityState.isDeleted()) {
-                mappingContext.entityManager.detachEntity(node);
-            } else {
-                node.entityAspect.acceptChanges();
-            }
-            return node;
-        }
-        nodeContext = nodeContext || {};
-        var meta = mappingContext.dataService.jsonResultsAdapter.visitNode(node, mappingContext, nodeContext) || {};
-        node = meta.node || node;
-        if (mappingContext.query && nodeContext.nodeType === "root" && !meta.entityType) {
-            meta.entityType = mappingContext.query._getToEntityType && mappingContext.query._getToEntityType(mappingContext.entityManager.metadataStore);
-        }
-        return processMeta(node, mappingContext, meta);
-    }
-        
-    function processMeta(node, mappingContext, meta, assignFn) {
-        // == is deliberate here instead of ===
-        if (meta.ignore || node == null) {
-            return null;
-        } else if (meta.nodeRefId) {
-            var refValue = resolveRefEntity(meta.nodeRefId, mappingContext);
-            if (typeof refValue === "function" && assignFn != null) {
-                mappingContext.deferredFns.push(function () {
-                    assignFn(refValue);
-                });
-                return undefined; // deferred and will be set later;
-            }
-            return refValue;
-        } else if (meta.entityType) {
-            if (meta.entityType.isComplexType) {
-                return node;
-            } else {
-                return mergeEntity(node, mappingContext, meta);
-            }
-        } else {
-            // updating the refMap for entities is handled by updateEntityRef for entities.
-            if (meta.nodeId) {
-                mappingContext.refMap[meta.nodeId] = node;
-            }
-                
-            if (typeof node === 'object' && !__isDate(node)) {
-                return processAnonType(node, mappingContext);
-            } else {
-                return node;
-            }
-        }
-    }
-        
-    function resolveRefEntity(nodeRefId, mappingContext) {
-        var entity = mappingContext.refMap[nodeRefId];
-        if (entity === undefined) {
-            return function () { return mappingContext.refMap[nodeRefId]; };
-        } else {
-            return entity;
-        }
-    }
-        
-    function mergeEntity(node, mappingContext, meta) {
-        node._$meta = meta;
-        var em = mappingContext.entityManager;
-
-        var entityType = meta.entityType;
-        if (typeof (entityType) === 'string') {
-            entityType = em.metadataStore._getEntityType(entityType, false);
-        }
-        node.entityType = entityType;
-        
-        var mergeStrategy = mappingContext.queryOptions.mergeStrategy;
-        var isSaving = mappingContext.query == null;
-
-            
-        var entityKey = getEntityKeyFromRawEntity(node, entityType, false);
-        var targetEntity = em.findEntityByKey(entityKey);
-        if (targetEntity) {
-            if (isSaving && targetEntity.entityAspect.entityState.isDeleted()) {
-                em.detachEntity(targetEntity);
-                return targetEntity;
-            }
-            var targetEntityState = targetEntity.entityAspect.entityState;
-            if (mergeStrategy === MergeStrategy.OverwriteChanges
-                    || targetEntityState.isUnchanged()) {
-                updateEntity(targetEntity, node, mappingContext);
-                targetEntity.entityAspect.wasLoaded = true;
-                if (meta.extra) {
-                    targetEntity.entityAspect.extraMetadata = meta.extra;
-                }
-                targetEntity.entityAspect.entityState = EntityState.Unchanged;
-                targetEntity.entityAspect.originalValues = {};
-                targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null  });
-                var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
-                em.entityChanged.publish({ entityAction: action, entity: targetEntity });
-                // this is needed to handle an overwrite or a modified entity with an unchanged entity 
-                // which might in turn cause _hasChanges to change.
-                if (!targetEntityState.isUnchanged) {
-                    em._notifyStateChange(targetEntity, false);
-                }
-            } else {
-                updateEntityRef(mappingContext, targetEntity, node);
-                // we still need to merge related entities even if top level entity wasn't modified.
-                entityType.navigationProperties.forEach(function (np) {
-                    if (np.isScalar) {
-                        mergeRelatedEntityCore(node, np, mappingContext);
-                    } else {
-                        mergeRelatedEntitiesCore(node, np, mappingContext);
-                    }
-                });
-            }
-
-        } else {
-            targetEntity = entityType._createInstanceCore();
-            if (targetEntity.initializeFrom) {
-                // allows any injected post ctor activity to be performed by modelLibrary impl.
-                targetEntity.initializeFrom(node);
-            }
-            updateEntity(targetEntity, node, mappingContext);
-            // entityType._initializeInstance(targetEntity);
-            if (meta.extra) {
-                targetEntity.entityAspect.extraMetadata = meta.extra;
-            }
-            attachEntityCore(em, targetEntity, EntityState.Unchanged);
-            targetEntity.entityAspect.wasLoaded = true;
-            em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
-        }
-        return targetEntity;
-    }
-        
-    function processAnonType(node, mappingContext) {
-        // node is guaranteed to be an object by this point, i.e. not a scalar          
-        var em = mappingContext.entityManager;
-        var jsonResultsAdapter = mappingContext.dataService.jsonResultsAdapter;
-        var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
-        var result = { };
-        __objectForEach(node, function(key, value) {
-            var meta = jsonResultsAdapter.visitNode(value, mappingContext, { nodeType: "anonProp", propertyName: key }) || {};
-            // allows visitNode to change the value;
-            value = meta.node || value;
-
-            if (meta.ignore) return;
-                
-            var newKey = keyFn(key);
-                
-            if (Array.isArray(value)) {
-                result[newKey] = value.map(function(v, ix) {
-                    meta = jsonResultsAdapter.visitNode(v, mappingContext, { nodeType: "anonPropItem", propertyName: key }) || {};
-                    return processMeta(v, mappingContext, meta, function(refValue) {
-                        result[newKey][ix] = refValue();
-                    });
-                });
-            } else {
-                result[newKey] = processMeta(value, mappingContext, meta, function(refValue) {
-                    result[newKey] = refValue();
-                });
-            }
-        });
-        return result;
-    }
-
-    function updateEntity(targetEntity, rawEntity, mappingContext) {
-        updateEntityRef(mappingContext, targetEntity, rawEntity);
-        var entityType = targetEntity.entityType;
-            
-        updateTargetFromRaw(targetEntity, rawEntity, entityType.dataProperties, false);
-
-        entityType.navigationProperties.forEach(function (np) {
-            if (np.isScalar) {
-                mergeRelatedEntity(np, targetEntity, rawEntity, mappingContext);
-            } else {
-                mergeRelatedEntities(np, targetEntity, rawEntity, mappingContext);
-            }
-        });
-    }
    
-    function updateTargetFromRaw(target, raw, dataProps, isClient) {
-        dataProps.forEach(function (dp) {
-            // recursive call
-            updateTargetPropertyFromRaw(target, raw, dp, isClient);
-        });
-        if (isClient) {
-            // entityAspect/complexAspect info is only provided for client side sourced (i.e. imported) raw data.
-            var aspectName = target.entityAspect ? "entityAspect" : "complexAspect";
-            var originalValues = raw[aspectName].originalValuesMap;
-            if (originalValues) {
-                target[aspectName].originalValues = originalValues;
-            }
-        }
-    }
-
-    // target and source will be either entities or complex types
-    function updateTargetPropertyFromRaw(target, raw, dp, isClient) {
-        
-        var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
-        var rawVal = fn(raw, dp);
-        if (rawVal === undefined) return;
-        
-        var oldVal;
-        if (dp.isComplexProperty) {
-            if (rawVal === null) return; // rawVal may be null in nosql dbs where it was never defined for the given row.
-            oldVal = target.getProperty(dp.name);
-            var complexType = dp.dataType;
-            var cdataProps = complexType.dataProperties;
-            if (dp.isScalar) {
-                updateTargetFromRaw(oldVal, rawVal, cdataProps, isClient);
-            } else {
-                // clear the old array and push new complex objects into it.
-                oldVal.length = 0;
-                if (Array.isArray(rawVal)) {
-                    rawVal.forEach(function (rawCo) {
-                        var newCo = complexType._createInstanceCore(target, dp);
-                        updateTargetFromRaw(newCo, rawCo, cdataProps, isClient);
-                        complexType._initializeInstance(newCo);
-                        oldVal.push(newCo);
-                    });
-                }
-            }
-        } else {
-            var val;
-            if (dp.isScalar) {
-                val = parseRawValue(dp, rawVal);
-                target.setProperty(dp.name, val);
-            } else {
-                oldVal = target.getProperty(dp.name);
-                // clear the old array and push new complex objects into it.
-                oldVal.length = 0;
-                if (Array.isArray(rawVal)) {
-                    rawVal.forEach(function (rv) {
-                        val = parseRawValue(dp, rv);
-                        oldVal.push(val);
-                    });
-                }
-            }
-        }
-    }
-
-    function getEntityKeyFromRawEntity(rawEntity, entityType, isClient) {
-        var fn = isClient ? getPropertyFromClientRaw : getPropertyFromServerRaw;
-        var keyValues = entityType.keyProperties.map(function (dp) {
-            return parseRawValue(dp, fn(rawEntity, dp));
-        });
-        return new EntityKey(entityType, keyValues);
-    }
-
-    function getPropertyFromClientRaw(rawEntity, dp) {
-        var val = rawEntity[dp.name];
-        return val !== undefined ? val : dp.defaultValue;
-    }
-
-    function getPropertyFromServerRaw(rawEntity, dp) {
-        if (dp.isUnmapped) {
-            return rawEntity[dp.nameOnServer || dp.name];
-        } else {
-            var val = rawEntity[dp.nameOnServer];
-            return val !== undefined ? val : dp.defaultValue;
-        }
-        
-    }
-
-    function parseRawValue(dp, val) {
-        // undefined values will be the default for most unmapped properties EXCEPT when they are set
-        // in a jsonResultsAdapter ( an unusual use case).
-        if (val === undefined) return undefined;
-        if (dp.dataType.isDate && val) {
-            if (!__isDate(val)) {
-                val = DataType.parseDateFromServer(val);
-            }
-        } else if (dp.dataType === DataType.Binary) {
-            if (val && val.$value !== undefined) {
-                val = val.$value; // this will be a byte[] encoded as a string
-            }
-        } else if (dp.dataType === DataType.Time) {
-            val = DataType.parseTimeFromServer(val);
-        }
-        return val;
-    }
-        
-    function updateEntityRef(mappingContext, targetEntity, rawEntity) {
-        var nodeId = rawEntity._$meta.nodeId;
-        if (nodeId != null) {
-            mappingContext.refMap[nodeId] = targetEntity;
-        }
-    }
-
-    function mergeRelatedEntity(navigationProperty, targetEntity, rawEntity, mappingContext) {
-          
-        var relatedEntity = mergeRelatedEntityCore(rawEntity, navigationProperty, mappingContext);
-        if (relatedEntity == null) return;
-        if (typeof relatedEntity === 'function') {
-            mappingContext.deferredFns.push(function() {
-                relatedEntity = relatedEntity();
-                updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
-            });
-        } else {
-            updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
-        }
-    }
-        
-    function mergeRelatedEntityCore(rawEntity, navigationProperty, mappingContext) {
-        var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
-        if (!relatedRawEntity) return null;
-            
-        var relatedEntity = visitAndMerge(relatedRawEntity, mappingContext, { nodeType: "navProp",  navigationProperty: navigationProperty });
-        return relatedEntity;
-    }
-        
-    function updateRelatedEntity(relatedEntity, targetEntity, navigationProperty) {
-        if (!relatedEntity) return;
-        var propName = navigationProperty.name;
-        var currentRelatedEntity = targetEntity.getProperty(propName);
-        // check if the related entity is already hooked up
-        if (currentRelatedEntity !== relatedEntity) {
-            // if not hook up both directions.
-            targetEntity.setProperty(propName, relatedEntity);
-            var inverseProperty = navigationProperty.inverse;
-            if (!inverseProperty) return;
-            if (inverseProperty.isScalar) {
-                relatedEntity.setProperty(inverseProperty.name, targetEntity);
-            } else {
-                var collection = relatedEntity.getProperty(inverseProperty.name);
-                collection.push(targetEntity);
-            }
-        }
-    }
-       
-    function mergeRelatedEntities(navigationProperty, targetEntity, rawEntity, mappingContext) {
-        var relatedEntities = mergeRelatedEntitiesCore(rawEntity, navigationProperty, mappingContext);
-        if (relatedEntities == null) return;
-            
-        var inverseProperty = navigationProperty.inverse;
-        if (!inverseProperty) return;
-        var originalRelatedEntities = targetEntity.getProperty(navigationProperty.name);
-        originalRelatedEntities.wasLoaded = true;
-        relatedEntities.forEach(function (relatedEntity) {
-            if (typeof relatedEntity === 'function') {
-                mappingContext.deferredFns.push(function() {
-                    relatedEntity = relatedEntity();
-                    updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
-                });
-            } else {
-                updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
-            }
-        });
-    }
-
-    function mergeRelatedEntitiesCore(rawEntity, navigationProperty, mappingContext) {
-        var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
-        if (!relatedRawEntities) return null;
-            
-        // needed if what is returned is not an array and we expect one - this happens with __deferred in OData.
-        if (!Array.isArray(relatedRawEntities)) {
-            // return null;
-            relatedRawEntities = relatedRawEntities.results; // OData v3 will look like this with an expand
-            if (!relatedRawEntities) {
-                return null;
-            }
-        }
-        var relatedEntities = relatedRawEntities.map(function(relatedRawEntity) {
-            return visitAndMerge(relatedRawEntity, mappingContext, { nodeType: "navPropItem", navigationProperty: navigationProperty });
-        });
-        return relatedEntities;
-
-    }
-
-    function updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty) {
-        if (!relatedEntity) return;
-        // check if the related entity is already hooked up
-        var thisEntity = relatedEntity.getProperty(inverseProperty.name);
-        if (thisEntity !== targetEntity) {
-            // if not - hook it up.
-            relatedEntities.push(relatedEntity);
-            relatedEntity.setProperty(inverseProperty.name, targetEntity);
-        }
-    }
-
     function updateConcurrencyProperties(entities) {
         var candidates = entities.filter(function (e) {
             e.entityAspect.isBeingSaved = true;
@@ -2448,7 +2061,6 @@ var EntityManager = (function () {
         unwrapInstance: unwrapInstance,
         unwrapOriginalValues: unwrapOriginalValues,
         unwrapChangedValues: unwrapChangedValues,
-        getEntityKeyFromRawEntity: getEntityKeyFromRawEntity
     };
     
    
@@ -2611,6 +2223,7 @@ var EntityManager = (function () {
 
     return ctor;
 })();
+
    
 // expose
 breeze.EntityManager = EntityManager;

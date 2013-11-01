@@ -1396,6 +1396,7 @@ var EntityType = (function () {
         return instance;
     };
 
+
     proto._createInstanceCore = function() {
         var aCtor = this.getEntityCtor();
         var instance = new aCtor();
@@ -1640,6 +1641,93 @@ var EntityType = (function () {
             }
         }
     };
+
+    
+    proto.getEntityKeyFromRawEntity = function (rawEntity, isClient) {
+        var keyValues = this.keyProperties.map(function (dp) {
+            var val = isClient ? dp.getRawClientValue(rawEntity) : dp.getRawServerValue(rawEntity);
+            return parseRawValue(val, dp.dataType);
+        });
+        return new EntityKey(this, keyValues);
+    };
+
+    proto._updateTargetFromRaw = function (target, raw, isClient) {
+        this.dataProperties.forEach(function (dp) {
+            // recursive call
+            updateTargetPropertyFromRaw(target, raw, dp, isClient);
+        });
+        if (isClient) {
+            // entityAspect/complexAspect info is only provided for client side sourced (i.e. imported) raw data.
+            var aspectName = target.entityAspect ? "entityAspect" : "complexAspect";
+            var originalValues = raw[aspectName].originalValuesMap;
+            if (originalValues) {
+                target[aspectName].originalValues = originalValues;
+            }
+        }
+    }
+
+    // target and source will be either entities or complex types
+    function updateTargetPropertyFromRaw(target, raw, dp, isClient) {
+
+        rawVal = isClient ? dp.getRawClientValue(raw) : dp.getRawServerValue(raw);
+        if (rawVal === undefined) return;
+
+        var oldVal;
+        if (dp.isComplexProperty) {
+            if (rawVal === null) return; // rawVal may be null in nosql dbs where it was never defined for the given row.
+            oldVal = target.getProperty(dp.name);
+            var complexType = dp.dataType;
+            if (dp.isScalar) {
+                complexType._updateTargetFromRaw(oldVal, rawVal, isClient);
+            } else {
+                // clear the old array and push new complex objects into it.
+                oldVal.length = 0;
+                if (Array.isArray(rawVal)) {
+                    rawVal.forEach(function (rawCo) {
+                        var newCo = complexType._createInstanceCore(target, dp);
+                        complexType._updateTargetFromRaw(newCo, rawCo, isClient);
+                        complexType._initializeInstance(newCo);
+                        oldVal.push(newCo);
+                    });
+                }
+            }
+        } else {
+            var val;
+            if (dp.isScalar) {
+                val = parseRawValue(rawVal, dp.dataType);
+                target.setProperty(dp.name, val);
+            } else {
+                oldVal = target.getProperty(dp.name);
+                // clear the old array and push new complex objects into it.
+                oldVal.length = 0;
+                if (Array.isArray(rawVal)) {
+                    var dataType = dp.dataType;
+                    rawVal.forEach(function (rv) {
+                        val = parseRawValue(rv, dataType);
+                        oldVal.push(val);
+                    });
+                }
+            }
+        }
+    }
+
+    function parseRawValue(val, dataType) {
+        // undefined values will be the default for most unmapped properties EXCEPT when they are set
+        // in a jsonResultsAdapter ( an unusual use case).
+        if (val === undefined) return undefined;
+        if (dataType.isDate && val) {
+            if (!__isDate(val)) {
+                val = DataType.parseDateFromServer(val);
+            }
+        } else if (dataType === DataType.Binary) {
+            if (val && val.$value !== undefined) {
+                val = val.$value; // this will be a byte[] encoded as a string
+            }
+        } else if (dataType === DataType.Time) {
+            val = DataType.parseTimeFromServer(val);
+        }
+        return val;
+    }
 
     /**
     Returns a string representation of this EntityType.
@@ -2094,6 +2182,7 @@ var ComplexType = (function () {
     proto._updateNames = EntityType.prototype._updateNames;
     proto._updateCps = EntityType.prototype._updateCps;
     proto._initializeInstance = EntityType.prototype._initializeInstance;
+    proto._updateTargetFromRaw = EntityType.prototype._updateTargetFromRaw;
     // note the name change.
     proto.getCtor = EntityType.prototype.getEntityCtor;
     proto._setCtor = EntityType.prototype._setCtor;
@@ -2358,6 +2447,20 @@ var DataProperty = (function () {
             .whereParam("custom").isOptional()
             .applyAll(this);
     };
+
+    proto.getRawClientValue = function(rawEntity) {
+        var val = rawEntity[this.name];
+        return val !== undefined ? val : this.defaultValue;
+    },
+
+    proto.getRawServerValue = function(rawEntity) {
+        if (this.isUnmapped) {
+            return rawEntity[this.nameOnServer || this.name];
+        } else {
+            var val = rawEntity[this.nameOnServer];
+            return val !== undefined ? val : this.defaultValue;
+        }
+    },
 
     proto.toJSON = function () {
         // do not serialize dataTypes that are complexTypes
