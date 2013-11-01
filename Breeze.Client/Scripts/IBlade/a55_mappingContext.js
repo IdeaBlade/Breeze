@@ -7,17 +7,16 @@
 var MappingContext = (function () {
     
     var ctor = function(config) {      
-
-        this.url = config.url;
-        this.query = config.query;
+        this.query = config.query;  // only this one is optional. 
         this.entityManager = config.entityManager
         this.dataService = config.dataService;
-        this.queryOptions = config.queryOptions;
+        this.mergeOptions = config.mergeOptions;
 
         this.refMap = {};
         this.deferredFns = [];
         this.jsonResultsAdapter = this.dataService.jsonResultsAdapter;
-        
+        this.metadataStore = this.entityManager.metadataStore;
+        this.rawValueFn = DataProperty.getRawValueFromServer; // think about passing this in later.
     };
 
     var proto = ctor.prototype;
@@ -42,7 +41,7 @@ var MappingContext = (function () {
             var meta = jra.visitNode(node, that, nodeContext) || {};
             node = meta.node || node;
             if (query && nodeContext.nodeType === "root" && !meta.entityType) {
-                meta.entityType = query._getToEntityType && query._getToEntityType(that.entityManager.metadataStore);
+                meta.entityType = query._getToEntityType && query._getToEntityType(that.metadataStore);
             }
             return processMeta(that, node, meta);
         });
@@ -104,15 +103,14 @@ var MappingContext = (function () {
         
         var entityType = meta.entityType;
         if (typeof (entityType) === 'string') {
-            entityType = em.metadataStore._getEntityType(entityType, false);
+            entityType = mc.metadataStore._getEntityType(entityType, false);
         }
         node.entityType = entityType;
 
-        var mergeStrategy = mc.queryOptions.mergeStrategy;
+        var mergeStrategy = mc.mergeOptions.mergeStrategy;
         var isSaving = mc.query == null;
 
-
-        var entityKey = entityType.getEntityKeyFromRawEntity(node, DataProperty.getRawValueFromServer);
+        var entityKey = entityType.getEntityKeyFromRawEntity(node, mc.rawValueFn);
         var targetEntity = em.findEntityByKey(entityKey);
         if (targetEntity) {
             if (isSaving && targetEntity.entityAspect.entityState.isDeleted()) {
@@ -169,9 +167,9 @@ var MappingContext = (function () {
 
     function processAnonType(mc, node) {
         // node is guaranteed to be an object by this point, i.e. not a scalar          
-        var em = mc.entityManager;
+        
         var jra = mc.jsonResultsAdapter;
-        var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
+        var keyFn = mc.metadataStore.namingConvention.serverPropertyNameToClient;
         var result = {};
         
         __objectForEach(node, function (key, value) {
@@ -202,7 +200,7 @@ var MappingContext = (function () {
     function updateEntity(mc, targetEntity, rawEntity) {
         updateEntityRef(mc, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
-        entityType._updateTargetFromRaw(targetEntity, rawEntity, DataProperty.getRawValueFromServer);
+        entityType._updateTargetFromRaw(targetEntity, rawEntity, mc.rawValueFn);
         
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {

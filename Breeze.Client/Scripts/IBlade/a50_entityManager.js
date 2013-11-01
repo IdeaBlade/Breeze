@@ -923,10 +923,7 @@ var EntityManager = (function () {
             entityManager: this,
             dataService: dataService,
             resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges"
-        };
-        var queryOptions = {
-            mergeStrategy: MergeStrategy.OverwriteChanges
-        };
+        };       
 
         // TODO: need to check that if we are doing a partial save that all entities whose temp keys 
         // are referenced are also in the partial save group
@@ -941,7 +938,7 @@ var EntityManager = (function () {
             var mappingContext = new MappingContext( {
                 query: null, // tells visitAndMerge that this is a save instead of a query
                 entityManager: that,
-                queryOptions: queryOptions,
+                mergeOptions: { mergeStrategy: MergeStrategy.OverwriteChanges },
                 dataService: dataService
             });
 
@@ -1929,14 +1926,12 @@ var EntityManager = (function () {
                 });
             }
 
-            var url = dataService.makeUrl(metadataStore.toQueryString(query));
 
             var mappingContext = new MappingContext({
-                    url: url,
                     query: query,
                     entityManager: em,
                     dataService: dataService,
-                    queryOptions: queryOptions,
+                    mergeOptions: { mergeStrategy: queryOptions.mergeStrategy }
             });
             
             var validateOnQuery = em.validationOptions.validateOnQuery;
