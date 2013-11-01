@@ -13835,7 +13835,7 @@ var MappingContext = (function () {
             if (query && nodeContext.nodeType === "root" && !meta.entityType) {
                 meta.entityType = query._getToEntityType && query._getToEntityType(that.entityManager.metadataStore);
             }
-            return that.processMeta(node, meta);
+            return processMeta(that, node, meta);
         });
     };
 
@@ -13847,14 +13847,14 @@ var MappingContext = (function () {
         }
     }
 
-    proto.processMeta = function(node, meta, assignFn) {
+    function processMeta(mc, node, meta, assignFn) {
         // == is deliberate here instead of ===
         if (meta.ignore || node == null) {
             return null;
         } else if (meta.nodeRefId) {
-            var refValue = this.resolveRefEntity(meta.nodeRefId);
+            var refValue = resolveRefEntity(mc, meta.nodeRefId);
             if (typeof refValue === "function" && assignFn != null) {
-                this.deferredFns.push(function () {
+                mc.deferredFns.push(function () {
                     assignFn(refValue);
                 });
                 return undefined; // deferred and will be set later;
@@ -13864,44 +13864,43 @@ var MappingContext = (function () {
             if (meta.entityType.isComplexType) {
                 return node;
             } else {
-                return this.mergeEntity(node, meta);
+                return mergeEntity(mc, node, meta);
             }
         } else {
             // updating the refMap for entities is handled by updateEntityRef for entities.
             if (meta.nodeId) {
-                this.refMap[meta.nodeId] = node;
+                mc.refMap[meta.nodeId] = node;
             }
 
             if (typeof node === 'object' && !__isDate(node)) {
-                return this.processAnonType(node);
+                return processAnonType(mc, node);
             } else {
                 return node;
             }
         }
     }
 
-    proto.resolveRefEntity = function(nodeRefId) {
-        var entity = this.refMap[nodeRefId];
+    function resolveRefEntity(mc, nodeRefId) {
+        var entity = mc.refMap[nodeRefId];
         if (entity === undefined) {
-            return function () { return this.refMap[nodeRefId]; };
+            return function () { return mc.refMap[nodeRefId]; };
         } else {
             return entity;
         }
     }
 
-    proto.mergeEntity = function (node, meta) {
+    function mergeEntity(mc, node, meta) {
         node._$meta = meta;
-        var em = this.entityManager;
-        var that = this;
-
+        var em = mc.entityManager;
+        
         var entityType = meta.entityType;
         if (typeof (entityType) === 'string') {
             entityType = em.metadataStore._getEntityType(entityType, false);
         }
         node.entityType = entityType;
 
-        var mergeStrategy = this.queryOptions.mergeStrategy;
-        var isSaving = this.query == null;
+        var mergeStrategy = mc.queryOptions.mergeStrategy;
+        var isSaving = mc.query == null;
 
 
         var entityKey = entityType.getEntityKeyFromRawEntity(node, DataProperty.getRawValueFromServer);
@@ -13914,7 +13913,7 @@ var MappingContext = (function () {
             var targetEntityState = targetEntity.entityAspect.entityState;
             if (mergeStrategy === MergeStrategy.OverwriteChanges
                     || targetEntityState.isUnchanged()) {
-                this.updateEntity(targetEntity, node);
+                updateEntity(mc, targetEntity, node);
                 targetEntity.entityAspect.wasLoaded = true;
                 if (meta.extra) {
                     targetEntity.entityAspect.extraMetadata = meta.extra;
@@ -13930,13 +13929,13 @@ var MappingContext = (function () {
                     em._notifyStateChange(targetEntity, false);
                 }
             } else {
-                this.updateEntityRef(targetEntity, node);
+                updateEntityRef(mc, targetEntity, node);
                 // we still need to merge related entities even if top level entity wasn't modified.
                 entityType.navigationProperties.forEach(function (np) {
                     if (np.isScalar) {
-                        that.mergeRelatedEntityCore(node, np);
+                        mergeRelatedEntityCore(mc, node, np);
                     } else {
-                        that.mergeRelatedEntitiesCore(node, np);
+                        mergeRelatedEntitiesCore(mc, node, np);
                     }
                 });
             }
@@ -13947,7 +13946,7 @@ var MappingContext = (function () {
                 // allows any injected post ctor activity to be performed by modelLibrary impl.
                 targetEntity.initializeFrom(node);
             }
-            this.updateEntity(targetEntity, node);
+            updateEntity(mc, targetEntity, node);
             // entityType._initializeInstance(targetEntity);
             if (meta.extra) {
                 targetEntity.entityAspect.extraMetadata = meta.extra;
@@ -13959,15 +13958,15 @@ var MappingContext = (function () {
         return targetEntity;
     }
 
-    proto.processAnonType = function(node) {
+    function processAnonType(mc, node) {
         // node is guaranteed to be an object by this point, i.e. not a scalar          
-        var em = this.entityManager;
-        var jra = this.jsonResultsAdapter;
+        var em = mc.entityManager;
+        var jra = mc.jsonResultsAdapter;
         var keyFn = em.metadataStore.namingConvention.serverPropertyNameToClient;
         var result = {};
-        var that = this;
+        
         __objectForEach(node, function (key, value) {
-            var meta = jra.visitNode(value, that, { nodeType: "anonProp", propertyName: key }) || {};
+            var meta = jra.visitNode(value, mc, { nodeType: "anonProp", propertyName: key }) || {};
             // allows visitNode to change the value;
             value = meta.node || value;
 
@@ -13977,13 +13976,13 @@ var MappingContext = (function () {
 
             if (Array.isArray(value)) {
                 result[newKey] = value.map(function (v, ix) {
-                    meta = jra.visitNode(v, that, { nodeType: "anonPropItem", propertyName: key }) || {};
-                    return that.processMeta(v, meta, function (refValue) {
+                    meta = jra.visitNode(v, mc, { nodeType: "anonPropItem", propertyName: key }) || {};
+                    return processMeta(mc, v, meta, function (refValue) {
                         result[newKey][ix] = refValue();
                     });
                 });
             } else {
-                result[newKey] = that.processMeta(value, meta, function (refValue) {
+                result[newKey] = processMeta(mc, value, meta, function (refValue) {
                     result[newKey] = refValue();
                 });
             }
@@ -13991,33 +13990,33 @@ var MappingContext = (function () {
         return result;
     }
 
-    proto.updateEntity = function(targetEntity, rawEntity) {
-        this.updateEntityRef(targetEntity, rawEntity);
+    function updateEntity(mc, targetEntity, rawEntity) {
+        updateEntityRef(mc, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
         entityType._updateTargetFromRaw(targetEntity, rawEntity, DataProperty.getRawValueFromServer);
-        var that = this;
+        
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
-                that.mergeRelatedEntity(np, targetEntity, rawEntity);
+                mergeRelatedEntity(mc, np, targetEntity, rawEntity);
             } else {
-                that.mergeRelatedEntities(np, targetEntity, rawEntity);
+                mergeRelatedEntities(mc, np, targetEntity, rawEntity);
             }
         });
     }
 
-    proto.updateEntityRef = function(targetEntity, rawEntity) {
+    function updateEntityRef(mc, targetEntity, rawEntity) {
         var nodeId = rawEntity._$meta.nodeId;
         if (nodeId != null) {
-            this.refMap[nodeId] = targetEntity;
+            mc.refMap[nodeId] = targetEntity;
         }
     }
 
-    proto.mergeRelatedEntity = function(navigationProperty, targetEntity, rawEntity) {
+    function mergeRelatedEntity(mc, navigationProperty, targetEntity, rawEntity) {
 
-        var relatedEntity = this.mergeRelatedEntityCore(rawEntity, navigationProperty);
+        var relatedEntity = mergeRelatedEntityCore(mc, rawEntity, navigationProperty);
         if (relatedEntity == null) return;
         if (typeof relatedEntity === 'function') {
-            this.deferredFns.push(function () {
+            mc.deferredFns.push(function () {
                 relatedEntity = relatedEntity();
                 updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
             });
@@ -14026,26 +14025,26 @@ var MappingContext = (function () {
         }
     }
 
-    proto.mergeRelatedEntityCore = function(rawEntity, navigationProperty) {
+    function mergeRelatedEntityCore(mc, rawEntity, navigationProperty) {
         var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
         if (!relatedRawEntity) return null;
 
-        var relatedEntity = this.visitAndMerge( [relatedRawEntity], { nodeType: "navProp", navigationProperty: navigationProperty });
+        var relatedEntity = mc.visitAndMerge( [relatedRawEntity], { nodeType: "navProp", navigationProperty: navigationProperty });
         return relatedEntity[0];
     }
 
-    proto.mergeRelatedEntities = function (navigationProperty, targetEntity, rawEntity) {
-        var relatedEntities = this.mergeRelatedEntitiesCore(rawEntity, navigationProperty);
+    function mergeRelatedEntities(mc, navigationProperty, targetEntity, rawEntity) {
+        var relatedEntities = mergeRelatedEntitiesCore(mc, rawEntity, navigationProperty);
         if (relatedEntities == null) return;
 
         var inverseProperty = navigationProperty.inverse;
         if (!inverseProperty) return;
         var originalRelatedEntities = targetEntity.getProperty(navigationProperty.name);
         originalRelatedEntities.wasLoaded = true;
-        var that = this;
+        
         relatedEntities.forEach(function (relatedEntity) {
             if (typeof relatedEntity === 'function') {
-                that.deferredFns.push(function () {
+                mc.deferredFns.push(function () {
                     relatedEntity = relatedEntity();
                     updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
                 });
@@ -14055,7 +14054,7 @@ var MappingContext = (function () {
         });
     }
 
-    proto.mergeRelatedEntitiesCore = function (rawEntity, navigationProperty) {
+    function mergeRelatedEntitiesCore(mc, rawEntity, navigationProperty) {
         var relatedRawEntities = rawEntity[navigationProperty.nameOnServer];
         if (!relatedRawEntities) return null;
 
@@ -14068,14 +14067,9 @@ var MappingContext = (function () {
             }
         }
         
-        var relatedEntities = this.visitAndMerge(relatedRawEntities, { nodeType: "navPropItem", navigationProperty: navigationProperty });
+        var relatedEntities = mc.visitAndMerge(relatedRawEntities, { nodeType: "navPropItem", navigationProperty: navigationProperty });
         return relatedEntities;
-
     }
-
-
-
-
 
     function updateRelatedEntity(relatedEntity, targetEntity, navigationProperty) {
         if (!relatedEntity) return;
@@ -14095,8 +14089,7 @@ var MappingContext = (function () {
             }
         }
     }
-
-   
+  
 
     function updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty) {
         if (!relatedEntity) return;
@@ -14108,12 +14101,7 @@ var MappingContext = (function () {
             relatedEntity.setProperty(inverseProperty.name, targetEntity);
         }
     }
-
-
-    var proto = ctor.prototype;
-    proto._$typeName = "MappingContext";
-    
-    
+     
     
     return ctor;
 })();
