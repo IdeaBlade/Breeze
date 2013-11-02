@@ -383,12 +383,13 @@
     //#region Client-defined metadata Tests
 
     module("metadataTests (client defined metadata)", { setup: clientDefinedMetadataSetup });
+    var clientStore, clientTypes, serverTypes;
 
     function clientDefinedMetadataSetup() {
         moduleMetadataStoreSetup();
-        this.clientStore = testFns.metadataOnClient.createProductMetadataStore();
-        this.clientTypes = this.clientStore.getEntityTypes();
-        this.serverTypes = moduleMetadataStore.getEntityTypes();
+        clientStore = testFns.metadataOnClient.createProductMetadataStore();
+        clientTypes = clientStore.getEntityTypes();
+        serverTypes = moduleMetadataStore.getEntityTypes();
     }
 
     /*********************************************************
@@ -396,16 +397,16 @@
     *********************************************************/
     test("Types defined in client metadata are in metadata from server", 2, function () {
 
-        var clientTypeNames = this.clientTypes.map(function (type) { return type.name; }).join(', ');
+        var clientTypeNames = clientTypes.map(function (type) { return type.name; }).join(', ');
 
-        var serverTypeNames = this.serverTypes.map(function (type) { return type.name; }).join(', ');
+        var serverTypeNames = serverTypes.map(function (type) { return type.name; }).join(', ');
 
-        equal(this.clientTypes.length, 3,
+        equal(clientTypes.length, 3,
             "client metadata should define 3 types; actually defined {0}."
             .format(clientTypeNames));
 
         var missing = [];
-        this.clientTypes.forEach(function (type) {
+        clientTypes.forEach(function (type) {
             if (serverTypeNames.indexOf(type.name) === -1) {
                 missing.push(type.name);
             }
@@ -419,15 +420,29 @@
     });
 
     /*********************************************************
-    * Category types match in client and server metadata
+    * Compare individual types in client and server metadata
     *********************************************************/
     test("Category types match in client and server metadata", function () {
-        var clientType = this.clientStore.getEntityType('Category');
-        var serverType = moduleMetadataStore.getEntityType('Category');
-        expectTypesMatch(clientType, serverType);
+        compareClientAndServerTypes('Category');
     });
 
-    function expectTypesMatch(client, server) {
+    test("Product types match in client and server metadata", function () {
+        compareClientAndServerTypes('Product');
+    });
+
+    test("Supplier types match in client and server metadata", function () {
+        compareClientAndServerTypes('Supplier');
+    });
+
+    /* ----- helpers -------*/
+
+    function compareClientAndServerTypes(typeName) {
+        var clientType = clientStore.getEntityType(typeName);
+        var serverType = moduleMetadataStore.getEntityType(typeName);
+        expectTypesToMatch(clientType, serverType);
+    }
+
+    function expectTypesToMatch(client, server) {
         var ok = true;
         var problems = [];
         equal(client.name, server.name, "type fullnames should match");
