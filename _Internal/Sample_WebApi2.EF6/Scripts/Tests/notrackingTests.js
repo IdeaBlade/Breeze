@@ -36,6 +36,48 @@
         em.executeQuery(q).then(function (data) {
             var r = data.results;
             ok(r.length > 0);
+            var count = 0;
+            r.forEach(function (emp) {
+                if (emp.manager) {
+                    ok(emp.manager.directReports.indexOf(emp) >= 0, "manager/direct reports relation not resolved properly");
+                    count+=1;
+                }
+                if (emp.directReports && emp.directReports.length > 0) {
+                    emp.directReports.forEach(function (dr) {
+                        ok(dr.manager === emp, "directReports/manager relation not resolved properly");
+                    });
+                    count+=1;
+                }
+            });
+            ok(count >= 2, "should be at least 1 bidirectional relation");
+            var r2 = em.executeQueryLocally(q);
+            ok(r2.length == 0);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("query with expand", function () {
+        var em = newEm();
+
+
+        var q = EntityQuery
+            .from("Orders")
+            .where("customer.companyName", "startsWith", "C")
+            .expand("customer")
+            .noTracking();
+        stop();
+        em.executeQuery(q).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0);
+            
+            var customers = [];
+            r.forEach(function (order) {
+                if (order.customer) {
+                    customers.push(order.customer);
+                }
+            });
+            ok(customers.length > 2, "should be at least 2 customers");
+            var uniqCustomers = testFns.arrayDistinct(customers);
+            ok(uniqCustomers.length < customers.length, "should be some dup customers");
             var r2 = em.executeQueryLocally(q);
             ok(r2.length == 0);
         }).fail(testFns.handleFail).fin(start);

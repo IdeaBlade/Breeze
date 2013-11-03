@@ -226,15 +226,15 @@ function __arrayZip(a1, a2, callback) {
     return result;
 }
 
-function __arrayDistinct(array) {
-    array = array || [];
-    var result = [];
-    for (var i = 0, j = array.length; i < j; i++) {
-        if (result.indexOf(array[i]) < 0)
-            result.push(array[i]);
-    }
-    return result;
-}
+//function __arrayDistinct(array) {
+//    array = array || [];
+//    var result = [];
+//    for (var i = 0, j = array.length; i < j; i++) {
+//        if (result.indexOf(array[i]) < 0)
+//            result.push(array[i]);
+//    }
+//    return result;
+//}
 
 // Not yet needed
 //// much faster but only works on array items with a toString method that
