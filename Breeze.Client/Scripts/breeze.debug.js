@@ -9435,9 +9435,35 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.inlineCount = function(enabled) {
-        if (enabled === undefined) enabled = true;
+        // if (enabled === undefined) enabled = true;
+        enabled = (enabled === undefined) ? true : !!enabled;
+        if (this.enabled == enabled) return this;
         var eq = this._clone();
         eq.inlineCountEnabled = enabled;
+        return eq;
+    };
+
+    /**
+    Returns a query with the 'noTracking' capability either enabled or disabled.  With 'noTracking' enabled, the results of this query
+    will not be coerced into entities but will instead look like raw javascript projections. i.e. simple javascript objects.
+
+    @example
+        var query = new EntityQuery("Customers")
+            .take(20)
+            .orderBy("CompanyName")
+            .noTracking(true);
+   
+
+    @method inlineCount
+    @param enabled {Boolean=true} Whether or not noTracking capability should be enabled. If this parameter is omitted, true is assumed. 
+    @return {EntityQuery}
+    @chainable
+    **/
+    proto.noTracking = function (enabled) {
+        enabled = (enabled === undefined) ? true : !!enabled;
+        if (this.enabled == enabled) return this;
+        var eq = this._clone();
+        eq.noTrackingEnabled = enabled;
         return eq;
     };
     
@@ -13491,7 +13517,10 @@ var EntityManager = (function () {
                     query: query,
                     entityManager: em,
                     dataService: dataService,
-                    mergeOptions: { mergeStrategy: queryOptions.mergeStrategy }
+                    mergeOptions: {
+                        mergeStrategy: queryOptions.mergeStrategy,
+                        noTracking: !!query.noTrackingEnabled
+                    }
             });
             
             var validateOnQuery = em.validationOptions.validateOnQuery;
@@ -13854,7 +13883,7 @@ var MappingContext = (function () {
                 return undefined; // deferred and will be set later;
             }
             return refValue;
-        } else if (meta.entityType) {
+        } else if (meta.entityType && !mc.mergeOptions.noTracking) {
             if (meta.entityType.isComplexType) {
                 return node;
             } else {

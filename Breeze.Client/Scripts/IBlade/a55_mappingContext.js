@@ -68,7 +68,7 @@ var MappingContext = (function () {
                 return undefined; // deferred and will be set later;
             }
             return refValue;
-        } else if (meta.entityType) {
+        } else if (meta.entityType && !mc.mergeOptions.noTracking) {
             if (meta.entityType.isComplexType) {
                 return node;
             } else {

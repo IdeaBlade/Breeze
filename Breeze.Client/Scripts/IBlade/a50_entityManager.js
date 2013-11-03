@@ -1931,7 +1931,10 @@ var EntityManager = (function () {
                     query: query,
                     entityManager: em,
                     dataService: dataService,
-                    mergeOptions: { mergeStrategy: queryOptions.mergeStrategy }
+                    mergeOptions: {
+                        mergeStrategy: queryOptions.mergeStrategy,
+                        noTracking: !!query.noTrackingEnabled
+                    }
             });
             
             var validateOnQuery = em.validationOptions.validateOnQuery;

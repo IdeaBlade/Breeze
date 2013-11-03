@@ -52,6 +52,7 @@
     <None Include="Metadata\metadata.schema.js" />
     <Content Include="Scripts\IBlade\a01_coreFns.js" />
     <Content Include="Scripts\IBlade\a05_assertParam.js" />
+    <Content Include="Scripts\IBlade\a05_maybe.js" />
     <Content Include="Scripts\IBlade\a05_enum.js" />
     <Content Include="Scripts\IBlade\a10_event.js" />
     <Content Include="Scripts\IBlade\a20_config.js" />
