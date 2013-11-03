@@ -434,12 +434,33 @@
         compareClientAndServerTypes('Supplier');
     });
 
+    test("can create a Category", function () {
+        var manager = createManagerWithClientMetadata();
+        var entity = manager.createEntity('Category');
+        expectAddedEntity(entity);
+    });
+
     /* ----- helpers -------*/
 
     function compareClientAndServerTypes(typeName) {
         var clientType = clientStore.getEntityType(typeName);
         var serverType = moduleMetadataStore.getEntityType(typeName);
         expectTypesToMatch(clientType, serverType);
+    }
+
+    function createManagerWithClientMetadata() {
+        return new breeze.EntityManager({
+            serviceName: northwindService,
+            metadataStore: clientStore
+        });
+    } 
+
+    function expectAddedEntity(entity, entityName) {
+        var entityState = entity.entityAspect.entityState;
+        entityName = entityName || "'"+entity.entityType.shortName + "'";
+        ok(entityState.isAdded(),
+            "a created {0} should have 'Added' state; its entityState is '{1}'."
+            .format(entityName, entityState));
     }
 
     function expectTypesToMatch(client, server) {
