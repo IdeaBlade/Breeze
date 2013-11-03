@@ -13875,7 +13875,7 @@ var MappingContext = (function () {
         if (meta.ignore || node == null) {
             return null;
         } else if (meta.nodeRefId) {
-            var refValue = resolveRefEntity(mc, meta.nodeRefId);
+            var refValue = resolveEntityRef(mc, meta.nodeRefId);
             if (typeof refValue === "function" && assignFn != null) {
                 mc.deferredFns.push(function () {
                     assignFn(refValue);
@@ -13890,25 +13890,32 @@ var MappingContext = (function () {
                 return mergeEntity(mc, node, meta);
             }
         } else {
+
+            if (typeof node === 'object' && !__isDate(node)) {
+                node = processAnonType(mc, node);
+            }
+
             // updating the refMap for entities is handled by updateEntityRef for entities.
             if (meta.nodeId) {
                 mc.refMap[meta.nodeId] = node;
             }
-
-            if (typeof node === 'object' && !__isDate(node)) {
-                return processAnonType(mc, node);
-            } else {
-                return node;
-            }
+            return node;
         }
     }
 
-    function resolveRefEntity(mc, nodeRefId) {
+    function resolveEntityRef(mc, nodeRefId) {
         var entity = mc.refMap[nodeRefId];
         if (entity === undefined) {
             return function () { return mc.refMap[nodeRefId]; };
         } else {
             return entity;
+        }
+    }
+
+    function updateEntityRef(mc, targetEntity, rawEntity) {
+        var nodeId = rawEntity._$meta.nodeId;
+        if (nodeId != null) {
+            mc.refMap[nodeId] = targetEntity;
         }
     }
 
@@ -14026,12 +14033,7 @@ var MappingContext = (function () {
         });
     }
 
-    function updateEntityRef(mc, targetEntity, rawEntity) {
-        var nodeId = rawEntity._$meta.nodeId;
-        if (nodeId != null) {
-            mc.refMap[nodeId] = targetEntity;
-        }
-    }
+ 
 
     function mergeRelatedEntity(mc, navigationProperty, targetEntity, rawEntity) {
 
