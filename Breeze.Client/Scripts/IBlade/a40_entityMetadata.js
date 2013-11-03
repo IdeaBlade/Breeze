@@ -2238,6 +2238,7 @@ var DataProperty = (function () {
     @param [config.dataType=DataType.String] {DataType}
     @param [config.complexTypeName] {String}
     @param [config.isNullable=true] {Boolean}
+    @param [config.isScalar=true] {Boolean}
     @param [config.defaultValue] {Any}
     @param [config.isPartOfKey=false] {Boolean}
     @param [config.isUnmapped=false] {Boolean}
@@ -2364,6 +2365,13 @@ var DataProperty = (function () {
 
     __readOnly__
     @property isNullable {Boolean}
+    **/
+
+    /**
+    Whether this property is scalar (i.e., returns a single value). 
+
+    __readOnly__
+    @property isScalar {Boolean}
     **/
 
     /**
@@ -2542,7 +2550,7 @@ var NavigationProperty = (function () {
     @param config.entityTypeName {String} The fully qualified name of the type of entity that this property will return.  This type
     need not yet have been created, but it will need to get added to the relevant MetadataStore before this EntityType will be 'complete'.
     The entityType name is constructed as: {shortName} + ":#" + {namespace}
-    @param [config.isScalar] {Boolean}
+    @param [config.isScalar=true] {Boolean}
     @param [config.associationName] {String} A name that will be used to connect the two sides of a navigation. May be omitted for unidirectional navigations.
     @param [config.foreignKeyNames] {Array of String} An array of foreign key names. The array is needed to support the possibility of multipart foreign keys.
     Most of the time this will be a single foreignKeyName in an array.
@@ -2556,7 +2564,7 @@ var NavigationProperty = (function () {
             .whereParam("name").isString().isOptional()
             .whereParam("nameOnServer").isString().isOptional()
             .whereParam("entityTypeName").isString()
-            .whereParam("isScalar").isBoolean()
+            .whereParam("isScalar").isBoolean().isOptional().withDefault(true)
             .whereParam("associationName").isString().isOptional()
             .whereParam("foreignKeyNames").isArray().isString().isOptional().withDefault([])
             .whereParam("foreignKeyNamesOnServer").isArray().isString().isOptional().withDefault([])
