@@ -8,12 +8,12 @@
     <link rel="stylesheet" href="/Content/qunit.css" type="text/css" media="screen" />
     <script src="/Scripts/modernizr-2.6.2.js"></script>
 </head>
-    <body>
-        <div id="qunit"></div>
-        <div id="qunit-fixture"></div>
-        <div id="test-dev"></div>
-    </body>
-    
+<body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+    <div id="test-dev"></div>
+
+
     <!-- load 3rd party libs -->
     <script src="/Scripts/q.js"></script>
     <script src="/Scripts/knockout-2.2.1.js"></script>
@@ -22,8 +22,8 @@
     <script src="/Scripts/breeze.savequeuing.js"></script><!-- until part of Breeze itself-->
     <script src="/Scripts/breeze.ajaxrestinterceptor.js"></script><!-- until part of Breeze itself-->
     <script src="/Scripts/qunit.js"></script>
- 
-    <!-- Initialize QUnit  --> 
+
+    <!-- Initialize QUnit  -->
     <script>
         QUnit.config.autostart = false;
 
@@ -35,9 +35,10 @@
         var docCode = {};
     </script>
 
-    <!-- Test helper scripts  --> 
+    <!-- Test helper scripts  -->
     <script src="tests/testFns.js"></script>  <!-- testFns.js must be first -->
     <script src="tests/AjaxAdapterTestInterceptor.js"></script>
+    <script src="tests/metadataOnClient.js"></script>
     <script src="tests/northwindMetadata.js"></script>
     <script src="tests/northwindTestData.js"></script>
 
@@ -61,6 +62,8 @@
 
     <!-- Tests are loaded; let's go! -->
     <script>
-        QUnit.start(); //Tests loaded, run tests    
+        QUnit.start(); //Tests loaded, run tests
     </script>
+
+</body>
 </html>
