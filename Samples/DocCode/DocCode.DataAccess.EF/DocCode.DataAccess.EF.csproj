@@ -54,12 +54,15 @@
   <ItemGroup>
     <Compile Include="FooBarRepository.cs" />
     <Compile Include="FoosMetadataProvider.cs" />
+    <Compile Include="NorthwindDtoContext.cs" />
+    <Compile Include="NorthwindDtoModel.cs" />
     <Compile Include="NorthwindEntitySaveGuard.cs" />
     <Compile Include="NorthwindMetadataContext.cs" />
     <Compile Include="InheritanceContext.cs" />
     <Compile Include="InheritanceDbInitializer.cs" />
     <Compile Include="InheritanceRepository.cs" />
     <Compile Include="NorthwindContext.cs" />
+    <Compile Include="NorthwindDtoRepository.cs" />
     <Compile Include="NorthwindRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TodosDbInitializer.cs" />

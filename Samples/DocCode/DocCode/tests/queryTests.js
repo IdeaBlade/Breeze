@@ -576,6 +576,28 @@
     }
 
     /*********************************************************
+    * Orders of Customers whose name starts with 'Alfred'
+    * Customer is the related parent of Order
+    * Demonstrates "nested query", filtering on a related entity
+    *********************************************************/
+    test("orders of Customers whose name starts with 'Alfred'", 2, function () {
+
+        var query = EntityQuery.from("Orders")
+            .where("Customer.CompanyName", "startsWith", "Alfred")
+            .expand("Customer");
+
+        verifyQuery(newEm, query, "orders query", showOrdersToAlfred);
+
+        function showOrdersToAlfred(data) {
+            if (data.results.length == 0) return;
+            var ords = data.results.map(function (o) {
+                return "({0}) to '{1}'".format(
+                    o.OrderID(), o.Customer().CompanyName());
+            });
+            ok(true, "Got " + ords.join(", "));
+        }
+    });
+    /*********************************************************
     * Products in a Category whose name begins with 'S'
     * Category is the related parent of Product
     *********************************************************/

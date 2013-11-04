@@ -17,8 +17,26 @@ namespace DocCode.App_Start
         public static void WriteNorthwindMetadataScriptFile()
         {
             var metadata = new NorthwindRepository().Metadata;
-            var scriptFilename = HostingEnvironment.MapPath("~/tests/northwindMetadata.js");
+            var scriptFilename = HostingEnvironment.MapPath("~/tests/helpers/northwindMetadata.js");
             const string prefix = "docCode.northwindMetadata = ";
+            const string postfix = ";";
+
+            using (var writer = new StreamWriter(scriptFilename))
+            {
+                writer.WriteLine(prefix + metadata + postfix);
+            }
+        }
+
+        /// <summary>
+        /// Save Northwind DTO metadata to a script file
+        /// Certain tests will load this script dynamically so they can get metadata
+        /// without making a Web API call
+        /// </summary>
+        public static void WriteNorthwindDtoMetadataScriptFile()
+        {
+            var metadata = new NorthwindDtoRepository().Metadata;
+            var scriptFilename = HostingEnvironment.MapPath("~/tests/helpers/northwindDtoMetadata.js");
+            const string prefix = "docCode.northwindDtoMetadata = ";
             const string postfix = ";";
 
             using (var writer = new StreamWriter(scriptFilename))

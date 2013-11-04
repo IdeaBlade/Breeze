@@ -17,6 +17,7 @@ namespace DocCode.App_Start {
     public static void PreStart() {
 
       WriteMetadataScriptFiles.WriteNorthwindMetadataScriptFile();
+      WriteMetadataScriptFiles.WriteNorthwindDtoMetadataScriptFile();
 
       #region Breeze MultiController routes
 

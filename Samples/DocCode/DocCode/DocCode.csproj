@@ -136,8 +136,9 @@
   <ItemGroup>
     <Content Include="tests\apiDirectTests.js" />
     <Content Include="tests\basicTodoTests.js" />
-    <Content Include="tests\metadataOnClient.js" />
+    <Content Include="tests\helpers\metadataOnClient.js" />
     <Content Include="tests\multiControllerTests.js" />
+    <Content Include="tests\helpers\northwindDtoMetadata.js" />
     <Content Include="tests\saveNorthwindTests.js" />
     <Content Include="tests\AjaxAdapterTestInterceptorTests.js" />
     <Content Include="tests\dtoTests.js" />
@@ -147,13 +148,13 @@
     <Content Include="tests\inheritanceTests.js" />
     <Content Include="tests\metadataTests.js" />
     <Content Include="tests\navigationTests.js" />
-    <Content Include="tests\northwindMetadata.js" />
+    <Content Include="tests\helpers\northwindMetadata.js" />
     <Content Include="tests\queryTests.js" />
     <Content Include="tests\saveConcurrentlyTests.js" />
     <Content Include="tests\saveTodosTests.js" />
-    <Content Include="tests\AjaxAdapterTestInterceptor.js" />
-    <Content Include="tests\testFns.js" />
-    <Content Include="tests\northwindTestData.js" />
+    <Content Include="tests\helpers\AjaxAdapterTestInterceptor.js" />
+    <Content Include="tests\helpers\testFns.js" />
+    <Content Include="tests\helpers\northwindTestData.js" />
     <Content Include="tests\validationTests.js" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +172,7 @@
     <Compile Include="Controllers\MultiControllers\MultiBaseController.cs" />
     <Compile Include="Controllers\MultiControllers\CustomersController.cs" />
     <Compile Include="Controllers\MultiControllers\MultiController.cs" />
+    <Compile Include="Controllers\NorthwindDtoController.cs" />
     <Compile Include="Controllers\NorthwindController.cs" />
     <Compile Include="Controllers\TodosController.cs" />
     <Compile Include="Global.asax.cs">
@@ -197,6 +199,7 @@
       <Name>DocCode.Models</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -210,9 +213,9 @@
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>55592</DevelopmentServerPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:47595/</IISUrl>
+          <IISUrl>http://localhost:31439/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
