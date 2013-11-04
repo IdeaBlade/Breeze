@@ -64,7 +64,8 @@ namespace Northwind.DtoModels
         {
             HasKey(o => new { o.OrderID });
 
-            HasRequired(o => o.Customer).WithMany(c => c.Orders).HasForeignKey(o => o.CustomerID);
+            HasOptional(o => o.Customer).WithMany(c => c.Orders).HasForeignKey(o => o.CustomerID);
+            Ignore(o => o.UserSessionId);
         }
     }
 
