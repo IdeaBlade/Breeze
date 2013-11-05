@@ -2050,13 +2050,16 @@ var EntityManager = (function () {
                     // no name on server for unmapped props
                     rawObject.__unmapped[dp.name] = val;
                 }
-            }  else if (dp.isComplexProperty) {
-                if (dp.isScalar) {
-                    rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
-                } else {
-                    var complexObjs = structObj.getProperty(dp.name);
-                    rawObject[dp.nameOnServer] = complexObjs.map(function (co) { return unwrapInstance(co, isOData) });
-                }
+            } else if (dp.isComplexProperty) {
+                rawObject[dp.nameOnServer] = __map(structObj.getProperty(dp.name), function (co) {
+                    return unwrapInstance(co, isOData);
+                });
+                //if (dp.isScalar) {
+                //    rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
+                //} else {
+                //    var complexObjs = structObj.getProperty(dp.name);
+                //    rawObject[dp.nameOnServer] = complexObjs.map(function (co) { return unwrapInstance(co, isOData) });
+                //}
             } else {
                 var val = structObj.getProperty(dp.name);
                 val = transformValue(val, dp, isOData);
