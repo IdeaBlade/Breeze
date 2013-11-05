@@ -175,7 +175,7 @@
                     result.extra = node.__metadata;
                 }
             }
-            // OData v3 - projection arrays will be inclosed in a results array
+            // OData v3 - projection arrays will be enclosed in a results array
             if (node.results) {
                 result.node = node.results;
             }

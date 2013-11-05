@@ -160,7 +160,7 @@ function __map(items, fn) {
     if (Array.isArray(items)) {
         result = []
         items.map(function (v, ix) {
-            result[ix] = fn(v);
+            result[ix] = fn(v, ix);
         });
     } else {
         result = fn(items);

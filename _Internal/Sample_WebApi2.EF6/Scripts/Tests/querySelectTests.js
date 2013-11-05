@@ -58,6 +58,7 @@
             anons.forEach(function (a) {
                 ok(a.companyName);
                 ok(a.location);
+                ok("city" in a.location, "should have found a.location.city")
             });
         }).fail(testFns.handleFail).fin(start);
     });

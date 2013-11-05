@@ -189,7 +189,7 @@ function __map(items, fn) {
     if (Array.isArray(items)) {
         result = []
         items.map(function (v, ix) {
-            result[ix] = fn(v);
+            result[ix] = fn(v, ix);
         });
     } else {
         result = fn(items);
@@ -13843,7 +13843,7 @@ var MappingContext = (function () {
         var jra = this.jsonResultsAdapter;
         nodeContext = nodeContext || {};
         var that = this;
-        return nodes.map(function (node) {
+        return __map(nodes, function (node) {
             if (query == null && node.entityAspect) {
                 // don't bother merging a result from a save that was not returned from the server.
                 if (node.entityAspect.entityState.isDeleted()) {
@@ -13884,11 +13884,20 @@ var MappingContext = (function () {
                 return undefined; // deferred and will be set later;
             }
             return refValue;
-        } else if (meta.entityType && !mc.mergeOptions.noTracking) {
-            if (meta.entityType.isComplexType) {
+        } else if (meta.entityType) {
+            if (mc.mergeOptions.noTracking) {
+                node = processUntracked(mc, meta.entityType, node);
+                if (meta.nodeId) {
+                    mc.refMap[meta.nodeId] = node;
+                }
                 return node;
             } else {
-                return mergeEntity(mc, node, meta);
+                if (meta.entityType.isComplexType) {
+                    // because we still need to do serverName to client name processing
+                    return processUntracked(mc, meta.entityType, node);
+                } else {
+                    return mergeEntity(mc, node, meta);
+                }
             }
         } else {
 
@@ -13904,6 +13913,71 @@ var MappingContext = (function () {
         }
     }
 
+    function processUntracked(mc, stype, node) {
+
+        var result = {};
+
+        stype.dataProperties.forEach(function (dp) {
+            if (dp.isComplexProperty) {
+                result[dp.name] = __map(node[dp.nameOnServer], function (v) {
+                    return processUntracked(mc, dp.dataType, v);
+                });
+            } else {
+                result[dp.name] = node[dp.nameOnServer];
+            }
+        });
+        var jra = mc.jsonResultsAdapter;
+        stype.navigationProperties && stype.navigationProperties.forEach(function (np) {
+            var nodeContext = { nodeType: "navProp", navigationProperty: np };
+            result[np.name] = __map(node[np.nameOnServer], function (v, ix) {
+                var meta = jra.visitNode(v, mc, nodeContext);
+                // allows visitNode to change the value;
+                value = meta.node || v;
+                return processMeta(mc, value, meta, function (refValue) {
+                    if (ix !== undefined) {
+                        result[np.name][ix] = refValue();
+                    } else {
+                        result[np.name] = refValue();
+                    }
+                });
+            })
+        });
+        return result;
+    }
+
+    function processAnonType(mc, node) {
+        // node is guaranteed to be an object by this point, i.e. not a scalar          
+
+        var jra = mc.jsonResultsAdapter;
+        var keyFn = mc.metadataStore.namingConvention.serverPropertyNameToClient;
+        var result = {};
+
+        __objectForEach(node, function (key, value) {
+            var meta = jra.visitNode(value, mc, { nodeType: "anonProp", propertyName: key }) || {};
+            // allows visitNode to change the value;
+            value = meta.node || value;
+
+            if (meta.ignore) return;
+
+            var newKey = keyFn(key);
+
+            if (Array.isArray(value)) {
+                result[newKey] = value.map(function (v, ix) {
+                    meta = jra.visitNode(v, mc, { nodeType: "anonPropItem", propertyName: key }) || {};
+                    return processMeta(mc, v, meta, function (refValue) {
+                        result[newKey][ix] = refValue();
+                    });
+                });
+            } else {
+                result[newKey] = processMeta(mc, value, meta, function (refValue) {
+                    result[newKey] = refValue();
+                });
+            }
+        });
+        return result;
+    }
+
+
     function resolveEntityRef(mc, nodeRefId) {
         var entity = mc.refMap[nodeRefId];
         if (entity === undefined) {
@@ -13913,8 +13987,8 @@ var MappingContext = (function () {
         }
     }
 
-    function updateEntityRef(mc, targetEntity, rawEntity) {
-        var nodeId = rawEntity._$meta.nodeId;
+    function updateEntityRef(mc, targetEntity, node) {
+        var nodeId = node._$meta.nodeId;
         if (nodeId != null) {
             mc.refMap[nodeId] = targetEntity;
         }
@@ -13988,59 +14062,9 @@ var MappingContext = (function () {
         return targetEntity;
     }
 
-    function processAnonType(mc, node) {
-        // node is guaranteed to be an object by this point, i.e. not a scalar          
-        
-        var jra = mc.jsonResultsAdapter;
-        var keyFn = mc.metadataStore.namingConvention.serverPropertyNameToClient;
-        var result = {};
-        
-        __objectForEach(node, function (key, value) {
-            var meta = jra.visitNode(value, mc, { nodeType: "anonProp", propertyName: key }) || {};
-            // allows visitNode to change the value;
-            value = meta.node || value;
+ 
 
-            if (meta.ignore) return;
-
-            var newKey = keyFn(key);
-
-            if (Array.isArray(value)) {
-                result[newKey] = value.map(function (v, ix) {
-                    meta = jra.visitNode(v, mc, { nodeType: "anonPropItem", propertyName: key }) || {};
-                    return processMeta(mc, v, meta, function (refValue) {
-                        result[newKey][ix] = refValue();
-                    });
-                });
-            } else {
-                result[newKey] = processMeta(mc, value, meta, function (refValue) {
-                    result[newKey] = refValue();
-                });
-            }
-        });
-        return result;
-    }
-
-    function processUntracked(sType, node) {
-        
-        var result = {};
-        
-        stype.dataProperties.forEach(function (dp) {
-            if (dp.isComplexType) {
-                result[dp.name] = __map(node[dp.nameOnServer], function(v) {
-                    return processUntracked(dp.complexType, v);
-                });
-            } else {
-                result[dp.name] = node[dp.nameOnServer];
-            }
-        });
-        stype.navigationProperties && stype.navigationProperties.forEach(function (np) {
-            result[np.name] = __map(node[dp.nameOnServer], function (v) {
-                return processUntracked(np.entityType, v);
-            });
-        });
-        return result;
-    }
-
+ 
 
 
     function updateEntity(mc, targetEntity, rawEntity) {
@@ -14071,13 +14095,7 @@ var MappingContext = (function () {
         }
     }
 
-    function mergeRelatedEntityCore(mc, rawEntity, navigationProperty) {
-        var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
-        if (!relatedRawEntity) return null;
-
-        var relatedEntity = mc.visitAndMerge( [relatedRawEntity], { nodeType: "navProp", navigationProperty: navigationProperty });
-        return relatedEntity[0];
-    }
+    
 
     function mergeRelatedEntities(mc, navigationProperty, targetEntity, rawEntity) {
         var relatedEntities = mergeRelatedEntitiesCore(mc, rawEntity, navigationProperty);
@@ -14098,6 +14116,14 @@ var MappingContext = (function () {
                 updateRelatedEntityInCollection(relatedEntity, originalRelatedEntities, targetEntity, inverseProperty);
             }
         });
+    }
+
+    function mergeRelatedEntityCore(mc, rawEntity, navigationProperty) {
+        var relatedRawEntity = rawEntity[navigationProperty.nameOnServer];
+        if (!relatedRawEntity) return null;
+
+        var relatedEntity = mc.visitAndMerge(relatedRawEntity, { nodeType: "navProp", navigationProperty: navigationProperty });
+        return relatedEntity;
     }
 
     function mergeRelatedEntitiesCore(mc, rawEntity, navigationProperty) {
@@ -14871,7 +14897,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                     result.extra = node.__metadata;
                 }
             }
-            // OData v3 - projection arrays will be inclosed in a results array
+            // OData v3 - projection arrays will be enclosed in a results array
             if (node.results) {
                 result.node = node.results;
             }

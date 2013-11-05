@@ -24,7 +24,7 @@
         }
     });
 
-    test("simple query", function () {
+    test("self referential type query", function () {
         var em = newEm();
         var predicate1 = Predicate.create("lastName", "startsWith", "D").or("firstName", "startsWith", "A");
         
@@ -83,7 +83,28 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-    
+    test("query with complex type", function () {
+        var em = newEm();
+
+        var query = new EntityQuery()
+         .from("Suppliers")
+         .take(3)
+         .noTracking();
+        var queryUrl = query._toUri(em.metadataStore);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var suppliers = data.results;
+            ok(suppliers.length > 0, "empty data");
+            
+            suppliers.forEach(function (s) {
+                ok(s.location, "every supplier should have a location property");
+                ok("city" in s.location, "should have found s.location.city")
+            });
+            var r2 = em.executeQueryLocally(query);
+            ok(r2.length == 0);
+        }).fail(testFns.handleFail).fin(start);
+
+    });
     
     //test("sample", function () {
       
