@@ -6,12 +6,16 @@
 
 var MappingContext = (function () {
     
-    var ctor = function(config) {      
-        this.query = config.query;  // only this one is optional. 
+    var ctor = function (config) {
+        //  this is optional. 
+        this.query = config.query;
+
+        // these are not
         this.entityManager = config.entityManager
         this.dataService = config.dataService;
         this.mergeOptions = config.mergeOptions;
 
+        // calc'd props
         this.refMap = {};
         this.deferredFns = [];
         this.jsonResultsAdapter = this.dataService.jsonResultsAdapter;
@@ -137,7 +141,7 @@ var MappingContext = (function () {
                 targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null });
                 var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
                 em.entityChanged.publish({ entityAction: action, entity: targetEntity });
-                // this is needed to handle an overwrite or a modified entity with an unchanged entity 
+                // this is needed to handle an overwrite of a modified entity with an unchanged entity 
                 // which might in turn cause _hasChanges to change.
                 if (!targetEntityState.isUnchanged) {
                     em._notifyStateChange(targetEntity, false);
@@ -204,6 +208,29 @@ var MappingContext = (function () {
         return result;
     }
 
+    function processUntracked(sType, node) {
+        
+        var result = {};
+        
+        stype.dataProperties.forEach(function (dp) {
+            if (dp.isComplexType) {
+                result[dp.name] = __map(node[dp.nameOnServer], function(v) {
+                    return processUntracked(dp.complexType, v);
+                });
+            } else {
+                result[dp.name] = node[dp.nameOnServer];
+            }
+        });
+        stype.navigationProperties && stype.navigationProperties.forEach(function (np) {
+            result[np.name] = __map(node[dp.nameOnServer], function (v) {
+                return processUntracked(np.entityType, v);
+            });
+        });
+        return result;
+    }
+
+
+
     function updateEntity(mc, targetEntity, rawEntity) {
         updateEntityRef(mc, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
@@ -217,8 +244,6 @@ var MappingContext = (function () {
             }
         });
     }
-
- 
 
     function mergeRelatedEntity(mc, navigationProperty, targetEntity, rawEntity) {
 
@@ -297,8 +322,7 @@ var MappingContext = (function () {
                 collection.push(targetEntity);
             }
         }
-    }
-  
+    } 
 
     function updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty) {
         if (!relatedEntity) return;

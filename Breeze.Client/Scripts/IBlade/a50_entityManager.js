@@ -98,7 +98,6 @@ var EntityManager = (function () {
     **/
     proto.setProperties = function (config) {
         updateWithConfig(this, config, false);
-        
     };
     
     function updateWithConfig(em, config, isCtor) {
@@ -537,7 +536,6 @@ var EntityManager = (function () {
         var aspect = entity.entityAspect;
         if (!aspect) {
             aspect = new EntityAspect(entity);
-            // aspect._postInitialize(entity);
         }
         var manager = aspect.entityManager;
         if (manager) {
@@ -1638,16 +1636,10 @@ var EntityManager = (function () {
             if (value && value.complexType) {
                 var newValue;
                 var coDps = dp.dataType.dataProperties;
-                if (Array.isArray(value)) {
-                    if (value.length == 0) {
-                        result[dpName] = [];
-                    } else {
-                        result[dpName] = value.map(function (v) { return structuralObjectToJson(v, coDps); });
-                    }
-                } else {
-                    result[dpName] = structuralObjectToJson(value, coDps);
-                }
-                
+                result[dpName] = __map(value, function (v) {
+                    return structuralObjectToJson(v, coDps);
+                });
+
             } else {
                 result[dpName] = value;
             }
@@ -1825,26 +1817,17 @@ var EntityManager = (function () {
     function getEntityGroups(em, entityTypes) {
         var groupMap = em._entityGroupMap;
         if (entityTypes) {
-            if (entityTypes instanceof EntityType) {
-                return [groupMap[entityTypes.name]];
-            } else if (Array.isArray(entityTypes)) {
-                return entityTypes.map(function (et) {
-                    if (et instanceof EntityType) {
-                        return groupMap[et.name];
-                    } else {
-                        throw createError();
-                    }
-                });
-            } else {
-                throw createError();
-            }
+            return __toArray(entityTypes).map(function (et) {
+                if (et instanceof EntityType) {
+                    return groupMap[et.name];
+                } else {
+                    throw new Error("The EntityManager.getChanges() 'entityTypes' parameter must be either an entityType or an array of entityTypes or null");
+                }
+            });
         } else {
             return __getOwnPropertyValues(groupMap);
         }
 
-        function createError() {
-            return new Error("The EntityManager.getChanges() 'entityTypes' parameter must be either an entityType or an array of entityTypes or null");
-        }
     }
 
     function checkEntityKey(em, entity) {
@@ -1869,22 +1852,13 @@ var EntityManager = (function () {
 
     function validateEntityStates(em, entityStates) {
         if (!entityStates) return null;
-        if (EntityState.contains(entityStates)) {
-            entityStates = [entityStates];
-        } else if (Array.isArray(entityStates)) {
-            entityStates.forEach(function (es) {
-                if (!EntityState.contains(es)) {
-                    throw createError();
-                }
-            });
-        } else {
-            throw createError();
-        }
+        entityStates = __toArray(entityStates);
+        entityStates.forEach(function (es) {
+            if (!EntityState.contains(es)) {
+                throw new Error("The EntityManager.getChanges() 'entityStates' parameter must either be null, an entityState or an array of entityStates");
+            }
+        })
         return entityStates;
-
-        function createError() {
-            return new Error("The EntityManager.getChanges() 'entityStates' parameter must either be null, an entityState or an array of entityStates");
-        }
     }
 
     proto._attachEntityCore = function (entity, entityState) {
@@ -1954,17 +1928,15 @@ var EntityManager = (function () {
                     query = null;
                     mappingContext = null;
                     // HACK: some errors thrown in next function do not propogate properly - this catches them.
-                    // if (state.error) deferred.reject(state.error);
+                    
                     if (state.error) {
                         Q.reject(state.error);
                     }
 
                 }, function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);
-
-                    if (!Array.isArray(nodes)) {
-                        nodes = (nodes == null) ? [] : [nodes];
-                    }
+                    nodes = __toArray(nodes);
+                    
                     
                     var results = mappingContext.visitAndMerge(nodes, { nodeType: "root" });
                     if (validateOnQuery) {

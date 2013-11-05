@@ -1473,8 +1473,7 @@ var EntityType = (function () {
         var proto = aCtor.prototype;
 
         // place for extra breeze related data
-        extra = this._extra || {};
-        this._extra = extra;
+        this._extra = this._extra || {};
         
         var instance = new aCtor();
         calcUnmappedProperties(this, instance);

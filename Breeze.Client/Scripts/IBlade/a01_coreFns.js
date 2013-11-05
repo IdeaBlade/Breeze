@@ -145,7 +145,7 @@ function __resolveProperties(sources, propertyNames) {
 // array functions
 
 function __toArray(item) {
-    if (!item) {
+    if (item==null) {
         return [];
     } else if (Array.isArray(item)) {
         return item;
@@ -153,6 +153,21 @@ function __toArray(item) {
         return [item];
     }
 }
+
+function __map(items, fn) {
+    if (items == null) return items;
+    var result;
+    if (Array.isArray(items)) {
+        result = []
+        items.map(function (v, ix) {
+            result[ix] = fn(v);
+        });
+    } else {
+        result = fn(items);
+    }
+    return result;
+}
+
 
 function __arrayFirst(array, predicate) {
     for (var i = 0, j = array.length; i < j; i++) {

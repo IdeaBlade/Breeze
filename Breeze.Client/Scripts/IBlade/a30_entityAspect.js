@@ -51,7 +51,7 @@ var EntityAspect = (function() {
         if (entity != null) {
             entity.entityAspect = this;
             // entityType should already be on the entity from 'watch'    
-            var entityType = entity.entityType;
+            var entityType = entity.entityType || entity._$entityType; 
             if (!entityType) {
                 var typeName = entity.prototype._$typeName;
                 if (!typeName) {

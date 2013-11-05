@@ -174,7 +174,7 @@ function __resolveProperties(sources, propertyNames) {
 // array functions
 
 function __toArray(item) {
-    if (!item) {
+    if (item==null) {
         return [];
     } else if (Array.isArray(item)) {
         return item;
@@ -182,6 +182,21 @@ function __toArray(item) {
         return [item];
     }
 }
+
+function __map(items, fn) {
+    if (items == null) return items;
+    var result;
+    if (Array.isArray(items)) {
+        result = []
+        items.map(function (v, ix) {
+            result[ix] = fn(v);
+        });
+    } else {
+        result = fn(items);
+    }
+    return result;
+}
+
 
 function __arrayFirst(array, predicate) {
     for (var i = 0, j = array.length; i < j; i++) {
@@ -3312,7 +3327,7 @@ var EntityAspect = (function() {
         if (entity != null) {
             entity.entityAspect = this;
             // entityType should already be on the entity from 'watch'    
-            var entityType = entity.entityType;
+            var entityType = entity.entityType || entity._$entityType; 
             if (!entityType) {
                 var typeName = entity.prototype._$typeName;
                 if (!typeName) {
@@ -7250,8 +7265,7 @@ var EntityType = (function () {
         var proto = aCtor.prototype;
 
         // place for extra breeze related data
-        extra = this._extra || {};
-        this._extra = extra;
+        this._extra = this._extra || {};
         
         var instance = new aCtor();
         calcUnmappedProperties(this, instance);
@@ -8015,6 +8029,7 @@ var DataProperty = (function () {
     @param [config.dataType=DataType.String] {DataType}
     @param [config.complexTypeName] {String}
     @param [config.isNullable=true] {Boolean}
+    @param [config.isScalar=true] {Boolean}
     @param [config.defaultValue] {Any}
     @param [config.isPartOfKey=false] {Boolean}
     @param [config.isUnmapped=false] {Boolean}
@@ -8141,6 +8156,13 @@ var DataProperty = (function () {
 
     __readOnly__
     @property isNullable {Boolean}
+    **/
+
+    /**
+    Whether this property is scalar (i.e., returns a single value). 
+
+    __readOnly__
+    @property isScalar {Boolean}
     **/
 
     /**
@@ -8319,7 +8341,7 @@ var NavigationProperty = (function () {
     @param config.entityTypeName {String} The fully qualified name of the type of entity that this property will return.  This type
     need not yet have been created, but it will need to get added to the relevant MetadataStore before this EntityType will be 'complete'.
     The entityType name is constructed as: {shortName} + ":#" + {namespace}
-    @param [config.isScalar] {Boolean}
+    @param [config.isScalar=true] {Boolean}
     @param [config.associationName] {String} A name that will be used to connect the two sides of a navigation. May be omitted for unidirectional navigations.
     @param [config.foreignKeyNames] {Array of String} An array of foreign key names. The array is needed to support the possibility of multipart foreign keys.
     Most of the time this will be a single foreignKeyName in an array.
@@ -8333,7 +8355,7 @@ var NavigationProperty = (function () {
             .whereParam("name").isString().isOptional()
             .whereParam("nameOnServer").isString().isOptional()
             .whereParam("entityTypeName").isString()
-            .whereParam("isScalar").isBoolean()
+            .whereParam("isScalar").isBoolean().isOptional().withDefault(true)
             .whereParam("associationName").isString().isOptional()
             .whereParam("foreignKeyNames").isArray().isString().isOptional().withDefault([])
             .whereParam("foreignKeyNamesOnServer").isArray().isString().isOptional().withDefault([])
@@ -11684,7 +11706,6 @@ var EntityManager = (function () {
     **/
     proto.setProperties = function (config) {
         updateWithConfig(this, config, false);
-        
     };
     
     function updateWithConfig(em, config, isCtor) {
@@ -12123,7 +12144,6 @@ var EntityManager = (function () {
         var aspect = entity.entityAspect;
         if (!aspect) {
             aspect = new EntityAspect(entity);
-            // aspect._postInitialize(entity);
         }
         var manager = aspect.entityManager;
         if (manager) {
@@ -13224,16 +13244,10 @@ var EntityManager = (function () {
             if (value && value.complexType) {
                 var newValue;
                 var coDps = dp.dataType.dataProperties;
-                if (Array.isArray(value)) {
-                    if (value.length == 0) {
-                        result[dpName] = [];
-                    } else {
-                        result[dpName] = value.map(function (v) { return structuralObjectToJson(v, coDps); });
-                    }
-                } else {
-                    result[dpName] = structuralObjectToJson(value, coDps);
-                }
-                
+                result[dpName] = __map(value, function (v) {
+                    return structuralObjectToJson(v, coDps);
+                });
+
             } else {
                 result[dpName] = value;
             }
@@ -13411,26 +13425,17 @@ var EntityManager = (function () {
     function getEntityGroups(em, entityTypes) {
         var groupMap = em._entityGroupMap;
         if (entityTypes) {
-            if (entityTypes instanceof EntityType) {
-                return [groupMap[entityTypes.name]];
-            } else if (Array.isArray(entityTypes)) {
-                return entityTypes.map(function (et) {
-                    if (et instanceof EntityType) {
-                        return groupMap[et.name];
-                    } else {
-                        throw createError();
-                    }
-                });
-            } else {
-                throw createError();
-            }
+            return __toArray(entityTypes).map(function (et) {
+                if (et instanceof EntityType) {
+                    return groupMap[et.name];
+                } else {
+                    throw new Error("The EntityManager.getChanges() 'entityTypes' parameter must be either an entityType or an array of entityTypes or null");
+                }
+            });
         } else {
             return __getOwnPropertyValues(groupMap);
         }
 
-        function createError() {
-            return new Error("The EntityManager.getChanges() 'entityTypes' parameter must be either an entityType or an array of entityTypes or null");
-        }
     }
 
     function checkEntityKey(em, entity) {
@@ -13455,22 +13460,13 @@ var EntityManager = (function () {
 
     function validateEntityStates(em, entityStates) {
         if (!entityStates) return null;
-        if (EntityState.contains(entityStates)) {
-            entityStates = [entityStates];
-        } else if (Array.isArray(entityStates)) {
-            entityStates.forEach(function (es) {
-                if (!EntityState.contains(es)) {
-                    throw createError();
-                }
-            });
-        } else {
-            throw createError();
-        }
+        entityStates = __toArray(entityStates);
+        entityStates.forEach(function (es) {
+            if (!EntityState.contains(es)) {
+                throw new Error("The EntityManager.getChanges() 'entityStates' parameter must either be null, an entityState or an array of entityStates");
+            }
+        })
         return entityStates;
-
-        function createError() {
-            return new Error("The EntityManager.getChanges() 'entityStates' parameter must either be null, an entityState or an array of entityStates");
-        }
     }
 
     proto._attachEntityCore = function (entity, entityState) {
@@ -13540,17 +13536,15 @@ var EntityManager = (function () {
                     query = null;
                     mappingContext = null;
                     // HACK: some errors thrown in next function do not propogate properly - this catches them.
-                    // if (state.error) deferred.reject(state.error);
+                    
                     if (state.error) {
                         Q.reject(state.error);
                     }
 
                 }, function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);
-
-                    if (!Array.isArray(nodes)) {
-                        nodes = (nodes == null) ? [] : [nodes];
-                    }
+                    nodes = __toArray(nodes);
+                    
                     
                     var results = mappingContext.visitAndMerge(nodes, { nodeType: "root" });
                     if (validateOnQuery) {
@@ -13821,12 +13815,16 @@ breeze.EntityManager = EntityManager;
 
 var MappingContext = (function () {
     
-    var ctor = function(config) {      
-        this.query = config.query;  // only this one is optional. 
+    var ctor = function (config) {
+        //  this is optional. 
+        this.query = config.query;
+
+        // these are not
         this.entityManager = config.entityManager
         this.dataService = config.dataService;
         this.mergeOptions = config.mergeOptions;
 
+        // calc'd props
         this.refMap = {};
         this.deferredFns = [];
         this.jsonResultsAdapter = this.dataService.jsonResultsAdapter;
@@ -13952,7 +13950,7 @@ var MappingContext = (function () {
                 targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null });
                 var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
                 em.entityChanged.publish({ entityAction: action, entity: targetEntity });
-                // this is needed to handle an overwrite or a modified entity with an unchanged entity 
+                // this is needed to handle an overwrite of a modified entity with an unchanged entity 
                 // which might in turn cause _hasChanges to change.
                 if (!targetEntityState.isUnchanged) {
                     em._notifyStateChange(targetEntity, false);
@@ -14019,6 +14017,29 @@ var MappingContext = (function () {
         return result;
     }
 
+    function processUntracked(sType, node) {
+        
+        var result = {};
+        
+        stype.dataProperties.forEach(function (dp) {
+            if (dp.isComplexType) {
+                result[dp.name] = __map(node[dp.nameOnServer], function(v) {
+                    return processUntracked(dp.complexType, v);
+                });
+            } else {
+                result[dp.name] = node[dp.nameOnServer];
+            }
+        });
+        stype.navigationProperties && stype.navigationProperties.forEach(function (np) {
+            result[np.name] = __map(node[dp.nameOnServer], function (v) {
+                return processUntracked(np.entityType, v);
+            });
+        });
+        return result;
+    }
+
+
+
     function updateEntity(mc, targetEntity, rawEntity) {
         updateEntityRef(mc, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
@@ -14032,8 +14053,6 @@ var MappingContext = (function () {
             }
         });
     }
-
- 
 
     function mergeRelatedEntity(mc, navigationProperty, targetEntity, rawEntity) {
 
@@ -14112,8 +14131,7 @@ var MappingContext = (function () {
                 collection.push(targetEntity);
             }
         }
-    }
-  
+    } 
 
     function updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty) {
         if (!relatedEntity) return;

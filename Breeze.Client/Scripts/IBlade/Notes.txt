@@ -1,8 +1,24 @@
-﻿Ideas for SaveChanges enh.
+﻿) Unit's of work in querying / creating / materializing entity
+	1) Register a ctor ( or implicitly create one) - implementation logic for this step is largely modelLibrary specific
+		1) discovers any unmapped properties
+		2) initializes the entity prototype ( add the "setProperty" and "getProperty" methods)
+		3) Hooks up property interception
+	2) Query materialization returns javascript objects with "namingConventions" applied and cycles resolved
+		1) property name changes
+		2) resolve cycles
+		( This is the what the result of a no-tracking query will return)
+	3) create an entity
+		1) calls the "registered" ctor - ( one will be created if none is registered) to create an entity instance
+		2) Initializes any values from a config object passed in.
+		2) attaches an entityAspect to the entity
+		3) start tracking - ( adapt's any instance level properties to appropriate model library).
+	4) attach an entity to an entityManager
+	5) merge a raw entity into an existing entityManager
 
-1) Client side - Support ability to configure SaveChanges with both/either a ResourceName and a DataService 
-2) Server side - ContextProvider.BeforeSave and ContextProvider.BeforeSaveEntity lambdas. 
-    a) Non breaking - One BeforeSave and one BeforeSaveEntity virtual method on the ContextProvider... but 
-    a) ContextProvider - BeforeSave method base impl calls any registered BeforeSave lambda. ( same with BeforeSaveEntity).
+-----
+
+A standard query performs 2 thru 5;
+
+
 
  
