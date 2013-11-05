@@ -17,9 +17,10 @@
     testFns.metadataOnClient = {
         createDtoMetadataStore: createDtoMetadataStore,
 
-        addCategoryType  : addCategoryType,
-        addProductType   : addProductType, 
-        addSupplierType: addSupplierType,
+        addCategoryType        : addCategoryType,
+        addLocationComplexType : addLocationComplexType,
+        addProductType         : addProductType, 
+        addSupplierType        : addSupplierType,
 
         createProductMetadataStore: createProductMetadataStore,
 
@@ -77,6 +78,27 @@
     }
     //#endregion
 
+    //#region Location ComplexType
+    function addLocationComplexType(store) {
+        var et = {
+            shortName: "Location",
+            namespace: northwindNamespace,
+            isComplexType: true,
+
+            dataProperties: {
+                Address: { maxLength: 60 },
+                City: { maxLength: 15 },
+                Region: { maxLength: 15 },
+                PostalCode: { maxLength: 10 },
+                Country: { maxLength: 15 },
+            }
+        };
+
+        return et = addEntityTypeToStore(store, et);
+    }
+
+    //#endregion
+
     //#region Product
     function addProductType(store) {
         var et = {
@@ -132,11 +154,14 @@
                 CompanyName:  { maxLength: 40, isNullable: false },
                 ContactName:  { maxLength: 30 },
                 ContactTitle: { maxLength: 30 },
+                Location:     { complexTypeName: "Location", isNullable: false},
+                /* if didn't have Location Complex Type
                 Address:      { maxLength: 60 },
                 City:         { maxLength: 15 },
                 Region:       { maxLength: 15 },
                 PostalCode:   { maxLength: 10 },
                 Country:      { maxLength: 15 },
+                */
                 Phone:        { maxLength: 24 },
                 Fax:          { maxLength: 24 },
                 HomePage:     { maxLength: 4000 },
@@ -316,7 +341,9 @@
         // Theoretically two types in different models could have the same 'shortName'
         // and thus we would associate the same resource name with the two different types.
         // While unlikely, breeze should offer a way to remove a resource name for a type.
-        store.setEntityTypeForResourceName(entityType.shortName, entityType);
+        if (!entityType.isComplexType) {
+            store.setEntityTypeForResourceName(entityType.shortName, entityType);
+        }
 
         return entityType;
     }
@@ -337,6 +364,11 @@
                 var prop = dps[key];
                 // assume key part is non-nullable ... unless explicitly declared nullable (when is that good?)
                 prop.isNullable = prop.isNullable == null ? !prop.isPartOfKey : !!prop.isNullable;
+
+                if (prop.complexTypeName && prop.complexTypeName.indexOf(":#") === -1) {
+                    // if complexTypeName is unqualified, suffix with the entity's own namespace
+                    prop.complexTypeName += ':#' + entityNamespace;
+                }
             }
         };
         
@@ -392,7 +424,8 @@
 
         function getDataTypeValidator(prop) {
             var dataType = prop.dataType;
-            return dataType === DT.String ? null : dataType.validatorCtor();
+            var validatorCtor = !dataType || dataType === DT.String ? null : dataType.validatorCtor;
+            return validatorCtor ? validatorCtor() : null;
         }
     }
 

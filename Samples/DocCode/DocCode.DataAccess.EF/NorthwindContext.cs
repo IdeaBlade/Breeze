@@ -23,6 +23,7 @@ namespace Northwind.Models
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
 
             modelBuilder.Configurations.Add(new CustomerConfiguration());
+            modelBuilder.Configurations.Add(new OrderConfiguration());
             modelBuilder.Configurations.Add(new OrderDetailConfiguration());
             modelBuilder.Configurations.Add(new PreviousEmployeeConfiguration());
         }
@@ -60,11 +61,23 @@ namespace Northwind.Models
     {
         public CustomerConfiguration()
         {
-            Property(o => o.CustomerID)
+            Property(c => c.CustomerID)
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
         }
     }
 
+    public class OrderConfiguration : EntityTypeConfiguration<Order>
+    {
+        public OrderConfiguration()
+        {
+            // map Shipping address columns to the Location complex type
+            Property(o => o.ShipTo.Address).HasColumnName("ShipAddress");
+            Property(o => o.ShipTo.City).HasColumnName("ShipCity");
+            Property(o => o.ShipTo.Region).HasColumnName("ShipRegion");
+            Property(o => o.ShipTo.PostalCode).HasColumnName("ShipPostalCode");
+            Property(o => o.ShipTo.Country).HasColumnName("ShipCountry");
+        }
+    }
     public class OrderDetailConfiguration : EntityTypeConfiguration<OrderDetail>
     {
         public OrderDetailConfiguration()

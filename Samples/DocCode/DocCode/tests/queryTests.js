@@ -191,7 +191,28 @@
         .fail(handleFail)
         .fin(start);
     });
+    /*********************************************************
+    * orders shipped to California (via ComplexType).
+    *********************************************************/
+    test("orders shipped to California (via ComplexType)", 2, function () {
 
+        var query = EntityQuery.from("Orders")
+            .where("ShipTo.Region", "==", "CA")
+            .expand("Customer");
+
+        verifyQuery(newEm, query, "orders query", showOrdersShippedToCA);
+
+
+        function showOrdersShippedToCA(data) {
+            if (data.results.length == 0) return;
+            var ords = data.results.map(function (o) {
+                return "({0}) '{1}' is in '{2}'".format(
+                    o.OrderID(), o.Customer().CompanyName(), o.ShipTo().Region());
+            });
+            ok(true, "Got " + ords.join(", "));
+        }
+
+    });
     /*********************************************************
     * customers from nowhere (testing for null)
     *********************************************************/
@@ -552,11 +573,11 @@
     module("queryTests (related property conditions)", testFns.getModuleOptions(newEm));
 
     /*********************************************************
-    * Orders of Customers in California
+    * Orders of Customers located in California
     * Customer is the related parent of Order
     * Demonstrates "nested query", filtering on a related entity
     *********************************************************/
-    test("orders of Customers in California", 2, function () {
+    test("orders of Customers located in California", 2, function () {
 
         var query = EntityQuery.from("Orders")
             .where("Customer.Region", "==", "CA")
