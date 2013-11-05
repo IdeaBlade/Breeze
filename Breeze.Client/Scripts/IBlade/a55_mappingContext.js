@@ -74,7 +74,7 @@ var MappingContext = (function () {
             return refValue;
         } else if (meta.entityType) {
             if (mc.mergeOptions.noTracking) {
-                node = processUntracked(mc, meta.entityType, node);
+                node = processNoMerge(mc, meta.entityType, node);
                 if (meta.nodeId) {
                     mc.refMap[meta.nodeId] = node;
                 }
@@ -82,7 +82,7 @@ var MappingContext = (function () {
             } else {
                 if (meta.entityType.isComplexType) {
                     // because we still need to do serverName to client name processing
-                    return processUntracked(mc, meta.entityType, node);
+                    return processNoMerge(mc, meta.entityType, node);
                 } else {
                     return mergeEntity(mc, node, meta);
                 }
@@ -101,70 +101,63 @@ var MappingContext = (function () {
         }
     }
 
-    function processUntracked(mc, stype, node) {
-
+    function processNoMerge(mc, stype, node) {
         var result = {};
 
         stype.dataProperties.forEach(function (dp) {
             if (dp.isComplexProperty) {
                 result[dp.name] = __map(node[dp.nameOnServer], function (v) {
-                    return processUntracked(mc, dp.dataType, v);
+                    return processNoMerge(mc, dp.dataType, v);
                 });
             } else {
                 result[dp.name] = node[dp.nameOnServer];
             }
         });
-        var jra = mc.jsonResultsAdapter;
+
         stype.navigationProperties && stype.navigationProperties.forEach(function (np) {
             var nodeContext = { nodeType: "navProp", navigationProperty: np };
-            result[np.name] = __map(node[np.nameOnServer], function (v, ix) {
-                var meta = jra.visitNode(v, mc, nodeContext);
-                // allows visitNode to change the value;
-                value = meta.node || v;
-                return processMeta(mc, value, meta, function (refValue) {
-                    if (ix !== undefined) {
-                        result[np.name][ix] = refValue();
-                    } else {
-                        result[np.name] = refValue();
-                    }
-                });
-            })
+            visitNode(node[np.nameOnServer], mc, nodeContext, result, np.name);
         });
+
         return result;
     }
 
     function processAnonType(mc, node) {
         // node is guaranteed to be an object by this point, i.e. not a scalar          
-
-        var jra = mc.jsonResultsAdapter;
         var keyFn = mc.metadataStore.namingConvention.serverPropertyNameToClient;
         var result = {};
 
         __objectForEach(node, function (key, value) {
-            var meta = jra.visitNode(value, mc, { nodeType: "anonProp", propertyName: key }) || {};
-            // allows visitNode to change the value;
-            value = meta.node || value;
-
-            if (meta.ignore) return;
-
             var newKey = keyFn(key);
-
-            if (Array.isArray(value)) {
-                result[newKey] = value.map(function (v, ix) {
-                    meta = jra.visitNode(v, mc, { nodeType: "anonPropItem", propertyName: key }) || {};
-                    return processMeta(mc, v, meta, function (refValue) {
-                        result[newKey][ix] = refValue();
-                    });
-                });
-            } else {
-                result[newKey] = processMeta(mc, value, meta, function (refValue) {
-                    result[newKey] = refValue();
-                });
-            }
+            var nodeContext = { nodeType: "anonProp", propertyName: newKey };
+            visitNode(value, mc, nodeContext, result, newKey);
         });
         return result;
     }
 
+    function visitNode(node, mc, nodeContext, result, key) {
+        var jra = mc.jsonResultsAdapter;
+        var meta = jra.visitNode(node, mc, nodeContext) || {};
+        // allows visitNode to change the value;
+        node = meta.node || node;
+
+        if (meta.ignore) return;
+
+        if (Array.isArray(node)) {
+            nodeContext.nodeType = nodeContext.nodeType + "Item";
+            result[key] = node.map(function (v, ix) {
+                meta = jra.visitNode(v, mc, nodeContext) || {};
+                v = meta.node || v;
+                return processMeta(mc, v, meta, function (refValue) {
+                    result[key][ix] = refValue();
+                });
+            });
+        } else {
+            result[key] = processMeta(mc, node, meta, function (refValue) {
+                result[key] = refValue();
+            });
+        }
+    }
 
     function resolveEntityRef(mc, nodeRefId) {
         var entity = mc.refMap[nodeRefId];
