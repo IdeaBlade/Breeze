@@ -137,6 +137,7 @@
     <Content Include="tests\apiDirectTests.js" />
     <Content Include="tests\basicTodoTests.js" />
     <Content Include="tests\helpers\metadataOnClient.js" />
+    <Content Include="tests\metadataOnClientTests.js" />
     <Content Include="tests\multiControllerTests.js" />
     <Content Include="tests\helpers\northwindDtoMetadata.js" />
     <Content Include="tests\saveNorthwindTests.js" />
