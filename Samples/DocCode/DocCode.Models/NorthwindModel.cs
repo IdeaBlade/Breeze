@@ -32,7 +32,9 @@ namespace Northwind.Models
     public string Description {get;set;}
     public byte[] Picture {get;set;}
     public int RowVersion {get;set;}
-    public ICollection<Product> Products {get;set;}
+
+    // Don't offer the navigation from Category to Products
+    // public ICollection<Product> Products {get;set;}
 
   }
   #endregion Category class
@@ -403,8 +405,6 @@ namespace Northwind.Models
     public DateTime? DiscontinuedDate {get;set;}    
     public int RowVersion {get;set;}
 
-    [ForeignKey("CategoryID")]
-    [InverseProperty("Products")]
     public Category Category {get;set;}
 
     // Disable the navigation from Product to OrderDetails
@@ -413,8 +413,6 @@ namespace Northwind.Models
     //[InverseProperty("Product")]
     //public ICollection<OrderDetail> OrderDetails {get;set;}
     
-    [ForeignKey("SupplierID")]
-    [InverseProperty("Products")]
     public Supplier Supplier {get;set;}
 
   }
