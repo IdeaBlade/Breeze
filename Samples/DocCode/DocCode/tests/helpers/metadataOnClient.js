@@ -30,8 +30,8 @@
     };
 
 
-    // Creates a metadataStore with Northwind Product entity types:
-    // Product, Category, Supplier
+    // Creates a metadataStore with 3 Northwind Product EntityTypes:
+    // Product, Category, Supplier and a LocationComplexType
     function createProductMetadataStore() {
 
         var store = createMetadataStore();
@@ -42,6 +42,7 @@
 
         // Add types in alphabetical order ... because we can
         addCategoryType(store);
+        addLocationComplexType(store);
         addProductType(store);
         addSupplierType(store);
         
@@ -66,7 +67,7 @@
             }
         };
 
-        return et = addEntityTypeToStore(store, et);
+        return et = addTypeToStore(store, et);
     }
     //#endregion
 
@@ -85,7 +86,7 @@
             }
         };
 
-        return et = addEntityTypeToStore(store, et);
+        return et = addTypeToStore(store, et);
     }
 
     //#endregion
@@ -126,7 +127,7 @@
             }
         };
 
-        return et = addEntityTypeToStore(store, et);
+        return et = addTypeToStore(store, et);
     }
     //#endregion
 
@@ -167,7 +168,7 @@
             }
         };
 
-        return et = addEntityTypeToStore(store, et);
+        return et = addTypeToStore(store, et);
     }
     //#endregion
 
@@ -212,7 +213,7 @@
             }
         };
 
-        return et = addEntityTypeToStore(store, et);
+        return et = addTypeToStore(store, et);
     }
 
     //#endregion
@@ -249,7 +250,7 @@
             }
         };
 
-        return et = addEntityTypeToStore(store, et);
+        return et = addTypeToStore(store, et);
     }
 
     //#endregion
@@ -285,7 +286,7 @@
             }
         };
 
-        return et = addEntityTypeToStore(store, et);
+        return et = addTypeToStore(store, et);
     }
 
     //#endregion
@@ -304,7 +305,7 @@
 
         };
 
-        return et = addEntityTypeToStore(store, et);
+        return et = addTypeToStore(store, et);
     }
     //#endregion
 
@@ -322,34 +323,36 @@
         );
     }
 
-    // Adds the entityType to the store
+    // Adds the type to the store
     // fixes some defaults
     // infers certain validators
     // adds type's "shortname" as a resource name
-    function addEntityTypeToStore(store, entityTypeDef) {
-        patchDefaults(entityTypeDef);
-        var entityType = new breeze.EntityType(entityTypeDef);
-        store.addEntityType(entityType);
-        inferValidators(entityType);
+    function addTypeToStore(store, typeDef) {
+        patchDefaults(typeDef);
+        var type = typeDef.isComplexType ?
+            new breeze.ComplexType(typeDef) :
+            new breeze.EntityType(typeDef);
+        store.addEntityType(type);
+        inferValidators(type);
 
         // Often useful to use the type name as the resource name in a cache query.
         // This name adds the type's 'shortName' as one of the resource names for the type.
         // Theoretically two types in different models could have the same 'shortName'
         // and thus we would associate the same resource name with the two different types.
         // While unlikely, breeze should offer a way to remove a resource name for a type.
-        if (!entityType.isComplexType && !entityType.isAbstract) {
-            store.setEntityTypeForResourceName(entityType.shortName, entityType);
+        if (!type.isComplexType && !type.isAbstract) {
+            store.setEntityTypeForResourceName(type.shortName, type);
         }
 
-        return entityType;
+        return type;
     }
 
-    // Patch some defaults in the entityType definition object
+    // Patch some defaults in the type definition object
     // Todo: consider moving these patches into breeze itself
-    function patchDefaults(entityTypeDef) {
+    function patchDefaults(typeDef) {
         // if no namespace specified, assign the defaultNamespace 
-        var namespace = entityTypeDef.namespace = entityTypeDef.namespace || defaultNamespace;
-        var dps = entityTypeDef.dataProperties;
+        var namespace = typeDef.namespace = typeDef.namespace || defaultNamespace;
+        var dps = typeDef.dataProperties;
         for (var key in dps) {
             if (_hasOwnProperty(dps, key)) {
                 var prop = dps[key];
@@ -363,7 +366,7 @@
             }
         };
         
-        var navs = entityTypeDef.navigationProperties;
+        var navs = typeDef.navigationProperties;
         for (var key in navs) {
             if (_hasOwnProperty(navs, key)) {
                 var prop = navs[key];
