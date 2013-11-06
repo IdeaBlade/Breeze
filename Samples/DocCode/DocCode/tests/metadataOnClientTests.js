@@ -91,6 +91,22 @@
         expectAddedEntity(entity);
     });
 
+    test("can create a Supplier with a Location ComplexType", function () {
+        var manager = createManagerWithClientMetadata();
+        var testLocation = createTestLocation();
+
+        var supplier = manager.createEntity('Supplier', {
+            companyName: "IdeaBlade",
+            location: testLocation
+        });
+        expectAddedEntity(supplier);
+
+        var city = supplier.location().city();
+        equal(city, testLocation.city(),
+            "Supplier's city should be '{0}'; it is '{1}'."
+            .format(testLocation.city(), city));
+    });
+
     //#endregion
 
     //#region Client-defined DTO metadata Tests
@@ -141,6 +157,13 @@
             metadataStore: clientStore
         });
     } 
+
+    function createTestLocation() {
+        var Location = clientStore.getEntityType('Location');
+        return Location.createInstance({
+            address: '6001 Shellmound', city: 'Emeryville', region: 'CA'
+        });
+    }
 
     function expectAddedEntity(entity, entityName) {
         var entityState = entity.entityAspect.entityState;
