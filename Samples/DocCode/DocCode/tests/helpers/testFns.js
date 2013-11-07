@@ -15,11 +15,16 @@ docCode.testFns = (function () {
     *********************************************************/
     var testFns = {
         userSessionId: userSessionId,
-        
-        northwindServiceName: "breeze/Northwind",
-        northwindDtoServiceName: "breeze/NorthwindDto",
-        todosServiceName: "breeze/todos",
+
         inheritanceServiceName: "breeze/inheritance",
+
+        northwindServiceName: "breeze/Northwind",
+        northwindNamespace: "Northwind.Models",
+
+        northwindDtoServiceName: "breeze/NorthwindDto",
+        northwindDtoNamespace: "Northwind.DtoModels",
+
+        todosServiceName: "breeze/todos",
 
         waitForTestPromises:waitForTestPromises,
         handleFail: handleFail,

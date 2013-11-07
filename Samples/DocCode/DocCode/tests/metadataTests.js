@@ -315,7 +315,7 @@
         }
         
         stop(); // going async for metadata ...
-        Q.all(fetchMetadataPromises) // wait for all metadata fetches to finishe
+        Q.all(fetchMetadataPromises) // wait for all metadata fetches to finish
         .fail(handleFail)
         .fin(start);
     }
