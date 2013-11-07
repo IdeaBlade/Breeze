@@ -7176,12 +7176,43 @@ var EntityType = (function () {
     @return {Entity} The new entity.
     **/
     proto.createEntity = function (initialValues) {
+        if (initialValues  && initialValues._$eref && ! initialValues._$eref.entityAspect.entityManager) return initialValues._$eref;
+
         var instance = this._createInstanceCore();
             
         if (initialValues) {
-            __objectForEach(initialValues, function (key, value) {
-                instance.setProperty(key, value);
+            //__objectForEach(initialValues, function (key, value) {
+            //    instance.setProperty(key, value);
+            //});
+            if (this.keyProperties.every(function (kp) { return initialValues[kp.name] != null; })) {
+                initialValues._$eref = instance;
+            };
+           
+            this.dataProperties.forEach(function (dp) {
+                var val = initialValues[dp.name];
+                if (val !== undefined) {
+                    instance.setProperty(dp.name, val);
+                }
             });
+            
+            this.navigationProperties.forEach(function (np) {
+                var relatedEntity;
+                var val = initialValues[np.name];
+                if (val != undefined) {
+                    var navEntityType = np.entityType;
+                    if (np.isScalar) {
+                        relatedEntity = val.entityAspect ? val : navEntityType.createEntity(val);
+                        instance.setProperty(np.name, relatedEntity);
+                    } else {
+                        var relatedEntities = instance.getProperty(np.name);
+                        val.forEach(function (v) {
+                            relatedEntity = v.entityAspect ? v : navEntityType.createEntity(v);
+                            relatedEntities.push(relatedEntity);
+                        });
+                    }
+                }
+            });
+            
         }
             
         this._initializeInstance(instance);
@@ -7446,62 +7477,101 @@ var EntityType = (function () {
 
         this.dataProperties.forEach(function (dp) {
             // recursive call
-            updateTargetPropertyFromRaw(target, raw, dp, rawValueFn);
-        });
-        if (rawValueFn.isClient) {
-            // entityAspect/complexAspect info is only provided for client side sourced (i.e. imported) raw data.
-            var aspectName = target.entityAspect ? "entityAspect" : "complexAspect";
-            var originalValues = raw[aspectName].originalValuesMap;
-            if (originalValues) {
-                target[aspectName].originalValues = originalValues;
+            // updateTargetPropertyFromRaw(target, raw, dp, rawValueFn);
+            var rawVal = rawValueFn(raw, dp);
+            if (rawVal === undefined) return;
+            var dataType = dp.dataType; // this will be a complexType when dp is a complexProperty
+            var oldVal;
+            if (dp.isComplexProperty) {
+                if (rawVal === null) return; // rawVal may be null in nosql dbs where it was never defined for the given row.
+                oldVal = target.getProperty(dp.name);
+                if (dp.isScalar) {
+                    dataType._updateTargetFromRaw(oldVal, rawVal, rawValueFn);
+                } else {
+                    // clear the old array and push new complex objects into it.
+                    oldVal.length = 0;
+                    if (Array.isArray(rawVal)) {
+                        rawVal.forEach(function (rawCo) {
+                            var newCo = dataType._createInstanceCore(target, dp);
+                            dataType._updateTargetFromRaw(newCo, rawCo, rawValueFn);
+                            dataType._initializeInstance(newCo);
+                            oldVal.push(newCo);
+                        });
+                    }
+                }
+            } else {
+                var val;
+                if (dp.isScalar) {
+                    val = parseRawValue(rawVal, dataType);
+                    target.setProperty(dp.name, val);
+                } else {
+                    oldVal = target.getProperty(dp.name);
+                    // clear the old array and push new complex objects into it.
+                    oldVal.length = 0;
+                    if (Array.isArray(rawVal)) {
+                        rawVal.forEach(function (rv) {
+                            val = parseRawValue(rv, dataType);
+                            oldVal.push(val);
+                        });
+                    }
+                }
             }
-        }
+        });
+
+        //if (rawValueFn.isClient) {
+        //    // entityAspect/complexAspect info is only provided for client side sourced (i.e. imported) raw data.
+        //    var aspectName = target.entityAspect ? "entityAspect" : "complexAspect";
+        //    var originalValues = raw[aspectName].originalValuesMap;
+        //    if (originalValues) {
+        //        target[aspectName].originalValues = originalValues;
+        //    }
+        //}
     }
 
     // target and source will be either entities or complex types
-    function updateTargetPropertyFromRaw(target, raw, dp, rawValueFn) {
+    //function updateTargetPropertyFromRaw(target, raw, dp, rawValueFn) {
 
-        var rawVal = rawValueFn(raw, dp);
-        if (rawVal === undefined) return;
+    //    var rawVal = rawValueFn(raw, dp);
+    //    if (rawVal === undefined) return;
 
-        var oldVal;
-        if (dp.isComplexProperty) {
-            if (rawVal === null) return; // rawVal may be null in nosql dbs where it was never defined for the given row.
-            oldVal = target.getProperty(dp.name);
-            var complexType = dp.dataType;
-            if (dp.isScalar) {
-                complexType._updateTargetFromRaw(oldVal, rawVal, rawValueFn);
-            } else {
-                // clear the old array and push new complex objects into it.
-                oldVal.length = 0;
-                if (Array.isArray(rawVal)) {
-                    rawVal.forEach(function (rawCo) {
-                        var newCo = complexType._createInstanceCore(target, dp);
-                        complexType._updateTargetFromRaw(newCo, rawCo, rawValueFn);
-                        complexType._initializeInstance(newCo);
-                        oldVal.push(newCo);
-                    });
-                }
-            }
-        } else {
-            var val;
-            if (dp.isScalar) {
-                val = parseRawValue(rawVal, dp.dataType);
-                target.setProperty(dp.name, val);
-            } else {
-                oldVal = target.getProperty(dp.name);
-                // clear the old array and push new complex objects into it.
-                oldVal.length = 0;
-                if (Array.isArray(rawVal)) {
-                    var dataType = dp.dataType;
-                    rawVal.forEach(function (rv) {
-                        val = parseRawValue(rv, dataType);
-                        oldVal.push(val);
-                    });
-                }
-            }
-        }
-    }
+    //    var oldVal;
+    //    if (dp.isComplexProperty) {
+    //        if (rawVal === null) return; // rawVal may be null in nosql dbs where it was never defined for the given row.
+    //        oldVal = target.getProperty(dp.name);
+    //        var complexType = dp.dataType;
+    //        if (dp.isScalar) {
+    //            complexType._updateTargetFromRaw(oldVal, rawVal, rawValueFn);
+    //        } else {
+    //             clear the old array and push new complex objects into it.
+    //            oldVal.length = 0;
+    //            if (Array.isArray(rawVal)) {
+    //                rawVal.forEach(function (rawCo) {
+    //                    var newCo = complexType._createInstanceCore(target, dp);
+    //                    complexType._updateTargetFromRaw(newCo, rawCo, rawValueFn);
+    //                    complexType._initializeInstance(newCo);
+    //                    oldVal.push(newCo);
+    //                });
+    //            }
+    //        }
+    //    } else {
+    //        var val;
+    //        if (dp.isScalar) {
+    //            val = parseRawValue(rawVal, dp.dataType);
+    //            target.setProperty(dp.name, val);
+    //        } else {
+    //            oldVal = target.getProperty(dp.name);
+    //             clear the old array and push new complex objects into it.
+    //            oldVal.length = 0;
+    //            if (Array.isArray(rawVal)) {
+    //                var dataType = dp.dataType;
+    //                rawVal.forEach(function (rv) {
+    //                    val = parseRawValue(rv, dataType);
+    //                    oldVal.push(val);
+    //                });
+    //            }
+    //        }
+    //    }
+    //}
 
 
 
@@ -13247,7 +13317,6 @@ var EntityManager = (function () {
                 result[dpName] = __map(value, function (v) {
                     return structuralObjectToJson(v, coDps);
                 });
-
             } else {
                 result[dpName] = value;
             }
@@ -13914,7 +13983,6 @@ var MappingContext = (function () {
     }
 
     function processNoMerge(mc, stype, node) {
-
         var result = {};
 
         stype.dataProperties.forEach(function (dp) {
@@ -13926,11 +13994,12 @@ var MappingContext = (function () {
                 result[dp.name] = node[dp.nameOnServer];
             }
         });
-        var jra = mc.jsonResultsAdapter;
+
         stype.navigationProperties && stype.navigationProperties.forEach(function (np) {
             var nodeContext = { nodeType: "navProp", navigationProperty: np };
             visitNode(node[np.nameOnServer], mc, nodeContext, result, np.name);
         });
+
         return result;
     }
 
@@ -14055,11 +14124,6 @@ var MappingContext = (function () {
         return targetEntity;
     }
 
- 
-
- 
-
-
     function updateEntity(mc, targetEntity, rawEntity) {
         updateEntityRef(mc, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
@@ -14087,8 +14151,6 @@ var MappingContext = (function () {
             updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
         }
     }
-
-    
 
     function mergeRelatedEntities(mc, navigationProperty, targetEntity, rawEntity) {
         var relatedEntities = mergeRelatedEntitiesCore(mc, rawEntity, navigationProperty);

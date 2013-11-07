@@ -8,6 +8,7 @@
     var MetadataStore = breeze.MetadataStore;
     var EntityManager = breeze.EntityManager;
     var EntityKey = breeze.EntityKey;
+    var EntityState = breeze.EntityState;
     var FilterQueryOp = breeze.FilterQueryOp;
     var Predicate = breeze.Predicate;
     var QueryOptions = breeze.QueryOptions;
@@ -105,20 +106,49 @@
         }).fail(testFns.handleFail).fin(start);
 
     });
+
+    test("query with reattach", function () {
+
+        var em = newEm();
+        var predicate1 = Predicate.create("lastName", "startsWith", "D").or("firstName", "startsWith", "A");
+        
+        var q = EntityQuery
+            .from("Employees")
+            .where(predicate1)
+            .noTracking();
+        stop();
+        var empType = em.metadataStore.getEntityType("Employee");
+        var emps;
+        em.executeQuery(q).then(function (data) {
+            var rawEmps = data.results;
+            ok(rawEmps.length > 0);
+            emps = rawEmps.map(function (rawEmp) {
+                emp = empType.createEntity(rawEmp);
+                em.attachEntity(emp);
+                return emp;
+            });
+            ok(emps.length = rawEmps.length);
+            emps.forEach(function (emp) {
+                ok(emp.entityType === empType, "should be empType");
+                ok(emp.entityAspect.entityState === EntityState.Unchanged);
+            });
+            var q2 = q.noTracking(false);
+            var emps2 = em.executeQueryLocally(q2);
+            ok(emps2.length === emps.length, "local query should resolve to same entities");
+            emps2.forEach(function(emp) {
+                ok(emps.indexOf(emp) >= 0, "local emps should be the same");
+            });
+            return em.executeQuery(q2);
+        }).then(function(data2) {
+            var emps3 = data2.results;
+            emps3.forEach(function (emp) {
+                ok(emps.indexOf(emp) >= 0, "queried emps should be the same");
+            });
+        
+        }).fail(testFns.handleFail).fin(start);
+
+    });
     
-    //test("sample", function () {
-      
-    //    var em = newEm();
-    //    var q = EntityQuery.from("TimeLimits")
-    //        .where("maxTime", "<", "PT4H")
-    //        .take(20);
-    //    stop();
-    //    em.executeQuery(q).then(function (data) {
-    //        var r = data.results;
-    //        var r2 = em.executeQueryLocally(q);
-    //        ok(r.length == r2.length);
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
     
 
 

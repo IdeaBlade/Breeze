@@ -243,11 +243,6 @@ var MappingContext = (function () {
         return targetEntity;
     }
 
- 
-
- 
-
-
     function updateEntity(mc, targetEntity, rawEntity) {
         updateEntityRef(mc, targetEntity, rawEntity);
         var entityType = targetEntity.entityType;
@@ -275,8 +270,6 @@ var MappingContext = (function () {
             updateRelatedEntity(relatedEntity, targetEntity, navigationProperty);
         }
     }
-
-    
 
     function mergeRelatedEntities(mc, navigationProperty, targetEntity, rawEntity) {
         var relatedEntities = mergeRelatedEntitiesCore(mc, rawEntity, navigationProperty);

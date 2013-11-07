@@ -1639,7 +1639,6 @@ var EntityManager = (function () {
                 result[dpName] = __map(value, function (v) {
                     return structuralObjectToJson(v, coDps);
                 });
-
             } else {
                 result[dpName] = value;
             }
