@@ -24,6 +24,7 @@ var MappingContext = (function () {
     };
 
     var proto = ctor.prototype;
+    var parseRawValue = DataType.parseRawValue;
     proto._$typeName = "MappingContext";
 
     proto.visitAndMerge = function (nodes, nodeContext) {
@@ -110,7 +111,7 @@ var MappingContext = (function () {
                     return processNoMerge(mc, dp.dataType, v);
                 });
             } else {
-                result[dp.name] = node[dp.nameOnServer];
+                result[dp.name] = parseRawValue(node[dp.nameOnServer], dp.dataType);
             }
         });
 

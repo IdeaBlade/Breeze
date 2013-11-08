@@ -124,8 +124,8 @@
             ok(rawEmps.length > 0);
             emps = rawEmps.map(function (rawEmp) {
                 emp = empType.createEntity(rawEmp);
-                em.attachEntity(emp);
-                return emp;
+                empx = em.attachEntity(emp, EntityState.Unchanged, MergeStrategy.SkipMerge);
+                return empx;
             });
             ok(emps.length = rawEmps.length);
             emps.forEach(function (emp) {

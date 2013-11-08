@@ -481,17 +481,14 @@
         var employee = empType.createEntity(cfg);
         ok(employee.getProperty("firstName") === "John", "first name should be 'John'");
         ok(employee.getProperty(testFns.employeeKeyName) === wellKnownData.dummyEmployeeID, "employeeID should be " + wellKnownData.dummyEmployeeID);
-        try {
-            cfg = {
-                firstxame: "John",
-                lastName: "Smith"
-            }
-            cfg[testFns.employeeKeyName] = wellKnownData.dummyEmployeeID;
-            var badEmp = empType.createEntity(cfg);
-            ok(false, "shouldn't get here");
-        } catch (e) {
-            ok(e.message.indexOf("firstxame") !== -1, "error should mention 'firstxame'");
+       
+        cfg = {
+            firstxame: "John",
+            lastName: "Smith"
         }
+        cfg[testFns.employeeKeyName] = wellKnownData.dummyEmployeeID;
+        var partialEmp = empType.createEntity(cfg);
+        ok(employee.getProperty("lastName") === "Smith", "lastName should be 'Smith'");
     });
 
     test("acceptChanges - detach deleted", 1, function () {

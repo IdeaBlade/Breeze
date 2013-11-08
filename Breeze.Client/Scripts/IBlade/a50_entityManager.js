@@ -536,7 +536,11 @@ var EntityManager = (function () {
             throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
         }
         var aspect = entity.entityAspect;
-        if (!aspect) {
+        if (aspect) {
+            // to avoid reattaching an entity in progress
+            if (aspect._inProcessEntity) return aspect._inProcessEntity;
+        } else {
+            // this occur's when attaching an entity created via new instead of via createEntity.
             aspect = new EntityAspect(entity);
         }
         var manager = aspect.entityManager;
@@ -556,8 +560,14 @@ var EntityManager = (function () {
             }
             // attachedEntity === entity EXCEPT in the case of a merge.
             attachedEntity = that._attachEntityCore(entity, entityState, mergeStrategy);
-            // entity ( not attachedEntity) is deliberate here.
-            attachRelatedEntities(that, entity, entityState, mergeStrategy);
+            aspect._inProcessEntity = attachedEntity;
+            try {
+                // entity ( not attachedEntity) is deliberate here.
+                attachRelatedEntities(that, entity, entityState, mergeStrategy);
+            } finally {
+                // insure that _inProcessEntity is cleared.
+                aspect._inProcessEntity = null;
+            }
         });
         if (this.validationOptions.validateOnAttach) {
             attachedEntity.entityAspect.validateEntity();

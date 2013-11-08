@@ -58,7 +58,7 @@
     <Content Include="Scripts\IBlade\a20_config.js" />
     <Content Include="Scripts\IBlade\a25_observableArray.js" />
     <Content Include="Scripts\IBlade\a30_primitiveArray.js" />
-    <Content Include="Scripts\IBlade\a40_dataType.js" />
+    <Content Include="Scripts\IBlade\a37_dataType.js" />
     <Content Include="Scripts\IBlade\a25_validate.js" />
     <Content Include="Scripts\IBlade\a30_entityAspect.js" />
     <Content Include="Scripts\IBlade\a35_defaultPropertyInterceptor.js" />

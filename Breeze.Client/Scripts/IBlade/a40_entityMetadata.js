@@ -1156,6 +1156,7 @@ var EntityType = (function () {
         addProperties(this, config.navigationProperties, NavigationProperty);
     };
     var proto = ctor.prototype;
+    var parseRawValue = DataType.parseRawValue;
     proto._$typeName = "EntityType";
 
     /**
@@ -1664,8 +1665,7 @@ var EntityType = (function () {
             }
         }
     };
-
-    
+       
     proto.getEntityKeyFromRawEntity = function (rawEntity, rawValueFn) {
         var keyValues = this.keyProperties.map(function (dp) {
             var val = rawValueFn(rawEntity, dp);
@@ -1720,23 +1720,7 @@ var EntityType = (function () {
         });
     }
 
-    function parseRawValue(val, dataType) {
-        // undefined values will be the default for most unmapped properties EXCEPT when they are set
-        // in a jsonResultsAdapter ( an unusual use case).
-        if (val === undefined) return undefined;
-        if (dataType.isDate && val) {
-            if (!__isDate(val)) {
-                val = DataType.parseDateFromServer(val);
-            }
-        } else if (dataType === DataType.Binary) {
-            if (val && val.$value !== undefined) {
-                val = val.$value; // this will be a byte[] encoded as a string
-            }
-        } else if (dataType === DataType.Time) {
-            val = DataType.parseTimeFromServer(val);
-        }
-        return val;
-    }
+    
 
     /**
     Returns a string representation of this EntityType.
