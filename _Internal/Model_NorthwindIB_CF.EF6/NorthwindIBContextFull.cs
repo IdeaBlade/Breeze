@@ -1,5 +1,7 @@
 
 using Foo;
+using Microsoft.Data.Edm;
+using Microsoft.Data.Edm.Csdl;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,8 +10,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Spatial;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Xml;
 
 namespace Models.NorthwindIB.CF {
 
@@ -56,6 +60,18 @@ namespace Models.NorthwindIB.CF {
     //protected override void OnModelCreating(DbModelBuilder modelBuilder) {
     //  // modelBuilder.Conventions.Remove<IncludeMetadataConvention>();
     //}
+
+    public IEdmModel GetEdmModel() {
+      using (MemoryStream stream = new MemoryStream()) {
+        using (XmlWriter writer = XmlWriter.Create(stream)) {
+          System.Data.Entity.Infrastructure.EdmxWriter.WriteEdmx(this, writer);
+        }
+        stream.Position = 0;
+        using (XmlReader reader = XmlReader.Create(stream)) {
+          return EdmxReader.Parse(reader);
+        }
+      }
+    }
 
     #region DbSets
 

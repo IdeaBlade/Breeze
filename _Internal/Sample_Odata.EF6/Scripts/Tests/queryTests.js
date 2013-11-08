@@ -525,6 +525,29 @@
             ok(customer, "should have found a customer");
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("nested expand 3 level", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
+        var em = newEm();
+        var em2 = newEm();
+        var query = EntityQuery.from("Orders").take(5).expand("orderDetails.product.category");
+        stop();
+
+        em.executeQuery(query).then(function (data) {
+            var orders = data.results;
+            var orderDetails = orders[0].getProperty("orderDetails");
+            ok(orderDetails.length, "should have found order details");
+            var product = orderDetails[0].getProperty("product");
+            ok(product, "should have found a product");
+            var category = product.getProperty("category");
+            ok(category, "should have found a category");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     
     test("query using jsonResultsAdapter", function () {
         if (testFns.DEBUG_ODATA) {
@@ -733,9 +756,6 @@
         }).then(function (data4) {
             s6 = testFns.sizeOf(breeze.config);
             ok(s5.size === s6.size, "sizes should be equal");
-            em2 = newEm();
-            return em2.executeQuery(query);
-
 
         }).fail(testFns.handleFail).fin(start);
     });

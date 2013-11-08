@@ -196,35 +196,32 @@ var MappingContext = (function () {
                 return targetEntity;
             }
             var targetEntityState = targetEntity.entityAspect.entityState;
-            if (mergeStrategy === MergeStrategy.OverwriteChanges
-                    || targetEntityState.isUnchanged()) {
-                updateEntity(mc, targetEntity, node);
-                targetEntity.entityAspect.wasLoaded = true;
-                if (meta.extra) {
-                    targetEntity.entityAspect.extraMetadata = meta.extra;
-                }
-                targetEntity.entityAspect.entityState = EntityState.Unchanged;
-                targetEntity.entityAspect.originalValues = {};
-                targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null });
-                var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
-                em.entityChanged.publish({ entityAction: action, entity: targetEntity });
-                // this is needed to handle an overwrite of a modified entity with an unchanged entity 
-                // which might in turn cause _hasChanges to change.
-                if (!targetEntityState.isUnchanged) {
-                    em._notifyStateChange(targetEntity, false);
-                }
+            if (mergeStrategy === MergeStrategy.Disallowed) {
+                throw new Error("A MergeStrategy of 'Disallowed' prevents " + entityKey.toString() + " from being merged");
+            } else if (mergeStrategy === MergeStrategy.SkipMerge) {
+                updateEntityNoMerge(mc, targetEntity, node);
             } else {
-                updateEntityRef(mc, targetEntity, node);
-                // we still need to merge related entities even if top level entity wasn't modified.
-                entityType.navigationProperties.forEach(function (np) {
-                    if (np.isScalar) {
-                        mergeRelatedEntityCore(mc, node, np);
-                    } else {
-                        mergeRelatedEntitiesCore(mc, node, np);
+                if (mergeStrategy === MergeStrategy.OverwriteChanges
+                        || targetEntityState.isUnchanged()) {
+                    updateEntity(mc, targetEntity, node);
+                    targetEntity.entityAspect.wasLoaded = true;
+                    if (meta.extra) {
+                        targetEntity.entityAspect.extraMetadata = meta.extra;
                     }
-                });
+                    targetEntity.entityAspect.entityState = EntityState.Unchanged;
+                    targetEntity.entityAspect.originalValues = {};
+                    targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null });
+                    var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
+                    em.entityChanged.publish({ entityAction: action, entity: targetEntity });
+                    // this is needed to handle an overwrite of a modified entity with an unchanged entity 
+                    // which might in turn cause _hasChanges to change.
+                    if (!targetEntityState.isUnchanged) {
+                        em._notifyStateChange(targetEntity, false);
+                    }
+                } else {
+                    updateEntityNoMerge(mc, targetEntity, node);
+                }
             }
-
         } else {
             targetEntity = entityType._createInstanceCore();
             if (targetEntity.initializeFrom) {
@@ -243,16 +240,28 @@ var MappingContext = (function () {
         return targetEntity;
     }
 
-    function updateEntity(mc, targetEntity, rawEntity) {
-        updateEntityRef(mc, targetEntity, rawEntity);
+    function updateEntityNoMerge(mc, targetEntity, node) {
+        updateEntityRef(mc, targetEntity, node);
+        // we still need to merge related entities even if top level entity wasn't modified.
+        node.entityType.navigationProperties.forEach(function (np) {
+            if (np.isScalar) {
+                mergeRelatedEntityCore(mc, node, np);
+            } else {
+                mergeRelatedEntitiesCore(mc, node, np);
+            }
+        });
+    }
+
+    function updateEntity(mc, targetEntity, node) {
+        updateEntityRef(mc, targetEntity, node);
         var entityType = targetEntity.entityType;
-        entityType._updateTargetFromRaw(targetEntity, rawEntity, mc.rawValueFn);
+        entityType._updateTargetFromRaw(targetEntity, node, mc.rawValueFn);
         
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
-                mergeRelatedEntity(mc, np, targetEntity, rawEntity);
+                mergeRelatedEntity(mc, np, targetEntity, node);
             } else {
-                mergeRelatedEntities(mc, np, targetEntity, rawEntity);
+                mergeRelatedEntities(mc, np, targetEntity, node);
             }
         });
     }

@@ -1693,7 +1693,8 @@ var EntityManager = (function () {
         var tempKeyMap = config.tempKeyMap;
 
         var entityType = entityGroup.entityType;
-        var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
+        var mergeStrategy = config.mergeStrategy;
+
         var targetEntity = null;
         
         var em = entityGroup.entityManager;
@@ -1715,22 +1716,29 @@ var EntityManager = (function () {
             }
 
             if (targetEntity) {
-                var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
-                if (shouldOverwrite || wasUnchanged) {
-                    entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
-                    entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
-                    if (wasUnchanged) {
-                        if (!entityState.isUnchanged()) {
-                            em._notifyStateChange(targetEntity, true);
-                        }
-                    } else {
-                        if (entityState.isUnchanged()) {
-                            em._notifyStateChange(targetEntity, false);
-                        }
-                    }
-                } else {
+                if (mergeStrategy === MergeStrategy.SkipMerge) {
                     entitiesToLink.push(targetEntity);
                     targetEntity = null;
+                } else if (mergeStrategy === MergeStrategy.Disallowed) {
+                    throw new Error("A MergeStrategy of 'Disallowed' prevents " + entityKey.toString() + " from being merged");
+                } else {
+                    var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
+                    if (mergeStrategy === MergeStrategy.OverwriteChanges || wasUnchanged) {
+                        entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
+                        entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
+                        if (wasUnchanged) {
+                            if (!entityState.isUnchanged()) {
+                                em._notifyStateChange(targetEntity, true);
+                            }
+                        } else {
+                            if (entityState.isUnchanged()) {
+                                em._notifyStateChange(targetEntity, false);
+                            }
+                        }
+                    } else {
+                        entitiesToLink.push(targetEntity);
+                        targetEntity = null;
+                    } 
                 }
             } else {
                 targetEntity = entityType._createInstanceCore();

@@ -30,6 +30,27 @@ var MergeStrategy = (function() {
     @static
     **/
     MergeStrategy.OverwriteChanges = MergeStrategy.addSymbol();
+
+    /**
+    SkipMerge is used to ignore incoming values. Adds the incoming entity to the cache only if there is no cached entity with the same key. 
+    This is the fastest merge strategy but your existing cached data will remain “stale”.
+  
+    @property SkipMerge {MergeStrategy}
+    @final
+    @static
+    **/
+    MergeStrategy.SkipMerge = MergeStrategy.addSymbol();
+
+    /**
+    Disallowed is used to throw an exception if there is an incoming entity with the same key as an entity already in the cache.  
+    Use this strategy when you want to be sure that the incoming entity is not already in cache. 
+    This is the default strategy for EntityManager.attachEntity.
+  
+    @property Disallowed {MergeStrategy}
+    @final
+    @static
+    **/
+    MergeStrategy.Disallowed = MergeStrategy.addSymbol();
     MergeStrategy.seal();
     return MergeStrategy;
 })();

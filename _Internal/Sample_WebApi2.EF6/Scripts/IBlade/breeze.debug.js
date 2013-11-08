@@ -5888,9 +5888,7 @@ var MetadataStore = (function () {
             structuralType = structuralType.isComplexType ? new ComplexType(structuralType) : new EntityType(structuralType);
         }
 
-        
         if (!structuralType.isComplexType) {
-
             if (structuralType.keyProperties.length === 0 && !structuralType.isAbstract) {
                 throw new Error("Unable to add " + structuralType.name +
                     " to this MetadataStore.  An EntityType must have at least one property designated as a key property - See the 'DataProperty.isPartOfKey' property.");
@@ -5907,7 +5905,6 @@ var MetadataStore = (function () {
             this._structuralTypeMap[structuralType.name] = structuralType;
             this._shortNameMap[structuralType.shortName] = structuralType.name;
         }
-
         
         structuralType.getProperties().forEach(function (property) {
             structuralType._updateNames(property);
@@ -11364,6 +11361,27 @@ var MergeStrategy = (function() {
     @static
     **/
     MergeStrategy.OverwriteChanges = MergeStrategy.addSymbol();
+
+    /**
+    SkipMerge is used to ignore incoming values. Adds the incoming entity to the cache only if there is no cached entity with the same key. 
+    This is the fastest merge strategy but your existing cached data will remain “stale”.
+  
+    @property SkipMerge {MergeStrategy}
+    @final
+    @static
+    **/
+    MergeStrategy.SkipMerge = MergeStrategy.addSymbol();
+
+    /**
+    Disallowed is used to throw an exception if there is an incoming entity with the same key as an entity already in the cache.  
+    Use this strategy when you want to be sure that the incoming entity is not already in cache. 
+    This is the default strategy for EntityManager.attachEntity.
+  
+    @property Disallowed {MergeStrategy}
+    @final
+    @static
+    **/
+    MergeStrategy.Disallowed = MergeStrategy.addSymbol();
     MergeStrategy.seal();
     return MergeStrategy;
 })();
@@ -13371,7 +13389,8 @@ var EntityManager = (function () {
         var tempKeyMap = config.tempKeyMap;
 
         var entityType = entityGroup.entityType;
-        var shouldOverwrite = config.mergeStrategy === MergeStrategy.OverwriteChanges;
+        var mergeStrategy = config.mergeStrategy;
+
         var targetEntity = null;
         
         var em = entityGroup.entityManager;
@@ -13393,22 +13412,29 @@ var EntityManager = (function () {
             }
 
             if (targetEntity) {
-                var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
-                if (shouldOverwrite || wasUnchanged) {
-                    entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
-                    entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
-                    if (wasUnchanged) {
-                        if (!entityState.isUnchanged()) {
-                            em._notifyStateChange(targetEntity, true);
-                        }
-                    } else {
-                        if (entityState.isUnchanged()) {
-                            em._notifyStateChange(targetEntity, false);
-                        }
-                    }
-                } else {
+                if (mergeStrategy === MergeStrategy.SkipMerge) {
                     entitiesToLink.push(targetEntity);
                     targetEntity = null;
+                } else if (mergeStrategy === MergeStrategy.Disallowed) {
+                    throw new Error("A MergeStrategy of 'Disallowed' prevents " + entityKey.toString() + " from being merged");
+                } else {
+                    var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
+                    if (mergeStrategy === MergeStrategy.OverwriteChanges || wasUnchanged) {
+                        entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
+                        entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
+                        if (wasUnchanged) {
+                            if (!entityState.isUnchanged()) {
+                                em._notifyStateChange(targetEntity, true);
+                            }
+                        } else {
+                            if (entityState.isUnchanged()) {
+                                em._notifyStateChange(targetEntity, false);
+                            }
+                        }
+                    } else {
+                        entitiesToLink.push(targetEntity);
+                        targetEntity = null;
+                    } 
                 }
             } else {
                 targetEntity = entityType._createInstanceCore();
@@ -14077,35 +14103,32 @@ var MappingContext = (function () {
                 return targetEntity;
             }
             var targetEntityState = targetEntity.entityAspect.entityState;
-            if (mergeStrategy === MergeStrategy.OverwriteChanges
-                    || targetEntityState.isUnchanged()) {
-                updateEntity(mc, targetEntity, node);
-                targetEntity.entityAspect.wasLoaded = true;
-                if (meta.extra) {
-                    targetEntity.entityAspect.extraMetadata = meta.extra;
-                }
-                targetEntity.entityAspect.entityState = EntityState.Unchanged;
-                targetEntity.entityAspect.originalValues = {};
-                targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null });
-                var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
-                em.entityChanged.publish({ entityAction: action, entity: targetEntity });
-                // this is needed to handle an overwrite of a modified entity with an unchanged entity 
-                // which might in turn cause _hasChanges to change.
-                if (!targetEntityState.isUnchanged) {
-                    em._notifyStateChange(targetEntity, false);
-                }
+            if (mergeStrategy === MergeStrategy.Disallowed) {
+                throw new Error("A MergeStrategy of 'Disallowed' prevents " + entityKey.toString() + " from being merged");
+            } else if (mergeStrategy === MergeStrategy.SkipMerge) {
+                updateEntityNoMerge(mc, targetEntity, node);
             } else {
-                updateEntityRef(mc, targetEntity, node);
-                // we still need to merge related entities even if top level entity wasn't modified.
-                entityType.navigationProperties.forEach(function (np) {
-                    if (np.isScalar) {
-                        mergeRelatedEntityCore(mc, node, np);
-                    } else {
-                        mergeRelatedEntitiesCore(mc, node, np);
+                if (mergeStrategy === MergeStrategy.OverwriteChanges
+                        || targetEntityState.isUnchanged()) {
+                    updateEntity(mc, targetEntity, node);
+                    targetEntity.entityAspect.wasLoaded = true;
+                    if (meta.extra) {
+                        targetEntity.entityAspect.extraMetadata = meta.extra;
                     }
-                });
+                    targetEntity.entityAspect.entityState = EntityState.Unchanged;
+                    targetEntity.entityAspect.originalValues = {};
+                    targetEntity.entityAspect.propertyChanged.publish({ entity: targetEntity, propertyName: null });
+                    var action = isSaving ? EntityAction.MergeOnSave : EntityAction.MergeOnQuery;
+                    em.entityChanged.publish({ entityAction: action, entity: targetEntity });
+                    // this is needed to handle an overwrite of a modified entity with an unchanged entity 
+                    // which might in turn cause _hasChanges to change.
+                    if (!targetEntityState.isUnchanged) {
+                        em._notifyStateChange(targetEntity, false);
+                    }
+                } else {
+                    updateEntityNoMerge(mc, targetEntity, node);
+                }
             }
-
         } else {
             targetEntity = entityType._createInstanceCore();
             if (targetEntity.initializeFrom) {
@@ -14124,16 +14147,28 @@ var MappingContext = (function () {
         return targetEntity;
     }
 
-    function updateEntity(mc, targetEntity, rawEntity) {
-        updateEntityRef(mc, targetEntity, rawEntity);
+    function updateEntityNoMerge(mc, targetEntity, node) {
+        updateEntityRef(mc, targetEntity, node);
+        // we still need to merge related entities even if top level entity wasn't modified.
+        node.entityType.navigationProperties.forEach(function (np) {
+            if (np.isScalar) {
+                mergeRelatedEntityCore(mc, node, np);
+            } else {
+                mergeRelatedEntitiesCore(mc, node, np);
+            }
+        });
+    }
+
+    function updateEntity(mc, targetEntity, node) {
+        updateEntityRef(mc, targetEntity, node);
         var entityType = targetEntity.entityType;
-        entityType._updateTargetFromRaw(targetEntity, rawEntity, mc.rawValueFn);
+        entityType._updateTargetFromRaw(targetEntity, node, mc.rawValueFn);
         
         entityType.navigationProperties.forEach(function (np) {
             if (np.isScalar) {
-                mergeRelatedEntity(mc, np, targetEntity, rawEntity);
+                mergeRelatedEntity(mc, np, targetEntity, node);
             } else {
-                mergeRelatedEntities(mc, np, targetEntity, rawEntity);
+                mergeRelatedEntities(mc, np, targetEntity, node);
             }
         });
     }

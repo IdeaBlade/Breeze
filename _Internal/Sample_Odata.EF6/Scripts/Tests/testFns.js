@@ -590,6 +590,16 @@ breezeTestFns = (function (breeze) {
 
     testFns.sizeOf = sizeOf;
 
+    testFns.arrayDistinct = function(array) {
+        array = array || [];
+        var result = [];
+        for (var i = 0, j = array.length; i < j; i++) {
+            if (result.indexOf(array[i]) < 0)
+                result.push(array[i]);
+        }
+        return result;
+    }
+
     testFns.sizeOfDif = sizeOfDif;
 
     function sizeOf(value, level) {
