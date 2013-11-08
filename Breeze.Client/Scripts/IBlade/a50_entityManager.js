@@ -523,12 +523,14 @@ var EntityManager = (function () {
     @method attachEntity
     @param entity {Entity} The entity to add.
     @param [entityState=EntityState.Unchanged] {EntityState} The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
+    @param [mergeStrategy=MergeStrategy.Disallowed] {MergeStrategy} How the specified entity should be merged into the EntityManager if this EntityManager already contains an entity with the same key.
     @return {Entity} The attached entity.
     **/
-    proto.attachEntity = function (entity, entityState) {
+    proto.attachEntity = function (entity, entityState, mergeStrategy) {
         assertParam(entity, "entity").isRequired().check();
         this.metadataStore._checkEntityType(entity);
         entityState = assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
+        mergeStrategy = assertParam(mergeStrategy, "mergeStrategy").isEnumOf(MergeStrategy).isOptional().check(MergeStrategy.Disallowed);
 
         if (entity.entityType.metadataStore !== this.metadataStore) {
             throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
@@ -547,22 +549,25 @@ var EntityManager = (function () {
         }
             
         var that = this;
+        var attachedEntity;
         __using(this, "isLoading", true, function () {
             if (entityState.isAdded()) {
                 checkEntityKey(that, entity);
             }
-            that._attachEntityCore(entity, entityState);
-            attachRelatedEntities(that, entity, entityState);
+            // attachedEntity === entity EXCEPT in the case of a merge.
+            attachedEntity = that._attachEntityCore(entity, entityState, mergeStrategy);
+            // entity ( not attachedEntity) is deliberate here.
+            attachRelatedEntities(that, entity, entityState, mergeStrategy);
         });
         if (this.validationOptions.validateOnAttach) {
-            entity.entityAspect.validateEntity();
+            attachedEntity.entityAspect.validateEntity();
         }
         if (!entityState.isUnchanged()) {
-            this._notifyStateChange(entity, true);
+            this._notifyStateChange(attachedEntity, true);
         }
-        this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
+        this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: attachedEntity });
 
-        return entity;
+        return attachedEntity;
     };
         
 
@@ -1384,6 +1389,18 @@ var EntityManager = (function () {
 
     // protected methods
 
+    proto._checkStateChange = function (entity, wasUnchanged, isUnchanged) {
+        if (wasUnchanged) {
+            if (!isUnchanged) {
+                this._notifyStateChange(entity, true);
+            }
+        } else {
+            if (isUnchanged) {
+                this._notifyStateChange(entity, false);
+            }
+        }
+    };
+
     proto._notifyStateChange = function (entity, needsSave) {
         this.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: entity });
 
@@ -1726,15 +1743,7 @@ var EntityManager = (function () {
                     if (mergeStrategy === MergeStrategy.OverwriteChanges || wasUnchanged) {
                         entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
-                        if (wasUnchanged) {
-                            if (!entityState.isUnchanged()) {
-                                em._notifyStateChange(targetEntity, true);
-                            }
-                        } else {
-                            if (entityState.isUnchanged()) {
-                                em._notifyStateChange(targetEntity, false);
-                            }
-                        }
+                        em._checkStateChange(targetEntity, wasUnchanged, entityState.isUnchanged());
                     } else {
                         entitiesToLink.push(targetEntity);
                         targetEntity = null;
@@ -1868,24 +1877,23 @@ var EntityManager = (function () {
         return entityStates;
     }
 
-    proto._attachEntityCore = function (entity, entityState) {
+    proto._attachEntityCore = function (entity, entityState, mergeStrategy) {
         var group = findOrCreateEntityGroup(this, entity.entityType);
-        group.attachEntity(entity, entityState);
-        this._linkRelatedEntities(entity);
+        var attachedEntity = group.attachEntity(entity, entityState, mergeStrategy);
+        this._linkRelatedEntities(attachedEntity);
+        return attachedEntity;
     }
 
-
-
-    function attachRelatedEntities(em, entity, entityState) {
+    function attachRelatedEntities(em, entity, entityState, mergeStrategy) {
         var navProps = entity.entityType.navigationProperties;
         navProps.forEach(function (np) {
             var related = entity.getProperty(np.name);
             if (np.isScalar) {
                 if (!related) return;
-                em.attachEntity(related, entityState);
+                em.attachEntity(related, entityState, mergeStrategy);
             } else {
                 related.forEach(function (e) {
-                    em.attachEntity(e, entityState);
+                    em.attachEntity(e, entityState, mergeStrategy);
                 });
             }
         });
@@ -2061,12 +2069,6 @@ var EntityManager = (function () {
                 rawObject[dp.nameOnServer] = __map(structObj.getProperty(dp.name), function (co) {
                     return unwrapInstance(co, isOData);
                 });
-                //if (dp.isScalar) {
-                //    rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
-                //} else {
-                //    var complexObjs = structObj.getProperty(dp.name);
-                //    rawObject[dp.nameOnServer] = complexObjs.map(function (co) { return unwrapInstance(co, isOData) });
-                //}
             } else {
                 var val = structObj.getProperty(dp.name);
                 val = transformValue(val, dp, isOData);

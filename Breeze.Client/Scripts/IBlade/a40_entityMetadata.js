@@ -1386,9 +1386,6 @@ var EntityType = (function () {
         var instance = this._createInstanceCore();
             
         if (initialValues) {
-            //__objectForEach(initialValues, function (key, value) {
-            //    instance.setProperty(key, value);
-            //});
             if (this.keyProperties.every(function (kp) { return initialValues[kp.name] != null; })) {
                 initialValues._$eref = instance;
             };
@@ -1417,7 +1414,6 @@ var EntityType = (function () {
                     }
                 }
             });
-            
         }
             
         this._initializeInstance(instance);
@@ -1722,64 +1718,7 @@ var EntityType = (function () {
                 }
             }
         });
-
-        //if (rawValueFn.isClient) {
-        //    // entityAspect/complexAspect info is only provided for client side sourced (i.e. imported) raw data.
-        //    var aspectName = target.entityAspect ? "entityAspect" : "complexAspect";
-        //    var originalValues = raw[aspectName].originalValuesMap;
-        //    if (originalValues) {
-        //        target[aspectName].originalValues = originalValues;
-        //    }
-        //}
     }
-
-    // target and source will be either entities or complex types
-    //function updateTargetPropertyFromRaw(target, raw, dp, rawValueFn) {
-
-    //    var rawVal = rawValueFn(raw, dp);
-    //    if (rawVal === undefined) return;
-
-    //    var oldVal;
-    //    if (dp.isComplexProperty) {
-    //        if (rawVal === null) return; // rawVal may be null in nosql dbs where it was never defined for the given row.
-    //        oldVal = target.getProperty(dp.name);
-    //        var complexType = dp.dataType;
-    //        if (dp.isScalar) {
-    //            complexType._updateTargetFromRaw(oldVal, rawVal, rawValueFn);
-    //        } else {
-    //             clear the old array and push new complex objects into it.
-    //            oldVal.length = 0;
-    //            if (Array.isArray(rawVal)) {
-    //                rawVal.forEach(function (rawCo) {
-    //                    var newCo = complexType._createInstanceCore(target, dp);
-    //                    complexType._updateTargetFromRaw(newCo, rawCo, rawValueFn);
-    //                    complexType._initializeInstance(newCo);
-    //                    oldVal.push(newCo);
-    //                });
-    //            }
-    //        }
-    //    } else {
-    //        var val;
-    //        if (dp.isScalar) {
-    //            val = parseRawValue(rawVal, dp.dataType);
-    //            target.setProperty(dp.name, val);
-    //        } else {
-    //            oldVal = target.getProperty(dp.name);
-    //             clear the old array and push new complex objects into it.
-    //            oldVal.length = 0;
-    //            if (Array.isArray(rawVal)) {
-    //                var dataType = dp.dataType;
-    //                rawVal.forEach(function (rv) {
-    //                    val = parseRawValue(rv, dataType);
-    //                    oldVal.push(val);
-    //                });
-    //            }
-    //        }
-    //    }
-    //}
-
-
-
 
     function parseRawValue(val, dataType) {
         // undefined values will be the default for most unmapped properties EXCEPT when they are set

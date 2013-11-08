@@ -15,36 +15,42 @@ var EntityGroup = (function () {
     };
     var proto = ctor.prototype;
 
-    proto.attachEntity = function (entity, entityState) {
+    proto.attachEntity = function (entity, entityState, mergeStrategy) {
         // entity should already have an aspect.
-        var ix;
         var aspect = entity.entityAspect;
+
         if (!aspect._initialized) {
             this.entityType._initializeInstance(entity);
         }
-        delete aspect._initialized;  
-            
-        var keyInGroup = aspect.getKey()._keyInGroup;
-        ix = this._indexMap[keyInGroup];
-        if (ix >= 0) {
-            if (this._entities[ix] === entity) {
-                aspect.entityState = entityState;
-                return entity;
-            }
-            throw new Error("This key is already attached: " + aspect.getKey());
-        }
+        delete aspect._initialized;
 
-        if (this._emptyIndexes.length === 0) {
-            ix = this._entities.push(entity) - 1;
+        var keyInGroup = aspect.getKey()._keyInGroup;
+        var ix = this._indexMap[keyInGroup];
+        if (ix >= 0) {
+            var targetEntity = this._entities[ix];
+            var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
+            if (targetEntity === entity) {
+                aspect.entityState = entityState;
+            } else if (mergeStrategy === MergeStrategy.Disallowed) {
+                throw new Error("A MergeStrategy of 'Disallowed' does not allow you to attach an entity when an entity with the same key is already attached: " + aspect.getKey());
+            } else if (mergeStrategy === MergeStrategy.OverwriteChanges || (mergeStrategy === MergeStrategy.PreserveChanges && wasUnchanged)) {
+                this.entityType._updateTargetFromRaw(targetEntity, entity, DataProperty.getRawValueFromClient);
+                this.entityManager._checkStateChange(targetEntity, wasUnchanged, entityState.isUnchanged());
+            }
+            return targetEntity;
         } else {
-            ix = this._emptyIndexes.pop();
-            this._entities[ix] = entity;
+            if (this._emptyIndexes.length === 0) {
+                ix = this._entities.push(entity) - 1;
+            } else {
+                ix = this._emptyIndexes.pop();
+                this._entities[ix] = entity;
+            }
+            this._indexMap[keyInGroup] = ix;
+            aspect.entityState = entityState;
+            aspect.entityGroup = this;
+            aspect.entityManager = this.entityManager;
+            return entity;
         }
-        this._indexMap[keyInGroup] = ix;
-        aspect.entityState = entityState;
-        aspect.entityGroup = this;
-        aspect.entityManager = this.entityManager;
-        return entity;
     };
 
     proto.detachEntity = function (entity) {

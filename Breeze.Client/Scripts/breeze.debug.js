@@ -7178,9 +7178,6 @@ var EntityType = (function () {
         var instance = this._createInstanceCore();
             
         if (initialValues) {
-            //__objectForEach(initialValues, function (key, value) {
-            //    instance.setProperty(key, value);
-            //});
             if (this.keyProperties.every(function (kp) { return initialValues[kp.name] != null; })) {
                 initialValues._$eref = instance;
             };
@@ -7209,7 +7206,6 @@ var EntityType = (function () {
                     }
                 }
             });
-            
         }
             
         this._initializeInstance(instance);
@@ -7514,64 +7510,7 @@ var EntityType = (function () {
                 }
             }
         });
-
-        //if (rawValueFn.isClient) {
-        //    // entityAspect/complexAspect info is only provided for client side sourced (i.e. imported) raw data.
-        //    var aspectName = target.entityAspect ? "entityAspect" : "complexAspect";
-        //    var originalValues = raw[aspectName].originalValuesMap;
-        //    if (originalValues) {
-        //        target[aspectName].originalValues = originalValues;
-        //    }
-        //}
     }
-
-    // target and source will be either entities or complex types
-    //function updateTargetPropertyFromRaw(target, raw, dp, rawValueFn) {
-
-    //    var rawVal = rawValueFn(raw, dp);
-    //    if (rawVal === undefined) return;
-
-    //    var oldVal;
-    //    if (dp.isComplexProperty) {
-    //        if (rawVal === null) return; // rawVal may be null in nosql dbs where it was never defined for the given row.
-    //        oldVal = target.getProperty(dp.name);
-    //        var complexType = dp.dataType;
-    //        if (dp.isScalar) {
-    //            complexType._updateTargetFromRaw(oldVal, rawVal, rawValueFn);
-    //        } else {
-    //             clear the old array and push new complex objects into it.
-    //            oldVal.length = 0;
-    //            if (Array.isArray(rawVal)) {
-    //                rawVal.forEach(function (rawCo) {
-    //                    var newCo = complexType._createInstanceCore(target, dp);
-    //                    complexType._updateTargetFromRaw(newCo, rawCo, rawValueFn);
-    //                    complexType._initializeInstance(newCo);
-    //                    oldVal.push(newCo);
-    //                });
-    //            }
-    //        }
-    //    } else {
-    //        var val;
-    //        if (dp.isScalar) {
-    //            val = parseRawValue(rawVal, dp.dataType);
-    //            target.setProperty(dp.name, val);
-    //        } else {
-    //            oldVal = target.getProperty(dp.name);
-    //             clear the old array and push new complex objects into it.
-    //            oldVal.length = 0;
-    //            if (Array.isArray(rawVal)) {
-    //                var dataType = dp.dataType;
-    //                rawVal.forEach(function (rv) {
-    //                    val = parseRawValue(rv, dataType);
-    //                    oldVal.push(val);
-    //                });
-    //            }
-    //        }
-    //    }
-    //}
-
-
-
 
     function parseRawValue(val, dataType) {
         // undefined values will be the default for most unmapped properties EXCEPT when they are set
@@ -11342,9 +11281,10 @@ var MergeStrategy = (function() {
     **/
     var MergeStrategy = new Enum("MergeStrategy");
     /**
-    PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
-    in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
-    EntityManager is not replaced by the 'merging' entity.
+    MergeStrategy.PreserveChanges updates the cached entity with the incoming values unless the cached entity is in a changed 
+    state (added, modified, deleted) in which case the incoming values are ignored. The updated cached entity’s EntityState will
+    remain {{#crossLink "EntityState/Unchanged"}}{{/crossLink}} unless you’re importing entities in which case the new EntityState will 
+    be that of the imported entities.
     
     @property PreserveChanges {MergeStrategy}
     @final
@@ -11352,9 +11292,10 @@ var MergeStrategy = (function() {
     **/
     MergeStrategy.PreserveChanges = MergeStrategy.addSymbol();
     /**
-    OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
-    in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
-    EntityManager is replaced by the 'merging' entity.
+    MergeStrategy.OverwriteChanges always updates the cached entity with incoming values even if the entity is in
+    a changed state (added, modified, deleted). After the merge, the pending changes are lost. 
+    The new EntityState will be  {{#crossLink "EntityState/Unchanged"}}{{/crossLink}} unless you’re importing entities 
+    in which case the new EntityState will be that of the imported entities.   
     
     @property OverwriteChanges {MergeStrategy}
     @final
@@ -11559,36 +11500,42 @@ var EntityGroup = (function () {
     };
     var proto = ctor.prototype;
 
-    proto.attachEntity = function (entity, entityState) {
+    proto.attachEntity = function (entity, entityState, mergeStrategy) {
         // entity should already have an aspect.
-        var ix;
         var aspect = entity.entityAspect;
+
         if (!aspect._initialized) {
             this.entityType._initializeInstance(entity);
         }
-        delete aspect._initialized;  
-            
-        var keyInGroup = aspect.getKey()._keyInGroup;
-        ix = this._indexMap[keyInGroup];
-        if (ix >= 0) {
-            if (this._entities[ix] === entity) {
-                aspect.entityState = entityState;
-                return entity;
-            }
-            throw new Error("This key is already attached: " + aspect.getKey());
-        }
+        delete aspect._initialized;
 
-        if (this._emptyIndexes.length === 0) {
-            ix = this._entities.push(entity) - 1;
+        var keyInGroup = aspect.getKey()._keyInGroup;
+        var ix = this._indexMap[keyInGroup];
+        if (ix >= 0) {
+            var targetEntity = this._entities[ix];
+            var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
+            if (targetEntity === entity) {
+                aspect.entityState = entityState;
+            } else if (mergeStrategy === MergeStrategy.Disallowed) {
+                throw new Error("A MergeStrategy of 'Disallowed' does not allow you to attach an entity when an entity with the same key is already attached: " + aspect.getKey());
+            } else if (mergeStrategy === MergeStrategy.OverwriteChanges || (mergeStrategy === MergeStrategy.PreserveChanges && wasUnchanged)) {
+                this.entityType._updateTargetFromRaw(targetEntity, entity, DataProperty.getRawValueFromClient);
+                this.entityManager._checkStateChange(targetEntity, wasUnchanged, entityState.isUnchanged());
+            }
+            return targetEntity;
         } else {
-            ix = this._emptyIndexes.pop();
-            this._entities[ix] = entity;
+            if (this._emptyIndexes.length === 0) {
+                ix = this._entities.push(entity) - 1;
+            } else {
+                ix = this._emptyIndexes.pop();
+                this._entities[ix] = entity;
+            }
+            this._indexMap[keyInGroup] = ix;
+            aspect.entityState = entityState;
+            aspect.entityGroup = this;
+            aspect.entityManager = this.entityManager;
+            return entity;
         }
-        this._indexMap[keyInGroup] = ix;
-        aspect.entityState = entityState;
-        aspect.entityGroup = this;
-        aspect.entityManager = this.entityManager;
-        return entity;
     };
 
     proto.detachEntity = function (entity) {
@@ -12219,12 +12166,14 @@ var EntityManager = (function () {
     @method attachEntity
     @param entity {Entity} The entity to add.
     @param [entityState=EntityState.Unchanged] {EntityState} The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.
+    @param [mergeStrategy=MergeStrategy.Disallowed] {MergeStrategy} How the specified entity should be merged into the EntityManager if this EntityManager already contains an entity with the same key.
     @return {Entity} The attached entity.
     **/
-    proto.attachEntity = function (entity, entityState) {
+    proto.attachEntity = function (entity, entityState, mergeStrategy) {
         assertParam(entity, "entity").isRequired().check();
         this.metadataStore._checkEntityType(entity);
         entityState = assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check(EntityState.Unchanged);
+        mergeStrategy = assertParam(mergeStrategy, "mergeStrategy").isEnumOf(MergeStrategy).isOptional().check(MergeStrategy.Disallowed);
 
         if (entity.entityType.metadataStore !== this.metadataStore) {
             throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
@@ -12243,22 +12192,25 @@ var EntityManager = (function () {
         }
             
         var that = this;
+        var attachedEntity;
         __using(this, "isLoading", true, function () {
             if (entityState.isAdded()) {
                 checkEntityKey(that, entity);
             }
-            that._attachEntityCore(entity, entityState);
-            attachRelatedEntities(that, entity, entityState);
+            // attachedEntity === entity EXCEPT in the case of a merge.
+            attachedEntity = that._attachEntityCore(entity, entityState, mergeStrategy);
+            // entity ( not attachedEntity) is deliberate here.
+            attachRelatedEntities(that, entity, entityState, mergeStrategy);
         });
         if (this.validationOptions.validateOnAttach) {
-            entity.entityAspect.validateEntity();
+            attachedEntity.entityAspect.validateEntity();
         }
         if (!entityState.isUnchanged()) {
-            this._notifyStateChange(entity, true);
+            this._notifyStateChange(attachedEntity, true);
         }
-        this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: entity });
+        this.entityChanged.publish({ entityAction: EntityAction.Attach, entity: attachedEntity });
 
-        return entity;
+        return attachedEntity;
     };
         
 
@@ -13080,6 +13032,18 @@ var EntityManager = (function () {
 
     // protected methods
 
+    proto._checkStateChange = function (entity, wasUnchanged, isUnchanged) {
+        if (wasUnchanged) {
+            if (!isUnchanged) {
+                this._notifyStateChange(entity, true);
+            }
+        } else {
+            if (isUnchanged) {
+                this._notifyStateChange(entity, false);
+            }
+        }
+    };
+
     proto._notifyStateChange = function (entity, needsSave) {
         this.entityChanged.publish({ entityAction: EntityAction.EntityStateChange, entity: entity });
 
@@ -13422,15 +13386,7 @@ var EntityManager = (function () {
                     if (mergeStrategy === MergeStrategy.OverwriteChanges || wasUnchanged) {
                         entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
-                        if (wasUnchanged) {
-                            if (!entityState.isUnchanged()) {
-                                em._notifyStateChange(targetEntity, true);
-                            }
-                        } else {
-                            if (entityState.isUnchanged()) {
-                                em._notifyStateChange(targetEntity, false);
-                            }
-                        }
+                        em._checkStateChange(targetEntity, wasUnchanged, entityState.isUnchanged());
                     } else {
                         entitiesToLink.push(targetEntity);
                         targetEntity = null;
@@ -13564,24 +13520,23 @@ var EntityManager = (function () {
         return entityStates;
     }
 
-    proto._attachEntityCore = function (entity, entityState) {
+    proto._attachEntityCore = function (entity, entityState, mergeStrategy) {
         var group = findOrCreateEntityGroup(this, entity.entityType);
-        group.attachEntity(entity, entityState);
-        this._linkRelatedEntities(entity);
+        var attachedEntity = group.attachEntity(entity, entityState, mergeStrategy);
+        this._linkRelatedEntities(attachedEntity);
+        return attachedEntity;
     }
 
-
-
-    function attachRelatedEntities(em, entity, entityState) {
+    function attachRelatedEntities(em, entity, entityState, mergeStrategy) {
         var navProps = entity.entityType.navigationProperties;
         navProps.forEach(function (np) {
             var related = entity.getProperty(np.name);
             if (np.isScalar) {
                 if (!related) return;
-                em.attachEntity(related, entityState);
+                em.attachEntity(related, entityState, mergeStrategy);
             } else {
                 related.forEach(function (e) {
-                    em.attachEntity(e, entityState);
+                    em.attachEntity(e, entityState, mergeStrategy);
                 });
             }
         });
@@ -13757,12 +13712,6 @@ var EntityManager = (function () {
                 rawObject[dp.nameOnServer] = __map(structObj.getProperty(dp.name), function (co) {
                     return unwrapInstance(co, isOData);
                 });
-                //if (dp.isScalar) {
-                //    rawObject[dp.nameOnServer] = unwrapInstance(structObj.getProperty(dp.name), isOData);
-                //} else {
-                //    var complexObjs = structObj.getProperty(dp.name);
-                //    rawObject[dp.nameOnServer] = complexObjs.map(function (co) { return unwrapInstance(co, isOData) });
-                //}
             } else {
                 var val = structObj.getProperty(dp.name);
                 val = transformValue(val, dp, isOData);
@@ -14140,7 +14089,7 @@ var MappingContext = (function () {
             if (meta.extra) {
                 targetEntity.entityAspect.extraMetadata = meta.extra;
             }
-            em._attachEntityCore(targetEntity, EntityState.Unchanged);
+            em._attachEntityCore(targetEntity, EntityState.Unchanged, MergeStrategy.Disallowed);
             targetEntity.entityAspect.wasLoaded = true;
             em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
         }

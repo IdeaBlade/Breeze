@@ -11,9 +11,10 @@ var MergeStrategy = (function() {
     **/
     var MergeStrategy = new Enum("MergeStrategy");
     /**
-    PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
-    in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
-    EntityManager is not replaced by the 'merging' entity.
+    MergeStrategy.PreserveChanges updates the cached entity with the incoming values unless the cached entity is in a changed 
+    state (added, modified, deleted) in which case the incoming values are ignored. The updated cached entity’s EntityState will
+    remain {{#crossLink "EntityState/Unchanged"}}{{/crossLink}} unless you’re importing entities in which case the new EntityState will 
+    be that of the imported entities.
     
     @property PreserveChanges {MergeStrategy}
     @final
@@ -21,9 +22,10 @@ var MergeStrategy = (function() {
     **/
     MergeStrategy.PreserveChanges = MergeStrategy.addSymbol();
     /**
-    OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
-    in a {{#crossLink "EntityState/Modified"}}{{/crossLink}} state. In this case, the existing entity in the 
-    EntityManager is replaced by the 'merging' entity.
+    MergeStrategy.OverwriteChanges always updates the cached entity with incoming values even if the entity is in
+    a changed state (added, modified, deleted). After the merge, the pending changes are lost. 
+    The new EntityState will be  {{#crossLink "EntityState/Unchanged"}}{{/crossLink}} unless you’re importing entities 
+    in which case the new EntityState will be that of the imported entities.   
     
     @property OverwriteChanges {MergeStrategy}
     @final

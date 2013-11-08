@@ -233,7 +233,7 @@ var MappingContext = (function () {
             if (meta.extra) {
                 targetEntity.entityAspect.extraMetadata = meta.extra;
             }
-            em._attachEntityCore(targetEntity, EntityState.Unchanged);
+            em._attachEntityCore(targetEntity, EntityState.Unchanged, MergeStrategy.Disallowed);
             targetEntity.entityAspect.wasLoaded = true;
             em.entityChanged.publish({ entityAction: EntityAction.AttachOnQuery, entity: targetEntity });
         }
