@@ -12,29 +12,15 @@ namespace Northwind.DtoModels
             Database.SetInitializer<NorthwindDtoContext>(null);
         }
 
-        private const string _contextName = "NorthwindDtoContext";
-
-        public static string ContextName { get { return _contextName; } }
-
-        public NorthwindDtoContext() : base(ContextName)
-        {
-            // Disable proxy creation and lazy loading; not wanted in this service context.
-            Configuration.ProxyCreationEnabled = false;
-            Configuration.LazyLoadingEnabled = false;
-        }
-
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            // Table names match entity names by default (don't pluralize)
-            modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
-
             modelBuilder.Configurations.Add(new CustomerDtoConfiguration());
             modelBuilder.Configurations.Add(new OrderDtoConfiguration());
             modelBuilder.Configurations.Add(new OrderDetailDtoConfiguration());
             modelBuilder.Configurations.Add(new ProductDtoConfiguration());
         }
 
-        // Dto versions of these classes
+        //  Dto versions of these Northwind Model classes
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Product> Products { get; set; }
