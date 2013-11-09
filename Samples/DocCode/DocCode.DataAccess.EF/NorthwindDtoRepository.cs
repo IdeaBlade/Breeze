@@ -46,11 +46,27 @@ namespace DocCode.DataAccess
         {
             get { return ForCurrentUser(Context.Customers).Select(c => new Customer {
                     CustomerID = c.CustomerID,
-                    CompanyName = c.CompanyName
+                    CompanyName = c.CompanyName,
+                    OrderCount = c.Orders.Count()
                 });
             }
         }
 
+        public Customer CustomerById(Guid id)
+        {
+            var cust = 
+                ForCurrentUser(Context.Customers)
+                    .Where(c =>c.CustomerID == id)
+                    .Select(c => new Customer {
+                        CustomerID = c.CustomerID,
+                        CompanyName = c.CompanyName,
+                        OrderCount = c.Orders.Count()})
+                    .SingleOrDefault();
+               
+            // Super secret proprietary calculation. Do not disclose to client!
+            cust.FragusIndex = new Random().Next(100);
+            return cust;
+        }
 
         // Get Orders and their OrderDetails
         public IQueryable<Order> Orders
@@ -58,6 +74,7 @@ namespace DocCode.DataAccess
             get { return ForCurrentUser(Context.Orders).Select(o => new Order {
                     OrderID = o.OrderID,
                     CustomerID = o.CustomerID,
+                    CustomerName = o.Customer.CompanyName,
                     OrderDate = o.OrderDate,
                     RequiredDate = o.RequiredDate,
                     ShippedDate = o.ShippedDate,

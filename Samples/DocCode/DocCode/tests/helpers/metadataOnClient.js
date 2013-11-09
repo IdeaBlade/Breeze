@@ -205,6 +205,8 @@
             dataProperties: {
                 customerID:  { dataType: DT.Guid, isPartOfKey: true },
                 companyName: { isNullable: false, maxLength: 40 },
+                fragusIndex: { dataType: DT.Int32 },
+                orderCount:  { dataType: DT.Int32 },
             },
 
             navigationProperties: {
@@ -232,6 +234,7 @@
             dataProperties: {
                 orderID:      { dataType: DT.Int32, isPartOfKey: true },
                 customerID:   { dataType: DT.Guid },
+                customerName: { maxLength: 40 },
                 orderDate:    { dataType: DT.DateTime },
                 requiredDate: { dataType: DT.DateTime }, 
                 shippedDate:  { dataType: DT.DateTime },

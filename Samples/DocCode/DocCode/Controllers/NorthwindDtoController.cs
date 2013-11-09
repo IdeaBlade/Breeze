@@ -51,6 +51,13 @@ namespace DocCode.Controllers
             return _repository.Customers;
         }
 
+        // ~/breeze/northwindDto/Customer/729de505-ea6d-4cdf-89f6-0360ad37bde7
+        [HttpGet]
+        public Customer Customer(Guid id)
+        {
+            return _repository.CustomerById(id);
+        }
+
         // ~/breeze/northwindDto/Orders
         [HttpGet]
         public IQueryable<Order> Orders() {

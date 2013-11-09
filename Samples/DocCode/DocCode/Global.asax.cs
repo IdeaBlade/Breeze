@@ -7,7 +7,7 @@ namespace DocCode
     {
         protected void Application_Start(object sender, EventArgs e)
         {
-            WebApiConfig.Register(GlobalConfiguration.Configuration);
+            GlobalConfiguration.Configure(WebApiConfig.Register);
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Northwind.DtoModels
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Configurations.Add(new CustomerDtoConfiguration());
+            modelBuilder.Configurations.Add(new OrderDtoConfiguration());
             modelBuilder.Configurations.Add(new OrderDetailDtoConfiguration());
             modelBuilder.Configurations.Add(new ProductDtoConfiguration());
         }
@@ -44,7 +45,7 @@ namespace Northwind.DtoModels
     {
         public OrderDtoConfiguration()
         {
-            //Ignore(o => o.UserSessionId);
+            Property(o => o.CustomerName).HasMaxLength(40);
         }
     }
 

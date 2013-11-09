@@ -7,6 +7,9 @@ namespace Northwind.DtoModels
     {
         public Guid CustomerID { get; set; }
         public string CompanyName { get; set; }
+        public int? FragusIndex { get; set;}        // proprietary value, determined on server
+        public int? OrderCount { get; set;}         // calculated on server
+
         public ICollection<Order> Orders { get; set; }
     }
 
@@ -14,6 +17,7 @@ namespace Northwind.DtoModels
     {
         public int OrderID { get; set; }
         public Guid? CustomerID { get; set; }
+        public string CustomerName { get; set;}     // copied from Customer
         public DateTime? OrderDate { get; set; }
         public DateTime? RequiredDate { get; set; }
         public DateTime? ShippedDate { get; set; }
