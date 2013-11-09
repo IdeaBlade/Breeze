@@ -15,7 +15,6 @@ namespace Northwind.DtoModels
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Configurations.Add(new CustomerDtoConfiguration());
-            modelBuilder.Configurations.Add(new OrderDtoConfiguration());
             modelBuilder.Configurations.Add(new OrderDetailDtoConfiguration());
             modelBuilder.Configurations.Add(new ProductDtoConfiguration());
         }
@@ -37,11 +36,7 @@ namespace Northwind.DtoModels
     {
         public CustomerDtoConfiguration()
         {
-            HasKey(c => new { c.CustomerID});
-            Property(c => c.CustomerID)
-                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
-
-            Property(c => c.CompanyName).IsRequired().HasMaxLength(40);
+             Property(c => c.CompanyName).IsRequired().HasMaxLength(40);
         }
     }
 
@@ -49,9 +44,6 @@ namespace Northwind.DtoModels
     {
         public OrderDtoConfiguration()
         {
-            HasKey(o => new { o.OrderID });
-
-            HasOptional(o => o.Customer).WithMany(c => c.Orders).HasForeignKey(o => o.CustomerID);
             //Ignore(o => o.UserSessionId);
         }
     }
@@ -65,9 +57,6 @@ namespace Northwind.DtoModels
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
             Property(od => od.ProductID)
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
-
-            HasRequired(od => od.Product).WithMany().HasForeignKey(od => od.ProductID);
-            HasRequired(od => od.Order).WithMany(o => o.OrderDetails).HasForeignKey(od => od.OrderID);
         }
     }
 
@@ -75,8 +64,6 @@ namespace Northwind.DtoModels
     {
         public ProductDtoConfiguration()
         {
-            HasKey(p => new { p.ProductID });
-
             Property(p => p.ProductName).IsRequired().HasMaxLength(40);       
         }
     }
