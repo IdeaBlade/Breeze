@@ -41,7 +41,6 @@ namespace Northwind.DtoModels
     }
 }
 
-
 #region EntityType Configurations
 
 namespace Northwind.DtoModels
@@ -55,6 +54,8 @@ namespace Northwind.DtoModels
             HasKey(c => new { c.CustomerID});
             Property(c => c.CustomerID)
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
+
+            Property(c => c.CompanyName).IsRequired().HasMaxLength(40);
         }
     }
 
@@ -65,7 +66,7 @@ namespace Northwind.DtoModels
             HasKey(o => new { o.OrderID });
 
             HasOptional(o => o.Customer).WithMany(c => c.Orders).HasForeignKey(o => o.CustomerID);
-            Ignore(o => o.UserSessionId);
+            //Ignore(o => o.UserSessionId);
         }
     }
 
@@ -89,6 +90,8 @@ namespace Northwind.DtoModels
         public ProductDtoConfiguration()
         {
             HasKey(p => new { p.ProductID });
+
+            Property(p => p.ProductName).IsRequired().HasMaxLength(40);       
         }
     }
 }
