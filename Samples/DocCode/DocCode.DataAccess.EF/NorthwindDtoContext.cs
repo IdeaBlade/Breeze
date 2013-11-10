@@ -4,7 +4,7 @@ using System.Data.Entity.ModelConfiguration.Conventions;
 
 namespace Northwind.DtoModels
 {
-    public class NorthwindDtoContext : DbContext
+    internal class NorthwindDtoContext : DbContext
     {
         static NorthwindDtoContext()
         {
@@ -33,7 +33,7 @@ namespace Northwind.DtoModels
 {
     using System.Data.Entity.ModelConfiguration;
 
-    public class CustomerDtoConfiguration : EntityTypeConfiguration<Customer>
+    internal class CustomerDtoConfiguration : EntityTypeConfiguration<Customer>
     {
         public CustomerDtoConfiguration()
         {
@@ -41,7 +41,7 @@ namespace Northwind.DtoModels
         }
     }
 
-    public class OrderDtoConfiguration : EntityTypeConfiguration<Order>
+    internal class OrderDtoConfiguration : EntityTypeConfiguration<Order>
     {
         public OrderDtoConfiguration()
         {
@@ -49,7 +49,7 @@ namespace Northwind.DtoModels
         }
     }
 
-    public class OrderDetailDtoConfiguration : EntityTypeConfiguration<OrderDetail>
+    internal class OrderDetailDtoConfiguration : EntityTypeConfiguration<OrderDetail>
     {
         public OrderDetailDtoConfiguration()
         {
@@ -61,7 +61,7 @@ namespace Northwind.DtoModels
         }
     }
 
-    public class ProductDtoConfiguration : EntityTypeConfiguration<Product>
+    internal class ProductDtoConfiguration : EntityTypeConfiguration<Product>
     {
         public ProductDtoConfiguration()
         {

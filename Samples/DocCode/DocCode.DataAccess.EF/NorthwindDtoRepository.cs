@@ -16,8 +16,6 @@ namespace DocCode.DataAccess
     {
         public NorthwindDtoRepository()
         {
-            _dtoContextProvider = new EFContextProvider<NorthwindDtoContext>();
-
             // for the server-model "real" Northwind DbContext
             _contextProvider = new EFContextProvider<Northwind.Models.NorthwindContext>();
             _entitySaveGuard = new NorthwindEntitySaveGuard();
@@ -28,7 +26,7 @@ namespace DocCode.DataAccess
         {
             get
             {
-                return _dtoContextProvider.Metadata();
+                return new EFContextProvider<NorthwindDtoContext>().Metadata();
             }
         }
 
@@ -125,16 +123,10 @@ namespace DocCode.DataAccess
             return query.Where(x => x.UserSessionId == null || x.UserSessionId == UserSessionId);
         }
 
-        private NorthwindDtoContext DtoContext
-        {
-            get { return _dtoContextProvider.Context; }
-        }
-
         private Northwind.Models.NorthwindContext Context { 
             get { return _contextProvider.Context; } 
         }
 
-        private readonly EFContextProvider<NorthwindDtoContext> _dtoContextProvider;
         private readonly EFContextProvider<Northwind.Models.NorthwindContext> _contextProvider;
 
         private readonly NorthwindEntitySaveGuard _entitySaveGuard;
