@@ -153,7 +153,7 @@ docCode.testFns = (function () {
     * Wait for an array of test promises to finish.
     *********************************************************/
     function waitForTestPromises(promises) {
-        Q.allResolved(promises).then(reportRejectedPromises).fin(start);
+        Q.allSettled(promises).then(reportRejectedPromises).fin(start);
     }
     
     /*********************************************************
@@ -218,13 +218,15 @@ docCode.testFns = (function () {
     function reportRejectedPromises(promises) {
         for (var i = 0, len = promises.length; i < len; i++) {
             var promise = promises[i];
-            if (promise.isRejected()) {
+            if (!promise.state || promise.state === "rejected") {
                 var msg = "Operation #{0} failed. ";
-                var ex = promise.valueOf().exception;
+                var ex = promise.valueOf && promise.valueOf().exception;
                 msg += ex ? ex.message : " Not sure why.";
                 ok(false, msg.format(i + 1));
             }
         }
+
+
     }
     /*********************************************************
     * Factory of EntityManager factories (newEm functions)
