@@ -913,13 +913,12 @@
                 'Customer',
                 function () { // ctor
                     actual.push(expected.ctor);
-                    this.initialValue = ko.observable("");
-                    // will assign with initial values hash
-                    this.initialValue.subscribe(function() {
-                        actual.push(expected.initVals);
-                    });
                 },
-                function () {
+                function (cust) { // initializer
+                    if (cust.CompanyName !== null) {
+                        // CompanyName setting must have happened before this initializer
+                        actual.push(expected.initVals); 
+                    }
                     actual.push(expected.initer);
                 });
             actual = []; // reset after registration
@@ -934,7 +933,7 @@
             /* ACT */
             var cust = em.createEntity('Customer', {
                 CustomerID: testFns.newGuidComb(),
-                initialValue: expected[1]
+                CompanyName: expected[1]
             });
             
             /* ASSERT */

@@ -193,6 +193,7 @@ namespace DocCode.DataAccess
             get { return _userSessionId; }
             set {
                 _userSessionId = (value == Guid.Empty) ? _guestUserSessionId : value;
+                _entitySaveGuard.UserSessionId = _userSessionId;
             }
         }
         private Guid _userSessionId = _guestUserSessionId;

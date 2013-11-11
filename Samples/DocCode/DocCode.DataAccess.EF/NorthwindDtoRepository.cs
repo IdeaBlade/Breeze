@@ -16,8 +16,6 @@ namespace DocCode.DataAccess
     {
         public NorthwindDtoRepository()
         {
-            _dtoContextProvider = new EFContextProvider<NorthwindDtoContext>();
-
             // for the server-model "real" Northwind DbContext
             _contextProvider = new EFContextProvider<Northwind.Models.NorthwindContext>();
             _entitySaveGuard = new NorthwindEntitySaveGuard();
@@ -28,7 +26,7 @@ namespace DocCode.DataAccess
         {
             get
             {
-                return _dtoContextProvider.Metadata();
+                return new EFContextProvider<NorthwindDtoContext>().Metadata();
             }
         }
 
@@ -46,11 +44,27 @@ namespace DocCode.DataAccess
         {
             get { return ForCurrentUser(Context.Customers).Select(c => new Customer {
                     CustomerID = c.CustomerID,
-                    CompanyName = c.CompanyName
+                    CompanyName = c.CompanyName,
+                    OrderCount = c.Orders.Count()
                 });
             }
         }
 
+        public Customer CustomerById(Guid id)
+        {
+            var cust = 
+                ForCurrentUser(Context.Customers)
+                    .Where(c =>c.CustomerID == id)
+                    .Select(c => new Customer {
+                        CustomerID = c.CustomerID,
+                        CompanyName = c.CompanyName,
+                        OrderCount = c.Orders.Count()})
+                    .SingleOrDefault();
+               
+            // Super secret proprietary calculation. Do not disclose to client!
+            cust.FragusIndex = new Random().Next(100);
+            return cust;
+        }
 
         // Get Orders and their OrderDetails
         public IQueryable<Order> Orders
@@ -58,6 +72,7 @@ namespace DocCode.DataAccess
             get { return ForCurrentUser(Context.Orders).Select(o => new Order {
                     OrderID = o.OrderID,
                     CustomerID = o.CustomerID,
+                    CustomerName = o.Customer.CompanyName,
                     OrderDate = o.OrderDate,
                     RequiredDate = o.RequiredDate,
                     ShippedDate = o.ShippedDate,
@@ -108,16 +123,10 @@ namespace DocCode.DataAccess
             return query.Where(x => x.UserSessionId == null || x.UserSessionId == UserSessionId);
         }
 
-        private NorthwindDtoContext DtoContext
-        {
-            get { return _dtoContextProvider.Context; }
-        }
-
         private Northwind.Models.NorthwindContext Context { 
             get { return _contextProvider.Context; } 
         }
 
-        private readonly EFContextProvider<NorthwindDtoContext> _dtoContextProvider;
         private readonly EFContextProvider<Northwind.Models.NorthwindContext> _contextProvider;
 
         private readonly NorthwindEntitySaveGuard _entitySaveGuard;

@@ -34,7 +34,7 @@
         serviceName = northwindService;
         serverStore = metadataStoreSetup(
             northwindMetadataStore, northwindMetadata, serviceName, postProcessNorthwindServerStore);
-        clientStore = testFns.metadataOnClient.createProductMetadataStore();
+        clientStore = testFns.metadataOnClient.createProductMetadataStore(serviceName);
     }
 
     // tweak serverStore based on intentional client differences
@@ -143,7 +143,7 @@
     function clientDefinedDtoMetadataSetup() {
         serviceName = northwindDtoService;
         serverStore = metadataStoreSetup(northwindDtoMetadataStore, northwindDtoMetadata, serviceName)
-        clientStore = testFns.metadataOnClient.createDtoMetadataStore();
+        clientStore = testFns.metadataOnClient.createDtoMetadataStore(serviceName);
     }
 
     /*********************************************************

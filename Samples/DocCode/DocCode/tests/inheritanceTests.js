@@ -459,7 +459,7 @@
             });
 
             // wait for all to be resolved
-            return Q.allResolved(bankPromises.concat(cardPromises))
+            return Q.allSettled(bankPromises.concat(cardPromises))
                     .then(reportRejectedPromises);
         }
     });
@@ -520,7 +520,7 @@
         });
 
         // wait for all to be resolved
-        return Q.allResolved(bankPromises.concat(cardPromises))
+        return Q.allSettled(bankPromises.concat(cardPromises))
                 .then(reportRejectedPromises).fin(start);
 
     });
@@ -546,7 +546,7 @@
         });
 
         // wait for all to be resolved
-        return Q.allResolved(bankPromises.concat(cardPromises))
+        return Q.allSettled(bankPromises.concat(cardPromises))
                 .then(reportRejectedPromises).fin(start);
 
 
@@ -603,7 +603,7 @@
                 .using(em).execute().then(NavFromStatus).fail(handleFail);
 
             // wait for all to be resolved
-            return Q.allResolved([tphPromise, tptPromise])
+            return Q.allSettled([tphPromise, tptPromise])
                     .then(reportRejectedPromises);
         }
     });

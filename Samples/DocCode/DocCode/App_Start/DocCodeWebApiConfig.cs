@@ -19,6 +19,15 @@ namespace DocCode.App_Start {
       WriteMetadataScriptFiles.WriteNorthwindMetadataScriptFile();
       WriteMetadataScriptFiles.WriteNorthwindDtoMetadataScriptFile();
 
+      // See NorthwindDtoController.Customer(id)
+      // Ex ~/breeze/northwindDto/Customer/{id}
+      // TODO: teach DocCode to use attribute routing instead
+      GlobalConfiguration.Configuration.Routes.MapHttpRoute(
+          name: "NorthwindDtoControllerById",
+          routeTemplate: "breeze/northwindDto/{action}/{id}",
+          defaults: new { controller = "northwindDto" }
+        );
+
       #region Breeze MultiController routes
 
         // See controllers in the 'MultiControllers' directory

@@ -87,7 +87,7 @@ namespace Northwind.Models
     public Guid? UserSessionId { get; set; }
     public string CanAdd()
     {
-        return CustomerID == Guid.Empty ? null : "must provide a CustomerID";
+        return CustomerID == Guid.Empty ? "must provide a CustomerID" : null;
     }
   }
   #endregion Customer class
@@ -318,8 +318,7 @@ namespace Northwind.Models
     public string CanAdd()
     {
         return (OrderID == 0 || ProductID == 0) ? 
-            null : 
-            "must provide non-zero OrderID and ProductID";
+                "must provide non-zero OrderID and ProductID" : null;
     }
   }
 
