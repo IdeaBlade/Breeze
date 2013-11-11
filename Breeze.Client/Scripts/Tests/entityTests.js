@@ -25,9 +25,30 @@
         }
     });
 
+    test("new instead of createEntity", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        
+        var Customer = testFns.models.CustomerWithMiscData();
+        Customer.prototype.getNameLength = function () {
+            return (this.getProperty("companyName") || "").length;
+        };
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
 
+        var cust1 = new Customer();
+        cust1.city = "xxx";
+        var ea = new breeze.EntityAspect(cust1);
+        cust1.setProperty("city", "yyy");
+        cust1.setProperty("customerID", breeze.core.getUuid());
 
-    test("Event token is the same for different entities", function () {
+        var cust2 = em.metadataStore.getEntityType("Customer").createEntity();
+        cust2.setProperty("customerID", breeze.core.getUuid());
+
+        em.attachEntity(cust1);
+        em.attachEntity(cust2);
+        ok(true, "should get here");
+    });
+
+    test("event token is the same for different entities", function () {
         var em = newEm();
 
         var emp1 = em.createEntity("Employee", { firstName: "Joe1", lastName: "Smith1", birthDate: new Date(2000, 1, 1) });

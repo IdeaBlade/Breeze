@@ -9485,7 +9485,7 @@ var EntityQuery = (function () {
    
 
     @method inlineCount
-    @param enabled {Boolean=true} Whether or not noTracking capability should be enabled. If this parameter is omitted, true is assumed. 
+    @param enabled {Boolean=true} Whether or not the noTracking capability should be enabled. If this parameter is omitted, true is assumed. 
     @return {EntityQuery}
     @chainable
     **/
