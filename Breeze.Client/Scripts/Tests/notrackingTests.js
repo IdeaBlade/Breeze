@@ -150,7 +150,98 @@
     });
     
     
+    test("query with reattach - using em.createEntity", function () {
 
+        var em = newEm();
+        var predicate1 = Predicate.create("lastName", "startsWith", "D").or("firstName", "startsWith", "A");
+
+        var q = EntityQuery
+            .from("Employees")
+            .where(predicate1)
+            .noTracking();
+        stop();
+        var empType = em.metadataStore.getEntityType("Employee");
+        var emps;
+        em.executeQuery(q).then(function (data) {
+            var rawEmps = data.results;
+            ok(rawEmps.length > 0);
+            emps = rawEmps.map(function (rawEmp) {
+                emp = em.createEntity(empType, rawEmp, EntityState.Unchanged, MergeStrategy.SkipMerge);
+                return emp;
+            });
+            ok(emps.length = rawEmps.length);
+            emps.forEach(function (emp) {
+                ok(emp.entityType === empType, "should be empType");
+                ok(emp.entityAspect.entityState === EntityState.Unchanged, "should be unchanged, but was: " + emp.entityAspect.entityState);
+            });
+            var q2 = q.noTracking(false);
+            var emps2 = em.executeQueryLocally(q2);
+            ok(emps2.length === emps.length, "local query should resolve to same entities");
+            emps2.forEach(function (emp) {
+                ok(emps.indexOf(emp) >= 0, "local emps should be the same");
+            });
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            var emps3 = data2.results;
+            emps3.forEach(function (emp) {
+                ok(emps.indexOf(emp) >= 0, "queried emps should be the same");
+            });
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+
+    test("query with expand and reattach ", function () {
+
+        var em = newEm();
+        var predicate1 = Predicate.create("lastName", "startsWith", "D");
+
+        var q = EntityQuery
+            .from("Employees")
+            .where(predicate1)
+            .take(1)
+            .expand("orders")
+            .noTracking();
+        stop();
+        var empType = em.metadataStore.getEntityType("Employee");
+        var orderType = em.metadataStore.getEntityType("Order");
+        var emps;
+        em.executeQuery(q).then(function (data) {
+            var rawEmps = data.results;
+            ok(rawEmps.length > 0);
+            emps = rawEmps.map(function (rawEmp) {
+                emp = empType.createEntity(rawEmp);
+                empx = em.attachEntity(emp, EntityState.Unchanged, MergeStrategy.SkipMerge);
+                return empx;
+            });
+            ok(emps.length = rawEmps.length);
+            emps.forEach(function (emp) {
+                ok(emp.entityType === empType, "should be empType");
+                ok(emp.entityAspect.entityState === EntityState.Unchanged);
+                var orders = emp.getProperty("orders");
+                ok(orders.length > 0, "should be some orders");
+                orders.forEach(function (o) {
+                    ok(o.entityType === orderType, "should be orderType");
+                    ok(o.entityAspect.entityState === EntityState.Unchanged);
+                });
+            });
+            var q2 = q.noTracking(false);
+            var emps2 = em.executeQueryLocally(q2);
+            ok(emps2.length === emps.length, "local query should resolve to same entities");
+            emps2.forEach(function (emp) {
+                ok(emps.indexOf(emp) >= 0, "local emps should be the same");
+            });
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            var emps3 = data2.results;
+            emps3.forEach(function (emp) {
+                ok(emps.indexOf(emp) >= 0, "queried emps should be the same");
+            });
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
 
 
     

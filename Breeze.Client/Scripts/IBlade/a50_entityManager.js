@@ -251,11 +251,14 @@ var EntityManager = (function () {
     @method createEntity
     @param entityType {String|EntityType} The EntityType or the name of the type for which an instance should be created.
     @param [initialValues=null] {Config object} - Configuration object of the properties to set immediately after creation.
-    @param [entityState=EntityState.Added] {EntityState} - Configuration object of the properties to set immediately after creation.
+    @param [entityState=EntityState.Added] {EntityState} - The EntityState of the entity after being created and added to this EntityManager.
+    @param [mergeStrategy=MergeStrategy.Disallowed] {MergeStrategy} - How to handle conflicts if an entity with the same key already exists within this EntityManager.
     @return {Entity} A new Entity of the specified type.
     **/
-    proto.createEntity = function (entityType, initialValues, entityState) {
+    proto.createEntity = function (entityType, initialValues, entityState, mergeStrategy) {
         assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
+        assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check();
+        assertParam(mergeStrategy, "mergeStrategy").isEnumOf(MergeStrategy).isOptional().check();
         if (typeof entityType === "string") {
             entityType = this.metadataStore._getEntityType(entityType);
         }
@@ -265,7 +268,7 @@ var EntityManager = (function () {
             entity = entityType.createEntity(initialValues);
         });
         if (entityState !== EntityState.Detached) {
-            this.attachEntity(entity, entityState);
+            entity = this.attachEntity(entity, entityState, mergeStrategy);
         }
         return entity;
     };

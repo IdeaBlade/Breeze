@@ -1382,11 +1382,13 @@ var EntityType = (function () {
     @return {Entity} The new entity.
     **/
     proto.createEntity = function (initialValues) {
+        // ignore the _$eref once the entity is attached to an entityManager.
         if (initialValues  && initialValues._$eref && ! initialValues._$eref.entityAspect.entityManager) return initialValues._$eref;
 
         var instance = this._createInstanceCore();
             
         if (initialValues) {
+            // only assign an _eref if the object is fully "keyed"
             if (this.keyProperties.every(function (kp) { return initialValues[kp.name] != null; })) {
                 initialValues._$eref = instance;
             };

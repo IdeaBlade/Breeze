@@ -48,6 +48,25 @@
         ok(true, "should get here");
     });
 
+
+    test("new instead of createEntity 2", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+
+        var Customer = testFns.models.CustomerWithMiscData();
+        Customer.prototype.getNameLength = function () {
+            return (this.getProperty("companyName") || "").length;
+        };
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+        var cust1 = new Customer();
+        cust1.city = "zzz";
+        cust1.customerID = breeze.core.getUuid();
+
+        em.attachEntity(cust1);
+        ok(cust1.getProperty("city") === "zzz", "city should be zzz");
+        ok(true, "should get here");
+    });
+
     test("event token is the same for different entities", function () {
         var em = newEm();
 
