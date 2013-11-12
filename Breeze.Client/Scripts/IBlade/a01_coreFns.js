@@ -471,7 +471,6 @@ function uncurry(f) {
     };
 }
 
-
 // shims
 
 if (!Object.create) {

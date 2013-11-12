@@ -34,7 +34,13 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         localAspect = entityAspect;
     } else {
         localAspect = this.complexAspect;
-        entityAspect = localAspect.getEntityAspect();
+        if (localAspect) {
+            entityAspect = localAspect.getEntityAspect();
+        } else {
+            // does not yet have an EntityAspect so just set the prop
+            rawAccessorFn(newValue);
+            return;
+        }
     }
     var propPath = localAspect.getPropertyPath(propName);
         

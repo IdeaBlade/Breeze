@@ -98,7 +98,8 @@
 
     };
 
-    // This method is called when an instance is first created via materialization or createEntity.
+    // This method is called when an EntityAspect is first created - this will occur as part of the entityType.createEntity call. 
+    // which can be called either directly or via standard query materialization
 
     // entity is either an entity or a complexObject
     ctor.prototype.startTracking = function (entity, proto) {

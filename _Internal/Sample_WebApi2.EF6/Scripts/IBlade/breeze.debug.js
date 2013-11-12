@@ -500,7 +500,6 @@ function uncurry(f) {
     };
 }
 
-
 // shims
 
 if (!Object.create) {
@@ -4727,7 +4726,13 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         localAspect = entityAspect;
     } else {
         localAspect = this.complexAspect;
-        entityAspect = localAspect.getEntityAspect();
+        if (localAspect) {
+            entityAspect = localAspect.getEntityAspect();
+        } else {
+            // does not yet have an EntityAspect so just set the prop
+            rawAccessorFn(newValue);
+            return;
+        }
     }
     var propPath = localAspect.getPropertyPath(propName);
         
@@ -15464,7 +15469,8 @@ breeze.AbstractDataServiceAdapter = (function () {
 
     };
 
-    // This method is called when an instance is first created via materialization or createEntity.
+    // This method is called when an EntityAspect is first created - this will occur as part of the entityType.createEntity call. 
+    // which can be called either directly or via standard query materialization
 
     // entity is either an entity or a complexObject
     ctor.prototype.startTracking = function (entity, proto) {
