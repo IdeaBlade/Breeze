@@ -1,12 +1,14 @@
 var mongodb = require('mongodb');
 var fs = require('fs');
 var breezeMongo = require('breeze-mongodb');
+
+var appdir =  __dirname+'/public/app/';
 var metadata;
 
 var host = 'localhost';
 var port = 27017;
 var dbName = 'zza';
-var serverBase = 'Zza.ExpressServer/';
+
 var dbServer = new mongodb.Server(host, port, { auto_reconnect: true});
 var db = new mongodb.Db(dbName, dbServer, {
     strict:true,
@@ -20,7 +22,7 @@ exports.getMetadata = function(req, res, next) {
     res.send(metadata);
 
     function getMetadataFromScriptFile(){
-        var filename = serverBase + "public/app/metadata.js";
+        var filename = appdir + "metadata.js";
         if (!fs.existsSync(filename)) {
             next(new Error("Unable to locate metadata file: " + filename));
         }
@@ -103,12 +105,13 @@ function lookups(req, res, next) {
     var queryCountDown = 0;
     var done = processResults(res, next);
 
-    getAll('OrderStatus','OrderStatus');
-    getAll('Product','Product');
-    getAll('ProductOption','ProductOption');
-    getAll('ProductSize','ProductSize');
+    getAll('orderStatuses','OrderStatus');
+    getAll('products','Product');
+    getAll('productOptions','ProductOption');
+    getAll('productSizes','ProductSize');
 
-    function getAll(collectionName, entityType) {
+    function getAll(lookupName, entityTypeName) {
+        var collectionName = entityTypeName
         db.collection(collectionName, {strict: true} , function (err, collection) {
             if (err) {
                 err = { statusCode: 404, message: "Unable to locate: " + collectionName, error: err };
@@ -123,8 +126,8 @@ function lookups(req, res, next) {
                     return;
                 }
                 //Todo: explain why we add $type
-                results.forEach(function(r) {r.$type = entityType});
-                lookups[collectionName]=results;
+                results.forEach(function(r) {r.$type = entityTypeName});
+                lookups[lookupName]=results;
 
                 if (queryCountDown === 0) {
                     done(null, lookups);

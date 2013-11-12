@@ -1,6 +1,7 @@
-'use strict';
+/* NOT READY */
+xdescribe('testController', function () {
+    'use strict';
 
-describe('testController', function () {
     var scope, $controllerFactory, loggerStub, ctorArgs;
     
     beforeEach(module('app'));

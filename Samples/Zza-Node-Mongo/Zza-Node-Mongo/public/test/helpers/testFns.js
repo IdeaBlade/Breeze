@@ -11,11 +11,11 @@
         testFns = definition();
     }
 
-})(function () {
+})(function()  {
     'use strict';
 
     extendString();
-    var serviceRoot = window.location.protocol + '//' + window.location.host + '/';
+    var serviceRoot = window.location.protocol + '//'+window.location.host + '/';
 
     var metadataStore = new breeze.MetadataStore();
 
@@ -34,7 +34,7 @@
         newEm: newEm,
         getNextIntId: getNextIntId,
         newGuid: newGuid,
-        newGuidComb: newGuidComb,
+        newGuidComb: newGuidComb, 
         zzaReset: zzaReset,
         FakeLogger: FakeLogger
     };
@@ -46,8 +46,8 @@
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
     function noop() { }
 
-    function getServiceName() {
-        if (!fns.serviceName) { throw "Need a serviceName; serviceName = " + fns.serviceName; }
+    function getServiceName(){
+        if (!fns.serviceName){throw "Need a serviceName; serviceName = " + fns.serviceName;}
         return fns.serviceRoot + fns.serviceName;
     }
     /*********************************************************
@@ -73,19 +73,19 @@
     function addLookupsToManager(manager) {
         manager.importEntities(zza.lookups);
     }
-    function fetchMetadata() {
+    function fetchMetadata(){
         var serviceName = getServiceName();
         if (fns.metadataStore.hasMetadataFor(serviceName)) {
-            console.log("already has metadata for " + serviceName);
+            console.log("already has metadata for "+serviceName);
             return Q(true);
         }
 
         return fns.metadataStore.fetchMetadata(serviceName)
-            .then(function () {
-                console.log("got metadata for " + serviceName);
+            .then(function(){
+                console.log("got metadata for "+serviceName);
                 return true;
-            }).fail(function (error) {
-                console.log("failed to get " + serviceName + " metadata: " + error.message);
+            }).fail(function(error){
+                console.log("failed to get "+serviceName+" metadata: "+error.message) ;
                 console.log("*** CONFIRM THAT ZZA SERVER IS RUNNING ON EXPECTED PORT ***");
                 throw error;
             });
@@ -136,16 +136,16 @@
     function zzaReset(fullReset) {
         var devServiceName = fns.serviceRoot + fns.devServiceName;
 
-        fullReset = (fullReset === undefined) || fullReset;
+        fullReset = (fullReset === undefined)||fullReset;
         var options = fullReset ? "/?options=fullreset" : "";
         var deferred = Q.defer();
 
-        $.post(devServiceName + '/reset' + options,
+        $.post(devServiceName+ '/reset' + options,
             function (data, textStatus, xhr) {
                 deferred.resolve(
                     "Reset svc returned '" + xhr.status + "' with message: " + data);
             })
-            .error(function (xhr, textStatus, errorThrown) {
+            .error(function(xhr, textStatus, errorThrown) {
                 deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
             });
 
@@ -163,7 +163,7 @@
         try {
             var reason = JSON.parse(xhr.responseText).Message;
             message += "\n" + reason;
-        } catch (ex) {
+        } catch(ex) {
             message += "\n" + xhr.responseText;
         }
         return message;

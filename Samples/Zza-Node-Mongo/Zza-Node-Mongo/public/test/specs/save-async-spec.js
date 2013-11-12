@@ -1,5 +1,6 @@
 /* Zza/Breeze Web API save */
-describe('Zza/Breeze web api', function(){
+/* NOT READY */
+xdescribe('Zza/Breeze web api', function(){
     'use strict';
     var fns = testFns;
     var breezeTest = fns.breezeTest;
@@ -9,6 +10,11 @@ describe('Zza/Breeze web api', function(){
 
     var async = new AsyncSpec(this);
     var xasync = fns.xasync;
+
+    beforeEach(module('app'));
+    beforeEach(inject(function(environment){
+        testFns.serviceName = environment.serviceName;
+    }));
 
     describe('when unauthorized to save type', function() {
 
@@ -20,7 +26,7 @@ describe('Zza/Breeze web api', function(){
                 var em = newEm();
                 em.createEntity('Product', {
                     type: 'pizza',
-                    name: 'The Gordo',
+                    name: 'The Gordo Test Pizza',
                     description: 'Too much pizza for anyone',
                     hasOptions: true
                 });

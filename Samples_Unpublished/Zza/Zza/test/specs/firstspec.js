@@ -1,5 +1,5 @@
 ﻿xdescribe("first spec", function() {
-
+    'use strict';
     it('should fail', function() {
         console.log('first');
         var myObj = { method: function (){return 4; } };

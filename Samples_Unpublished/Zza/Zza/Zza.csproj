@@ -194,6 +194,7 @@
     <content Include="content\bootstrap-responsive.min.css" />
     <content Include="content\bootstrap.css" />
     <content Include="content\bootstrap.min.css" />
+    <Content Include="content\breeze.directives.css" />
     <content Include="content\font-awesome-ie7.min.css" />
     <content Include="content\font-awesome.css" />
     <content Include="content\font-awesome.min.css" />
@@ -218,6 +219,9 @@
     <content Include="scripts\breeze.min.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </content>
+    <content Include="scripts\breeze.directives.validation.js">
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </content>
     <content Include="scripts\breeze.savequeuing.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </content>
@@ -232,6 +236,9 @@
     <content Include="test\config\karma.conf.js" />
     <content Include="scripts\angular.js" />
     <content Include="scripts\angular.min.js">
+      <DependentUpon>angular.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-mocks.js">
       <DependentUpon>angular.js</DependentUpon>
     </content>
     <content Include="scripts\modernizr-2.6.2.js" />
@@ -254,7 +261,6 @@
     <content Include="test\prepareTestData.html" />
     <content Include="test\helpers\jasmineTestFns.js" />
     <content Include="test\helpers\testFns.js" />
-    <content Include="test\lib\angular-mocks.js" />
     <content Include="test\lib\jasmine-async.js" />
     <content Include="test\lib\jasmine-async.min.js" />
     <content Include="test\lib\jasmine-html.js" />
@@ -263,15 +269,15 @@
     <content Include="test\lib\sinon-1.7.1.js" />
     <content Include="test\config\jasmineTestRunnerConfig.js" />
     <content Include="test\testdata\smallOrderTestData.js" />
-    <content Include="test\unit\utilSpec.js" />
+    <content Include="test\specs\utilSpec.js" />
     <content Include="test\testRunner.html" />
     <content Include="test\testdata\lookups.js" />
-    <content Include="test\unit\configSpec.js" />
-    <content Include="test\midway\dataserviceSpec.js" />
-    <content Include="test\unit\firstspec.js" />
-    <content Include="test\midway\testControllerSpec.js" />
-    <content Include="test\async\queryspec.js" />
-    <content Include="test\async\savespec.js" />
+    <content Include="test\specs\configSpec.js" />
+    <content Include="test\specs\dataserviceSpec.js" />
+    <content Include="test\specs\firstspec.js" />
+    <content Include="test\specs\testControllerSpec.js" />
+    <content Include="test\specs\query-async-spec.js" />
+    <content Include="test\specs\save-async-spec.js" />
     <content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -323,9 +329,9 @@
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>5455</DevelopmentServerPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:5452/</IISUrl>
+          <IISUrl>http://localhost:12955/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
@@ -347,7 +353,19 @@
       COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.debug.js" "$(ProjectDir)scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.intellisense.js" "$(ProjectDir)scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\IBlade\breeze.dataservice.mongo.js" "$(ProjectDir)scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)scripts" /Y</PreBuildEvent>
+	  COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.directives.validation.js" "$(ProjectDir)scripts" /Y
+	  COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.directives.css" "$(ProjectDir)content" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)scripts" /Y
+	  
+	  echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\scripts\' to ..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.min.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.debug.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.intellisense.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\IBlade\breeze.dataservice.mongo.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+	  COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.directives.validation.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+	  COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.directives.css" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\content" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+	</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

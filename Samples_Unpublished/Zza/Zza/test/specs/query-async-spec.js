@@ -1,18 +1,24 @@
 /* Zza/Breeze Web API queries */
-xdescribe('Zza/Breeze web api', function(){
+describe('Zza/Breeze web api', function () {
     'use strict';
-    var breezeTest = testFns.breezeTest;
-    var newEm = testFns.newEm;
+    var fns = testFns;
+    var breezeTest = fns.breezeTest;
+    var newEm = fns.newEm;
     var EntityQuery = breeze.EntityQuery;
 
     var async = new AsyncSpec(this);
-    var xasync = testFns.xasync;
+    var xasync = fns.xasync;
 
-    describe('simple queries', function() {
-        async.it("should have lookups", function (done){
+    beforeEach(module('app'));
+    beforeEach(inject(function (environment) {
+        fns.serviceName = environment.serviceName;
+    }));
+
+    describe('simple queries', function () {
+        async.it("should have lookups", function (done) {
             breezeTest(lookupsQuery, done);
 
-            function lookupsQuery(){
+            function lookupsQuery() {
                 var em = newEm();
                 return EntityQuery.from('Lookups')
                     .using(em).execute().then(success);
@@ -23,26 +29,26 @@ xdescribe('Zza/Breeze web api', function(){
 
                 var orderStatuses = result.orderStatuses;
                 expect(orderStatuses.length).toBeGreaterThan(0);
-                console.log("OrderStatuses: "+orderStatuses.length);
+                console.log("OrderStatuses: " + orderStatuses.length);
 
                 var products = result.products;
                 expect(products.length).toBeGreaterThan(0);
-                console.log("Products: "+products.length);
+                console.log("Products: " + products.length);
 
                 var productOptions = result.productOptions;
                 expect(productOptions.length).toBeGreaterThan(0);
-                console.log("ProductOptions: "+productOptions.length);
+                console.log("ProductOptions: " + productOptions.length);
 
                 var productSizes = result.productSizes;
                 expect(productSizes.length).toBeGreaterThan(0);
-                console.log("ProductSizes: "+productSizes.length);
+                console.log("ProductSizes: " + productSizes.length);
             }
         });
 
-        async.it("should have customers", function (done){
+        async.it("should have customers", function (done) {
             breezeTest(customersQuery, done);
 
-            function customersQuery(){
+            function customersQuery() {
                 var em = newEm();
                 return EntityQuery.from('Customers')
                     .using(em).execute().then(success);
@@ -50,14 +56,14 @@ xdescribe('Zza/Breeze web api', function(){
             function success(data) {
                 var results = data.results;
                 expect(results.length).toBeGreaterThan(0);
-                console.log("Customers: "+results.length);
+                console.log("Customers: " + results.length);
             }
         });
 
-        async.it("should have at least 3 orders", function (done){
+        async.it("should have at least 3 orders", function (done) {
             breezeTest(ordersQuery, done);
 
-            function ordersQuery(){
+            function ordersQuery() {
                 var em = newEm();
                 return EntityQuery.from('Orders').take(3)
                     .using(em).execute().then(success);
@@ -68,13 +74,16 @@ xdescribe('Zza/Breeze web api', function(){
         });
     });
 
-    describe('Order queries', function() {
-        async.it("an order should have items", function (done){
+    describe('Order queries', function () {
+        async.it("an order document should have nested items", function (done) {
             breezeTest(orderOrderItemsQuery, done);
 
-            function orderOrderItemsQuery(){
+            function orderOrderItemsQuery() {
                 var em = newEm();
-                return EntityQuery.from('Orders').expand('orderItems').take(1)
+                return EntityQuery.from('Orders')
+                     // use expand in SQL but not in Mongo
+                    .expand('OrderItems')
+                    .take(1)
                     .using(em).execute().then(success);
             }
             function success(data) {
@@ -84,19 +93,19 @@ xdescribe('Zza/Breeze web api', function(){
             }
         });
 
-        async.it("can navigate from order to cached parent customer", function (done){
+        async.it("can navigate from order to cached parent customer", function (done) {
             var em;
             breezeTest(test, done);
 
-            function test(){
+            function test() {
                 em = newEm();
                 return customersQuery().then(orderQuery).then(testTheOrder);
             }
-            function customersQuery(){
+            function customersQuery() {
                 //return Q(true);  // will fail if we don't get customers first
                 return EntityQuery.from('Customers').using(em).execute();
             }
-            function orderQuery(){
+            function orderQuery() {
                 return EntityQuery.from('Orders').take(1).using(em).execute();
             }
             function testTheOrder(data) {
