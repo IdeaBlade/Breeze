@@ -195,7 +195,7 @@
     test("query with expand and reattach ", function () {
 
         var em = newEm();
-        var predicate1 = Predicate.create("lastName", "startsWith", "D");
+        var predicate1 = Predicate.create("firstName", "startsWith", "A");
 
         var q = EntityQuery
             .from("Employees")
