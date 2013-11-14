@@ -15418,27 +15418,25 @@ breeze.AbstractDataServiceAdapter = (function () {
         };
 
         proto.setProperty = function (propertyName, value) {
-            if (!this._backingStore.hasOwnProperty(propertyName)) {
-                throw new Error("Unknown property name:" + propertyName);
-            }
+            //if (!this._backingStore.hasOwnProperty(propertyName)) {
+            //    throw new Error("Unknown property name:" + propertyName);
+            //}
             this[propertyName] = value;
             // allow setProperty chaining.
             return this;
         };
 
         //// called after any create during a query;
-        // this method cannot be called while a 'defineProperty' accessor is executing
-        // because of IE bug 
         proto.initializeFrom = function (rawEntity) {
             // HACK:
             // copy unmapped properties from newly created client entity to the rawEntity.
             // This is so that we don't lose them when we update from the rawEntity to the target.
             // Something that will occur immediately after this method completes. 
-            var that = this;
-            this.entityType.unmappedProperties.forEach(function(prop) {
-                var propName = prop.name;
-                rawEntity[propName] = that[propName];
-            });
+            //var that = this;
+            //this.entityType.unmappedProperties.forEach(function(prop) {
+            //    var propName = prop.name;
+            //    rawEntity[propName] = that[propName];
+            //});
             
         };
 

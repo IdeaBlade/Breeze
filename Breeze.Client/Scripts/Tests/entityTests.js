@@ -25,7 +25,7 @@
         }
     });
 
-    test("new instead of createEntity", function () {
+    test("new instead of createEntity with entityAspect", function () {
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         
         var Customer = testFns.models.CustomerWithMiscData();
@@ -49,29 +49,47 @@
     });
 
 
-    test("new instead of createEntity 2", function () {
+    test("new instead of createEntity w/o entityAspect", function () {
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
 
         var Customer = testFns.models.CustomerWithMiscData();
         Customer.prototype.getNameLength = function () {
             return (this.getProperty("companyName") || "").length;
         };
-        Customer.original = __cloneFunc(Customer);
+
         em.metadataStore.registerEntityTypeCtor("Customer", Customer);
        
-        var cust0 = new Customer();
-        new EntityAspect(cust0);
-        cust0.setProperty("city", "zzz");
-        cust0.setProperty("customerID", breeze.core.getUuid());
-        em.attachEntity(cust0);
-        ok(cust0.getProperty("city") === "zzz", "city should be zzz");
+        
+        if (testFns.modelLibrary === "backingStore") {
+            var cust0 = new Customer();
+            cust0.setProperty("city", "zzz");
+            cust0.setProperty("customerID", breeze.core.getUuid());
+            em.attachEntity(cust0);
+            ok(cust0.getProperty("city") === "zzz", "city should be zzz");
+       
+            var cust1 = new Customer();
+            cust1.city = "zzz";
+            var city = cust1.city;
+            ok(city === "zzz", "city should be 'zzz'");
+            cust1.customerID = breeze.core.getUuid();
+            em.attachEntity(cust1);
+            ok(cust1.getProperty("city") === "zzz", "city should be zzz");
+        } else if (testFns.modelLibrary = "ko") {
+            var cust1 = new Customer();
+            cust1.city = "zzz";
+            var city = cust1.city;
+            ok(city === "zzz", "city should be 'zzz'");
+            cust1.customerID = breeze.core.getUuid();
+            em.attachEntity(cust1);
+            ok(cust1.getProperty("city") === "zzz", "city should be zzz");
+        } else if (testFns.modelLibrary === "backbone") {
+            var cust0 = new Customer();
+            cust0.setProperty("city", "zzz");
+            cust0.setProperty("customerID", breeze.core.getUuid());
+            em.attachEntity(cust0);
+            ok(cust0.getProperty("city") === "zzz", "city should be zzz");
+        }
 
-        //var cust1 = new Customer.original();
-        //cust1.city = "zzz";
-        //cust1.customerID, breeze.core.getUuid();
-        //var cust1a = Customer.prototype.entityType.createEntity(cust1);
-        //em.attachEntity(cust1a);
-        //ok(cust1a.getProperty("city") === "zzz", "city should be zzz");
         
     });
 
@@ -1284,26 +1302,6 @@
         });
     }
 
-    function __cloneFunc(func) {
-
-        var clone = function () {
-            var r = func.apply(func, arguments);
-            r.__clonedFrom
-            return r;
-
-        };
-        for (var key in func) {
-            clone[key] = func[key];
-        }
-        if (clone.prototype !== __dummy.prototype) {
-            clone.prototype = breeze.core.extend({}, func.prototype);
-        }
-
-        return clone;
-    };
-
-    function __dummy() {
-
-    }
+   
 
 })(breezeTestFns);
