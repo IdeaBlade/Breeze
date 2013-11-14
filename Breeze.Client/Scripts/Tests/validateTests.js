@@ -125,6 +125,7 @@
             ok(r0b.errorMessage.indexOf("required") >= 0, v0.getMessage());
         } finally {
             Validator.required = oldVal;
+            Validator.registerFactory(Validator.required, "required");
         }
 
     });
