@@ -31,7 +31,7 @@ a. Install all gems the project needs
 
 	~\ccjs_ruby\rails>bundle install 
 
-b. Copy database.yml from the source (Ruby on Rails) to ~\>ccjs_ruby\rails/config
+b. Open database.yml in a text editor. [this yml is for Windows; if using Mac, replace it with database_sample.yml]
 
 c. Update database.yml with your MySQL user credentials
 
@@ -43,11 +43,13 @@ e. Create the project database structure
 
 	~\ccjs_ruby\rails>bundle exec rake db:migrate
 
-f.  Import Data
+f.  Import Data as follows, replacing [user] with your MySQL user (e.g., admin); supply the user's password when asked
 
 	~\ccjs_ruby\rails>mysql -u [user] -p ccjs_ruby_development < db/data.sql
 
-###2. start the rails server
+	>if mysql is not in your path, specify the full executable path, e.g. "C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql")
+
+###2. start the rails server (make sure nothing else is running on that port!)
 
 	~\ccjs_ruby\rails>bundle exec rails s
 
