@@ -52,20 +52,6 @@
             return this;
         };
 
-        //// called after any create during a query;
-        proto.initializeFrom = function (rawEntity) {
-            // HACK:
-            // copy unmapped properties from newly created client entity to the rawEntity.
-            // This is so that we don't lose them when we update from the rawEntity to the target.
-            // Something that will occur immediately after this method completes. 
-            //var that = this;
-            //this.entityType.unmappedProperties.forEach(function(prop) {
-            //    var propName = prop.name;
-            //    rawEntity[propName] = that[propName];
-            //});
-            
-        };
-
         movePropDefsToProto(proto);
     };
 
@@ -170,8 +156,6 @@
             pendingStores = [];
             proto._pendingBackingStores = pendingStores;
         }
-        
-        // var accessorFn;
         var descr = {
             get: function () {
                 var bs = this._backingStore || getBackingStore(this);

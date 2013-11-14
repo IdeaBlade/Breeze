@@ -74,22 +74,25 @@ var MappingContext = (function () {
             }
             return refValue;
         } else if (meta.entityType) {
+            var entityType = meta.entityType;
             if (mc.mergeOptions.noTracking) {
-                node = processNoMerge(mc, meta.entityType, node);
+                node = processNoMerge(mc, entityType, node);
+                if (entityType.noTrackingFn) {
+                    node = entityType.noTrackingFn(node, entityType);
+                } 
                 if (meta.nodeId) {
                     mc.refMap[meta.nodeId] = node;
                 }
                 return node;
             } else {
-                if (meta.entityType.isComplexType) {
+                if (entityType.isComplexType) {
                     // because we still need to do serverName to client name processing
-                    return processNoMerge(mc, meta.entityType, node);
+                    return processNoMerge(mc, entityType, node);
                 } else {
                     return mergeEntity(mc, node, meta);
                 }
             }
         } else {
-
             if (typeof node === 'object' && !__isDate(node)) {
                 node = processAnonType(mc, node);
             }
@@ -225,12 +228,13 @@ var MappingContext = (function () {
             }
         } else {
             targetEntity = entityType._createInstanceCore();
-            if (targetEntity.initializeFrom) {
-                // allows any injected post ctor activity to be performed by modelLibrary impl.
-                targetEntity.initializeFrom(node);
-            }
+            // No longer needed
+            //if (targetEntity.initializeFrom) {
+            //    // allows any injected post ctor activity to be performed by modelLibrary impl.
+            //    targetEntity.initializeFrom(node);
+            //}
             updateEntity(mc, targetEntity, node);
-            // entityType._initializeInstance(targetEntity);
+            
             if (meta.extra) {
                 targetEntity.entityAspect.extraMetadata = meta.extra;
             }

@@ -387,21 +387,25 @@ var MetadataStore = (function () {
     @method registerEntityTypeCtor
     @param structuralTypeName {String} The name of the EntityType o0r ComplexType.
     @param aCtor {Function}  The constructor for this EntityType or ComplexType; may be null if all you want to do is set the next parameter. 
-    @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
+    @param [initFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
     and populated with any initial values.
-            
-    initializationFn(entity)
-    @param initializationFn.entity {Entity} The entity being created or materialized.
+        initFn(entity)
+    @param initFn.entity {Entity} The entity being created or materialized.
+    @param [noTrackingFn} {Function} A function that is executed immediately after a noTracking entity has been created and whose return
+    value will be used in place of the noTracking entity. 
+    @param noTrackingFn.entity {Object}
+    @param noTrackingFn.entityType {EntityType} The entityType that the 'entity' parameter would be if we were tracking
     **/
-    proto.registerEntityTypeCtor = function (structuralTypeName, aCtor, initializationFn) {
+    proto.registerEntityTypeCtor = function (structuralTypeName, aCtor, initFn, noTrackingFn) {
         assertParam(structuralTypeName, "structuralTypeName").isString().check();
         assertParam(aCtor, "aCtor").isFunction().isOptional().check();
-        assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
+        assertParam(initFn, "initFn").isOptional().isFunction().or().isString().check();
+        assertParam(noTrackingFn, "noTrackingFn").isOptional().isFunction().check();
         
         var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
         var typeName = qualifiedTypeName || structuralTypeName;
             
-        this._ctorRegistry[typeName] = { ctor: aCtor, initFn: initializationFn };
+        this._ctorRegistry[typeName] = { ctor: aCtor, initFn: initFn, noTrackingFn: noTrackingFn };
         if (qualifiedTypeName) {
             var stype = this._structuralTypeMap[qualifiedTypeName];
             stype && stype.getCtor(true); // this will complete the registration if avail now.
@@ -1435,7 +1439,7 @@ var EntityType = (function () {
         if (this.baseEntityType) {
             this.baseEntityType._initializeInstance(instance);
         }
-        var initFn = this.initializationFn;
+        var initFn = this.initFn;
         if (initFn) {
             if (typeof initFn === "string") {
                 initFn = instance[initFn];
@@ -1483,7 +1487,8 @@ var EntityType = (function () {
             aCtor = createCtor ? createCtor(this) : createEmptyCtor();
         }
         
-        this.initializationFn = r.initFn;
+        this.initFn = r.initFn;
+        this.noTrackingFn = r.noTrackingFn;
         
         aCtor.prototype._$typeName = this.name;
         this._setCtor(aCtor);

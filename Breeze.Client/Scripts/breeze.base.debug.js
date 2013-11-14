@@ -6202,21 +6202,25 @@ var MetadataStore = (function () {
     @method registerEntityTypeCtor
     @param structuralTypeName {String} The name of the EntityType o0r ComplexType.
     @param aCtor {Function}  The constructor for this EntityType or ComplexType; may be null if all you want to do is set the next parameter. 
-    @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
+    @param [initFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
     and populated with any initial values.
-            
-    initializationFn(entity)
-    @param initializationFn.entity {Entity} The entity being created or materialized.
+        initFn(entity)
+    @param initFn.entity {Entity} The entity being created or materialized.
+    @param [noTrackingFn} {Function} A function that is executed immediately after a noTracking entity has been created and whose return
+    value will be used in place of the noTracking entity. 
+    @param noTrackingFn.entity {Object}
+    @param noTrackingFn.entityType {EntityType} The entityType that the 'entity' parameter would be if we were tracking
     **/
-    proto.registerEntityTypeCtor = function (structuralTypeName, aCtor, initializationFn) {
+    proto.registerEntityTypeCtor = function (structuralTypeName, aCtor, initFn, noTrackingFn) {
         assertParam(structuralTypeName, "structuralTypeName").isString().check();
         assertParam(aCtor, "aCtor").isFunction().isOptional().check();
-        assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
+        assertParam(initFn, "initFn").isOptional().isFunction().or().isString().check();
+        assertParam(noTrackingFn, "noTrackingFn").isOptional().isFunction().check();
         
         var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
         var typeName = qualifiedTypeName || structuralTypeName;
             
-        this._ctorRegistry[typeName] = { ctor: aCtor, initFn: initializationFn };
+        this._ctorRegistry[typeName] = { ctor: aCtor, initFn: initFn, noTrackingFn: noTrackingFn };
         if (qualifiedTypeName) {
             var stype = this._structuralTypeMap[qualifiedTypeName];
             stype && stype.getCtor(true); // this will complete the registration if avail now.
@@ -7250,7 +7254,7 @@ var EntityType = (function () {
         if (this.baseEntityType) {
             this.baseEntityType._initializeInstance(instance);
         }
-        var initFn = this.initializationFn;
+        var initFn = this.initFn;
         if (initFn) {
             if (typeof initFn === "string") {
                 initFn = instance[initFn];
@@ -7298,7 +7302,8 @@ var EntityType = (function () {
             aCtor = createCtor ? createCtor(this) : createEmptyCtor();
         }
         
-        this.initializationFn = r.initFn;
+        this.initFn = r.initFn;
+        this.noTrackingFn = r.noTrackingFn;
         
         aCtor.prototype._$typeName = this.name;
         this._setCtor(aCtor);
@@ -13955,22 +13960,25 @@ var MappingContext = (function () {
             }
             return refValue;
         } else if (meta.entityType) {
+            var entityType = meta.entityType;
             if (mc.mergeOptions.noTracking) {
-                node = processNoMerge(mc, meta.entityType, node);
+                node = processNoMerge(mc, entityType, node);
+                if (entityType.noTrackingFn) {
+                    node = entityType.noTrackingFn(node, entityType);
+                } 
                 if (meta.nodeId) {
                     mc.refMap[meta.nodeId] = node;
                 }
                 return node;
             } else {
-                if (meta.entityType.isComplexType) {
+                if (entityType.isComplexType) {
                     // because we still need to do serverName to client name processing
-                    return processNoMerge(mc, meta.entityType, node);
+                    return processNoMerge(mc, entityType, node);
                 } else {
                     return mergeEntity(mc, node, meta);
                 }
             }
         } else {
-
             if (typeof node === 'object' && !__isDate(node)) {
                 node = processAnonType(mc, node);
             }
@@ -14106,12 +14114,13 @@ var MappingContext = (function () {
             }
         } else {
             targetEntity = entityType._createInstanceCore();
-            if (targetEntity.initializeFrom) {
-                // allows any injected post ctor activity to be performed by modelLibrary impl.
-                targetEntity.initializeFrom(node);
-            }
+            // No longer needed
+            //if (targetEntity.initializeFrom) {
+            //    // allows any injected post ctor activity to be performed by modelLibrary impl.
+            //    targetEntity.initializeFrom(node);
+            //}
             updateEntity(mc, targetEntity, node);
-            // entityType._initializeInstance(targetEntity);
+            
             if (meta.extra) {
                 targetEntity.entityAspect.extraMetadata = meta.extra;
             }

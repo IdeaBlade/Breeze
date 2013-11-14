@@ -242,6 +242,57 @@
 
     });
 
+    test("query with expand and noTrackingFn ", function () {
 
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var predicate1 = Predicate.create("firstName", "startsWith", "A");
+        var noTrackingFn = function (e, entityType) {
+            return entityType.createEntity(e);
+        };
+        var q = EntityQuery
+            .from("Employees")
+            .where(predicate1)
+            .expand("orders")
+            .noTracking();
+        stop();
+        var empType = em.metadataStore.getEntityType("Employee");
+        em.metadataStore.registerEntityTypeCtor("Employee", null, null, noTrackingFn);
+        em.metadataStore.registerEntityTypeCtor("Order", null, null, noTrackingFn);
+        var orderType = em.metadataStore.getEntityType("Order");
+        var emps;
+        em.executeQuery(q).then(function (data) {
+            var rawEmps = data.results;
+            ok(rawEmps.length > 0);
+
+            emps = rawEmps.map(function (emp) {
+                ok(emp.entityType === empType, "should be empType");
+                ok(emp.entityAspect.entityState === EntityState.Detached);
+                var orders = emp.getProperty("orders");
+                ok(orders.length > 0, "should be some orders");
+                orders.forEach(function (o) {
+                    ok(o.entityType === orderType, "should be orderType");
+                    ok(o.entityAspect.entityState === EntityState.Detached);
+                });
+                
+                empx = em.attachEntity(emp, EntityState.Unchanged, MergeStrategy.SkipMerge);
+                return empx;
+            });
+
+            var q2 = q.noTracking(false);
+            var emps2 = em.executeQueryLocally(q2);
+            ok(emps2.length === emps.length, "local query should resolve to same entities");
+            emps2.forEach(function (emp) {
+                ok(emps.indexOf(emp) >= 0, "local emps should be the same");
+            });
+            return em.executeQuery(q2);
+        }).then(function (data2) {
+            var emps3 = data2.results;
+            emps3.forEach(function (emp) {
+                ok(emps.indexOf(emp) >= 0, "queried emps should be the same");
+            });
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
     
 })(breezeTestFns);
