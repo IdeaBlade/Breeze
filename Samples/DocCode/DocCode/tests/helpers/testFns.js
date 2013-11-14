@@ -8,80 +8,65 @@ docCode.testFns = (function () {
 
     extendString();
 
-    var userSessionId = newGuidComb();
-    
+    var _nextIntId = 10000; // seed for getNextIntId()
+
+    var wellKnownData = {
+        // ID of the Northwind "Alfreds Futterkiste" customer
+            alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
+        // ID of the Northwind "Nancy Davolio" employee
+            nancyID: 1,
+        // Key values of a Northwind "Alfreds Futterkiste"'s OrderDetail
+            alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*Rössle Sauerkraut*/ },
+        // ID of Chai product
+            chaiProductID: 1
+    }
     /*********************************************************
     * testFns - the module object
     *********************************************************/
     var testFns = {
-        userSessionId: userSessionId,
-
-        inheritanceServiceName: "breeze/inheritance",
-
-        northwindServiceName: "breeze/Northwind",
-        northwindNamespace: "Northwind.Models",
-
-        northwindDtoServiceName: "breeze/NorthwindDto",
-        northwindDtoNamespace: "Northwind.DtoModels",
-
-        todosServiceName: "breeze/todos",
-
-        waitForTestPromises:waitForTestPromises,
+        assertIsSorted: assertIsSorted,
+        ensureIsEm: ensureIsEm,
+        getModuleOptions: getModuleOptions,
+        getNextIntId: getNextIntId,
+        getParserForUrl: getParserForUrl,
+        getValidationErrMsgs: getValidationErrMsgs,
         handleFail: handleFail,
         handleSaveFailed: handleSaveFailed,
-        reportRejectedPromises: reportRejectedPromises,
-        getModuleOptions: getModuleOptions,
-        teardown_todosReset: teardown_todosReset,
-        teardown_inheritanceReset: teardown_inheritanceReset,
-        teardown_northwindReset:teardown_northwindReset,
-        output: output,
-        stopCount: stopCountFactory(),
-
+        importCsdlMetadata: importCsdlMetadata,
+        inheritancePurge: inheritancePurge, // empty the Inheritance Model db completely
+        inheritanceReset: inheritanceReset, // reset to known state
+        inheritanceServiceName: "breeze/inheritance",
+        morphString: morphString,
+        morphStringProp: morphStringProp,
         newEmFactory: newEmFactory,
+        newGuid: newGuid,
+        newGuidComb: newGuidComb,
+        northwindDtoServiceName: "breeze/NorthwindDto",
+        northwindDtoNamespace: "Northwind.DtoModels",
+        northwindNamespace: "Northwind.Models",
+        northwindReset: northwindReset, // reset Northwind db to known state
+        northwindServiceName: "breeze/Northwind",
+        output: output,
         populateMetadataStore: populateMetadataStore,
-
-        verifyQuery: verifyQuery,
         queryForSome: queryForSome,
         queryForOne: queryForOne,
         queryForNone: queryForNone,
-        runQuery: runQuery,
-        ensureIsEm: ensureIsEm,
-
-        getNextIntId: getNextIntId,
-        newGuid: newGuid,
-        newGuidComb: newGuidComb,
-        
-        getParserForUrl: getParserForUrl,
+        reportRejectedPromises: reportRejectedPromises,
         rootUri: getRootUri(),
-        
-        assertIsSorted: assertIsSorted,
-        getValidationErrMsgs: getValidationErrMsgs,
-        morphString: morphString,
-        morphStringProp: morphStringProp,
-
+        runQuery: runQuery,
+        showCustomerResultsAsAssert: showCustomerResultsAsAssert,
+        stopCount: stopCountFactory(),
+        teardown_todosReset: teardown_todosReset,
+        teardown_inheritanceReset: teardown_inheritanceReset,
+        teardown_northwindReset: teardown_northwindReset,
         todosPurge: todosPurge, // empty the Todos db completely
         todosReset: todosReset, // reset to known state
-
-        inheritancePurge: inheritancePurge, // empty the Inheritance Model db completely
-        inheritanceReset: inheritanceReset, // reset to known state
-
-        northwindReset: northwindReset, // reset Northwind db to known state
-        
-        // Asserts merely to display data
-        showCustomerResultsAsAssert: showCustomerResultsAsAssert,
-
-        wellKnownData: {
-            // ID of the Northwind "Alfreds Futterkiste" customer
-            alfredsID: '785efa04-cbf2-4dd7-a7de-083ee17b6ad2',
-            // ID of the Northwind "Nancy Davolio" employee
-            nancyID: 1,
-            // Key values of a Northwind "Alfreds Futterkiste"'s OrderDetail
-            alfredsOrderDetailKey: { OrderID: 10643, ProductID: 28 /*Rössle Sauerkraut*/ },
-            // ID of Chai product
-            chaiProductID: 1
-        }
+        todosServiceName: "breeze/todos",
+        userSessionId: newGuidComb(),
+        verifyQuery: verifyQuery,
+        waitForTestPromises: waitForTestPromises,      
+        wellKnownData: wellKnownData
     };
-    var _nextIntId = 10000; // seed for getNextIntId()
 
     initAjaxAdapter();
     return testFns;
@@ -93,11 +78,17 @@ docCode.testFns = (function () {
         var ajaxAdapter = breeze.config.getAdapterInstance("ajax");
         ajaxAdapter.defaultSettings = {
             headers: {
-                "X-UserSessionId": userSessionId
+                "X-UserSessionId": testFns.userSessionId
             },
         };
     }
     
+    function importCsdlMetadata(metadataStore, csdlMetadata) {
+        // Import CSDL metadata that were downloaded as a script file
+        // e.g. the "northwindMetadata.js" file that was (re)generated by the server 
+        metadataStore.importMetadata(csdlMetadata);
+    }
+
     function getParserForUrl(url) {
         var parser = document.createElement('a');
         parser.href = url;
@@ -560,7 +551,7 @@ docCode.testFns = (function () {
             url: testFns.northwindServiceName + "/reset"+ queryString,
             success: success,
             error: error,
-            headers: { "X-UserSessionId": userSessionId }
+            headers: { "X-UserSessionId": testFns.userSessionId }
         });
         
         return deferred.promise;
