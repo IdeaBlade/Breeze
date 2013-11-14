@@ -12517,8 +12517,11 @@ var EntityManager = (function () {
         );
     @method saveChanges
     @async
-    @param [entities] {Array of Entity} The list of entities to save.  All entities with changes 
-    within this EntityManager will be saved if this parameter is omitted, null or empty.
+    @param [entities] {Array of Entity} The list of entities to save.  
+    Every entity in that list will be sent to the server, whether changed or unchanged, 
+    as long as it is attached to this EntityManager.
+    If this parameter is omitted, null or empty (the usual case), 
+    every entity with pending changes in this EntityManager will be saved. 
     @param [saveOptions] {SaveOptions} {{#crossLink "SaveOptions"}}{{/crossLink}} for the save - will default to
     {{#crossLink "EntityManager/saveOptions"}}{{/crossLink}} if null.
     @param [callback] {Function} Function called on success.

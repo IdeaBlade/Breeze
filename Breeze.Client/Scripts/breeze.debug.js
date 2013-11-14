@@ -12517,8 +12517,11 @@ var EntityManager = (function () {
         );
     @method saveChanges
     @async
-    @param [entities] {Array of Entity} The list of entities to save.  All entities with changes 
-    within this EntityManager will be saved if this parameter is omitted, null or empty.
+    @param [entities] {Array of Entity} The list of entities to save.  
+    Every entity in that list will be sent to the server, whether changed or unchanged, 
+    as long as it is attached to this EntityManager.
+    If this parameter is omitted, null or empty (the usual case), 
+    every entity with pending changes in this EntityManager will be saved. 
     @param [saveOptions] {SaveOptions} {{#crossLink "SaveOptions"}}{{/crossLink}} for the save - will default to
     {{#crossLink "EntityManager/saveOptions"}}{{/crossLink}} if null.
     @param [callback] {Function} Function called on success.
@@ -15437,33 +15440,33 @@ breeze.AbstractDataServiceAdapter = (function () {
                 rawEntity[propName] = that[propName];
             });
             
-            if (!this._backingStore) {
-                this._backingStore = { };
-            }
+            //if (!this._backingStore) {
+            //    this._backingStore = { };
+            //}
         };
 
         // internal implementation details - ugly because of IE9 issues with defineProperty.
 
-        proto._pendingSets = [];
-        proto._pendingSets.schedule = function(entity, propName, value) {
-            this.push({ entity: entity, propName: propName, value: value });
-            if (!this.isPending) {
-                this.isPending = true;
-                var that = this;
-                setTimeout(function() { that.process(); });
-            }
-        };
-        proto._pendingSets.process = function() {
-            if (this.length === 0) return;
-            this.forEach(function(ps) {
-                if (!ps.entity._backingStore) {
-                    ps.entity._backingStore = { };
-                }
-                ps.entity._backingStore[ps.propName] = ps.value;
-            });
-            this.length = 0;
-            this.isPending = false;
-        };
+        //proto._pendingSets = [];
+        //proto._pendingSets.schedule = function(entity, propName, value) {
+        //    this.push({ entity: entity, propName: propName, value: value });
+        //    if (!this.isPending) {
+        //        this.isPending = true;
+        //        var that = this;
+        //        setTimeout(function() { that.process(); });
+        //    }
+        //};
+        //proto._pendingSets.process = function() {
+        //    if (this.length === 0) return;
+        //    this.forEach(function(ps) {
+        //        if (!ps.entity._backingStore) {
+        //            ps.entity._backingStore = { };
+        //        }
+        //        ps.entity._backingStore[ps.propName] = ps.value;
+        //    });
+        //    this.length = 0;
+        //    this.isPending = false;
+        //};
 
         movePropDefsToProto(proto);
 
@@ -15475,7 +15478,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     // entity is either an entity or a complexObject
     ctor.prototype.startTracking = function (entity, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
-        proto._pendingSets.process();
+        // proto._pendingSets.process();
         var bs = movePropsToBackingStore(entity);
 
         // assign default values to the entity
@@ -15549,10 +15552,9 @@ breeze.AbstractDataServiceAdapter = (function () {
     // because of IE bug mentioned above.
 
     function movePropsToBackingStore(instance) {
+        
+        var bs = getBackingStore(instance);
         var proto = Object.getPrototypeOf(instance);
-        if (!instance._backingStore) {
-            instance._backingStore = { };
-        }
         var stype = proto.entityType || proto.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
@@ -15562,37 +15564,25 @@ breeze.AbstractDataServiceAdapter = (function () {
             delete instance[propName];
             instance[propName] = value;
         });
-        return instance._backingStore;
+        return bs;
     }
 
     function makePropDescription(proto, property) {
         var propName = property.name;
-        var getAccessorFn = function(backingStore) {
-            return function() {
-                if (arguments.length == 0) {
-                    return backingStore[propName];
-                } else {
-                    backingStore[propName] = arguments[0];
-                }
-            };
-        };
+        var pendingStores = proto._pendingBackingStores;
+        if (!pendingStores) {
+            pendingStores = [];
+            proto._pendingBackingStores = pendingStores;
+        }
         var descr = {
-            get: function() {
-                var bs = this._backingStore;
-                if (!bs) {
-                    this._pendingSets.process();
-                    bs = this._backingStore;
-                    if (!bs) return;
-                }
+            get: function () {
+                var bs = this._backingStore || getBackingStore(this);
                 return bs[propName];
             },
-            set: function(value) {
-                var bs = this._backingStore;
-                if (!bs) {
-                    this._pendingSets.schedule(this, propName, value);
-                    return;
-                }
-                var accessorFn = getAccessorFn(bs);
+            set: function (value) {
+                // IE9 cannot touch instance._backingStore here
+                var bs = this._backingStore || getPendingBackingStore(this);
+                var accessorFn = getAccessorFn(bs, propName);
                 this._$interceptor(property, value, accessorFn);
             },
             enumerable: true,
@@ -15600,6 +15590,85 @@ breeze.AbstractDataServiceAdapter = (function () {
         };
         Object.defineProperty(proto, propName, descr);
     }
+
+    function getAccessorFn(bs, propName) {
+        
+        return function () {
+            if (arguments.length == 0) {
+                return bs[propName];
+            } else {
+                bs[propName] = arguments[0];
+            }
+        };
+    }
+
+    function getBackingStore(instance) {
+        var proto = Object.getPrototypeOf(instance);
+        processPendingStores(proto);
+        var bs = instance._backingStore;
+        if (!bs) {
+            bs = {};
+            instance._backingStore = bs;
+        }
+        return bs;
+    }
+
+    function getPendingBackingStore(instance) {
+        var proto = Object.getPrototypeOf(instance);
+        var pending = proto._pendingBackingStores.filter(function (pending) {
+            return pending.entity === instance;
+        });
+        if (pending.length > 0) return pending[0].backingStore;
+        bs = {};
+        proto._pendingBackingStores.push({ entity: instance, backingStore: bs });
+        return bs;
+    }
+
+    function processPendingStores(proto) {
+        var pendingStores = proto._pendingBackingStores;
+        if (pendingStores) {
+            pendingStores.forEach(function (pending) {
+                pending.entity._backingStore = pending.backingStore;
+            });
+            pendingStores.length = 0;
+        }
+    }
+
+    //function makePropDescription(proto, property) {
+    //    var propName = property.name;
+    //    var getAccessorFn = function(backingStore) {
+    //        return function() {
+    //            if (arguments.length == 0) {
+    //                return backingStore[propName];
+    //            } else {
+    //                backingStore[propName] = arguments[0];
+    //            }
+    //        };
+    //    };
+    //    var descr = {
+    //        get: function() {
+    //            var bs = this._backingStore;
+    //            if (!bs) {
+    //                this._pendingSets.process();
+    //                bs = this._backingStore;
+    //                if (!bs) return;
+    //            }
+    //            return bs[propName];
+    //        },
+    //        set: function(value) {
+    //            var bs = this._backingStore;
+    //            if (!bs) {
+    //                this._pendingSets.schedule(this, propName, value);
+    //                return;
+    //            }
+    //            var accessorFn = getAccessorFn(bs);
+    //            this._$interceptor(property, value, accessorFn);
+    //        },
+    //        enumerable: true,
+    //        configurable: true
+    //    };
+    //    Object.defineProperty(proto, propName, descr);
+    //}
 
     function wrapPropDescription(proto, property) {
         if (!proto.hasOwnProperty(property.name)) {
