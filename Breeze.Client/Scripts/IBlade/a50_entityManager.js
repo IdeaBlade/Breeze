@@ -2070,16 +2070,15 @@ var EntityManager = (function () {
         
         var rawObject = {};
         var stype = structObj.entityType || structObj.complexType;
-        
+        var unmapped = {};
         stype.dataProperties.forEach(function (dp) {
             if (dp.isUnmapped) {
                 if (isOData) return;
                 var val = structObj.getProperty(dp.name);
                 val = transformValue(val, dp, false);
                 if (val !== undefined) {
-                    rawObject.__unmapped = rawObject.__unmapped || {};
                     // no name on server for unmapped props
-                    rawObject.__unmapped[dp.name] = val;
+                    unmapped[dp.name] = val;
                 }
             } else if (dp.isComplexProperty) {
                 rawObject[dp.nameOnServer] = __map(structObj.getProperty(dp.name), function (co) {
@@ -2094,6 +2093,9 @@ var EntityManager = (function () {
             }
         });
         
+        if (!__isEmpty(unmapped)) {
+            rawObject.__unmapped = unmapped;
+        }
         return rawObject;
     }
     

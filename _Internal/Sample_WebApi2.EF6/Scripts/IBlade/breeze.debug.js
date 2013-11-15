@@ -151,6 +151,31 @@ function __toJson(source, template) {
     return target;
 }
 
+function __toJSONSafe(obj) {
+    if (obj !== Object(obj)) return obj; // primitive value
+    if (obj._$visited) return undefined;
+    if (obj.toJSON) {
+        obj = obj.toJSON();
+    }
+    obj._$visited = true;
+    var result;
+    if (obj instanceof Array) {
+        result = obj.map(__toJSONSafe);
+    } else if (typeof (obj) === "function") {
+        result = undefined;
+    } else {
+        var result = {};
+        for (var prop in obj) {
+            if (prop === "_$visited") continue;
+            var val = __toJSONSafe(obj[prop]);
+            if (val === undefined) continue;
+            result[prop] = val;
+        }
+    }
+    delete obj._$visited;
+    return result;
+}
+
 // resolves the values of a list of properties by checking each property in multiple sources until a value is found.
 function __resolveProperties(sources, propertyNames) {
     var r = {};
@@ -459,6 +484,8 @@ function __isEmpty(obj) {
     return true;
 }
 
+
+
 function __isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
@@ -519,7 +546,7 @@ core.objectForEach= __objectForEach;
 
 core.extend = __extend;
 core.propEq = __propEq;
-core.pluck  = __pluck;
+core.pluck = __pluck;
 
 core.arrayEquals = __arrayEquals;
 // core.arrayDistinct = __arrayDistinct;
@@ -546,6 +573,8 @@ core.isNumeric= __isNumeric;
 core.stringStartsWith= __stringStartsWith;
 core.stringEndsWith= __stringEndsWith;
 core.formatString = __formatString;
+
+core.toJSONSafe = __toJSONSafe;
 
 core.parent = breeze;
 breeze.core = core;
@@ -13727,16 +13756,15 @@ var EntityManager = (function () {
         
         var rawObject = {};
         var stype = structObj.entityType || structObj.complexType;
-        
+        var unmapped = {};
         stype.dataProperties.forEach(function (dp) {
             if (dp.isUnmapped) {
                 if (isOData) return;
                 var val = structObj.getProperty(dp.name);
                 val = transformValue(val, dp, false);
                 if (val !== undefined) {
-                    rawObject.__unmapped = rawObject.__unmapped || {};
                     // no name on server for unmapped props
-                    rawObject.__unmapped[dp.name] = val;
+                    unmapped[dp.name] = val;
                 }
             } else if (dp.isComplexProperty) {
                 rawObject[dp.nameOnServer] = __map(structObj.getProperty(dp.name), function (co) {
@@ -13751,6 +13779,9 @@ var EntityManager = (function () {
             }
         });
         
+        if (!__isEmpty(unmapped)) {
+            rawObject.__unmapped = unmapped;
+        }
         return rawObject;
     }
     
