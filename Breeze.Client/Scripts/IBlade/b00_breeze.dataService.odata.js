@@ -32,9 +32,10 @@
     ctor.prototype.executeQuery = function (mappingContext) {
     
         var deferred = Q.defer();
-        // OData.read(mappingContext.url,
+        var url = mappingContext.getUrl();
+        
         OData.read({
-                requestUri: mappingContext.url,
+                requestUri: url,
                 headers: { "DataServiceVersion": "2.0" }
             },
             function (data, response) {
@@ -46,7 +47,7 @@
                 return deferred.resolve({ results: data.results, inlineCount: inlineCount });
             },
             function (error) {
-                return deferred.reject(createError(error, mappingContext.url));
+                return deferred.reject(createError(error, url));
             }
         );
         return deferred.promise;

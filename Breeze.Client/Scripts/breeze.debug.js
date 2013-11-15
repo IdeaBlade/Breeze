@@ -13649,7 +13649,7 @@ var EntityManager = (function () {
             });
             
             var validateOnQuery = em.validationOptions.validateOnQuery;
-            
+           
             return dataService.adapterInstance.executeQuery(mappingContext).then(function (data) {
                 var result = __wrapExecution(function () {
                     var state = { isLoading: em.isLoading };
@@ -13835,13 +13835,16 @@ var EntityManager = (function () {
     
     function unwrapChangedValues(target, metadataStore, transformFn) {
         var stype = target.entityType || target.complexType;
+        var serializerFn = getSerializerFn(stype);
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, value) {
             var prop = stype.getProperty(propName);
             var val = target.getProperty(propName);
-            val = transformFn ? transformFn(val, prop) : val;
+            val = transformFn ? transformFn(prop, val) : val;
+            if (val === undefined) return;
+            val = serializerFn ? serializerFn(dp, val) : val;
             if (val !== undefined) {
                 result[fn(propName, prop)] = val;
             }
@@ -13953,6 +13956,10 @@ var MappingContext = (function () {
     var proto = ctor.prototype;
     var parseRawValue = DataType.parseRawValue;
     proto._$typeName = "MappingContext";
+
+    proto.getUrl = function () {
+        return  this.dataService.makeUrl(this.metadataStore.toQueryString(this.query));
+    }
 
     proto.visitAndMerge = function (nodes, nodeContext) {
         var query = this.query;
@@ -14470,7 +14477,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     ctor.prototype.executeQuery = function (mappingContext) {
 
         var deferred = Q.defer();
-        var url = mappingContext.dataService.makeUrl(mappingContext.metadataStore.toQueryString(mappingContext.query));
+        var url = mappingContext.getUrl();
 
         var that = this;
         var params = {
@@ -14869,9 +14876,10 @@ breeze.AbstractDataServiceAdapter = (function () {
     ctor.prototype.executeQuery = function (mappingContext) {
     
         var deferred = Q.defer();
-        // OData.read(mappingContext.url,
+        var url = mappingContext.getUrl();
+        
         OData.read({
-                requestUri: mappingContext.url,
+                requestUri: url,
                 headers: { "DataServiceVersion": "2.0" }
             },
             function (data, response) {
@@ -14883,7 +14891,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                 return deferred.resolve({ results: data.results, inlineCount: inlineCount });
             },
             function (error) {
-                return deferred.reject(createError(error, mappingContext.url));
+                return deferred.reject(createError(error, url));
             }
         );
         return deferred.promise;

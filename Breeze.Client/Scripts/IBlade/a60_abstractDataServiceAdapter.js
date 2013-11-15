@@ -70,7 +70,7 @@
     ctor.prototype.executeQuery = function (mappingContext) {
 
         var deferred = Q.defer();
-        var url = mappingContext.dataService.makeUrl(mappingContext.metadataStore.toQueryString(mappingContext.query));
+        var url = mappingContext.getUrl();
 
         var that = this;
         var params = {
