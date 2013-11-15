@@ -389,6 +389,18 @@ namespace Sample_WebApi2.Controllers {
       return ContextProvider.SaveChanges(saveBundle);
     }
 
+    [HttpPost]
+    public SaveResult SaveCheckUnmappedPropertySerialized(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntityDelegate = CheckUnmappedPropertySerialized;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
+    [HttpPost]
+    public SaveResult SaveCheckUnmappedPropertySuppressed(JObject saveBundle) {
+      ContextProvider.BeforeSaveEntityDelegate = CheckUnmappedPropertySuppressed;
+      return ContextProvider.SaveChanges(saveBundle);
+    }
+
     private Dictionary<Type, List<EntityInfo>> ThrowError(Dictionary<Type, List<EntityInfo>> saveMap) {
       throw new Exception("Deliberately thrown exception");
     }
@@ -485,7 +497,34 @@ namespace Sample_WebApi2.Controllers {
       return false;
     }
 
+    private bool CheckUnmappedPropertySuppressed(EntityInfo entityInfo) {
+      if (entityInfo.UnmappedValuesMap != null) { 
+        throw new Exception("unmapped properties should have been suppressed");
+      }
+      return false;
+    }
 
+    private bool CheckUnmappedPropertySerialized(EntityInfo entityInfo) {
+      var unmappedValue = entityInfo.UnmappedValuesMap["myUnmappedProperty"];
+      if ((String)unmappedValue != "ANYTHING22") {
+        throw new Exception("wrong value for unmapped property:  " + unmappedValue);
+      }
+      var anotherOne = entityInfo.UnmappedValuesMap["anotherOne"];
+
+      if (((dynamic) anotherOne).z[5].foo.Value != 4) {
+        throw new Exception("wrong value for 'anotherOne.z[5].foo'");
+      }
+
+      if (((dynamic)anotherOne).extra.Value != 666) {
+        throw new Exception("wrong value for 'anotherOne.extra'");
+      }
+
+      Customer cust = entityInfo.Entity as Customer;
+      if (cust.CompanyName.ToUpper() != cust.CompanyName) {
+        throw new Exception("Uppercasing of company name did not occur");
+      }
+      return false;
+    }
 
 
     #region standard queries

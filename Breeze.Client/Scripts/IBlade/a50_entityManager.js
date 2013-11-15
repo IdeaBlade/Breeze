@@ -1646,11 +1646,11 @@ var EntityManager = (function () {
         var resultGroup = {};
         var entityType = entityGroup.entityType;
         var dps = entityType.dataProperties;
-        
+        var serializerFn = getSerializerFn(entityType);
         var rawEntities = [];
         entityGroup._entities.forEach(function (entity) {
             if (entity) {
-                var rawEntity = structuralObjectToJson(entity, dps, tempKeys);
+                var rawEntity = structuralObjectToJson(entity, dps, serializerFn, tempKeys);
                 rawEntities.push(rawEntity);
             }
         });
@@ -1658,23 +1658,28 @@ var EntityManager = (function () {
         return resultGroup;
     }
 
-    function structuralObjectToJson(so, dps, tempKeys) {
+    function structuralObjectToJson(so, dps, serializerFn, tempKeys) {
         
         var result = {};
-        
         dps.forEach(function (dp) {
             var dpName = dp.name;
             var value = so.getProperty(dpName);
             if (value == null && dp.defaultValue == null) return;
+
             if (value && value.complexType) {
                 var newValue;
                 var coDps = dp.dataType.dataProperties;
-                result[dpName] = __map(value, function (v) {
-                    return structuralObjectToJson(v, coDps);
+                value = __map(value, function (v) {
+                    return structuralObjectToJson(v, coDps, serializerFn);
                 });
             } else {
-                result[dpName] = value;
+                value = serializerFn ? serializerFn(dp, value) : value;
+                if (dp.isUnmapped) {
+                    value = __toJSONSafe(value);
+                }
             }
+            if (value === undefined) return;
+            result[dpName] = value;
         });
         var aspect, newAspect;
         if (so.entityAspect) {
@@ -2066,29 +2071,28 @@ var EntityManager = (function () {
     };
     
    
-    function unwrapInstance(structObj, isOData) {
+    function unwrapInstance(structObj, transformFn) {
         
         var rawObject = {};
         var stype = structObj.entityType || structObj.complexType;
+        var serializerFn = getSerializerFn(stype);
         var unmapped = {};
         stype.dataProperties.forEach(function (dp) {
-            if (dp.isUnmapped) {
-                if (isOData) return;
-                var val = structObj.getProperty(dp.name);
-                val = transformValue(val, dp, false);
-                if (val !== undefined) {
-                    // no name on server for unmapped props
-                    unmapped[dp.name] = val;
-                }
-            } else if (dp.isComplexProperty) {
+            if (dp.isComplexProperty) {
                 rawObject[dp.nameOnServer] = __map(structObj.getProperty(dp.name), function (co) {
-                    return unwrapInstance(co, isOData);
+                    return unwrapInstance(co, transformFn);
                 });
             } else {
                 var val = structObj.getProperty(dp.name);
-                val = transformValue(val, dp, isOData);
+                val = transformFn ? transformFn(dp, val) : val;
+                if (val === undefined) return;
+                val = serializerFn ? serializerFn(dp, val) : val;
                 if (val !== undefined) {
-                    rawObject[dp.nameOnServer] = val;
+                    if (dp.isUnmapped) {
+                        unmapped[dp.name] = __toJSONSafe(val);
+                    } else {
+                        rawObject[dp.nameOnServer] = val;
+                    }
                 }
             }
         });
@@ -2099,14 +2103,14 @@ var EntityManager = (function () {
         return rawObject;
     }
     
-    function unwrapOriginalValues(target, metadataStore, isOData) {
+    function unwrapOriginalValues(target, metadataStore, transformFn) {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, val) {
             var prop = stype.getProperty(propName);
-            val = transformValue(val, prop, isOData);
+            val = transformFn ? transformFn(prop, val) : val;
             if (val !== undefined) {
                 result[fn(propName, prop)] = val;
             }
@@ -2114,13 +2118,13 @@ var EntityManager = (function () {
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
             if (cp.isScalar) {
-                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
+                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, transformFn);
                 if (!__isEmpty(unwrappedCo)) {
                     result[fn(cp.name, cp)] = unwrappedCo;
                 }
             } else {
                 var unwrappedCos = nextTarget.map(function (item) {
-                    return unwrapOriginalValues(item, metadataStore, isOData);
+                    return unwrapOriginalValues(item, metadataStore, transformFn);
                 });
                 result[fn(cp.name, cp)] = unwrappedCos;
             }
@@ -2128,7 +2132,7 @@ var EntityManager = (function () {
         return result;
     }
     
-    function unwrapChangedValues(target, metadataStore, isOData) {
+    function unwrapChangedValues(target, metadataStore, transformFn) {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
@@ -2136,7 +2140,7 @@ var EntityManager = (function () {
         __objectForEach(aspect.originalValues, function (propName, value) {
             var prop = stype.getProperty(propName);
             var val = target.getProperty(propName);
-            val = transformValue(val, prop, isOData);
+            val = transformFn ? transformFn(val, prop) : val;
             if (val !== undefined) {
                 result[fn(propName, prop)] = val;
             }
@@ -2144,13 +2148,13 @@ var EntityManager = (function () {
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
             if (cp.isScalar) {
-                var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
+                var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore, transformFn);
                 if (!__isEmpty(unwrappedCo)) {
                     result[fn(cp.name, cp)] = unwrappedCo;
                 }
             } else {
                 var unwrappedCos = nextTarget.map(function (item) {
-                    return unwrapChangedValues(item, metadataStore);
+                    return unwrapChangedValues(item, metadataStore, transformFn);
                 });
                 result[fn(cp.name, cp)] = unwrappedCos;
             }
@@ -2158,19 +2162,10 @@ var EntityManager = (function () {
         return result;
     }
 
-    function transformValue(val, prop, isOData) {
-        if (isOData) {
-            if (prop.isUnmapped) return;
-            if (prop.dataType === DataType.DateTimeOffset) {
-                // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
-                // from other dateTimes. This fix compensates before the save.
-                val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
-            } else if (prop.dataType.quoteJsonOData) {
-                val = val != null ? val.toString() : val;
-            }
-        }
-        return val;
+    function getSerializerFn(stype) {
+        return stype.serializerFn || (stype.metadataStore && stype.metadataStore.serializerFn);
     }
+
 
     function UnattachedChildrenMap() {
         // key is EntityKey.toString(), value is array of { navigationProperty, children }

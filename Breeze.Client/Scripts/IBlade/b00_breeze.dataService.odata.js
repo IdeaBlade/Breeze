@@ -189,6 +189,18 @@
         
     });
 
+    function transformValue(prop, val ) {
+        if (prop.isUnmapped) return undefined;
+        if (prop.dataType === DataType.DateTimeOffset) {
+            // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
+            // from other dateTimes. This fix compensates before the save.
+            val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
+        } else if (prop.dataType.quoteJsonOData) {
+            val = val != null ? val.toString() : val;
+        }
+        return val;
+    }
+
     function createChangeRequests(saveContext, saveBundle) {
         var changeRequests = [];
         var tempKeys = [];
@@ -205,12 +217,12 @@
             if (aspect.entityState.isAdded()) {
                 request.requestUri = entity.entityType.defaultResourceName;
                 request.method = "POST";
-                request.data = helper.unwrapInstance(entity, true);
+                request.data = helper.unwrapInstance(entity, transformValue);
                 tempKeys[id] = aspect.getKey();
             } else if (aspect.entityState.isModified()) {
                 updateDeleteMergeRequest(request, aspect, prefix);
                 request.method = "MERGE";
-                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, true);
+                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, transformValue);
                 // should be a PATCH/MERGE
             } else if (aspect.entityState.isDeleted()) {
                 updateDeleteMergeRequest(request, aspect, prefix);

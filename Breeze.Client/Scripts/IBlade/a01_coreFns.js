@@ -122,24 +122,32 @@ function __toJson(source, template) {
     return target;
 }
 
-function __toJSONSafe(obj) {
+function __toJSONSafe(obj, replacer) {
     if (obj !== Object(obj)) return obj; // primitive value
     if (obj._$visited) return undefined;
     if (obj.toJSON) {
-        obj = obj.toJSON();
-        if (obj !== Object(obj)) return obj; // primitive value
+        var newObj = obj.toJSON();
+        if (newObj !== Object(newObj)) return newObj; // primitive value
+        if (newObj !== obj) return __toJSONSafe(newObj);
+        // toJSON returned the object unchanged.
+        obj = newObj;
     }
     obj._$visited = true;
     var result;
     if (obj instanceof Array) {
-        result = obj.map(__toJSONSafe);
+        result = obj.map(function (o) { return __toJSONSafe(o, replacer); } );
     } else if (typeof (obj) === "function") {
         result = undefined;
     } else {
         var result = {};
         for (var prop in obj) {
             if (prop === "_$visited") continue;
-            var val = __toJSONSafe(obj[prop]);
+            var val = obj[prop];
+            if (replacer) {
+                val = replacer(prop, val);
+                if (val === undefined) continue;
+            }
+            var val = __toJSONSafe(val);
             if (val === undefined) continue;
             result[prop] = val;
         }
