@@ -12047,13 +12047,16 @@ var EntityManager = (function () {
         // assume em2 is another entityManager containing some of the same entities possibly with modifications.
         em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
     @method exportEntities
-    @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
+    @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted or null
+    @param [includeMetadata = true] Whether to include metadata in the export; the default is true
+
     @return {String} A serialized version of the exported data.
     **/
-    proto.exportEntities = function (entities) {
+    proto.exportEntities = function (entities, includeMetadata) {
+        assertParam(includeMetadata, "includeMetadata").isBoolean().isOptional().check();
+        includeMetadata = (includeMetadata == null) ? true : includeMetadata;
         var exportBundle = exportEntityGroups(this, entities);
         var json = {
-            metadataStore: this.metadataStore.exportMetadata(),
             dataService: this.dataService,
             saveOptions: this.saveOptions,
             queryOptions: this.queryOptions,
@@ -12061,6 +12064,12 @@ var EntityManager = (function () {
             tempKeys: exportBundle.tempKeys,
             entityGroupMap: exportBundle.entityGroupMap
         };
+        if (includeMetadata) {
+            json.metadataStore = this.metadataStore.exportMetadata();
+        } else {
+            json.metadataVersion = this.metadataStore.version;
+        }
+
         var result = JSON.stringify(json, null, __config.stringifyPad);
         return result;
     };
@@ -12103,11 +12112,16 @@ var EntityManager = (function () {
         config = config || {};
         assertConfig(config)
             .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
+            .whereParam("metadataVersionChecker").isFunction().isOptional()
             .applyAll(config);
         var that = this;
             
         var json = (typeof exportedString === "string") ? JSON.parse(exportedString) : exportedString;
-        this.metadataStore.importMetadata(json.metadataStore);
+        if (json.metadataStore) {
+            this.metadataStore.importMetadata(json.metadataStore);
+        } else {
+            config.metadataVersionChecker && config.metadataVersionChecker(json.metadataVersion);
+        }
         // the || clause is for backwards compat with an earlier serialization format.           
         this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
         

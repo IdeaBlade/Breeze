@@ -199,7 +199,7 @@
         var cfg = {};
         cfg[testFns.customerKeyName] = breeze.core.getUuid();
         var customer = m1.createEntity("Customer", cfg);
-        var exported = m1.exportEntities([customer]);
+        var exported = m1.exportEntities([customer], false);
         var m2 = em.createEmptyCopy();
 
         m2.importEntities(exported);
@@ -219,7 +219,7 @@
         var cfg = {};
         cfg[testFns.customerKeyName] = breeze.core.getUuid();
         var customer = m1.createEntity("Customer", cfg);
-        var exported = m1.exportEntities([customer]);
+        var exported = m1.exportEntities([customer], false);
         var m2 = em.createEmptyCopy();
 
         m2.importEntities(exported);
@@ -496,7 +496,7 @@
         em.addEntity(user);
         // need to do this after the addEntity call
         var id = user.getProperty(testFns.userKeyName);
-        var exported = em.exportEntities();
+        var exported = em.exportEntities(null, false);
         var em2 = newEm();
         em2.importEntities(exported);
         var user2 = em2.getEntityByKey("User", id);
@@ -909,7 +909,7 @@
         em1.metadataStore.serializerFn = function (dp, value) {
             return dp.isUnmapped ? undefined : value;
         };
-        var bundle = em1.exportEntities();
+        var bundle = em1.exportEntities(null, false);
             
         var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
         em2.importEntities(bundle);
