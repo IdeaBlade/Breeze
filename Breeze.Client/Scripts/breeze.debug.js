@@ -7286,7 +7286,7 @@ var EntityType = (function () {
             //        instance.setProperty(dp.name, val);
             //    }
             //});
-            this._updateTargetFromRaw(instance, initialValues, DataProperty.getRawValueFromClient);
+            this._updateTargetFromRaw(instance, initialValues, getRawValueFromConfig);
             
             this.navigationProperties.forEach(function (np) {
                 var relatedEntity;
@@ -7311,6 +7311,16 @@ var EntityType = (function () {
         return instance;
     };
 
+    function getRawValueFromConfig(rawEntity, dp) {
+        var val;
+        if (rawEntity.entityAspect || rawEntity.complexAspect) {
+            // this can happen if an initializer contains an actaul instance of an already created complex object.
+            val = rawEntity.getProperty(dp.name);
+        } else {
+            val = rawEntity[dp.name];
+        }
+        return val !== undefined ? val : dp.defaultValue;
+    }
 
     proto._createInstanceCore = function() {
         var aCtor = this.getEntityCtor();
