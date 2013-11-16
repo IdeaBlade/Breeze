@@ -177,6 +177,7 @@
         customerType.setProperties({
             serializerFn: function (dp, value) {
                 if (dp.isUnmapped) return undefined;
+                return value;
             }
         })
         var Customer = function () {
