@@ -1427,12 +1427,13 @@ var EntityType = (function () {
                 initialValues._$eref = instance;
             };
            
-            this.dataProperties.forEach(function (dp) {
-                var val = initialValues[dp.name];
-                if (val !== undefined) {
-                    instance.setProperty(dp.name, val);
-                }
-            });
+            //this.dataProperties.forEach(function (dp) {
+            //    var val = initialValues[dp.name];
+            //    if (val !== undefined) {
+            //        instance.setProperty(dp.name, val);
+            //    }
+            //});
+            this._updateTargetFromRaw(instance, initialValues, DataProperty.getRawValueFromClient);
             
             this.navigationProperties.forEach(function (np) {
                 var relatedEntity;

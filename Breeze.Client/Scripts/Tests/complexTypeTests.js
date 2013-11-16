@@ -27,6 +27,27 @@
         }
     });
 
+    test("create entity with complexType property", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        
+        var supplier = em.createEntity("Supplier", { companyName: "XXX", location: { city: "LA", postalCode: "44444" } });
+        ok(supplier.companyName === "XXX");
+        ok(supplier.location.city === "LA");
+    });
+
+    test("create entity with complexType property 2", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+
+        var supplier = em.createEntity("Supplier", { companyName: "XXX" });
+        supplier.location.city = "San Francisco";
+        supplier.location.postalCode = "91333";
+        ok(supplier.location.city == "San Francisco");
+
+        var locationType = em.metadataStore.getEntityType("Location");
+        supplier.location = locationType.createInstance({ city: "Boston", postalCode: "12345" });
+        ok(supplier.location.city == "Boston");
+    });
+
     test("initializer on complexType for createInstance", function () {
 
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
