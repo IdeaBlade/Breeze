@@ -366,7 +366,8 @@ var EntityManager = (function () {
         if (includeMetadata) {
             json.metadataStore = this.metadataStore.exportMetadata();
         } else {
-            json.metadataVersion = this.metadataStore.version;
+            json.metadataVersion = breeze.metadataVersion;
+            json.metadataStoreName = this.metadataStore.name;
         }
 
         var result = JSON.stringify(json, null, __config.stringifyPad);
@@ -411,7 +412,7 @@ var EntityManager = (function () {
         config = config || {};
         assertConfig(config)
             .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
-            .whereParam("metadataVersionChecker").isFunction().isOptional()
+            .whereParam("metadataVersionFn").isFunction().isOptional()
             .applyAll(config);
         var that = this;
             
@@ -419,7 +420,10 @@ var EntityManager = (function () {
         if (json.metadataStore) {
             this.metadataStore.importMetadata(json.metadataStore);
         } else {
-            config.metadataVersionChecker && config.metadataVersionChecker(json.metadataVersion);
+            config.metadataVersionFn && config.metadataVersionFn({
+                metadataVersion: json.metadataVersion,
+                metadataStoreName: json.metadataStoreName
+            });
         }
         // the || clause is for backwards compat with an earlier serialization format.           
         this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });

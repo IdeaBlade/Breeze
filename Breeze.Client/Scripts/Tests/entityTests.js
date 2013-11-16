@@ -906,9 +906,11 @@
         em1.addEntity(cust);
         cust.setProperty("companyName", "foo2");
         cust.setProperty("miscData", "zzz");
-        em1.metadataStore.serializerFn = function (dp, value) {
-            return dp.isUnmapped ? undefined : value;
-        };
+        em1.metadataStore.setProperties({
+            serializerFn: function (dp, value) {
+                return dp.isUnmapped ? undefined : value;
+            }
+        });
         var bundle = em1.exportEntities(null, false);
             
         var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
@@ -922,6 +924,50 @@
         var miscData = sameCust.getProperty("miscData");
         ok(miscData == null, "miscData should not have been serialized");
     
+    });
+
+    test("unmapped import export version mismatch", function () {
+
+        // use a different metadata store for this em - so we don't polute other tests
+        var em1 = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Customer = testFns.models.CustomerWithMiscData();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+        var custType = em1.metadataStore.getEntityType("Customer");
+        var cust = custType.createEntity();
+        em1.addEntity(cust);
+        cust.setProperty("companyName", "foo2");
+        cust.setProperty("miscData", "zzz");
+        em1.metadataStore.setProperties({
+            name: "version 1.1"
+        });
+        var bundle = em1.exportEntities(null, false);
+        var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
+        try {
+            em2.importEntities(bundle, {
+                metadataVersionFn: function (cfg) {
+                    if (em2.metadataStore.name != cfg.metadataStoreName) {
+                        throw new Error("bad version")
+                    }
+                }
+            });
+
+            em1.metadataStore.setProperties({
+                name: "version 1.2"
+            });
+
+            em2.importEntities(bundle, {
+                metadataVersionFn: function (cfg) {
+                    if (em2.metadataStore.name != cfg.metadataStoreName) {
+                        throw new Error("bad version 2")
+                    }
+                }
+            });
+            ok(false, "should not get here");
+        } catch (e) {
+            ok(e.message == "bad version 2", "should be a bad version error")
+        }
+
     });
 
     test("unmapped import export with ES5 props", function () {

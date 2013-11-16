@@ -5913,6 +5913,29 @@ var MetadataStore = (function () {
     ctor.ANONTYPE_PREFIX = "_IB_";
 
     /**
+    General purpose property set method
+    @example
+        // assume em1 is an EntityManager containing a number of existing entities.
+       
+        em1.metadataStore.setProperties( {
+            version: "6.1.3",
+            serializerFn: function(prop, value) {
+            return (prop.isUnmapped) ? undefined : value;
+            }
+        )};
+    @method setProperties
+    @param config [object]
+        @param [config.name] {String} A name for the collection of metadata in this store.
+        @param [config.serializerFn] A function that is used to mediate the serialization of instances of this type.
+    **/
+    proto.setProperties = function (config) {
+        assertConfig(config)
+            .whereParam("name").isString().isOptional()
+            .whereParam("serializerFn").isFunction().isOptional()
+            .applyAll(this);
+    };
+
+    /**
     Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
     in the MetadataStore an exception will be thrown. 
     @method addDataService
@@ -6019,6 +6042,7 @@ var MetadataStore = (function () {
     proto.exportMetadata = function () {
         var result = JSON.stringify({
             "metadataVersion": breeze.metadataVersion,
+            "name": this.name,
             "namingConvention": this.namingConvention.name,
             "localQueryComparisonOptions": this.localQueryComparisonOptions.name,
             "dataServices": this.dataServices,
@@ -12067,7 +12091,8 @@ var EntityManager = (function () {
         if (includeMetadata) {
             json.metadataStore = this.metadataStore.exportMetadata();
         } else {
-            json.metadataVersion = this.metadataStore.version;
+            json.metadataVersion = breeze.metadataVersion;
+            json.metadataStoreName = this.metadataStore.name;
         }
 
         var result = JSON.stringify(json, null, __config.stringifyPad);
@@ -12112,7 +12137,7 @@ var EntityManager = (function () {
         config = config || {};
         assertConfig(config)
             .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
-            .whereParam("metadataVersionChecker").isFunction().isOptional()
+            .whereParam("metadataVersionFn").isFunction().isOptional()
             .applyAll(config);
         var that = this;
             
@@ -12120,7 +12145,10 @@ var EntityManager = (function () {
         if (json.metadataStore) {
             this.metadataStore.importMetadata(json.metadataStore);
         } else {
-            config.metadataVersionChecker && config.metadataVersionChecker(json.metadataVersion);
+            config.metadataVersionFn && config.metadataVersionFn({
+                metadataVersion: json.metadataVersion,
+                metadataStoreName: json.metadataStoreName
+            });
         }
         // the || clause is for backwards compat with an earlier serialization format.           
         this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
