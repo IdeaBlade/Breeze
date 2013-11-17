@@ -203,19 +203,47 @@
     <content Include="content\images\glyphicons-halflings-white.png" />
     <content Include="content\images\glyphicons-halflings.png" />
     <content Include="content\styles.css" />
-    <content Include="content\toastr.css" />
-    <content Include="content\toastr.less" />
     <content Include="content\font\fontawesome-webfont.eot" />
     <content Include="content\font\fontawesome-webfont.ttf" />
     <content Include="content\font\fontawesome-webfont.woff" />
     <content Include="content\font\FontAwesome.otf" />
-    <content Include="content\toastr.min.css" />
+    <Content Include="content\toastr.css" />
+    <Content Include="content\toastr.min.css" />
     <content Include="Global.asax" />
     <content Include="index.html" />
+    <content Include="scripts\angular.js" />
+    <content Include="scripts\angular.min.js">
+      <DependentUpon>angular.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular.min.js.map">
+      <DependentUpon>angular.min.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-mocks.js">
+      <DependentUpon>angular.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-animate.js">
+      <DependentUpon>angular.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-animate.min.js">
+      <DependentUpon>angular-animate.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-animate.min.js.map">
+      <DependentUpon>angular-animate.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-route.js">
+      <DependentUpon>angular.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-route.min.js">
+      <DependentUpon>angular-route.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-route.min.js.map">
+      <DependentUpon>angular-route.js</DependentUpon>
+    </content>
     <content Include="scripts\breeze.debug.js" />
-    <None Include="scripts\breeze.intellisense.js">
+    <Content Include="content\toastr.less" />
+    <none Include="scripts\breeze.intellisense.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
-    </None>
+    </none>
     <content Include="scripts\breeze.min.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </content>
@@ -232,20 +260,11 @@
     <Content Include="scripts\q.min.js">
       <DependentUpon>q.js</DependentUpon>
     </Content>
+    <Content Include="scripts\toastr.js" />
+    <Content Include="scripts\toastr.min.js" />
     <content Include="scripts\ui-bootstrap-tpls-0.4.0.js" />
     <content Include="test\config\karma.conf.js" />
-    <content Include="scripts\angular.js" />
-    <content Include="scripts\angular.min.js">
-      <DependentUpon>angular.js</DependentUpon>
-    </content>
-    <content Include="scripts\angular-mocks.js">
-      <DependentUpon>angular.js</DependentUpon>
-    </content>
     <content Include="scripts\modernizr-2.6.2.js" />
-    <content Include="scripts\toastr.js" />
-    <content Include="scripts\toastr.min.js">
-      <DependentUpon>toastr.js</DependentUpon>
-    </content>
     <content Include="scripts\jquery-2.0.2.js" />
     <content Include="scripts\jquery-2.0.2.min.js">
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
@@ -294,6 +313,7 @@
   </ItemGroup>
   <ItemGroup>
     <content Include="packages.config" />
+    <Content Include="scripts\toastr.min.js.map" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
