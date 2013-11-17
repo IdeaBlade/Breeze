@@ -45,7 +45,7 @@
             var custs = data.results;
             custs[0].setProperty("companyName", null);
             custs[1].setProperty("city", null);
-            exported = em.exportEntities();
+            exported = em.exportEntities(null, false);
             var em2 = newEm();
             em2.importEntities(exported);
             cust0x = em2.findEntityByKey(custs[0].entityAspect.getKey());
@@ -167,7 +167,7 @@
             return em.saveChanges();
         }).then(function(sr) {
             ok(sr.entities.length == 2);
-            var exported = em.exportEntities();
+            var exported = em.exportEntities(null, false);
             var em2 = newEm();
             em2.importEntities(exported);
         }).fail(function (e) {
@@ -263,7 +263,7 @@
             ok(!cust1.entityAspect.wasLoaded);
             order1.setProperty("employee", emp1);
             order1.setProperty("customer", cust1);
-            var exportedEm = em.exportEntities();
+            var exportedEm = em.exportEntities(null, false);
 
             em2.importEntities(exportedEm);
             var suppliers = em2.getEntities("Supplier");
@@ -502,8 +502,8 @@
         var adds;
         query.execute().then(function (data) {
             var customer = data.results[0];
-            exportedCustomer = em.exportEntities([customer]);
-            exportedEm = em.exportEntities();
+            exportedCustomer = em.exportEntities([customer], false);
+            exportedEm = em.exportEntities(null, false);
             em2.importEntities(exportedCustomer);
             var sameCustomer = em2.findEntityByKey(customer.entityAspect.getKey());
             var orders = sameCustomer.getProperty("orders");
@@ -774,7 +774,7 @@
         var em2;
         em.executeQuery(q, function(data) {
             ok(data.results.length == 2, "results.length should be 2");
-            var exportedEm = em.exportEntities();
+            var exportedEm = em.exportEntities(null, false);
             em2 = newEm();
             var r = em2.importEntities(exportedEm);
             // 5 = 3 created + 2 queried
@@ -896,7 +896,7 @@
          em.addEntity(createCust(em, "Export/import safely #3"));
 
          var changes = em.getChanges();
-         var changesExport = em.exportEntities(changes);
+         var changesExport = em.exportEntities(changes, null);
 
          ok(window.localStorage, "this browser supports local storage");
 
@@ -923,6 +923,8 @@
          ok(newCust !== restoredCust,
              "Restored Cust is not the same object as the original Cust");
     });
+
+ 
 
     function createCust(em, companyName) {
         var custType = em.metadataStore.getEntityType("Customer");

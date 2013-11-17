@@ -27,6 +27,10 @@ var MappingContext = (function () {
     var parseRawValue = DataType.parseRawValue;
     proto._$typeName = "MappingContext";
 
+    proto.getUrl = function () {
+        return  this.dataService.makeUrl(this.metadataStore.toQueryString(this.query));
+    }
+
     proto.visitAndMerge = function (nodes, nodeContext) {
         var query = this.query;
         var jra = this.jsonResultsAdapter;

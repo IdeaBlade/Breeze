@@ -32,9 +32,10 @@
     ctor.prototype.executeQuery = function (mappingContext) {
     
         var deferred = Q.defer();
-        // OData.read(mappingContext.url,
+        var url = mappingContext.getUrl();
+        
         OData.read({
-                requestUri: mappingContext.url,
+                requestUri: url,
                 headers: { "DataServiceVersion": "2.0" }
             },
             function (data, response) {
@@ -46,7 +47,7 @@
                 return deferred.resolve({ results: data.results, inlineCount: inlineCount });
             },
             function (error) {
-                return deferred.reject(createError(error, mappingContext.url));
+                return deferred.reject(createError(error, url));
             }
         );
         return deferred.promise;
@@ -189,6 +190,18 @@
         
     });
 
+    function transformValue(prop, val ) {
+        if (prop.isUnmapped) return undefined;
+        if (prop.dataType === DataType.DateTimeOffset) {
+            // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
+            // from other dateTimes. This fix compensates before the save.
+            val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
+        } else if (prop.dataType.quoteJsonOData) {
+            val = val != null ? val.toString() : val;
+        }
+        return val;
+    }
+
     function createChangeRequests(saveContext, saveBundle) {
         var changeRequests = [];
         var tempKeys = [];
@@ -205,12 +218,12 @@
             if (aspect.entityState.isAdded()) {
                 request.requestUri = entity.entityType.defaultResourceName;
                 request.method = "POST";
-                request.data = helper.unwrapInstance(entity, true);
+                request.data = helper.unwrapInstance(entity, transformValue);
                 tempKeys[id] = aspect.getKey();
             } else if (aspect.entityState.isModified()) {
                 updateDeleteMergeRequest(request, aspect, prefix);
                 request.method = "MERGE";
-                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, true);
+                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, transformValue);
                 // should be a PATCH/MERGE
             } else if (aspect.entityState.isDeleted()) {
                 updateDeleteMergeRequest(request, aspect, prefix);

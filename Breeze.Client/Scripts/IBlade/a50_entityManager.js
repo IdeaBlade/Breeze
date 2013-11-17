@@ -346,13 +346,16 @@ var EntityManager = (function () {
         // assume em2 is another entityManager containing some of the same entities possibly with modifications.
         em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
     @method exportEntities
-    @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
+    @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted or null
+    @param [includeMetadata = true] Whether to include metadata in the export; the default is true
+
     @return {String} A serialized version of the exported data.
     **/
-    proto.exportEntities = function (entities) {
+    proto.exportEntities = function (entities, includeMetadata) {
+        assertParam(includeMetadata, "includeMetadata").isBoolean().isOptional().check();
+        includeMetadata = (includeMetadata == null) ? true : includeMetadata;
         var exportBundle = exportEntityGroups(this, entities);
         var json = {
-            metadataStore: this.metadataStore.exportMetadata(),
             dataService: this.dataService,
             saveOptions: this.saveOptions,
             queryOptions: this.queryOptions,
@@ -360,6 +363,13 @@ var EntityManager = (function () {
             tempKeys: exportBundle.tempKeys,
             entityGroupMap: exportBundle.entityGroupMap
         };
+        if (includeMetadata) {
+            json.metadataStore = this.metadataStore.exportMetadata();
+        } else {
+            json.metadataVersion = breeze.metadataVersion;
+            json.metadataStoreName = this.metadataStore.name;
+        }
+
         var result = JSON.stringify(json, null, __config.stringifyPad);
         return result;
     };
@@ -402,11 +412,19 @@ var EntityManager = (function () {
         config = config || {};
         assertConfig(config)
             .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
+            .whereParam("metadataVersionFn").isFunction().isOptional()
             .applyAll(config);
         var that = this;
             
         var json = (typeof exportedString === "string") ? JSON.parse(exportedString) : exportedString;
-        this.metadataStore.importMetadata(json.metadataStore);
+        if (json.metadataStore) {
+            this.metadataStore.importMetadata(json.metadataStore);
+        } else {
+            config.metadataVersionFn && config.metadataVersionFn({
+                metadataVersion: json.metadataVersion,
+                metadataStoreName: json.metadataStoreName
+            });
+        }
         // the || clause is for backwards compat with an earlier serialization format.           
         this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
         
@@ -1646,11 +1664,11 @@ var EntityManager = (function () {
         var resultGroup = {};
         var entityType = entityGroup.entityType;
         var dps = entityType.dataProperties;
-        
+        var serializerFn = getSerializerFn(entityType);
         var rawEntities = [];
         entityGroup._entities.forEach(function (entity) {
             if (entity) {
-                var rawEntity = structuralObjectToJson(entity, dps, tempKeys);
+                var rawEntity = structuralObjectToJson(entity, dps, serializerFn, tempKeys);
                 rawEntities.push(rawEntity);
             }
         });
@@ -1658,23 +1676,28 @@ var EntityManager = (function () {
         return resultGroup;
     }
 
-    function structuralObjectToJson(so, dps, tempKeys) {
+    function structuralObjectToJson(so, dps, serializerFn, tempKeys) {
         
         var result = {};
-        
         dps.forEach(function (dp) {
             var dpName = dp.name;
             var value = so.getProperty(dpName);
             if (value == null && dp.defaultValue == null) return;
+
             if (value && value.complexType) {
                 var newValue;
                 var coDps = dp.dataType.dataProperties;
-                result[dpName] = __map(value, function (v) {
-                    return structuralObjectToJson(v, coDps);
+                value = __map(value, function (v) {
+                    return structuralObjectToJson(v, coDps, serializerFn);
                 });
             } else {
-                result[dpName] = value;
+                value = serializerFn ? serializerFn(dp, value) : value;
+                if (dp.isUnmapped) {
+                    value = __toJSONSafe(value);
+                }
             }
+            if (value === undefined) return;
+            result[dpName] = value;
         });
         var aspect, newAspect;
         if (so.entityAspect) {
@@ -1943,7 +1966,7 @@ var EntityManager = (function () {
             });
             
             var validateOnQuery = em.validationOptions.validateOnQuery;
-            
+           
             return dataService.adapterInstance.executeQuery(mappingContext).then(function (data) {
                 var result = __wrapExecution(function () {
                     var state = { isLoading: em.isLoading };
@@ -2066,45 +2089,46 @@ var EntityManager = (function () {
     };
     
    
-    function unwrapInstance(structObj, isOData) {
+    function unwrapInstance(structObj, transformFn) {
         
         var rawObject = {};
         var stype = structObj.entityType || structObj.complexType;
-        
+        var serializerFn = getSerializerFn(stype);
+        var unmapped = {};
         stype.dataProperties.forEach(function (dp) {
-            if (dp.isUnmapped) {
-                if (isOData) return;
-                var val = structObj.getProperty(dp.name);
-                val = transformValue(val, dp, false);
-                if (val !== undefined) {
-                    rawObject.__unmapped = rawObject.__unmapped || {};
-                    // no name on server for unmapped props
-                    rawObject.__unmapped[dp.name] = val;
-                }
-            } else if (dp.isComplexProperty) {
+            if (dp.isComplexProperty) {
                 rawObject[dp.nameOnServer] = __map(structObj.getProperty(dp.name), function (co) {
-                    return unwrapInstance(co, isOData);
+                    return unwrapInstance(co, transformFn);
                 });
             } else {
                 var val = structObj.getProperty(dp.name);
-                val = transformValue(val, dp, isOData);
+                val = transformFn ? transformFn(dp, val) : val;
+                if (val === undefined) return;
+                val = serializerFn ? serializerFn(dp, val) : val;
                 if (val !== undefined) {
-                    rawObject[dp.nameOnServer] = val;
+                    if (dp.isUnmapped) {
+                        unmapped[dp.name] = __toJSONSafe(val);
+                    } else {
+                        rawObject[dp.nameOnServer] = val;
+                    }
                 }
             }
         });
         
+        if (!__isEmpty(unmapped)) {
+            rawObject.__unmapped = unmapped;
+        }
         return rawObject;
     }
     
-    function unwrapOriginalValues(target, metadataStore, isOData) {
+    function unwrapOriginalValues(target, metadataStore, transformFn) {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, val) {
             var prop = stype.getProperty(propName);
-            val = transformValue(val, prop, isOData);
+            val = transformFn ? transformFn(prop, val) : val;
             if (val !== undefined) {
                 result[fn(propName, prop)] = val;
             }
@@ -2112,13 +2136,13 @@ var EntityManager = (function () {
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
             if (cp.isScalar) {
-                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
+                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, transformFn);
                 if (!__isEmpty(unwrappedCo)) {
                     result[fn(cp.name, cp)] = unwrappedCo;
                 }
             } else {
                 var unwrappedCos = nextTarget.map(function (item) {
-                    return unwrapOriginalValues(item, metadataStore, isOData);
+                    return unwrapOriginalValues(item, metadataStore, transformFn);
                 });
                 result[fn(cp.name, cp)] = unwrappedCos;
             }
@@ -2126,15 +2150,18 @@ var EntityManager = (function () {
         return result;
     }
     
-    function unwrapChangedValues(target, metadataStore, isOData) {
+    function unwrapChangedValues(target, metadataStore, transformFn) {
         var stype = target.entityType || target.complexType;
+        var serializerFn = getSerializerFn(stype);
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, value) {
             var prop = stype.getProperty(propName);
             var val = target.getProperty(propName);
-            val = transformValue(val, prop, isOData);
+            val = transformFn ? transformFn(prop, val) : val;
+            if (val === undefined) return;
+            val = serializerFn ? serializerFn(dp, val) : val;
             if (val !== undefined) {
                 result[fn(propName, prop)] = val;
             }
@@ -2142,13 +2169,13 @@ var EntityManager = (function () {
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
             if (cp.isScalar) {
-                var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
+                var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore, transformFn);
                 if (!__isEmpty(unwrappedCo)) {
                     result[fn(cp.name, cp)] = unwrappedCo;
                 }
             } else {
                 var unwrappedCos = nextTarget.map(function (item) {
-                    return unwrapChangedValues(item, metadataStore);
+                    return unwrapChangedValues(item, metadataStore, transformFn);
                 });
                 result[fn(cp.name, cp)] = unwrappedCos;
             }
@@ -2156,19 +2183,10 @@ var EntityManager = (function () {
         return result;
     }
 
-    function transformValue(val, prop, isOData) {
-        if (isOData) {
-            if (prop.isUnmapped) return;
-            if (prop.dataType === DataType.DateTimeOffset) {
-                // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
-                // from other dateTimes. This fix compensates before the save.
-                val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
-            } else if (prop.dataType.quoteJsonOData) {
-                val = val != null ? val.toString() : val;
-            }
-        }
-        return val;
+    function getSerializerFn(stype) {
+        return stype.serializerFn || (stype.metadataStore && stype.metadataStore.serializerFn);
     }
+
 
     function UnattachedChildrenMap() {
         // key is EntityKey.toString(), value is array of { navigationProperty, children }

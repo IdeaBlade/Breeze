@@ -20,7 +20,110 @@
         }
     });
 
+    var toJSONSafe = core.toJSONSafe;
+
+    test("toJSONSafe", function () {
+        var o = {
+            a: 1,
+            b: null,
+            c: true,
+            d: false,
+            e: { e1: "xxx", e2: { e21: 33, e22: undefined, e23: null } },
+            f: ["adfasdf", 3, null, undefined, { f1: 666, f2: "adfasf", f3: false }]
+        };
+        var o1 = toJSONSafe(o);
+        checkJSONSafe(o1);
+        var s1 = JSON.stringify(o1);
+
+        o.e.e2.x = o;
+        o1 = toJSONSafe(o)
+        checkJSONSafe(o1);
+        s1 = JSON.stringify(o1);
+        ok(o1.e.e2.x === undefined);
+        delete o.e.e2.x;
+
+        o.f.push(o);
+        o1 = toJSONSafe(o)
+        checkJSONSafe(o1);
+        s1 = JSON.stringify(o1);
+        ok(o1.f[o1.f.length-1] === undefined);
+        ok(o1.f[1] === 3)
+        
+    });
+
+    function checkJSONSafe(o1) {
+        ok(o1.e.e2.e21 === 33);
+        ok(o1.e.e2.e23 === null);
+        ok(o1.e.e2.e22 === undefined); // interesting case.
+        ok(!("e22" in o1.e.e2));
+        ok(o1.f[4].f2 === "adfasf");
+    }
+
+    test("hasCycles", function () {
+        var o = {
+            a: 1,
+            b: null,
+            c: true,
+            d: false,
+            e: { e1: "xxx", e2: { e21: 33, e22: undefined, e23: null } },
+            f: ["adfasdf", 3, null, undefined, { f1: 666, f2: "adfasf", f3: false }]
+        };
+        var hasCycles = __hasCycles(o);
+        ok(!hasCycles, "should not have cycles");
+        o.e.e2.x = o;
+        hasCycles = __hasCycles(o);
+        ok(hasCycles, "should have cycles");
+        delete o.e.e2.x;
+        var hasCycles = __hasCycles(o);
+        ok(!hasCycles, "should not have cycles");
+        o.f.push(o);
+        hasCycles = __hasCycles(o);
+        ok(hasCycles, "should have cycles");
+    });
+
+    //function toJSONSafe(obj) {
+    //    if (obj !== Object(obj)) return obj; // primitive value
+    //    if (obj._$visited) return undefined;
+    //    if (obj.toJSON) {
+    //        obj = obj.toJSON();
+    //    }
+    //    obj._$visited = true;
+    //    var result;
+    //    if (obj instanceof Array) {
+    //        result = obj.map(toJSONSafe);
+    //    } else if (typeof (obj) === "function") {
+    //        result = undefined;
+    //    } else {
+    //        var result = {};
+    //        for (var prop in obj) {
+    //            if (prop === "_$visited") continue;
+    //            var val = toJSONSafe(obj[prop]);
+    //            if (val === undefined) continue;                   
+    //            result[prop] = val;
+    //        }
+    //    }
+    //    delete obj._$visited;
+    //    return result;
+    //}
     
+    function __hasCycles(obj) {
+        if (obj !== Object(obj)) return false; // primitive value
+        if (obj._$visited) return true;
+        obj._$visited = true;
+        var result = false;
+        if (obj instanceof Array) {
+            result = obj.some(__hasCycles);
+        } else {
+            for (var prop in obj) {
+                if (__hasCycles(obj[prop])) {
+                    result = true;
+                    break;
+                }
+            }
+        }
+        delete obj._$visited;
+        return result;
+    }
 
     test("module with setup/teardown", function () {
         expect(1);

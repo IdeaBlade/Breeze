@@ -106,8 +106,6 @@
     //});
 
     test("check unmapped property on server", function () {
-        // this test does not fail. Must debug server and 'dig' to find unmapped property value since it's not available in the interceptors
-        // var em = newEm();
         
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var customerType = em.metadataStore.getEntityType("Customer");
@@ -130,6 +128,84 @@
             ok(true);
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("test unmapped property serialization on server", function () {
+
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var customerType = em.metadataStore.getEntityType("Customer");
+        customerType.setProperties({
+            serializerFn: function (dp, value) {
+                if (typeof (value) === "string") return value.toUpperCase();
+                if (dp.isUnmapped) {
+                    if (dp.name == "anotherOne") {
+                        value.extra = 666;
+                    }
+                }
+                return value;
+            }
+        })
+        var Customer = function () {
+            this.myUnmappedProperty = "anything22";
+            var x = {
+                x: "22",
+                y: "test",
+                z: ["a1", 3, true, null, undefined, { foo: 4 }]
+            }
+            x.recursive = { ok: true, notOk: x }; // notOk should not get serialized.
+            this.anotherOne = x;
+        };
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+
+        var cust = customerType.createEntity();
+        cust.setProperty("companyName", "Test_compName");
+        em.addEntity(cust);
+
+        var entitiesToSave = new Array(cust);
+        var saveOptions = new SaveOptions({ resourceName: "SaveCheckUnmappedPropertySerialized" });
+        stop();
+
+        em.saveChanges(entitiesToSave, saveOptions).then(function (sr) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("test unmapped property suppression", function () {
+
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var customerType = em.metadataStore.getEntityType("Customer");
+        customerType.setProperties({
+            serializerFn: function (dp, value) {
+                if (dp.isUnmapped) return undefined;
+                return value;
+            }
+        })
+        var Customer = function () {
+            this.myUnmappedProperty = "anything22";
+            var x = {
+                x: "22",
+                y: "test",
+                z: ["a1", 3, true, null, undefined, { foo: 4 }]
+            }
+            x.recursive = { ok: true, notOk: x }; // notOk should not get serialized.
+            this.anotherOne = x;
+        };
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+
+        var cust = customerType.createEntity();
+        cust.setProperty("companyName", "Test_compName");
+        em.addEntity(cust);
+
+        var entitiesToSave = new Array(cust);
+        var saveOptions = new SaveOptions({ resourceName: "SaveCheckUnmappedPropertySuppressed" });
+        stop();
+
+        em.saveChanges(entitiesToSave, saveOptions).then(function (sr) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
 
     test("check initializer is hit for entities added/saved on server", function () {
         if (testFns.DEBUG_ODATA) {

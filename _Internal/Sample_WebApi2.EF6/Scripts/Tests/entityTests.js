@@ -199,7 +199,7 @@
         var cfg = {};
         cfg[testFns.customerKeyName] = breeze.core.getUuid();
         var customer = m1.createEntity("Customer", cfg);
-        var exported = m1.exportEntities([customer]);
+        var exported = m1.exportEntities([customer], false);
         var m2 = em.createEmptyCopy();
 
         m2.importEntities(exported);
@@ -219,7 +219,7 @@
         var cfg = {};
         cfg[testFns.customerKeyName] = breeze.core.getUuid();
         var customer = m1.createEntity("Customer", cfg);
-        var exported = m1.exportEntities([customer]);
+        var exported = m1.exportEntities([customer], false);
         var m2 = em.createEmptyCopy();
 
         m2.importEntities(exported);
@@ -496,7 +496,7 @@
         em.addEntity(user);
         // need to do this after the addEntity call
         var id = user.getProperty(testFns.userKeyName);
-        var exported = em.exportEntities();
+        var exported = em.exportEntities(null, false);
         var em2 = newEm();
         em2.importEntities(exported);
         var user2 = em2.getEntityByKey("User", id);
@@ -870,55 +870,132 @@
     test("unmapped import export", function () {
 
         // use a different metadata store for this em - so we don't polute other tests
-        var em1 = newEm(newMs());
+        
+        var em1 = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var Customer = testFns.models.CustomerWithMiscData();
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
-        stop();
-        em1.fetchMetadata().then(function () {
-            var custType = em1.metadataStore.getEntityType("Customer");
-            var cust = custType.createEntity();
-            em1.addEntity(cust);
-            cust.setProperty("companyName", "foo2");
-            cust.setProperty("miscData", "zzz");
-            var bundle = em1.exportEntities();
-            var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
-            em2.importEntities(bundle);
-            var entities = em2.getEntities();
-            ok(entities.length === 1);
-            var sameCust = entities[0];
-            var cname = sameCust.getProperty("companyName");
-            ok(cname === "foo2", "companyName should === 'foo2'");
-            var miscData = sameCust.getProperty("miscData");
-            ok(miscData === "zzz", "miscData should === 'zzz'");
-        }).fail(testFns.handleFail).fin(start);
+        
+        var custType = em1.metadataStore.getEntityType("Customer");
+        var cust = custType.createEntity();
+        em1.addEntity(cust);
+        cust.setProperty("companyName", "foo2");
+        cust.setProperty("miscData", "zzz");
+        var bundle = em1.exportEntities();
+        var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
+        em2.importEntities(bundle);
+        var entities = em2.getEntities();
+        ok(entities.length === 1);
+        var sameCust = entities[0];
+        var cname = sameCust.getProperty("companyName");
+        ok(cname === "foo2", "companyName should === 'foo2'");
+        var miscData = sameCust.getProperty("miscData");
+        ok(miscData === "zzz", "miscData should === 'zzz'");
+
+        
+    });
+
+    test("unmapped import export unmapped suppressed", function () {
+
+        // use a different metadata store for this em - so we don't polute other tests
+        var em1 = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Customer = testFns.models.CustomerWithMiscData();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+        
+        var custType = em1.metadataStore.getEntityType("Customer");
+        var cust = custType.createEntity();
+        em1.addEntity(cust);
+        cust.setProperty("companyName", "foo2");
+        cust.setProperty("miscData", "zzz");
+        em1.metadataStore.setProperties({
+            serializerFn: function (dp, value) {
+                return dp.isUnmapped ? undefined : value;
+            }
+        });
+        var bundle = em1.exportEntities(null, false);
+            
+        var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
+        em2.importEntities(bundle);
+
+        var entities = em2.getEntities();
+        ok(entities.length === 1);
+        var sameCust = entities[0];
+        var cname = sameCust.getProperty("companyName");
+        ok(cname === "foo2", "companyName should === 'foo2'");
+        var miscData = sameCust.getProperty("miscData");
+        ok(miscData == null, "miscData should not have been serialized");
+    
+    });
+
+    test("unmapped import export version mismatch", function () {
+
+        // use a different metadata store for this em - so we don't polute other tests
+        var em1 = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var Customer = testFns.models.CustomerWithMiscData();
+        em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+        var custType = em1.metadataStore.getEntityType("Customer");
+        var cust = custType.createEntity();
+        em1.addEntity(cust);
+        cust.setProperty("companyName", "foo2");
+        cust.setProperty("miscData", "zzz");
+        em1.metadataStore.setProperties({
+            name: "version 1.1"
+        });
+        var bundle = em1.exportEntities(null, false);
+        var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
+        try {
+            em2.importEntities(bundle, {
+                metadataVersionFn: function (cfg) {
+                    if (em2.metadataStore.name != cfg.metadataStoreName) {
+                        throw new Error("bad version")
+                    }
+                }
+            });
+
+            em1.metadataStore.setProperties({
+                name: "version 1.2"
+            });
+
+            em2.importEntities(bundle, {
+                metadataVersionFn: function (cfg) {
+                    if (em2.metadataStore.name != cfg.metadataStoreName) {
+                        throw new Error("bad version 2")
+                    }
+                }
+            });
+            ok(false, "should not get here");
+        } catch (e) {
+            ok(e.message == "bad version 2", "should be a bad version error")
+        }
+
     });
 
     test("unmapped import export with ES5 props", function () {
 
         // use a different metadata store for this em - so we don't polute other tests
-        var em1 = newEm(newMs());
+        
+        var em1 = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var Customer = testFns.models.CustomerWithES5Props();
         em1.metadataStore.registerEntityTypeCtor("Customer", Customer);
-        stop();
-        em1.fetchMetadata().then(function () {
-            var custType = em1.metadataStore.getEntityType("Customer");
-            var cust = custType.createEntity();
-            em1.addEntity(cust);
-            cust.setProperty("companyName", "foo2");
-            var cname = cust.getProperty("companyName");
-            ok(cname === "FOO2", "companyName should === 'FOO2'");
-            cust.setProperty("miscData", "zzz");
-            var bundle = em1.exportEntities();
-            var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
-            em2.importEntities(bundle);
-            var entities = em2.getEntities();
-            ok(entities.length === 1);
-            var sameCust = entities[0];
-            var cname2 = sameCust.getProperty("companyName");
-            ok(cname2 === "FOO2", "companyName should === 'FOO2'");
-            var miscData = sameCust.getProperty("miscData");
-            ok(miscData === "zzz", "miscData should === 'zzz'");
-        }).fail(testFns.handleFail).fin(start);
+        
+        var custType = em1.metadataStore.getEntityType("Customer");
+        var cust = custType.createEntity();
+        em1.addEntity(cust);
+        cust.setProperty("companyName", "foo2");
+        var cname = cust.getProperty("companyName");
+        ok(cname === "FOO2", "companyName should === 'FOO2'");
+        cust.setProperty("miscData", "zzz");
+        var bundle = em1.exportEntities();
+        var em2 = new EntityManager({ serviceName: testFns.serviceName, metadataStore: em1.metadataStore });
+        em2.importEntities(bundle);
+        var entities = em2.getEntities();
+        ok(entities.length === 1);
+        var sameCust = entities[0];
+        var cname2 = sameCust.getProperty("companyName");
+        ok(cname2 === "FOO2", "companyName should === 'FOO2'");
+        var miscData = sameCust.getProperty("miscData");
+        ok(miscData === "zzz", "miscData should === 'zzz'");
+
     });
 
     test("generate ids", function () {
