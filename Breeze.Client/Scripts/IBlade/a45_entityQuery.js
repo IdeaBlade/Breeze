@@ -222,7 +222,7 @@ var EntityQuery = (function () {
             wherePredicate = null;
         } else {
             var pred;
-            if (Predicate.isPredicate(predicate)) {
+            if (predicate instanceof Predicate) {
                 wherePredicate = predicate;
             } else {
                 wherePredicate = Predicate.create(__arraySlice(arguments));
@@ -1277,6 +1277,20 @@ var FilterQueryOp = (function () {
     **/
     aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true, isStringFn: true });
 
+    /**
+    @property Any {FilterQueryOp}
+    @final
+    @static
+    **/
+    aEnum.Any = aEnum.addSymbol({ operator: "any", isAnyAll: true });
+
+    /**
+    @property All {FilterQueryOp}
+    @final
+    @static
+    **/
+    aEnum.All = aEnum.addSymbol({ operator: "all", isAnyAll: true });
+
     aEnum.IsTypeOf = aEnum.addSymbol({ operator: "isof", isFunction: true, aliases: ["isTypeOf"] });
     
     aEnum.seal();
@@ -1369,20 +1383,20 @@ var Predicate = (function () {
     };
     var proto = ctor.prototype;
 
-    /**  
-    Returns whether an object is a Predicate
-    @example
-        var p1 = new Predicate("CompanyName", "StartsWith", "B");
-        if (Predicate.isPredicate(p1)) {
-            // do something
-        }
-    @method isPredicate
-    @param o {Object}
-    @static
-    **/
-    ctor.isPredicate = function (o) {
-        return o instanceof Predicate;
-    };
+    ///**  
+    //Returns whether an object is a Predicate
+    //@example
+    //    var p1 = new Predicate("CompanyName", "StartsWith", "B");
+    //    if (Predicate.isPredicate(p1)) {
+    //        // do something
+    //    }
+    //@method isPredicate
+    //@param o {Object}
+    //@static
+    //**/
+    //ctor.isPredicate = function (o) {
+    //    return o instanceof Predicate;
+    //};
 
     /**  
     Creates a new 'simple' Predicate.  Note that this method can also take its parameters as an array.
@@ -1407,7 +1421,7 @@ var Predicate = (function () {
     
     **/
     ctor.create = function (property, operator, value) {
-        var args = Array.isArray(property) ? property : __arraySlice(arguments);
+        var args = Array.isArray(property) && arguments.length === 1 ? property : __arraySlice(arguments);
         return new SimplePredicate(args);
     };
 
@@ -1579,7 +1593,7 @@ var Predicate = (function () {
             args = argsx[0];
         } else {
             var args = __arraySlice(argsx);
-            if (!Predicate.isPredicate(args[0])) {
+            if (! (args[0] instanceof Predicate)) {
                 args = [Predicate.create(args)];
             }
         }
@@ -1599,21 +1613,25 @@ var SimplePredicate = (function () {
     var ctor = function (args) {
         var propertyOrExpr = args[0];
         assertParam(propertyOrExpr, "propertyOrExpr").isString().isOptional().check();
-        var operator = args[1];
-        
-        if (args.length >= 3 && operator != null) {
-            var value = args[2];
-            assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
-            assertParam(value, "value").isRequired(true).check();
-        } else {
+        if (args.length === 1) {
             this._odataExpr = propertyOrExpr;
             return;
         }
-        
+        var operator = args[1];
+        assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
         this._filterQueryOp = FilterQueryOp.from(operator);
         if (!this._filterQueryOp) {
             throw new Error("Unknown query operation: " + operator);
         }
+        var value;
+        if (this._filterQueryOp.isAnyAll) {
+            this._value = SimplePredicate(args.slice(2));
+            return;
+        } else {
+            value = args[2];
+            assertParam(value, "value").isRequired(true).check();
+        }
+        
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
         } else {
