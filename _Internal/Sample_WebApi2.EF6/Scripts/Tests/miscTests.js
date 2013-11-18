@@ -265,19 +265,19 @@
         var node1 = breeze.FnNode.create("substring(toUpper(CompanyName), length('adfasdf'))", mt);
         var val1 = node1.fn(entity);
         ok(val1 === 'MPANY 1');
-        var url1 = node1.toOdataFragment(mt);
+        var url1 = node1.toODataFragment(mt);
 
         var node2 = breeze.FnNode.create("substring(toUpper(toLower(CompanyName)), length('adfa,sdf'))", mt);
         var val2 = node2.fn(entity);
-        var url2 = node2.toOdataFragment(mt);
+        var url2 = node2.toODataFragment(mt);
         
         var node3 = breeze.FnNode.create("substring(substring(toLower(CompanyName), length('adf,asdf')),5)", mt);
         var val3 = node3.fn(entity);
-        var url3 = node3.toOdataFragment(mt);
+        var url3 = node3.toODataFragment(mt);
 
         var node4 = breeze.FnNode.create("substring(CompanyName, length(substring('xxxxxxx', 4)))", mt);
         var val4 = node4.fn(entity);
-        var url4 = node4.toOdataFragment(mt);
+        var url4 = node4.toODataFragment(mt);
         
     });
 

@@ -186,6 +186,10 @@
       <Link>Scripts\Tests\paramTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Breeze.Client\Scripts\Tests\queryAnyAllTests.js">
+      <Link>Scripts\Tests\queryAnyAllTests.js</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\..\Breeze.Client\Scripts\Tests\queryCtorTests.js">
       <Link>Scripts\Tests\queryCtorTests.js</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

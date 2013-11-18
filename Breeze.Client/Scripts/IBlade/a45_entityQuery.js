@@ -845,7 +845,7 @@ var EntityQuery = (function () {
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
-            return clause.toOdataFragment(entityType);
+            return clause.toODataFragment(entityType);
         }
             
         function toInlineCountString() {
@@ -859,7 +859,7 @@ var EntityQuery = (function () {
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
-            return clause.toOdataFragment(entityType);
+            return clause.toODataFragment(entityType);
         }
             
             function toSelectString() {
@@ -868,13 +868,13 @@ var EntityQuery = (function () {
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
-            return clause.toOdataFragment(entityType);
+            return clause.toODataFragment(entityType);
         }
             
         function toExpandString() {
             var clause = eq.expandClause;
             if (!clause) return;
-            return clause.toOdataFragment(entityType);
+            return clause.toODataFragment(entityType);
         }
 
         function toSkipString() {
@@ -1144,11 +1144,11 @@ var FnNode = (function() {
         }
     };
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         this._validate(entityType);
         if (this.fnName) {
             var args = this.fnNodes.map(function(fnNode) {
-                return fnNode.toOdataFragment(entityType);
+                return fnNode.toODataFragment(entityType);
             });                
             var uri = this.fnName + "(" + args.join(",") + ")";
             return uri;
@@ -1623,15 +1623,7 @@ var SimplePredicate = (function () {
         if (!this._filterQueryOp) {
             throw new Error("Unknown query operation: " + operator);
         }
-        var value;
-        if (this._filterQueryOp.isAnyAll) {
-            this._value = SimplePredicate(args.slice(2));
-            return;
-        } else {
-            value = args[2];
-            assertParam(value, "value").isRequired(true).check();
-        }
-        
+
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
         } else {
@@ -1640,6 +1632,16 @@ var SimplePredicate = (function () {
             }
         }
 
+        var value;
+        if (this._filterQueryOp.isAnyAll) {
+            this._value = new SimplePredicate(args.slice(2));
+            this._isLiteral = undefined;
+            return;
+        } else {
+            value = args[2];
+            assertParam(value, "value").isRequired(true).check();
+        }
+        
         // _datatype is just a guess here - it will only be used if we aren't certain from the rest of the expression.
         if ((value != null) && (typeof (value) === "object") && value.value !== undefined) {
             this._dataType = value.dataType || DataType.fromValue(value.value);
@@ -1656,35 +1658,41 @@ var SimplePredicate = (function () {
     ctor.prototype = proto;
         
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         if (this._odataExpr) {
             return this._odataExpr;
         }
-        if (this._filterQueryOp == FilterQueryOp.IsTypeOf) {
-            var oftype = entityType.metadataStore.getEntityType(this._value);
+        var filterQueryOp = this._filterQueryOp;
+        var value = this._value;
+        if (filterQueryOp == FilterQueryOp.IsTypeOf) {
+            var oftype = entityType.metadataStore.getEntityType(value);
             var typeName = oftype.namespace + '.' + oftype.shortName;
-            return this._filterQueryOp.operator + "(" + DataType.String.fmtOData(typeName) + ")";
+            return filterQueryOp.operator + "(" + DataType.String.fmtOData(typeName) + ")";
         }
 
         this.validate(entityType);
 
-        var v1Expr = this._fnNode1 && this._fnNode1.toOdataFragment(entityType);
-        var v2Expr;
-        if (this._fnNode2) {
-            v2Expr = this._fnNode2.toOdataFragment(entityType);
+        var v1Expr = this._fnNode1 && this._fnNode1.toODataFragment(entityType);
+        if (filterQueryOp.isAnyAll) {
+            return v1Expr + "/" + filterQueryOp.operator + "(x: x/" + value.toODataFragment(this.dataType) + ")";
         } else {
-            var dataType = this._fnNode1.dataType || this._dataType;
-            v2Expr = dataType.fmtOData(this._value);
-        }
-        if (this._filterQueryOp.isFunction) {
-            if (this._filterQueryOp == FilterQueryOp.Contains) {
-                return this._filterQueryOp.operator + "(" + v2Expr + "," + v1Expr + ") eq true";
+            var v2Expr;
+            if (this._fnNode2) {
+                v2Expr = this._fnNode2.toODataFragment(entityType);
             } else {
-                return this._filterQueryOp.operator + "(" + v1Expr + "," + v2Expr + ") eq true";
+                var dataType = this._fnNode1.dataType || this._dataType;
+                v2Expr = dataType.fmtOData(value);
             }
-                
-        } else {
-            return v1Expr + " " + this._filterQueryOp.operator + " " + v2Expr;
+            if (filterQueryOp.isFunction) {
+                if (filterQueryOp == FilterQueryOp.Contains) {
+                    return filterQueryOp.operator + "(" + v2Expr + "," + v1Expr + ") eq true";
+                } else {
+                    return filterQueryOp.operator + "(" + v1Expr + "," + v2Expr + ") eq true";
+                }
+
+            } else {
+                return v1Expr + " " + filterQueryOp.operator + " " + v2Expr;
+            }
         }
     };
 
@@ -1724,8 +1732,13 @@ var SimplePredicate = (function () {
             this.dataType = this._fnNode1.dataType;
         }
 
+        if (this._filterQueryOp.isAnyAll) {
+            this._value.validate(this.dataType);
+            return;
+        }
+
         if (this._fnNode2 === undefined && !this._isLiteral) {
-            this._fnNode2 = FnNode.create(this._value, entityType);
+           this._fnNode2 = FnNode.create(this._value, entityType);
         }
 
     };
@@ -1853,12 +1866,12 @@ var CompositePredicate = (function () {
     var proto  = new Predicate({ prototype: true });
     ctor.prototype = proto;
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         if (this._predicates.length == 1) {
-            return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toOdataFragment(entityType) + ")";
+            return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toODataFragment(entityType) + ")";
         } else {
             var result = this._predicates.map(function (p) {
-                return "(" + p.toOdataFragment(entityType) + ")";
+                return "(" + p.toODataFragment(entityType) + ")";
             }).join(" " + this._booleanQueryOp.operator + " ");
             return result;
         }
@@ -2044,7 +2057,7 @@ var SimpleOrderByClause = (function () {
         this.lastProperty = entityType.getProperty(this.propertyPath, true);
     };
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         return entityType._clientPropertyPathToServer(this.propertyPath) + (this.isDesc ? " desc" : "");
     };
 
@@ -2114,9 +2127,9 @@ var CompositeOrderByClause = (function () {
         });
     };
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         var strings = this._orderByClauses.map(function (obc) {
-            return obc.toOdataFragment(entityType);
+            return obc.toODataFragment(entityType);
         });
         // should return something like CompanyName,Address/City desc
         return strings.join(',');
@@ -2160,7 +2173,7 @@ var SelectClause = (function () {
         });
     };
 
-    proto.toOdataFragment = function(entityType) {
+    proto.toODataFragment = function(entityType) {
         var frag = this.propertyPaths.map(function (pp) {
                 return entityType._clientPropertyPathToServer(pp);
             }).join(",");
@@ -2196,7 +2209,7 @@ var ExpandClause = (function () {
 //            
 //        };
 
-    proto.toOdataFragment = function(entityType) {
+    proto.toODataFragment = function(entityType) {
         var frag = this.propertyPaths.map(function(pp) {
             return entityType._clientPropertyPathToServer(pp);
         }).join(",");
