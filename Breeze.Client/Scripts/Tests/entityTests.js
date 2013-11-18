@@ -1022,6 +1022,13 @@
         });
     });
 
+    test("category default rowversion value", function () {
+        em = newEm();
+        var catType = em.metadataStore.getEntityType("Category");
+        var cat = em.createEntity("Category");
+        ok(cat.getProperty("rowVersion") === 2);
+    });
+
     test("propertyChanged", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for MONGO - OrderDetail issues");

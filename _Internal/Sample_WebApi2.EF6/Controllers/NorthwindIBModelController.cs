@@ -1,6 +1,5 @@
 ﻿// Only one of the next 5 should be uncommented.
 #define CODEFIRST_PROVIDER
-//#define DATABASEFIRST_OLD
 //#define DATABASEFIRST_NEW
 //#define ORACLE_EDMX
 //#define NHIBERNATE
@@ -153,7 +152,7 @@ namespace Sample_WebApi2.Controllers {
         ? new NorthwindIBContext_EDMX((System.Data.EntityClient.EntityConnection)EntityConnection)
         : new NorthwindIBContext_EDMX();
 #elif DATABASEFIRST_NEW
- ? new NorthwindIBContext_EDMX_2012(EntityConnection)
+        ? new NorthwindIBContext_EDMX_2012(EntityConnection)
         : new NorthwindIBContext_EDMX_2012();
 #elif ORACLE_EDMX
         ? new NorthwindIBContext_EDMX_Oracle(EntityConnection)

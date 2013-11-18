@@ -660,7 +660,7 @@
           <Property Name="CategoryName" Type="String" Nullable="false" MaxLength="15" Unicode="true" FixedLength="false" />
           <Property Name="Description" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
           <Property Name="Picture" Type="Binary" MaxLength="Max" FixedLength="false" />
-          <Property Name="RowVersion" Type="Int32" Nullable="false" />
+          <Property Name="RowVersion" Type="Int32" Nullable="false" DefaultValue="2" />
           <NavigationProperty Name="Products" Relationship="NorthwindIBModel.FK_Product_Category" FromRole="Category" ToRole="Product" />
         </EntityType>
         <EntityType Name="Customer">

@@ -9,10 +9,11 @@
 
 namespace Models.NorthwindIB.EDMX_2012
 {
-    using System;
-    using System.Data.Common;
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
+  using System;
+  using System.Data.Common;
+  using System.Data.Entity;
+  using System.Data.Entity.Core.EntityClient;
+  using System.Data.Entity.Infrastructure;
     
     public partial class NorthwindIBContext_EDMX_2012 : DbContext
     {
@@ -21,8 +22,8 @@ namespace Models.NorthwindIB.EDMX_2012
         {
         }
 
-        public NorthwindIBContext_EDMX_2012(DbConnection connection)
-          : base(connection, false) {
+        public NorthwindIBContext_EDMX_2012(DbConnection ec)
+          : base(ec, false) {
         }
     
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

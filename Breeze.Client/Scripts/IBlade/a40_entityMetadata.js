@@ -894,15 +894,19 @@ var CsdlMetadataParser = (function () {
         var maxLength = csdlProperty.maxLength;
         maxLength = (maxLength == null || maxLength === "Max") ? null : parseInt(maxLength,10);
         // can't set the name until we go thru namingConventions and these need the dp.
+        
+            
         var dp = new DataProperty({
             nameOnServer: csdlProperty.name,
             dataType: dataType,
             isNullable: isNullable,
             isPartOfKey: isPartOfKey,
             maxLength: maxLength,
+            defaultValue: csdlProperty.defaultValue,
             // fixedLength: fixedLength,
             concurrencyMode: csdlProperty.concurrencyMode
-        });
+        })
+
         if (dataType === DataType.Undefined) {
             dp.rawTypeName = csdlProperty.type;
         }

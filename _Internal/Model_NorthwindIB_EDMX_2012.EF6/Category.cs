@@ -16,6 +16,7 @@ namespace Models.NorthwindIB.EDMX_2012
     {
         public Category()
         {
+            this.RowVersion = 2;
             this.Products = new HashSet<Product>();
         }
     
