@@ -10451,12 +10451,13 @@ var Predicate = (function () {
                 to one of the breeze.DataType enumeration instances.
     
     **/
-    var ctor = function (propertyOrExpr, operator, value ) {
+    var ctor = function (propertyOrExpr, operator, value) {
+        // params above are just for doc purposes 
         if (arguments[0].prototype === true) {
             // used to construct prototype
             return this;
         }
-        return new SimplePredicate(propertyOrExpr, operator, value);
+        return new SimplePredicate(__arraySlice(arguments));
     };
     var proto = ctor.prototype;
 
@@ -10497,12 +10498,9 @@ var Predicate = (function () {
                 to one of the breeze.DataType enumeration instances.
     
     **/
-    ctor.create = function (property, operator, value ) {
-        if (Array.isArray(property)) {
-            return new SimplePredicate(property[0], property[1], property[2]);
-        } else {
-            return new SimplePredicate(property, operator, value);
-        }
+    ctor.create = function (property, operator, value) {
+        var args = Array.isArray(property) ? property : __arraySlice(arguments);
+        return new SimplePredicate(args);
     };
 
     /**  
@@ -10690,9 +10688,13 @@ var Predicate = (function () {
 // Does not need to be exposed.
 var SimplePredicate = (function () {
 
-    var ctor = function(propertyOrExpr, operator, value) {
+    var ctor = function (args) {
+        var propertyOrExpr = args[0];
         assertParam(propertyOrExpr, "propertyOrExpr").isString().isOptional().check();
-        if (arguments.length == 3 && operator != null) {
+        var operator = args[1];
+        
+        if (args.length >= 3 && operator != null) {
+            var value = args[2];
             assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
             assertParam(value, "value").isRequired(true).check();
         } else {
@@ -10706,7 +10708,6 @@ var SimplePredicate = (function () {
         }
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
-            // this._fnNode1 = FnNode.create(propertyOrExpr, null, this._filterQueryOp);
         } else {
             if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
                 throw new Error("propertyOrExpr cannot be null except when using the 'IsTypeOf' operator");
