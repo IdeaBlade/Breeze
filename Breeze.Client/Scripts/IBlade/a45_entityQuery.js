@@ -363,11 +363,7 @@ var EntityQuery = (function () {
     proto.skip = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
         var eq = this._clone();
-        if (count == null) {
-            eq.skipCount = null;
-        } else {
-            eq.skipCount = count;
-        }
+        eq.skipCount = (count == null) ? null : count;
         return eq;
     };
         
@@ -402,11 +398,7 @@ var EntityQuery = (function () {
     proto.take = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
         var eq = this._clone();
-        if (count == null) {
-            eq.takeCount = null;
-        } else {
-            eq.takeCount = count;
-        }
+        eq.takeCount = (count == null) ? null : count;
         return eq;
     };
         
@@ -481,7 +473,8 @@ var EntityQuery = (function () {
     @return {EntityQuery}
     @chainable
     **/
-    proto.inlineCount = function(enabled) {
+    proto.inlineCount = function (enabled) {
+        assertParam(enabled, "enabled").isBoolean().isOptional().check();
         // if (enabled === undefined) enabled = true;
         enabled = (enabled === undefined) ? true : !!enabled;
         if (this.enabled == enabled) return this;
@@ -507,6 +500,7 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.noTracking = function (enabled) {
+        assertParam(enabled, "enabled").isBoolean().isOptional().check();
         enabled = (enabled === undefined) ? true : !!enabled;
         if (this.enabled == enabled) return this;
         var eq = this._clone();
@@ -818,23 +812,23 @@ var EntityQuery = (function () {
     };
 
     proto._clone = function () {
-        var copy = new EntityQuery();
-        copy.resourceName = this.resourceName;
-        copy.entityType = this.entityType;
-        copy.wherePredicate = this.wherePredicate;
-        copy.orderByClause = this.orderByClause;
-        copy.selectClause = this.selectClause;
-        copy.skipCount = this.skipCount;
-        copy.takeCount = this.takeCount;
-        copy.expandClause = this.expandClause;
-        copy.inlineCountEnabled = this.inlineCountEnabled;
+        // copying QueryOptions is safe because they are are immutable; 
+        copy = __extend(new EntityQuery(), this, [
+            "resourceName",
+            "entityType",
+            "wherePredicate",
+            "orderByClause",
+            "selectClause",
+            "skipCount",
+            "takeCount",
+            "expandClause",
+            "inlineCountEnabled",
+            "queryOptions", 
+            "entityManager",
+            "dataService",
+            "resultEntityType"
+            ]);
         copy.parameters = __extend({}, this.parameters);
-        // default is to get queryOptions from the entityManager.
-        copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
-        copy.entityManager = this.entityManager;
-        copy.dataService = this.dataService;
-        copy.resultEntityType = this.resultEntityType;
-
         return copy;
     };
 
