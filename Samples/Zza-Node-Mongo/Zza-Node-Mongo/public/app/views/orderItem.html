@@ -11,9 +11,10 @@
                 <tr><th style="min-width: 160px">Size</th><th>Price</th></tr>
                 <tr data-ng-repeat="svm in sizeVms">
                     <td><label class="radio" for="size{{svm.id}}">{{svm.name}}</label> </td>
-                    <td><label class="radio" for="size{{svm.id}}">
-                            <input type="radio" data-ng-model="orderItem.productSizeId" 
-                                   value="{{svm.id}}" name="selectedSize" id="size{{svm.id}}"/>
+                    <td>
+                        <label class="radio" for="size{{svm.id}}">
+                            <input type="radio" data-ng-model="orderItem.productSizeId"
+                                   value="{{svm.id}}" name="selectedSize" id="size{{svm.id}}" />
                             {{svm.price | currency}}
                         </label>
                     </td>
@@ -35,11 +36,12 @@
             <tabset>
                 <tab data-ng-repeat="tab in tabVms" heading="{{tab.type | toTitle}}" active="tab.active" disabled="tab.disabled">
                     <p data-ng-show="tab.allFree" class="optionMessage">These choices are all free! Enjoy!</p>
-                    <p data-ng-show="tab.someCostMore" class="optionMessage">Choices with an (*) after the name count as 2.</p> 
-                    <div data-ng-switch="tab.oneChoice">
-                        <div data-ng-switch-when="true"  data-ng-include="'app/views/orderItemOptionRadio.html'"></div>                         
-                        <div data-ng-switch-when="false" data-ng-include="'app/views/orderItemOptionCheckbox.html'"></div>
-                    </div>                      
+                    <p data-ng-show="tab.someCostMore" class="optionMessage">Choices with an (*) after the name count as 2.</p>
+
+                    <div> <!-- breaks w/o this div :( -->
+                        <div data-ng-if="tab.oneChoice"  data-ng-include="'app/views/orderItemOptionRadio.html'"></div>
+                        <div data-ng-if="!tab.oneChoice" data-ng-include="'app/views/orderItemOptionCheckbox.html'"></div>
+                    </div>
                 </tab>
             </tabset>
             <p></p>

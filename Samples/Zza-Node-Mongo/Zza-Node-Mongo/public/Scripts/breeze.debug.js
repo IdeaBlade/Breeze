@@ -151,6 +151,40 @@ function __toJson(source, template) {
     return target;
 }
 
+function __toJSONSafe(obj, replacer) {
+    if (obj !== Object(obj)) return obj; // primitive value
+    if (obj._$visited) return undefined;
+    if (obj.toJSON) {
+        var newObj = obj.toJSON();
+        if (newObj !== Object(newObj)) return newObj; // primitive value
+        if (newObj !== obj) return __toJSONSafe(newObj);
+        // toJSON returned the object unchanged.
+        obj = newObj;
+    }
+    obj._$visited = true;
+    var result;
+    if (obj instanceof Array) {
+        result = obj.map(function (o) { return __toJSONSafe(o, replacer); } );
+    } else if (typeof (obj) === "function") {
+        result = undefined;
+    } else {
+        var result = {};
+        for (var prop in obj) {
+            if (prop === "_$visited") continue;
+            var val = obj[prop];
+            if (replacer) {
+                val = replacer(prop, val);
+                if (val === undefined) continue;
+            }
+            var val = __toJSONSafe(val);
+            if (val === undefined) continue;
+            result[prop] = val;
+        }
+    }
+    delete obj._$visited;
+    return result;
+}
+
 // resolves the values of a list of properties by checking each property in multiple sources until a value is found.
 function __resolveProperties(sources, propertyNames) {
     var r = {};
@@ -459,6 +493,8 @@ function __isEmpty(obj) {
     return true;
 }
 
+
+
 function __isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
@@ -500,7 +536,6 @@ function uncurry(f) {
     };
 }
 
-
 // shims
 
 if (!Object.create) {
@@ -520,7 +555,7 @@ core.objectForEach= __objectForEach;
 
 core.extend = __extend;
 core.propEq = __propEq;
-core.pluck  = __pluck;
+core.pluck = __pluck;
 
 core.arrayEquals = __arrayEquals;
 // core.arrayDistinct = __arrayDistinct;
@@ -547,6 +582,8 @@ core.isNumeric= __isNumeric;
 core.stringStartsWith= __stringStartsWith;
 core.stringEndsWith= __stringEndsWith;
 core.formatString = __formatString;
+
+core.toJSONSafe = __toJSONSafe;
 
 core.parent = breeze;
 breeze.core = core;
@@ -4727,7 +4764,13 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         localAspect = entityAspect;
     } else {
         localAspect = this.complexAspect;
-        entityAspect = localAspect.getEntityAspect();
+        if (localAspect) {
+            entityAspect = localAspect.getEntityAspect();
+        } else {
+            // does not yet have an EntityAspect so just set the prop
+            rawAccessorFn(newValue);
+            return;
+        }
     }
     var propPath = localAspect.getPropertyPath(propName);
         
@@ -5847,12 +5890,14 @@ var MetadataStore = (function () {
     between client and server. Uses the NamingConvention.defaultInstance if not specified.
     @param [config.localQueryComparisonOptions=LocalQueryComparisonOptions.defaultInstance] {LocalQueryComparisonOptions} The LocalQueryComparisonOptions to be
     used when performing "local queries" in order to match the semantics of queries against a remote service. 
+    @param [config.serializerFn] A function that is used to mediate the serialization of instances of this type.
     **/
     var ctor = function (config) {
         config = config || { };
         assertConfig(config)
             .whereParam("namingConvention").isOptional().isInstanceOf(NamingConvention).withDefault(NamingConvention.defaultInstance)
             .whereParam("localQueryComparisonOptions").isOptional().isInstanceOf(LocalQueryComparisonOptions).withDefault(LocalQueryComparisonOptions.defaultInstance)
+            .whereParam("serializerFn").isOptional().isFunction()
             .applyAll(this);
         this.dataServices = []; // array of dataServices;
         this._resourceEntityTypeMap = {}; // key is resource name - value is qualified entityType name
@@ -5866,6 +5911,29 @@ var MetadataStore = (function () {
     var proto = ctor.prototype;
     proto._$typeName = "MetadataStore";
     ctor.ANONTYPE_PREFIX = "_IB_";
+
+    /**
+    General purpose property set method
+    @example
+        // assume em1 is an EntityManager containing a number of existing entities.
+       
+        em1.metadataStore.setProperties( {
+            version: "6.1.3",
+            serializerFn: function(prop, value) {
+            return (prop.isUnmapped) ? undefined : value;
+            }
+        )};
+    @method setProperties
+    @param config [object]
+        @param [config.name] {String} A name for the collection of metadata in this store.
+        @param [config.serializerFn] A function that is used to mediate the serialization of instances of this type.
+    **/
+    proto.setProperties = function (config) {
+        assertConfig(config)
+            .whereParam("name").isString().isOptional()
+            .whereParam("serializerFn").isFunction().isOptional()
+            .applyAll(this);
+    };
 
     /**
     Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already
@@ -5974,6 +6042,7 @@ var MetadataStore = (function () {
     proto.exportMetadata = function () {
         var result = JSON.stringify({
             "metadataVersion": breeze.metadataVersion,
+            "name": this.name,
             "namingConvention": this.namingConvention.name,
             "localQueryComparisonOptions": this.localQueryComparisonOptions.name,
             "dataServices": this.dataServices,
@@ -6197,21 +6266,25 @@ var MetadataStore = (function () {
     @method registerEntityTypeCtor
     @param structuralTypeName {String} The name of the EntityType o0r ComplexType.
     @param aCtor {Function}  The constructor for this EntityType or ComplexType; may be null if all you want to do is set the next parameter. 
-    @param [initializationFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
+    @param [initFn] {Function} A function or the name of a function on the entity that is to be executed immediately after the entity has been created
     and populated with any initial values.
-            
-    initializationFn(entity)
-    @param initializationFn.entity {Entity} The entity being created or materialized.
+        initFn(entity)
+    @param initFn.entity {Entity} The entity being created or materialized.
+    @param [noTrackingFn} {Function} A function that is executed immediately after a noTracking entity has been created and whose return
+    value will be used in place of the noTracking entity. 
+    @param noTrackingFn.entity {Object}
+    @param noTrackingFn.entityType {EntityType} The entityType that the 'entity' parameter would be if we were tracking
     **/
-    proto.registerEntityTypeCtor = function (structuralTypeName, aCtor, initializationFn) {
+    proto.registerEntityTypeCtor = function (structuralTypeName, aCtor, initFn, noTrackingFn) {
         assertParam(structuralTypeName, "structuralTypeName").isString().check();
         assertParam(aCtor, "aCtor").isFunction().isOptional().check();
-        assertParam(initializationFn, "initializationFn").isOptional().isFunction().or().isString().check();
+        assertParam(initFn, "initFn").isOptional().isFunction().or().isString().check();
+        assertParam(noTrackingFn, "noTrackingFn").isOptional().isFunction().check();
         
         var qualifiedTypeName = getQualifiedTypeName(this, structuralTypeName, false);
         var typeName = qualifiedTypeName || structuralTypeName;
             
-        this._ctorRegistry[typeName] = { ctor: aCtor, initFn: initializationFn };
+        this._ctorRegistry[typeName] = { ctor: aCtor, initFn: initFn, noTrackingFn: noTrackingFn };
         if (qualifiedTypeName) {
             var stype = this._structuralTypeMap[qualifiedTypeName];
             stype && stype.getCtor(true); // this will complete the registration if avail now.
@@ -6922,6 +6995,7 @@ var EntityType = (function () {
     @param [config.defaultResourceName] {String}
     @param [config.dataProperties] {Array of DataProperties}
     @param [config.navigationProperties] {Array of NavigationProperties}
+    @param [config.serializerFn] A function that is used to mediate the serialization of instances of this type.
     @param [config.custom] {Object}
     **/
     var ctor = function (config) {
@@ -6943,6 +7017,7 @@ var EntityType = (function () {
                 .whereParam("defaultResourceName").isNonEmptyString().isOptional().withDefault(null)
                 .whereParam("dataProperties").isOptional()
                 .whereParam("navigationProperties").isOptional()
+                .whereParam("serializerFn").isOptional().isFunction()
                 .whereParam("custom").isOptional()
                 .applyAll(this);
         }
@@ -7106,12 +7181,14 @@ var EntityType = (function () {
     @param config [object]
         @param [config.autogeneratedKeyType] {AutoGeneratedKeyType}
         @param [config.defaultResourceName] {String}
+        @param [config.serializerFn] A function that is used to mediate the serialization of instances of this type.
         @param [config.custom] {Object}
     **/
     proto.setProperties = function (config) {
         assertConfig(config)
             .whereParam("autoGeneratedKeyType").isEnumOf(AutoGeneratedKeyType).isOptional()
             .whereParam("defaultResourceName").isString().isOptional()
+            .whereParam("serializerFn").isFunction().isOptional()
             .whereParam("custom").isOptional()
             .applyAll(this);
         if (config.defaultResourceName) {
@@ -7192,21 +7269,24 @@ var EntityType = (function () {
     @return {Entity} The new entity.
     **/
     proto.createEntity = function (initialValues) {
+        // ignore the _$eref once the entity is attached to an entityManager.
         if (initialValues  && initialValues._$eref && ! initialValues._$eref.entityAspect.entityManager) return initialValues._$eref;
 
         var instance = this._createInstanceCore();
             
         if (initialValues) {
+            // only assign an _eref if the object is fully "keyed"
             if (this.keyProperties.every(function (kp) { return initialValues[kp.name] != null; })) {
                 initialValues._$eref = instance;
             };
            
-            this.dataProperties.forEach(function (dp) {
-                var val = initialValues[dp.name];
-                if (val !== undefined) {
-                    instance.setProperty(dp.name, val);
-                }
-            });
+            //this.dataProperties.forEach(function (dp) {
+            //    var val = initialValues[dp.name];
+            //    if (val !== undefined) {
+            //        instance.setProperty(dp.name, val);
+            //    }
+            //});
+            this._updateTargetFromRaw(instance, initialValues, getRawValueFromConfig);
             
             this.navigationProperties.forEach(function (np) {
                 var relatedEntity;
@@ -7231,6 +7311,16 @@ var EntityType = (function () {
         return instance;
     };
 
+    function getRawValueFromConfig(rawEntity, dp) {
+        var val;
+        if (rawEntity.entityAspect || rawEntity.complexAspect) {
+            // this can happen if an initializer contains an actaul instance of an already created complex object.
+            val = rawEntity.getProperty(dp.name);
+        } else {
+            val = rawEntity[dp.name];
+        }
+        return val !== undefined ? val : dp.defaultValue;
+    }
 
     proto._createInstanceCore = function() {
         var aCtor = this.getEntityCtor();
@@ -7243,7 +7333,7 @@ var EntityType = (function () {
         if (this.baseEntityType) {
             this.baseEntityType._initializeInstance(instance);
         }
-        var initFn = this.initializationFn;
+        var initFn = this.initFn;
         if (initFn) {
             if (typeof initFn === "string") {
                 initFn = instance[initFn];
@@ -7291,7 +7381,8 @@ var EntityType = (function () {
             aCtor = createCtor ? createCtor(this) : createEmptyCtor();
         }
         
-        this.initializationFn = r.initFn;
+        this.initFn = r.initFn;
+        this.noTrackingFn = r.noTrackingFn;
         
         aCtor.prototype._$typeName = this.name;
         this._setCtor(aCtor);
@@ -9485,7 +9576,7 @@ var EntityQuery = (function () {
    
 
     @method inlineCount
-    @param enabled {Boolean=true} Whether or not noTracking capability should be enabled. If this parameter is omitted, true is assumed. 
+    @param enabled {Boolean=true} Whether or not the noTracking capability should be enabled. If this parameter is omitted, true is assumed. 
     @return {EntityQuery}
     @chainable
     **/
@@ -11896,11 +11987,14 @@ var EntityManager = (function () {
     @method createEntity
     @param entityType {String|EntityType} The EntityType or the name of the type for which an instance should be created.
     @param [initialValues=null] {Config object} - Configuration object of the properties to set immediately after creation.
-    @param [entityState=EntityState.Added] {EntityState} - Configuration object of the properties to set immediately after creation.
+    @param [entityState=EntityState.Added] {EntityState} - The EntityState of the entity after being created and added to this EntityManager.
+    @param [mergeStrategy=MergeStrategy.Disallowed] {MergeStrategy} - How to handle conflicts if an entity with the same key already exists within this EntityManager.
     @return {Entity} A new Entity of the specified type.
     **/
-    proto.createEntity = function (entityType, initialValues, entityState) {
+    proto.createEntity = function (entityType, initialValues, entityState, mergeStrategy) {
         assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
+        assertParam(entityState, "entityState").isEnumOf(EntityState).isOptional().check();
+        assertParam(mergeStrategy, "mergeStrategy").isEnumOf(MergeStrategy).isOptional().check();
         if (typeof entityType === "string") {
             entityType = this.metadataStore._getEntityType(entityType);
         }
@@ -11910,7 +12004,7 @@ var EntityManager = (function () {
             entity = entityType.createEntity(initialValues);
         });
         if (entityState !== EntityState.Detached) {
-            this.attachEntity(entity, entityState);
+            entity = this.attachEntity(entity, entityState, mergeStrategy);
         }
         return entity;
     };
@@ -11988,13 +12082,16 @@ var EntityManager = (function () {
         // assume em2 is another entityManager containing some of the same entities possibly with modifications.
         em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
     @method exportEntities
-    @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted.
+    @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted or null
+    @param [includeMetadata = true] Whether to include metadata in the export; the default is true
+
     @return {String} A serialized version of the exported data.
     **/
-    proto.exportEntities = function (entities) {
+    proto.exportEntities = function (entities, includeMetadata) {
+        assertParam(includeMetadata, "includeMetadata").isBoolean().isOptional().check();
+        includeMetadata = (includeMetadata == null) ? true : includeMetadata;
         var exportBundle = exportEntityGroups(this, entities);
         var json = {
-            metadataStore: this.metadataStore.exportMetadata(),
             dataService: this.dataService,
             saveOptions: this.saveOptions,
             queryOptions: this.queryOptions,
@@ -12002,6 +12099,13 @@ var EntityManager = (function () {
             tempKeys: exportBundle.tempKeys,
             entityGroupMap: exportBundle.entityGroupMap
         };
+        if (includeMetadata) {
+            json.metadataStore = this.metadataStore.exportMetadata();
+        } else {
+            json.metadataVersion = breeze.metadataVersion;
+            json.metadataStoreName = this.metadataStore.name;
+        }
+
         var result = JSON.stringify(json, null, __config.stringifyPad);
         return result;
     };
@@ -12044,11 +12148,19 @@ var EntityManager = (function () {
         config = config || {};
         assertConfig(config)
             .whereParam("mergeStrategy").isEnumOf(MergeStrategy).isOptional().withDefault(this.queryOptions.mergeStrategy)
+            .whereParam("metadataVersionFn").isFunction().isOptional()
             .applyAll(config);
         var that = this;
             
         var json = (typeof exportedString === "string") ? JSON.parse(exportedString) : exportedString;
-        this.metadataStore.importMetadata(json.metadataStore);
+        if (json.metadataStore) {
+            this.metadataStore.importMetadata(json.metadataStore);
+        } else {
+            config.metadataVersionFn && config.metadataVersionFn({
+                metadataVersion: json.metadataVersion,
+                metadataStoreName: json.metadataStoreName
+            });
+        }
         // the || clause is for backwards compat with an earlier serialization format.           
         this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
         
@@ -12507,8 +12619,11 @@ var EntityManager = (function () {
         );
     @method saveChanges
     @async
-    @param [entities] {Array of Entity} The list of entities to save.  All entities with changes 
-    within this EntityManager will be saved if this parameter is omitted, null or empty.
+    @param [entities] {Array of Entity} The list of entities to save.  
+    Every entity in that list will be sent to the server, whether changed or unchanged, 
+    as long as it is attached to this EntityManager.
+    If this parameter is omitted, null or empty (the usual case), 
+    every entity with pending changes in this EntityManager will be saved. 
     @param [saveOptions] {SaveOptions} {{#crossLink "SaveOptions"}}{{/crossLink}} for the save - will default to
     {{#crossLink "EntityManager/saveOptions"}}{{/crossLink}} if null.
     @param [callback] {Function} Function called on success.
@@ -13285,11 +13400,11 @@ var EntityManager = (function () {
         var resultGroup = {};
         var entityType = entityGroup.entityType;
         var dps = entityType.dataProperties;
-        
+        var serializerFn = getSerializerFn(entityType);
         var rawEntities = [];
         entityGroup._entities.forEach(function (entity) {
             if (entity) {
-                var rawEntity = structuralObjectToJson(entity, dps, tempKeys);
+                var rawEntity = structuralObjectToJson(entity, dps, serializerFn, tempKeys);
                 rawEntities.push(rawEntity);
             }
         });
@@ -13297,23 +13412,28 @@ var EntityManager = (function () {
         return resultGroup;
     }
 
-    function structuralObjectToJson(so, dps, tempKeys) {
+    function structuralObjectToJson(so, dps, serializerFn, tempKeys) {
         
         var result = {};
-        
         dps.forEach(function (dp) {
             var dpName = dp.name;
             var value = so.getProperty(dpName);
             if (value == null && dp.defaultValue == null) return;
+
             if (value && value.complexType) {
                 var newValue;
                 var coDps = dp.dataType.dataProperties;
-                result[dpName] = __map(value, function (v) {
-                    return structuralObjectToJson(v, coDps);
+                value = __map(value, function (v) {
+                    return structuralObjectToJson(v, coDps, serializerFn);
                 });
             } else {
-                result[dpName] = value;
+                value = serializerFn ? serializerFn(dp, value) : value;
+                if (dp.isUnmapped) {
+                    value = __toJSONSafe(value);
+                }
             }
+            if (value === undefined) return;
+            result[dpName] = value;
         });
         var aspect, newAspect;
         if (so.entityAspect) {
@@ -13582,7 +13702,7 @@ var EntityManager = (function () {
             });
             
             var validateOnQuery = em.validationOptions.validateOnQuery;
-            
+           
             return dataService.adapterInstance.executeQuery(mappingContext).then(function (data) {
                 var result = __wrapExecution(function () {
                     var state = { isLoading: em.isLoading };
@@ -13705,45 +13825,46 @@ var EntityManager = (function () {
     };
     
    
-    function unwrapInstance(structObj, isOData) {
+    function unwrapInstance(structObj, transformFn) {
         
         var rawObject = {};
         var stype = structObj.entityType || structObj.complexType;
-        
+        var serializerFn = getSerializerFn(stype);
+        var unmapped = {};
         stype.dataProperties.forEach(function (dp) {
-            if (dp.isUnmapped) {
-                if (isOData) return;
-                var val = structObj.getProperty(dp.name);
-                val = transformValue(val, dp, false);
-                if (val !== undefined) {
-                    rawObject.__unmapped = rawObject.__unmapped || {};
-                    // no name on server for unmapped props
-                    rawObject.__unmapped[dp.name] = val;
-                }
-            } else if (dp.isComplexProperty) {
+            if (dp.isComplexProperty) {
                 rawObject[dp.nameOnServer] = __map(structObj.getProperty(dp.name), function (co) {
-                    return unwrapInstance(co, isOData);
+                    return unwrapInstance(co, transformFn);
                 });
             } else {
                 var val = structObj.getProperty(dp.name);
-                val = transformValue(val, dp, isOData);
+                val = transformFn ? transformFn(dp, val) : val;
+                if (val === undefined) return;
+                val = serializerFn ? serializerFn(dp, val) : val;
                 if (val !== undefined) {
-                    rawObject[dp.nameOnServer] = val;
+                    if (dp.isUnmapped) {
+                        unmapped[dp.name] = __toJSONSafe(val);
+                    } else {
+                        rawObject[dp.nameOnServer] = val;
+                    }
                 }
             }
         });
         
+        if (!__isEmpty(unmapped)) {
+            rawObject.__unmapped = unmapped;
+        }
         return rawObject;
     }
     
-    function unwrapOriginalValues(target, metadataStore, isOData) {
+    function unwrapOriginalValues(target, metadataStore, transformFn) {
         var stype = target.entityType || target.complexType;
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, val) {
             var prop = stype.getProperty(propName);
-            val = transformValue(val, prop, isOData);
+            val = transformFn ? transformFn(prop, val) : val;
             if (val !== undefined) {
                 result[fn(propName, prop)] = val;
             }
@@ -13751,13 +13872,13 @@ var EntityManager = (function () {
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
             if (cp.isScalar) {
-                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, isOData);
+                var unwrappedCo = unwrapOriginalValues(nextTarget, metadataStore, transformFn);
                 if (!__isEmpty(unwrappedCo)) {
                     result[fn(cp.name, cp)] = unwrappedCo;
                 }
             } else {
                 var unwrappedCos = nextTarget.map(function (item) {
-                    return unwrapOriginalValues(item, metadataStore, isOData);
+                    return unwrapOriginalValues(item, metadataStore, transformFn);
                 });
                 result[fn(cp.name, cp)] = unwrappedCos;
             }
@@ -13765,15 +13886,18 @@ var EntityManager = (function () {
         return result;
     }
     
-    function unwrapChangedValues(target, metadataStore, isOData) {
+    function unwrapChangedValues(target, metadataStore, transformFn) {
         var stype = target.entityType || target.complexType;
+        var serializerFn = getSerializerFn(stype);
         var aspect = target.entityAspect || target.complexAspect;
         var fn = metadataStore.namingConvention.clientPropertyNameToServer;
         var result = {};
         __objectForEach(aspect.originalValues, function (propName, value) {
             var prop = stype.getProperty(propName);
             var val = target.getProperty(propName);
-            val = transformValue(val, prop, isOData);
+            val = transformFn ? transformFn(prop, val) : val;
+            if (val === undefined) return;
+            val = serializerFn ? serializerFn(dp, val) : val;
             if (val !== undefined) {
                 result[fn(propName, prop)] = val;
             }
@@ -13781,13 +13905,13 @@ var EntityManager = (function () {
         stype.complexProperties.forEach(function (cp) {
             var nextTarget = target.getProperty(cp.name);
             if (cp.isScalar) {
-                var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore);
+                var unwrappedCo = unwrapChangedValues(nextTarget, metadataStore, transformFn);
                 if (!__isEmpty(unwrappedCo)) {
                     result[fn(cp.name, cp)] = unwrappedCo;
                 }
             } else {
                 var unwrappedCos = nextTarget.map(function (item) {
-                    return unwrapChangedValues(item, metadataStore);
+                    return unwrapChangedValues(item, metadataStore, transformFn);
                 });
                 result[fn(cp.name, cp)] = unwrappedCos;
             }
@@ -13795,19 +13919,10 @@ var EntityManager = (function () {
         return result;
     }
 
-    function transformValue(val, prop, isOData) {
-        if (isOData) {
-            if (prop.isUnmapped) return;
-            if (prop.dataType === DataType.DateTimeOffset) {
-                // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
-                // from other dateTimes. This fix compensates before the save.
-                val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
-            } else if (prop.dataType.quoteJsonOData) {
-                val = val != null ? val.toString() : val;
-            }
-        }
-        return val;
+    function getSerializerFn(stype) {
+        return stype.serializerFn || (stype.metadataStore && stype.metadataStore.serializerFn);
     }
+
 
     function UnattachedChildrenMap() {
         // key is EntityKey.toString(), value is array of { navigationProperty, children }
@@ -13895,6 +14010,10 @@ var MappingContext = (function () {
     var parseRawValue = DataType.parseRawValue;
     proto._$typeName = "MappingContext";
 
+    proto.getUrl = function () {
+        return  this.dataService.makeUrl(this.metadataStore.toQueryString(this.query));
+    }
+
     proto.visitAndMerge = function (nodes, nodeContext) {
         var query = this.query;
         var jra = this.jsonResultsAdapter;
@@ -13942,22 +14061,25 @@ var MappingContext = (function () {
             }
             return refValue;
         } else if (meta.entityType) {
+            var entityType = meta.entityType;
             if (mc.mergeOptions.noTracking) {
-                node = processNoMerge(mc, meta.entityType, node);
+                node = processNoMerge(mc, entityType, node);
+                if (entityType.noTrackingFn) {
+                    node = entityType.noTrackingFn(node, entityType);
+                } 
                 if (meta.nodeId) {
                     mc.refMap[meta.nodeId] = node;
                 }
                 return node;
             } else {
-                if (meta.entityType.isComplexType) {
+                if (entityType.isComplexType) {
                     // because we still need to do serverName to client name processing
-                    return processNoMerge(mc, meta.entityType, node);
+                    return processNoMerge(mc, entityType, node);
                 } else {
                     return mergeEntity(mc, node, meta);
                 }
             }
         } else {
-
             if (typeof node === 'object' && !__isDate(node)) {
                 node = processAnonType(mc, node);
             }
@@ -14093,12 +14215,13 @@ var MappingContext = (function () {
             }
         } else {
             targetEntity = entityType._createInstanceCore();
-            if (targetEntity.initializeFrom) {
-                // allows any injected post ctor activity to be performed by modelLibrary impl.
-                targetEntity.initializeFrom(node);
-            }
+            // No longer needed
+            //if (targetEntity.initializeFrom) {
+            //    // allows any injected post ctor activity to be performed by modelLibrary impl.
+            //    targetEntity.initializeFrom(node);
+            //}
             updateEntity(mc, targetEntity, node);
-            // entityType._initializeInstance(targetEntity);
+            
             if (meta.extra) {
                 targetEntity.entityAspect.extraMetadata = meta.extra;
             }
@@ -14407,7 +14530,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     ctor.prototype.executeQuery = function (mappingContext) {
 
         var deferred = Q.defer();
-        var url = mappingContext.dataService.makeUrl(mappingContext.metadataStore.toQueryString(mappingContext.query));
+        var url = mappingContext.getUrl();
 
         var that = this;
         var params = {
@@ -14806,9 +14929,10 @@ breeze.AbstractDataServiceAdapter = (function () {
     ctor.prototype.executeQuery = function (mappingContext) {
     
         var deferred = Q.defer();
-        // OData.read(mappingContext.url,
+        var url = mappingContext.getUrl();
+        
         OData.read({
-                requestUri: mappingContext.url,
+                requestUri: url,
                 headers: { "DataServiceVersion": "2.0" }
             },
             function (data, response) {
@@ -14820,7 +14944,7 @@ breeze.AbstractDataServiceAdapter = (function () {
                 return deferred.resolve({ results: data.results, inlineCount: inlineCount });
             },
             function (error) {
-                return deferred.reject(createError(error, mappingContext.url));
+                return deferred.reject(createError(error, url));
             }
         );
         return deferred.promise;
@@ -14963,6 +15087,18 @@ breeze.AbstractDataServiceAdapter = (function () {
         
     });
 
+    function transformValue(prop, val ) {
+        if (prop.isUnmapped) return undefined;
+        if (prop.dataType === DataType.DateTimeOffset) {
+            // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
+            // from other dateTimes. This fix compensates before the save.
+            val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
+        } else if (prop.dataType.quoteJsonOData) {
+            val = val != null ? val.toString() : val;
+        }
+        return val;
+    }
+
     function createChangeRequests(saveContext, saveBundle) {
         var changeRequests = [];
         var tempKeys = [];
@@ -14979,12 +15115,12 @@ breeze.AbstractDataServiceAdapter = (function () {
             if (aspect.entityState.isAdded()) {
                 request.requestUri = entity.entityType.defaultResourceName;
                 request.method = "POST";
-                request.data = helper.unwrapInstance(entity, true);
+                request.data = helper.unwrapInstance(entity, transformValue);
                 tempKeys[id] = aspect.getKey();
             } else if (aspect.entityState.isModified()) {
                 updateDeleteMergeRequest(request, aspect, prefix);
                 request.method = "MERGE";
-                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, true);
+                request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, transformValue);
                 // should be a PATCH/MERGE
             } else if (aspect.entityState.isDeleted()) {
                 updateDeleteMergeRequest(request, aspect, prefix);
@@ -15405,66 +15541,23 @@ breeze.AbstractDataServiceAdapter = (function () {
         };
 
         proto.setProperty = function (propertyName, value) {
-            if (!this._backingStore.hasOwnProperty(propertyName)) {
-                throw new Error("Unknown property name:" + propertyName);
-            }
+            //if (!this._backingStore.hasOwnProperty(propertyName)) {
+            //    throw new Error("Unknown property name:" + propertyName);
+            //}
             this[propertyName] = value;
             // allow setProperty chaining.
             return this;
         };
 
-        //// called after any create during a query;
-        // this method cannot be called while a 'defineProperty' accessor is executing
-        // because of IE bug 
-        proto.initializeFrom = function (rawEntity) {
-            // HACK:
-            // copy unmapped properties from newly created client entity to the rawEntity.
-            // This is so that we don't lose them when we update from the rawEntity to the target.
-            // Something that will occur immediately after this method completes. 
-            var that = this;
-            this.entityType.unmappedProperties.forEach(function(prop) {
-                var propName = prop.name;
-                rawEntity[propName] = that[propName];
-            });
-            
-            if (!this._backingStore) {
-                this._backingStore = { };
-            }
-        };
-
-        // internal implementation details - ugly because of IE9 issues with defineProperty.
-
-        proto._pendingSets = [];
-        proto._pendingSets.schedule = function(entity, propName, value) {
-            this.push({ entity: entity, propName: propName, value: value });
-            if (!this.isPending) {
-                this.isPending = true;
-                var that = this;
-                setTimeout(function() { that.process(); });
-            }
-        };
-        proto._pendingSets.process = function() {
-            if (this.length === 0) return;
-            this.forEach(function(ps) {
-                if (!ps.entity._backingStore) {
-                    ps.entity._backingStore = { };
-                }
-                ps.entity._backingStore[ps.propName] = ps.value;
-            });
-            this.length = 0;
-            this.isPending = false;
-        };
-
         movePropDefsToProto(proto);
-
     };
 
-    // This method is called when an instance is first created via materialization or createEntity.
+    // This method is called when an EntityAspect is first created - this will occur as part of the entityType.createEntity call. 
+    // which can be called either directly or via standard query materialization
 
     // entity is either an entity or a complexObject
     ctor.prototype.startTracking = function (entity, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
-        proto._pendingSets.process();
         var bs = movePropsToBackingStore(entity);
 
         // assign default values to the entity
@@ -15538,10 +15631,9 @@ breeze.AbstractDataServiceAdapter = (function () {
     // because of IE bug mentioned above.
 
     function movePropsToBackingStore(instance) {
+        
+        var bs = getBackingStore(instance);
         var proto = Object.getPrototypeOf(instance);
-        if (!instance._backingStore) {
-            instance._backingStore = { };
-        }
         var stype = proto.entityType || proto.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
@@ -15551,37 +15643,25 @@ breeze.AbstractDataServiceAdapter = (function () {
             delete instance[propName];
             instance[propName] = value;
         });
-        return instance._backingStore;
+        return bs;
     }
 
     function makePropDescription(proto, property) {
         var propName = property.name;
-        var getAccessorFn = function(backingStore) {
-            return function() {
-                if (arguments.length == 0) {
-                    return backingStore[propName];
-                } else {
-                    backingStore[propName] = arguments[0];
-                }
-            };
-        };
+        var pendingStores = proto._pendingBackingStores;
+        if (!pendingStores) {
+            pendingStores = [];
+            proto._pendingBackingStores = pendingStores;
+        }
         var descr = {
-            get: function() {
-                var bs = this._backingStore;
-                if (!bs) {
-                    this._pendingSets.process();
-                    bs = this._backingStore;
-                    if (!bs) return;
-                }
+            get: function () {
+                var bs = this._backingStore || getBackingStore(this);
                 return bs[propName];
             },
-            set: function(value) {
-                var bs = this._backingStore;
-                if (!bs) {
-                    this._pendingSets.schedule(this, propName, value);
-                    return;
-                }
-                var accessorFn = getAccessorFn(bs);
+            set: function (value) {
+                // IE9 cannot touch instance._backingStore here
+                var bs = this._backingStore || getPendingBackingStore(this);
+                var accessorFn = getAccessorFn(bs, propName);
                 this._$interceptor(property, value, accessorFn);
             },
             enumerable: true,
@@ -15589,6 +15669,35 @@ breeze.AbstractDataServiceAdapter = (function () {
         };
         Object.defineProperty(proto, propName, descr);
     }
+
+    function getAccessorFn(bs, propName) {
+        return function () {
+            if (arguments.length == 0) {
+                return bs[propName];
+            } else {
+                bs[propName] = arguments[0];
+            }
+        };
+    }
+
+    // caching version of the above code - perf gain is minimal or negative based on simple testing.
+
+    //function getAccessorFn(bs, propName) {
+    //    // check if fn is already cached 
+    //    var fns = bs.__fns || (bs.__fns = {});
+    //    var fn = fns[propName];
+    //    if (fn) return fn;
+        
+    //    fn = function () {
+    //        if (arguments.length == 0) {
+    //            return bs[propName];
+    //        } else {
+    //            bs[propName] = arguments[0];
+    //        }
+    //    };
+    //    fns[propName] = fn;
+    //    return fn;
+    //}
 
     function wrapPropDescription(proto, property) {
         if (!proto.hasOwnProperty(property.name)) {
@@ -15614,7 +15723,6 @@ breeze.AbstractDataServiceAdapter = (function () {
                 }
             }
         };
-   
             
         var newDescr = {
             get: function () {
@@ -15628,6 +15736,43 @@ breeze.AbstractDataServiceAdapter = (function () {
         };
         Object.defineProperty(proto, property.name, newDescr);
     };
+
+   
+    
+
+    function getBackingStore(instance) {
+        var proto = Object.getPrototypeOf(instance);
+        processPendingStores(proto);
+        var bs = instance._backingStore;
+        if (!bs) {
+            bs = {};
+            instance._backingStore = bs;
+        }
+        return bs;
+    }
+
+    // workaround for IE9 bug where instance properties cannot be changed when executing a property 'set' method.
+    function getPendingBackingStore(instance) {
+        var proto = Object.getPrototypeOf(instance);
+        var pendingStores = proto._pendingBackingStores;
+        var pending = core.arrayFirst(pendingStores, function (pending) {
+            return pending.entity === instance;
+        });
+        if (pending) return pending.backingStore;
+        bs = {};
+        pendingStores.push({ entity: instance, backingStore: bs });
+        return bs;
+    }
+
+    function processPendingStores(proto) {
+        var pendingStores = proto._pendingBackingStores;
+        if (pendingStores) {
+            pendingStores.forEach(function (pending) {
+                pending.entity._backingStore = pending.backingStore;
+            });
+            pendingStores.length = 0;
+        }
+    }
         
 
     breeze.config.registerAdapter("modelLibrary", ctor);

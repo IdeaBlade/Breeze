@@ -4,11 +4,8 @@
              <div data-ng-include="'app/views/dashboard.html'"></div>
         </div>
 
-        <div class="span9">
-            <div data-ng-switch="isItemView" style="margin-bottom: 30px">
-                <div data-ng-switch-when="true"  data-ng-include="'app/views/orderItem.html'"></div>                         
-                <div data-ng-switch-when="false" data-ng-include="view"></div>
-            </div>
+        <div class="span9" style="margin-bottom: 30px">
+            <div data-ng-if="isItemView"  data-ng-include="'app/views/orderItem.html'"></div>
+            <div data-ng-if="!isItemView" data-ng-include="view"></div>
         </div>
-    </div>
 </div>
