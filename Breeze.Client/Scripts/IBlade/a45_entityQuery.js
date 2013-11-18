@@ -124,13 +124,7 @@ var EntityQuery = (function () {
     proto.from = function (resourceName) {
         // TODO: think about allowing entityType as well 
         assertParam(resourceName, "resourceName").isString().check();
-        var currentName = this.resourceName;
-        if (currentName && currentName !== resourceName) {
-            throw new Error("This query already has an resourceName - the resourceName may only be set once per query");
-        }
-        var eq = this._clone();
-        eq.resourceName = resourceName;
-        return eq;
+        return clone(this, "resourceName", resourceName);
     };
         
     /**
@@ -166,9 +160,7 @@ var EntityQuery = (function () {
     **/
     proto.toType = function(entityType) {
         assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
-        var eq = this._clone();
-        eq.resultEntityType = entityType;
-        return eq;
+        return clone(this, "resultEntityType", entityType)
     };
 
         
@@ -225,24 +217,23 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.where = function (predicate) {
-        var eq = this._clone();
+        var wherePredicate;
         if (predicate == null) {
-            eq.wherePredicate = null;
-            return eq;
-        }
-        var pred;
-        if (Predicate.isPredicate(predicate)) {
-            pred = predicate;
+            wherePredicate = null;
         } else {
-            pred = Predicate.create(__arraySlice(arguments));
+            var pred;
+            if (Predicate.isPredicate(predicate)) {
+                wherePredicate = predicate;
+            } else {
+                wherePredicate = Predicate.create(__arraySlice(arguments));
+            }
+            if (this.entityType) wherePredicate.validate(this.entityType);
+            if (this.wherePredicate) {
+                wherePredicate = new CompositePredicate('and', [this.wherePredicate, wherePredicate]);
+            } 
         }
-        if (eq.entityType) pred.validate(eq.entityType);
-        if (eq.wherePredicate) {
-            eq.wherePredicate = new CompositePredicate('and', [eq.wherePredicate, pred]);
-        } else {
-            eq.wherePredicate = pred;
-        }
-        return eq;
+        return clone(this, "wherePredicate", wherePredicate);
+
     };
 
     /**
@@ -344,7 +335,8 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.select = function (propertyPaths) {
-        return selectCore(this, propertyPaths);
+        var selectClause = propertyPaths == null ? null : new SelectClause(normalizePropertyPaths(propertyPaths));
+        return clone(this, "selectClause", selectClause);
     };
 
 
@@ -362,9 +354,7 @@ var EntityQuery = (function () {
     **/
     proto.skip = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
-        var eq = this._clone();
-        eq.skipCount = (count == null) ? null : count;
-        return eq;
+        return clone(this, "skipCount", (count == null) ? null : count);
     };
         
     /**
@@ -397,9 +387,7 @@ var EntityQuery = (function () {
     **/
     proto.take = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
-        var eq = this._clone();
-        eq.takeCount = (count == null) ? null : count;
-        return eq;
+        return clone(this, "takeCount", (count == null) ? null : count);
     };
         
     /**
@@ -426,7 +414,8 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.expand = function (propertyPaths) {
-        return expandCore(this, propertyPaths);
+        var expandClause = propertyPaths == null ? null : new ExpandClause(normalizePropertyPaths(propertyPaths));
+        return clone(this, "expandClause", expandClause);
     };
 
     /**
@@ -453,7 +442,7 @@ var EntityQuery = (function () {
     **/
     proto.withParameters = function(parameters) {
         assertParam(parameters, "parameters").isObject().check();
-        return withParametersCore(this, parameters);
+        return clone(this, "parameters", parameters);
     };
 
     /**
@@ -475,12 +464,8 @@ var EntityQuery = (function () {
     **/
     proto.inlineCount = function (enabled) {
         assertParam(enabled, "enabled").isBoolean().isOptional().check();
-        // if (enabled === undefined) enabled = true;
         enabled = (enabled === undefined) ? true : !!enabled;
-        if (this.enabled == enabled) return this;
-        var eq = this._clone();
-        eq.inlineCountEnabled = enabled;
-        return eq;
+        return clone(this, "inlineCountEnabled", enabled);
     };
 
     /**
@@ -502,10 +487,7 @@ var EntityQuery = (function () {
     proto.noTracking = function (enabled) {
         assertParam(enabled, "enabled").isBoolean().isOptional().check();
         enabled = (enabled === undefined) ? true : !!enabled;
-        if (this.enabled == enabled) return this;
-        var eq = this._clone();
-        eq.noTrackingEnabled = enabled;
-        return eq;
+        return clone(this, "noTrackingEnabled", enabled);
     };
     
     /**
@@ -535,7 +517,7 @@ var EntityQuery = (function () {
     **/
     proto.using = function (obj) {
         if (!obj) return this;
-        var eq = this._clone();
+        var eq = clone(this);
         processUsing(eq, {
             entityManager: null,
             dataService: null,
@@ -806,14 +788,13 @@ var EntityQuery = (function () {
             // resolve it, if possible, via the resourceName
             // do not cache this value in this case
             // cannot determine the resultEntityType if a selectClause is present.
-            
             return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
         }
     };
 
-    proto._clone = function () {
+    function clone(that, propName, value) {
         // copying QueryOptions is safe because they are are immutable; 
-        copy = __extend(new EntityQuery(), this, [
+        copy = __extend(new EntityQuery(), that, [
             "resourceName",
             "entityType",
             "wherePredicate",
@@ -827,10 +808,13 @@ var EntityQuery = (function () {
             "entityManager",
             "dataService",
             "resultEntityType"
-            ]);
-        copy.parameters = __extend({}, this.parameters);
+        ]);
+        copy.parameters = __extend({}, that.parameters);
+        if (propName) {
+            copy[propName] = value;
+        }
         return copy;
-    };
+    }
 
     proto._toUri = function (metadataStore) {
         // force entityType validation;
@@ -973,52 +957,20 @@ var EntityQuery = (function () {
     // isDesc parameter trumps isDesc in propertyName.
 
     function orderByCore(that, propertyPaths, isDesc) {
-        var newClause;
-        var eq = that._clone();
-        if (propertyPaths==null) {
-            eq.orderByClause = null;
-            return eq;
-        }
-
-        propertyPaths = normalizePropertyPaths(propertyPaths);
-        newClause = OrderByClause.create(propertyPaths, isDesc);
-
-        if (eq.orderByClause) {
-            eq.orderByClause.addClause(newClause);
+        var orderByClause;
+        if (propertyPaths == null) {
+            orderByClause = null;
         } else {
-            eq.orderByClause = newClause;
+            propertyPaths = normalizePropertyPaths(propertyPaths);
+            orderByClause = OrderByClause.create(propertyPaths, isDesc);
+            if (that.orderByClause) {
+                orderByClause = that.orderByClause.addClause(orderByClause);
+            }
         }
-        return eq;
+        return clone(that, "orderByClause", orderByClause);
     }
+                
         
-    function selectCore(that, propertyPaths) {
-        var eq = that._clone();
-        if (propertyPaths==null) {
-            eq.selectClause = null;
-            return eq;
-        }
-        propertyPaths = normalizePropertyPaths(propertyPaths);
-        eq.selectClause = new SelectClause(propertyPaths);
-        return eq;
-    }
-        
-    function expandCore(that, propertyPaths) {
-        var eq = that._clone();
-        if (propertyPaths==null) {
-            eq.expandClause = null;
-            return eq;
-        }
-        propertyPaths = normalizePropertyPaths(propertyPaths);
-        eq.expandClause = new ExpandClause(propertyPaths);
-        return eq;
-    }
-        
-    function withParametersCore(that, parameters) {
-        var eq = that._clone();
-        eq.parameters = parameters;
-        return eq;
-    }
-
     function buildKeyPredicate(entityKey) {
         var keyProps = entityKey.entityType.keyProperties;
         var preds = __arrayZip(keyProps, entityKey.values, function (kp, v) {
