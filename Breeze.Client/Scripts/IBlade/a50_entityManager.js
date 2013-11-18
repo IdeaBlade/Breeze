@@ -355,14 +355,9 @@ var EntityManager = (function () {
         assertParam(includeMetadata, "includeMetadata").isBoolean().isOptional().check();
         includeMetadata = (includeMetadata == null) ? true : includeMetadata;
         var exportBundle = exportEntityGroups(this, entities);
-        var json = {
-            dataService: this.dataService,
-            saveOptions: this.saveOptions,
-            queryOptions: this.queryOptions,
-            validationOptions: this.validationOptions,
-            tempKeys: exportBundle.tempKeys,
-            entityGroupMap: exportBundle.entityGroupMap
-        };
+        json = __extend({}, this, ["dataService", "saveOptions", "queryOptions", "validationOptions"]);
+        var json = __extend( json, exportBundle, ["tempKeys", "entityGroupMap"]);
+       
         if (includeMetadata) {
             json.metadataStore = this.metadataStore.exportMetadata();
         } else {
@@ -502,14 +497,8 @@ var EntityManager = (function () {
     @return {EntityManager} A new EntityManager.
     **/
     proto.createEmptyCopy = function () {
-        var copy = new ctor({
-            dataService: this.dataService,
-            metadataStore: this.metadataStore,
-            queryOptions: this.queryOptions,
-            saveOptions: this.saveOptions,
-            validationOptions: this.validationOptions,
-            keyGeneratorCtor: this.keyGeneratorCtor
-        });
+        var copy = new ctor(__extend({}, this, 
+            ["dataService", "metadataStore", "queryOptions", "saveOptions", "validationOptions", "keyGeneratorCtor"]));
         return copy;
     };
 
@@ -1020,14 +1009,12 @@ var EntityManager = (function () {
     function createEntityErrors(entities) {
         var entityErrors = [];
         entities.forEach(function (entity) {
-            __objectForEach(entity.entityAspect._validationErrors, function (key, ve) {
-                entityErrors.push({
+            __objectForEach(entity.entityAspect._validationErrors, function (key, ve)  {
+                var cfg = __extend( { 
                     entity: entity,
-                    errorName: ve.validator.name,
-                    errorMessage: ve.errorMessage,
-                    propertyName: ve.propertyName,
-                    isServerError: ve.isServerError
-                });
+                    errorName: ve.validator.name 
+                }, ve, ["errorMessage", "propertyName", "isServerError"]);
+                entityErrors.push(cfg);
             });
         });
         return entityErrors;
@@ -1061,13 +1048,10 @@ var EntityManager = (function () {
                 entity.entityAspect.addValidationError(ve);
             }
 
-            var entityError = {
+            var entityError = __extend({
                 entity: entity,
-                errorName: serr.errorName,
-                errorMessage: serr.errorMessage,
-                propertyName: serr.propertyName,
                 isServerError: true
-            };
+            }, serr, ["errorName", "errorMessage", "propertyName"]);
             return entityError;
         });
     }
@@ -1990,7 +1974,6 @@ var EntityManager = (function () {
                 }, function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);
                     nodes = __toArray(nodes);
-                    
                     
                     var results = mappingContext.visitAndMerge(nodes, { nodeType: "root" });
                     if (validateOnQuery) {

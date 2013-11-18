@@ -39,6 +39,8 @@ function __objectMapToArray(obj, kvFn) {
     return results;
 }
 
+
+
 // Functional extensions 
 
 // can be used like: persons.filter(propEq("firstName", "John"))
@@ -66,15 +68,22 @@ function __getOwnPropertyValues(source) {
     return result;
 }
 
-function __extend(target, source) {
+function __extend(target, source, propNames) {
     if (!source) return target;
-    for (var name in source) {
-        if (__hasOwnProperty(source, name)) {
-            target[name] = source[name];
+    if (propNames) {
+        propNames.forEach(function (propName) {
+            target[propName] = source[propName];
+        })
+    } else {
+        for (var propName in source) {
+            if (__hasOwnProperty(source, propName)) {
+                target[propName] = source[propName];
+            }
         }
     }
     return target;
 }
+
 
 function __updateWithDefaults(target, defaults) {
     for (var name in defaults) {

@@ -68,6 +68,8 @@ function __objectMapToArray(obj, kvFn) {
     return results;
 }
 
+
+
 // Functional extensions 
 
 // can be used like: persons.filter(propEq("firstName", "John"))
@@ -95,15 +97,22 @@ function __getOwnPropertyValues(source) {
     return result;
 }
 
-function __extend(target, source) {
+function __extend(target, source, propNames) {
     if (!source) return target;
-    for (var name in source) {
-        if (__hasOwnProperty(source, name)) {
-            target[name] = source[name];
+    if (propNames) {
+        propNames.forEach(function (propName) {
+            target[propName] = source[propName];
+        })
+    } else {
+        for (var propName in source) {
+            if (__hasOwnProperty(source, propName)) {
+                target[propName] = source[propName];
+            }
         }
     }
     return target;
 }
+
 
 function __updateWithDefaults(target, defaults) {
     for (var name in defaults) {
@@ -8072,18 +8081,23 @@ var ComplexType = (function () {
     @method getCtor
     **/
 
-    proto.addValidator = EntityType.prototype.addValidator;
-    proto.getProperty = EntityType.prototype.getProperty;
-    proto.getPropertyNames = EntityType.prototype.getPropertyNames;
-    proto.createInstance = EntityType.prototype.createEntity;  // name change
-    proto._addDataProperty = EntityType.prototype._addDataProperty;
-    proto._updateNames = EntityType.prototype._updateNames;
-    proto._updateCps = EntityType.prototype._updateCps;
-    proto._initializeInstance = EntityType.prototype._initializeInstance;
-    proto._updateTargetFromRaw = EntityType.prototype._updateTargetFromRaw;
+    // copy entityType methods onto complexType
+    proto = __extend(proto, EntityType.prototype, [
+        "addValidator",
+        "getProperty",
+        "getPropertyNames",
+        "_addDataProperty",
+        "_updateNames",
+        "_updateCps",
+        "_initializeInstance",
+        "_updateTargetFromRaw",
+        "_setCtor"
+    ]);
+    
     // note the name change.
+    proto.createInstance = EntityType.prototype.createEntity;  // name change
     proto.getCtor = EntityType.prototype.getEntityCtor;
-    proto._setCtor = EntityType.prototype._setCtor;
+    
         
     proto.toJSON = function () {
         return __toJson(this, {
@@ -12095,14 +12109,9 @@ var EntityManager = (function () {
         assertParam(includeMetadata, "includeMetadata").isBoolean().isOptional().check();
         includeMetadata = (includeMetadata == null) ? true : includeMetadata;
         var exportBundle = exportEntityGroups(this, entities);
-        var json = {
-            dataService: this.dataService,
-            saveOptions: this.saveOptions,
-            queryOptions: this.queryOptions,
-            validationOptions: this.validationOptions,
-            tempKeys: exportBundle.tempKeys,
-            entityGroupMap: exportBundle.entityGroupMap
-        };
+        json = __extend({}, this, ["dataService", "saveOptions", "queryOptions", "validationOptions"]);
+        var json = __extend( json, exportBundle, ["tempKeys", "entityGroupMap"]);
+       
         if (includeMetadata) {
             json.metadataStore = this.metadataStore.exportMetadata();
         } else {
@@ -12242,14 +12251,8 @@ var EntityManager = (function () {
     @return {EntityManager} A new EntityManager.
     **/
     proto.createEmptyCopy = function () {
-        var copy = new ctor({
-            dataService: this.dataService,
-            metadataStore: this.metadataStore,
-            queryOptions: this.queryOptions,
-            saveOptions: this.saveOptions,
-            validationOptions: this.validationOptions,
-            keyGeneratorCtor: this.keyGeneratorCtor
-        });
+        var copy = new ctor(__extend({}, this, 
+            ["dataService", "metadataStore", "queryOptions", "saveOptions", "validationOptions", "keyGeneratorCtor"]));
         return copy;
     };
 
@@ -12760,14 +12763,12 @@ var EntityManager = (function () {
     function createEntityErrors(entities) {
         var entityErrors = [];
         entities.forEach(function (entity) {
-            __objectForEach(entity.entityAspect._validationErrors, function (key, ve) {
-                entityErrors.push({
+            __objectForEach(entity.entityAspect._validationErrors, function (key, ve)  {
+                var cfg = __extend( { 
                     entity: entity,
-                    errorName: ve.validator.name,
-                    errorMessage: ve.errorMessage,
-                    propertyName: ve.propertyName,
-                    isServerError: ve.isServerError
-                });
+                    errorName: ve.validator.name 
+                }, ve, ["errorMessage", "propertyName", "isServerError"]);
+                entityErrors.push(cfg);
             });
         });
         return entityErrors;
@@ -12801,13 +12802,10 @@ var EntityManager = (function () {
                 entity.entityAspect.addValidationError(ve);
             }
 
-            var entityError = {
+            var entityError = __extend({
                 entity: entity,
-                errorName: serr.errorName,
-                errorMessage: serr.errorMessage,
-                propertyName: serr.propertyName,
                 isServerError: true
-            };
+            }, serr, ["errorName", "errorMessage", "propertyName"]);
             return entityError;
         });
     }
@@ -13731,7 +13729,6 @@ var EntityManager = (function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);
                     nodes = __toArray(nodes);
                     
-                    
                     var results = mappingContext.visitAndMerge(nodes, { nodeType: "root" });
                     if (validateOnQuery) {
                         results.forEach(function (r) {
@@ -13994,13 +13991,10 @@ breeze.EntityManager = EntityManager;
 var MappingContext = (function () {
     
     var ctor = function (config) {
-        //  this is optional. 
-        this.query = config.query;
 
-        // these are not
-        this.entityManager = config.entityManager
-        this.dataService = config.dataService;
-        this.mergeOptions = config.mergeOptions;
+        __extend(this, config, [
+            "query", "entityManager", "dataService", "mergeOptions"
+        ]);
 
         // calc'd props
         this.refMap = {};

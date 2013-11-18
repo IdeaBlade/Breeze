@@ -2219,18 +2219,23 @@ var ComplexType = (function () {
     @method getCtor
     **/
 
-    proto.addValidator = EntityType.prototype.addValidator;
-    proto.getProperty = EntityType.prototype.getProperty;
-    proto.getPropertyNames = EntityType.prototype.getPropertyNames;
-    proto.createInstance = EntityType.prototype.createEntity;  // name change
-    proto._addDataProperty = EntityType.prototype._addDataProperty;
-    proto._updateNames = EntityType.prototype._updateNames;
-    proto._updateCps = EntityType.prototype._updateCps;
-    proto._initializeInstance = EntityType.prototype._initializeInstance;
-    proto._updateTargetFromRaw = EntityType.prototype._updateTargetFromRaw;
+    // copy entityType methods onto complexType
+    proto = __extend(proto, EntityType.prototype, [
+        "addValidator",
+        "getProperty",
+        "getPropertyNames",
+        "_addDataProperty",
+        "_updateNames",
+        "_updateCps",
+        "_initializeInstance",
+        "_updateTargetFromRaw",
+        "_setCtor"
+    ]);
+    
     // note the name change.
+    proto.createInstance = EntityType.prototype.createEntity;  // name change
     proto.getCtor = EntityType.prototype.getEntityCtor;
-    proto._setCtor = EntityType.prototype._setCtor;
+    
         
     proto.toJSON = function () {
         return __toJson(this, {

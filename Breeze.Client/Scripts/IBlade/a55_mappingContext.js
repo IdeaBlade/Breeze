@@ -7,13 +7,10 @@
 var MappingContext = (function () {
     
     var ctor = function (config) {
-        //  this is optional. 
-        this.query = config.query;
 
-        // these are not
-        this.entityManager = config.entityManager
-        this.dataService = config.dataService;
-        this.mergeOptions = config.mergeOptions;
+        __extend(this, config, [
+            "query", "entityManager", "dataService", "mergeOptions"
+        ]);
 
         // calc'd props
         this.refMap = {};
