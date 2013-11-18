@@ -4,9 +4,18 @@
 */
 (function () {
     'use strict';
-    
+
     // Create the 'app' module
-    var app = angular.module('app', ['ui.bootstrap']);
+    var app = angular.module('app', [
+        // Angular modules
+        'ngAnimate',        // animations
+        'ngRoute',          // routing
+        //'ngSanitize',     // sanitizes html bindings; not using yet
+
+        // 3rd Party Modules
+        'ui.bootstrap',     // ui-bootstrap (ex: carousel, pagination, dialog)
+        'breeze.directives' // breeze validation directive (zValidate)
+    ]);
 
     app.routeResolve = {};
 
