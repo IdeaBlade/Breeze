@@ -465,7 +465,7 @@
         var query = baseQuery.where(pred);
         var em = newEm();
         var nullEntityType = new EntityType(em.metadataStore);
-        ok(true, "OData predicate: " + pred.toOdataFragment(nullEntityType));
+        ok(true, "OData predicate: " + pred.toODataFragment(nullEntityType));
 
         stop();
 
@@ -500,7 +500,7 @@
         var query = baseQuery.where(pred);
         var em = newEm();
         var nullEntityType = new EntityType(em.metadataStore);
-        ok(true, "OData predicate: " + pred.toOdataFragment(nullEntityType));
+        ok(true, "OData predicate: " + pred.toODataFragment(nullEntityType));
 
         stop();
 
@@ -526,7 +526,7 @@
         var query = baseQuery.where(pred);
         var em = newEm();
         var nullEntityType = new EntityType(em.metadataStore);
-        ok(true, "OData predicate: " + pred.toOdataFragment(nullEntityType));
+        ok(true, "OData predicate: " + pred.toODataFragment(nullEntityType));
 
         stop();
 
@@ -546,7 +546,7 @@
         var pred = getOrderedIn1996Predicate();
         var em = newEm();
         var nullEntityType = new EntityType(em.metadataStore);
-        ok(true, "OData predicate: " + pred.toOdataFragment(nullEntityType));
+        ok(true, "OData predicate: " + pred.toODataFragment(nullEntityType));
 
         var query = new EntityQuery("Orders").where(pred);
 

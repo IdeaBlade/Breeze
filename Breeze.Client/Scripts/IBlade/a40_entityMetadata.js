@@ -1431,12 +1431,6 @@ var EntityType = (function () {
                 initialValues._$eref = instance;
             };
            
-            //this.dataProperties.forEach(function (dp) {
-            //    var val = initialValues[dp.name];
-            //    if (val !== undefined) {
-            //        instance.setProperty(dp.name, val);
-            //    }
-            //});
             this._updateTargetFromRaw(instance, initialValues, getRawValueFromConfig);
             
             this.navigationProperties.forEach(function (np) {
@@ -1463,14 +1457,8 @@ var EntityType = (function () {
     };
 
     function getRawValueFromConfig(rawEntity, dp) {
-        var val;
-        if (rawEntity.entityAspect || rawEntity.complexAspect) {
-            // this can happen if an initializer contains an actaul instance of an already created complex object.
-            val = rawEntity.getProperty(dp.name);
-        } else {
-            val = rawEntity[dp.name];
-        }
-        return val !== undefined ? val : dp.defaultValue;
+        // 'true' fork can happen if an initializer contains an actaul instance of an already created complex object.
+        return (rawEntity.entityAspect || rawEntity.complexAspect) ? rawEntity.getProperty(dp.name) : rawEntity[dp.name];
     }
 
     proto._createInstanceCore = function() {

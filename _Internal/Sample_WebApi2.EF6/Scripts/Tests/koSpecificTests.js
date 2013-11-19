@@ -31,6 +31,36 @@
         return;
     };
 
+
+    test("reject changes reverts an unmapped property", 2, function () {
+        var manager = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+
+        var originalTime = new Date(2013, 0, 1);
+        var Customer = function () {
+            this.lastTouched = originalTime;
+        };
+
+        manager.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+
+        // create a fake customer
+        var cust = manager.createEntity("Customer", { companyName: "Acme" },
+            breeze.EntityState.Unchanged);
+        var touched = cust.lastTouched();
+
+        // an hour passes ... and we visit the customer object
+        cust.companyName("Beta");
+        cust.lastTouched(touched = new Date(touched.getTime() + 60000));
+
+        // an hour passes ... and we visit to cancel
+        cust.lastTouched(touched = new Date(touched.getTime() + 60000));
+        cust.entityAspect.rejectChanges(); // roll back name change
+
+        equal(cust.companyName(), "Acme", "'name' data property should be rolled back");
+        ok(originalTime === cust.lastTouched(),
+            core.formatString("'lastTouched' unmapped property should be rolled back. Started as {0}; now is {1}",  originalTime, cust.lastTouched()));
+    });
+
     test("ko computed wierdness", function () {
         var xxx = {};
         xxx.lastName = ko.computed({
