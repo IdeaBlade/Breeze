@@ -67,11 +67,11 @@
         stop();
         em.executeQuery(query).then(function (data) {
             var emps = data.results;
-            ok(emps.length === 1, "should be only 1 emps with orders with freight > 950 and shipCountry starting with 'G'");
+            ok(emps.length === 1, "should be only 1 emps with orders (with freight > 950 and shipCountry starting with 'G')");
             emps.forEach(function (emp) {
                 var orders = emp.getProperty("orders");
                 var isOk = orders.some(function (order) {
-                    return order.getProperty("freight") > 950;
+                    return order.getProperty("freight") > 950 && order.getProperty("shipCountry").indexOf("G") === 0;
                 });
                 ok(isOk, "should be some order with freight > 950");
             });
@@ -79,12 +79,66 @@
 
     });
 
+    test("query with two any and expand", function () {
+        // different query than one above.
+        var em = newEm();
+        var p = Predicate.create("orders", "any", "freight", ">", 950)
+            .and("orders", "any", "shipCountry", "startsWith", "G");
+        var query = EntityQuery.from("Employees")
+           .where(p)
+           .expand("orders");
+        var queryUrl = query._toUri(em.metadataStore);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var emps = data.results;
+            ok(emps.length === 2, "should be only 2 emps with (orders with freight > 950) and (orders with shipCountry starting with 'G'");
+            emps.forEach(function (emp) {
+                var orders = emp.getProperty("orders");
+                var isOk = orders.some(function (order) {
+                    return order.getProperty("freight") > 950;
+                });
+                ok(isOk, "should be some order with freight > 950");
+                var isOk = orders.some(function (order) {
+                    return order.getProperty("shipCountry").indexOf("G") === 0;
+                });
+                ok(isOk, "should be some order with shipCountry starting with 'G'");
+            });
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("query with nested any", function () {
+        // different query than one above.
+        var em = newEm();
+        var q1 = EntityQuery.from("Customers")
+           .where("orders", "any", "orderDetails", "some", "unitPrice", ">", 200);
+
+        var p2 = new Predicate("unitPrice", ">", 200).and("quantity", ">", 50);
+        var q2 = EntityQuery.from("Customers")
+           .where("orders", "some", "orderDetails", "any", p2)
+           .expand("orders.orderDetails");
+
+        var queryUrl = q2._toUri(em.metadataStore);
+        stop();
+        var custs, l0;
+        em.executeQuery(q1).then(function (data) {
+            custs = data.results;
+            l0 = custs.length;
+            ok(l0 > 10);
+            return em.executeQuery(q2);
+        }).then(function(data2) {
+            custs = data2.results;
+            l2 = custs.length;
+            ok(l2 < l0, "2nd query should return fewer records.");
+        
+        }).fail(testFns.handleFail).fin(start);
+
+    });
 
     // Need
-    // composite predicate tests
+    // 
     // toString tests
     // bad any all tests
-    // nested any tests
     // composite any tests
     // local query tests
 

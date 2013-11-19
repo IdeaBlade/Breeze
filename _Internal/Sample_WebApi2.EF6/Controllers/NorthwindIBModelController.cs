@@ -565,6 +565,7 @@ namespace Sample_WebApi2.Controllers {
 
     [HttpGet]
     // [BreezeQueryable]
+    [BreezeQueryable(MaxAnyAllExpressionDepth = 3)]
     public IQueryable<Customer> Customers() {
       var custs = ContextProvider.Context.Customers;
       return custs;

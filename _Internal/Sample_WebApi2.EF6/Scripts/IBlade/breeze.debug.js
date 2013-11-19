@@ -9937,6 +9937,7 @@ var EntityQuery = (function () {
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
+            Predicate._next = 0;
             return clause.toODataFragment(entityType);
         }
             
@@ -10370,18 +10371,20 @@ var FilterQueryOp = (function () {
     aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true, isStringFn: true });
 
     /**
+    Aliases: "some"
     @property Any {FilterQueryOp}
     @final
     @static
     **/
-    aEnum.Any = aEnum.addSymbol({ operator: "any", isAnyAll: true });
+    aEnum.Any = aEnum.addSymbol({ operator: "any", isAnyAll: true, aliases: ["some"] });
 
     /**
+    Aliases: "every"
     @property All {FilterQueryOp}
     @final
     @static
     **/
-    aEnum.All = aEnum.addSymbol({ operator: "all", isAnyAll: true });
+    aEnum.All = aEnum.addSymbol({ operator: "all", isAnyAll: true, aliases: ["every"] });
 
     aEnum.IsTypeOf = aEnum.addSymbol({ operator: "isof", isFunction: true, aliases: ["isTypeOf"] });
     
@@ -10750,7 +10753,7 @@ var SimplePredicate = (function () {
         
     var proto = new Predicate({ prototype: true });
     ctor.prototype = proto;
-        
+    
 
     proto.toODataFragment = function (entityType, prefix) {
         if (this._odataExpr) {
@@ -10769,9 +10772,13 @@ var SimplePredicate = (function () {
         var v1Expr = this._fnNode1 && this._fnNode1.toODataFragment(entityType);
         if (prefix) {
             v1Expr = prefix + "/" + v1Expr;
-        }
+        } 
+
+        Predicate._next += 1;
+        prefix = "x" + Predicate._next;
+
         if (filterQueryOp.isAnyAll) {
-            return v1Expr + "/" + filterQueryOp.operator + "(x: " + value.toODataFragment(this.dataType, "x") + ")";
+            return v1Expr + "/" + filterQueryOp.operator + "(" + prefix + ": " + value.toODataFragment(this.dataType, prefix) + ")";
         } else {
             var v2Expr;
             if (this._fnNode2) {
