@@ -149,7 +149,8 @@
             var x = {
                 x: "22",
                 y: "test",
-                z: ["a1", 3, true, null, undefined, { foo: 4 }]
+                z: ["a1", 3, true, null, undefined, { foo: 4 }, function (x, y, z) { return 666 }],
+                testFn: function(a, b) { return a+b;}
             }
             x.recursive = { ok: true, notOk: x }; // notOk should not get serialized.
             this.anotherOne = x;

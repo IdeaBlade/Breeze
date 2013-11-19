@@ -25,7 +25,7 @@
         }
     });
 
-    test("query any and gt", function () {
+    test("any and gt", function () {
         var manager = newEm();
         var query = EntityQuery.from("Employees")
            .where("orders", "any", "freight",  ">", 950);
@@ -37,7 +37,47 @@
 
     });
 
-    test("query any and gt with expand", function () {
+    test("all with composite predicates ", function () {
+        var manager = newEm();
+        var p2 = Predicate.create("freight", ">", 10);
+        var p1 = Predicate.create("orders", "all", p2);
+        var p0 = Predicate.create("companyName", "contains", "ar").and(p1);
+        
+        var query = EntityQuery.from("Customers").where(p0).expand("orders");
+           
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var custs = data.results;
+            custs.forEach(function (cust) {
+                ok(cust.getProperty("companyName").indexOf("ar") >= 0, "custName should contain 'ar'");
+                var orders = cust.getProperty("orders");
+                var isOk = orders.every(function (o) {
+                    return o.getProperty("freight") > 10;
+                });
+                ok(isOk, "every order should have a freight value > 10");
+            })
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("any with not", function () {
+        var manager = newEm();
+        // customers with no orders
+        var p = Predicate.create("orders", "any", "rowVersion", ">=", 0).not();
+        var query = EntityQuery.from("Customers").where(p).expand("orders");
+
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var custs = data.results;
+            custs.forEach(function (cust) {
+                var orders = cust.getProperty("orders");
+                ok(orders.length === 0, "every orders collection should be empty");
+            })
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("any and gt with expand", function () {
         var manager = newEm();
         var query = EntityQuery.from("Employees")
            .where("orders", "any", "freight", ">", 950)
@@ -57,7 +97,7 @@
 
     });
 
-    test("query any with composite predicate and expand", function () {
+    test("any with composite predicate and expand", function () {
         var em = newEm();
         var p = Predicate.create("freight", ">", 950).and("shipCountry", "startsWith", "G");
         var query = EntityQuery.from("Employees")
@@ -79,7 +119,7 @@
 
     });
 
-    test("query with two any and expand", function () {
+    test("two anys and an expand", function () {
         // different query than one above.
         var em = newEm();
         var p = Predicate.create("orders", "any", "freight", ">", 950)
@@ -107,7 +147,7 @@
 
     });
 
-    test("query with nested any", function () {
+    test("nested any", function () {
         // different query than one above.
         var em = newEm();
         var q1 = EntityQuery.from("Customers")
@@ -135,11 +175,41 @@
 
     });
 
+    test("nested any predicate toString", function () {
+        var em = newEm()
+        var p2 = new Predicate("unitPrice", ">", 200).and("quantity", ">", 50);
+        var p1 = new Predicate("orders", "some", "orderDetails", "any", p2);
+       
+        var q2 = EntityQuery.from("Customers")
+           .where("orders", "some", "orderDetails", "any", p2)
+           .expand("orders.orderDetails");
+        
+        var queryUrl = q2._toUri(em.metadataStore);
+        var s = q2.wherePredicate.toString();
+        
+        ok(s.length > 0);
+    });
+
+    test("nested any error", function () {
+        var em = newEm()
+        var p2 = new Predicate("unitPrice", ">", 200).and("XXquantity", ">", 50);
+        
+        var q2 = EntityQuery.from("Customers")
+           .where("orders", "some", "orderDetails", "any", p2)
+           .expand("orders.orderDetails");
+
+        try {
+            var queryUrl = q2._toUri(em.metadataStore);
+            ok(false, "should not get here")
+        } catch (e) {
+            ok(e.message.indexOf("XXquantity") >= 0, "error should be about 'XXquantity'");
+        }
+
+    });
+
     // Need
     // 
-    // toString tests
-    // bad any all tests
-    // composite any tests
+    // all query tests
     // local query tests
 
 })(breezeTestFns);
