@@ -1730,10 +1730,17 @@ var SimplePredicate = (function () {
                 return predFn(v1Fn(entity), v2Fn(entity));
             };
         } else {
-            var val = this._value;
-            return function (entity) {
-                return predFn(v1Fn(entity), val);
-            };
+            if (this._filterQueryOp && this._filterQueryOp.isAnyAll) {
+                var fn2 = this._value.toFunction(dataType);
+                return function (entity) {
+                    return predFn(v1Fn(entity), fn2);
+                };
+            } else {
+                var val = this._value;
+                return function (entity) {
+                    return predFn(v1Fn(entity), val);
+                };
+            }
         }
             
     };
@@ -1808,6 +1815,12 @@ var SimplePredicate = (function () {
                 break;
             case FilterQueryOp.Contains:
                 predFn = function (v1, v2) { return stringContains(v1, v2, lqco); };
+                break;
+            case FilterQueryOp.Any: 
+                predFn = function (v1, v2) { return v1.some(function(v) { return v2(v); }); };
+                break;
+            case FilterQueryOp.All: 
+                predFn = function (v1, v2) { return v1.every(function(v) { return v2(v); }); };
                 break;
             default:
                 throw new Error("Unknown FilterQueryOp: " + filterQueryOp);

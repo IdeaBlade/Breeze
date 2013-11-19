@@ -554,7 +554,7 @@
     test("initialization concurrent", 2, function () {
 
         var store = new MetadataStore();
-        var sc = new testFns.StopCount(2);
+        stop();
         var typeMap;
         var errFn = function (e) {
             ok(false, e);
@@ -574,7 +574,6 @@
         });
         Q.all([p1, p2]).fail(errFn).fin(start);
     });
-
 
     function importMetadataWithInheritance (metadataJson) {
         var store = new MetadataStore({ namingConvention: breeze.NamingConvention.none });

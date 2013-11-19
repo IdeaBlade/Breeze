@@ -26,19 +26,37 @@
     });
 
     test("any and gt", function () {
-        var manager = newEm();
+        var em = newEm();
         var query = EntityQuery.from("Employees")
            .where("orders", "any", "freight",  ">", 950);
         stop();
-        manager.executeQuery(query).then(function (data) {
+        em.executeQuery(query).then(function (data) {
             var emps = data.results;
             ok(emps.length === 2, "should be only 2 emps with orders with freight > 950");
         }).fail(testFns.handleFail).fin(start);
 
     });
 
+    test("any and gt (local)", function () {
+        var em = newEm();
+        var query = EntityQuery.from("Employees")
+           .where("orders", "any", "freight", ">", 950)
+           .expand("orders");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var emps = data.results;
+            ok(emps.length === 2, "should be only 2 emps with orders with freight > 950");
+            var emps2 = em.executeQueryLocally(query);
+
+            var isOk = testFns.haveSameContents(emps, emps2);
+            ok(isOk, "arrays should have the same contents");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+    
+
     test("all with composite predicates ", function () {
-        var manager = newEm();
+        var em = newEm();
         var p2 = Predicate.create("freight", ">", 10);
         var p1 = Predicate.create("orders", "all", p2);
         var p0 = Predicate.create("companyName", "contains", "ar").and(p1);
@@ -46,7 +64,7 @@
         var query = EntityQuery.from("Customers").where(p0).expand("orders");
            
         stop();
-        manager.executeQuery(query).then(function (data) {
+        em.executeQuery(query).then(function (data) {
             var custs = data.results;
             custs.forEach(function (cust) {
                 ok(cust.getProperty("companyName").indexOf("ar") >= 0, "custName should contain 'ar'");
@@ -56,34 +74,44 @@
                 });
                 ok(isOk, "every order should have a freight value > 10");
             })
+
+            var custs2 = em.executeQueryLocally(query);
+            var isOk = testFns.haveSameContents(custs, custs2);
+            ok(isOk, "arrays should have the same contents");
+
         }).fail(testFns.handleFail).fin(start);
 
     });
 
     test("any with not", function () {
-        var manager = newEm();
+        var em = newEm();
         // customers with no orders
         var p = Predicate.create("orders", "any", "rowVersion", ">=", 0).not();
         var query = EntityQuery.from("Customers").where(p).expand("orders");
 
         stop();
-        manager.executeQuery(query).then(function (data) {
+        em.executeQuery(query).then(function (data) {
             var custs = data.results;
             custs.forEach(function (cust) {
                 var orders = cust.getProperty("orders");
                 ok(orders.length === 0, "every orders collection should be empty");
             })
+
+            var custs2 = em.executeQueryLocally(query);
+            var isOk = testFns.haveSameContents(custs, custs2);
+            ok(isOk, "arrays should have the same contents");
+
         }).fail(testFns.handleFail).fin(start);
 
     });
 
     test("any and gt with expand", function () {
-        var manager = newEm();
+        var em = newEm();
         var query = EntityQuery.from("Employees")
            .where("orders", "any", "freight", ">", 950)
            .expand("orders");
         stop();
-        manager.executeQuery(query).then(function (data) {
+        em.executeQuery(query).then(function (data) {
             var emps = data.results;
             ok(emps.length === 2, "should be only 2 emps with orders with freight > 950");
             emps.forEach(function (emp) {
@@ -93,9 +121,15 @@
                 });
                 ok(isOk, "should be some order with freight > 950");
             });
+
+            var emps2 = em.executeQueryLocally(query);
+            var isOk = testFns.haveSameContents(emps, emps2);
+            ok(isOk, "arrays should have the same contents");
         }).fail(testFns.handleFail).fin(start);
 
     });
+
+
 
     test("any with composite predicate and expand", function () {
         var em = newEm();
@@ -115,6 +149,11 @@
                 });
                 ok(isOk, "should be some order with freight > 950");
             });
+
+            var emps2 = em.executeQueryLocally(query);
+            var isOk = testFns.haveSameContents(emps, emps2);
+            ok(isOk, "arrays should have the same contents");
+
         }).fail(testFns.handleFail).fin(start);
 
     });
@@ -143,6 +182,10 @@
                 });
                 ok(isOk, "should be some order with shipCountry starting with 'G'");
             });
+
+            var emps2 = em.executeQueryLocally(query);
+            var isOk = testFns.haveSameContents(emps, emps2);
+            ok(isOk, "arrays should have the same contents");
         }).fail(testFns.handleFail).fin(start);
 
     });
@@ -170,6 +213,10 @@
             custs = data2.results;
             l2 = custs.length;
             ok(l2 < l0, "2nd query should return fewer records.");
+
+            var custs2 = em.executeQueryLocally(q2);
+            var isOk = testFns.haveSameContents(custs, custs2);
+            ok(isOk, "arrays should have the same contents");
         
         }).fail(testFns.handleFail).fin(start);
 
@@ -207,9 +254,6 @@
 
     });
 
-    // Need
-    // 
-    // all query tests
-    // local query tests
+
 
 })(breezeTestFns);

@@ -197,6 +197,7 @@ function __toArray(item) {
     }
 }
 
+// a version of Array.map that doesn't require an array, i.e. works on arrays and scalars.
 function __map(items, fn) {
     if (items == null) return items;
     var result;
@@ -245,13 +246,11 @@ function __arrayRemoveItem(array, predicateOrItem, shouldRemoveMultiple) {
 }
 
 function __arrayZip(a1, a2, callback) {
-
     var result = [];
     var n = Math.min(a1.length, a2.length);
     for (var i = 0; i < n; ++i) {
         result.push(callback(a1[i], a2[i]));
     }
-
     return result;
 }
 
@@ -457,8 +456,6 @@ function __isGuid(value) {
     
 function __isDuration(value) {
     return (typeof value === "string") && /^(-|)?P[T]?[\d\.,\-]+[YMDTHS]/.test(value);
-    // old version
-    // return (typeof value === "string") && /^(-|)?P([0-9]+Y|)?([0-9]+M|)?([0-9]+D|)?T?([0-9]+H|)?([0-9]+M|)?([0-9]+S|)?/.test(value);
 }
 
 function __isEmpty(obj) {
@@ -472,8 +469,6 @@ function __isEmpty(obj) {
     }
     return true;
 }
-
-
 
 function __isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
