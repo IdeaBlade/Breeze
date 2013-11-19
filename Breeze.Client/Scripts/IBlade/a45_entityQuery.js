@@ -1611,36 +1611,38 @@ var Predicate = (function () {
 var SimplePredicate = (function () {
 
     var ctor = function (args) {
-        var propertyOrExpr = args[0];
-        assertParam(propertyOrExpr, "propertyOrExpr").isString().isOptional().check();
+    
         if (args.length === 1) {
-            this._odataExpr = propertyOrExpr;
+            this._odataExpr = args[0];
             return;
         }
+    
+        var propertyOrExpr = args[0];
+        assertParam(propertyOrExpr, "propertyOrExpr").isString().isOptional().check();
+        
         var operator = args[1];
         assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
-        this._filterQueryOp = FilterQueryOp.from(operator);
-        if (!this._filterQueryOp) {
+        var filterQueryOp = FilterQueryOp.from(operator);
+        if (!filterQueryOp) {
             throw new Error("Unknown query operation: " + operator);
         }
+        this._filterQueryOp = filterQueryOp;
 
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
         } else {
-            if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
+            if (filterQueryOp !== FilterQueryOp.IsTypeOf) {
                 throw new Error("propertyOrExpr cannot be null except when using the 'IsTypeOf' operator");
             }
         }
 
-        var value;
-        if (this._filterQueryOp.isAnyAll) {
-            this._value = new SimplePredicate(args.slice(2));
+        var value = args[2];
+        if (filterQueryOp && filterQueryOp.isAnyAll) {
+            this._value = (value instanceof Predicate) ? value : new SimplePredicate(args.slice(2));
             this._isLiteral = undefined;
             return;
-        } else {
-            value = args[2];
-            assertParam(value, "value").isRequired(true).check();
-        }
+        } 
+        assertParam(value, "value").isRequired(true).check();
         
         // _datatype is just a guess here - it will only be used if we aren't certain from the rest of the expression.
         if ((value != null) && (typeof (value) === "object") && value.value !== undefined) {
@@ -1658,7 +1660,7 @@ var SimplePredicate = (function () {
     ctor.prototype = proto;
         
 
-    proto.toODataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType, prefix) {
         if (this._odataExpr) {
             return this._odataExpr;
         }
@@ -1673,8 +1675,11 @@ var SimplePredicate = (function () {
         this.validate(entityType);
 
         var v1Expr = this._fnNode1 && this._fnNode1.toODataFragment(entityType);
+        if (prefix) {
+            v1Expr = prefix + "/" + v1Expr;
+        }
         if (filterQueryOp.isAnyAll) {
-            return v1Expr + "/" + filterQueryOp.operator + "(x: x/" + value.toODataFragment(this.dataType) + ")";
+            return v1Expr + "/" + filterQueryOp.operator + "(x: " + value.toODataFragment(this.dataType, "x") + ")";
         } else {
             var v2Expr;
             if (this._fnNode2) {
@@ -1727,12 +1732,13 @@ var SimplePredicate = (function () {
     };
 
     proto.validate = function (entityType) {
+        var filterQueryOp = this._filterQueryOp;
         if (this._fnNode1 === undefined && this._propertyOrExpr) {
-            this._fnNode1 = FnNode.create(this._propertyOrExpr, entityType, this._filterQueryOp);
+            this._fnNode1 = FnNode.create(this._propertyOrExpr, entityType, filterQueryOp);
             this.dataType = this._fnNode1.dataType;
         }
 
-        if (this._filterQueryOp.isAnyAll) {
+        if (filterQueryOp && filterQueryOp.isAnyAll) {
             this._value.validate(this.dataType);
             return;
         }
@@ -1866,12 +1872,12 @@ var CompositePredicate = (function () {
     var proto  = new Predicate({ prototype: true });
     ctor.prototype = proto;
 
-    proto.toODataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType, prefix) {
         if (this._predicates.length == 1) {
-            return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toODataFragment(entityType) + ")";
+            return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toODataFragment(entityType, prefix) + ")";
         } else {
             var result = this._predicates.map(function (p) {
-                return "(" + p.toODataFragment(entityType) + ")";
+                return "(" + p.toODataFragment(entityType, prefix) + ")";
             }).join(" " + this._booleanQueryOp.operator + " ");
             return result;
         }

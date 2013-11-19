@@ -57,4 +57,35 @@
 
     });
 
+    test("query any with composite predicate and expand", function () {
+        var em = newEm();
+        var p = Predicate.create("freight", ">", 950).and("shipCountry", "startsWith", "G");
+        var query = EntityQuery.from("Employees")
+           .where("orders", "any", p)
+           .expand("orders");
+        var queryUrl = query._toUri(em.metadataStore);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var emps = data.results;
+            ok(emps.length === 1, "should be only 1 emps with orders with freight > 950 and shipCountry starting with 'G'");
+            emps.forEach(function (emp) {
+                var orders = emp.getProperty("orders");
+                var isOk = orders.some(function (order) {
+                    return order.getProperty("freight") > 950;
+                });
+                ok(isOk, "should be some order with freight > 950");
+            });
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+
+    // Need
+    // composite predicate tests
+    // toString tests
+    // bad any all tests
+    // nested any tests
+    // composite any tests
+    // local query tests
+
 })(breezeTestFns);
