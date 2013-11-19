@@ -793,6 +793,10 @@ var EntityQuery = (function () {
     };
 
     function clone(that, propName, value) {
+        // immutable queries mean that we don't need to clone if no change in value.
+        if (propName) {
+            if (that[propName] === value) return that;
+        }
         // copying QueryOptions is safe because they are are immutable; 
         copy = __extend(new EntityQuery(), that, [
             "resourceName",

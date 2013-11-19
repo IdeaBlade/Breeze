@@ -9885,6 +9885,10 @@ var EntityQuery = (function () {
     };
 
     function clone(that, propName, value) {
+        // don't both cloning if no change in value.
+        if (propName) {
+            if (that[propName] === value) return that;
+        }
         // copying QueryOptions is safe because they are are immutable; 
         copy = __extend(new EntityQuery(), that, [
             "resourceName",
