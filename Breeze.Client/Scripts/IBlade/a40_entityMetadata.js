@@ -1514,7 +1514,6 @@ var EntityType = (function () {
             this._extra = undefined;
         }
         
-
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
             aCtor = createCtor ? createCtor(this) : createEmptyCtor();

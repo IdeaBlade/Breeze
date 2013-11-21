@@ -7371,7 +7371,6 @@ var EntityType = (function () {
             this._extra = undefined;
         }
         
-
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
             aCtor = createCtor ? createCtor(this) : createEmptyCtor();
@@ -13413,7 +13412,7 @@ var EntityManager = (function () {
             var value = so.getProperty(dpName);
             if (value == null && dp.defaultValue == null) return;
 
-            if (value && value.complexType) {
+            if (value && dp.isComplexProperty) {
                 var newValue;
                 var coDps = dp.dataType.dataProperties;
                 value = __map(value, function (v) {

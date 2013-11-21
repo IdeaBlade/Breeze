@@ -1668,7 +1668,7 @@ var EntityManager = (function () {
             var value = so.getProperty(dpName);
             if (value == null && dp.defaultValue == null) return;
 
-            if (value && value.complexType) {
+            if (value && dp.isComplexProperty) {
                 var newValue;
                 var coDps = dp.dataType.dataProperties;
                 value = __map(value, function (v) {
