@@ -836,7 +836,7 @@
 
     asyncTest("can delete a BankAccount", 9, function () {
         var promises = inheritanceTypes.map(function (t) {
-            return assertCanDelete(bankRoot + t);
+            return assertCanDelete(bankRoot + t, "Deposits");
         });
         waitForTestPromises(promises);
     });
@@ -848,27 +848,43 @@
         waitForTestPromises(promises);
     });
 
-    function assertCanDelete(typeName) {
+    function assertCanDelete(typeName, expandPropName) {
         var em = newEm();
         var targetEntity;
         var key;
 
-        return EntityQuery.from(typeName + 's').take(1)
-            .using(em).execute().then(querySuccess);
+        var q = EntityQuery.from(typeName + 's').take(1);
+        if (expandPropName) {
+            q = q.expand(expandPropName);
+        }
+        return q.using(em).execute().then(querySuccess);
 
         function querySuccess(data) {
             targetEntity = data.results[0];
+
+            if (expandPropName) {
+                var dependentEntities = targetEntity.getProperty(expandPropName);
+                // dependentEntities is a 'live' collection - so we need to clone it before iterating over it.
+                dependentEntities.slice(0).forEach(function (de) {
+                    de.entityAspect.setDeleted();
+                });
+            }
+            // can't delete the parent until we get rid of the children
+            // because the children will no longer be available from the parent once the parent is deleted.
             targetEntity.entityAspect.setDeleted();
+
             key = targetEntity.entityAspect.getKey();
             return em.saveChanges().then(saveSuccess).fail(handleFail);
         }
 
         function saveSuccess(saveResult) {
-            var savedEntity = (saveResult.entities.length === 1) && saveResult.entities[0];
-            ok(savedEntity === targetEntity,
+            var savedEntities = saveResult.entities;
+
+            ok(savedEntities.indexOf(targetEntity) >= 0,
                 "should have a deleted " + typeName + " in the save result");
-            equal(targetEntity.entityAspect.entityState.name, "Detached",
-                "the deleted " + typeName + " should now be 'Detached'");            
+            ok(savedEntities.every(function (entity) {
+                return entity.entityAspect.entityState.isDetached();
+            }), "all deleted entities should now be 'Detached'");
 
             return em.fetchEntityByKey(key).then(requerySuccess);
         }

@@ -139,6 +139,59 @@
         queryBillingBaseWithES5("BankAccountTPC");
     });
 
+    test("can delete BankAccountTPC - ES5", function () {
+        assertCanDelete("BankAccountTPC", "deposits");
+    });
+
+    function assertCanDelete(typeName, expandPropName) {
+        var em = newEm();
+        var targetEntity;
+        var key;
+
+        var q = EntityQuery.from(typeName + 's').take(1);
+        if (expandPropName) {
+            q = q.expand(expandPropName);
+        }
+        stop();
+        return q.using(em).execute().then(querySuccess).fail(testFns.handleFail).fin(start);
+
+        function querySuccess(data) {
+            targetEntity = data.results[0];
+
+            var dependentEntities;
+            if (expandPropName) {
+                dependentEntities = targetEntity.getProperty(expandPropName);
+                dependentEntities.slice(0).forEach(function (de) {
+                    de.entityAspect.setDeleted();
+                });
+            }
+            // can't delete the parent until we get rid of the children
+            targetEntity.entityAspect.setDeleted();
+
+            key = targetEntity.entityAspect.getKey();
+            return em.saveChanges().then(saveSuccess).fail(testFns.handleFail);
+        }
+
+        function saveSuccess(saveResult) {
+            var savedEntities = saveResult.entities;
+            
+            ok(savedEntities.indexOf(targetEntity)>=0,
+                "should have a deleted " + typeName + " in the save result");
+            ok(savedEntities.every(function (entity) {
+                return entity.entityAspect.entityState.isDetached();
+            }), "all deleted entities should now be 'Detached'");
+            
+
+            return em.fetchEntityByKey(key).then(requerySuccess).fail(testFns.handleFail);
+        }
+
+        function requerySuccess(data) {
+            var refetched = data.entity;
+            ok(!refetched, core.format("requery of the deleted {0} with key '{1}' should return null because no longer in the db.", typeName, JSON.stringify(key.values)));
+        }
+    }
+
+
 
     function createBillingDetailWithES5(typeName, baseTypeName, data) {
         
