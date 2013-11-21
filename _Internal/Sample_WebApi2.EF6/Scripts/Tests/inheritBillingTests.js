@@ -139,12 +139,26 @@
         queryBillingBaseWithES5("BankAccountTPC");
     });
 
+    test("can delete BankAccountTPH - ES5", function () {
+        assertCanDelete("BankAccountTPH", "deposits");
+    });
+
+    test("can delete BankAccountTPT - ES5", function () {
+        assertCanDelete("BankAccountTPT", "deposits");
+    });
+
     test("can delete BankAccountTPC - ES5", function () {
         assertCanDelete("BankAccountTPC", "deposits");
     });
 
     function assertCanDelete(typeName, expandPropName) {
         var em = newEm();
+
+        // Registering resource names for each derived type
+        // because these resource names are not in metadata
+        // because there are no corresponding DbSets in the DbContext
+        // and that's how Breeze generates resource names
+        em.metadataStore.setEntityTypeForResourceName(typeName + 's', typeName);
         var targetEntity;
         var key;
 
@@ -187,10 +201,11 @@
 
         function requerySuccess(data) {
             var refetched = data.entity;
-            ok(!refetched, core.format("requery of the deleted {0} with key '{1}' should return null because no longer in the db.", typeName, JSON.stringify(key.values)));
+            ok(!refetched, core.formatString("requery of the deleted {0} with key '{1}' should return null because no longer in the db.", typeName, JSON.stringify(key.values)));
         }
     }
 
+    
 
 
     function createBillingDetailWithES5(typeName, baseTypeName, data) {

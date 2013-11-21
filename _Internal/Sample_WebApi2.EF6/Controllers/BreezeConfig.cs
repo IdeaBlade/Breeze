@@ -1,4 +1,5 @@
-﻿using Breeze.WebApi2;
+﻿using Breeze.ContextProvider;
+using Breeze.WebApi2;
 using Newtonsoft.Json;
 
 namespace Sample_WebApi2 {
@@ -10,7 +11,8 @@ namespace Sample_WebApi2 {
     /// </summary>
     protected override JsonSerializerSettings CreateJsonSerializerSettings() {
       var baseSettings = base.CreateJsonSerializerSettings();
-      baseSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+      // baseSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+      baseSettings.DateParseHandling = DateParseHandling.None;
       return baseSettings;
     }
 
