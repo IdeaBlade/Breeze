@@ -138,6 +138,14 @@ namespace Breeze.WebApi2 {
         var q = newQueryOptions.ApplyTo(queryable, querySettings);
         // then apply unsupported stuff. 
         var qh = new QueryHelper(querySettings);
+
+        string inlinecountString = queryOptions.RawValues.InlineCount;
+        if (!string.IsNullOrWhiteSpace(inlinecountString)) {
+          if (inlinecountString == "allpages") {
+              var inlineCount = (Int64)Queryable.Count((dynamic) q);
+              queryOptions.Request.SetInlineCount(inlineCount);
+          }
+        }
         
         if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
           q = qh.ApplyNestedOrderBy(q, queryOptions);
@@ -160,15 +168,15 @@ namespace Breeze.WebApi2 {
     private IQueryable ApplyNestedOrderBy(IQueryable queryable, ODataQueryOptions queryOptions) {
       var elementType = TypeFns.GetElementType(queryable.GetType());
       var result = queryable;
-      string inlinecountString = queryOptions.RawValues.InlineCount;
-      if (!string.IsNullOrWhiteSpace(inlinecountString)) {
-        if (inlinecountString == "allpages") {
-          if (result is IQueryable) {
-            var inlineCount = (Int64)Queryable.Count((dynamic)result);
-            queryOptions.Request.SetInlineCount(inlineCount);
-          }
-        }
-      }
+      ////string inlinecountString = queryOptions.RawValues.InlineCount;
+      ////if (!string.IsNullOrWhiteSpace(inlinecountString)) {
+      ////  if (inlinecountString == "allpages") {
+      ////    if (result is IQueryable) {
+      ////      var inlineCount = (Int64)Queryable.Count((dynamic)result);
+      ////      queryOptions.Request.SetInlineCount(inlineCount);
+      ////    }
+      ////  }
+      ////}
 
       var orderByClauses = queryOptions.RawValues.OrderBy.Split(',').ToList();
       var isThenBy = false;

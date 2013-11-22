@@ -69,6 +69,8 @@
             .using(manager)
             .execute()
             .then(function (data) {
+                ok(data.inlineCount > 0, "should have an inlinecount");
+
                 var localQuery = breeze.EntityQuery
                     .from('OrderDetails');
 
@@ -285,6 +287,19 @@
         stop();
         manager.executeQuery(query).then(function (data) {
             ok(data.results.length === 0, "should be no records returned");
+            ok(data.inlineCount > 0, "should have an inlinecount");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("select with inlinecount", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers")
+            .select("companyName, region, city")
+            .inlineCount();
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "should be no records returned");
             ok(data.inlineCount > 0, "should have an inlinecount");
         }).fail(testFns.handleFail).fin(start);
     });

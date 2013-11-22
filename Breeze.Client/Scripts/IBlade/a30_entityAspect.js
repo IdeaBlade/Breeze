@@ -43,6 +43,9 @@ var EntityAspect = (function() {
         this.originalValues = {};
         this.hasValidationErrors = false;
         this._validationErrors = {};
+
+        // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+        // this._loadedNavPropMap = {};
         
         this.validationErrorsChanged = new Event("validationErrorsChanged", this);
         this.propertyChanged = new Event("propertyChanged", this);
@@ -363,7 +366,7 @@ var EntityAspect = (function() {
             });
     @method loadNavigationProperty
     @async
-    @param navigationProperty {NavigationProperty} The NavigationProperty to 'load'.
+    @param navigationProperty {NavigationProperty|String} The NavigationProperty or the name of the NavigationProperty to 'load'.
     @param [callback] {Function} Function to call on success.
     @param [errorCallback] {Function} Function to call on failure.
     @return {Promise} 
@@ -375,9 +378,29 @@ var EntityAspect = (function() {
     proto.loadNavigationProperty = function (navigationProperty, callback, errorCallback) {
         var entity = this.entity;
         var navProperty = entity.entityType._checkNavProperty(navigationProperty);
-        var query = EntityQuery.fromEntityNavigation(entity, navProperty, callback, errorCallback);
+        var query = EntityQuery.fromEntityNavigation(entity, navProperty);
         return entity.entityAspect.entityManager.executeQuery(query, callback, errorCallback);
     };
+
+    ///**
+    //Marks this navigationProperty on this entity as already having been loaded.
+    //@example
+    //        emp.entityAspect.markAsLoaded("Orders");
+            
+    //@method markAsLoaded
+    //@async
+    //@param navigationProperty {NavigationProperty|String} The NavigationProperty or name of NavigationProperty to 'load'.   
+    //**/
+    //proto.markNavigationPropertyAsLoaded = function(navigationProperty) {
+    //    var navProperty = this.entity.entityType._checkNavProperty(navigationProperty);
+    //    this._loadedNavPropMap[navProperty.name] = true;
+    //}
+
+    //proto.isNavigationPropertyLoaded = function (navigationProperty) {
+    //    var navProperty = this.entity.entityType._checkNavProperty(navigationProperty);
+    //    return !!_loadedNavPropMap[navProperty.name];
+    //}
+
 
     /**
     Performs validation on the entity, any errors encountered during the validation are available via the 

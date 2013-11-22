@@ -3360,6 +3360,9 @@ var EntityAspect = (function() {
         this.originalValues = {};
         this.hasValidationErrors = false;
         this._validationErrors = {};
+
+        // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+        // this._loadedNavPropMap = {};
         
         this.validationErrorsChanged = new Event("validationErrorsChanged", this);
         this.propertyChanged = new Event("propertyChanged", this);
@@ -3680,7 +3683,7 @@ var EntityAspect = (function() {
             });
     @method loadNavigationProperty
     @async
-    @param navigationProperty {NavigationProperty} The NavigationProperty to 'load'.
+    @param navigationProperty {NavigationProperty|String} The NavigationProperty or the name of the NavigationProperty to 'load'.
     @param [callback] {Function} Function to call on success.
     @param [errorCallback] {Function} Function to call on failure.
     @return {Promise} 
@@ -3692,9 +3695,29 @@ var EntityAspect = (function() {
     proto.loadNavigationProperty = function (navigationProperty, callback, errorCallback) {
         var entity = this.entity;
         var navProperty = entity.entityType._checkNavProperty(navigationProperty);
-        var query = EntityQuery.fromEntityNavigation(entity, navProperty, callback, errorCallback);
+        var query = EntityQuery.fromEntityNavigation(entity, navProperty);
         return entity.entityAspect.entityManager.executeQuery(query, callback, errorCallback);
     };
+
+    ///**
+    //Marks this navigationProperty on this entity as already having been loaded.
+    //@example
+    //        emp.entityAspect.markAsLoaded("Orders");
+            
+    //@method markAsLoaded
+    //@async
+    //@param navigationProperty {NavigationProperty|String} The NavigationProperty or name of NavigationProperty to 'load'.   
+    //**/
+    //proto.markNavigationPropertyAsLoaded = function(navigationProperty) {
+    //    var navProperty = this.entity.entityType._checkNavProperty(navigationProperty);
+    //    this._loadedNavPropMap[navProperty.name] = true;
+    //}
+
+    //proto.isNavigationPropertyLoaded = function (navigationProperty) {
+    //    var navProperty = this.entity.entityType._checkNavProperty(navigationProperty);
+    //    return !!_loadedNavPropMap[navProperty.name];
+    //}
+
 
     /**
     Performs validation on the entity, any errors encountered during the validation are available via the 
@@ -6227,7 +6250,7 @@ var MetadataStore = (function () {
         return dataService.adapterInstance.fetchMetadata(this, dataService).then(function (rawMetadata) {
             if (callback) callback(rawMetadata);
             return Q.resolve(rawMetadata);
-        }).fail(function (error) {
+        }, function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
         });
@@ -9786,13 +9809,12 @@ var EntityQuery = (function () {
     @method fromEntityNavigation
     @static
     @param entity {Entity} The Entity whose navigation property will be queried.
-    @param navigationProperty {NavigationProperty} The {{#crossLink "NavigationProperty"}}{{/crossLink}} to be queried.
+    @param navigationProperty {NavigationProperty|String} The {{#crossLink "NavigationProperty"}}{{/crossLink}} or name of the NavigationProperty to be queried.
     @return {EntityQuery}
     @chainable
     **/
     ctor.fromEntityNavigation = function (entity, navigationProperty) {
         assertParam(entity, "entity").isEntity().check();
-        assertParam(navigationProperty, "navigationProperty").isInstanceOf(NavigationProperty).check();
         var navProperty = entity.entityType._checkNavProperty(navigationProperty);
         var q = new EntityQuery(navProperty.entityType.defaultResourceName);
         var pred = buildNavigationPredicate(entity, navProperty);
@@ -13563,7 +13585,7 @@ var EntityManager = (function () {
         promise = promise.then(function (data) {
             if (callback) callback(data);
             return Q.resolve(data);
-        }).fail(function (error) {
+        }, function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
         });
@@ -13730,7 +13752,7 @@ var EntityManager = (function () {
                     return { results: results, query: query, entityManager: em, httpResponse: data.httpResponse, inlineCount: data.inlineCount };
                 });
                 return Q.resolve(result);
-            }).fail(function (e) {
+            }, function (e) {
                 if (e) {
                     e.query = query;
                     e.entityManager = em;
@@ -14203,11 +14225,7 @@ var MappingContext = (function () {
             }
         } else {
             targetEntity = entityType._createInstanceCore();
-            // No longer needed
-            //if (targetEntity.initializeFrom) {
-            //    // allows any injected post ctor activity to be performed by modelLibrary impl.
-            //    targetEntity.initializeFrom(node);
-            //}
+          
             updateEntity(mc, targetEntity, node);
             
             if (meta.extra) {
@@ -14263,9 +14281,11 @@ var MappingContext = (function () {
     function mergeRelatedEntities(mc, navigationProperty, targetEntity, rawEntity) {
         var relatedEntities = mergeRelatedEntitiesCore(mc, rawEntity, navigationProperty);
         if (relatedEntities == null) return;
-
+        // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+        // targetEntity.entityAspect.markNavigationPropertyAsLoaded(navigationProperty);
         var inverseProperty = navigationProperty.inverse;
         if (!inverseProperty) return;
+
         var originalRelatedEntities = targetEntity.getProperty(navigationProperty.name);
         originalRelatedEntities.wasLoaded = true;
         
@@ -14310,6 +14330,10 @@ var MappingContext = (function () {
         if (!relatedEntity) return;
         var propName = navigationProperty.name;
         var currentRelatedEntity = targetEntity.getProperty(propName);
+
+        // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+        // targetEntity.entityAspect.markNavigationPropertyAsLoaded(navigationProperty);
+
         // check if the related entity is already hooked up
         if (currentRelatedEntity !== relatedEntity) {
             // if not hook up both directions.
@@ -14318,15 +14342,21 @@ var MappingContext = (function () {
             if (!inverseProperty) return;
             if (inverseProperty.isScalar) {
                 relatedEntity.setProperty(inverseProperty.name, targetEntity);
+
+                // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+                // relatedEntity.entityAspect.markNavigationPropertyAsLoaded(inverseProperty);
             } else {
                 var collection = relatedEntity.getProperty(inverseProperty.name);
                 collection.push(targetEntity);
+                // can't call _markAsLoaded here because this may be only a partial load.
             }
         }
     } 
 
     function updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty) {
         if (!relatedEntity) return;
+        // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+        // relatedEntity.entityAspect.markNavigationPropertyAsLoaded(inverseProperty);
         // check if the related entity is already hooked up
         var thisEntity = relatedEntity.getProperty(inverseProperty.name);
         if (thisEntity !== targetEntity) {

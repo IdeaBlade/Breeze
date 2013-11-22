@@ -370,7 +370,7 @@ var MetadataStore = (function () {
         return dataService.adapterInstance.fetchMetadata(this, dataService).then(function (rawMetadata) {
             if (callback) callback(rawMetadata);
             return Q.resolve(rawMetadata);
-        }).fail(function (error) {
+        }, function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
         });

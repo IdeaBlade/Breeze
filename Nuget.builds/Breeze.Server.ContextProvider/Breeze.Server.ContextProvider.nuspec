@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Server.ContextProvider</id>
-        <version>1.4.5</version>
+        <version>1.4.6</version>
         <title>Breeze Server - ContextProvider</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>

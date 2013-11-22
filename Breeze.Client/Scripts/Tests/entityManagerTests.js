@@ -66,7 +66,7 @@
 
     });
 
-    test("test - relationship not resolved after import", function () {
+    test("relationship not resolved after import", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - expand not YET supported");
             return;
@@ -100,7 +100,7 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("test D2460 - Detaching the parent modifies the in-cache children", function () {
+    test("Detaching the parent modifies the in-cache children - D2460", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - expand not YET supported");
             return;

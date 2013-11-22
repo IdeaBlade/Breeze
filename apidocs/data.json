@@ -130,21 +130,21 @@
             "fors": {},
             "namespaces": {}
         },
+        "a37_dataType.js": {
+            "name": "a37_dataType.js",
+            "modules": {},
+            "classes": {
+                "DataType": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
         "a40_dataService.js": {
             "name": "a40_dataService.js",
             "modules": {},
             "classes": {
                 "DataService": 1,
                 "JsonResultsAdapter": 1
-            },
-            "fors": {},
-            "namespaces": {}
-        },
-        "a40_dataType.js": {
-            "name": "a40_dataType.js",
-            "modules": {},
-            "classes": {
-                "DataType": 1
             },
             "fors": {},
             "namespaces": {}
@@ -226,6 +226,13 @@
             "fors": {},
             "namespaces": {}
         },
+        "a55_mappingContext.js": {
+            "name": "a55_mappingContext.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
         "a55_saveOptions.js": {
             "name": "a55_saveOptions.js",
             "modules": {},
@@ -295,9 +302,9 @@
                 "EntityState": 1,
                 "ↈ_primitiveArray_": 1,
                 "ↈ_relationArray_": 1,
+                "DataType": 1,
                 "DataService": 1,
                 "JsonResultsAdapter": 1,
-                "DataType": 1,
                 "MetadataStore": 1,
                 "EntityType": 1,
                 "ComplexType": 1,
@@ -479,7 +486,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "a30_entityAspect.js",
-            "line": 734,
+            "line": 757,
             "description": "An ComplexAspect instance is associated with every complex object instance and is accessed via the complex object's 'complexAspect' property. \n \nThe ComplexAspect itself provides properties to determine the parent object, parent property and original values for the complex object.\n\nA ComplexAspect will almost never need to be constructed directly. You will usually get an ComplexAspect by accessing\nan entities 'complexAspect' property.  This property will be automatically attached when an complex object is created as part of an\nentity via either a query, import or EntityManager.createEntity call.\n \n    // assume address is a complex property on the 'Customer' type\n    var aspect = aCustomer.address.complexAspect;\n    // aCustomer === aspect.parent;"
         },
         "EntityKey": {
@@ -539,6 +546,21 @@
             "line": 6,
             "description": "Relation arrays are not actually classes, they are objects that mimic arrays. A relation array is collection of \nentities associated with a navigation property on a single entity. i.e. customer.orders or order.orderDetails.\nThis collection looks like an array in that the basic methods on arrays such as 'push', 'pop', 'shift', 'unshift', 'splice'\nare all provided as well as several special purpose methods."
         },
+        "DataType": {
+            "name": "DataType",
+            "shortname": "DataType",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "breeze",
+            "namespace": "",
+            "file": "a37_dataType.js",
+            "line": 7,
+            "description": "DataType is an 'Enum' containing all of the supported data types.",
+            "static": 1
+        },
         "DataService": {
             "name": "DataService",
             "shortname": "DataService",
@@ -567,21 +589,6 @@
             "line": 188,
             "description": "A JsonResultsAdapter instance is used to provide custom extraction and parsing logic on the json results returned by any web service. \nThis facility makes it possible for breeze to talk to virtually any web service and return objects that will be first class 'breeze' citizens."
         },
-        "DataType": {
-            "name": "DataType",
-            "shortname": "DataType",
-            "classitems": [],
-            "plugins": [],
-            "extensions": [],
-            "plugin_for": [],
-            "extension_for": [],
-            "module": "breeze",
-            "namespace": "",
-            "file": "a40_dataType.js",
-            "line": 7,
-            "description": "DataType is an 'Enum' containing all of the supported data types.",
-            "static": 1
-        },
         "MetadataStore": {
             "name": "MetadataStore",
             "shortname": "MetadataStore",
@@ -607,7 +614,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "a40_entityMetadata.js",
-            "line": 1093,
+            "line": 1124,
             "description": "Container for all of the metadata about a specific type of Entity."
         },
         "ComplexType": {
@@ -621,7 +628,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "a40_entityMetadata.js",
-            "line": 1909,
+            "line": 2029,
             "description": "Container for all of the metadata about a specific type of Complex object."
         },
         "DataProperty": {
@@ -635,7 +642,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "a40_entityMetadata.js",
-            "line": 2121,
+            "line": 2247,
             "description": "A DataProperty describes the metadata for a single property of an  {{#crossLink \"EntityType\"}}{{/crossLink}} that contains simple data. \n\nInstances of the DataProperty class are constructed automatically during Metadata retrieval. However it is also possible to construct them\ndirectly via the constructor."
         },
         "NavigationProperty": {
@@ -649,7 +656,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "a40_entityMetadata.js",
-            "line": 2401,
+            "line": 2553,
             "description": "A NavigationProperty describes the metadata for a single property of an  {{#crossLink \"EntityType\"}}{{/crossLink}} that return instances of other EntityTypes. \n\nInstances of the NavigationProperty class are constructed automatically during Metadata retrieval.   However it is also possible to construct them\ndirectly via the constructor."
         },
         "AutoGeneratedKeyType": {
@@ -663,7 +670,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "a40_entityMetadata.js",
-            "line": 2608,
+            "line": 2760,
             "description": "AutoGeneratedKeyType is an 'Enum' containing all of the valid states for an automatically generated key.",
             "static": 1,
             "final": 1
@@ -721,7 +728,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "a45_entityQuery.js",
-            "line": 1237,
+            "line": 1213,
             "description": "FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink \"Predicate\"}}{{/crossLink}} \nfilter operators for an {{#crossLink \"EntityQuery\"}}{{/crossLink}}.",
             "static": 1
         },
@@ -736,7 +743,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "a45_entityQuery.js",
-            "line": 1365,
+            "line": 1357,
             "description": "Used to define a 'where' predicate for an EntityQuery.  Predicates are immutable, which means that any\nmethod that would modify a Predicate actually returns a new Predicate."
         },
         "MergeStrategy": {
@@ -765,7 +772,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "a45_queryOptions.js",
-            "line": 38,
+            "line": 61,
             "description": "FetchStrategy is an 'Enum' that determines how and where entities are retrieved from as a result of a query.",
             "static": 1
         },
@@ -780,7 +787,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "a45_queryOptions.js",
-            "line": 64,
+            "line": 87,
             "description": "A QueryOptions instance is used to specify the 'options' under which a query will occur."
         },
         "EntityManager": {
@@ -2556,7 +2563,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 75,
+            "line": 78,
             "description": "The Entity that this aspect is associated with.\n\n__readOnly__",
             "itemtype": "property",
             "name": "entity",
@@ -2566,7 +2573,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 82,
+            "line": 85,
             "description": "The {{#crossLink \"EntityManager\"}}{{/crossLink}} that contains this entity.\n\n__readOnly__",
             "itemtype": "property",
             "name": "entityManager",
@@ -2576,7 +2583,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 89,
+            "line": 92,
             "description": "The {{#crossLink \"EntityState\"}}{{/crossLink}} of this entity.\n\n__readOnly__",
             "itemtype": "property",
             "name": "entityState",
@@ -2586,7 +2593,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 96,
+            "line": 99,
             "description": "Whether this entity is in the process of being saved.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isBeingSaved",
@@ -2596,7 +2603,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 103,
+            "line": 106,
             "description": "Whether this entity has any validation errors.\n\n__readOnly__",
             "itemtype": "property",
             "name": "hasValidationErrors",
@@ -2606,7 +2613,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 110,
+            "line": 113,
             "description": "The 'original values' of this entity where they are different from the 'current values'. \nThis is a map where the key is a property name and the value is the 'original value' of the property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "originalValues",
@@ -2616,7 +2623,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 118,
+            "line": 121,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever a value of one of this entity's properties change.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    order.entityAspect.propertyChanged.subscribe(\n        function (propertyChangedArgs) {\n            // this code will be executed anytime a property value changes on the 'order' entity.\n            var entity = propertyChangedArgs.entity; // Note: entity === order\n            var propertyNameChanged = propertyChangedArgs.propertyName;\n            var oldValue = propertyChangedArgs.oldValue;\n            var newValue = propertyChangedArgs.newValue;\n        });"
@@ -2661,7 +2668,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 142,
+            "line": 145,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever any of the validation errors on this entity change. \nNote that this might be the removal of an error when some data on the entity is fixed.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    order.entityAspect.validationErrorsChanged.subscribe(\n        function (validationChangeArgs) {\n            // this code will be executed anytime a property value changes on the 'order' entity.\n            var entity == validationChangeArgs.entity; // Note: entity === order\n            var errorsAdded = validationChangeArgs.added;\n            var errorsCleared = validationChangeArgs.removed;\n        });"
@@ -2691,7 +2698,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 162,
+            "line": 165,
             "description": "Returns the {{#crossLink \"EntityKey\"}}{{/crossLink}} for this Entity.",
             "example": [
                 "\n        // assume order is an order entity attached to an EntityManager.\n    var entityKey = order.entityAspect.getKey();"
@@ -2716,7 +2723,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 184,
+            "line": 187,
             "description": "Returns the entity to an {{#crossLink \"EntityState\"}}{{/crossLink}} of 'Unchanged' by committing all changes made since the entity was last queried \nhad 'acceptChanges' called on it.",
             "example": [
                 "\n        // assume order is an order entity attached to an EntityManager.\n        order.entityAspect.acceptChanges();\n        // The 'order' entity will now be in an 'Unchanged' state with any changes committed."
@@ -2728,7 +2735,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 203,
+            "line": 206,
             "description": "Returns the entity to an EntityState of 'Unchanged' by rejecting all changes made to it since the entity was last queried \nhad 'rejectChanges' called on it.",
             "example": [
                 "\n        // assume order is an order entity attached to an EntityManager.\n        order.entityAspect.rejectChanges();\n        // The 'order' entity will now be in an 'Unchanged' state with any changes rejected. "
@@ -2740,7 +2747,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 257,
+            "line": 260,
             "description": "Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink \"EntityAspect/acceptChanges\"}}{{/crossLink}}",
             "example": [
                 "\n        // assume order is an order entity attached to an EntityManager.\n        order.entityAspect.setUnchanged();\n        // The 'order' entity will now be in an 'Unchanged' state with any changes committed."
@@ -2752,7 +2759,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 296,
+            "line": 299,
             "description": "Sets the entity to an EntityState of 'Modified'.  This can also be achieved by changing the value of any property on an 'Unchanged' entity.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    order.entityAspect.setModified();\n    // The 'order' entity will now be in a 'Modified' state. "
@@ -2764,7 +2771,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 309,
+            "line": 312,
             "description": "Sets the entity to an EntityState of 'Deleted'.  This both marks the entity as being scheduled for deletion during the next 'Save' call\nbut also removes the entity from all of its related entities.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    order.entityAspect.setDeleted();\n    // The 'order' entity will now be in a 'Deleted' state and it will no longer have any 'related' entities. "
@@ -2776,7 +2783,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 333,
+            "line": 336,
             "description": "Sets the entity to an EntityState of 'Detached'.  This removes the entity from all of its related entities, but does NOT change the EntityState of any existing entities.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    order.entityAspect.setDetached();\n    // The 'order' entity will now be in a 'Detached' state and it will no longer have any 'related' entities. "
@@ -2788,7 +2795,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 355,
+            "line": 358,
             "description": "Performs a query for the value of a specified {{#crossLink \"NavigationProperty\"}}{{/crossLink}}.",
             "example": [
                 "\n        emp.entityAspect.loadNavigationProperty(\"Orders\")\n        .then(function (data) {\n            var orders = data.results;\n        }).fail(function (exception) {\n            // handle exception here;\n        });"
@@ -2799,8 +2806,8 @@
             "params": [
                 {
                     "name": "navigationProperty",
-                    "description": "The NavigationProperty to 'load'.",
-                    "type": "NavigationProperty"
+                    "description": "The NavigationProperty or the name of the NavigationProperty to 'load'.",
+                    "type": "NavigationProperty|String"
                 },
                 {
                     "name": "callback",
@@ -2824,7 +2831,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 382,
+            "line": 405,
             "description": "Performs validation on the entity, any errors encountered during the validation are available via the \n{{#crossLink \"EntityAspect.getValidationErrors\"}}{{/crossLink}} method. Validating an entity means executing\nall of the validators on both the entity itself as well as those on each of its properties.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    var isOk = order.entityAspect.validateEntity();\n    // isOk will be 'true' if there are no errors on the entity.\n    if (!isOk) {\n        var errors = order.entityAspect.getValidationErrors();\n    }"
@@ -2840,7 +2847,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 435,
+            "line": 458,
             "description": "Performs validation on a specific property of this entity, any errors encountered during the validation are available via the \n{{#crossLink \"EntityAspect.getValidationErrors\"}}{{/crossLink}} method. Validating a property means executing\nall of the validators on the specified property.  This call is also made automatically anytime a property\nof an entity is changed.",
             "example": [
                 "\n    // assume order is an order entity attached to an EntityManager.\n    var isOk = order.entityAspect.validateProperty(\"Order\"); \nor",
@@ -2870,7 +2877,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 472,
+            "line": 495,
             "description": "Returns the validation errors associated with either the entire entity or any specified property.",
             "example": [
                 "\nThis method can return all of the errors for an Entity",
@@ -2897,7 +2904,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 505,
+            "line": 528,
             "description": "Adds a validation error.",
             "itemtype": "method",
             "name": "addValidationError",
@@ -2913,7 +2920,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 517,
+            "line": 540,
             "description": "Removes a validation error.",
             "itemtype": "method",
             "name": "removeValidationError",
@@ -2929,7 +2936,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 531,
+            "line": 554,
             "description": "Removes all of the validation errors for a specified entity",
             "itemtype": "method",
             "name": "clearValidationErrors",
@@ -2938,7 +2945,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 789,
+            "line": 812,
             "description": "The complex object that this aspect is associated with.\n\n__readOnly__",
             "itemtype": "property",
             "name": "complexObject",
@@ -2948,7 +2955,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 796,
+            "line": 819,
             "description": "The parent object that to which this aspect belongs; this will either be an entity or another complex object.\n\n__readOnly__",
             "itemtype": "property",
             "name": "parent",
@@ -2958,7 +2965,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 803,
+            "line": 826,
             "description": "The {{#crossLink \"DataProperty\"}}{{/crossLink}} on the 'parent' that contains this complex object.\n\n__readOnly__",
             "itemtype": "property",
             "name": "parentProperty",
@@ -2968,7 +2975,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 810,
+            "line": 833,
             "description": "The EntityAspect for the top level entity tht contains this complex object.\n\n__readOnly__",
             "itemtype": "property",
             "name": "entityAspect",
@@ -2978,7 +2985,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 817,
+            "line": 840,
             "description": "The 'property path' from the top level entity that contains this complex object to this object.\n\n__readOnly__",
             "itemtype": "property",
             "name": "propertyPath",
@@ -2988,7 +2995,7 @@
         },
         {
             "file": "a30_entityAspect.js",
-            "line": 824,
+            "line": 847,
             "description": "The 'original values' of this complex object where they are different from the 'current values'. \nThis is a map where the key is a property name and the value is the 'original value' of the property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "originalValues",
@@ -3339,6 +3346,212 @@
             "module": "breeze"
         },
         {
+            "file": "a37_dataType.js",
+            "line": 14,
+            "description": "The default value of this DataType.",
+            "itemtype": "property",
+            "name": "defaultValue",
+            "type": "Any",
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 19,
+            "description": "Whether this is a 'numeric' DataType.",
+            "itemtype": "property",
+            "name": "isNumeric",
+            "type": "Boolean",
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 185,
+            "itemtype": "property",
+            "name": "String",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 196,
+            "itemtype": "property",
+            "name": "Int64",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 207,
+            "itemtype": "property",
+            "name": "Int32",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 218,
+            "itemtype": "property",
+            "name": "Int16",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 229,
+            "itemtype": "property",
+            "name": "Byte",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 235,
+            "itemtype": "property",
+            "name": "Decimal",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 246,
+            "itemtype": "property",
+            "name": "Double",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 257,
+            "itemtype": "property",
+            "name": "Single",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 268,
+            "itemtype": "property",
+            "name": "DateTime",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 280,
+            "itemtype": "property",
+            "name": "DateTimeOffset",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 291,
+            "itemtype": "property",
+            "name": "Time",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 297,
+            "itemtype": "property",
+            "name": "Boolean",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 303,
+            "itemtype": "property",
+            "name": "Guid",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 314,
+            "itemtype": "property",
+            "name": "Binary",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 320,
+            "itemtype": "property",
+            "name": "Undefined",
+            "type": "DataType",
+            "final": 1,
+            "static": 1,
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
+            "file": "a37_dataType.js",
+            "line": 328,
+            "description": "Returns the DataType for a specified EDM type name.",
+            "itemtype": "method",
+            "name": "fromEdmDataType",
+            "static": 1,
+            "params": [
+                {
+                    "name": "typeName",
+                    "description": "",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "A DataType.",
+                "type": "DataType"
+            },
+            "class": "DataType",
+            "module": "breeze"
+        },
+        {
             "file": "a40_dataService.js",
             "line": 22,
             "description": "DataService constructor",
@@ -3507,212 +3720,6 @@
             "module": "breeze"
         },
         {
-            "file": "a40_dataType.js",
-            "line": 14,
-            "description": "The default value of this DataType.",
-            "itemtype": "property",
-            "name": "defaultValue",
-            "type": "Any",
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 19,
-            "description": "Whether this is a 'numeric' DataType.",
-            "itemtype": "property",
-            "name": "isNumeric",
-            "type": "Boolean",
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 185,
-            "itemtype": "property",
-            "name": "String",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 196,
-            "itemtype": "property",
-            "name": "Int64",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 207,
-            "itemtype": "property",
-            "name": "Int32",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 218,
-            "itemtype": "property",
-            "name": "Int16",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 229,
-            "itemtype": "property",
-            "name": "Byte",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 235,
-            "itemtype": "property",
-            "name": "Decimal",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 246,
-            "itemtype": "property",
-            "name": "Double",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 257,
-            "itemtype": "property",
-            "name": "Single",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 268,
-            "itemtype": "property",
-            "name": "DateTime",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 280,
-            "itemtype": "property",
-            "name": "DateTimeOffset",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 291,
-            "itemtype": "property",
-            "name": "Time",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 297,
-            "itemtype": "property",
-            "name": "Boolean",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 303,
-            "itemtype": "property",
-            "name": "Guid",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 314,
-            "itemtype": "property",
-            "name": "Binary",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 320,
-            "itemtype": "property",
-            "name": "Undefined",
-            "type": "DataType",
-            "final": 1,
-            "static": 1,
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
-            "file": "a40_dataType.js",
-            "line": 328,
-            "description": "Returns the DataType for a specified EDM type name.",
-            "itemtype": "method",
-            "name": "fromEdmDataType",
-            "static": 1,
-            "params": [
-                {
-                    "name": "typeName",
-                    "description": "",
-                    "type": "String"
-                }
-            ],
-            "return": {
-                "description": "A DataType.",
-                "type": "DataType"
-            },
-            "class": "DataType",
-            "module": "breeze"
-        },
-        {
             "file": "a40_entityMetadata.js",
             "line": 20,
             "description": "Constructs a new MetadataStore.",
@@ -3743,6 +3750,11 @@
                             "type": "LocalQueryComparisonOptions",
                             "optional": true,
                             "optdefault": "LocalQueryComparisonOptions.defaultInstance"
+                        },
+                        {
+                            "name": "serializerFn",
+                            "description": "A function that is used to mediate the serialization of instances of this type.",
+                            "optional": true
                         }
                     ]
                 }
@@ -3752,7 +3764,38 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 60,
+            "line": 62,
+            "description": "General purpose property set method",
+            "example": [
+                "\n    // assume em1 is an EntityManager containing a number of existing entities.\n   \n    em1.metadataStore.setProperties( {\n        version: \"6.1.3\",\n        serializerFn: function(prop, value) {\n        return (prop.isUnmapped) ? undefined : value;\n        }\n    )};"
+            ],
+            "itemtype": "method",
+            "name": "setProperties",
+            "params": [
+                {
+                    "name": "config",
+                    "description": "[object]",
+                    "props": [
+                        {
+                            "name": "name",
+                            "description": "A name for the collection of metadata in this store.",
+                            "type": "String",
+                            "optional": true
+                        },
+                        {
+                            "name": "serializerFn",
+                            "description": "A function that is used to mediate the serialization of instances of this type.",
+                            "optional": true
+                        }
+                    ]
+                }
+            ],
+            "class": "MetadataStore",
+            "module": "breeze"
+        },
+        {
+            "file": "a40_entityMetadata.js",
+            "line": 85,
             "description": "Adds a DataService to this MetadataStore. If a DataService with the same serviceName is already\nin the MetadataStore an exception will be thrown.",
             "itemtype": "method",
             "name": "addDataService",
@@ -3768,7 +3811,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 88,
+            "line": 113,
             "description": "Adds an EntityType to this MetadataStore.  No additional properties may be added to the EntityType after its has\nbeen added to the MetadataStore.",
             "itemtype": "method",
             "name": "addEntityType",
@@ -3784,7 +3827,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 146,
+            "line": 168,
             "description": "The  {{#crossLink \"NamingConvention\"}}{{/crossLink}} associated with this MetadataStore.\n\n__readOnly__",
             "itemtype": "property",
             "name": "namingConvention",
@@ -3794,7 +3837,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 153,
+            "line": 175,
             "description": "Exports this MetadataStore to a serialized string appropriate for local storage.   This operation is also called \ninternally when exporting an EntityManager.",
             "example": [
                 "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.exportMetadata();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session imported\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = new MetadataStore();\n    newMetadataStore.importMetadata(metadataFromStorage);"
@@ -3810,7 +3853,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 179,
+            "line": 202,
             "description": "Imports a previously exported serialized MetadataStore into this MetadataStore.",
             "example": [
                 "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.exportMetadata();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = new MetadataStore();\n    newMetadataStore.importMetadata(metadataFromStorage);"
@@ -3834,7 +3877,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 241,
+            "line": 264,
             "description": "Creates a new MetadataStore from a previously exported serialized MetadataStore",
             "example": [
                 "\n    // assume ms is a previously created MetadataStore\n    var metadataAsString = ms.exportMetadata();\n    window.localStorage.setItem(\"metadata\", metadataAsString);\n    // and later, usually in a different session\n    var metadataFromStorage = window.localStorage.getItem(\"metadata\");\n    var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);"
@@ -3858,7 +3901,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 262,
+            "line": 285,
             "description": "Returns whether Metadata has been retrieved for a specified service name.",
             "example": [
                 "\n    // Assume em1 is an existing EntityManager.\n    if (!em1.metadataStore.hasMetadataFor(\"breeze/NorthwindIBModel\"))) {\n        // do something interesting\n    }"
@@ -3881,7 +3924,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 277,
+            "line": 300,
             "description": "Returns the DataService for a specified service name",
             "example": [
                 "\n    // Assume em1 is an existing EntityManager.\n    var ds = em1.metadataStore.getDataService(\"breeze/NorthwindIBModel\");\n    var adapterName = ds.adapterName; // may be null"
@@ -3904,7 +3947,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 297,
+            "line": 320,
             "description": "Fetches the metadata for a specified 'service'. This method is automatically called \ninternally by an EntityManager before its first query against a new service.",
             "example": [
                 "\nUsually you will not actually process the results of a fetchMetadata call directly, but will instead\nask for the metadata from the EntityManager after the fetchMetadata call returns.",
@@ -3957,7 +4000,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 357,
+            "line": 380,
             "description": "Used to register a constructor for an EntityType that is not known via standard Metadata discovery; \ni.e. an unmapped type.",
             "itemtype": "method",
             "name": "trackUnmappedType",
@@ -3979,7 +4022,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 373,
+            "line": 396,
             "description": "Provides a mechanism to register a 'custom' constructor to be used when creating new instances\nof the specified entity type.  If this call is not made, a default constructor is created for\nthe entity as needed.\nThis call may be made before or after the corresponding EntityType has been discovered via\nMetadata discovery.",
             "example": [
                 "\n    var Customer = function () {\n        this.miscData = \"asdf\";\n    };\n    Customer.prototype.doFoo() {\n        ...\n    }\n    // assume em1 is a preexisting EntityManager;\n    em1.metadataStore.registerEntityTypeCtor(\"Customer\", Customer);\n    // any queries or EntityType.create calls from this point on will call the Customer constructor\n    // registered above."
@@ -3998,8 +4041,8 @@
                     "type": "Function"
                 },
                 {
-                    "name": "initializationFn",
-                    "description": "A function or the name of a function on the entity that is to be executed immediately after the entity has been created\nand populated with any initial values.\n        \ninitializationFn(entity)",
+                    "name": "initFn",
+                    "description": "A function or the name of a function on the entity that is to be executed immediately after the entity has been created\nand populated with any initial values.\n    initFn(entity)",
                     "type": "Function",
                     "optional": true,
                     "props": [
@@ -4009,6 +4052,21 @@
                             "type": "Entity"
                         }
                     ]
+                },
+                {
+                    "name": "[noTrackingFn}",
+                    "description": "A function that is executed immediately after a noTracking entity has been created and whose return\nvalue will be used in place of the noTracking entity.",
+                    "type": "Function"
+                },
+                {
+                    "name": "noTrackingFn.entity",
+                    "description": "",
+                    "type": "Object"
+                },
+                {
+                    "name": "noTrackingFn.entityType",
+                    "description": "The entityType that the 'entity' parameter would be if we were tracking",
+                    "type": "EntityType"
                 }
             ],
             "class": "MetadataStore",
@@ -4016,7 +4074,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 428,
+            "line": 455,
             "description": "Returns whether this MetadataStore contains any metadata yet.",
             "example": [
                 "\n    // assume em1 is a preexisting EntityManager;\n    if (em1.metadataStore.isEmpty()) {\n        // do something interesting\n    }"
@@ -4032,7 +4090,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 442,
+            "line": 469,
             "description": "Returns an  {{#crossLink \"EntityType\"}}{{/crossLink}} or a {{#crossLink \"ComplexType\"}}{{/crossLink}} given its name.",
             "example": [
                 "\n    // assume em1 is a preexisting EntityManager\n    var odType = em1.metadataStore.getEntityType(\"OrderDetail\");\nor to throw an error if the type is not found",
@@ -4063,7 +4121,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 479,
+            "line": 506,
             "description": "Returns an array containing all of the  {{#crossLink \"EntityType\"}}{{/crossLink}}s or {{#crossLink \"ComplexType\"}}{{/crossLink}}s in this MetadataStore.",
             "example": [
                 "\n    // assume em1 is a preexisting EntityManager\n    var allTypes = em1.metadataStore.getEntityTypes();"
@@ -4079,7 +4137,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 498,
+            "line": 525,
             "description": "Returns a fully qualified entityTypeName for a specified resource name.  The reverse of this operation\ncan be obtained via the  {{#crossLink \"EntityType\"}}{{/crossLink}} 'defaultResourceName' property",
             "itemtype": "method",
             "name": "getEntityTypeNameForResourceName",
@@ -4095,7 +4153,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 509,
+            "line": 536,
             "description": "Associates a resourceName with an entityType. \n\nThis method is only needed in those cases where multiple resources return the same\nentityType.  In this case Metadata discovery will only determine a single resource name for \neach entityType.",
             "itemtype": "method",
             "name": "setEntityTypeForResourceName",
@@ -4116,7 +4174,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1100,
+            "line": 1131,
             "example": [
                 "                    \n    var entityType = new EntityType( {\n        shortName: \"person\",\n        namespace: \"myAppNamespace\"\n        });"
             ],
@@ -4178,6 +4236,11 @@
                             "optional": true
                         },
                         {
+                            "name": "serializerFn",
+                            "description": "A function that is used to mediate the serialization of instances of this type.",
+                            "optional": true
+                        },
+                        {
                             "name": "custom",
                             "description": "",
                             "type": "Object",
@@ -4191,7 +4254,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1164,
+            "line": 1198,
             "description": "The {{#crossLink \"MetadataStore\"}}{{/crossLink}} that contains this EntityType\n\n__readOnly__",
             "itemtype": "property",
             "name": "metadataStore",
@@ -4201,7 +4264,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1171,
+            "line": 1205,
             "description": "The DataProperties (see {{#crossLink \"DataProperty\"}}{{/crossLink}}) associated with this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "dataProperties",
@@ -4211,7 +4274,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1178,
+            "line": 1212,
             "description": "The NavigationProperties  (see {{#crossLink \"NavigationProperty\"}}{{/crossLink}}) associated with this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "navigationProperties",
@@ -4221,7 +4284,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1185,
+            "line": 1219,
             "description": "The DataProperties for this EntityType that contain instances of a ComplexType (see {{#crossLink \"ComplexType\"}}{{/crossLink}}).\n\n__readOnly__",
             "itemtype": "property",
             "name": "complexProperties",
@@ -4231,7 +4294,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1192,
+            "line": 1226,
             "description": "The DataProperties associated with this EntityType that make up it's {{#crossLink \"EntityKey\"}}{{/crossLink}}.\n\n__readOnly__",
             "itemtype": "property",
             "name": "keyProperties",
@@ -4241,7 +4304,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1199,
+            "line": 1233,
             "description": "The DataProperties associated with this EntityType that are foreign key properties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "foreignKeyProperties",
@@ -4251,7 +4314,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1206,
+            "line": 1240,
             "description": "The DataProperties associated with this EntityType that are concurrency properties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "concurrencyProperties",
@@ -4261,7 +4324,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1213,
+            "line": 1247,
             "description": "The DataProperties associated with this EntityType that are not mapped to any backend datastore. These are effectively free standing\nproperties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "unmappedProperties",
@@ -4271,7 +4334,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1221,
+            "line": 1255,
             "description": "The default resource name associated with this EntityType.  An EntityType may be queried via a variety of 'resource names' but this one \nis used as the default when no resource name is provided.  This will occur when calling {{#crossLink \"EntityAspect/loadNavigationProperty\"}}{{/crossLink}}\nor when executing any {{#crossLink \"EntityQuery\"}}{{/crossLink}} that was created via an {{#crossLink \"EntityKey\"}}{{/crossLink}}.\n\n__readOnly__",
             "itemtype": "property",
             "name": "defaultResourceName",
@@ -4281,7 +4344,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1230,
+            "line": 1264,
             "description": "The fully qualified name of this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "name",
@@ -4291,7 +4354,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1237,
+            "line": 1271,
             "description": "The short, unqualified, name for this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "shortName",
@@ -4301,7 +4364,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1244,
+            "line": 1278,
             "description": "The namespace for this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "namespace",
@@ -4311,7 +4374,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1251,
+            "line": 1285,
             "description": "The base EntityType (if any) for this EntityType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "baseEntityType",
@@ -4321,7 +4384,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1258,
+            "line": 1292,
             "description": "Whether this EntityType is abstract.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isAbstract",
@@ -4331,7 +4394,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1265,
+            "line": 1299,
             "description": "The {{#crossLink \"AutoGeneratedKeyType\"}}{{/crossLink}} for this EntityType.\n    \n__readOnly__",
             "itemtype": "property",
             "name": "autoGeneratedKeyType",
@@ -4342,7 +4405,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1273,
+            "line": 1307,
             "description": "The entity level validators associated with this EntityType. Validators can be added and\nremoved from this collection.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validators",
@@ -4352,7 +4415,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1281,
+            "line": 1315,
             "description": "A free form object that can be used to define any custom metadata for this EntityType. \n\n__readOnly__",
             "itemtype": "property",
             "name": "custom",
@@ -4362,7 +4425,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1288,
+            "line": 1322,
             "description": "General purpose property set method",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    custType.setProperties( {\n        autoGeneratedKeyType: AutoGeneratedKeyType.Identity;\n        defaultResourceName: \"CustomersAndIncludedOrders\"\n    )};"
@@ -4387,6 +4450,11 @@
                             "optional": true
                         },
                         {
+                            "name": "serializerFn",
+                            "description": "A function that is used to mediate the serialization of instances of this type.",
+                            "optional": true
+                        },
+                        {
                             "name": "custom",
                             "description": "",
                             "type": "Object",
@@ -4400,7 +4468,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1314,
+            "line": 1350,
             "description": "Returns whether this type is a subtype of a specified type.",
             "itemtype": "method",
             "name": "isSubtypeOf",
@@ -4415,7 +4483,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1330,
+            "line": 1366,
             "description": "Returns an array containing this type and any/all subtypes of this type down thru the hierarchy.",
             "itemtype": "method",
             "name": "getSelfAndSubtypes",
@@ -4424,7 +4492,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1344,
+            "line": 1380,
             "description": "Adds a  {{#crossLink \"DataProperty\"}}{{/crossLink}} or a {{#crossLink \"NavigationProperty\"}}{{/crossLink}} to this EntityType.",
             "example": [
                 "\n    // assume myEntityType is a newly constructed EntityType. \n    myEntityType.addProperty(dataProperty1);\n    myEntityType.addProperty(dataProperty2);\n    myEntityType.addProperty(navigationProperty1);"
@@ -4443,7 +4511,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1375,
+            "line": 1411,
             "description": "Create a new entity of this type.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var cust1 = custType.createEntity();\n    em1.addEntity(cust1);"
@@ -4467,7 +4535,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1433,
+            "line": 1498,
             "description": "Returns the constructor for this EntityType.",
             "itemtype": "method",
             "name": "getCtor ( or obsolete getEntityCtor)",
@@ -4480,7 +4548,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1497,
+            "line": 1561,
             "description": "Adds either an entity or property level validator to this EntityType.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var countryProp = custType.getProperty(\"Country\");\n    var valFn = function (v) {\n        if (v == null) return true;\n        return (core.stringStartsWith(v, \"US\"));\n    };\n    var countryValidator = new Validator(\"countryIsUS\", valFn, \n        { displayName: \"Country\", messageTemplate: \"'%displayName%' must start with 'US'\" });\n    custType.addValidator(countryValidator, countryProp);\nThis is the same as adding an entity level validator via the 'validators' property of DataProperty or NavigationProperty",
@@ -4507,7 +4575,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1537,
+            "line": 1601,
             "description": "Returns all of the properties ( dataProperties and navigationProperties) for this EntityType.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var arrayOfProps = custType.getProperties();"
@@ -4523,7 +4591,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1550,
+            "line": 1614,
             "description": "Returns all of the property names ( for both dataProperties and navigationProperties) for this EntityType.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var arrayOfPropNames = custType.getPropertyNames();"
@@ -4539,7 +4607,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1563,
+            "line": 1627,
             "description": "Returns a data property with the specified name or null.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var customerNameDataProp = custType.getDataProperty(\"CustomerName\");"
@@ -4562,7 +4630,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1578,
+            "line": 1642,
             "description": "Returns a navigation property with the specified name or null.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var customerOrdersNavProp = custType.getDataProperty(\"Orders\");"
@@ -4585,7 +4653,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1593,
+            "line": 1657,
             "description": "Returns either a DataProperty or a NavigationProperty with the specified name or null.  \n\nThis method also accepts a '.' delimited property path and will return the 'property' at the \nend of the path.",
             "example": [
                 "\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var companyNameProp = custType.getProperty(\"CompanyName\");\nThis method can also walk a property path to return a property",
@@ -4616,7 +4684,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1644,
+            "line": 1764,
             "description": "Returns a string representation of this EntityType.",
             "itemtype": "method",
             "name": "toString",
@@ -4629,7 +4697,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1914,
+            "line": 2034,
             "example": [
                 "                    \n    var complexType = new ComplexType( {\n        shortName: \"address\",\n        namespace: \"myAppNamespace\"\n        });"
             ],
@@ -4673,7 +4741,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1954,
+            "line": 2074,
             "description": "The DataProperties (see {{#crossLink \"DataProperty\"}}{{/crossLink}}) associated with this ComplexType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "dataProperties",
@@ -4683,7 +4751,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1961,
+            "line": 2081,
             "description": "The DataProperties for this ComplexType that contain instances of a ComplexType (see {{#crossLink \"ComplexType\"}}{{/crossLink}}).\n\n__readOnly__",
             "itemtype": "property",
             "name": "complexProperties",
@@ -4693,7 +4761,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1968,
+            "line": 2088,
             "description": "The DataProperties associated with this ComplexType that are not mapped to any backend datastore. These are effectively free standing\nproperties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "unmappedProperties",
@@ -4703,7 +4771,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1976,
+            "line": 2096,
             "description": "The fully qualifed name of this ComplexType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "name",
@@ -4713,7 +4781,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1983,
+            "line": 2103,
             "description": "The short, unqualified, name for this ComplexType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "shortName",
@@ -4723,7 +4791,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1990,
+            "line": 2110,
             "description": "The namespace for this ComplexType.\n\n__readOnly__",
             "itemtype": "property",
             "name": "namespace",
@@ -4733,7 +4801,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 1997,
+            "line": 2117,
             "description": "The entity level validators associated with this ComplexType. Validators can be added and\nremoved from this collection.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validators",
@@ -4743,7 +4811,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2005,
+            "line": 2125,
             "description": "A free form object that can be used to define any custom metadata for this ComplexType. \n\n__readOnly__",
             "itemtype": "property",
             "name": "custom",
@@ -4753,7 +4821,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2012,
+            "line": 2132,
             "description": "General purpose property set method",
             "example": [
                 "\n    // assume em1 is an EntityManager\n    var addresstType = em1.metadataStore.getEntityType(\"Address\");\n    addressType.setProperties( {\n        custom: { foo: 7, bar: \"test\" }\n    });"
@@ -4779,7 +4847,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2030,
+            "line": 2150,
             "description": "Creates a new non-attached instance of this ComplexType.",
             "itemtype": "method",
             "name": "createInstance",
@@ -4795,7 +4863,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2066,
+            "line": 2186,
             "description": "See  {{#crossLink \"EntityType.addValidator\"}}{{/crossLink}}",
             "itemtype": "method",
             "name": "addValidator",
@@ -4816,7 +4884,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2074,
+            "line": 2194,
             "description": "See  {{#crossLink \"EntityType.getProperty\"}}{{/crossLink}}",
             "itemtype": "method",
             "name": "getProperty",
@@ -4825,7 +4893,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2079,
+            "line": 2199,
             "description": "See  {{#crossLink \"EntityType.getPropertyNames\"}}{{/crossLink}}",
             "itemtype": "method",
             "name": "getPropertyNames",
@@ -4834,7 +4902,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2084,
+            "line": 2204,
             "description": "See  {{#crossLink \"EntityType.getEntityCtor\"}}{{/crossLink}}",
             "itemtype": "method",
             "name": "getCtor",
@@ -4843,7 +4911,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2129,
+            "line": 2255,
             "example": [
                 "                    \n    var lastNameProp = new DataProperty( {\n        name: \"lastName\",\n        dataType: DataType.String,\n        isNullable: true,\n        maxLength: 20\n    });\n    // assuming personEntityType is a newly constructed EntityType\n    personEntityType.addProperty(lastNameProperty);"
             ],
@@ -4882,6 +4950,13 @@
                         },
                         {
                             "name": "isNullable",
+                            "description": "",
+                            "type": "Boolean",
+                            "optional": true,
+                            "optdefault": "true"
+                        },
+                        {
+                            "name": "isScalar",
                             "description": "",
                             "type": "Boolean",
                             "optional": true,
@@ -4939,7 +5014,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2219,
+            "line": 2361,
             "description": "The name of this property\n\n__readOnly__",
             "itemtype": "property",
             "name": "name",
@@ -4949,7 +5024,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2226,
+            "line": 2368,
             "description": "The parent type that this property belongs to - will be either a {{#crossLink \"EntityType\"}}{{/crossLink}} or a {{#crossLink \"ComplexType\"}}{{/crossLink}}.\n\n__readOnly__",
             "itemtype": "property",
             "name": "parentType",
@@ -4959,7 +5034,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2233,
+            "line": 2375,
             "description": "The {{#crossLink \"DataType\"}}{{/crossLink}} of this property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "dataType",
@@ -4969,7 +5044,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2240,
+            "line": 2382,
             "description": "The name of the {{#crossLink \"ComplexType\"}}{{/crossLink}} associated with this property; may be null. \n\n__readOnly__",
             "itemtype": "property",
             "name": "complexTypeName",
@@ -4979,7 +5054,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2247,
+            "line": 2389,
             "description": "Whether the contents of this property is an instance of a {{#crossLink \"ComplexType\"}}{{/crossLink}}.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isComplexProperty",
@@ -4989,7 +5064,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2254,
+            "line": 2396,
             "description": "Whether this property is nullable. \n\n__readOnly__",
             "itemtype": "property",
             "name": "isNullable",
@@ -4999,7 +5074,17 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2261,
+            "line": 2403,
+            "description": "Whether this property is scalar (i.e., returns a single value). \n\n__readOnly__",
+            "itemtype": "property",
+            "name": "isScalar",
+            "type": "Boolean",
+            "class": "DataProperty",
+            "module": "breeze"
+        },
+        {
+            "file": "a40_entityMetadata.js",
+            "line": 2410,
             "description": "Whether this property is inherited from a base class. \n\n__readOnly__",
             "itemtype": "property",
             "name": "isInherited",
@@ -5009,7 +5094,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2268,
+            "line": 2417,
             "description": "Whether this property is a 'key' property. \n\n__readOnly__",
             "itemtype": "property",
             "name": "isPartOfKey",
@@ -5019,7 +5104,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2275,
+            "line": 2424,
             "description": "Whether this property is an 'unmapped' property. \n\n__readOnly__",
             "itemtype": "property",
             "name": "isUnmapped",
@@ -5029,7 +5114,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2282,
+            "line": 2431,
             "description": "__Describe this__\n\n__readOnly__",
             "itemtype": "property",
             "name": "concurrencyMode",
@@ -5039,7 +5124,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2289,
+            "line": 2438,
             "description": "The maximum length for the value of this property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "maxLength",
@@ -5049,7 +5134,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2296,
+            "line": 2445,
             "description": "The {{#crossLink \"Validator\"}}{{/crossLink}}s that are associated with this property. Validators can be added and\nremoved from this collection.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validators",
@@ -5059,7 +5144,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2304,
+            "line": 2453,
             "description": "The default value for this property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "defaultValue",
@@ -5069,7 +5154,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2311,
+            "line": 2460,
             "description": "The navigation property related to this property.  Will only be set if this is a foreign key property. \n\n__readOnly__",
             "itemtype": "property",
             "name": "relatedNavigationProperty",
@@ -5079,7 +5164,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2318,
+            "line": 2467,
             "description": "A free form object that can be used to define any custom metadata for this DataProperty. \n\n__readOnly__",
             "itemtype": "property",
             "name": "custom",
@@ -5089,7 +5174,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2325,
+            "line": 2474,
             "description": "Is this a DataProperty? - always true here \nAllows polymorphic treatment of DataProperties and NavigationProperties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isDataProperty",
@@ -5099,7 +5184,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2333,
+            "line": 2482,
             "description": "Is this a NavigationProperty? - always false here \nAllows polymorphic treatment of DataProperties and NavigationProperties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isNavigationProperty",
@@ -5109,7 +5194,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2344,
+            "line": 2493,
             "description": "General purpose property set method",
             "example": [
                 "\n    // assume em1 is an EntityManager\n    var prop = myEntityType.getProperty(\"myProperty\");\n    prop.setProperties( {\n        custom: { foo: 7, bar: \"test\" }\n    });"
@@ -5135,7 +5220,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2409,
+            "line": 2561,
             "example": [
                 "                    \n    var homeAddressProp = new NavigationProperty( {\n        name: \"homeAddress\",\n        entityTypeName: \"Address:#myNamespace\",\n        isScalar: true,\n        associationName: \"address_person\",\n        foreignKeyNames: [\"homeAddressId\"]\n    });\n    var homeAddressIdProp = new DataProperty( {\n        name: \"homeAddressId\"\n        dataType: DataType.Integer\n    });\n    // assuming personEntityType is a newly constructed EntityType\n    personEntityType.addProperty(homeAddressProp);\n    personEntityType.addProperty(homeAddressIdProp);"
             ],
@@ -5168,7 +5253,8 @@
                             "name": "isScalar",
                             "description": "",
                             "type": "Boolean",
-                            "optional": true
+                            "optional": true,
+                            "optdefault": "true"
                         },
                         {
                             "name": "associationName",
@@ -5202,7 +5288,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2466,
+            "line": 2618,
             "description": "The {{#crossLink \"EntityType\"}}{{/crossLink}} that this property belongs to.\n__readOnly__",
             "itemtype": "property",
             "name": "parentEntityType",
@@ -5212,7 +5298,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2472,
+            "line": 2624,
             "description": "The name of this property\n\n__readOnly__",
             "itemtype": "property",
             "name": "name",
@@ -5222,7 +5308,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2479,
+            "line": 2631,
             "description": "The {{#crossLink \"EntityType\"}}{{/crossLink}} returned by this property.\n\n__readOnly__",
             "itemtype": "property",
             "name": "entityType",
@@ -5232,7 +5318,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2486,
+            "line": 2638,
             "description": "Whether this property returns a single entity or an array of entities.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isScalar",
@@ -5242,7 +5328,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2493,
+            "line": 2645,
             "description": "Whether this property is inherited from a base class. \n\n__readOnly__",
             "itemtype": "property",
             "name": "isInherited",
@@ -5252,7 +5338,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2500,
+            "line": 2652,
             "description": "The name of the association to which that this property belongs.  This associationName will be shared with this \nproperties 'inverse'.\n\n__readOnly__",
             "itemtype": "property",
             "name": "associationName",
@@ -5262,7 +5348,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2508,
+            "line": 2660,
             "description": "The names of the foreign key DataProperties associated with this NavigationProperty. There will usually only be a single DataProperty associated \nwith a Navigation property except in the case of entities with multipart keys.\n\n__readOnly__",
             "itemtype": "property",
             "name": "foreignKeyNames",
@@ -5272,7 +5358,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2516,
+            "line": 2668,
             "description": "The 'foreign key' DataProperties associated with this NavigationProperty. There will usually only be a single DataProperty associated \nwith a Navigation property except in the case of entities with multipart keys.\n\n__readOnly__",
             "itemtype": "property",
             "name": "relatedDataProperties",
@@ -5282,7 +5368,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2524,
+            "line": 2676,
             "description": "The inverse of this NavigationProperty.  The NavigationProperty that represents a navigation in the opposite direction\nto this NavigationProperty.\n\n__readOnly__",
             "itemtype": "property",
             "name": "inverse",
@@ -5292,7 +5378,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2532,
+            "line": 2684,
             "description": "The {{#crossLink \"Validator\"}}{{/crossLink}}s that are associated with this property. Validators can be added and\nremoved from this collection.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validators",
@@ -5302,7 +5388,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2540,
+            "line": 2692,
             "description": "A free form object that can be used to define any custom metadata for this NavigationProperty. \n\n__readOnly__",
             "itemtype": "property",
             "name": "custom",
@@ -5312,7 +5398,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2547,
+            "line": 2699,
             "description": "Is this a DataProperty? - always false here \nAllows polymorphic treatment of DataProperties and NavigationProperties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isDataProperty",
@@ -5322,7 +5408,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2555,
+            "line": 2707,
             "description": "Is this a NavigationProperty? - always true here \nAllows polymorphic treatment of DataProperties and NavigationProperties.\n\n__readOnly__",
             "itemtype": "property",
             "name": "isNavigationProperty",
@@ -5332,7 +5418,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2566,
+            "line": 2718,
             "description": "General purpose property set method",
             "example": [
                 "\n    // assume myEntityType is an EntityType\n    var prop = myEntityType.getProperty(\"myProperty\");\n    prop.setProperties( {\n        custom: { foo: 7, bar: \"test\" }\n    });"
@@ -5358,7 +5444,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2615,
+            "line": 2767,
             "description": "This entity does not have an autogenerated key. \nThe client must set the key before adding the entity to the EntityManager",
             "itemtype": "property",
             "name": "None",
@@ -5370,7 +5456,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2623,
+            "line": 2775,
             "description": "This entity's key is an Identity column and is set by the backend database. \nKeys for new entities will be temporary until the entities are saved at which point the keys will\nbe converted to their 'real' versions.",
             "itemtype": "property",
             "name": "Identity",
@@ -5382,7 +5468,7 @@
         },
         {
             "file": "a40_entityMetadata.js",
-            "line": 2632,
+            "line": 2784,
             "description": "This entity's key is generated by a KeyGenerator and is set by the backend database. \nKeys for new entities will be temporary until the entities are saved at which point the keys will\nbe converted to their 'real' versions.",
             "itemtype": "property",
             "name": "KeyGenerator",
@@ -5732,7 +5818,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 136,
+            "line": 130,
             "description": "This is a static version of the \"from\" method and it creates a 'base' entityQuery for the specified resource name.",
             "example": [
                 "                    \n    var query = EntityQuery.from(\"Customers\");\nis the same as ",
@@ -5758,7 +5844,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 154,
+            "line": 148,
             "description": "Specifies the top level EntityType that this query will return.  Only needed when a query returns a json result that does not include type information.",
             "example": [
                 "                    \n    var query = new EntityQuery()\n        .from(\"MyCustomMethod\")\n        .toType(\"Customer\")"
@@ -5782,7 +5868,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 175,
+            "line": 167,
             "description": "Returns a new query with an added filter criteria. Can be called multiple times which means to 'and' with any existing Predicate.",
             "example": [
                 "                    \n    var query = new EntityQuery(\"Customers\")\n        .where(\"CompanyName\", \"startsWith\", \"C\");\nThis can also be expressed using an explicit {{#crossLink \"FilterQueryOp\"}}{{/crossLink}} as",
@@ -5813,7 +5899,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 248,
+            "line": 239,
             "description": "Returns a new query that orders the results of the query by property name.  By default sorting occurs is ascending order, but sorting in descending order is supported as well.",
             "example": [
                 "\n        var query = new EntityQuery(\"Customers\")\n            .orderBy(\"CompanyName\");\n\nor to sort across multiple properties",
@@ -5841,7 +5927,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 284,
+            "line": 275,
             "description": "Returns a new query that orders the results of the query by property name in descending order.",
             "example": [
                 "\n        var query = new EntityQuery(\"Customers\")\n            .orderByDesc(\"CompanyName\");\n\nor to sort across multiple properties",
@@ -5867,7 +5953,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 310,
+            "line": 301,
             "description": "Returns a new query that selects a list of properties from the results of the original query and returns the values of just these properties. This\nwill be referred to as a projection. \nIf the result of this selection \"projection\" contains entities, these entities will automatically be added to EntityManager's cache and will \nbe made 'observable'.\nAny simple properties, i.e. strings, numbers or dates within a projection will not be cached are will NOT be made 'observable'.",
             "example": [
                 "\nSimple data properties can be projected",
@@ -5895,7 +5981,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 351,
+            "line": 343,
             "description": "Returns a new query that skips the specified number of entities when returning results.\nAny existing 'skip' can be cleared by calling 'skip' with no arguments.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .where(\"CompanyName\", \"startsWith\", \"C\")\n        .skip(5);"
@@ -5919,7 +6005,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 374,
+            "line": 360,
             "description": "Returns a new query that returns only the specified number of entities when returning results. - Same as 'take'.\nAny existing 'top' can be cleared by calling 'top' with no arguments.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .top(5);"
@@ -5943,7 +6029,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 390,
+            "line": 376,
             "description": "Returns a new query that returns only the specified number of entities when returning results - Same as 'top'.  \nAny existing take can be cleared by calling take with no arguments.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .take(5);"
@@ -5967,7 +6053,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 413,
+            "line": 393,
             "description": "Returns a new query that will return related entities nested within its results. The expand method allows you to identify related entities, via navigation property\nnames such that a graph of entities may be retrieved with a single request. Any filtering occurs before the results are 'expanded'.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .where(\"CompanyName\", \"startsWith\", \"C\")\n        .expand(\"Orders\");\nwill return the filtered customers each with its \"Orders\" properties fully resolved.\nMultiple paths may be specified by separating the paths by a ','",
@@ -5993,7 +6079,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 440,
+            "line": 421,
             "description": "Returns a new query that includes a collection of parameters to pass to the server.",
             "example": [
                 "\n    var query = EntityQuery.from(\"EmployeesFilteredByCountryAndBirthdate\")\n        .withParameters({ BirthDate: \"1/1/1960\", Country: \"USA\" });\nwill call the 'EmployeesFilteredByCountryAndBirthdate' method on the server and pass in 2 parameters. This\nquery will be uri encoded as \n\n    {serviceApi}/EmployeesFilteredByCountryAndBirthdate?birthDate=1%2F1%2F1960&country=USA\n    \nParameters may also be mixed in with other query criteria.",
@@ -6018,7 +6104,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 467,
+            "line": 448,
             "description": "Returns a query with the 'inlineCount' capability either enabled or disabled.  With 'inlineCount' enabled, an additional 'inlineCount' property\nwill be returned with the query results that will contain the number of entities that would have been returned by this\nquery with only the 'where'/'filter' clauses applied, i.e. without any 'skip'/'take' operators applied. For local queries this clause is ignored.",
             "example": [
                 "\n    var query = new EntityQuery(\"Customers\")\n        .take(20)\n        .orderBy(\"CompanyName\")\n        .inlineCount(true);\nwill return the first 20 customers as well as a count of all of the customers in the remote store."
@@ -6042,7 +6128,31 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 491,
+            "line": 471,
+            "description": "Returns a query with the 'noTracking' capability either enabled or disabled.  With 'noTracking' enabled, the results of this query\nwill not be coerced into entities but will instead look like raw javascript projections. i.e. simple javascript objects.",
+            "example": [
+                "\n    var query = new EntityQuery(\"Customers\")\n        .take(20)\n        .orderBy(\"CompanyName\")\n        .noTracking(true);"
+            ],
+            "itemtype": "method",
+            "name": "inlineCount",
+            "params": [
+                {
+                    "name": "enabled",
+                    "description": "Whether or not the noTracking capability should be enabled. If this parameter is omitted, true is assumed.",
+                    "type": "Boolean=true"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "EntityQuery"
+            },
+            "chainable": 1,
+            "class": "EntityQuery",
+            "module": "breeze"
+        },
+        {
+            "file": "a45_entityQuery.js",
+            "line": 493,
             "description": "Returns a copy of this EntityQuery with the specified {{#crossLink \"EntityManager\"}}{{/crossLink}}, {{#crossLink \"DataService\"}}{{/crossLink}}, \n{{#crossLink \"JsonResultsAdapter\"}}{{/crossLink}}, {{#crossLink \"MergeStrategy\"}}{{/crossLink}} or {{#crossLink \"FetchStrategy\"}}{{/crossLink}} applied.",
             "example": [
                 "\n'using' can be used to return a new query with a specified EntityManager.",
@@ -6070,7 +6180,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 552,
+            "line": 554,
             "description": "Executes this query.  This method requires that an EntityManager has been previously specified via the \"using\" method.",
             "example": [
                 "\nThis method can be called using a 'promises' syntax ( recommended)",
@@ -6153,7 +6263,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 619,
+            "line": 621,
             "description": "Executes this query against the local cache.  This method requires that an EntityManager have been previously specified via the \"using\" method.",
             "example": [
                 "\n    // assume em is an entityManager already filled with order entities;\n    var query = new EntityQuery(\"Orders\").using(em);\n    var orders = query.executeLocally();\n    \nNote that calling this method is the same as calling {{#crossLink \"EntityManager/executeQueryLocally\"}}{{/crossLink}}."
@@ -6165,7 +6275,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 637,
+            "line": 639,
             "description": "Static method tht creates an EntityQuery that will allow 'requerying' an entity or a collection of entities by primary key. This can be useful\nto force a requery of selected entities, or to restrict an existing collection of entities according to some filter.",
             "example": [
                 "\n    // assuming 'customers' is an array of 'Customer' entities retrieved earlier.\n    var customersQuery = EntityQuery.fromEntities(customers);\nThe resulting query can, of course, be extended",
@@ -6192,7 +6302,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 678,
+            "line": 680,
             "description": "Creates an EntityQuery for the specified {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    var empType = metadataStore.getEntityType(\"Employee\");\n    var entityKey = new EntityKey(empType, 1);\n    var query = EntityQuery.fromEntityKey(entityKey);\nor",
@@ -6218,7 +6328,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 703,
+            "line": 705,
             "description": "Creates an EntityQuery for the specified entity and {{#crossLink \"NavigationProperty\"}}{{/crossLink}}.",
             "example": [
                 "\n    // 'employee' is a previously queried employee\n    var ordersNavProp = employee.entityType.getProperty(\"Orders\");\n    var query = EntityQuery.fromEntityNavigation(employee, ordersNavProp);\nwill return a query for the \"Orders\" of the specified 'employee'."
@@ -6234,8 +6344,8 @@
                 },
                 {
                     "name": "navigationProperty",
-                    "description": "The {{#crossLink \"NavigationProperty\"}}{{/crossLink}} to be queried.",
-                    "type": "NavigationProperty"
+                    "description": "The {{#crossLink \"NavigationProperty\"}}{{/crossLink}} or name of the NavigationProperty to be queried.",
+                    "type": "NavigationProperty|String"
                 }
             ],
             "return": {
@@ -6248,7 +6358,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1245,
+            "line": 1221,
             "description": "Aliases: \"eq\", \"==\"",
             "itemtype": "property",
             "name": "Equals",
@@ -6260,7 +6370,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1252,
+            "line": 1228,
             "description": "Aliases: \"ne\", \"!=\"",
             "itemtype": "property",
             "name": "NotEquals",
@@ -6272,7 +6382,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1259,
+            "line": 1235,
             "description": "Aliases: \"gt\", \">\"",
             "itemtype": "property",
             "name": "GreaterThan",
@@ -6284,7 +6394,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1266,
+            "line": 1242,
             "description": "Aliases: \"lt\", \"<\"",
             "itemtype": "property",
             "name": "LessThan",
@@ -6296,7 +6406,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1273,
+            "line": 1249,
             "description": "Aliases: \"ge\", \">=\"",
             "itemtype": "property",
             "name": "GreaterThanOrEqual",
@@ -6308,7 +6418,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1280,
+            "line": 1256,
             "description": "Aliases: \"le\", \"<=\"",
             "itemtype": "property",
             "name": "LessThanOrEqual",
@@ -6320,7 +6430,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1287,
+            "line": 1263,
             "description": "String operation: Is a string a substring of another string.\nAliases: \"substringof\"",
             "itemtype": "property",
             "name": "Contains",
@@ -6332,7 +6442,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1295,
+            "line": 1271,
             "itemtype": "property",
             "name": "StartsWith",
             "type": "FilterQueryOp",
@@ -6343,7 +6453,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1301,
+            "line": 1277,
             "itemtype": "property",
             "name": "EndsWith",
             "type": "FilterQueryOp",
@@ -6354,7 +6464,31 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1371,
+            "line": 1284,
+            "description": "Aliases: \"some\"",
+            "itemtype": "property",
+            "name": "Any",
+            "type": "FilterQueryOp",
+            "final": 1,
+            "static": 1,
+            "class": "FilterQueryOp",
+            "module": "breeze"
+        },
+        {
+            "file": "a45_entityQuery.js",
+            "line": 1292,
+            "description": "Aliases: \"every\"",
+            "itemtype": "property",
+            "name": "All",
+            "type": "FilterQueryOp",
+            "final": 1,
+            "static": 1,
+            "class": "FilterQueryOp",
+            "module": "breeze"
+        },
+        {
+            "file": "a45_entityQuery.js",
+            "line": 1363,
             "description": "Predicate constructor",
             "example": [
                 "\n    var p1 = new Predicate(\"CompanyName\", \"StartsWith\", \"B\");\n    var query = new EntityQuery(\"Customers\").where(p1);\nor ",
@@ -6384,27 +6518,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1399,
-            "description": "Returns whether an object is a Predicate",
-            "example": [
-                "\n    var p1 = new Predicate(\"CompanyName\", \"StartsWith\", \"B\");\n    if (Predicate.isPredicate(p1)) {\n        // do something\n    }"
-            ],
-            "itemtype": "method",
-            "name": "isPredicate",
-            "params": [
-                {
-                    "name": "o",
-                    "description": "",
-                    "type": "Object"
-                }
-            ],
-            "static": 1,
-            "class": "Predicate",
-            "module": "breeze"
-        },
-        {
-            "file": "a45_entityQuery.js",
-            "line": 1414,
+            "line": 1407,
             "description": "Creates a new 'simple' Predicate.  Note that this method can also take its parameters as an array.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\nor parameters can be passed as an array.",
@@ -6436,7 +6550,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1444,
+            "line": 1434,
             "description": "Creates a 'composite' Predicate by 'and'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.and(p1, p2, p3);\nor",
@@ -6458,7 +6572,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1471,
+            "line": 1461,
             "description": "Creates a 'composite' Predicate by 'or'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.or(p1, p2, p3);\nor",
@@ -6480,7 +6594,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1498,
+            "line": 1488,
             "description": "Creates a 'composite' Predicate by 'negating' a specified predicate.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = Predicate.not(p1);\nThis can also be accomplished using the 'instance' version of the 'not' method",
@@ -6502,7 +6616,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1517,
+            "line": 1507,
             "description": "'And's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.and(p2, p3);\nor",
@@ -6524,7 +6638,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1542,
+            "line": 1532,
             "description": "'Or's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.or(p2, p3);\nor",
@@ -6546,7 +6660,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1567,
+            "line": 1557,
             "description": "Returns the 'negated' version of this Predicate",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = p1.not();\nThis can also be accomplished using the 'static' version of the 'not' method",
@@ -6560,7 +6674,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1587,
+            "line": 1577,
             "description": "Returns the function that will be used to execute this Predicate against the local cache.",
             "itemtype": "method",
             "name": "toFunction",
@@ -6573,7 +6687,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1593,
+            "line": 1583,
             "description": "Returns a human readable string for this Predicate.",
             "itemtype": "method",
             "name": "toString",
@@ -6586,7 +6700,7 @@
         },
         {
             "file": "a45_entityQuery.js",
-            "line": 1599,
+            "line": 1589,
             "description": "Determines whether this Predicate is 'valid' for the specified EntityType; This method will throw an exception\nif invalid.",
             "itemtype": "method",
             "name": "validate",
@@ -6603,7 +6717,7 @@
         {
             "file": "a45_queryOptions.js",
             "line": 13,
-            "description": "PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already\nin a {{#crossLink \"EntityState/Modified\"}}{{/crossLink}} state. In this case, the existing entity in the \nEntityManager is not replaced by the 'merging' entity.",
+            "description": "MergeStrategy.PreserveChanges updates the cached entity with the incoming values unless the cached entity is in a changed \nstate (added, modified, deleted) in which case the incoming values are ignored. The updated cached entity’s EntityState will\nremain {{#crossLink \"EntityState/Unchanged\"}}{{/crossLink}} unless you’re importing entities in which case the new EntityState will \nbe that of the imported entities.",
             "itemtype": "property",
             "name": "PreserveChanges",
             "type": "MergeStrategy",
@@ -6614,8 +6728,8 @@
         },
         {
             "file": "a45_queryOptions.js",
-            "line": 23,
-            "description": "OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already\nin a {{#crossLink \"EntityState/Modified\"}}{{/crossLink}} state. In this case, the existing entity in the \nEntityManager is replaced by the 'merging' entity.",
+            "line": 24,
+            "description": "MergeStrategy.OverwriteChanges always updates the cached entity with incoming values even if the entity is in\na changed state (added, modified, deleted). After the merge, the pending changes are lost. \nThe new EntityState will be  {{#crossLink \"EntityState/Unchanged\"}}{{/crossLink}} unless you’re importing entities \nin which case the new EntityState will be that of the imported entities.",
             "itemtype": "property",
             "name": "OverwriteChanges",
             "type": "MergeStrategy",
@@ -6626,7 +6740,31 @@
         },
         {
             "file": "a45_queryOptions.js",
-            "line": 45,
+            "line": 36,
+            "description": "SkipMerge is used to ignore incoming values. Adds the incoming entity to the cache only if there is no cached entity with the same key. \nThis is the fastest merge strategy but your existing cached data will remain “stale”.",
+            "itemtype": "property",
+            "name": "SkipMerge",
+            "type": "MergeStrategy",
+            "final": 1,
+            "static": 1,
+            "class": "MergeStrategy",
+            "module": "breeze"
+        },
+        {
+            "file": "a45_queryOptions.js",
+            "line": 46,
+            "description": "Disallowed is used to throw an exception if there is an incoming entity with the same key as an entity already in the cache.  \nUse this strategy when you want to be sure that the incoming entity is not already in cache. \nThis is the default strategy for EntityManager.attachEntity.",
+            "itemtype": "property",
+            "name": "Disallowed",
+            "type": "MergeStrategy",
+            "final": 1,
+            "static": 1,
+            "class": "MergeStrategy",
+            "module": "breeze"
+        },
+        {
+            "file": "a45_queryOptions.js",
+            "line": 68,
             "description": "FromServer is used to tell the query to execute the query against a remote data source on the server.",
             "itemtype": "property",
             "name": "FromServer",
@@ -6638,7 +6776,7 @@
         },
         {
             "file": "a45_queryOptions.js",
-            "line": 52,
+            "line": 75,
             "description": "FromLocalCache is used to tell the query to execute the query against a local EntityManager instead of going to a remote server.",
             "itemtype": "property",
             "name": "FromLocalCache",
@@ -6650,7 +6788,7 @@
         },
         {
             "file": "a45_queryOptions.js",
-            "line": 70,
+            "line": 93,
             "description": "QueryOptions constructor",
             "example": [
                 "\n    var newQo = new QueryOptions( { mergeStrategy: MergeStrategy.OverwriteChanges });\n    // assume em1 is a preexisting EntityManager\n    em1.setProperties( { queryOptions: newQo });\n\nAny QueryOptions property that is not defined will be defaulted from any QueryOptions defined at a higher level in the breeze hierarchy, i.e. \n-  from query.queryOptions \n-  to   entityManager.queryOptions \n-  to   QueryOptions.defaultInstance;"
@@ -6684,7 +6822,7 @@
         },
         {
             "file": "a45_queryOptions.js",
-            "line": 93,
+            "line": 116,
             "description": "A {{#crossLink \"FetchStrategy\"}}{{/crossLink}}\n__readOnly__",
             "itemtype": "property",
             "name": "fetchStrategy",
@@ -6694,7 +6832,7 @@
         },
         {
             "file": "a45_queryOptions.js",
-            "line": 99,
+            "line": 122,
             "description": "A {{#crossLink \"MergeStrategy\"}}{{/crossLink}}\n__readOnly__",
             "itemtype": "property",
             "name": "mergeStrategy",
@@ -6704,7 +6842,7 @@
         },
         {
             "file": "a45_queryOptions.js",
-            "line": 111,
+            "line": 134,
             "description": "The default value whenever QueryOptions are not specified.",
             "itemtype": "property",
             "name": "defaultInstance",
@@ -6715,7 +6853,7 @@
         },
         {
             "file": "a45_queryOptions.js",
-            "line": 121,
+            "line": 144,
             "description": "Returns a copy of this QueryOptions with the specified {{#crossLink \"MergeStrategy\"}}{{/crossLink}} \nor {{#crossLink \"FetchStrategy\"}}{{/crossLink}} applied.",
             "example": [
                 "\n    var queryOptions = em1.queryOptions.using(MergeStrategy.PreserveChanges);\nor",
@@ -6741,7 +6879,7 @@
         },
         {
             "file": "a45_queryOptions.js",
-            "line": 148,
+            "line": 171,
             "description": "Sets the 'defaultInstance' by creating a copy of the current 'defaultInstance' and then applying all of the properties of the current instance. \nThe current instance is returned unchanged.",
             "itemtype": "method",
             "name": "setAsDefault",
@@ -6880,7 +7018,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 142,
+            "line": 141,
             "description": "The service name associated with this EntityManager.\n\n__readOnly__",
             "itemtype": "property",
             "name": "serviceName",
@@ -6890,7 +7028,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 149,
+            "line": 148,
             "description": "The DataService name associated with this EntityManager.\n\n__readOnly__",
             "itemtype": "property",
             "name": "dataService",
@@ -6900,7 +7038,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 156,
+            "line": 155,
             "description": "The {{#crossLink \"MetadataStore\"}}{{/crossLink}} associated with this EntityManager. \n\n    __readOnly__",
             "itemtype": "property",
             "name": "metadataStore",
@@ -6910,7 +7048,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 163,
+            "line": 162,
             "description": "The {{#crossLink \"QueryOptions\"}}{{/crossLink}} associated with this EntityManager.\n\n__readOnly__",
             "itemtype": "property",
             "name": "queryOptions",
@@ -6920,7 +7058,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 170,
+            "line": 169,
             "description": "The {{#crossLink \"SaveOptions\"}}{{/crossLink}} associated with this EntityManager.\n\n__readOnly__",
             "itemtype": "property",
             "name": "saveOptions",
@@ -6930,7 +7068,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 177,
+            "line": 176,
             "description": "The {{#crossLink \"ValidationOptions\"}}{{/crossLink}} associated with this EntityManager.\n\n__readOnly__",
             "itemtype": "property",
             "name": "validationOptions",
@@ -6940,7 +7078,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 184,
+            "line": 183,
             "description": "The {{#crossLink \"KeyGenerator\"}}{{/crossLink}} constructor associated with this EntityManager.\n\n__readOnly__",
             "itemtype": "property",
             "name": "keyGeneratorCtor",
@@ -6950,7 +7088,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 194,
+            "line": 193,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever a change to any entity in this EntityManager occurs.",
             "example": [
                 "                    \n    var em = new EntityManager( {serviceName: \"breeze/NorthwindIBModel\" });\n    em.entityChanged.subscribe(function(changeArgs) {\n        // This code will be executed any time any entity within the entityManager is added, modified, deleted or detached for any reason. \n        var action = changeArgs.entityAction;\n        var entity = changeArgs.entity;\n        // .. do something to this entity when it is changed.\n    });\n});"
@@ -6980,7 +7118,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 213,
+            "line": 212,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever validationErrors change for any entity in this EntityManager.",
             "example": [
                 "                    \n    var em = new EntityManager( {serviceName: \"breeze/NorthwindIBModel\" });\n    em.validationErrorsChanged.subscribe(function(changeArgs) {\n        // This code will be executed any time any entity within the entityManager experiences a change to its validationErrors collection. \n        function (validationChangeArgs) {\n            var entity == validationChangeArgs.entity; \n            var errorsAdded = validationChangeArgs.added;\n            var errorsCleared = validationChangeArgs.removed;\n            // ... do something interesting with the order.\n        });\n    });\n});"
@@ -7010,7 +7148,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 237,
+            "line": 236,
             "description": "Creates a new entity of a specified type and optionally initializes it. By default the new entity is created with an EntityState of Added\nbut you can also optionally specify an EntityState.  An EntityState of 'Detached' will insure that the entity is created but not yet added \nto the EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    // create and add an entity;\n    var emp1 = em1.createEntity(\"Employee\");\n    // create and add an initialized entity;\n    var emp2 = em1.createEntity(\"Employee\", { lastName: Smith\", firstName: \"John\" });\n    // create and attach (not add) an initialized entity\n    var emp3 = em1.createEntity(\"Employee\", { id: 435, lastName: Smith\", firstName: \"John\" }, EntityState.Unchanged);\n    // create but don't attach an entity;\n    var emp4 = em1.createEntity(\"Employee\", { id: 435, lastName: Smith\", firstName: \"John\" }, EntityState.Detached);"
@@ -7032,10 +7170,17 @@
                 },
                 {
                     "name": "entityState",
-                    "description": "- Configuration object of the properties to set immediately after creation.",
+                    "description": "- The EntityState of the entity after being created and added to this EntityManager.",
                     "type": "EntityState",
                     "optional": true,
                     "optdefault": "EntityState.Added"
+                },
+                {
+                    "name": "mergeStrategy",
+                    "description": "- How to handle conflicts if an entity with the same key already exists within this EntityManager.",
+                    "type": "MergeStrategy",
+                    "optional": true,
+                    "optdefault": "MergeStrategy.Disallowed"
                 }
             ],
             "return": {
@@ -7047,7 +7192,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 276,
+            "line": 278,
             "description": "Creates a new EntityManager and imports a previously exported result into it.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var bundle = em1.exportEntities();\n    // can be stored via the web storage api\n    window.localStorage.setItem(\"myEntityManager\", bundle);\n    // assume the code below occurs in a different session.\n    var bundleFromStorage = window.localStorage.getItem(\"myEntityManager\");\n    // and imported\n    var em2 = EntityManager.importEntities(bundleFromStorage);\n    // em2 will now have a complete copy of what was in em1"
@@ -7085,7 +7230,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 306,
+            "line": 308,
             "description": "Calls EntityAspect.acceptChanges on every changed entity in this EntityManager.",
             "itemtype": "method",
             "name": "acceptChanges",
@@ -7094,7 +7239,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 314,
+            "line": 316,
             "description": "Calls EntityAspect.rejectChanges on every changed entity in this EntityManager.",
             "itemtype": "method",
             "name": "rejectChanges",
@@ -7103,7 +7248,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 322,
+            "line": 324,
             "description": "Exports an entire EntityManager or just selected entities into a serialized string for external storage.",
             "example": [
                 "\nThis method can be used to take a snapshot of an EntityManager that can be either stored offline or held \nmemory.  This snapshot can be restored or merged into an another EntityManager at some later date. ",
@@ -7115,9 +7260,13 @@
             "params": [
                 {
                     "name": "entities",
-                    "description": "The entities to export; all entities are exported if this is omitted.",
+                    "description": "The entities to export; all entities are exported if this is omitted or null",
                     "type": "Array of entities",
                     "optional": true
+                },
+                {
+                    "name": "[includeMetadata",
+                    "description": "= true] Whether to include metadata in the export; the default is true"
                 }
             ],
             "return": {
@@ -7129,7 +7278,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 365,
+            "line": 372,
             "description": "Imports a previously exported result into this EntityManager.",
             "example": [
                 "\nThis method can be used to make a complete copy of any previously created entityManager, even if created\nin a previous session and stored in localStorage. The static version of this method performs a\nvery similar process. ",
@@ -7168,7 +7317,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 446,
+            "line": 461,
             "description": "Clears this EntityManager's cache but keeps all other settings. Note that this \nmethod is not as fast as creating a new EntityManager via 'new EntityManager'.\nThis is because clear actually detaches all of the entities from the EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    em1.clear();\n    // em1 is will now contain no entities, but all other setting will be maintained."
@@ -7180,7 +7329,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 474,
+            "line": 489,
             "description": "Creates an empty copy of this EntityManager",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var em2 = em1.createEmptyCopy();\n    // em2 is a new EntityManager with all of em1's settings\n    // but no entities."
@@ -7196,7 +7345,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 496,
+            "line": 505,
             "description": "Attaches an entity to this EntityManager with an  {{#crossLink \"EntityState\"}}{{/crossLink}} of 'Added'.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var cust1 = custType.createEntity();\n    em1.addEntity(cust1);\nNote that this is the same as using 'attachEntity' with an {{#crossLink \"EntityState\"}}{{/crossLink}} of 'Added'.",
@@ -7220,7 +7369,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 517,
+            "line": 526,
             "description": "Attaches an entity to this EntityManager with a specified {{#crossLink \"EntityState\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var cust1 = custType.createEntity();\n    em1.attachEntity(cust1, EntityState.Added);"
@@ -7239,6 +7388,13 @@
                     "type": "EntityState",
                     "optional": true,
                     "optdefault": "EntityState.Unchanged"
+                },
+                {
+                    "name": "mergeStrategy",
+                    "description": "How the specified entity should be merged into the EntityManager if this EntityManager already contains an entity with the same key.",
+                    "type": "MergeStrategy",
+                    "optional": true,
+                    "optdefault": "MergeStrategy.Disallowed"
                 }
             ],
             "return": {
@@ -7250,7 +7406,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 571,
+            "line": 594,
             "description": "Detaches an entity from this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    // assume cust1 is a customer Entity previously attached to em1\n    em1.detachEntity(cust1);\n    // em1 will now no longer contain cust1 and cust1 will have an \n    // entityAspect.entityState of EntityState.Detached"
@@ -7273,7 +7429,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 597,
+            "line": 620,
             "description": "Fetches the metadata associated with the EntityManager's current 'serviceName'.  This call\noccurs internally before the first query to any service if the metadata hasn't already been\nloaded.",
             "example": [
                 "\nUsually you will not actually process the results of a fetchMetadata call directly, but will instead\nask for the metadata from the EntityManager after the fetchMetadata call returns.",
@@ -7321,7 +7477,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 646,
+            "line": 669,
             "description": "Executes the specified query.",
             "example": [
                 "\nThis method can be called using a 'promises' syntax ( recommended)",
@@ -7420,7 +7576,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 743,
+            "line": 766,
             "description": "Executes the specified query against this EntityManager's local cache.",
             "example": [
                 "\nBecause this method is executed immediately there is no need for a promise or a callback",
@@ -7445,7 +7601,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 815,
+            "line": 838,
             "description": "Saves either a list of specified entities or all changed entities within this EntityManager. If there are no changes to any of the entities\nspecified then there will be no server side call made but a valid 'empty' saveResult will still be returned.",
             "example": [
                 "\nOften we will be saving all of the entities within an EntityManager that are either added, modified or deleted\nand we will let the 'saveChanges' call determine which entities these are. ",
@@ -7459,7 +7615,7 @@
             "params": [
                 {
                     "name": "entities",
-                    "description": "The list of entities to save.  All entities with changes \nwithin this EntityManager will be saved if this parameter is omitted, null or empty.",
+                    "description": "The list of entities to save.  \nEvery entity in that list will be sent to the server, whether changed or unchanged, \nas long as it is attached to this EntityManager.\nIf this parameter is omitted, null or empty (the usual case), \nevery entity with pending changes in this EntityManager will be saved.",
                     "type": "Array of Entity",
                     "optional": true
                 },
@@ -7541,7 +7697,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1061,
+            "line": 1075,
             "description": "Attempts to locate an entity within this EntityManager by its key.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employee = em1.getEntityByKey(\"Employee\", 1);\n    // employee will either be an entity or null."
@@ -7569,7 +7725,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1073,
+            "line": 1087,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.getEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -7592,7 +7748,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1104,
+            "line": 1118,
             "description": "Attempts to fetch an entity from the server by its key with\nan option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy \nwill be used to merge any server side entity returned by this method.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -7626,7 +7782,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1129,
+            "line": 1143,
             "description": "Attempts to fetch an entity from the server by its {{#crossLink \"EntityKey\"}}{{/crossLink}} with\nan option to check the local cache first.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -7655,7 +7811,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1178,
+            "line": 1192,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.findEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -7680,7 +7836,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1195,
+            "line": 1209,
             "description": "Generates a temporary key for the specified entity.  This is used to insure that newly\ncreated entities have unique keys and to register that these keys are temporary and\nneed to be automatically replaced with 'real' key values once these entities are saved.\n\nThe EntityManager.keyGeneratorCtor property is used internally by this method to actually generate\nthe keys - See the  {{#crossLink \"~keyGenerator-interface\"}}{{/crossLink}} interface description to see\nhow a custom key generator can be plugged in.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var custumer = custType.createEntity();\n    var customerId = em.generateTempKeyValue(custumer);\n    // The 'customer' entity 'CustomerID' property is now set to a newly generated unique id value\n    // This property will change again after a successful save of the 'customer' entity.\n\n    em1.saveChanges()\n        .then( function( data) {\n            var sameCust1 = data.results[0];\n            // cust1 === sameCust1;\n            // but cust1.getProperty(\"CustomerId\") != customerId\n            // because the server will have generated a new id \n            // and the client will have been updated with this \n            // new id.\n        })"
@@ -7703,7 +7859,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1236,
+            "line": 1250,
             "description": "Returns whether there are any changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to determine if an EntityManager has any changes",
@@ -7730,7 +7886,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1272,
+            "line": 1286,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes.",
             "example": [
                 "                    \n    var em = new EntityManager( {serviceName: \"breeze/NorthwindIBModel\" });\n    em.hasChangesChanged.subscribe(function(args) {\n        var hasChangesChanged = args.hasChanges;\n        var entityManager = args.entityManager;\n    });\n});"
@@ -7755,7 +7911,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1298,
+            "line": 1312,
             "description": "Returns a array of all changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to get all of the changed entities within an EntityManager",
@@ -7782,7 +7938,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1328,
+            "line": 1342,
             "description": "Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var entities = em1.rejectChanges();"
@@ -7798,7 +7954,7 @@
         },
         {
             "file": "a50_entityManager.js",
-            "line": 1351,
+            "line": 1365,
             "description": "Returns a array of all entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s with the specified {{#crossLink \"EntityState\"}}{{/crossLink}}s.",
             "example": [
                 "\nThis method can be used to get all of the entities within an EntityManager",

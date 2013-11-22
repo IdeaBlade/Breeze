@@ -813,7 +813,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="../files/a50_entityManager.js.html#l306"><code>a50_entityManager.js:306</code></a>
+        <a href="../files/a50_entityManager.js.html#l308"><code>a50_entityManager.js:308</code></a>
         
         </p>
 
@@ -882,7 +882,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="../files/a50_entityManager.js.html#l496"><code>a50_entityManager.js:496</code></a>
+        <a href="../files/a50_entityManager.js.html#l505"><code>a50_entityManager.js:505</code></a>
         
         </p>
 
@@ -979,6 +979,12 @@ em1.attachEntity(cust1, EntityState.Added);</code></pre>
                     
                 </li>
             
+                <li class="arg">
+                    
+                        <code class="optional">[mergeStrategy=MergeStrategy.Disallowed]</code>
+                    
+                </li>
+            
             </ul><span class="paren">)</span>
         </div>
     
@@ -1012,7 +1018,7 @@ em1.attachEntity(cust1, EntityState.Added);</code></pre>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l517"><code>a50_entityManager.js:517</code></a>
+        <a href="../files/a50_entityManager.js.html#l526"><code>a50_entityManager.js:526</code></a>
         
         </p>
 
@@ -1060,6 +1066,23 @@ em1.attachEntity(cust1, EntityState.Added);</code></pre>
 
                     <div class="param-description">
                         <p>The EntityState of the newly attached entity. If omitted this defaults to EntityState.Unchanged.</p>
+
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[mergeStrategy=MergeStrategy.Disallowed]</code>
+                        <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>How the specified entity should be merged into the EntityManager if this EntityManager already contains an entity with the same key.</p>
 
                     </div>
 
@@ -1134,7 +1157,7 @@ em1.attachEntity(cust1, EntityState.Added);</code></pre>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l446"><code>a50_entityManager.js:446</code></a>
+        <a href="../files/a50_entityManager.js.html#l461"><code>a50_entityManager.js:461</code></a>
         
         </p>
 
@@ -1206,7 +1229,7 @@ em1.clear();
             
         
         
-        <a href="../files/a50_entityManager.js.html#l474"><code>a50_entityManager.js:474</code></a>
+        <a href="../files/a50_entityManager.js.html#l489"><code>a50_entityManager.js:489</code></a>
         
         </p>
 
@@ -1280,6 +1303,12 @@ var em2 = em1.createEmptyCopy();
                     
                 </li>
             
+                <li class="arg">
+                    
+                        <code class="optional">[mergeStrategy=MergeStrategy.Disallowed]</code>
+                    
+                </li>
+            
             </ul><span class="paren">)</span>
         </div>
     
@@ -1313,7 +1342,7 @@ var em2 = em1.createEmptyCopy();
             
         
         
-        <a href="../files/a50_entityManager.js.html#l237"><code>a50_entityManager.js:237</code></a>
+        <a href="../files/a50_entityManager.js.html#l236"><code>a50_entityManager.js:236</code></a>
         
         </p>
 
@@ -1382,7 +1411,26 @@ to the EntityManager.</p>
 
                     <div class="param-description">
                         <ul>
-<li>Configuration object of the properties to set immediately after creation.</li>
+<li>The EntityState of the entity after being created and added to this EntityManager.</li>
+</ul>
+
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name optional">[mergeStrategy=MergeStrategy.Disallowed]</code>
+                        <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <ul>
+<li>How to handle conflicts if an entity with the same key already exists within this EntityManager.</li>
 </ul>
 
                     </div>
@@ -1477,7 +1525,7 @@ var emp4 = em1.createEntity(&quot;Employee&quot;, { id: 435, lastName: Smith&quo
             
         
         
-        <a href="../files/a50_entityManager.js.html#l571"><code>a50_entityManager.js:571</code></a>
+        <a href="../files/a50_entityManager.js.html#l594"><code>a50_entityManager.js:594</code></a>
         
         </p>
 
@@ -1611,7 +1659,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="../files/a50_entityManager.js.html#l646"><code>a50_entityManager.js:646</code></a>
+        <a href="../files/a50_entityManager.js.html#l669"><code>a50_entityManager.js:669</code></a>
         
         </p>
 
@@ -1937,7 +1985,7 @@ would have been applied.</code></pre>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l743"><code>a50_entityManager.js:743</code></a>
+        <a href="../files/a50_entityManager.js.html#l766"><code>a50_entityManager.js:766</code></a>
         
         </p>
 
@@ -2034,6 +2082,12 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p>
                     
                 </li>
             
+                <li class="arg">
+                    
+                        <code>[includeMetadata</code>
+                    
+                </li>
+            
             </ul><span class="paren">)</span>
         </div>
     
@@ -2067,7 +2121,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l322"><code>a50_entityManager.js:322</code></a>
+        <a href="../files/a50_entityManager.js.html#l324"><code>a50_entityManager.js:324</code></a>
         
         </p>
 
@@ -2098,7 +2152,23 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p>
                     
 
                     <div class="param-description">
-                        <p>The entities to export; all entities are exported if this is omitted.</p>
+                        <p>The entities to export; all entities are exported if this is omitted or null</p>
+
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">[includeMetadata</code>
+                        <span class="type">Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>= true] Whether to include metadata in the export; the default is true</p>
 
                     </div>
 
@@ -2216,7 +2286,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );</c
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1104"><code>a50_entityManager.js:1104</code></a>
+        <a href="../files/a50_entityManager.js.html#l1118"><code>a50_entityManager.js:1118</code></a>
         
         </p>
 
@@ -2383,7 +2453,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1129"><code>a50_entityManager.js:1129</code></a>
+        <a href="../files/a50_entityManager.js.html#l1143"><code>a50_entityManager.js:1143</code></a>
         
         </p>
 
@@ -2533,7 +2603,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="../files/a50_entityManager.js.html#l597"><code>a50_entityManager.js:597</code></a>
+        <a href="../files/a50_entityManager.js.html#l620"><code>a50_entityManager.js:620</code></a>
         
         </p>
 
@@ -2724,7 +2794,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1178"><code>a50_entityManager.js:1178</code></a>
+        <a href="../files/a50_entityManager.js.html#l1192"><code>a50_entityManager.js:1192</code></a>
         
         </p>
 
@@ -2846,7 +2916,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1195"><code>a50_entityManager.js:1195</code></a>
+        <a href="../files/a50_entityManager.js.html#l1209"><code>a50_entityManager.js:1209</code></a>
         
         </p>
 
@@ -2982,7 +3052,7 @@ em1.saveChanges()
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1298"><code>a50_entityManager.js:1298</code></a>
+        <a href="../files/a50_entityManager.js.html#l1312"><code>a50_entityManager.js:1312</code></a>
         
         </p>
 
@@ -3118,7 +3188,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);</code></p
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1351"><code>a50_entityManager.js:1351</code></a>
+        <a href="../files/a50_entityManager.js.html#l1365"><code>a50_entityManager.js:1365</code></a>
         
         </p>
 
@@ -3276,7 +3346,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1061"><code>a50_entityManager.js:1061</code></a>
+        <a href="../files/a50_entityManager.js.html#l1075"><code>a50_entityManager.js:1075</code></a>
         
         </p>
 
@@ -3410,7 +3480,7 @@ var employee = em1.getEntityByKey(&quot;Employee&quot;, 1);
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1073"><code>a50_entityManager.js:1073</code></a>
+        <a href="../files/a50_entityManager.js.html#l1087"><code>a50_entityManager.js:1087</code></a>
         
         </p>
 
@@ -3530,7 +3600,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1236"><code>a50_entityManager.js:1236</code></a>
+        <a href="../files/a50_entityManager.js.html#l1250"><code>a50_entityManager.js:1250</code></a>
         
         </p>
 
@@ -3674,7 +3744,7 @@ if ( em1.hasChanges( [custType, orderType]) {
             
         
         
-        <a href="../files/a50_entityManager.js.html#l276"><code>a50_entityManager.js:276</code></a>
+        <a href="../files/a50_entityManager.js.html#l278"><code>a50_entityManager.js:278</code></a>
         
         </p>
 
@@ -3843,7 +3913,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="../files/a50_entityManager.js.html#l365"><code>a50_entityManager.js:365</code></a>
+        <a href="../files/a50_entityManager.js.html#l372"><code>a50_entityManager.js:372</code></a>
         
         </p>
 
@@ -4002,7 +4072,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="../files/a50_entityManager.js.html#l314"><code>a50_entityManager.js:314</code></a>
+        <a href="../files/a50_entityManager.js.html#l316"><code>a50_entityManager.js:316</code></a>
         
         </p>
 
@@ -4061,7 +4131,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1328"><code>a50_entityManager.js:1328</code></a>
+        <a href="../files/a50_entityManager.js.html#l1342"><code>a50_entityManager.js:1342</code></a>
         
         </p>
 
@@ -4175,7 +4245,7 @@ var entities = em1.rejectChanges();</code></pre>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l815"><code>a50_entityManager.js:815</code></a>
+        <a href="../files/a50_entityManager.js.html#l838"><code>a50_entityManager.js:838</code></a>
         
         </p>
 
@@ -4207,8 +4277,10 @@ specified then there will be no server side call made but a valid &#39;empty&#39
                     
 
                     <div class="param-description">
-                        <p>The list of entities to save.  All entities with changes 
-within this EntityManager will be saved if this parameter is omitted, null or empty.</p>
+                        <p>The list of entities to save.<br>Every entity in that list will be sent to the server, whether changed or unchanged, 
+as long as it is attached to this EntityManager.
+If this parameter is omitted, null or empty (the usual case), 
+every entity with pending changes in this EntityManager will be saved.</p>
 
                     </div>
 
@@ -4657,7 +4729,7 @@ may be set.</p>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l149"><code>a50_entityManager.js:149</code></a>
+        <a href="../files/a50_entityManager.js.html#l148"><code>a50_entityManager.js:148</code></a>
         
         </p>
 
@@ -4703,7 +4775,7 @@ may be set.</p>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l184"><code>a50_entityManager.js:184</code></a>
+        <a href="../files/a50_entityManager.js.html#l183"><code>a50_entityManager.js:183</code></a>
         
         </p>
 
@@ -4749,7 +4821,7 @@ may be set.</p>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l156"><code>a50_entityManager.js:156</code></a>
+        <a href="../files/a50_entityManager.js.html#l155"><code>a50_entityManager.js:155</code></a>
         
         </p>
 
@@ -4795,7 +4867,7 @@ may be set.</p>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l163"><code>a50_entityManager.js:163</code></a>
+        <a href="../files/a50_entityManager.js.html#l162"><code>a50_entityManager.js:162</code></a>
         
         </p>
 
@@ -4841,7 +4913,7 @@ may be set.</p>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l170"><code>a50_entityManager.js:170</code></a>
+        <a href="../files/a50_entityManager.js.html#l169"><code>a50_entityManager.js:169</code></a>
         
         </p>
 
@@ -4887,7 +4959,7 @@ may be set.</p>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l142"><code>a50_entityManager.js:142</code></a>
+        <a href="../files/a50_entityManager.js.html#l141"><code>a50_entityManager.js:141</code></a>
         
         </p>
 
@@ -4933,7 +5005,7 @@ may be set.</p>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l177"><code>a50_entityManager.js:177</code></a>
+        <a href="../files/a50_entityManager.js.html#l176"><code>a50_entityManager.js:176</code></a>
         
         </p>
 
@@ -4989,7 +5061,7 @@ may be set.</p>
             
         
         
-        <a href="../files/a50_entityManager.js.html#l194"><code>a50_entityManager.js:194</code></a>
+        <a href="../files/a50_entityManager.js.html#l193"><code>a50_entityManager.js:193</code></a>
         
         </p>
 
@@ -5105,7 +5177,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="../files/a50_entityManager.js.html#l1272"><code>a50_entityManager.js:1272</code></a>
+        <a href="../files/a50_entityManager.js.html#l1286"><code>a50_entityManager.js:1286</code></a>
         
         </p>
 
@@ -5203,7 +5275,7 @@ em.hasChangesChanged.subscribe(function(args) {
             
         
         
-        <a href="../files/a50_entityManager.js.html#l213"><code>a50_entityManager.js:213</code></a>
+        <a href="../files/a50_entityManager.js.html#l212"><code>a50_entityManager.js:212</code></a>
         
         </p>
 

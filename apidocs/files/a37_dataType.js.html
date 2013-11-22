@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>a40_dataType.js</title>
+    <title>a37_dataType.js</title>
     <link rel="stylesheet" href="http://yui.yahooapis.com/3.5.1/build/cssgrids/cssgrids-min.css">
 <!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
 -->    
@@ -201,7 +201,7 @@
             <div class="apidocs">
                 <div id="docs-main">
                     <div class="content">
-                        <h1 class="file-heading">File: a40_dataType.js</h1>
+                        <h1 class="file-heading">File: a37_dataType.js</h1>
 
 <div class="file">
     <pre class="code prettyprint linenums">
@@ -613,6 +613,24 @@ var DataType = (function () {
     // -----------------------------------------------------------------
 
     DataType.parseDateFromServer = DataType.parseDateAsUTC;
+
+    DataType.parseRawValue = function(val, dataType) {
+        // undefined values will be the default for most unmapped properties EXCEPT when they are set
+        // in a jsonResultsAdapter ( an unusual use case).
+        if (val === undefined) return undefined;
+        if (dataType.isDate &amp;&amp; val) {
+            if (!__isDate(val)) {
+                val = DataType.parseDateFromServer(val);
+            }
+        } else if (dataType === DataType.Binary) {
+            if (val &amp;&amp; val.$value !== undefined) {
+                val = val.$value; // this will be a byte[] encoded as a string
+            }
+        } else if (dataType === DataType.Time) {
+            val = DataType.parseTimeFromServer(val);
+        }
+        return val;
+    }
 
     DataType.constants = constants;
 

@@ -218,9 +218,10 @@ var MergeStrategy = (function() {
     **/
     var MergeStrategy = new Enum(&quot;MergeStrategy&quot;);
     /**
-    PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
-    in a {{#crossLink &quot;EntityState/Modified&quot;}}{{/crossLink}} state. In this case, the existing entity in the 
-    EntityManager is not replaced by the &#x27;merging&#x27; entity.
+    MergeStrategy.PreserveChanges updates the cached entity with the incoming values unless the cached entity is in a changed 
+    state (added, modified, deleted) in which case the incoming values are ignored. The updated cached entity’s EntityState will
+    remain {{#crossLink &quot;EntityState/Unchanged&quot;}}{{/crossLink}} unless you’re importing entities in which case the new EntityState will 
+    be that of the imported entities.
     
     @property PreserveChanges {MergeStrategy}
     @final
@@ -228,15 +229,37 @@ var MergeStrategy = (function() {
     **/
     MergeStrategy.PreserveChanges = MergeStrategy.addSymbol();
     /**
-    OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
-    in a {{#crossLink &quot;EntityState/Modified&quot;}}{{/crossLink}} state. In this case, the existing entity in the 
-    EntityManager is replaced by the &#x27;merging&#x27; entity.
+    MergeStrategy.OverwriteChanges always updates the cached entity with incoming values even if the entity is in
+    a changed state (added, modified, deleted). After the merge, the pending changes are lost. 
+    The new EntityState will be  {{#crossLink &quot;EntityState/Unchanged&quot;}}{{/crossLink}} unless you’re importing entities 
+    in which case the new EntityState will be that of the imported entities.   
     
     @property OverwriteChanges {MergeStrategy}
     @final
     @static
     **/
     MergeStrategy.OverwriteChanges = MergeStrategy.addSymbol();
+
+    /**
+    SkipMerge is used to ignore incoming values. Adds the incoming entity to the cache only if there is no cached entity with the same key. 
+    This is the fastest merge strategy but your existing cached data will remain “stale”.
+  
+    @property SkipMerge {MergeStrategy}
+    @final
+    @static
+    **/
+    MergeStrategy.SkipMerge = MergeStrategy.addSymbol();
+
+    /**
+    Disallowed is used to throw an exception if there is an incoming entity with the same key as an entity already in the cache.  
+    Use this strategy when you want to be sure that the incoming entity is not already in cache. 
+    This is the default strategy for EntityManager.attachEntity.
+  
+    @property Disallowed {MergeStrategy}
+    @final
+    @static
+    **/
+    MergeStrategy.Disallowed = MergeStrategy.addSymbol();
     MergeStrategy.seal();
     return MergeStrategy;
 })();

@@ -712,13 +712,12 @@ var EntityQuery = (function () {
     @method fromEntityNavigation
     @static
     @param entity {Entity} The Entity whose navigation property will be queried.
-    @param navigationProperty {NavigationProperty} The {{#crossLink "NavigationProperty"}}{{/crossLink}} to be queried.
+    @param navigationProperty {NavigationProperty|String} The {{#crossLink "NavigationProperty"}}{{/crossLink}} or name of the NavigationProperty to be queried.
     @return {EntityQuery}
     @chainable
     **/
     ctor.fromEntityNavigation = function (entity, navigationProperty) {
         assertParam(entity, "entity").isEntity().check();
-        assertParam(navigationProperty, "navigationProperty").isInstanceOf(NavigationProperty).check();
         var navProperty = entity.entityType._checkNavProperty(navigationProperty);
         var q = new EntityQuery(navProperty.entityType.defaultResourceName);
         var pred = buildNavigationPredicate(entity, navProperty);

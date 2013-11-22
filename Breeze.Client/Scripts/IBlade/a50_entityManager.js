@@ -1819,7 +1819,7 @@ var EntityManager = (function () {
         promise = promise.then(function (data) {
             if (callback) callback(data);
             return Q.resolve(data);
-        }).fail(function (error) {
+        }, function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
         });
@@ -1986,7 +1986,7 @@ var EntityManager = (function () {
                     return { results: results, query: query, entityManager: em, httpResponse: data.httpResponse, inlineCount: data.inlineCount };
                 });
                 return Q.resolve(result);
-            }).fail(function (e) {
+            }, function (e) {
                 if (e) {
                     e.query = query;
                     e.entityManager = em;

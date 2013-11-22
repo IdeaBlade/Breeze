@@ -331,13 +331,7 @@ var EntityQuery = (function () {
     proto.from = function (resourceName) {
         // TODO: think about allowing entityType as well 
         assertParam(resourceName, &quot;resourceName&quot;).isString().check();
-        var currentName = this.resourceName;
-        if (currentName &amp;&amp; currentName !== resourceName) {
-            throw new Error(&quot;This query already has an resourceName - the resourceName may only be set once per query&quot;);
-        }
-        var eq = this._clone();
-        eq.resourceName = resourceName;
-        return eq;
+        return clone(this, &quot;resourceName&quot;, resourceName);
     };
         
     /**
@@ -373,9 +367,7 @@ var EntityQuery = (function () {
     **/
     proto.toType = function(entityType) {
         assertParam(entityType, &quot;entityType&quot;).isString().or().isInstanceOf(EntityType).check();
-        var eq = this._clone();
-        eq.resultEntityType = entityType;
-        return eq;
+        return clone(this, &quot;resultEntityType&quot;, entityType)
     };
 
         
@@ -432,24 +424,23 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.where = function (predicate) {
-        var eq = this._clone();
+        var wherePredicate;
         if (predicate == null) {
-            eq.wherePredicate = null;
-            return eq;
-        }
-        var pred;
-        if (Predicate.isPredicate(predicate)) {
-            pred = predicate;
+            wherePredicate = null;
         } else {
-            pred = Predicate.create(__arraySlice(arguments));
+            var pred;
+            if (predicate instanceof Predicate) {
+                wherePredicate = predicate;
+            } else {
+                wherePredicate = Predicate.create(__arraySlice(arguments));
+            }
+            if (this.entityType) wherePredicate.validate(this.entityType);
+            if (this.wherePredicate) {
+                wherePredicate = new CompositePredicate(&#x27;and&#x27;, [this.wherePredicate, wherePredicate]);
+            } 
         }
-        if (eq.entityType) pred.validate(eq.entityType);
-        if (eq.wherePredicate) {
-            eq.wherePredicate = new CompositePredicate(&#x27;and&#x27;, [eq.wherePredicate, pred]);
-        } else {
-            eq.wherePredicate = pred;
-        }
-        return eq;
+        return clone(this, &quot;wherePredicate&quot;, wherePredicate);
+
     };
 
     /**
@@ -551,7 +542,8 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.select = function (propertyPaths) {
-        return selectCore(this, propertyPaths);
+        var selectClause = propertyPaths == null ? null : new SelectClause(normalizePropertyPaths(propertyPaths));
+        return clone(this, &quot;selectClause&quot;, selectClause);
     };
 
 
@@ -569,13 +561,7 @@ var EntityQuery = (function () {
     **/
     proto.skip = function (count) {
         assertParam(count, &quot;count&quot;).isOptional().isNumber().check();
-        var eq = this._clone();
-        if (count == null) {
-            eq.skipCount = null;
-        } else {
-            eq.skipCount = count;
-        }
-        return eq;
+        return clone(this, &quot;skipCount&quot;, (count == null) ? null : count);
     };
         
     /**
@@ -608,13 +594,7 @@ var EntityQuery = (function () {
     **/
     proto.take = function (count) {
         assertParam(count, &quot;count&quot;).isOptional().isNumber().check();
-        var eq = this._clone();
-        if (count == null) {
-            eq.takeCount = null;
-        } else {
-            eq.takeCount = count;
-        }
-        return eq;
+        return clone(this, &quot;takeCount&quot;, (count == null) ? null : count);
     };
         
     /**
@@ -641,7 +621,8 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.expand = function (propertyPaths) {
-        return expandCore(this, propertyPaths);
+        var expandClause = propertyPaths == null ? null : new ExpandClause(normalizePropertyPaths(propertyPaths));
+        return clone(this, &quot;expandClause&quot;, expandClause);
     };
 
     /**
@@ -668,7 +649,7 @@ var EntityQuery = (function () {
     **/
     proto.withParameters = function(parameters) {
         assertParam(parameters, &quot;parameters&quot;).isObject().check();
-        return withParametersCore(this, parameters);
+        return clone(this, &quot;parameters&quot;, parameters);
     };
 
     /**
@@ -688,11 +669,32 @@ var EntityQuery = (function () {
     @return {EntityQuery}
     @chainable
     **/
-    proto.inlineCount = function(enabled) {
-        if (enabled === undefined) enabled = true;
-        var eq = this._clone();
-        eq.inlineCountEnabled = enabled;
-        return eq;
+    proto.inlineCount = function (enabled) {
+        assertParam(enabled, &quot;enabled&quot;).isBoolean().isOptional().check();
+        enabled = (enabled === undefined) ? true : !!enabled;
+        return clone(this, &quot;inlineCountEnabled&quot;, enabled);
+    };
+
+    /**
+    Returns a query with the &#x27;noTracking&#x27; capability either enabled or disabled.  With &#x27;noTracking&#x27; enabled, the results of this query
+    will not be coerced into entities but will instead look like raw javascript projections. i.e. simple javascript objects.
+
+    @example
+        var query = new EntityQuery(&quot;Customers&quot;)
+            .take(20)
+            .orderBy(&quot;CompanyName&quot;)
+            .noTracking(true);
+   
+
+    @method inlineCount
+    @param enabled {Boolean=true} Whether or not the noTracking capability should be enabled. If this parameter is omitted, true is assumed. 
+    @return {EntityQuery}
+    @chainable
+    **/
+    proto.noTracking = function (enabled) {
+        assertParam(enabled, &quot;enabled&quot;).isBoolean().isOptional().check();
+        enabled = (enabled === undefined) ? true : !!enabled;
+        return clone(this, &quot;noTrackingEnabled&quot;, enabled);
     };
     
     /**
@@ -722,7 +724,7 @@ var EntityQuery = (function () {
     **/
     proto.using = function (obj) {
         if (!obj) return this;
-        var eq = this._clone();
+        var eq = clone(this);
         processUsing(eq, {
             entityManager: null,
             dataService: null,
@@ -917,13 +919,12 @@ var EntityQuery = (function () {
     @method fromEntityNavigation
     @static
     @param entity {Entity} The Entity whose navigation property will be queried.
-    @param navigationProperty {NavigationProperty} The {{#crossLink &quot;NavigationProperty&quot;}}{{/crossLink}} to be queried.
+    @param navigationProperty {NavigationProperty|String} The {{#crossLink &quot;NavigationProperty&quot;}}{{/crossLink}} or name of the NavigationProperty to be queried.
     @return {EntityQuery}
     @chainable
     **/
     ctor.fromEntityNavigation = function (entity, navigationProperty) {
         assertParam(entity, &quot;entity&quot;).isEntity().check();
-        assertParam(navigationProperty, &quot;navigationProperty&quot;).isInstanceOf(NavigationProperty).check();
         var navProperty = entity.entityType._checkNavProperty(navigationProperty);
         var q = new EntityQuery(navProperty.entityType.defaultResourceName);
         var pred = buildNavigationPredicate(entity, navProperty);
@@ -993,31 +994,37 @@ var EntityQuery = (function () {
             // resolve it, if possible, via the resourceName
             // do not cache this value in this case
             // cannot determine the resultEntityType if a selectClause is present.
-            
             return skipFromCheck ? null : (!this.selectClause) &amp;&amp; this._getFromEntityType(metadataStore, false);
         }
     };
 
-    proto._clone = function () {
-        var copy = new EntityQuery();
-        copy.resourceName = this.resourceName;
-        copy.entityType = this.entityType;
-        copy.wherePredicate = this.wherePredicate;
-        copy.orderByClause = this.orderByClause;
-        copy.selectClause = this.selectClause;
-        copy.skipCount = this.skipCount;
-        copy.takeCount = this.takeCount;
-        copy.expandClause = this.expandClause;
-        copy.inlineCountEnabled = this.inlineCountEnabled;
-        copy.parameters = __extend({}, this.parameters);
-        // default is to get queryOptions from the entityManager.
-        copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
-        copy.entityManager = this.entityManager;
-        copy.dataService = this.dataService;
-        copy.resultEntityType = this.resultEntityType;
-
+    function clone(that, propName, value) {
+        // immutable queries mean that we don&#x27;t need to clone if no change in value.
+        if (propName) {
+            if (that[propName] === value) return that;
+        }
+        // copying QueryOptions is safe because they are are immutable; 
+        copy = __extend(new EntityQuery(), that, [
+            &quot;resourceName&quot;,
+            &quot;entityType&quot;,
+            &quot;wherePredicate&quot;,
+            &quot;orderByClause&quot;,
+            &quot;selectClause&quot;,
+            &quot;skipCount&quot;,
+            &quot;takeCount&quot;,
+            &quot;expandClause&quot;,
+            &quot;inlineCountEnabled&quot;,
+            &quot;queryOptions&quot;, 
+            &quot;entityManager&quot;,
+            &quot;dataService&quot;,
+            &quot;resultEntityType&quot;
+        ]);
+        copy.parameters = __extend({}, that.parameters);
+        if (propName) {
+            copy[propName] = value;
+        }
         return copy;
-    };
+    }
 
     proto._toUri = function (metadataStore) {
         // force entityType validation;
@@ -1048,7 +1055,8 @@ var EntityQuery = (function () {
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
-            return clause.toOdataFragment(entityType);
+            Predicate._next = 0;
+            return clause.toODataFragment(entityType);
         }
             
         function toInlineCountString() {
@@ -1062,7 +1070,7 @@ var EntityQuery = (function () {
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
-            return clause.toOdataFragment(entityType);
+            return clause.toODataFragment(entityType);
         }
             
             function toSelectString() {
@@ -1071,13 +1079,13 @@ var EntityQuery = (function () {
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
-            return clause.toOdataFragment(entityType);
+            return clause.toODataFragment(entityType);
         }
             
         function toExpandString() {
             var clause = eq.expandClause;
             if (!clause) return;
-            return clause.toOdataFragment(entityType);
+            return clause.toODataFragment(entityType);
         }
 
         function toSkipString() {
@@ -1160,52 +1168,20 @@ var EntityQuery = (function () {
     // isDesc parameter trumps isDesc in propertyName.
 
     function orderByCore(that, propertyPaths, isDesc) {
-        var newClause;
-        var eq = that._clone();
-        if (propertyPaths==null) {
-            eq.orderByClause = null;
-            return eq;
-        }
-
-        propertyPaths = normalizePropertyPaths(propertyPaths);
-        newClause = OrderByClause.create(propertyPaths, isDesc);
-
-        if (eq.orderByClause) {
-            eq.orderByClause.addClause(newClause);
+        var orderByClause;
+        if (propertyPaths == null) {
+            orderByClause = null;
         } else {
-            eq.orderByClause = newClause;
+            propertyPaths = normalizePropertyPaths(propertyPaths);
+            orderByClause = OrderByClause.create(propertyPaths, isDesc);
+            if (that.orderByClause) {
+                orderByClause = that.orderByClause.addClause(orderByClause);
+            }
         }
-        return eq;
+        return clone(that, &quot;orderByClause&quot;, orderByClause);
     }
+                
         
-    function selectCore(that, propertyPaths) {
-        var eq = that._clone();
-        if (propertyPaths==null) {
-            eq.selectClause = null;
-            return eq;
-        }
-        propertyPaths = normalizePropertyPaths(propertyPaths);
-        eq.selectClause = new SelectClause(propertyPaths);
-        return eq;
-    }
-        
-    function expandCore(that, propertyPaths) {
-        var eq = that._clone();
-        if (propertyPaths==null) {
-            eq.expandClause = null;
-            return eq;
-        }
-        propertyPaths = normalizePropertyPaths(propertyPaths);
-        eq.expandClause = new ExpandClause(propertyPaths);
-        return eq;
-    }
-        
-    function withParametersCore(that, parameters) {
-        var eq = that._clone();
-        eq.parameters = parameters;
-        return eq;
-    }
-
     function buildKeyPredicate(entityKey) {
         var keyProps = entityKey.entityType.keyProperties;
         var preds = __arrayZip(keyProps, entityKey.values, function (kp, v) {
@@ -1379,11 +1355,11 @@ var FnNode = (function() {
         }
     };
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         this._validate(entityType);
         if (this.fnName) {
             var args = this.fnNodes.map(function(fnNode) {
-                return fnNode.toOdataFragment(entityType);
+                return fnNode.toODataFragment(entityType);
             });                
             var uri = this.fnName + &quot;(&quot; + args.join(&quot;,&quot;) + &quot;)&quot;;
             return uri;
@@ -1512,6 +1488,22 @@ var FilterQueryOp = (function () {
     **/
     aEnum.EndsWith = aEnum.addSymbol({ operator: &quot;endswith&quot;, isFunction: true, isStringFn: true });
 
+    /**
+    Aliases: &quot;some&quot;
+    @property Any {FilterQueryOp}
+    @final
+    @static
+    **/
+    aEnum.Any = aEnum.addSymbol({ operator: &quot;any&quot;, isAnyAll: true, aliases: [&quot;some&quot;] });
+
+    /**
+    Aliases: &quot;every&quot;
+    @property All {FilterQueryOp}
+    @final
+    @static
+    **/
+    aEnum.All = aEnum.addSymbol({ operator: &quot;all&quot;, isAnyAll: true, aliases: [&quot;every&quot;] });
+
     aEnum.IsTypeOf = aEnum.addSymbol({ operator: &quot;isof&quot;, isFunction: true, aliases: [&quot;isTypeOf&quot;] });
     
     aEnum.seal();
@@ -1594,29 +1586,30 @@ var Predicate = (function () {
                 to one of the breeze.DataType enumeration instances.
     
     **/
-    var ctor = function (propertyOrExpr, operator, value ) {
+    var ctor = function (propertyOrExpr, operator, value) {
+        // params above are just for doc purposes 
         if (arguments[0].prototype === true) {
             // used to construct prototype
             return this;
         }
-        return new SimplePredicate(propertyOrExpr, operator, value);
+        return new SimplePredicate(__arraySlice(arguments));
     };
     var proto = ctor.prototype;
 
-    /**  
-    Returns whether an object is a Predicate
-    @example
-        var p1 = new Predicate(&quot;CompanyName&quot;, &quot;StartsWith&quot;, &quot;B&quot;);
-        if (Predicate.isPredicate(p1)) {
-            // do something
-        }
-    @method isPredicate
-    @param o {Object}
-    @static
-    **/
-    ctor.isPredicate = function (o) {
-        return o instanceof Predicate;
-    };
+    ///**  
+    //Returns whether an object is a Predicate
+    //@example
+    //    var p1 = new Predicate(&quot;CompanyName&quot;, &quot;StartsWith&quot;, &quot;B&quot;);
+    //    if (Predicate.isPredicate(p1)) {
+    //        // do something
+    //    }
+    //@method isPredicate
+    //@param o {Object}
+    //@static
+    //**/
+    //ctor.isPredicate = function (o) {
+    //    return o instanceof Predicate;
+    //};
 
     /**  
     Creates a new &#x27;simple&#x27; Predicate.  Note that this method can also take its parameters as an array.
@@ -1640,12 +1633,9 @@ var Predicate = (function () {
                 to one of the breeze.DataType enumeration instances.
     
     **/
-    ctor.create = function (property, operator, value ) {
-        if (Array.isArray(property)) {
-            return new SimplePredicate(property[0], property[1], property[2]);
-        } else {
-            return new SimplePredicate(property, operator, value);
-        }
+    ctor.create = function (property, operator, value) {
+        var args = Array.isArray(property) &amp;&amp; arguments.length === 1 ? property : __arraySlice(arguments);
+        return new SimplePredicate(args);
     };
 
     /**  
@@ -1816,7 +1806,7 @@ var Predicate = (function () {
             args = argsx[0];
         } else {
             var args = __arraySlice(argsx);
-            if (!Predicate.isPredicate(args[0])) {
+            if (! (args[0] instanceof Predicate)) {
                 args = [Predicate.create(args)];
             }
         }
@@ -1833,29 +1823,40 @@ var Predicate = (function () {
 // Does not need to be exposed.
 var SimplePredicate = (function () {
 
-    var ctor = function(propertyOrExpr, operator, value) {
-        assertParam(propertyOrExpr, &quot;propertyOrExpr&quot;).isString().isOptional().check();
-        if (arguments.length == 3 &amp;&amp; operator != null) {
-            assertParam(operator, &quot;operator&quot;).isEnumOf(FilterQueryOp).or().isString().check();
-            assertParam(value, &quot;value&quot;).isRequired(true).check();
-        } else {
-            this._odataExpr = propertyOrExpr;
+    var ctor = function (args) {
+    
+        if (args.length === 1) {
+            this._odataExpr = args[0];
             return;
         }
+    
+        var propertyOrExpr = args[0];
+        assertParam(propertyOrExpr, &quot;propertyOrExpr&quot;).isString().isOptional().check();
         
-        this._filterQueryOp = FilterQueryOp.from(operator);
-        if (!this._filterQueryOp) {
+        var operator = args[1];
+        assertParam(operator, &quot;operator&quot;).isEnumOf(FilterQueryOp).or().isString().check();
+        var filterQueryOp = FilterQueryOp.from(operator);
+        if (!filterQueryOp) {
             throw new Error(&quot;Unknown query operation: &quot; + operator);
         }
+        this._filterQueryOp = filterQueryOp;
+
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
-            // this._fnNode1 = FnNode.create(propertyOrExpr, null, this._filterQueryOp);
         } else {
-            if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
+            if (filterQueryOp !== FilterQueryOp.IsTypeOf) {
                 throw new Error(&quot;propertyOrExpr cannot be null except when using the &#x27;IsTypeOf&#x27; operator&quot;);
             }
         }
 
+        var value = args[2];
+        if (filterQueryOp &amp;&amp; filterQueryOp.isAnyAll) {
+            this._value = (value instanceof Predicate) ? value : new SimplePredicate(args.slice(2));
+            this._isLiteral = undefined;
+            return;
+        } 
+        assertParam(value, &quot;value&quot;).isRequired(true).check();
+        
         // _datatype is just a guess here - it will only be used if we aren&#x27;t certain from the rest of the expression.
         if ((value != null) &amp;&amp; (typeof (value) === &quot;object&quot;) &amp;&amp; value.value !== undefined) {
             this._dataType = value.dataType || DataType.fromValue(value.value);
@@ -1870,37 +1871,50 @@ var SimplePredicate = (function () {
         
     var proto = new Predicate({ prototype: true });
     ctor.prototype = proto;
-        
+    
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType, prefix) {
         if (this._odataExpr) {
             return this._odataExpr;
         }
-        if (this._filterQueryOp == FilterQueryOp.IsTypeOf) {
-            var oftype = entityType.metadataStore.getEntityType(this._value);
+        var filterQueryOp = this._filterQueryOp;
+        var value = this._value;
+        if (filterQueryOp == FilterQueryOp.IsTypeOf) {
+            var oftype = entityType.metadataStore.getEntityType(value);
             var typeName = oftype.namespace + &#x27;.&#x27; + oftype.shortName;
-            return this._filterQueryOp.operator + &quot;(&quot; + DataType.String.fmtOData(typeName) + &quot;)&quot;;
+            return filterQueryOp.operator + &quot;(&quot; + DataType.String.fmtOData(typeName) + &quot;)&quot;;
         }
 
         this.validate(entityType);
 
-        var v1Expr = this._fnNode1 &amp;&amp; this._fnNode1.toOdataFragment(entityType);
-        var v2Expr;
-        if (this._fnNode2) {
-            v2Expr = this._fnNode2.toOdataFragment(entityType);
+        var v1Expr = this._fnNode1 &amp;&amp; this._fnNode1.toODataFragment(entityType);
+        if (prefix) {
+            v1Expr = prefix + &quot;/&quot; + v1Expr;
+        } 
+
+        Predicate._next += 1;
+        prefix = &quot;x&quot; + Predicate._next;
+
+        if (filterQueryOp.isAnyAll) {
+            return v1Expr + &quot;/&quot; + filterQueryOp.operator + &quot;(&quot; + prefix + &quot;: &quot; + value.toODataFragment(this.dataType, prefix) + &quot;)&quot;;
         } else {
-            var dataType = this._fnNode1.dataType || this._dataType;
-            v2Expr = dataType.fmtOData(this._value);
-        }
-        if (this._filterQueryOp.isFunction) {
-            if (this._filterQueryOp == FilterQueryOp.Contains) {
-                return this._filterQueryOp.operator + &quot;(&quot; + v2Expr + &quot;,&quot; + v1Expr + &quot;) eq true&quot;;
+            var v2Expr;
+            if (this._fnNode2) {
+                v2Expr = this._fnNode2.toODataFragment(entityType);
             } else {
-                return this._filterQueryOp.operator + &quot;(&quot; + v1Expr + &quot;,&quot; + v2Expr + &quot;) eq true&quot;;
+                var dataType = this._fnNode1.dataType || this._dataType;
+                v2Expr = dataType.fmtOData(value);
             }
-                
-        } else {
-            return v1Expr + &quot; &quot; + this._filterQueryOp.operator + &quot; &quot; + v2Expr;
+            if (filterQueryOp.isFunction) {
+                if (filterQueryOp == FilterQueryOp.Contains) {
+                    return filterQueryOp.operator + &quot;(&quot; + v2Expr + &quot;,&quot; + v1Expr + &quot;) eq true&quot;;
+                } else {
+                    return filterQueryOp.operator + &quot;(&quot; + v1Expr + &quot;,&quot; + v2Expr + &quot;) eq true&quot;;
+                }
+
+            } else {
+                return v1Expr + &quot; &quot; + filterQueryOp.operator + &quot; &quot; + v2Expr;
+            }
         }
     };
 
@@ -1922,10 +1936,17 @@ var SimplePredicate = (function () {
                 return predFn(v1Fn(entity), v2Fn(entity));
             };
         } else {
-            var val = this._value;
-            return function (entity) {
-                return predFn(v1Fn(entity), val);
-            };
+            if (this._filterQueryOp &amp;&amp; this._filterQueryOp.isAnyAll) {
+                var fn2 = this._value.toFunction(dataType);
+                return function (entity) {
+                    return predFn(v1Fn(entity), fn2);
+                };
+            } else {
+                var val = this._value;
+                return function (entity) {
+                    return predFn(v1Fn(entity), val);
+                };
+            }
         }
             
     };
@@ -1935,13 +1956,19 @@ var SimplePredicate = (function () {
     };
 
     proto.validate = function (entityType) {
+        var filterQueryOp = this._filterQueryOp;
         if (this._fnNode1 === undefined &amp;&amp; this._propertyOrExpr) {
-            this._fnNode1 = FnNode.create(this._propertyOrExpr, entityType, this._filterQueryOp);
+            this._fnNode1 = FnNode.create(this._propertyOrExpr, entityType, filterQueryOp);
             this.dataType = this._fnNode1.dataType;
         }
 
+        if (filterQueryOp &amp;&amp; filterQueryOp.isAnyAll) {
+            this._value.validate(this.dataType);
+            return;
+        }
+
         if (this._fnNode2 === undefined &amp;&amp; !this._isLiteral) {
-            this._fnNode2 = FnNode.create(this._value, entityType);
+           this._fnNode2 = FnNode.create(this._value, entityType);
         }
 
     };
@@ -1994,6 +2021,12 @@ var SimplePredicate = (function () {
                 break;
             case FilterQueryOp.Contains:
                 predFn = function (v1, v2) { return stringContains(v1, v2, lqco); };
+                break;
+            case FilterQueryOp.Any: 
+                predFn = function (v1, v2) { return v1.some(function(v) { return v2(v); }); };
+                break;
+            case FilterQueryOp.All: 
+                predFn = function (v1, v2) { return v1.every(function(v) { return v2(v); }); };
                 break;
             default:
                 throw new Error(&quot;Unknown FilterQueryOp: &quot; + filterQueryOp);
@@ -2069,12 +2102,12 @@ var CompositePredicate = (function () {
     var proto  = new Predicate({ prototype: true });
     ctor.prototype = proto;
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType, prefix) {
         if (this._predicates.length == 1) {
-            return this._booleanQueryOp.operator + &quot; &quot; + &quot;(&quot; + this._predicates[0].toOdataFragment(entityType) + &quot;)&quot;;
+            return this._booleanQueryOp.operator + &quot; &quot; + &quot;(&quot; + this._predicates[0].toODataFragment(entityType, prefix) + &quot;)&quot;;
         } else {
             var result = this._predicates.map(function (p) {
-                return &quot;(&quot; + p.toOdataFragment(entityType) + &quot;)&quot;;
+                return &quot;(&quot; + p.toODataFragment(entityType, prefix) + &quot;)&quot;;
             }).join(&quot; &quot; + this._booleanQueryOp.operator + &quot; &quot;);
             return result;
         }
@@ -2260,7 +2293,7 @@ var SimpleOrderByClause = (function () {
         this.lastProperty = entityType.getProperty(this.propertyPath, true);
     };
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         return entityType._clientPropertyPathToServer(this.propertyPath) + (this.isDesc ? &quot; desc&quot; : &quot;&quot;);
     };
 
@@ -2330,9 +2363,9 @@ var CompositeOrderByClause = (function () {
         });
     };
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         var strings = this._orderByClauses.map(function (obc) {
-            return obc.toOdataFragment(entityType);
+            return obc.toODataFragment(entityType);
         });
         // should return something like CompanyName,Address/City desc
         return strings.join(&#x27;,&#x27;);
@@ -2376,7 +2409,7 @@ var SelectClause = (function () {
         });
     };
 
-    proto.toOdataFragment = function(entityType) {
+    proto.toODataFragment = function(entityType) {
         var frag = this.propertyPaths.map(function (pp) {
                 return entityType._clientPropertyPathToServer(pp);
             }).join(&quot;,&quot;);
@@ -2412,7 +2445,7 @@ var ExpandClause = (function () {
 //            
 //        };
 
-    proto.toOdataFragment = function(entityType) {
+    proto.toODataFragment = function(entityType) {
         var frag = this.propertyPaths.map(function(pp) {
             return entityType._clientPropertyPathToServer(pp);
         }).join(&quot;,&quot;);

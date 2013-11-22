@@ -256,6 +256,15 @@
                     <ul class="index-list properties">
                         
                             <li class="index-item property">
+                                <a href="#property_Disallowed">Disallowed</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
                                 <a href="#property_OverwriteChanges">OverwriteChanges</a>
 
                                 
@@ -266,6 +275,15 @@
                         
                             <li class="index-item property">
                                 <a href="#property_PreserveChanges">PreserveChanges</a>
+
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item property">
+                                <a href="#property_SkipMerge">SkipMerge</a>
 
                                 
                                     <span class="flag static">static</span>
@@ -287,6 +305,56 @@
         
             <div id="properties" class="api-class-tabpanel">
                 <h2 class="off-left">Properties</h2>
+
+                
+                    <div id="property_Disallowed" class="property item">
+    <h3 class="name"><code>Disallowed</code></h3>
+    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
+
+    
+
+    
+
+    
+        <span class="flag final">final</span>
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="../files/a45_queryOptions.js.html#l46"><code>a45_queryOptions.js:46</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>Disallowed is used to throw an exception if there is an incoming entity with the same key as an entity already in the cache.<br>Use this strategy when you want to be sure that the incoming entity is not already in cache. 
+This is the default strategy for EntityManager.attachEntity.</p>
+
+    </div>
+
+    
+
+    
+
+    
+</div>
 
                 
                     <div id="property_OverwriteChanges" class="property item">
@@ -316,7 +384,7 @@
             
         
         
-        <a href="../files/a45_queryOptions.js.html#l23"><code>a45_queryOptions.js:23</code></a>
+        <a href="../files/a45_queryOptions.js.html#l24"><code>a45_queryOptions.js:24</code></a>
         
         </p>
 
@@ -326,9 +394,10 @@
     </div>
 
     <div class="description">
-        <p>OverwriteChanges is used to allow merging to occur even if the existing entity in an entityManager is already
-in a EntityState/Modified state. In this case, the existing entity in the 
-EntityManager is replaced by the &#39;merging&#39; entity.</p>
+        <p>MergeStrategy.OverwriteChanges always updates the cached entity with incoming values even if the entity is in
+a changed state (added, modified, deleted). After the merge, the pending changes are lost. 
+The new EntityState will be  EntityState/Unchanged unless you’re importing entities 
+in which case the new EntityState will be that of the imported entities.</p>
 
     </div>
 
@@ -377,9 +446,60 @@ EntityManager is replaced by the &#39;merging&#39; entity.</p>
     </div>
 
     <div class="description">
-        <p>PreserveChanges is used to stop merging from occuring if the existing entity in an entityManager is already
-in a EntityState/Modified state. In this case, the existing entity in the 
-EntityManager is not replaced by the &#39;merging&#39; entity.</p>
+        <p>MergeStrategy.PreserveChanges updates the cached entity with the incoming values unless the cached entity is in a changed 
+state (added, modified, deleted) in which case the incoming values are ignored. The updated cached entity’s EntityState will
+remain EntityState/Unchanged unless you’re importing entities in which case the new EntityState will 
+be that of the imported entities.</p>
+
+    </div>
+
+    
+
+    
+
+    
+</div>
+
+                
+                    <div id="property_SkipMerge" class="property item">
+    <h3 class="name"><code>SkipMerge</code></h3>
+    <span class="type"><a href="..\classes\MergeStrategy.html" class="crosslink">MergeStrategy</a></span>
+
+    
+
+    
+
+    
+        <span class="flag final">final</span>
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    <div class="meta">
+        
+            
+                
+                <p>
+                
+                Defined in
+                
+            
+        
+        
+        <a href="../files/a45_queryOptions.js.html#l36"><code>a45_queryOptions.js:36</code></a>
+        
+        </p>
+
+        
+
+        
+    </div>
+
+    <div class="description">
+        <p>SkipMerge is used to ignore incoming values. Adds the incoming entity to the cache only if there is no cached entity with the same key. 
+This is the fastest merge strategy but your existing cached data will remain “stale”.</p>
 
     </div>
 
