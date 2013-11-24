@@ -20,6 +20,7 @@
     var FetchStrategy = breeze.FetchStrategy;
     var MergeStrategy = breeze.MergeStrategy;
 
+
     if (testFns.DEBUG_MONGO) return;
 
     module("queryNonEF", {
@@ -53,7 +54,7 @@
         try {
             ms.addEntityType({
                 shortName: "Person",
-                namespace: "Sample_WebApi2.Models",
+                namespace: testFns.sampleNamespace,
                 dataProperties: {
                     personId: { dataType: DataType.Int32, isNullable: false },
                     firstName: { dataType: DataType.String, isNullable: false },
@@ -72,7 +73,7 @@
         try {
             ms.addEntityType({
                 shortName: "Foo",
-                namespace: "Sample_WebApi2.Models",
+                namespace: testFns.sampleNamespace,
                 isComplexType: true,
                 dataProperties: {
                     firstName: { dataType: DataType.String, isNullable: false },
@@ -149,7 +150,7 @@
     function initializeMetadataStore(metadataStore) {
         metadataStore.addEntityType({
             shortName: "Person",
-            namespace: "Sample_WebApi2.Models",
+            namespace: testFns.sampleNamespace,
             dataProperties: {
                 personId: { dataType: DataType.Int32, isNullable: false, isPartOfKey: true },
                 firstName: { dataType: DataType.String, isNullable: false },
@@ -163,7 +164,7 @@
 
         metadataStore.addEntityType({
             shortName: "Meal",
-            namespace: "Sample_WebApi2.Models",
+            namespace: testFns.sampleNamespace,
             dataProperties: {
                 mealId: { dataType: DataType.Int32, isNullable: false, isPartOfKey: true },
                 personId: { dataType: DataType.Int32, isNullable: false },
@@ -177,7 +178,7 @@
 
         var et = new EntityType({
             shortName: "Dish",
-            namespace: "Sample_WebApi2.Models",
+            namespace: testFns.sampleNamespace,
             dataProperties: {
                 dishId: { dataType: DataType.Int32, isNullable: false, isPartOfKey: true },
                 foodName: { dataType: DataType.String, isNullable: false },
@@ -191,7 +192,7 @@
 
         et = new EntityType({
             shortName: "Food",
-            namespace: "Sample_WebApi2.Models",
+            namespace: testFns.sampleNamespace,
             dataProperties: {
                 foodName: { dataType: DataType.String, isNullable: false, isPartOfKey: true },
                 calories: { dataType: DataType.Int32, isNullable: false }
@@ -203,7 +204,7 @@
     function initializeMetadataStore_long(metadataStore) {
         var et = new EntityType({
             shortName: "Person",
-            namespace: "Sample_WebApi2.Models"
+            namespace: testFns.sampleNamespace
         });
         et.addProperty( new DataProperty({
             name: "personId",
@@ -236,7 +237,7 @@
         
         et = new EntityType({
             shortName: "Meal",
-            namespace: "Sample_WebApi2.Models"
+            namespace: testFns.sampleNamespace
         });
         et.addProperty(new DataProperty({
             name: "mealId",
@@ -271,7 +272,7 @@
         
         et = new EntityType({
             shortName: "Dish",
-            namespace: "Sample_WebApi2.Models"
+            namespace: testFns.sampleNamespace
         });
         et.addProperty(new DataProperty({
             name: "dishId",
@@ -300,7 +301,7 @@
 
         et = new EntityType({
             shortName: "Food",
-            namespace: "Sample_WebApi2.Models"
+            namespace: testFns.sampleNamespace
         });
         et.addProperty(new DataProperty({
             name: "foodName",
@@ -319,7 +320,7 @@
     //function initializeMetadataStore_import(metadataStore, serviceName) {
     //    var entityTypes = [ {
     //        shortName: "Person",
-    //        namespace: "Sample_WebApi2.Models",
+    //        namespace: testFns.sampleNamespace,
     //        dataProperties: [{
     //                name: "personId",
     //                dataType: DataType.Int32,
@@ -346,7 +347,7 @@
     //        }]
     //    }, {
     //        shortName: "Meal",
-    //        namespace: "Sample_WebApi2.Models",
+    //        namespace: testFns.sampleNamespace,
     //        dataProperties: [{
     //                name: "mealId",
     //                dataType: DataType.Int32,
@@ -375,7 +376,7 @@
     //            }]
     //    }, {
     //        shortName: "Dish",
-    //        namespace: "Sample_WebApi2.Models",
+    //        namespace: testFns.sampleNamespace,
     //        dataProperties: [{
     //                name: "dishId",
     //                dataType: DataType.Int32,
@@ -399,7 +400,7 @@
     //        }]
     //    }, {
     //        shortName: "Food",
-    //        namespace: "Sample_WebApi2.Models",
+    //        namespace: testFns.sampleNamespace,
     //        dataProperties: [{
     //                name: "foodName",
     //                dataType: DataType.String,

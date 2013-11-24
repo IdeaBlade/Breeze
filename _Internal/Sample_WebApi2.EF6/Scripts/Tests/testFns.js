@@ -51,6 +51,10 @@ breezeTestFns = (function (breeze) {
     function updateTitle() {
         testFns.title = "dataService: " + (testFns.dataService || "--NONE SPECIFIED --") + ", modelLibrary: " + testFns.modelLibrary;
     }
+
+    testFns.setSampleNamespace = function (value) {
+        testFns.sampleNamespace = value;
+    };
     
     testFns.setDataService = function (value) {
 

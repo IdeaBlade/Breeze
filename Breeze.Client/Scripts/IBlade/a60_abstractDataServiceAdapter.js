@@ -192,8 +192,7 @@
             if (entityErrors && httpResponse.saveContext) {
                 processEntityErrors(err, entityErrors, httpResponse.saveContext);
             } else {
-                errObj = errObj.InnerException || errObj;
-                err.message = errObj.ExceptionMessage || errObj.Message || errObj.toString();
+                err.message = extractInnerMessage(errObj)
             }
         } else {
             err.message = httpResponse.error && httpResponse.error.toString();
@@ -201,6 +200,13 @@
         
         return err;
     };
+
+    function extractInnerMessage(errObj) {
+        while (errObj.InnerException) {
+            errObj = errObj.InnerException;
+        }
+        return errObj.ExceptionMessage || errObj.Message || errObj.toString();
+    }
 
     function processEntityErrors(err, entityErrors, saveContext) {
         err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";
