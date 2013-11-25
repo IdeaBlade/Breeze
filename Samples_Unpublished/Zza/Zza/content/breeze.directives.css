@@ -47,6 +47,7 @@ select ~ .icon-asterisk-invalid {
 input:invalid,
 select:invalid {
     border: red solid 1px !important;
+    border-left: 5px solid red !important;
 }
 
     input:invalid + .invalid,
