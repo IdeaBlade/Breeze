@@ -63,12 +63,12 @@ namespace Breeze.ContextProvider.NH
         /// <param name="queryable"></param>
         /// <param name="expandsQueryString"></param>
         /// <returns></returns>
-        public override IQueryable ApplyExpand(IQueryable queryable, string expandsQueryString)
-        {
-            if (string.IsNullOrWhiteSpace(expandsQueryString)) return queryable;
+        public override IQueryable ApplyExpand(IQueryable queryable, ODataQueryOptions queryOptions) {
+            var expandQueryString = queryOptions.RawValues.Expand;
+            if (string.IsNullOrWhiteSpace(expandQueryString)) return queryable;
             var session = GetSession(queryable);
             var fetcher = new NHEagerFetch(session.SessionFactory);
-            queryable = fetcher.ApplyExpansions(queryable, expandsQueryString, expandMap);
+            queryable = fetcher.ApplyExpansions(queryable, expandQueryString, expandMap);
 
             return queryable;
         }

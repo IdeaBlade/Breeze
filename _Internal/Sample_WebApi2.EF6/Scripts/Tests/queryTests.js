@@ -26,6 +26,20 @@
         }
     });
 
+    test("one to one", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+           .from("Orders")
+           .where("internationalOrder", "==", null);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(false, "shouldn't get here");
+        }).fail(function (e) {
+            ok(true, "should get here");
+        }).fin(start);
+
+    });
+
     test("query with bad criteria", function () {
         var manager = newEm();
         var query = new breeze.EntityQuery()
@@ -299,8 +313,8 @@
             .inlineCount();
         stop();
         manager.executeQuery(query).then(function (data) {
-            ok(data.results.length > 0, "should be no records returned");
-            ok(data.inlineCount > 0, "should have an inlinecount");
+            ok(data.results.length == data.inlineCount, "inlineCount should match return count");
+            
         }).fail(testFns.handleFail).fin(start);
     });
 
@@ -313,10 +327,26 @@
             .inlineCount();
         stop();
         manager.executeQuery(query).then(function (data) {
-            ok(data.results.length > 0, "should be no records returned");
-            ok(data.inlineCount > 0, "should have an inlinecount");
+            ok(data.results.length == 5, "should be 5 records returned");
+            ok(data.inlineCount > 5, "should have an inlinecount > 5");
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("select with inlinecount and take and orderBy", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers")
+            .select("companyName, region, city")
+            .orderBy("city, region")
+            .take(5)
+            .inlineCount();
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length == 5, "should be 5 records returned");
+            ok(data.inlineCount > 5, "should have an inlinecount > 5");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
 
     test("check getEntityByKey", function () {
         var manager = newEm();

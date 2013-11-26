@@ -37,42 +37,7 @@ namespace Breeze.WebApi2 {
       return settings;
     }
 
-    /// <summary>returns a copy of queryOptions with $orderby, $top, and $skip removed.</summary>
-    public static ODataQueryOptions RemoveExtendedOps(ODataQueryOptions queryOptions) {
-      var request = queryOptions.Request;
-      var oldUri = request.RequestUri;
-
-      var map = oldUri.ParseQueryString();
-      var newQuery = map.Keys.Cast<String>()
-                        .Where(k => (k.Trim().Length > 0) && (k != "$orderby") && (k != "$top") && (k != "$skip"))
-                        .Select(k => k + "=" + map[k])
-                        .ToAggregateString("&");
-
-      var newUrl = oldUri.Scheme + "://" + oldUri.Authority + oldUri.AbsolutePath + "?" + newQuery;
-      var newUri = new Uri(newUrl);
-
-      var newRequest = new HttpRequestMessage(request.Method, newUri);
-      var newQo = new ODataQueryOptions(queryOptions.Context, newRequest);
-      return newQo;
-    }
-
-    public static ODataQueryOptions RemoveSelectAndExpand(ODataQueryOptions queryOptions) {
-      var request = queryOptions.Request;
-      var oldUri = request.RequestUri;
-
-      var map = oldUri.ParseQueryString();
-      var newQuery = map.Keys.Cast<String>()
-                        .Where(k => (k.Trim().Length > 0) && (k != "$select") && (k != "$expand"))
-                        .Select(k => k + "=" + map[k])
-                        .ToAggregateString("&");
-
-      var newUrl = oldUri.Scheme + "://" + oldUri.Authority + oldUri.AbsolutePath + "?" + newQuery;
-      var newUri = new Uri(newUrl);
-
-      var newRequest = new HttpRequestMessage(request.Method, newUri);
-      var newQo = new ODataQueryOptions(queryOptions.Context, newRequest);
-      return newQo;
-    }
+  
 
     /// <summary>
     /// Provide a hook to do any processing before applying the query.  This implementation does nothing.
@@ -124,12 +89,12 @@ namespace Breeze.WebApi2 {
       ODataQueryOptions newQueryOptions = queryOptions;
       if (selectQueryString != null) {
         newQueryOptions = QueryHelper.RemoveSelectAndExpand(newQueryOptions);
+        newQueryOptions = QueryHelper.RemoveOrderBy(newQueryOptions);
+      } else if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
+        newQueryOptions = QueryHelper.RemoveSelectAndExpand(newQueryOptions);
+        newQueryOptions = QueryHelper.RemoveOrderBy(newQueryOptions);
       }
 
-      if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
-        newQueryOptions = QueryHelper.RemoveSelectAndExpand(newQueryOptions);
-        newQueryOptions = QueryHelper.RemoveExtendedOps(newQueryOptions);
-      }
 
       if (newQueryOptions == queryOptions) {
         return queryOptions.ApplyTo(queryable, querySettings);
@@ -147,44 +112,101 @@ namespace Breeze.WebApi2 {
           }
         }
         
-        if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
-          q = qh.ApplyNestedOrderBy(q, queryOptions);
+        q = qh.ApplyOrderBy(q, queryOptions);
+        var q2 = qh.ApplySelect(q, queryOptions);
+        if (q2 == q) {
+          q2 = qh.ApplyExpand(q, queryOptions);
         }
-
-        if (selectQueryString != null) {
-          q = qh.ApplySelect(q, selectQueryString);
-        } else if (expandQueryString != null) {
-          // don't bother doing an expand if there was already a select ( this code doesn't need it)
-          q = qh.ApplyExpand(q, queryOptions.RawValues.Expand);
-        }       
-
-        
-        return q;
+                
+        return q2;
       }
 
 
     }
 
-    private IQueryable ApplyNestedOrderBy(IQueryable queryable, ODataQueryOptions queryOptions) {
+    /// <summary>returns a copy of queryOptions with $select and $expand removed.</summary>
+    public static ODataQueryOptions RemoveSelectAndExpand(ODataQueryOptions queryOptions) {
+      var request = queryOptions.Request;
+      var oldUri = request.RequestUri;
+
+      var map = oldUri.ParseQueryString();
+      var newQuery = map.Keys.Cast<String>()
+                        .Where(k => (k.Trim().Length > 0) && (k != "$select") && (k != "$expand"))
+                        .Select(k => k + "=" + map[k])
+                        .ToAggregateString("&");
+
+      var newUrl = oldUri.Scheme + "://" + oldUri.Authority + oldUri.AbsolutePath + "?" + newQuery;
+      var newUri = new Uri(newUrl);
+
+      var newRequest = new HttpRequestMessage(request.Method, newUri);
+      var newQo = new ODataQueryOptions(queryOptions.Context, newRequest);
+      return newQo;
+    }
+
+    /// <summary>returns a copy of queryOptions with $orderby, $top, and $skip removed.</summary>
+    public static ODataQueryOptions RemoveOrderBy(ODataQueryOptions queryOptions) {
+      var request = queryOptions.Request;
+      var oldUri = request.RequestUri;
+
+      var map = oldUri.ParseQueryString();
+      var newQuery = map.Keys.Cast<String>()
+                        .Where(k => (k.Trim().Length > 0) && (k != "$orderby") && (k != "$top") && (k != "$skip"))
+                        .Select(k => k + "=" + map[k])
+                        .ToAggregateString("&");
+
+      var newUrl = oldUri.Scheme + "://" + oldUri.Authority + oldUri.AbsolutePath + "?" + newQuery;
+      var newUri = new Uri(newUrl);
+
+      var newRequest = new HttpRequestMessage(request.Method, newUri);
+      var newQo = new ODataQueryOptions(queryOptions.Context, newRequest);
+      return newQo;
+    }
+
+    /// <summary>
+    /// Apply the select clause to the queryable
+    /// </summary>
+    /// <param name="queryable"></param>
+    /// <param name="selectQueryString"></param>
+    /// <returns></returns>
+    public virtual IQueryable ApplySelect(IQueryable queryable, ODataQueryOptions queryOptions) {
+      var selectQueryString = queryOptions.RawValues.Select;
+      if (string.IsNullOrEmpty(selectQueryString)) return queryable;
+      var selectClauses = selectQueryString.Split(',').Select(sc => sc.Replace('/', '.')).ToList();
+      var elementType = TypeFns.GetElementType(queryable.GetType());
+      var func = QueryBuilder.BuildSelectFunc(elementType, selectClauses);
+      return func(queryable);
+    }
+
+    /// <summary>
+    /// Apply to expands clause to the queryable
+    /// </summary>
+    /// <param name="queryable"></param>
+    /// <param name="expandsQueryString"></param>
+    /// <returns></returns>
+    public virtual IQueryable ApplyExpand(IQueryable queryable, ODataQueryOptions queryOptions) {
+      var expandQueryString = queryOptions.RawValues.Expand;
+      if (string.IsNullOrEmpty(expandQueryString)) return queryable;
+      expandQueryString.Split(',').Select(s => s.Trim()).ToList().ForEach(expand => {
+        queryable = ((dynamic)queryable).Include(expand.Replace('/', '.'));
+      });
+      return queryable;
+    }
+
+
+    private IQueryable ApplyOrderBy(IQueryable queryable, ODataQueryOptions queryOptions) {
       var elementType = TypeFns.GetElementType(queryable.GetType());
       var result = queryable;
-      ////string inlinecountString = queryOptions.RawValues.InlineCount;
-      ////if (!string.IsNullOrWhiteSpace(inlinecountString)) {
-      ////  if (inlinecountString == "allpages") {
-      ////    if (result is IQueryable) {
-      ////      var inlineCount = (Int64)Queryable.Count((dynamic)result);
-      ////      queryOptions.Request.SetInlineCount(inlineCount);
-      ////    }
-      ////  }
-      ////}
 
-      var orderByClauses = queryOptions.RawValues.OrderBy.Split(',').ToList();
-      var isThenBy = false;
-      orderByClauses.ForEach(obc => {
-        var func = QueryBuilder.BuildOrderByFunc(isThenBy, elementType, obc);
-        result = func(result);
-        isThenBy = true;
-      });
+      var orderByString = queryOptions.RawValues.OrderBy;
+      if (!string.IsNullOrEmpty(orderByString)) {
+        var orderByClauses = orderByString.Split(',').ToList();
+        var isThenBy = false;
+        orderByClauses.ForEach(obc => {
+          var func = QueryBuilder.BuildOrderByFunc(isThenBy, elementType, obc);
+          result = func(result);
+          isThenBy = true;
+        });
+      }
 
       var skipQueryString = queryOptions.RawValues.Skip;
       if (!string.IsNullOrWhiteSpace(skipQueryString)) {
@@ -201,9 +223,6 @@ namespace Breeze.WebApi2 {
         var func = BuildIQueryableFunc(elementType, method, count);
         result = func(result);
       }
-
-
-
 
       return result;
     }
@@ -224,32 +243,7 @@ namespace Breeze.WebApi2 {
     }
 
 
-    /// <summary>
-    /// Apply the select clause to the queryable
-    /// </summary>
-    /// <param name="queryable"></param>
-    /// <param name="selectQueryString"></param>
-    /// <returns></returns>
-    public virtual IQueryable ApplySelect(IQueryable queryable, string selectQueryString) {
-      var selectClauses = selectQueryString.Split(',').Select(sc => sc.Replace('/', '.')).ToList();
-      var elementType = TypeFns.GetElementType(queryable.GetType());
-      var func = QueryBuilder.BuildSelectFunc(elementType, selectClauses);
-      return func(queryable);
-    }
-
-    /// <summary>
-    /// Apply to expands clause to the queryable
-    /// </summary>
-    /// <param name="queryable"></param>
-    /// <param name="expandsQueryString"></param>
-    /// <returns></returns>
-    public virtual IQueryable ApplyExpand(IQueryable queryable, string expandsQueryString) {
-      expandsQueryString.Split(',').Select(s => s.Trim()).ToList().ForEach(expand => {
-        queryable = ((dynamic)queryable).Include(expand.Replace('/', '.'));
-      });
-      return queryable;
-    }
-
+  
 
     /// <summary>
     /// Perform any work after the query is executed.  Does nothing in this implementation but is available to derived classes.
@@ -276,7 +270,12 @@ namespace Breeze.WebApi2 {
       // execute the DbQueries here, so that any exceptions thrown can be properly returned.
       // if we wait to have the query executed within the serializer, some exceptions will not
       // serialize properly.
-      var listQueryResult = Enumerable.ToList((dynamic)queryResult);
+      Object listQueryResult;
+      try {
+        listQueryResult = Enumerable.ToList((dynamic)queryResult);
+      } catch (Exception e) {
+        throw;
+      }
       var elementType = queryResult.ElementType;
       if (elementType.Name.StartsWith("SelectAllAndExpand")) {
         var prop = elementType.GetProperties().FirstOrDefault(pi => pi.Name == "Instance");
