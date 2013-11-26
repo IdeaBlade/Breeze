@@ -87,12 +87,10 @@ namespace Breeze.WebApi2 {
       var selectQueryString = queryOptions.RawValues.Select;
 
       ODataQueryOptions newQueryOptions = queryOptions;
-      if (selectQueryString != null) {
-        newQueryOptions = QueryHelper.RemoveSelectAndExpand(newQueryOptions);
-        newQueryOptions = QueryHelper.RemoveOrderBy(newQueryOptions);
-      } else if (orderByQueryString != null && orderByQueryString.IndexOf('/') >= 0) {
-        newQueryOptions = QueryHelper.RemoveSelectAndExpand(newQueryOptions);
-        newQueryOptions = QueryHelper.RemoveOrderBy(newQueryOptions);
+      if (!string.IsNullOrWhiteSpace(selectQueryString)) {
+        newQueryOptions = QueryHelper.RemoveSelectExpandOrderBy(newQueryOptions);
+      } else if ((!string.IsNullOrWhiteSpace(orderByQueryString)) && orderByQueryString.IndexOf('/') >= 0) {
+        newQueryOptions = QueryHelper.RemoveSelectExpandOrderBy(newQueryOptions);
       }
 
 
@@ -124,14 +122,18 @@ namespace Breeze.WebApi2 {
 
     }
 
-    /// <summary>returns a copy of queryOptions with $select and $expand removed.</summary>
-    public static ODataQueryOptions RemoveSelectAndExpand(ODataQueryOptions queryOptions) {
+    public static ODataQueryOptions RemoveSelectExpandOrderBy(ODataQueryOptions queryOptions) {
+      var optionsToRemove = new List<String>() { "$select", "$expand", "$orderby", "$top", "$skip" };
+      return RemoveOptions(queryOptions, optionsToRemove);
+    }
+
+    public static ODataQueryOptions RemoveOptions(ODataQueryOptions queryOptions, List<String> optionNames) {
       var request = queryOptions.Request;
       var oldUri = request.RequestUri;
 
       var map = oldUri.ParseQueryString();
       var newQuery = map.Keys.Cast<String>()
-                        .Where(k => (k.Trim().Length > 0) && (k != "$select") && (k != "$expand"))
+                        .Where(k => (k.Trim().Length > 0) && !optionNames.Contains(k.Trim()))
                         .Select(k => k + "=" + map[k])
                         .ToAggregateString("&");
 
@@ -143,24 +145,6 @@ namespace Breeze.WebApi2 {
       return newQo;
     }
 
-    /// <summary>returns a copy of queryOptions with $orderby, $top, and $skip removed.</summary>
-    public static ODataQueryOptions RemoveOrderBy(ODataQueryOptions queryOptions) {
-      var request = queryOptions.Request;
-      var oldUri = request.RequestUri;
-
-      var map = oldUri.ParseQueryString();
-      var newQuery = map.Keys.Cast<String>()
-                        .Where(k => (k.Trim().Length > 0) && (k != "$orderby") && (k != "$top") && (k != "$skip"))
-                        .Select(k => k + "=" + map[k])
-                        .ToAggregateString("&");
-
-      var newUrl = oldUri.Scheme + "://" + oldUri.Authority + oldUri.AbsolutePath + "?" + newQuery;
-      var newUri = new Uri(newUrl);
-
-      var newRequest = new HttpRequestMessage(request.Method, newUri);
-      var newQo = new ODataQueryOptions(queryOptions.Context, newRequest);
-      return newQo;
-    }
 
     /// <summary>
     /// Apply the select clause to the queryable
@@ -193,7 +177,7 @@ namespace Breeze.WebApi2 {
     }
 
 
-    private IQueryable ApplyOrderBy(IQueryable queryable, ODataQueryOptions queryOptions) {
+    public virtual IQueryable ApplyOrderBy(IQueryable queryable, ODataQueryOptions queryOptions) {
       var elementType = TypeFns.GetElementType(queryable.GetType());
       var result = queryable;
 
@@ -270,12 +254,9 @@ namespace Breeze.WebApi2 {
       // execute the DbQueries here, so that any exceptions thrown can be properly returned.
       // if we wait to have the query executed within the serializer, some exceptions will not
       // serialize properly.
-      Object listQueryResult;
-      try {
-        listQueryResult = Enumerable.ToList((dynamic)queryResult);
-      } catch (Exception e) {
-        throw;
-      }
+      
+      var  listQueryResult = Enumerable.ToList((dynamic)queryResult);
+      
       var elementType = queryResult.ElementType;
       if (elementType.Name.StartsWith("SelectAllAndExpand")) {
         var prop = elementType.GetProperties().FirstOrDefault(pi => pi.Name == "Instance");
