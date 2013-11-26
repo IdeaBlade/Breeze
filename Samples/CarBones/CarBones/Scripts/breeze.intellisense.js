@@ -1,4 +1,4 @@
-﻿// Generated on: Fri Nov 22 2013 11:37:26 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Sat Nov 23 2013 18:25:44 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 

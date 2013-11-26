@@ -105,6 +105,28 @@
 
     });
 
+    test("any with != null", function () {
+        var em = newEm();
+        // customers with no orders
+        var p = Predicate.create("orders", "any", "rowVersion", "!=", null).not();
+        var query = EntityQuery.from("Customers").where(p).expand("orders");
+
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var custs = data.results;
+            custs.forEach(function (cust) {
+                var orders = cust.getProperty("orders");
+                ok(orders.length === 0, "every orders collection should be empty");
+            })
+
+            var custs2 = em.executeQueryLocally(query);
+            var isOk = testFns.haveSameContents(custs, custs2);
+            ok(isOk, "arrays should have the same contents");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     test("any and gt with expand", function () {
         var em = newEm();
         var query = EntityQuery.from("Employees")
@@ -129,7 +151,30 @@
 
     });
 
+    test("any and nested property", function () {
+        var em = newEm();
+        var query = EntityQuery.from("Employees")
+           .where("orders", "any", "customer.companyName", "startsWith", "Lazy")
+           .expand("orders.customer");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var emps = data.results;
+            ok(emps.length === 2, "should be only 2 emps with orders with companys named 'Lazy...' ");
+            emps.forEach(function (emp) {
+                var orders = emp.getProperty("orders");
+                var isOk = orders.some(function (order) {
+                    var cust = order.getProperty("customer");
+                    return cust.getProperty("companyName").indexOf("Lazy") >= 0;
+                });
+                ok(isOk, "should be some order with the right company name");
+            });
 
+            var emps2 = em.executeQueryLocally(query);
+            var isOk = testFns.haveSameContents(emps, emps2);
+            ok(isOk, "arrays should have the same contents");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
 
     test("any with composite predicate and expand", function () {
         var em = newEm();

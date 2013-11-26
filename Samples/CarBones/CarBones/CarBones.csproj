@@ -42,10 +42,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Breeze.WebApi">
-      <HintPath>..\packages\Breeze.Server.WebApi.Core.1.4.5\lib\Breeze.WebApi.dll</HintPath>
+      <HintPath>..\packages\Breeze.Server.WebApi.Core.1.4.6\lib\Breeze.WebApi.dll</HintPath>
     </Reference>
     <Reference Include="Breeze.WebApi.EF">
-      <HintPath>..\packages\Breeze.Server.WebApi.EF.1.4.5\lib\Breeze.WebApi.EF.dll</HintPath>
+      <HintPath>..\packages\Breeze.Server.WebApi.EF.1.4.6\lib\Breeze.WebApi.EF.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>

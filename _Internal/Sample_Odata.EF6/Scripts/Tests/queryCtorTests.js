@@ -45,25 +45,25 @@
         equal(txt5, "{CompanyName} startswith {B}");
     });
 
-    test("predicateBuilder simple toOdata()", function () {
+    test("predicateBuilder simple toOData()", function () {
         var ms = new MetadataStore();
         var nullEt = new EntityType(ms);
         var dt = new Date(88, 9, 12);
         var dateStr = dt.toISOString(dt);
         var p = Predicate.create("OrderDate", ">", dt);
-        var txt = p.toOdataFragment(nullEt);
+        var txt = p.toODataFragment(nullEt);
         equal(txt, "OrderDate gt datetime'" + dateStr + "'");
         var p2 = Predicate.create("OrderDate", "gt", dt);
-        var txt2 = p2.toOdataFragment(nullEt);
+        var txt2 = p2.toODataFragment(nullEt);
         equal(txt2, "OrderDate gt datetime'" + dateStr + "'");
         var p3 = Predicate.create("OrderDate", "==", dt);
-        var txt3 = p3.toOdataFragment(nullEt);
+        var txt3 = p3.toODataFragment(nullEt);
         equal(txt3, "OrderDate eq datetime'" + dateStr + "'");
         var p4 = new Predicate("OrderDate", "ne", dt);
-        var txt4 = p4.toOdataFragment(nullEt);
+        var txt4 = p4.toODataFragment(nullEt);
         equal(txt4, "OrderDate ne datetime'" + dateStr + "'");
         var p5 = new Predicate("ShipCity", "stArtsWiTH", "C");
-        var txt5 = p5.toOdataFragment(nullEt);
+        var txt5 = p5.toODataFragment(nullEt);
         equal(txt5, "startswith(ShipCity,'C') eq true");
     });
 

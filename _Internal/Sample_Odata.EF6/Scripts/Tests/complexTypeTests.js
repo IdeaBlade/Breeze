@@ -27,6 +27,57 @@
         }
     });
 
+    //  create an entity (that has a complex type).
+    //  Make a change to a string property of the complex type of the entity created. "test"
+    //  save changes (accepting all changes).
+    //  reload from db/remote source the same entity.
+    //  make changes to the same string property of the complex type. "testED"
+    //  Call manager.RevertChanges()..
+
+    test("rejectChanges after save of new entity", function () {
+        var em = newEm();
+        var locationType = em.metadataStore.getEntityType("Location");
+        var supplier = em.createEntity("Supplier", { companyName: "Test1" });
+        var location = supplier.getProperty("location");
+        location.setProperty("city", "LA")
+        stop();
+        em.saveChanges().then(function (sr) {
+            var saved = sr.entities;
+            ok(saved.length === 1, "should have saved one record");
+            location = supplier.getProperty("location");
+            ok(location.getProperty("city") === "LA", "location.city should be 'LA'");
+            return em.fetchEntityByKey(supplier.entityAspect.getKey());
+        }).then(function (fr) {
+            supplier2 = fr.entity;
+            ok(supplier === supplier2, "should be the same supplier");
+            location = supplier.getProperty("location");
+            location.setProperty("city", "FOOO");
+            supplier.entityAspect.rejectChanges();
+            ok(location.getProperty("city") === "LA", "location.city should be 'LA'");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("create entity with complexType property", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        
+        var supplier = em.createEntity("Supplier", { companyName: "XXX", location: { city: "LA", postalCode: "44444" } });
+        ok(supplier.getProperty("companyName") === "XXX");
+        ok(supplier.getProperty("location").getProperty("city") === "LA");
+    });
+
+    test("create entity with complexType property 2", function () {
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+
+        var supplier = em.createEntity("Supplier", { companyName: "XXX" });
+        supplier.getProperty("location").setProperty("city","San Francisco");
+        supplier.getProperty("location").setProperty("postalCode", "91333");
+        ok(supplier.getProperty("location").getProperty("city") === "San Francisco");
+
+        var locationType = em.metadataStore.getEntityType("Location");
+        supplier.setProperty("location", locationType.createInstance({ city: "Boston", postalCode: "12345" }));
+        ok(supplier.getProperty("location").getProperty("city") === "Boston");
+    });
+
     test("initializer on complexType for createInstance", function () {
 
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));

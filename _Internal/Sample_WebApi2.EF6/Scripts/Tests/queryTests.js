@@ -304,6 +304,20 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
+    test("select with inlinecount and take", function () {
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Customers")
+            .select("companyName, region, city")
+            .take(5)
+            .inlineCount();
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            ok(data.results.length > 0, "should be no records returned");
+            ok(data.inlineCount > 0, "should have an inlinecount");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("check getEntityByKey", function () {
         var manager = newEm();
         var query = new breeze.EntityQuery()
