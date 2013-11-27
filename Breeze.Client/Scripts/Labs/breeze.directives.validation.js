@@ -1,7 +1,7 @@
 ﻿/* 
  * Breeze Angular directives
  *
- *  v.1.0
+ *  v.1.1
  *
  *  Usage:
  *     Make this module a dependency of your app module:
@@ -42,7 +42,7 @@
     *   Learn more at http://www.breezejs.com/breeze-labs/breezedirectivesvalidationjs
     */
     module.directive('zValidate', ['zDirectivesConfig', zValidate]);
-    
+
     function zValidate(config) {
         var directive = {
             link: link,
@@ -51,36 +51,41 @@
         return directive;
 
         function link(scope, element, attrs) {
-            var info = getInfo(scope, attrs);
+            // Use only features defined in Angular's jqLite
+            var decorator = angular.element('<span class="z-decorator"></span>');
+            element.after(decorator);
+            var domEl = element[0]; // unwrap 'jquery' element to get DOM element
+            var errEl = null; // the (not yet existing) error message element 
+            var valTemplate = config.zValidateTemplate;
+            
+            var info = getInfo(scope, attrs); // get validation info for bound entity property
+            
             scope.$watch(info.getValErrs, valErrsChanged);
 
             function valErrsChanged(newValue) {
+                
+                setRequired(decorator, info); 
+                
                 // HTML5 custom validity
                 // http://dev.w3.org/html5/spec-preview/constraints.html#the-constraint-validation-api
-                var el = element[0]; // unwrap 'jQuery' element
-                
-                setRequired(element, info);
-
-                if (el.setCustomValidity) {
-                    el.setCustomValidity(newValue);
+                if (domEl.setCustomValidity) {
+                    domEl.setCustomValidity(newValue);
                     //return; /* only works in HTML 5. Maybe should throw instead. */
                 }
-                
+
                 // Add/remove the error message HTML (errEl) and styling 
-                // errEl, if it exists, is the first sibling of this element with an 'invalid' class
-                var errEl = element.nextAll('.invalid').first();
-                
                 if (newValue) {
-                    var html = config.zValidateTemplate.replace(/%error%/, newValue);
-                    if (errEl.length) {
+                    var html = valTemplate.replace(/%error%/, newValue);
+                    if (errEl) {
                         errEl.replaceWith(html);
                     } else {
                         errEl = angular.element(html);
-                        element.after(errEl);
+                        decorator.append(errEl);
                     }
-                } else {
+                } else if (errEl) {
                     errEl.remove();
-                } 
+                    errEl = null;
+                }
             }
         }
 
@@ -91,9 +96,9 @@
             var valPath = attrs.zValidate;
 
             if (!ngModel && !valPath) { // need some path info from attrs
-                return { getValErrs: function() { return ''; } }; //noop                
+                return { getValErrs: function () { return ''; } }; //noop                
             }
-            
+
             getEntityAndPropertyPaths();
 
             var getAspect = entityPath ? aspectFromPath : aspectFromEntity;
@@ -105,7 +110,7 @@
                 getType: getType,
                 getValErrs: createGetValErrs()
             };
-            
+
             return result;
 
             function aspectFromPath() {
@@ -117,17 +122,17 @@
 
             // Create the 'getValErrs' function that will be watched
             function createGetValErrs() {
-                return function() {
+                return function () {
                     var aspect = getAspect();
                     if (aspect) {
                         var errs = aspect.getValidationErrors(propertyPath);
                         if (errs.length) {
                             return errs
                                 // concatenate all errors into a single string
-                                .map(function(e) { return e.errorMessage; })
+                                .map(function (e) { return e.errorMessage; })
                                 .join('; ');
                         }
-                        return ''; 
+                        return '';
                     }
                     // No data bound entity yet. 
                     // Return something other than a string so that 
@@ -170,8 +175,8 @@
         function setRequired(element, info) {
             // Set the required indicator once ... when an entity first arrives
             // at which point we can determine whether the data property is required
-            var el = element[0];
-            if (el.hasSetRequired) { return; } // set it already
+            // Note: can't detect until second call to directive's link function
+            if (element.hasSetRequired) { return; } // set it already
 
             var entityType = info.getType();
             if (!entityType) { return; } // no entity, type is unknown, quit
@@ -181,10 +186,10 @@
             if (requiredProperties && requiredProperties[info.propertyPath]) {
                 var reqHtml = config.zRequiredTemplate;
                 var reqEl = angular.element(reqHtml);
-                element.after(reqEl);
+                element.append(reqEl);
             }
 
-            el.hasSetRequired = true;  // don't set again
+            element.hasSetRequired = true;  // don't set again
         }
 
     }
@@ -208,7 +213,7 @@
     *              'So sad!!! %error%</span>';
     *      }]);
     */
-    module.provider('zDirectivesConfig', function() {
+    module.provider('zDirectivesConfig', function () {
         // The default zValidate template for display of validation errors
         this.zValidateTemplate =
             '<span class="invalid">%error%</span>';
@@ -216,9 +221,9 @@
         // The default template for indicating required fields.
         // Assumes "icon-asterisk-invalid" from bootstrap css
         this.zRequiredTemplate =
-            '<span class="icon-asterisk-invalid" title="Required">*</span>';
+            '<span class="icon-asterisk-invalid z-required" title="Required">*</span>';
 
-        this.$get = function() {
+        this.$get = function () {
             return {
                 zValidateTemplate: this.zValidateTemplate,
                 zRequiredTemplate: this.zRequiredTemplate
