@@ -132,6 +132,23 @@
             }
         }
     }
+    asyncTest("can query for suppliers which holds a complex type", 2, function () {
+        var em = newEm();
+
+        EntityQuery.from('Suppliers').top(1)
+            .using(em).execute()
+            .then(success).fail(handleFail).fin(start);
+
+        function success(data) {
+            var supplier = data.results[0];
+            ok(supplier != null, "should have a supplier");
+            try {
+                var address = supplier && supplier.location().address();
+                var hasAddress = address && address.length;
+            } catch (e) { /*will catch error in failed test*/ }
+            ok(hasAddress, "should have supplier.location.address which is " + address);
+        }
+    });
     /*** Single condition filtering ***/
 
     /*********************************************************
@@ -770,6 +787,22 @@
 
         ok(firstProduct !== null, "can navigate to first order's first detail's product");
     }
+    
+
+    asyncTest("can query for products and get related Supplier entity with complex type", 2, function () {
+        var em = newEm();
+
+        EntityQuery.from('Products').top(1)
+            .expand('Supplier')
+            .using(em).execute()
+            .then(success).fail(handleFail).fin(start);
+
+        function success(data) {
+            var product = data.results[0];
+            ok(product != null, "should have a product");
+            ok(product && product.Supplier() !== null, "product should have a supplier");
+        }
+    });
     
     /*********************************************************
     * When API method returns an HttpResponseMessage (HRM)
