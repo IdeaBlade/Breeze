@@ -143,7 +143,7 @@
             var supplier = data.results[0];
             ok(supplier != null, "should have a supplier");
             try {
-                var address = supplier && supplier.location().address();
+                var address = supplier && supplier.Location().Address();
                 var hasAddress = address && address.length;
             } catch (e) { /*will catch error in failed test*/ }
             ok(hasAddress, "should have supplier.location.address which is " + address);
