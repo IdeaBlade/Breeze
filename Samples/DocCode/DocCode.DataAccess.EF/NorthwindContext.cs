@@ -26,6 +26,7 @@ namespace Northwind.Models
             modelBuilder.Configurations.Add(new OrderConfiguration());
             modelBuilder.Configurations.Add(new OrderDetailConfiguration());
             modelBuilder.Configurations.Add(new PreviousEmployeeConfiguration());
+            modelBuilder.Configurations.Add(new SupplierConfiguration());
         }
 
         #region DbSets
@@ -97,6 +98,18 @@ namespace Northwind.Models
             HasKey(e => new { e.EmployeeID });
             Property(e => e.EmployeeID)
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
+        }
+    }
+    public class SupplierConfiguration : EntityTypeConfiguration<Supplier>
+    {
+        public SupplierConfiguration()
+        {
+            // map address columns to the Location complex type
+            Property(s => s.Location.Address).HasColumnName("Address");
+            Property(s => s.Location.City).HasColumnName("City");
+            Property(s => s.Location.Region).HasColumnName("Region");
+            Property(s => s.Location.PostalCode).HasColumnName("PostalCode");
+            Property(s => s.Location.Country).HasColumnName("Country");
         }
     }
 }
