@@ -250,7 +250,9 @@
     }
 
     function sortByName(array) {
-        return array.sort(function (left, right) { return left.name > right.name; });
+        return array.sort(function (left, right) {
+            return (left.name > right.name) ? 1 : -1;
+        });
     }
 
     // Populate a MetadataStore with service metadata
