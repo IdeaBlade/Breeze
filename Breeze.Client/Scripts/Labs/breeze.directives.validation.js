@@ -1,7 +1,7 @@
 ﻿/* 
  * Breeze Angular directives
  *
- *  v.1.1
+ *  v.1.2
  *
  *  Usage:
  *     Make this module a dependency of your app module:
@@ -182,7 +182,7 @@
             if (!entityType) { return; } // no entity, type is unknown, quit
 
             // if the data property is required, add the appropriate styling and element
-            var requiredProperties = entityType.required;
+            var requiredProperties = entityType.custom && entityType.custom.required;
             if (requiredProperties && requiredProperties[info.propertyPath]) {
                 var reqHtml = config.zRequiredTemplate;
                 var reqEl = angular.element(reqHtml);
@@ -194,11 +194,27 @@
 
     }
 
-    /* Configure the breeze directives (optional)
+    /* Configure app to use zValidate
+    * 
+    * Call recordRequiredProperties to detect required properties and enable
+    * the "required" property indicator
+    *
+    * May optionally configure breeze directive templates
     *  
     *  zValidateTemplate: template for display of validation errors
+    *  zRequiredTemplate: template for display of required property indicator
     * 
-    *  Usage:
+    *  recordRequiredProperties usage:
+    *      After acquiring the metadataStore, call recordRequiredProperties as follows
+    *      zDirectivesConfig.recordRequiredProperties(metadataStore);
+    *
+    *      If you use validators other than the stock 'required' validator that should
+    *      cause the required indicator to appear, supply those validator names 
+    *      in an optional string array parameter
+    *      zDirectivesConfig.recordRequiredProperties(
+    *          metadataStore, [requireReferenceValidator.name]);
+    *
+    *  Template configuarion usage:
     *      Either during the app's Angular config phase ...
     *      app.config(['zDirectivesConfigProvider', function(cfg) {
     *          cfg.zValidateTemplate =
@@ -225,9 +241,37 @@
 
         this.$get = function () {
             return {
+                recordRequiredProperties: recordRequiredProperties,
                 zValidateTemplate: this.zValidateTemplate,
                 zRequiredTemplate: this.zRequiredTemplate
             };
         };
+        
+        // Detects which properties are required and adds that fact
+        // to the info about each entity type in a metadataStore. 
+        // Call it once after loading or acquiring metadata.
+        // The `requiredValidators` param is an optional array of 
+        // custom required validator names that should be included in this calculation.
+        function recordRequiredProperties(metadataStore, requiredValidators) {
+            var valNames = ['required'].concat(requiredValidators || []).join('|');
+            var types = metadataStore.getEntityTypes();
+            types.forEach(function (type) {
+                if (type.custom && type.custom.required) { return; } // done already
+
+                if (!type.custom) { type.custom = {}; }
+                var required = {};
+                type.custom.required = required;
+                var props = type.getProperties();
+                props.forEach(function (prop) {
+                    var vals = prop.validators;
+                    for (var i = vals.length; i--;) {
+                        if (valNames.indexOf(vals[i].name) > -1) {
+                            required[prop.name] = true;
+                            break;
+                        }
+                    }
+                });
+            });
+        }
     });
 })();
