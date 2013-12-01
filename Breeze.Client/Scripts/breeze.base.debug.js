@@ -3999,29 +3999,32 @@ var EntityAspect = (function() {
     function removeFromRelationsCore(entity, isDeleted) {
         entity.entityType.navigationProperties.forEach(function (np) {
             var inverseNp = np.inverse;
-            if (!inverseNp) return;
             var npValue = entity.getProperty(np.name);
             if (np.isScalar) {
                 if (npValue) {
-                    if (inverseNp.isScalar) {
-                        clearNp(npValue, inverseNp, isDeleted);
-                    } else {
-                        var collection = npValue.getProperty(inverseNp.name);
-                        if (collection.length) {
-                            __arrayRemoveItem(collection, entity);
+                    if (inverseNp) {
+                        if (inverseNp.isScalar) {
+                            clearNp(npValue, inverseNp, isDeleted);
+                        } else {
+                            var collection = npValue.getProperty(inverseNp.name);
+                            if (collection.length) {
+                                __arrayRemoveItem(collection, entity);
+                            }
                         }
                     }
                     entity.setProperty(np.name, null);
                 }
             } else {
-                // npValue is a live list so we need to copy it first.
-                npValue.slice(0).forEach(function (v) {
-                    if (inverseNp.isScalar) {
-                        clearNp(v, inverseNp, isDeleted);
-                    } else {
-                        // TODO: many to many - not yet handled.
-                    }
-                });
+                if (inverseNp) {
+                    // npValue is a live list so we need to copy it first.
+                    npValue.slice(0).forEach(function (v) {
+                        if (inverseNp.isScalar) {
+                            clearNp(v, inverseNp, isDeleted);
+                        } else {
+                            // TODO: many to many - not yet handled.
+                        }
+                    });
+                }
                 // now clear it.
                 npValue.length = 0;
             }

@@ -152,13 +152,7 @@
                 // ACT
                 product.entityAspect.setDeleted();
 
-                // ASSERT
-                // Fails in v.1.4.6 because breeze method 'removeFromRelationsCore' 
-                // won't clear a relation which lacks an inverse property 
-                // (breeze.debug.js ln:4002) 
-                // and there is no Category.Products property
                 ok(product.Category() === null, "product should NOT have a Category after product deleted");
-
                 // FKs of principle related entities are retained. Should they be cleared too?
                 ok(product.CategoryID() !== 0, "product should have a non-zero CategoryID after product deleted");
             }

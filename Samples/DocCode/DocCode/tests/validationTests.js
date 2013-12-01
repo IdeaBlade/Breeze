@@ -570,53 +570,6 @@
             "should have no errors after remove: \"{0}\"".format(errmsgs));
     });
 
-    /*********************************************************
-    * Can call getValidationErrors('someProperty) when have entity errors
-    * Defect #2552 Null reference exception in getValidationErrors
-    * MOVE THIS TEST TO BREEZE's OWN TESTS
-    *********************************************************/
-    test("Can call getValidationErrors('someProperty) when have entity errors", 2, function () {
-        var em = newEm();
-
-        var cust = em.createEntity('Customer', {
-            CustomerID: testFns.newGuidComb()
-        }, breeze.EntityState.Unchanged);
-        
-        // We need a validator to make a ValidationError
-        // but it could be anything and we won't bother to register it
-        var fakeValidator = new Validator(
-            "fakeValidator",
-            function () { return false; },
-            { message: "You are always wrong!" }
-        );
-
-
-        // create a fake error
-        var fakeError = new breeze.ValidationError(
-            fakeValidator,                // the marker validator
-            {},                           // validation context
-            "You were wrong this time!"   // error message
-        );
-
-        // add the fake error
-        cust.entityAspect.addValidationError(fakeError);
-
-        // Act & Assert
-        var property = undefined;
-        try {
-           
-            var errs = cust.entityAspect.getValidationErrors(property);
-            ok(errs.length > 0, "should get the entity error when ask for ALL errs");
-
-            property = 'someProperty';
-            errs = cust.entityAspect.getValidationErrors(property);
-            ok(errs.length > 0, "should get the entity error when ask for errs OF A PROPERTY");
-
-        } catch(e) {
-            ok(false, "getValidationErrors("+property+"} returned exception: " + e);
-        }
-
-    });
     
     /*********************************************************
     * TEST HELPERS
