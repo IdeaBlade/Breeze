@@ -14,3 +14,6 @@ copy-item $srcDir\Breeze.Server.ContextProvider.EF6\Breeze.Server.ContextProvide
 copy-item $srcDir\Breeze.Server.WebApi2\Breeze.Server.WebApi2.*.nupkg $env:LOCALAPPDATA\Nuget\Cache
 copy-item $srcDir\Breeze.WebApi2.EF6\Breeze.WebApi2.EF6.*.nupkg $env:LOCALAPPDATA\Nuget\Cache
 
+# Breeze Labs. Build by hand.
+copy-item $srcDir\Breeze.Angular.Directives\Breeze.Angular.Directives.*.nupkg $env:LOCALAPPDATA\Nuget\Cache
+
