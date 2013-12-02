@@ -1,7 +1,7 @@
 ﻿/* 
  * Breeze Angular directives
  *
- *  v.1.2
+ *  v.1.3
  *
  *  Usage:
  *     Make this module a dependency of your app module:
@@ -34,10 +34,10 @@
     *   When within a repeater where scope is an entity:
     *     <input data-ng-model='title' data-z-validate />
     *
-    *   Required indicator applied if the bound data property name
-    *   is a member of the "required" hash of the bound entity type.
-    *   The "required" hash is not native to the Breeze EntityType;
-    *   Typically you add it in your model setup code.
+    *   Required indicator applied if the bound data property
+    *   has a required validator. A required validator is a validator 
+    *   which has an .isRequired == true property (or is named 'required')
+    *   See private `getRequiredPropertiesForEntityType`
     *   
     *   Learn more at http://www.breezejs.com/breeze-labs/breezedirectivesvalidationjs
     */
@@ -48,6 +48,7 @@
             link: link,
             restrict: 'A'
         };
+
         return directive;
 
         function link(scope, element, attrs) {
@@ -171,19 +172,54 @@
                 }
             }
         }
+        
+        // TODO: Mover required property getting and setting to a separate module
+        // because is not angular specific and could be used 
+        // in other presentation frameworks such as a custom Knockout binding
+        
+        // return a hash of property names of properties that are required.
+        // Creates that hash lazily and adds it to the  
+        // entityType's metadata for easier access by this directive 
+        function getRequiredPropertiesForEntityType(type) {
+            if (type.custom && type.custom.required) {
+                return type.custom.required;
+            }
+
+            // Don't yet know the required properties for this type
+            // Find out now
+            if (!type.custom) {
+                type.custom = {};
+            }
+            var required = {};
+            type.custom.required = required;
+            var props = type.getProperties();
+            props.forEach(function(prop) {
+                var vals = prop.validators;
+                for (var i = vals.length; i--;) {
+                    var val = vals[i];
+                    // Todo: add the 'isRequired' property to breeze.Validator.required validator
+                    if (val.isRequired || val.name === 'required') {
+                        required[prop.name] = true;
+                        break;
+                    }
+                }
+            });
+            return required;
+        }
 
         function setRequired(element, info) {
             // Set the required indicator once ... when an entity first arrives
             // at which point we can determine whether the data property is required
             // Note: can't detect until second call to directive's link function
-            if (element.hasSetRequired) { return; } // set it already
+            if (element.hasSetRequired) { return; } // already set
 
             var entityType = info.getType();
             if (!entityType) { return; } // no entity, type is unknown, quit
 
+            var requiredProperties = getRequiredPropertiesForEntityType(entityType);
+
             // if the data property is required, add the appropriate styling and element
-            var requiredProperties = entityType.custom && entityType.custom.required;
-            if (requiredProperties && requiredProperties[info.propertyPath]) {
+            if (requiredProperties[info.propertyPath]) {
                 var reqHtml = config.zRequiredTemplate;
                 var reqEl = angular.element(reqHtml);
                 element.append(reqEl);
@@ -191,28 +227,14 @@
 
             element.hasSetRequired = true;  // don't set again
         }
-
     }
 
     /* Configure app to use zValidate
-    * 
-    * Call recordRequiredProperties to detect required properties and enable
-    * the "required" property indicator
     *
-    * May optionally configure breeze directive templates
+    *  Configure breeze directive templates
     *  
     *  zValidateTemplate: template for display of validation errors
     *  zRequiredTemplate: template for display of required property indicator
-    * 
-    *  recordRequiredProperties usage:
-    *      After acquiring the metadataStore, call recordRequiredProperties as follows
-    *      zDirectivesConfig.recordRequiredProperties(metadataStore);
-    *
-    *      If you use validators other than the stock 'required' validator that should
-    *      cause the required indicator to appear, supply those validator names 
-    *      in an optional string array parameter
-    *      zDirectivesConfig.recordRequiredProperties(
-    *          metadataStore, [requireReferenceValidator.name]);
     *
     *  Template configuarion usage:
     *      Either during the app's Angular config phase ...
@@ -229,7 +251,7 @@
     *              'So sad!!! %error%</span>';
     *      }]);
     */
-    module.provider('zDirectivesConfig', function () {
+    module.provider('zDirectivesConfig', function() {
         // The default zValidate template for display of validation errors
         this.zValidateTemplate =
             '<span class="invalid">%error%</span>';
@@ -239,39 +261,12 @@
         this.zRequiredTemplate =
             '<span class="icon-asterisk-invalid z-required" title="Required">*</span>';
 
-        this.$get = function () {
+        this.$get = function() {
             return {
-                recordRequiredProperties: recordRequiredProperties,
                 zValidateTemplate: this.zValidateTemplate,
                 zRequiredTemplate: this.zRequiredTemplate
             };
         };
-        
-        // Detects which properties are required and adds that fact
-        // to the info about each entity type in a metadataStore. 
-        // Call it once after loading or acquiring metadata.
-        // The `requiredValidators` param is an optional array of 
-        // custom required validator names that should be included in this calculation.
-        function recordRequiredProperties(metadataStore, requiredValidators) {
-            var valNames = ['required'].concat(requiredValidators || []).join('|');
-            var types = metadataStore.getEntityTypes();
-            types.forEach(function (type) {
-                if (type.custom && type.custom.required) { return; } // done already
-
-                if (!type.custom) { type.custom = {}; }
-                var required = {};
-                type.custom.required = required;
-                var props = type.getProperties();
-                props.forEach(function (prop) {
-                    var vals = prop.validators;
-                    for (var i = vals.length; i--;) {
-                        if (valNames.indexOf(vals[i].name) > -1) {
-                            required[prop.name] = true;
-                            break;
-                        }
-                    }
-                });
-            });
-        }
     });
+
 })();
