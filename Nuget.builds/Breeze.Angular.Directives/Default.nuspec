@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Angular.Directives</id>
-        <version>1.3.0</version>
+        <version>1.3.1</version>
         <title>Breeze Labs Angular Directives</title>
         <authors>Ward Bell</authors>
         <owners>Ward Bell</owners>
@@ -18,6 +18,6 @@
     </metadata>
     <files>
         <file src="content\content\breeze.directives.css" target="content\content\breeze.directives.css" />
-        <file src="..\Documents\GitHub\Breeze\Breeze.Client\Scripts\Labs\breeze.directives.validation.js" target="content\scripts\breeze.directives.validation.js" />
+        <file src="..\..\Breeze.Client\Scripts\Labs\breeze.directives.validation.js" target="content\scripts\breeze.directives.validation.js" />
     </files>
 </package>

@@ -1,7 +1,7 @@
 ﻿/* 
  * Breeze Angular directives
  *
- *  v.1.3
+ *  v.1.3.1
  *
  *  Usage:
  *     Make this module a dependency of your app module:
@@ -36,7 +36,7 @@
     *
     *   Required indicator applied if the bound data property
     *   has a required validator. A required validator is a validator 
-    *   which has an .isRequired == true property (or is named 'required')
+    *   which has an validator.context.isRequired == true property (or is named 'required')
     *   See private `getRequiredPropertiesForEntityType`
     *   
     *   Learn more at http://www.breezejs.com/breeze-labs/breezedirectivesvalidationjs
@@ -198,7 +198,7 @@
                 for (var i = vals.length; i--;) {
                     var val = vals[i];
                     // Todo: add the 'isRequired' property to breeze.Validator.required validator
-                    if (val.isRequired || val.name === 'required') {
+                    if (val.context.isRequired || val.name === 'required') {
                         required[prop.name] = true;
                         break;
                     }
