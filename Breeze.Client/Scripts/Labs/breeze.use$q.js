@@ -29,8 +29,7 @@
  */
 (function () {
     'use strict';
-
-    angular.module('breeze.use$q',[]).value('use$q', use$q);
+    angular.module('breeze.use$q', []).value('use$q', use$q);
 
     function use$q($q) {
 
@@ -44,6 +43,7 @@
         }
     }
 
+
     // Legacy. Support apps that followed old recommendation of adding to$q
     // to the end of Breeze methods that returned Q.js promises.
     // Althought harmless, we don't need or want it with this module. 
@@ -51,20 +51,14 @@
     // TODO: Deprecate as soon as we can. 
     function extendBreezeWith_to$q() {
 
-        // MetadataStore
-        var proto = breeze.MetadataStore.prototype;
-
-        var m_fetchMetadata = proto.fetchMetadata;
-        proto.fetchMetadata =
-            function () {
-                var promise = m_fetchMetadata.apply(this, arguments);
-                return extendWith_to$q(promise);
-            };
-
         // EntityManager
-        proto = breeze.EntityManager.prototype;
-
+        var proto = breeze.EntityManager.prototype;
         var executeQuery = proto.executeQuery;
+
+        if (-1 < executeQuery.toString().indexOf('extendWith_to$q')) {
+            return; // already extended Breeze
+        }
+
         proto.executeQuery =
             function () {
                 var promise = executeQuery.apply(this, arguments);
@@ -89,6 +83,15 @@
         proto.saveChanges =
             function () {
                 var promise = saveChanges.apply(this, arguments);
+                return extendWith_to$q(promise);
+            };
+
+        // MetadataStore
+        proto = breeze.MetadataStore.prototype;
+        var m_fetchMetadata = proto.fetchMetadata;
+        proto.fetchMetadata =
+            function () {
+                var promise = m_fetchMetadata.apply(this, arguments);
                 return extendWith_to$q(promise);
             };
 
