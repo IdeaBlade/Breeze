@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{htmlTitle}}</title>
+    <link rel="stylesheet" href="{{yuiGridsUrl}}">
+<!-- commenting out until beta goes live	<link rel="stylesheet" href="http://breezejs.com/sites/all/themes/omega/alpha/css/apha-reset.css"> 
+-->    
+	<link rel="stylesheet" href="{{projectAssets}}/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="{{projectAssets}}/css/main.css" id="site_styles">
+    <link rel="shortcut icon" type="image/png" href="{{projectAssets}}/favicon.png">
+    <script src="{{yuiSeedUrl}}"></script>
+	<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34729465-1']);
+  _gaq.push(['_setDomainName', 'breezejs.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+<body class="yui3-skin-sam">
+<script type="text/javascript">
+  var uvOptions = {};
+  (function() {
+    var uv = document.createElement('script'); uv.type = 'text/javascript'; uv.async = true;
+    uv.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'widget.uservoice.com/GHug452CgVREu58xjoDg.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
+  })();
+</script>
+<div id="wrap">
+
+<div id="doc">
+<div class="header">
+<div class="logo">
+	<a href="http://www.breezejs.com/home"><img src="http://www.breezejs.com/sites/all/themes/breeze/images/breeze_large.png" /></a>
+	</div>
+
+    <div class="primary-nav">
+<ul>
+		
+		<li>
+			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
+		<li>
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
+		<li>
+			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
+		<li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
+		<li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
+		<li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
+		<li>
+			<a href="http://www.breezejs.com/blog" target="_blank">Blog</a></li>				
+		
+	</ul>
+</div>
+</div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                {{>sidebar}}
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+            {{>options}}
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+                        {{>layout_content}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="primary-nav-foot">
+	<ul>
+		<li>
+			<a href="http://www.breezejs.com/documentation/download" target="_blank">Download</a></li>
+		<li>
+			<a href="http://learn.breezejs.com/" target="_blank">Tutorials</a></li>	
+		<li>
+			<a href="http://www.breezejs.com/documentation/introduction">Docs</a></li>
+		<li>
+			<a href="http://www.breezejs.com/samples">Samples</a></li>
+		<li>
+			<a href="http://www.breezejs.com/sites/all/apidocs/index.html" target="_blank">API</a></li>
+		<li>
+			<a href="http://stackoverflow.com/questions/tagged/breeze?sort=newest" target="_blank">Forum</a></li>
+		<li>
+			<a href="http://www.breezejs.com/support" target="_blank">Support</a></li>
+	</ul>
+</div>
+</div>
+</div>
+<script src="{{projectAssets}}/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="{{projectAssets}}/js/yui-prettify.js"></script>
+<script src="{{projectAssets}}/../api.js"></script>
+<script src="{{projectAssets}}/js/api-filter.js"></script>
+<script src="{{projectAssets}}/js/api-list.js"></script>
+<script src="{{projectAssets}}/js/api-search.js"></script>
+<script src="{{projectAssets}}/js/apidocs.js"></script>
+</body>
+</html>
