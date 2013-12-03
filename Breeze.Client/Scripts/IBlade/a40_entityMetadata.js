@@ -19,7 +19,16 @@ if (!Q) {
     Q.defer = Q.resolve = Q.reject = Q.fcall = Q;
 }
     
-// Extend config with a method to replace Q with an alternative implementation
+
+/**
+(Re)set Q with a promises implementation suitable for Breeze internal use  
+@method setQ
+@param q {Object} - a  "thenable" promises implementation like Q.js with the API that Breeze requires internally.
+@param [q.defer] {Function} A function returning a deferred.
+@param [q.resolve] {Function} A function returning a resolved promise.
+@param [q.reject] {Function} A function returning a rejected promise.
+@param [q.fcall] {Function} A function returning a resolved promise after calling a function parameter.
+**/
 breeze.config.setQ = function (q) { Q = q; }
 
 // TODO: still need to handle inheritence here.
