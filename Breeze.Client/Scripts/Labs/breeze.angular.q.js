@@ -13,13 +13,13 @@
  *
  * Install:
  *   1) load this script after the breeze script
- *   2) make your app module depend upon the 'breeze.use$q' module
+ *   2) make your app module depend upon the 'breeze.angular.q' module
  *   3) before calling any breeze async function, call use$q($q)
  *
  * ex:
  *   var app = angular.module('app', [
  *       // ... other dependencies ...
- *       'breeze.use$q' // tells breeze to use $q instead of Q.js
+ *       'breeze.angular.q' // tells breeze to use $q instead of Q.js
  *   ]);
  *   
  *   app.run(['$q','use$q', function ($q, use$q) {
@@ -29,17 +29,17 @@
  */
 (function () {
     'use strict';
-    angular.module('breeze.use$q', []).value('use$q', use$q);
+    angular.module('breeze.angular.q', []).value('use$q', use$q);
 
     function use$q($q) {
 
         if (breeze.config.setQ) {
             breeze.config.setQ($q);
-            $q.resolve = $q.fcall = $q.when;            
+            $q.resolve = $q.fcall = $q.when;  // add methods Breeze wants that $q lacks          
             extendBreezeWith_to$q(); // legacy
         } else {
             throw new Error(
-                'Cannot use this version of to$q with breeze.version=' + breeze.version);
+                'Cannot use this version of use$q with breeze.version=' + breeze.version);
         }
     }
 
