@@ -21,9 +21,10 @@ module.exports = function(grunt) {
   };
 
   var breezeRootDir = '../../';
-  var srcDir = "../Scripts/IBlade/";
-  var baseFileNames = [ "_head.jsfrag", "a??_*.js", "_tail.jsfrag"];
-  var fileNames = [ "_head.jsfrag", "a??_*.js", "b??_*.js", "_tail.jsfrag"];
+  var srcDir = '../Scripts/IBlade/';
+  var destDir = '../Scripts/';
+  var baseFileNames = [ '_head.jsfrag', 'a??_*.js', '_tail.jsfrag'];
+  var fileNames = [ '_head.jsfrag', 'a??_*.js', 'b??_*.js', '_tail.jsfrag'];
 
   
   // Project configuration.
@@ -35,11 +36,11 @@ module.exports = function(grunt) {
       },
       base: {
         src: mapPath(srcDir, baseFileNames),
-        dest: 'breeze.base.debug.js',
+        dest: destDir+'breeze.base.debug.js',
       },
       def: {
         src: mapPath(srcDir, fileNames),
-        dest: 'breeze.debug.js',
+        dest: destDir+'breeze.debug.js',
       }
     },
     uglify: {
@@ -47,14 +48,12 @@ module.exports = function(grunt) {
         report: 'min',
       },
       base: {
-        files: {
-          'breeze.min.js': ['breeze.debug.js']
-        }
+		src: [destDir+'breeze.debug.js'],
+        dest: destDir+'breeze.min.js'
       },
       def: {
-        files: {
-          'breeze.base.min.js': ['breeze.base.debug.js']
-        }
+        src: [destDir+'breeze.base.debug.js'],
+		dest: destDir+'breeze.base.min.js'
       },
     },
 	yuidoc: {
@@ -87,7 +86,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
-  grunt.loadNpmTasks('grunt-nodemon');
+  // grunt.loadNpmTasks('grunt-nodemon');
   // grunt.loadNpmTasks('grunt-execute');
   grunt.loadNpmTasks('grunt-shell');
   

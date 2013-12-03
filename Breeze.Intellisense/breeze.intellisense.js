@@ -1,4 +1,4 @@
-﻿// Generated on: Mon Dec 02 2013 18:01:34 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Tue Dec 03 2013 14:38:20 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1340,6 +1340,15 @@ intellisense.annotate(breeze.breeze.JsonResultsAdapter, {
 
 intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
   
+  'setQ': function() {
+    /// <signature>
+    ///   <summary>
+    ///   (Re)set Q with a promises implementation suitable for Breeze internal use }
+    ///   </summary>
+    ///   <param name="q" type="Object" optional="true">- a  'thenable' promises implementation like Q.js with the API that Breeze requires internally.</param>
+    
+    /// </signature>
+  },
   'setProperties': function() {
     /// <signature>
     ///   <summary>
@@ -2480,7 +2489,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   Exports an entire EntityManager or just selected entities into a serialized string for external storage. }
     ///   </summary>
     ///   <param name="entities" type="Array" elementType="entities" optional="true">The entities to export; all entities are exported if this is omitted or null</param>
-    ///   <param name="[includeMetadata" type="" optional="true">= true] Whether to include metadata in the export; the default is true</param>
+    ///   <param name="[includeMetadata" type="Boolean" optional="true">= true]  Whether to include metadata in the export; the default is true</param>
     ///   <returns type="String" >A serialized version of the exported data.</returns>
     /// </signature>
   },

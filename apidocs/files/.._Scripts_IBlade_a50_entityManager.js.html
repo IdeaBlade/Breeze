@@ -556,7 +556,7 @@ var EntityManager = (function () {
         em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
     @method exportEntities
     @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted or null
-    @param [includeMetadata = true] Whether to include metadata in the export; the default is true
+    @param [includeMetadata = true] {Boolean} Whether to include metadata in the export; the default is true
 
     @return {String} A serialized version of the exported data.
     **/

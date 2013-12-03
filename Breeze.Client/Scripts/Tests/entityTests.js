@@ -1025,10 +1025,11 @@
     });
 
     test("category default rowversion value", function () {
+
         em = newEm();
         var catType = em.metadataStore.getEntityType("Category");
         var cat = em.createEntity("Category");
-        ok(cat.getProperty("rowVersion") === 2);
+        ok(cat.getProperty("rowVersion") === 2, "This test is expected to fail with a CodeFirst model but suceed with DatabaseFirst model");
     });
 
     test("propertyChanged", function () {
