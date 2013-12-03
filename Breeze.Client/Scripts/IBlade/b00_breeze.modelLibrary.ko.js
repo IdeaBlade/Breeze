@@ -112,7 +112,9 @@
     }
 
     function getES5PropDescriptor(proto, propName) {
-        
+        if (!canIsolateES5Props()) {
+            return null;
+        }
         if (proto.hasOwnProperty(propName)) {
             return Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(proto, propName);
         } else {
