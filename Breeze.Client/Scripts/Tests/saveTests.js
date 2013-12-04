@@ -32,6 +32,30 @@
         teardown: function () { }
     });
 
+    test("pk update", function () {
+        var em = newEm();
+
+        var q = new EntityQuery("Territories").orderBy("territoryID desc").take(1);
+        stop();
+        var order;
+        var freight;
+        q.using(em).execute().then(function (data) {
+            ok(data.results.length === 1, "should be one result");
+            var terr = data.results[0];
+            var id = terr.getProperty("territoryID");
+            terr.setProperty("territoryID", id + 1);
+
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(false, "should not get here");
+            
+
+        }).fail(function (e) {
+            var isOk = e.message.indexOf("part of the entity's key") > 0;
+            ok(isOk, "error message should mention the entity key");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("exceptions thrown on server", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");

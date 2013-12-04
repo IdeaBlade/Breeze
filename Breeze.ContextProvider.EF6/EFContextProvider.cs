@@ -412,8 +412,12 @@ namespace Breeze.ContextProvider.EF6 {
               originalValuesRecord.SetValue(ordinal, originalValueConverted);
             }
           }
-        } catch (Exception) {
-          // this can happen for "custom" data entity properties.
+        } catch (Exception e) {
+          if (e.Message.Contains(" part of the entity's key")) {
+            throw;
+          } else {
+            // this can happen for "custom" data entity properties.
+          }
         }
       });
 
