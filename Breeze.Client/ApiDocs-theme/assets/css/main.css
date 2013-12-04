@@ -1,0 +1,1077 @@
+﻿/*
+Font sizes for all selectors other than the body are given in percentages,
+with 100% equal to 13px. To calculate a font size percentage, multiply the
+desired size in pixels by 7.6923076923.
+
+Here's a quick lookup table:
+
+10px - 76.923%
+11px - 84.615%
+12px - 92.308%
+13px - 100%
+14px - 107.692%
+15px - 115.385%
+16px - 123.077%
+17px - 130.769%
+18px - 138.462%
+19px - 146.154%
+20px - 153.846%
+*/
+
+html {
+  /* commenting out until beta goes live
+   background: url(http://www.breezejs.com/sites/all/themes/breeze/images/main-background.png) no-repeat center center fixed; 
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+	
+	*/
+	
+	background: url(http://www.breezejs.com/sites/all/themes/breeze/images/bodybackground.png) repeat-x; 
+	background-color: #f1f1f1;
+	}
+
+
+body {
+    font: 15px 'Segoe UI', 'Lucida Grande','Helvetica Neue',Helvetica,Arial,sans-serif;
+    margin: 0;
+    padding: 0;
+    color:#444444;
+    
+}
+
+/* -- Links ----------------------------------------------------------------- */
+a {
+    color: #379AD3;
+    text-decoration: none;
+}
+
+.hidden {
+    display: none;
+}
+
+a:hover { text-decoration: underline; }
+
+/* "Jump to Table of Contents" link is shown to assistive tools, but hidden from
+   sight until it's focused. */
+.jump {
+    position: absolute;
+    padding: 3px 6px;
+    left: -99999px;
+    top: 0;
+}
+
+.jump:focus { left: 40%; }
+
+/* -- Paragraphs ------------------------------------------------------------ */
+p { margin: 7px 0 7px 0; }
+dd p, td p { margin-bottom: 0; }
+dd p:first-child, td p:first-child { margin-top: 0; }
+
+/* -- Headings -------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+    color: #444444; /*was #f80*/
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight: bold;
+    line-height: 1.1;
+    margin: 15px 0 15px 0px; /*1.1em 0 0.5em*/
+}
+
+h1 {
+    font-size: 25px;
+    color: #444444;
+    margin: -15px 15px 15px 0px;
+    font-weight:bold;
+}
+
+h2 {
+    font-size: 25px;
+    color: #444444;
+    font-weight:bold;
+}
+
+h3 { font-size: 138.462%; }
+
+h4 {
+    border-bottom: 1px solid #DBDFEA;
+    color: #444444;
+    font-size: 115.385%;
+    font-weight: normal;
+    padding-bottom: 2px;
+    font-weight:normal;
+}
+
+h5, h6 { font-size: 107.692%; }
+
+
+
+/* -- Primary nav ----------------------------------------------------------- */
+
+.primary-nav  {font-size:16px; text-align:center; color:#2e2e2e; margin:0px 0px 15px 0px; font-weight:bold;font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;}
+
+.primary-nav li {display: inline; margin:0px 10px;}
+.primary-nav a {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:link {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:visited {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:active {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:hover {color: #2e2e2e; text-decoration: underline;}
+
+
+.primary-nav-foot  {font-size:20px; text-align:center;  color:#2e2e2e; }
+.primary-nav-foot li {display: inline; margin:0px 7px;}
+.primary-nav-foot a {color: #2e2e2e; text-decoration: none;}
+.primary-nav-foot a:link {color: #2e2e2e; text-decoration: none;}
+.primary-nav-foot a:visited {color: #2e2e2e; text-decoration: none;}
+.primary-nav-foot a:active {color: #2e2e2e; text-decoration: none;}
+.primary-nav-foot a:hover {color: #2e2e2e; text-decoration: underline;}
+
+
+
+/* -- Code and examples ----------------------------------------------------- */
+code, kbd, pre, samp {
+    font-family: Menlo, Monaco, 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Courier New', Courier, monospace;
+    font-size: 12px;
+    line-height: 15px;
+    margin-top:15px; /*was 105px*/
+
+   
+}
+
+p code, p kbd, p samp {
+    background: #FCFBFA;
+    border: 1px solid #EFEEED;
+    padding: 0 3px;
+}
+
+a code, a kbd, a samp,
+pre code, pre kbd, pre samp,
+table code, table kbd, table samp,
+.intro code, .intro kbd, .intro samp,
+.toc code, .toc kbd, .toc samp {
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+pre.code, pre.terminal, pre.cmd {
+    overflow-x: auto;
+    *overflow-x: scroll;
+    padding: 0.3em 0.6em;
+}
+
+pre.code {
+    
+    border: 1px solid #46ade8;
+    
+}
+
+pre.terminal, pre.cmd {
+    background: #F0EFFC;
+    border: 1px solid #D0CBFB;
+    border-left: 5px solid #D0CBFB;
+}
+
+/* Don't reduce the font size of <code>/<kbd>/<samp> elements inside <pre>
+   blocks. */
+pre code, pre kbd, pre samp { font-size: 100%; }
+
+/* Used to denote text that shouldn't be selectable, such as line numbers or
+   shell prompts. Guess which browser this doesn't work in. */
+.noselect {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+/* -- Lists ----------------------------------------------------------------- */
+dd { margin: 0.2em 0 0.7em 1em; }
+dl { margin: 1em 0; }
+dt { font-weight: bold; }
+
+/* -- Tables ---------------------------------------------------------------- */
+caption, th { text-align: left; }
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #fff;
+    padding: 5px 12px;
+    vertical-align: top;
+}
+
+td { background: #E6E9F5; }
+td dl { margin: 0; }
+td dl dl { margin: 1em 0; }
+td pre:first-child { margin-top: 0; }
+
+th {
+    background: #D2D7E6;/*#97A0BF*/
+    border-bottom: none;
+    border-top: none;
+    color: #000;/*#FFF1D5*/
+    font-family: 'Trebuchet MS', sans-serif;
+    font-weight: bold;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+
+/* -- Layout and Content ---------------------------------------------------- */
+#doc {
+    width:960px;
+	margin: 0 auto;
+}
+
+.content {
+    	margin:33px 8px 20px 5px;
+		padding:15px;
+		padding-left:30px;
+		background-color:transparent;
+		}
+
+.sidebar {
+    padding: 0 15px 0 10px;
+}
+#bd {
+    padding: 7px 0 130px;
+    position: relative;
+    width: 99%;
+}
+
+/* -- Table of Contents ----------------------------------------------------- */
+
+/* The #toc id refers to the single global table of contents, while the .toc
+   class refers to generic TOC lists that could be used throughout the page. */
+
+.toc code, .toc kbd, .toc samp { font-size: 100%; }
+.toc li { font-weight: bold; }
+.toc li li { font-weight: normal; }
+
+/* -- Intro and Example Boxes ----------------------------------------------- */
+/*
+.intro, .example { margin-bottom: 2em; }
+.example {
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    -moz-box-shadow: 0 0 5px #bfbfbf;
+    -webkit-box-shadow: 0 0 5px #bfbfbf;
+    box-shadow: 0 0 5px #bfbfbf;
+    padding: 1em;
+}
+.intro {
+    background: none repeat scroll 0 0 #F0F1F8; border: 1px solid #D4D8EB; padding: 0 1em;
+}
+*/
+
+/* -- Other Styles ---------------------------------------------------------- */
+
+/* These are probably YUI-specific, and should be moved out of Selleck's default
+   theme. */
+
+.button {
+    border: 1px solid #dadada;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    color: #444;
+    display: inline-block;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 92.308%;
+    font-weight: bold;
+    padding: 4px 13px 3px;
+    -moz-text-shadow: 1px 1px 0 #fff;
+    -webkit-text-shadow: 1px 1px 0 #fff;
+    text-shadow: 1px 1px 0 #fff;
+    white-space: nowrap;
+
+    background: #EFEFEF; /* old browsers */
+    background: -moz-linear-gradient(top, #f5f5f5 0%, #efefef 50%, #e5e5e5 51%, #dfdfdf 100%); /* firefox */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f5f5f5), color-stop(50%,#efefef), color-stop(51%,#e5e5e5), color-stop(100%,#dfdfdf)); /* webkit */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f5f5', endColorstr='#dfdfdf',GradientType=0 ); /* ie */
+}
+
+.button:hover {
+    border-color: #466899;
+    color: #fff;
+    text-decoration: none;
+    -moz-text-shadow: 1px 1px 0 #222;
+    -webkit-text-shadow: 1px 1px 0 #222;
+    text-shadow: 1px 1px 0 #222;
+
+    background: #6396D8; /* old browsers */
+    background: -moz-linear-gradient(top, #6396D8 0%, #5A83BC 50%, #547AB7 51%, #466899 100%); /* firefox */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#6396D8), color-stop(50%,#5A83BC), color-stop(51%,#547AB7), color-stop(100%,#466899)); /* webkit */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6396D8', endColorstr='#466899',GradientType=0 ); /* ie */
+}
+
+.newwindow { text-align: center; }
+
+.header .version em {
+    display: block;
+    text-align: right;
+}
+
+
+#classdocs .item {
+    border-bottom: 1px solid #46ade8;
+    margin: 1em 0;
+    padding: 0 15px 15px 15px;
+}
+
+#classdocs .item .params p,
+    #classdocs .item .returns p,{
+    display: inline;
+}
+
+#classdocs .item em code, #classdocs .item em.comment {
+    color: green;
+}
+
+#classdocs .item em.comment a {
+    color: green;
+    text-decoration: underline;
+}
+
+#classdocs .foundat {
+    font-size: 11px;
+    font-style: normal;
+}
+
+.attrs .emits {
+    margin-left: 2em;
+    padding: .5em;
+    border-left: 1px dashed #ccc;
+}
+
+abbr {
+    border-bottom: 1px dashed #ccc;
+    font-size: 80%;
+    cursor: help;
+}
+
+.prettyprint li.L0, 
+.prettyprint li.L1, 
+.prettyprint li.L2, 
+.prettyprint li.L3, 
+.prettyprint li.L5, 
+.prettyprint li.L6, 
+.prettyprint li.L7, 
+.prettyprint li.L8 {
+    list-style: decimal;
+}
+
+ul li p {
+    margin-top: 0;
+}
+
+.method .name {
+    font-size: 110%;
+}
+
+.apidocs .methods .extends .method,
+.apidocs .properties .extends .property,
+.apidocs .attrs .extends .attr,
+.apidocs .events .extends .event {
+    font-weight: bold;
+}
+
+.apidocs .methods .extends .inherited,
+.apidocs .properties .extends .inherited,
+.apidocs .attrs .extends .inherited,
+.apidocs .events .extends .inherited {
+    font-weight: normal;
+}
+
+#hd {
+    background: whiteSmoke;
+    background: -moz-linear-gradient(top,#DCDBD9 0,#F6F5F3 100%);
+    background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#DCDBD9),color-stop(100%,#F6F5F3));
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#dcdbd9',endColorstr='#F6F5F3',GradientType=0);
+    border-bottom: 1px solid #DFDFDF;
+    padding: 0 15px 1px 20px;
+    margin-bottom: 15px;
+}
+
+#hd img {
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+
+/* -- API Docs CSS ---------------------------------------------------------- */
+
+/*
+This file is organized so that more generic styles are nearer the top, and more
+specific styles are nearer the bottom of the file. This allows us to take full
+advantage of the cascade to avoid redundant style rules. Please respect this
+convention when making changes.
+*/
+
+/* -- Generic TabView styles ------------------------------------------------ */
+
+/*
+These styles apply to all API doc tabviews. To change styles only for a
+specific tabview, see the other sections below.
+*/
+
+.yui3-js-enabled .apidocs .tabview {
+    visibility: hidden; /* Hide until the TabView finishes rendering. */
+    visibility: visible;
+    
+}
+
+.apidocs .tabview.yui3-tabview-content { visibility: visible; }
+.apidocs .tabview .yui3-tabview-panel { background:transparent; }
+
+/* -- Generic Content Styles ------------------------------------------------ */
+
+/* Headings */
+h2, h3, h4, h5, h6 {
+    border: none;
+    color: #444444;
+    font-weight: bold;
+    text-decoration: none;
+    font-weight:bold;
+}
+
+#properties h2{
+	background:#46ade8;
+	color:#fff;
+	line-height:40px;
+	margin-top:0px;
+	margin-bottom:28px;
+	width:136px;
+	border:5px #46ade8 solid;
+	border-radius:0 0px 15px 15px;
+	display:none;
+}
+
+#methods h2{
+	background:#46ade8;
+	color:#fff;
+	line-height:40px;
+	margin-top:0px;
+	margin-bottom:28px;
+	width:144px;
+	border:5px #46ade8 solid;
+	border-radius:0 0px 15px 15px;
+	display:none;
+}
+
+#events h2{
+	background:#46ade8;
+	color:#fff;
+	line-height:40px;
+	margin-top:0px;
+	margin-bottom:28px;
+	width:136px;
+	border:5px #46ade8 solid;
+	border-radius:0 0px 15px 15px;
+	display:none;
+}
+
+
+#index h2{
+	background:#46ade8;
+	color:#fff;
+	line-height:40px;
+	margin-top:-15px;
+	margin-bottom:28px;
+	width:144px;
+	border:5px #46ade8 solid;
+	border-radius:0 0px 15px 15px;
+	display:none;
+}
+
+
+.link-docs {
+    float: right;
+    font-size: 15px;
+    margin: 4px 4px 6px;
+    padding: 6px 30px 5px;
+}
+
+.apidocs { zoom: 1; }
+
+/* Generic box styles. */
+.apidocs .box {margin:0px ;}
+    
+    
+/* A flag is a compact, capsule-like indicator of some kind. It's used to
+   indicate private and protected items, item return types, etc. in an
+   attractive and unobtrusive way. */
+.apidocs .flag {
+    background: #bababa;
+    border-radius: 3px;
+    color: #fff;
+    font-size: 11px;
+    margin: 0 0.5em;
+    padding: 2px 4px 1px;
+}
+
+/* Class/module metadata such as "Uses", "Extends", "Defined in", etc. */
+.apidocs .meta {
+    background: transparent;
+    color: #444444;
+    font-size: 15px;
+    padding: 15px 15px 15px 0px;
+}
+
+.apidocs .meta p { margin: 15px 0 0 15px; }
+.apidocs .meta p code {
+	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+
+}
+
+/* Deprecation warning. */
+.apidocs .box.deprecated,
+.apidocs .flag.deprecated {
+    background: transparent;
+    border: 5px solid #46ade8;
+}
+
+.apidocs .box.deprecated p { margin: 0.5em 0; }
+.apidocs .flag.deprecated { color: #333; }
+
+/* Module/Class intro description. */
+.apidocs .intro {
+    background: transparent;
+    border-color: #46ade8;
+}
+
+/* Loading spinners. */
+#bd.loading .apidocs,
+#api-list.loading .yui3-tabview-panel {
+    background: transparent url(../img/spinner.gif) no-repeat center 70px;
+    min-height: 150px;
+}
+
+#bd.loading .apidocs .content,
+#api-list.loading .yui3-tabview-panel .apis {
+    display: none;
+}
+
+.apidocs .no-visible-items { color: #666; }
+
+/* Generic inline list. */
+.apidocs ul.inline {
+    display: inline;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.apidocs ul.inline li { display: inline; }
+
+/* Comma-separated list. */
+.apidocs ul.commas li:after { content: ','; }
+.apidocs ul.commas li:last-child:after { content: ''; }
+
+/* Keyboard shortcuts. */
+kbd .cmd { font-family: Monaco, Helvetica; }
+
+/* -- Generic Access Level styles ------------------------------------------- */
+.apidocs .item.protected,
+.apidocs .item.private,
+.apidocs .index-item.protected,
+.apidocs .index-item.deprecated,
+.apidocs .index-item.private {
+    display: none;
+}
+
+.show-deprecated .item.deprecated,
+.show-deprecated .index-item.deprecated,
+.show-protected .item.protected,
+.show-protected .index-item.protected,
+.show-private .item.private,
+.show-private .index-item.private {
+    display: block;
+}
+
+.hide-inherited .item.inherited,
+.hide-inherited .index-item.inherited {
+    display: none;
+}
+
+/* -- Generic Item Index styles --------------------------------------------- */
+.apidocs .index { margin: 15px 0 3em; } /*1.5em 0 3em */
+
+.apidocs .index h3 {
+    border-bottom: 1px solid #46ade8;
+    color: #333;
+    font-size: 15px;
+    margin: 15px 0 0.6em; /* 2em 0 0.6em */
+    padding-bottom: 2px;
+}
+
+.apidocs .index .no-visible-items { margin-top: 2em; }
+
+.apidocs .index-list {
+    border-color: #efefef;
+    font-size: 13px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    -moz-column-count: 4;
+    -moz-column-gap: 10px;
+    -moz-column-width: 170px;
+    -ms-column-count: 4;
+    -ms-column-gap: 10px;
+    -ms-column-width: 170px;
+    -o-column-count: 4;
+    -o-column-gap: 10px;
+    -o-column-width: 170px;
+    -webkit-column-count: 4;
+    -webkit-column-gap: 10px;
+    -webkit-column-width: 170px;
+    column-count: 4;
+    column-gap: 10px;
+    column-width: 170px;
+}
+
+.apidocs .no-columns .index-list {
+    -moz-column-count: 1;
+    -ms-column-count: 1;
+    -o-column-count: 1;
+    -webkit-column-count: 1;
+    column-count: 1;
+}
+
+.apidocs .index-item { white-space: nowrap; }
+
+.apidocs .index-item .flag {
+    background: none;
+    border: none;
+    color: #afafaf;
+    display: inline;
+    margin: 0 0 0 0.2em;
+    padding: 0;
+}
+
+/* -- Generic API item styles ----------------------------------------------- */
+.apidocs .args {
+    display: inline;
+    margin: 0 0.0 0;
+    font-size:22px;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+ .paren {
+	font-size:22px;
+}
+
+
+li.arg code {
+	font-size:22px;
+	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+#methods .returns-inline .type {display:none;}
+
+.apidocs .flag.chainable { background: #46ca3b; }
+.apidocs .flag.protected { background: #9b86fc; }
+.apidocs .flag.private { background: #fd6b1b; }
+.apidocs .flag.async { background: #356de4; }
+.apidocs .flag.required { background: #e60923; }
+
+.apidocs .item {
+    border-bottom: 1px solid #efefef;
+    margin: 1.5em 0 2em;
+    padding-bottom: 2em;
+}
+
+.apidocs .item h4,
+.apidocs .item h5,
+.apidocs .item h6 {
+    color: #444;
+    font-size: 100%;
+}
+
+.apidocs .item h4{
+	font-size:15px;
+	font-weight:bold;
+	margin-right:15px;
+	margin-left:15px;
+}
+
+.returns-description {
+	margin-left:45px;
+}
+
+.apidocs .item .description p,
+.apidocs .item pre.code {
+    margin: 15px 0 15px 15px;
+}
+
+.apidocs .item .meta {
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.apidocs .item .name {
+    display: inline;
+    font-size: 15px;
+    margin:25px 0 25px 15px;
+}
+
+.apidocs .item .name code {
+    display: inline;
+    font-size: 22px;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    margin:22px 0px 0px -30px;
+    
+ 
+}
+
+
+
+.apidocs .item .type,
+.apidocs .item .type a,
+.apidocs .returns-inline {
+    color: #555;
+}
+
+.apidocs .item .type,
+.apidocs .returns-inline {
+    font-size: 11px;
+    margin: 0 0 0 0;
+}
+
+.apidocs .item .type a { border-bottom: 1px dotted #afafaf; }
+.apidocs .item .type a:hover { border: none; }
+
+/* -- Item Parameter List --------------------------------------------------- */
+.apidocs .params-list {
+    list-style: disc;
+    margin: 0 0 0 45px; /*1em 0 0 2em */
+    padding: 0;
+}
+
+
+.apidocs .param { margin-bottom: 0px; }
+
+.apidocs .param .type,
+.apidocs .param .type a {
+    color: #666;
+}
+
+.apidocs .param .type {
+    margin: 0 0 0 0.5em;
+    *margin-left: 0.5em;
+}
+
+.apidocs .param-name, 
+.apidocs .param-name.optional { 
+	font-weight:bold;
+								}
+
+
+/* -- Item "Emits" block ---------------------------------------------------- */
+.apidocs .item .emits {
+    background: #f9f9f9;
+    border-color: #eaeaea;
+}
+
+/* -- Item "Returns" block -------------------------------------------------- */
+.apidocs .item .returns .type,
+.apidocs .item .returns .type a {
+    font-size: 100%;
+    margin: 0;
+}
+
+/* -- Class Constructor block ----------------------------------------------- */
+.apidocs .constructor .item {
+    border: none;
+    padding-bottom: 0;
+    margin-left:15px;
+}
+
+/* -- File Source View ------------------------------------------------------ */
+.apidocs .file pre.code,
+#doc .apidocs .file pre.prettyprint {
+    
+    
+    overflow-x: visible;
+    overflow-y: hidden;
+    padding: 0px 15px 0px 20px;
+    margin: 40px 50px 0px -20px;
+    
+    position:absolute;
+    background-color:transparent;
+			
+    
+    
+}
+
+.apidocs .L0,
+.apidocs .L1,
+.apidocs .L2,
+.apidocs .L3,
+.apidocs .L4,
+.apidocs .L5,
+.apidocs .L6,
+.apidocs .L7,
+.apidocs .L8,
+.apidocs .L9 {
+    background: inherit;
+}
+
+/* -- Submodule List -------------------------------------------------------- */
+.apidocs .module-submodule-description {
+    font-size: 12px;
+    margin: 0.3em 0 1em;
+}
+
+.apidocs .module-submodule-description p:first-child { margin-top: 0; }
+
+/* -- Sidebar TabView ------------------------------------------------------- */
+#api-tabview { margin-top: 0.6em; }
+
+#api-tabview-filter,
+#api-tabview-panel {
+    border: 0; 
+    background:transparent;
+   
+}
+
+#api-tabview-filter {
+    	border:0;
+}
+
+#api-tabview-panel { 
+		border:0;
+ }
+#api-filter { margin-top: 5px; width:90%; }
+
+/* -- Content TabView ------------------------------------------------------- */
+#classdocs .yui3-tabview-panel { 
+			padding:0px 15px 0px 0px;
+			border:0px;
+			}
+
+/* -- Source File Contents -------------------------------------------------- */
+.prettyprint li.L0,
+.prettyprint li.L1,
+.prettyprint li.L2,
+.prettyprint li.L3,
+.prettyprint li.L5,
+.prettyprint li.L6,
+.prettyprint li.L7,
+.prettyprint li.L8 {
+    list-style: decimal;
+}
+
+/* -- API options ----------------------------------------------------------- */
+#api-options {
+    font-size: 15px;
+    margin-top: 70px;
+    margin-left:35px;
+    margin-bottom:15px;
+    position: absolute;
+    color:#444444;
+    
+}
+
+/*#api-options label { margin-right: 0.6em; }*/
+
+/* -- API list -------------------------------------------------------------- */
+#api-list {
+    margin:33px 0px 20px 0px;
+		padding-left:15px;
+		background-color:transparent;
+ 		/* border-right: 2px inset  #aec2cb; */
+ 		width:225px;
+		}
+		
+#api-list h2{margin-top:20px;}
+		
+.apis {
+    font-size: 15px;
+    line-height: 1.4;
+    list-style: none;
+    margin: 0;
+    padding: 15px 0px;
+}
+
+.apis a {
+    border: 1px solid transparent;
+    display: block;
+    margin: 0 0 0 -4px;
+    padding: 1px 4px 0;
+    text-decoration: none;
+    _border: none;
+    _display: inline;
+ }
+ 
+
+.apis a:hover,
+.apis a:focus {
+    background: #E8EDFC;
+    background: -moz-linear-gradient(top, #e8edfc 0%, #becef7 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#E8EDFC), color-stop(100%,#BECEF7));
+    border-color: #AAC0FA;
+    border-radius: 3px;
+    color: #333;
+    outline: none;
+}
+
+.api-list-item a:hover,
+.api-list-item a:focus {
+    font-weight: bold;
+    text-shadow: 1px 1px 1px #fff;
+}
+
+.apis .message { color: #888; }
+.apis .result a { padding: 3px 5px 2px; }
+
+.apis .result .type {
+    right: 4px;
+    top: 7px;
+}
+
+.api-list-item .yui3-highlight {
+    font-weight: bold;
+}
+
+
+/* replicating global.css in the api environment */
+
+/* Primary nav */
+.primary-nav  {
+		font-size:16px; 
+		text-align:right; 
+		color:#2e2e2e;
+		margin-top:-60px;
+		margin-right:10px;
+		font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+		}
+
+.primary-nav li {display: inline; margin:0px 10px;}
+.primary-nav a {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:link {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:visited {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:active {color: #2e2e2e; text-decoration: none;}
+.primary-nav a:hover {color: #2e2e2e; text-decoration: underline;}
+
+
+
+.primary-nav-foot  {
+		font-size:100%; 
+		text-align:right;  
+		margin-right: 48px;
+		padding-top:1px;
+		color:#444444;
+		}
+
+.primary-nav-foot li {display: inline; margin:0px 7px;}
+.primary-nav-foot a {color: #444444; text-decoration: none;}
+.primary-nav-foot a:link {color: #444444; text-decoration: none;}
+.primary-nav-foot a:visited {color: #444444; text-decoration: none;}
+.primary-nav-foot a:active {color: #444444; text-decoration: none;}
+.primary-nav-foot a:hover {color: #444444; text-decoration: underline;}
+
+
+/* Logo */
+.logo img {
+		text-align:left;
+		padding:10px 0px 0 10px;
+		border:0px;
+		width:150px;
+		}
+/*
+.logo a { text-decoration: none;}
+.logo a:link { text-decoration: none;}
+.logo a:visited { text-decoration: none;}
+.logo a:active { text-decoration: none;}
+.logo a:hover  { text-decoration: none;}
+*/
+
+.header {background:#fff; height:60px; padding:0px 2005px; margin:0px -2000px 0px -2000px;}
+
+/*Index*/
+.index-body {margin-top:105px;}
+
+/* a bit of responsivity for large screen readers */
+@media all and (min-width: 1200px) 
+{
+	#doc {width:1200px;}
+	
+	.content {width:97%; margin:20px 1.5% 20px -1.5%;}
+	#api-list {width:83%; margin:22px 51px 20px 2%;}
+	
+	#api-options {margin-top: 58px; margin-left:17px; margin-bottom:15px; }
+	
+}
+
+@media all and (min-width: 1600px) 
+{
+	#doc {width:1600px;}
+	
+	.content {width:98.2%; margin:20px 1.5% 20px -1.5%;}
+	#api-list {width:83%; margin:22px 51px 20px 2%;}
+	
+	#api-options {margin-top: 58px; margin-left:13px; margin-bottom:15px; }
+	
+}
+
+/* Button reskin */
+.yui3-tab-panel{display:none}
+.yui3-tab-panel-selected{display:block}
+.yui3-tabview-list,.yui3-tab{margin:0;padding:0;list-style:none}
+.yui3-tabview{position:relative}
+.yui3-tabview,.yui3-tabview-list,.yui3-tabview-panel,.yui3-tab,.yui3-tab-panel{zoom:1}
+.yui3-tab{display:inline-block;*display:inline;vertical-align:bottom;cursor:pointer}
+.yui3-tab-label{display:block;display:inline-block;padding:6px 10px;position:relative;text-decoration:none;vertical-align:bottom}
+
+
+.yui3-skin-sam .yui3-tabview-list {
+	border:solid #46ade8;	
+	border-width:0 0 5px;	
+	}
+
+
+.yui3-skin-sam .yui3-tab{margin:0 .2em 0 0;padding:1px 0 0;zoom:1}
+.yui3-skin-sam .yui3-tab-selected{margin-bottom:-1px}
+
+.yui3-skin-sam .yui3-tab-label {
+	border: 1px solid #d8d8d8;		
+	border-bottom: 0 ;	
+	border-radius: 15px 15px 0px 0px;	
+	background: #d8d8d8;	
+	color:#000;
+	cursor:pointer;
+	font-size:15px;	
+	padding:.3em .75em;
+	text-decoration:none;
+	}
+
+.yui3-skin-sam .yui3-tab-label:hover,.yui3-skin-sam .yui3-tab-label:focus {
+	background:#7ad2f8;	
+	outline:0;
+}
+
+.yui3-skin-sam .yui3-tab-selected .yui3-tab-label,.yui3-skin-sam .yui3-tab-selected .yui3-tab-label:focus,.yui3-skin-sam .yui3-tab-selected .yui3-tab-label:hover {
+	background:#46ade8 ; 	
+	color:#fff;				
+}
+
+.yui3-skin-sam .yui3-tab-selected .yui3-tab-label{padding:.4em .75em}
+
+.yui3-skin-sam .yui3-tab-selected .yui3-tab-label{ 
+	border: 5px solid #46ade8;		
+	border-radius: 15px 15px 0px 0px;	
+	border-bottom:0px; 				
+	} 
+
+.yui3-skin-sam .yui3-tabview-panel{background:#edf5ff}
+.yui3-skin-sam .yui3-tabview-panel{border:1px solid #808080;border-top-color:#243356;padding:.25em .5em}
+#yui3-css-stamp.skin-sam-tabview{display:none}
+

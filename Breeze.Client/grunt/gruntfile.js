@@ -56,15 +56,15 @@ module.exports = function(grunt) {
 		dest: destDir+'breeze.base.min.js'
       },
     },
-	yuidoc: {
+    yuidoc: {
       compile: {
         options: {
           paths:     srcDir,
-          themedir:  srcDir+'apidoc-theme/breeze',
-          outdir:    breezeRootDir + 'apidocs'
+          themedir:  '../ApiDocs-theme',
+          outdir:    '../ApiDocs'
         }
       }
-	},
+    },
     shell: {                             
       options: {
         stdout: true,
@@ -74,7 +74,7 @@ module.exports = function(grunt) {
       buildIntellisense: {                     
         options: {
           execOptions: {
-            cwd: breezeRootDir + 'Breeze.Intellisense',
+            cwd: '../Intellisense',
           }
         },
 		command: 'node server.js'
@@ -86,12 +86,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
-  // grunt.loadNpmTasks('grunt-nodemon');
-  // grunt.loadNpmTasks('grunt-execute');
   grunt.loadNpmTasks('grunt-shell');
   
-  
-  
+  // No intellisense.
+  grunt.registerTask('basic', ['concat', 'uglify', 'yuidoc']);
   // Default task(s).
   grunt.registerTask('default', ['concat', 'uglify', 'yuidoc', 'shell']);
   
