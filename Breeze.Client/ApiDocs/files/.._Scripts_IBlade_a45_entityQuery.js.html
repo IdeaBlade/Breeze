@@ -241,6 +241,7 @@ var EntityQuery = (function () {
         this.expandClause = null;
         this.parameters = {};
         this.inlineCountEnabled = false;
+        this.noTrackingEnabled = false;
         // default is to get queryOptions and dataService from the entityManager.
         // this.queryOptions = new QueryOptions();
         // this.dataService = new DataService();
@@ -1014,6 +1015,7 @@ var EntityQuery = (function () {
             &quot;takeCount&quot;,
             &quot;expandClause&quot;,
             &quot;inlineCountEnabled&quot;,
+            &quot;noTrackingEnabled&quot;,
             &quot;queryOptions&quot;, 
             &quot;entityManager&quot;,
             &quot;dataService&quot;,

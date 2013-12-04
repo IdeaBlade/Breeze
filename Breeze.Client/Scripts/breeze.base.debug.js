@@ -9153,6 +9153,7 @@ var EntityQuery = (function () {
         this.expandClause = null;
         this.parameters = {};
         this.inlineCountEnabled = false;
+        this.noTrackingEnabled = false;
         // default is to get queryOptions and dataService from the entityManager.
         // this.queryOptions = new QueryOptions();
         // this.dataService = new DataService();
@@ -9926,6 +9927,7 @@ var EntityQuery = (function () {
             "takeCount",
             "expandClause",
             "inlineCountEnabled",
+            "noTrackingEnabled",
             "queryOptions", 
             "entityManager",
             "dataService",
