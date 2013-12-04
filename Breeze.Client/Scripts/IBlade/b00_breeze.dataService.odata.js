@@ -216,7 +216,7 @@
             var request = { headers: { "Content-ID": id, "DataServiceVersion": "2.0" } };
             contentKeys[id] = entity;
             if (aspect.entityState.isAdded()) {
-                request.requestUri = entity.entityType.defaultResourceName;
+                request.requestUri = prefix + entity.entityType.defaultResourceName;
                 request.method = "POST";
                 request.data = helper.unwrapInstance(entity, transformValue);
                 tempKeys[id] = aspect.getKey();
@@ -246,9 +246,6 @@
     function updateDeleteMergeRequest(request, aspect, prefix) {
         var extraMetadata = aspect.extraMetadata;
         var uri = extraMetadata.uri || extraMetadata.id;
-        if (__stringStartsWith(uri, prefix)) {
-            uri = uri.substring(prefix.length);
-        }
         request.requestUri = uri;
         if (extraMetadata.etag) {
             request.headers["If-Match"] = extraMetadata.etag;
