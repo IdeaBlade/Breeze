@@ -1,24 +1,45 @@
 module.exports = function(grunt) {
 
   var path = require('path');
-
-  var srcDir = '../Samples/';
-  var msBuild = 'C:/Windows/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe '
+  
+  var msBuild = 'C:/Windows/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe ';
+  var msBuildOptions = '/p:Configuration=Release /verbosity:minimal';
+  
+  var samplesDir = '../Samples/';
+  var solutionNames = [
+          'DocCode',
+          'ToDo',
+          'ToDo-Angular',
+          'ToDo-AngularWithDI',
+          'ToDo-Require',
+          'NoDb',
+          'CarBones',
+          'Edmunds',
+          'TempHire'
+        ];
+        
 	 
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
   	
 	  msBuild: {
-      solutions: {
-        cwd: srcDir,
-        msBuildOptions: '/p:Configuration=Release /verbosity:minimal',
-        solutionNames: ['DocCode', 'ToDo'],
+      breezeClient: {
+        cwd: '../',
+        msBuildOptions: msBuildOptions,
+        solutionNames: ['Breeze-Build']
       },
+      samples: {
+        cwd: samplesDir,
+        hasSolutionFolder: true,
+        msBuildOptions: msBuildOptions,
+        solutionNames: solutionNames,
+      },
+    
     },
   });
 
-  
+
   grunt.loadNpmTasks('grunt-exec');
   
   grunt.registerMultiTask('msBuild', 'Execute MsBuild', function( ) {
@@ -42,8 +63,9 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['msBuild']);
 
   function getMsBuildProps(solutionName, config, opt) {
+     //solutionName = grunt.config.escape(solutionName);
      return {
-		    cwd: config.cwd + solutionName,
+		    cwd: config.hasSolutionFolder ? (config.cwd + solutionName) : config.cwd,
 			  cmd: msBuild + '"' + solutionName + '.sln" ' + config.msBuildOptions + ' /t:' + opt
 		  };
   }

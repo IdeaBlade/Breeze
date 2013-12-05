@@ -1,4 +1,4 @@
-﻿// Generated on: Sat Nov 23 2013 18:25:44 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Wed Dec 04 2013 21:00:09 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1340,6 +1340,15 @@ intellisense.annotate(breeze.breeze.JsonResultsAdapter, {
 
 intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
   
+  'setQ': function() {
+    /// <signature>
+    ///   <summary>
+    ///   (Re)set Q with a promises implementation suitable for Breeze internal use }
+    ///   </summary>
+    ///   <param name="q" type="Object" optional="true">- a  'thenable' promises implementation like Q.js with the API that Breeze requires internally.</param>
+    
+    /// </signature>
+  },
   'setProperties': function() {
     /// <signature>
     ///   <summary>
@@ -2480,7 +2489,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   Exports an entire EntityManager or just selected entities into a serialized string for external storage. }
     ///   </summary>
     ///   <param name="entities" type="Array" elementType="entities" optional="true">The entities to export; all entities are exported if this is omitted or null</param>
-    ///   <param name="[includeMetadata" type="" optional="true">= true] Whether to include metadata in the export; the default is true</param>
+    ///   <param name="[includeMetadata" type="Boolean" optional="true">= true]  Whether to include metadata in the export; the default is true</param>
     ///   <returns type="String" >A serialized version of the exported data.</returns>
     /// </signature>
   },
@@ -2491,6 +2500,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   </summary>
     ///   <param name="exportedString" type="String|Json" optional="true">The result of a previous 'export' call.</param>
     ///   <param name="config" type="Object" optional="true">A configuration object.</param>
+    ///   <param name="[config.metadataVersionFn}" type="Function" optional="true">A function that takes two arguments ( the current metadataVersion and the imported store's 'name'}      and may be used to perform version checking.</param>
     ///   <returns type="Object" >result  </returns>
     /// </signature>
   },
@@ -2719,6 +2729,7 @@ intellisense.annotate(breeze.breeze.EntityManager, {
     ///   </summary>
     ///   <param name="exportedString" type="String" optional="true">The result of a previous 'exportEntities' call.</param>
     ///   <param name="config" type="Object" optional="true">A configuration object.</param>
+    ///   <param name="[config.metadataVersionFn}" type="Function" optional="true">A function that takes two arguments ( the current metadataVersion and the imported store's 'name'}      and may be used to perform version checking.</param>
     ///   <returns type="breeze.breeze.EntityManager >A new EntityManager.  Note that the return value of this method call is different from that  provided by the same named method on an EntityManager instance. Use that method if you need additional information regarding the imported entities.</returns>
     /// </signature>
   },
