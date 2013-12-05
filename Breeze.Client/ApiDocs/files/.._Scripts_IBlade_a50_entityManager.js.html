@@ -2143,10 +2143,8 @@ var EntityManager = (function () {
             }
             
             if (queryOptions.fetchStrategy === FetchStrategy.FromLocalCache) {
-                return Q.fcall(function () {
-                    var results = em.executeQueryLocally(query);
-                    return { results: results, query: query };
-                });
+                var results = em.executeQueryLocally(query);
+                return Q.resolve({ results: results, query: query });
             }
 
 

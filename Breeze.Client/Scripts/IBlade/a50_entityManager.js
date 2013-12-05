@@ -1936,12 +1936,13 @@ var EntityManager = (function () {
             }
             
             if (queryOptions.fetchStrategy === FetchStrategy.FromLocalCache) {
-                return Q.fcall(function () {
+                try {
                     var results = em.executeQueryLocally(query);
-                    return { results: results, query: query };
-                });
+                    return Q.resolve({ results: results, query: query });
+                } catch(e) {
+                    return Q.reject(e);
+                }
             }
-
 
             var mappingContext = new MappingContext({
                     query: query,

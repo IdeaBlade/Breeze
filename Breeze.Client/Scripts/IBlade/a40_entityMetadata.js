@@ -16,7 +16,7 @@ if (!Q) {
     }
     
     // all Q methods called by Breeze should fail
-    Q.defer = Q.resolve = Q.reject = Q.fcall = Q;
+    Q.defer = Q.resolve = Q.reject = Q;
 }
     
 
@@ -27,7 +27,6 @@ if (!Q) {
 @param [q.defer] {Function} A function returning a deferred.
 @param [q.resolve] {Function} A function returning a resolved promise.
 @param [q.reject] {Function} A function returning a rejected promise.
-@param [q.fcall] {Function} A function returning a resolved promise after calling a function parameter.
 **/
 breeze.config.setQ = function (q) { Q = q; }
 

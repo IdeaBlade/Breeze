@@ -35,7 +35,7 @@
 
         if (breeze.config.setQ) {
             breeze.config.setQ($q);
-            $q.resolve = $q.fcall = $q.when;  // add methods Breeze wants that $q lacks          
+            $q.resolve = $q.when;  // add methods Breeze wants that $q lacks          
             extendBreezeWith_to$q(); // legacy
         } else {
             throw new Error(

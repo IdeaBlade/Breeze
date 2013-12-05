@@ -3748,12 +3748,6 @@
                             "description": "A function returning a rejected promise.",
                             "type": "Function",
                             "optional": true
-                        },
-                        {
-                            "name": "fcall",
-                            "description": "A function returning a resolved promise after calling a function parameter.",
-                            "type": "Function",
-                            "optional": true
                         }
                     ]
                 }
