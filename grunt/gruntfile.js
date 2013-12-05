@@ -47,7 +47,11 @@ module.exports = function(grunt) {
       },
     },
     clean: {
-    
+        options: {
+        // "no-write": true,
+        force: true,
+      },
+      samples: ['../Samples/**/packages']      
     },
     nugetUpdate: {
       samples: {
@@ -102,7 +106,7 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-exec');  
    
-  grunt.registerTask('default', ['nugetUpdate', 'msBuild']);
+  grunt.registerTask('default', ['nugetUpdate', 'clean', 'msBuild']);
   
   function configNugetInstallProps(solutionFileName, config ) {
     
