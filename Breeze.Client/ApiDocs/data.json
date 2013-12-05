@@ -728,7 +728,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1215,
+            "line": 1212,
             "description": "FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink \"Predicate\"}}{{/crossLink}} \nfilter operators for an {{#crossLink \"EntityQuery\"}}{{/crossLink}}.",
             "static": 1
         },
@@ -743,7 +743,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1359,
+            "line": 1356,
             "description": "Used to define a 'where' predicate for an EntityQuery.  Predicates are immutable, which means that any\nmethod that would modify a Predicate actually returns a new Predicate."
         },
         "MergeStrategy": {
@@ -6394,7 +6394,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1223,
+            "line": 1220,
             "description": "Aliases: \"eq\", \"==\"",
             "itemtype": "property",
             "name": "Equals",
@@ -6406,7 +6406,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1230,
+            "line": 1227,
             "description": "Aliases: \"ne\", \"!=\"",
             "itemtype": "property",
             "name": "NotEquals",
@@ -6418,7 +6418,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1237,
+            "line": 1234,
             "description": "Aliases: \"gt\", \">\"",
             "itemtype": "property",
             "name": "GreaterThan",
@@ -6430,7 +6430,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1244,
+            "line": 1241,
             "description": "Aliases: \"lt\", \"<\"",
             "itemtype": "property",
             "name": "LessThan",
@@ -6442,7 +6442,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1251,
+            "line": 1248,
             "description": "Aliases: \"ge\", \">=\"",
             "itemtype": "property",
             "name": "GreaterThanOrEqual",
@@ -6454,7 +6454,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1258,
+            "line": 1255,
             "description": "Aliases: \"le\", \"<=\"",
             "itemtype": "property",
             "name": "LessThanOrEqual",
@@ -6466,7 +6466,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1265,
+            "line": 1262,
             "description": "String operation: Is a string a substring of another string.\nAliases: \"substringof\"",
             "itemtype": "property",
             "name": "Contains",
@@ -6478,7 +6478,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1273,
+            "line": 1270,
             "itemtype": "property",
             "name": "StartsWith",
             "type": "FilterQueryOp",
@@ -6489,7 +6489,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1279,
+            "line": 1276,
             "itemtype": "property",
             "name": "EndsWith",
             "type": "FilterQueryOp",
@@ -6500,7 +6500,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1286,
+            "line": 1283,
             "description": "Aliases: \"some\"",
             "itemtype": "property",
             "name": "Any",
@@ -6512,7 +6512,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1294,
+            "line": 1291,
             "description": "Aliases: \"every\"",
             "itemtype": "property",
             "name": "All",
@@ -6524,7 +6524,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1365,
+            "line": 1362,
             "description": "Predicate constructor",
             "example": [
                 "\n    var p1 = new Predicate(\"CompanyName\", \"StartsWith\", \"B\");\n    var query = new EntityQuery(\"Customers\").where(p1);\nor ",
@@ -6554,7 +6554,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1409,
+            "line": 1406,
             "description": "Creates a new 'simple' Predicate.  Note that this method can also take its parameters as an array.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\nor parameters can be passed as an array.",
@@ -6586,7 +6586,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1436,
+            "line": 1433,
             "description": "Creates a 'composite' Predicate by 'and'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.and(p1, p2, p3);\nor",
@@ -6608,7 +6608,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1463,
+            "line": 1460,
             "description": "Creates a 'composite' Predicate by 'or'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.or(p1, p2, p3);\nor",
@@ -6630,7 +6630,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1490,
+            "line": 1487,
             "description": "Creates a 'composite' Predicate by 'negating' a specified predicate.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = Predicate.not(p1);\nThis can also be accomplished using the 'instance' version of the 'not' method",
@@ -6652,7 +6652,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1509,
+            "line": 1506,
             "description": "'And's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.and(p2, p3);\nor",
@@ -6674,7 +6674,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1534,
+            "line": 1531,
             "description": "'Or's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.or(p2, p3);\nor",
@@ -6696,7 +6696,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1559,
+            "line": 1556,
             "description": "Returns the 'negated' version of this Predicate",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = p1.not();\nThis can also be accomplished using the 'static' version of the 'not' method",
@@ -6710,7 +6710,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1579,
+            "line": 1576,
             "description": "Returns the function that will be used to execute this Predicate against the local cache.",
             "itemtype": "method",
             "name": "toFunction",
@@ -6723,7 +6723,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1585,
+            "line": 1582,
             "description": "Returns a human readable string for this Predicate.",
             "itemtype": "method",
             "name": "toString",
@@ -6736,7 +6736,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1591,
+            "line": 1588,
             "description": "Determines whether this Predicate is 'valid' for the specified EntityType; This method will throw an exception\nif invalid.",
             "itemtype": "method",
             "name": "validate",

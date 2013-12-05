@@ -20,6 +20,17 @@ module.exports = function(grunt) {
   var solutionFileNames = solutionNames.map(function(sn) {
     return samplesDir + sn + '/' + sn + '.sln';
   });
+  
+  var nugetPackageNames = [
+     'Breeze.WebApi', 
+	   'Breeze.WebApi2.EF6',
+	   'Breeze.Client',
+	   'Breeze.Server.WebApi2',
+     'Breeze.Server.ContextProvider.EF6',
+     'Breeze.Server.ContextProvider'
+	];
+  
+  var nuPackNames = 'Breeze.WebApi, Breeze.WebApi2.EF6'
 	 
   // Project configuration.
   grunt.initConfig({
@@ -35,10 +46,12 @@ module.exports = function(grunt) {
         solutionFileNames: solutionFileNames,
       },
     },
+    clean: {
+    
+    },
     nugetUpdate: {
       samples: {
-        cwd: samplesDir,
-        solutionNames: solutionNames
+        solutionFileNames: solutionFileNames
       }
     },
     listFiles: {
@@ -50,15 +63,28 @@ module.exports = function(grunt) {
 
 
   grunt.loadNpmTasks('grunt-exec');
+  
+  grunt.registerMultiTask('nugetUpdate', 'nuget update', function( ) {
+    
+    // dynamically build the exec tasks
+    grunt.log.writeln('target: ' + this.target);
+    var that = this;
+    this.data.ix = 0;
+    this.data.solutionFileNames.forEach(function(solutionFileName) {
+      configNugetInstallProps(solutionFileName, that.data);
+      configNugetUpdateProps(solutionFileName, nugetPackageNames, that.data);
+    });
+    grunt.task.run('exec');
+  });
    
   grunt.registerMultiTask('msBuild', 'Execute MsBuild', function( ) {
     // dynamically build the exec tasks
     grunt.log.writeln('target: ' + this.target);
     grunt.log.writeln('msBuildOptions: ' + this.data.msBuildOptions);
     var that = this;
-    var index = 0;
-    this.data.solutionFileNames.forEach(function(solutionFileName) {
-      configMsBuildProps(solutionFileName, index++, that.data);
+    
+    this.data.solutionFileNames.forEach(function(solutionFileName, index) {
+      configMsBuildProps(solutionFileName, index, that.data);
     });
     grunt.task.run('exec');
   });
@@ -66,7 +92,7 @@ module.exports = function(grunt) {
   // for debugging file patterns
   grunt.registerMultiTask('listFiles', 'List files', function() {
     grunt.log.writeln('target: ' + this.target);
-     
+    
     this.files.forEach(function(fileGroup) {
       fileGroup.src.forEach(function(fileName) {
         grunt.log.writeln('file: ' + fileName);
@@ -76,8 +102,35 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-exec');  
    
-  grunt.registerTask('default', ['msBuild']);
+  grunt.registerTask('default', ['nugetUpdate', 'msBuild']);
   
+  function configNugetInstallProps(solutionFileName, config ) {
+    
+    var solutionDir = path.dirname(solutionFileName);
+    var packagesDir = solutionDir + '/packages';
+
+    var configFileNames = grunt.file.expand(solutionDir + '/**/packages.config');
+    configFileNames.forEach(function(fn) {
+      grunt.log.writeln('Preparing nuget install #:' + config.ix + ' for file: ' + fn);
+      var cmd = 'nuget install ' + fn + ' -OutputDirectory ' + packagesDir;
+      // grunt.log.writeln('cmd: ' + cmd);
+      grunt.config('exec.nugetInstall-' + config.ix++, {
+        cmd: cmd
+      });
+    });
+  }
+  
+  function configNugetUpdateProps(solutionFileName, nugetPackageNames, config) {
+    
+    var baseCmd = 'nuget update ' + solutionFileName + ' -Id ';
+    
+    nugetPackageNames.forEach(function(npn) {
+      grunt.config('exec.nugetUpdate-' + config.ix++, {
+        cmd: baseCmd + npn
+      });
+    });
+
+  }
 
   function configMsBuildProps(solutionFileName, index, config ) {
     grunt.log.writeln('Preparing solution build for: ' + solutionFileName);
