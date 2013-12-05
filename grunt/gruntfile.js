@@ -4,18 +4,17 @@ module.exports = function(grunt) {
 
   var srcDir = '../Samples/';
   var msBuild = 'C:/Windows/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe '
-  var solutionName;
-  var msBuildOptions = '/p:Configuration=Release /verbosity:minimal'
-
-  // $clean = $msbuild + " `"$solutionFileName`" " + $options + " /t:Clean"
-  // $build = $msbuild + " `"$solutionFileName`" " + $options + " /t:reBuild"
 	 
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
   	
 	  msBuild: {
-      projects: ['DocCode', 'ToDo'],
+      solutions: {
+        cwd: srcDir,
+        msBuildOptions: '/p:Configuration=Release /verbosity:minimal',
+        solutionNames: ['DocCode', 'ToDo'],
+      },
     },
   });
 
@@ -23,12 +22,16 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-exec');
   
   grunt.registerMultiTask('msBuild', 'Execute MsBuild', function( ) {
-    grunt.log.writeln('this.target: ' + this.target);
-    this.data.forEach(function(solutionName) {
+    // dynamically build the exec tasks
+    grunt.log.writeln('target: ' + this.target);
+    grunt.log.writeln('cwd: ' + this.data.cwd);
+    grunt.log.writeln('msBuildOptions: ' + this.data.msBuildOptions);
+    var that = this;
+    this.data.solutionNames.forEach(function(solutionName) {
 	    
       grunt.log.writeln('Preparing solution build for: ' + solutionName);
-      grunt.config('exec.msBuildClean-' + solutionName, getMsBuildProps(solutionName, 'Clean'));
-		  grunt.config('exec.msBuildRebuild-' + solutionName, getMsBuildProps(solutionName, 'Rebuild'));
+      grunt.config('exec.msBuildClean-' + solutionName, getMsBuildProps(solutionName, that.data, 'Clean'));
+		  grunt.config('exec.msBuildRebuild-' + solutionName, getMsBuildProps(solutionName, that.data, 'Rebuild'));
 		  
     });
     grunt.task.run('exec');
@@ -38,30 +41,24 @@ module.exports = function(grunt) {
    
   grunt.registerTask('default', ['msBuild']);
 
-  function getMsBuildProps(solutionName, opt) {
+  function getMsBuildProps(solutionName, config, opt) {
      return {
-		    cwd: srcDir +  solutionName,
-			  cmd: msBuild + '"' + solutionName + '.sln" ' + msBuildOptions + ' /t:' + opt
+		    cwd: config.cwd + solutionName,
+			  cmd: msBuild + '"' + solutionName + '.sln" ' + config.msBuildOptions + ' /t:' + opt
 		  };
   }
   
   function log(err, stdout, stderr, cb) {
-	if (err) {
-	  grunt.log.write(err);
-	  grunt.log.write(stderr);
-	  throw new Error("Failed");
-	}
+    if (err) {
+      grunt.log.write(err);
+      grunt.log.write(stderr);
+      throw new Error("Failed");
+    }
 
-	grunt.log.write(stdout);
+    grunt.log.write(stdout);
 
     cb();
   }
-
-  function mapPath(dir, fileNames) {
-    return fileNames.map(function(fileName) {
-    	return dir + fileName;
-    });
-  };
 
 
 };
