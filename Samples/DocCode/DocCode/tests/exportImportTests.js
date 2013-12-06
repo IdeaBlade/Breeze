@@ -155,41 +155,76 @@
     });
     
     /*********************************************************
-    * import merge overwrites if entity in cache is unchanged
+    * import merge overwrites cached entity if cached entity is unchanged 
+    * Failing asserts #6 and #8 in Breeze v.1.4.6 per Defect #2560
     *********************************************************/
-    test("import merge overwrites if entity in cache is unchanged", 3, 
+    test("import merge overwrites cached entity if cached entity is unchanged ", 8,
         function () {
-            // both managers prepared w/ existing metadata
-            var em1 = newEm();
-            var em2 = newEm();
 
-            var cust1Id = breeze.core.getUuid();
-            var cust1a = em1.createEntity("Customer", {
-                CustomerID: cust1Id,
+            var em = newEm();
+            var custId = breeze.core.getUuid();
+            
+            // Suppose we are editing a customer
+            var cust = em.createEntity("Customer", {
+                CustomerID: custId,
+                CompanyName: "Foo",
+                ContactName: "Baz"
+            }, EntityState.Unchanged);
+ 
+            // We change his CompanyName
+            cust.CompanyName("Bar");
+            
+            // We export and stash these changes offline
+            // because we are not ready to save them
+            // (in the test we just export)
+            var exportData = em.exportEntities();
+            
+            // We re-run the app later ...
+            em.clear();
+            
+            // ... and query for the same customer 
+            // He has his prechange CompanyName, "Bar",
+            // but for some reason does not have a ContactName;
+            // Perhaps a different user changed it.
+            // (simulate query by creating in unmodified state)
+            cust = em.createEntity("Customer", {
+                CustomerID: custId,
                 CompanyName: "Foo"
+                // No ContactName !! 
             }, EntityState.Unchanged);
 
-            // Suppose em2 queried for same customer 
-            // much earlier when it had the name "Bar"
-            var cust1b = em2.createEntity("Customer", {
-                CustomerID: cust1Id,
-                CompanyName: "Bar"
-            }, EntityState.Unchanged);
-
-            equal(cust1b.CompanyName(), "Bar",
-                "should have cust name, Bar, before import");
+            equal(cust.CompanyName(), "Foo",
+                "should have CompanyName, Foo, before import");
+            equal(cust.ContactName(), null,
+                "should NOT have a ContactName before import");
             
-            // Import from em1 where cust1's name is "Foo" 
-            var exportData = em1.exportEntities();
-            em2.importEntities(exportData);
+            em.importEntities(exportData);
 
-            ok(cust1b.entityAspect.entityState.isUnchanged(),
-                "cust should still be unchanged after import.");
+            ok(cust.entityAspect.entityState.isModified(),
+                "cust should be modified after import.");
             
-            equal(cust1b.CompanyName(), "Foo",
-                "should have import cust name, Foo");
+            equal(cust.CompanyName(), "Bar",
+                "should have changed CompanyName, Bar, after import");
+            equal(cust.ContactName(), "Baz",
+                "should have unchanged ContactName, Baz, after import");
 
-    });
+            var originalContactName = cust.entityAspect.originalValues['ContactName'];
+            var isUndefined = originalContactName === undefined;
+ 
+            ok(isUndefined,
+                "originalValues['ContactName'] should be undefined, it is '{0}'"
+                .format(isUndefined ? 'undefined' : originalContactName));
+            
+            // Now show that we import the originalValues as well
+            // and do not create new ones.
+            cust.entityAspect.rejectChanges(); // revert it
+            
+            equal(cust.CompanyName(), "Foo",
+               "should have original CompanyName, Foo, after reverting ");
+            equal(cust.ContactName(), "Baz",
+               "should STILL have import ContactName, Baz, after reverting");
+
+        });
     /*********************************************************
     * can query locally for entities to export to another manager
     *********************************************************/
