@@ -7,15 +7,15 @@ module.exports = function(grunt) {
   
   var samplesDir = '../Samples/';
   var solutionNames = [
-          'DocCode',
-          'ToDo',
-          'ToDo-Angular',
-          'ToDo-AngularWithDI',
-          'ToDo-Require',
-          'NoDb',
-          'CarBones',
-          'Edmunds',
-          'TempHire',
+           'DocCode',
+           'ToDo',
+           'ToDo-Angular',
+           'ToDo-AngularWithDI',
+           'ToDo-Require',
+           'NoDb',
+           'CarBones',
+           'Edmunds',
+           'TempHire',
         ];
   var solutionFileNames = solutionNames.map(function(sn) {
     return samplesDir + sn + '/' + sn + '.sln';
@@ -37,7 +37,7 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
   	
 	  msBuild: {
-      breezeClient: {
+      source: {
         msBuildOptions: msBuildOptions,
         solutionFileNames: ['../Breeze-Build.sln']
       },
@@ -73,12 +73,13 @@ module.exports = function(grunt) {
     // dynamically build the exec tasks
     grunt.log.writeln('target: ' + this.target);
     var that = this;
-    this.data.ix = 0;
+    
     this.data.solutionFileNames.forEach(function(solutionFileName) {
-      configNugetInstallProps(solutionFileName, that.data);
-      configNugetUpdateProps(solutionFileName, nugetPackageNames, that.data);
+      execNugetInstall(solutionFileName, that.data);
+      execNugetUpdate(solutionFileName, nugetPackageNames, that.data);
     });
-    grunt.task.run('exec');
+    
+    
   });
    
   grunt.registerMultiTask('msBuild', 'Execute MsBuild', function( ) {
@@ -87,10 +88,10 @@ module.exports = function(grunt) {
     grunt.log.writeln('msBuildOptions: ' + this.data.msBuildOptions);
     var that = this;
     
-    this.data.solutionFileNames.forEach(function(solutionFileName, index) {
-      configMsBuildProps(solutionFileName, index, that.data);
+    this.data.solutionFileNames.forEach(function(solutionFileName) {
+      execMsBuild(solutionFileName, that.data);
     });
-    grunt.task.run('exec');
+    
   });
   
   // for debugging file patterns
@@ -105,53 +106,60 @@ module.exports = function(grunt) {
   });
 
   grunt.loadNpmTasks('grunt-exec');  
+  grunt.loadNpmTasks('grunt-contrib-clean');
    
-  grunt.registerTask('default', ['nugetUpdate', 'clean', 'msBuild']);
+  grunt.registerTask('default', ['msBuild:source', 'nugetUpdate', 'clean', 'msBuild:samples']);
   
-  function configNugetInstallProps(solutionFileName, config ) {
+  function execNugetInstall(solutionFileName, config ) {
     
     var solutionDir = path.dirname(solutionFileName);
     var packagesDir = solutionDir + '/packages';
 
     var configFileNames = grunt.file.expand(solutionDir + '/**/packages.config');
     configFileNames.forEach(function(fn) {
-      grunt.log.writeln('Preparing nuget install #:' + config.ix + ' for file: ' + fn);
+      grunt.log.writeln('Preparing nuget install for file: ' + fn);
       var cmd = 'nuget install ' + fn + ' -OutputDirectory ' + packagesDir;
       // grunt.log.writeln('cmd: ' + cmd);
-      grunt.config('exec.nugetInstall-' + config.ix++, {
+      runExec('nugetInstall', {
         cmd: cmd
       });
     });
   }
   
-  function configNugetUpdateProps(solutionFileName, nugetPackageNames, config) {
-    
+  function execNugetUpdate(solutionFileName, nugetPackageNames, config) {
     var baseCmd = 'nuget update ' + solutionFileName + ' -Id ';
     
     nugetPackageNames.forEach(function(npn) {
-      grunt.config('exec.nugetUpdate-' + config.ix++, {
+      runExec('nugetUpdate', {
         cmd: baseCmd + npn
       });
     });
-
   }
 
-  function configMsBuildProps(solutionFileName, index, config ) {
-    grunt.log.writeln('Preparing solution build for: ' + solutionFileName);
+  function execMsBuild(solutionFileName, config ) {
+    grunt.log.writeln('Executing solution build for: ' + solutionFileName);
     
     var cwd = path.dirname(solutionFileName);
     var baseName = path.basename(solutionFileName);
     var rootCmd = msBuild + '"' + baseName +'"' + config.msBuildOptions + ' /t:' 
     
-    grunt.config('exec.msBuildClean-' + index, {
+    runExec('msBuildClean', {
       cwd: cwd,
       cmd: rootCmd + 'Clean'
     });
-    grunt.config('exec.msBuildRebuild-' + index, {
+    runExec('msBuildRebuild', {
       cwd: cwd,
       cmd: rootCmd + 'Rebuild'
     });
+
+  }
   
+  var index = 0;
+  
+  function runExec(name, config) {
+    var name = name+'-'+index++;
+    grunt.config('exec.' + name, config);
+    grunt.task.run('exec:' + name);
   }
   
   function log(err, stdout, stderr, cb) {
