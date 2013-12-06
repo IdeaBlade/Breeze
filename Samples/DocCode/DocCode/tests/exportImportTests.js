@@ -156,7 +156,7 @@
     /*********************************************************
    * import of changed entity into empty cache preserves originalValues 
    * and therefore can reject changes to restore its original state
-   * Fails in v.1.4.6 as reported in defect #2561
+   * Failed in v.1.4.6 as reported in defect #2561. Fixed.
    *********************************************************/
     test("import of changed entity into empty cache preserves originalValues", 3,
         function () {
@@ -205,7 +205,7 @@
     
     /*********************************************************
     * import merge overwrites cached entity if cached entity is unchanged 
-    * Failing asserts #6 and #8 in Breeze v.1.4.6 per Defect #2560
+    * Failing asserts #6 and #8 in Breeze v.1.4.6 per Defect #2560. Fixed
     *********************************************************/
     test("import merge overwrites cached entity if cached entity is unchanged ", 8,
         function () {
