@@ -153,6 +153,55 @@
         equal(copyCount, expected.unchangedCount,
             "should have restored expected number of unchanged entities");
     });
+    /*********************************************************
+   * import of changed entity into empty cache preserves originalValues 
+   * and therefore can reject changes to restore its original state
+   * Fails in v.1.4.6 as reported in defect #2561
+   *********************************************************/
+    test("import of changed entity into empty cache preserves originalValues", 3,
+        function () {
+            var em = newEm();
+            var custId = breeze.core.getUuid();
+
+            // Suppose we are editing a customer
+            var cust = em.createEntity("Customer", {
+                CustomerID: custId,
+                CompanyName: "Foo",
+            }, EntityState.Unchanged);
+
+            // We change his CompanyName
+            cust.CompanyName("Bar");
+            
+            // We export and stash these changes offline
+            // because we are not ready to save them
+            // (in the test we just export)
+            var exportData = em.exportEntities();
+            
+            var originalCompanyName = cust.entityAspect.originalValues['CompanyName'];
+            var isDefined = originalCompanyName !== undefined;
+
+            ok(isDefined,
+                "originalValues['CompanyName'] should be defined before export, it is '{0}'"
+                .format(isDefined ? originalCompanyName : 'undefined'));
+
+            // We re-run the app later with a clean manager
+            em.clear();
+            var imported = em.importEntities(exportData).entities;
+            cust = imported[0];
+            
+            // Now show that we import the originalValues as well 
+            originalCompanyName = cust.entityAspect.originalValues['CompanyName'];
+            isDefined = originalCompanyName !== undefined;
+
+            ok(isDefined,
+                "originalValues['CompanyName'] should be defined after import, it is '{0}'"
+                .format(isDefined ? originalCompanyName : 'undefined'));           
+
+            cust.entityAspect.rejectChanges(); // revert it
+
+            equal(cust.CompanyName(), "Foo",
+               "should have original CompanyName, Foo, after reverting ");
+    });
     
     /*********************************************************
     * import merge overwrites cached entity if cached entity is unchanged 
