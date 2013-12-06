@@ -356,11 +356,12 @@ var EntityManager = (function () {
     proto.exportEntities = function (entities, includeMetadata) {
         assertParam(includeMetadata, "includeMetadata").isBoolean().isOptional().check();
         includeMetadata = (includeMetadata == null) ? true : includeMetadata;
+        
         var exportBundle = exportEntityGroups(this, entities);
-        json = __extend({}, this, ["dataService", "saveOptions", "queryOptions", "validationOptions"]);
-        var json = __extend( json, exportBundle, ["tempKeys", "entityGroupMap"]);
-       
+        var json = __extend( {}, exportBundle, ["tempKeys", "entityGroupMap"]);
+
         if (includeMetadata) {
+            json = __extend(json, this, ["dataService", "saveOptions", "queryOptions", "validationOptions"]);
             json.metadataStore = this.metadataStore.exportMetadata();
         } else {
             json.metadataVersion = breeze.metadataVersion;
@@ -418,18 +419,19 @@ var EntityManager = (function () {
         var json = (typeof exportedString === "string") ? JSON.parse(exportedString) : exportedString;
         if (json.metadataStore) {
             this.metadataStore.importMetadata(json.metadataStore);
+            // the || clause is for backwards compat with an earlier serialization format.           
+            this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
+
+            this.saveOptions = new SaveOptions(json.saveOptions);
+            this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
+            this.validationOptions = new ValidationOptions(json.validationOptions);
         } else {
             config.metadataVersionFn && config.metadataVersionFn({
                 metadataVersion: json.metadataVersion,
                 metadataStoreName: json.metadataStoreName
             });
         }
-        // the || clause is for backwards compat with an earlier serialization format.           
-        this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
         
-        this.saveOptions = new SaveOptions(json.saveOptions);
-        this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
-        this.validationOptions = new ValidationOptions(json.validationOptions);
 
         var tempKeyMap = {};
         json.tempKeys.forEach(function (k) {
@@ -1761,19 +1763,17 @@ var EntityManager = (function () {
 
             if (targetEntity) {
                 if (mergeStrategy === MergeStrategy.SkipMerge) {
-                    entitiesToLink.push(targetEntity);
-                    targetEntity = null;
+                    // deliberate fall thru
                 } else if (mergeStrategy === MergeStrategy.Disallowed) {
                     throw new Error("A MergeStrategy of 'Disallowed' prevents " + entityKey.toString() + " from being merged");
                 } else {
                     var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                     if (mergeStrategy === MergeStrategy.OverwriteChanges || wasUnchanged) {
                         entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
+                        targetEntity.entityAspect.entityState = entityState;
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                         em._checkStateChange(targetEntity, wasUnchanged, entityState.isUnchanged());
-                    } else {
-                        entitiesToLink.push(targetEntity);
-                        targetEntity = null;
+                        
                     } 
                 }
             } else {
@@ -1784,6 +1784,7 @@ var EntityManager = (function () {
                     targetEntity.setProperty(entityType.keyProperties[0].name, newTempKey.values[0]);
 
                     // fixup foreign keys
+                    // This is safe because the entity is detached here and therefore originalValues will not be updated.
                     if (newAspect.tempNavPropNames) {
                         newAspect.tempNavPropNames.forEach(function (npName) {
                             var np = entityType.getNavigationProperty(npName);
@@ -1798,27 +1799,19 @@ var EntityManager = (function () {
                 // Now performed in attachEntity
                 // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
-                if (entityChanged) {
-                    entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
-                    if (!entityState.isUnchanged()) {
-                        em._notifyStateChange(targetEntity, true);
-                    }
+                entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
+                if (!entityState.isUnchanged()) {
+                    em._notifyStateChange(targetEntity, true);
                 }
+                
             }
 
-            if (targetEntity) {
-                targetEntity.entityAspect.entityState = entityState;
-                if (entityState.isModified()) {
-                    targetEntity.entityAspect.originalValuesMap = newAspect.originalValues;
-                }
-                entitiesToLink.push(targetEntity);
-
-            }
+            entitiesToLink.push(targetEntity);
         });
         return entitiesToLink;
     }
 
-     function promiseWithCallbacks(promise, callback, errorCallback) {
+    function promiseWithCallbacks(promise, callback, errorCallback) {
 
         promise = promise.then(function (data) {
             if (callback) callback(data);

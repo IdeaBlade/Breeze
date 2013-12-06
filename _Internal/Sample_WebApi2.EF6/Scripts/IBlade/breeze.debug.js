@@ -1742,7 +1742,7 @@ var __config = (function () {
         __config.typeRegistry[typeName] = ctor;
     };
 
-    __config.stringifyPad = "  ";
+    __config.stringifyPad = '';
 
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
         var instance = impl.defaultInstance;
@@ -5892,7 +5892,7 @@ if (!Q) {
     }
     
     // all Q methods called by Breeze should fail
-    Q.defer = Q.resolve = Q.reject = Q.fcall = Q;
+    Q.defer = Q.resolve = Q.reject = Q;
 }
     
 
@@ -5903,7 +5903,6 @@ if (!Q) {
 @param [q.defer] {Function} A function returning a deferred.
 @param [q.resolve] {Function} A function returning a resolved promise.
 @param [q.reject] {Function} A function returning a rejected promise.
-@param [q.fcall] {Function} A function returning a resolved promise after calling a function parameter.
 **/
 breeze.config.setQ = function (q) { Q = q; }
 
@@ -7617,10 +7616,9 @@ var EntityType = (function () {
     };
 
     proto._updateTargetFromRaw = function (target, raw, rawValueFn) {
-
+        // called recursively for complex properties
         this.dataProperties.forEach(function (dp) {
-            // recursive call
-            // updateTargetPropertyFromRaw(target, raw, dp, rawValueFn);
+            
             var rawVal = rawValueFn(raw, dp);
             if (rawVal === undefined) return;
             var dataType = dp.dataType; // this will be a complexType when dp is a complexProperty
@@ -7660,9 +7658,17 @@ var EntityType = (function () {
                 }
             }
         });
+
+        // if merging from an import then raw will have an entityAspect or a complexAspect
+        var rawAspect = raw.entityAspect || raw.complexAspect;
+        if (rawAspect && rawAspect.originalValuesMap) {
+            targetAspect = target.entityAspect || target.complexAspect;
+            targetAspect.originalValues = rawAspect.originalValuesMap;
+        }
+
     }
 
-    
+  
 
     /**
     Returns a string representation of this EntityType.
@@ -9153,6 +9159,7 @@ var EntityQuery = (function () {
         this.expandClause = null;
         this.parameters = {};
         this.inlineCountEnabled = false;
+        this.noTrackingEnabled = false;
         // default is to get queryOptions and dataService from the entityManager.
         // this.queryOptions = new QueryOptions();
         // this.dataService = new DataService();
@@ -9926,6 +9933,7 @@ var EntityQuery = (function () {
             "takeCount",
             "expandClause",
             "inlineCountEnabled",
+            "noTrackingEnabled",
             "queryOptions", 
             "entityManager",
             "dataService",
@@ -10053,7 +10061,6 @@ var EntityQuery = (function () {
 
     // private functions
         
-        
     function normalizePropertyPaths(propertyPaths) {
         assertParam(propertyPaths, "propertyPaths").isOptional().isString().or().isArray().isString().check();
         if (typeof propertyPaths === 'string') {
@@ -10132,7 +10139,7 @@ var QueryFuncs = (function() {
         tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: DataType.String },
         substring:   { fn: function (source, pos, length) { return source.substring(pos, length); }, dataType: DataType.String },
         substringof: { fn: function (find, source) { return source.indexOf(find) >= 0;}, dataType: DataType.Boolean },
-        length:      { fn: function(source) { return source.length; }, dataType: DataType.Int32 },
+        length:      { fn: function (source) { return source.length; }, dataType: DataType.Int32 },
         trim:        { fn: function (source) { return source.trim(); }, dataType: DataType.String },
         concat:      { fn: function (s1, s2) { return s1.concat(s2); }, dataType: DataType.String },
         replace:     { fn: function (source, find, replace) { return source.replace(find, replace); }, dataType: DataType.String },
@@ -10309,8 +10316,6 @@ var FnNode = (function() {
             });
         }
     };
-
-
         
     function createPropFunction(propertyPath) {
         var properties = propertyPath.split('.');
@@ -10829,8 +10834,6 @@ var SimplePredicate = (function () {
             }
         }
     };
-
-   
 
     proto.toFunction = function (entityType) {
         if (this._odataExpr) {
@@ -12144,11 +12147,12 @@ var EntityManager = (function () {
     proto.exportEntities = function (entities, includeMetadata) {
         assertParam(includeMetadata, "includeMetadata").isBoolean().isOptional().check();
         includeMetadata = (includeMetadata == null) ? true : includeMetadata;
+        
         var exportBundle = exportEntityGroups(this, entities);
-        json = __extend({}, this, ["dataService", "saveOptions", "queryOptions", "validationOptions"]);
-        var json = __extend( json, exportBundle, ["tempKeys", "entityGroupMap"]);
-       
+        var json = __extend( {}, exportBundle, ["tempKeys", "entityGroupMap"]);
+
         if (includeMetadata) {
+            json = __extend(json, this, ["dataService", "saveOptions", "queryOptions", "validationOptions"]);
             json.metadataStore = this.metadataStore.exportMetadata();
         } else {
             json.metadataVersion = breeze.metadataVersion;
@@ -12206,18 +12210,19 @@ var EntityManager = (function () {
         var json = (typeof exportedString === "string") ? JSON.parse(exportedString) : exportedString;
         if (json.metadataStore) {
             this.metadataStore.importMetadata(json.metadataStore);
+            // the || clause is for backwards compat with an earlier serialization format.           
+            this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
+
+            this.saveOptions = new SaveOptions(json.saveOptions);
+            this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
+            this.validationOptions = new ValidationOptions(json.validationOptions);
         } else {
             config.metadataVersionFn && config.metadataVersionFn({
                 metadataVersion: json.metadataVersion,
                 metadataStoreName: json.metadataStoreName
             });
         }
-        // the || clause is for backwards compat with an earlier serialization format.           
-        this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
         
-        this.saveOptions = new SaveOptions(json.saveOptions);
-        this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
-        this.validationOptions = new ValidationOptions(json.validationOptions);
 
         var tempKeyMap = {};
         json.tempKeys.forEach(function (k) {
@@ -13549,19 +13554,17 @@ var EntityManager = (function () {
 
             if (targetEntity) {
                 if (mergeStrategy === MergeStrategy.SkipMerge) {
-                    entitiesToLink.push(targetEntity);
-                    targetEntity = null;
+                    // deliberate fall thru
                 } else if (mergeStrategy === MergeStrategy.Disallowed) {
                     throw new Error("A MergeStrategy of 'Disallowed' prevents " + entityKey.toString() + " from being merged");
                 } else {
                     var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                     if (mergeStrategy === MergeStrategy.OverwriteChanges || wasUnchanged) {
                         entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
+                        targetEntity.entityAspect.entityState = entityState;
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                         em._checkStateChange(targetEntity, wasUnchanged, entityState.isUnchanged());
-                    } else {
-                        entitiesToLink.push(targetEntity);
-                        targetEntity = null;
+                        
                     } 
                 }
             } else {
@@ -13572,6 +13575,7 @@ var EntityManager = (function () {
                     targetEntity.setProperty(entityType.keyProperties[0].name, newTempKey.values[0]);
 
                     // fixup foreign keys
+                    // This is safe because the entity is detached here and therefore originalValues will not be updated.
                     if (newAspect.tempNavPropNames) {
                         newAspect.tempNavPropNames.forEach(function (npName) {
                             var np = entityType.getNavigationProperty(npName);
@@ -13586,27 +13590,19 @@ var EntityManager = (function () {
                 // Now performed in attachEntity
                 // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
-                if (entityChanged) {
-                    entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
-                    if (!entityState.isUnchanged()) {
-                        em._notifyStateChange(targetEntity, true);
-                    }
+                entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
+                if (!entityState.isUnchanged()) {
+                    em._notifyStateChange(targetEntity, true);
                 }
+                
             }
 
-            if (targetEntity) {
-                targetEntity.entityAspect.entityState = entityState;
-                if (entityState.isModified()) {
-                    targetEntity.entityAspect.originalValuesMap = newAspect.originalValues;
-                }
-                entitiesToLink.push(targetEntity);
-
-            }
+            entitiesToLink.push(targetEntity);
         });
         return entitiesToLink;
     }
 
-     function promiseWithCallbacks(promise, callback, errorCallback) {
+    function promiseWithCallbacks(promise, callback, errorCallback) {
 
         promise = promise.then(function (data) {
             if (callback) callback(data);
@@ -13724,12 +13720,13 @@ var EntityManager = (function () {
             }
             
             if (queryOptions.fetchStrategy === FetchStrategy.FromLocalCache) {
-                return Q.fcall(function () {
+                try {
                     var results = em.executeQueryLocally(query);
-                    return { results: results, query: query };
-                });
+                    return Q.resolve({ results: results, query: query });
+                } catch(e) {
+                    return Q.reject(e);
+                }
             }
-
 
             var mappingContext = new MappingContext({
                     query: query,
