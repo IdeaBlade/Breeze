@@ -1,7 +1,7 @@
 ﻿/* 
  * Breeze Angular directives
  *
- *  v.1.3.1
+ *  v.1.3.2
  *
  *  Usage:
  *     Make this module a dependency of your app module:
@@ -53,40 +53,32 @@
 
         function link(scope, element, attrs) {
             // Use only features defined in Angular's jqLite
+            var valTemplate = config.zValidateTemplate;
             var decorator = angular.element('<span class="z-decorator"></span>');
             element.after(decorator);
-            var domEl = element[0]; // unwrap 'jquery' element to get DOM element
-            var errEl = null; // the (not yet existing) error message element 
-            var valTemplate = config.zValidateTemplate;
             
-            var info = getInfo(scope, attrs); // get validation info for bound entity property
+            // unwrap bound elements
+            var domEl = element[0]; 
+            decorator = decorator[0];
             
+            // get validation info for bound element and entity property
+            var info = getInfo(scope, attrs); 
+         
             scope.$watch(info.getValErrs, valErrsChanged);
 
             function valErrsChanged(newValue) {
                 
-                setRequired(decorator, info); 
-                
                 // HTML5 custom validity
                 // http://dev.w3.org/html5/spec-preview/constraints.html#the-constraint-validation-api
                 if (domEl.setCustomValidity) {
+                    /* only works in HTML 5. Maybe should throw if not available. */
                     domEl.setCustomValidity(newValue);
-                    //return; /* only works in HTML 5. Maybe should throw instead. */
                 }
+                
+                var requiredHtml = getRequiredHtml(info);
+                var errorHtml = newValue ? valTemplate.replace(/%error%/, newValue) : "";
 
-                // Add/remove the error message HTML (errEl) and styling 
-                if (newValue) {
-                    var html = valTemplate.replace(/%error%/, newValue);
-                    if (errEl) {
-                        errEl.replaceWith(html);
-                    } else {
-                        errEl = angular.element(html);
-                        decorator.append(errEl);
-                    }
-                } else if (errEl) {
-                    errEl.remove();
-                    errEl = null;
-                }
+                decorator.innerHTML = (!!requiredHtml || !!errorHtml) ? requiredHtml + errorHtml : "";
             }
         }
 
@@ -173,13 +165,16 @@
             }
         }
         
-        // TODO: Mover required property getting and setting to a separate module
+        // TODO: Move "required" material to a separate module
         // because is not angular specific and could be used 
         // in other presentation frameworks such as a custom Knockout binding
         
-        // return a hash of property names of properties that are required.
-        // Creates that hash lazily and adds it to the  
-        // entityType's metadata for easier access by this directive 
+        /*
+        * getRequiredPropertiesForEntityType
+        * Returns a hash of property names of properties that are required.
+        * Creates that hash lazily and adds it to the  
+        * entityType's metadata for easier access by this directive 
+        */
         function getRequiredPropertiesForEntityType(type) {
             if (type.custom && type.custom.required) {
                 return type.custom.required;
@@ -207,26 +202,28 @@
             return required;
         }
 
-        function setRequired(element, info) {
-            // Set the required indicator once ... when an entity first arrives
-            // at which point we can determine whether the data property is required
-            // Note: can't detect until second call to directive's link function
-            if (element.hasSetRequired) { return; } // already set
+        function getRequiredHtml(info) {
+ 
+            if (info.requiredHtml !== undefined) { return info.requiredHtml; }
 
+            // We don't know if it is required yet.
+            // When it is first bound to the entity we can determine whether the data property is required
+            // Note: Not bound until second call to the directive's link function
+            var requiredHtml = "";
             var entityType = info.getType();
-            if (!entityType) { return; } // no entity, type is unknown, quit
+            if (entityType) { // the bound entity is known
+                var requiredProperties = getRequiredPropertiesForEntityType(entityType);
 
-            var requiredProperties = getRequiredPropertiesForEntityType(entityType);
-
-            // if the data property is required, add the appropriate styling and element
-            if (requiredProperties[info.propertyPath]) {
-                var reqHtml = config.zRequiredTemplate;
-                var reqEl = angular.element(reqHtml);
-                element.append(reqEl);
+                // if the data property is required, create the html
+                if (requiredProperties[info.propertyPath]) {
+                    requiredHtml = config.zRequiredTemplate;
+                }
+                // Now we know if the requiredHtml is defined or ""
+                info.requiredHtml = requiredHtml;
             }
-
-            element.hasSetRequired = true;  // don't set again
+            return requiredHtml;
         }
+
     }
 
     /* Configure app to use zValidate
