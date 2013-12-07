@@ -32,6 +32,40 @@
         teardown: function () { }
     });
 
+    test("delete without query", function () {
+        var em = newEm();
+        var em2 = newEm();
+        var similarEmp;
+        var similarAspect;
+        var emp = em.createEntity("Employee");
+        emp.setProperty("firstName", "Test fn");
+        emp.setProperty("lastName", "Test ln");
+        emp.setProperty("fullName", "foo");
+        em.addEntity(emp);
+        stop();
+        em.saveChanges().then(function (sr) {
+            var savedEnts = sr.entities;
+            ok(savedEnts.length === 1, "should have saved 1 entity");
+            ok(emp === savedEnts[0], "should be same emp");
+            var empKeyValue = emp.getProperty(testFns.employeeKeyName);
+            var empKey = emp.entityAspect.getKey();
+            similarEmp = em2.createEntity("Employee");
+            similarEmp.setProperty(testFns.employeeKeyName, empKeyValue);
+            similarAspect = similarEmp.aspect;
+            similarAspect.setUnchanged();
+            similarAspect.setDeleted();
+            ok(similarAspect.entityState.isDeleted(), "should be deleted");
+            return em2.saveChanges();
+        }).then(function (sr) {
+            var savedEnts = sr.entities;
+            ok(savedEnts.length === 1, "should have saved 1 entity");
+            ok(savedEnts[0] === similarEmp, "should be the same similarEmp");
+            ok(similarAspect.entityState.isDetached(), "should be detached");
+        }).fail(testFns.handleFail).fin(start);
+
+
+    });
+
     test("pk update", function () {
         var em = newEm();
 
