@@ -10,6 +10,7 @@
     var EntityState = breeze.EntityState;
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
+    var moduleMetadataStore = null;
 
     module("exportImportTests", testFns.getModuleOptions(newEm));
    
@@ -373,6 +374,137 @@
         equal(cust1b.CompanyName(), changedName,
             "should retain pending cust name change, '{0}'" .format(changedName));
 
-    });
+        });
+    
+    /*********************************************************
+    * Temporary key values may not be preserved upon import
+    *********************************************************/
+    test("temporary key values may not be preserved upon import",
+        function () {
+            resetTempKeyGeneratorSeed();
+            var em1 = newEm();
+            
+            // Create a new Order. The Order key is store-generated.
+            // Until saved, the new Order has a temporary key such as '-1'.
+            var acme1 = em1.createEntity('Order', { ShipName: "Acme" });
 
+            // export without metadata
+            var exported = em1.exportEntities([acme1], false);
+
+            // ... much time passes
+            // ... the client app is relaunched
+            resetTempKeyGeneratorSeed();
+            
+            // create a new em2 
+            var em2 = newEm();
+
+            // Add a new order to it
+            // this new order has a temporary key.
+            var beta = em2.createEntity('Order', { ShipName: "Beta" });
+            
+            // Its key will be '-1' ... the same key as acme1!!!
+            equal(beta.OrderID(), -1, "beta should have same key value as acme");
+
+            // Import the the exported acme1 from em1
+            // and get the newly merged instance from em2
+            var imported = em2.importEntities(exported);
+            var acme2 = imported.entities[0];
+
+            // compare the "same" order as it is in managers #1 and #2 
+            equal(acme1.ShipName(), acme2.ShipName(),
+                'ShipNames should be the same.');
+            
+            // breeze had to update the key because 'beta' already has ID==-1
+            notEqual(acme1.OrderID(),acme2.OrderID(),
+                'OrderIDs have changed.');         
+        });
+    
+    /*********************************************************
+    * can validate exported entities upon import
+    * exercise importEntities metadataVersionFn
+    *********************************************************/
+    test("can validate exported entities upon import",
+        function () {
+            // clone the module's MetadataStore
+            // and create new manager that uses that clone
+            var store = cloneStore(getModuleStore());
+            var em1 = new breeze.EntityManager({                
+                serviceName: serviceName,
+                metadataStore: store
+            });
+            
+            // set the MetadataStore.name with a test "model version" 
+            var metadataName = "modelVersion: 1.2.3";
+            store.setProperties({
+                name: metadataName
+            });
+
+            // define a function to validate imported data
+            var importValidationFn = createImportValidationFn(metadataName);
+            
+            // add an entity to the manager 
+            var cust = em1.createEntity("Customer", {
+                CustomerID: breeze.core.getUuid(),
+                CompanyName: "Foo"
+            });
+            
+            // export cache w/o metadata
+            var exported = em1.exportEntities(null, false);
+            
+            // create clone manager and import
+            var em2 = em1.createEmptyCopy();
+            
+            try {
+                var imported = em2.importEntities(exported, {
+                    metadataVersionFn: importValidationFn
+                });
+                ok(imported.entities.length == 1 && 
+                   imported.entities[0].CustomerID() == cust.CustomerID(),
+                   "imported the Customer successfully");
+            } catch(e) {
+                ok(false, "import threw exception, '{0}'.".format(e.message));
+            }
+        });
+    
+    /* helpers */
+    function resetTempKeyGeneratorSeed() {
+        // A relaunch of the client would reset the temporary key generator
+        // Simulate that for test purposes ONLY with an internal seed reset 
+        // that no one should know about or ever use.
+        // SHHHHHHHH!
+        // NEVER DO THIS IN YOUR PRODUCTION CODE
+        breeze.DataType.constants.nextNumber = -1;
+    }
+    
+    function getModuleStore() {
+        if (!moduleMetadataStore) {
+            moduleMetadataStore = newEm().metadataStore;
+        }
+        return moduleMetadataStore;
+    }
+    
+    function cloneStore(source) {
+        var metaExport = source.exportMetadata();
+        return new breeze.MetadataStore().importMetadata(metaExport);
+    }
+ 
+    function createImportValidationFn(metadataStoreName) {
+        
+        return function (cfg) {
+            if (breeze.metadataVersion !== cfg.metadataVersion) {
+                throw new Error(
+                    "Import breeze metadata version, " +
+                        cfg.metadataVersion +
+                        ", should be " + breeze.metadataVersion);
+            }
+
+            if (metadataStoreName !== cfg.metadataStoreName) {
+                throw new Error(
+                    "Import application model version, " +
+                        cfg.metadataStoreName +
+                        ", should be " + metadataStoreName);
+            }
+        };
+    }
+    
 })(docCode.testFns, docCode.northwindTestData);
