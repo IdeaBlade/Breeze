@@ -274,10 +274,11 @@
                "should STILL have import ContactName, Baz, after reverting");
 
         });
+
     /*********************************************************
-    * can query locally for entities to export to another manager
+    * can export locally queried entities from one manager
     *********************************************************/
-    test("can query entities to export to another manager", 1,
+    test("can export locally queried entities from one manager", 2,
         function () {
             var em1 = newEm();
             testData.primeTheCache(em1);
@@ -289,6 +290,7 @@
             var selectedCustsCount = selectedCusts.length;
 
             var exportData = em1.exportEntities(selectedCusts);
+            ok(true, "length of the serialized export is " + exportData.length);
             
             var em2 = new EntityManager(); // virginal
             em2.importEntities(exportData);
@@ -299,7 +301,43 @@
                 "should have imported {0} queried entities"
                 .format(selectedCustsCount));
         });
+    
+    /*********************************************************
+    * can import entities from one manager to another w/o metadata
+    * when both managers are preconditioned with metadata
+    *********************************************************/
+    test("can export locally queried entities from one manager to another w/o metadata", 2,
+        function () {
+            var em1 = newEm();
+            testData.primeTheCache(em1);
 
+            var selectedCusts = EntityQuery.from("Customers")
+                .where("CompanyName", "startsWith", "Customer")
+                .using(em1)
+                .executeLocally();
+            var selectedCustsCount = selectedCusts.length;
+
+            // Export without metadata!
+            var exportData = em1.exportEntities(selectedCusts, false);
+            ok(true, "length of the serialized export is " + exportData.length);
+
+            // a virginal manager would throw exception on import
+            // because it lacks the metadata
+            // var em2 = new EntityManager(); 
+            
+            // create em2 as an "empty copy" instead
+            // an "empty copy" has everything from the source manager
+            // except its entity cache.
+            var em2 = em1.createEmptyCopy();
+            em2.importEntities(exportData);
+
+            var entitiesInCache = em2.getEntities();
+            var copyCount = entitiesInCache.length;
+            equal(copyCount, selectedCustsCount,
+                "should have imported {0} queried entities"
+                .format(selectedCustsCount));
+        });
+    
     /*********************************************************
     * can safely merge and preserve pending changes
     *********************************************************/
