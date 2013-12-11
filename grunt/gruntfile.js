@@ -4,7 +4,7 @@ module.exports = function(grunt) {
   
   var msBuild = 'C:/Windows/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe ';
   var msBuildOptions = ' /p:Configuration=Release /verbosity:minimal ';
-  var clientSourceDir = '../Breeze.Client/';
+  
   var samplesDir = '../Samples/';
   var tempDir = '../_temp2/';
   var solutionNames = [
@@ -25,20 +25,12 @@ module.exports = function(grunt) {
     return samplesDir + sn + '/';
   });
   
-  var versionNum = (function extractVersion() {
-     var versionFile = grunt.file.read('../Breeze.Client/Scripts/IBlade/_head.jsfrag');    
-     var regex = /\s+version:\s*"(\d.\d\d*.?\d*)"/
-     var matches = regex.exec(versionFile);
-     
-     if (matches == null) {
-        throw new Error('Version number not found');
-     }
-     // matches[0] is entire version string - [1] is just the capturing group.
-     var versionNum = matches[1];
-     grunt.log.writeln('version: ' + versionNum);
-     return versionNum;
-  })();
-  
+    
+  var versionNum = getBreezeVersion();
+  var zipFileName = '../breeze-runtime-' + versionNum + '.zip';
+  var zipPlusFileName = '../breeze-runtime-plus-' + versionNum + '.zip';
+  grunt.log.writeln('zipName: ' + zipPlusFileName);
+  grunt.file.write(tempDir + 'version.txt', 'Version: ' + versionNum);
   
   var nugetPackageNames = [
      'Breeze.WebApi', 
@@ -53,18 +45,6 @@ module.exports = function(grunt) {
      'bin','obj', 'packages','*_Resharper*','*.suo'
   ];
   
-  var allButSdf = [ '**/*.*', '!**/*.sdf' ];
-  
-  
-  function join(a1, a2) {
-    var result = [];
-    a1.forEach(function(a1Item) {
-      a2.forEach(function(a2Item) {
-        result.push(a1Item + '**/' + a2Item);
-      });
-    });
-    return result;
-  }
   
   var nuPackNames = 'Breeze.WebApi, Breeze.WebApi2.EF6'
 	 
@@ -123,8 +103,30 @@ module.exports = function(grunt) {
           buildSampleCopy('../', tempDir , 'TempHire'),
           buildSampleCopy('../', tempDir , 'CarBones', ['**/*.mdf', '**/*.ldf'])
         ]
+      },  
+    },
+    compress: {
+      base: {
+        options: {
+          archive:  zipFileName,
+          mode: 'zip',
+          level: 9,
+          
+        },
+        files: [ 
+          { expand: true, cwd: tempDir, src: [ '**/**', '!Samples/**/*' ], dest: '/' } 
+        ]
       },
-   
+      baseWithSamples: {
+        options: {
+          archive:  zipPlusFileName,
+          mode: 'zip',
+          level: 9
+        },
+        files: [ 
+          { expand: true, dot: true, cwd: tempDir, src: [ '**/*' ], dest: '/' } 
+        ]
+      }
     },
     nugetUpdate: {
       samples: {
@@ -148,23 +150,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-exec');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-clean');
-  
-  function buildSampleCopy(srcRoot, destRoot, sampleName, patternsToExclude) {
-    var files = ['**/*', '**/.nuget/*'];
-    if (patternsToExclude) {
-      patternsToExclude.forEach(function(pattern) {   
-        files.push('!' + pattern);
-      });
-    }
-    var cmd = { 
-      expand: true, 
-      cwd: srcRoot + 'Samples/' + sampleName, 
-      src: files,
-      dest: destRoot + 'Samples/' + sampleName,
-    }
-    grunt.log.writeln('foo: ' + files);
-    return cmd;
-  }
+  grunt.loadNpmTasks('grunt-contrib-compress');
   
   grunt.registerMultiTask('nugetUpdate', 'nuget update', function( ) {
     
@@ -188,22 +174,7 @@ module.exports = function(grunt) {
       execMsBuild(solutionFileName, that.data);
     });
     
-  });
-  
-   grunt.registerMultiTask('prepareSample', 'Prepare sample', function( ) {
-    // dynamically build the exec tasks
-    grunt.log.writeln('target: ' + this.target);
-    var that = this;
-    
-    this.data.solutionFileNames.forEach(function(solutionFileName) {
-      prepareSample(solutionFileName, that.data);
-    });
-    
-  });
-  
-  function prepareSample(solutionName) {
-    
-  }
+  });  
   
   // for debugging file patterns
   grunt.registerMultiTask('listFiles', 'List files', function() {
@@ -216,9 +187,49 @@ module.exports = function(grunt) {
     });
   });
 
- 
+  grunt.registerTask('buildRelease', ['msBuild:source', 'nugetUpdate', 'clean:samplePackages', 'msBuild:samples']);
+  grunt.registerTask('packageRelease', [ 'clean:samples', 'copy:preZip', 'compress']);     
+  grunt.registerTask('default', ['buildRelease', 'packageRelease']);
   
-  grunt.registerTask('default', ['msBuild:source', 'nugetUpdate', 'clean:samplePackages', 'msBuild:samples']);
+  function getBreezeVersion() {
+     var versionFile = grunt.file.read('../Breeze.Client/Scripts/IBlade/_head.jsfrag');    
+     var regex = /\s+version:\s*"(\d.\d\d*.?\d*)"/
+     var matches = regex.exec(versionFile);
+     
+     if (matches == null) {
+        throw new Error('Version number not found');
+     }
+     // matches[0] is entire version string - [1] is just the capturing group.
+     var versionNum = matches[1];
+     grunt.log.writeln('version: ' + versionNum);
+     return versionNum;
+  }
+  
+  function join(a1, a2) {
+    var result = [];
+    a1.forEach(function(a1Item) {
+      a2.forEach(function(a2Item) {
+        result.push(a1Item + '**/' + a2Item);
+      });
+    });
+    return result;
+  }
+  
+  function buildSampleCopy(srcRoot, destRoot, sampleName, patternsToExclude) {
+    var files = ['**/*', '**/.nuget/*'];
+    if (patternsToExclude) {
+      patternsToExclude.forEach(function(pattern) {   
+        files.push('!' + pattern);
+      });
+    }
+    var cmd = { 
+      expand: true, 
+      cwd: srcRoot + 'Samples/' + sampleName, 
+      src: files,
+      dest: destRoot + 'Samples/' + sampleName,
+    }
+    return cmd;
+  }
   
   function execNugetInstall(solutionFileName, config ) {
     
