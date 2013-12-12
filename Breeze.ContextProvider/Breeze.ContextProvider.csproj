@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{4D9CE4E7-DCA1-4458-BA63-2C3F7907B754}</ProjectGuid>
+    <ProjectGuid>{3E6C8FE4-65BD-4B16-8182-3714B3EC602C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Breeze.ContextProvider</RootNamespace>
