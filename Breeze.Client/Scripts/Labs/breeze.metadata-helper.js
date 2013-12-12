@@ -5,11 +5,13 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 1.0
+ * Version: 1.0.1
  * --------------------------------------------------------------------------------
  * Adds metadataHelper extensions to Breeze
  * Source:
  * https://github.com/IdeaBlade/Breeze/blob/master/Breeze.Client/Scripts/Labs/breeze.metadata-helper.js
+ *
+ * Depends on Breeze which it patches
  *
  * You can use these helpers when creating metadata by hand 
  * to improve workflow and reduce data entry errors.
@@ -26,6 +28,20 @@
  *  
  */
 //#endregion
+(function (definition) {
+
+    // CommonJS
+    if (typeof exports === "object") {
+        var b = require('breeze');
+        definition(b);
+    // RequireJS
+    } else if (typeof define === "function") {
+        define(['breeze'], definition);
+    // <script>
+    } else {
+        definition(this.breeze);
+    }
+})
 (function (breeze) {
 
     var helper = breeze.MetadataHelper = breeze.MetadataHelper || ctor;
@@ -191,4 +207,4 @@
         return Object.prototype.toString.call(obj) === '[object Array]';
     }
 
-})(breeze);
+});

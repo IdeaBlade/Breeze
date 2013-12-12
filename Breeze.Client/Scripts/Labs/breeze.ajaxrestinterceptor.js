@@ -5,15 +5,30 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 1.0
+ * Version: 1.0.1
   * --------------------------------------------------------------------------------
  * Converts typical entity-by-id query into a url format typical in ReST-like APIs
  * Experimental! This is a primitive implementation, not currently "supported".
  * Use it for guidance and roll your own.
+ *
+ * Depends on Breeze which it patches
  */
  //#endregion
+(function (definition) {
 
-breeze.AjaxRestInterceptor = (function () {
+    // CommonJS
+    if (typeof exports === "object") {
+        var b = require('breeze');
+        definition(b);
+    // RequireJS
+    } else if (typeof define === "function") {
+        define(['breeze'], definition);
+    // <script>
+    } else {
+        definition(this.breeze);
+    }
+})
+(function (breeze) {
     /**
      Wraps the ambient breeze ajax adapter's `ajax` method with an interceptor
      that converts certain URLs into a more "ReSTy" design.
@@ -25,7 +40,7 @@ breeze.AjaxRestInterceptor = (function () {
     
      **/
 
-    var AjaxRestInterceptor = function (adapterName) {
+    breeze.AjaxRestInterceptor = function (adapterName) {
 
         var adapter = breeze.config.getAdapterInstance("ajax", adapterName);
         if (!adapter) {
@@ -52,8 +67,6 @@ breeze.AjaxRestInterceptor = (function () {
 
     };
 
-    return AjaxRestInterceptor;
-
     function createRestyAjaxFn(interceptor) {
         
         // This simplistic implementation can only convert requests for a resource by id
@@ -77,4 +90,4 @@ breeze.AjaxRestInterceptor = (function () {
         };
     }
 
-})();
+});
