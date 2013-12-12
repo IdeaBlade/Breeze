@@ -320,9 +320,10 @@ module.exports = function(grunt) {
   }
   
   function execNugetUpdate(solutionFileName, nugetPackageNames, config) {
-    var baseCmd = 'nuget update ' + solutionFileName + ' -Id ';
+    var baseCmd = 'nuget update ' + solutionFileName +  ' -FileConflictAction Ignore -Id ';
     
     nugetPackageNames.forEach(function(npn) {
+      grunt.log.writeln('cmd: ' + baseCmd + npn);
       runExec('nugetUpdate', {
         cmd: baseCmd + npn
       });
