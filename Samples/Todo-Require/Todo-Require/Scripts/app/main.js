@@ -12,23 +12,21 @@
 
     //  Launch the app
     //  Start by requiring the 3rd party libraries that Breeze should find
-    define(['require', 'ko', 'jquery', 'Q'], function (require, ko, $) {
+    define(['require', 'ko', 'jquery', 'logger', 'Q'], function (require, ko, $, logger) {
 
-        // Load the logger and breeze next ...
-        require(['logger', 'breeze'], function (logger) {
+    logger.info('Breeze Todo is booting');
 
-            logger.info('Breeze Todo is booting');
+        // require the 'viewModel' shell 
+        // require '../text' which is an html-loader require plugin; 
+        //     see http://requirejs.org/docs/api.html#text
+        // require 'breeze.savequeuing` so that it will extend breeze before the app starts.
+        require(['viewModel', '../text!view.html', 'breeze.savequeuing'],
 
-            // '../text' is an html-loader require plugin; 
-            // see http://requirejs.org/docs/api.html#text
-            require(['viewModel', '../text!view.html', 'breeze.savequeuing'],
-
-                function (viewModel, viewHtml) {
-                    var $view = $(viewHtml);
-                    ko.applyBindings(viewModel, $view.get(0));
-                    $("#applicationHost").append($view);
-                });
-        });
+            function (viewModel, viewHtml) {
+                var $view = $(viewHtml);
+                ko.applyBindings(viewModel, $view.get(0));
+                $("#applicationHost").append($view);
+            });
     });
 
     
