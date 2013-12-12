@@ -112,7 +112,7 @@ module.exports = function(grunt) {
           { expand: true, cwd: '../Breeze.ContextProvider', src: ['Breeze.ContextProvider.dll'], dest: tempDir + 'Server'},
           { expand: true, cwd: '../Breeze.ContextProvider.EF6', src: ['Breeze.ContextProvider.EF6.dll'], dest: tempDir + 'Server'},
           
-          { expand: true, cwd: '..', src: ['readme.txt'], dest: tempDir },
+          { expand: true, cwd: '../Nuget.builds', src: ['readme.txt'], dest: tempDir },
           buildSampleCopy('../', tempDir , 'DocCode', ['**/Todos.sdf']),
           buildSampleCopy('../', tempDir , 'ToDo', ['**/*.sdf']),
           buildSampleCopy('../', tempDir , 'ToDo-Angular', ['**/*.sdf']),

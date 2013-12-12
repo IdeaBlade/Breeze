@@ -537,18 +537,19 @@ function __requireLibCore(libName) {
             var window = this.window;
             lib = window[libName];
             if (lib) return lib;
-            if (window.require) {
-                lib = window.require(libName);
-            }
-            if (lib) return lib;
+            return findWithRequire(window.require, libName);
         }
-        if (require) {
-            lib = require(libName);
-        }
+        lib = findWithRequire(require, libName);
     } catch(e) {
 
     }
     return lib;
+    
+    function findWithRequire(require, libName) {
+        if (!require) {return void 0;}
+        if (require.defined &amp;&amp; !require.defined(libName)) {return void 0;}
+        return require(libName);
+    }
 }
 
 function __using(obj, property, tempValue, fn) {
