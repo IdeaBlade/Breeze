@@ -1,26 +1,35 @@
-﻿(function (root) {
-    
-    // Register with require these 3rd party libs 
-    // which are now in the root global namespace
-    define('jquery', function () { return root.jQuery; });
-    define('ko', function () { return root.ko; });
-    define('breeze', function () { return root.breeze; });
+﻿(function () {
+
+    requirejs.config({
+        paths: {
+            'breeze': '../breeze.debug',
+            'breeze.savequeuing': '../breeze.savequeuing',
+            'jquery': '../jquery-1.8.3.min',
+            'ko': '../knockout-2.2.0',
+            'Q': '../q'
+        }
+    });
 
     //  Launch the app
-    define(['jquery', 'ko', 'logger'], function ($, ko, logger) {
+    //  Start by requiring the 3rd party libraries that Breeze should find
+    define(['require', 'ko', 'jquery', 'Q'], function (require, ko, $) {
 
-        logger.info('Breeze Todo is booting');
+        // Load the logger and breeze next ...
+        require(['logger', 'breeze'], function (logger) {
 
-        // '../text' is an html-loader require plugin; 
-        // see http://requirejs.org/docs/api.html#text
-        require(['viewModel', '../text!view.html'],
-        
-            function(viewModel, viewHtml) {
-                var $view = jQuery(viewHtml);
-                ko.applyBindings(viewModel, $view.get(0));
-                $("#applicationHost").append($view);
-            
+            logger.info('Breeze Todo is booting');
+
+            // '../text' is an html-loader require plugin; 
+            // see http://requirejs.org/docs/api.html#text
+            require(['viewModel', '../text!view.html', 'breeze.savequeuing'],
+
+                function (viewModel, viewHtml) {
+                    var $view = $(viewHtml);
+                    ko.applyBindings(viewModel, $view.get(0));
+                    $("#applicationHost").append($view);
+                });
         });
     });
+
     
-})(window);
+})();
