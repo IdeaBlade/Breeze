@@ -1,4 +1,4 @@
-# Breeze.js Runtime Package
+# Breeze.js Runtime Package / Breeze.js Runtime Package + Samples
 
 The runtime package includes 
 
@@ -11,13 +11,17 @@ The breeze.debug.js is the all-in-one JavaScript file. You will likely develop w
 
 The all-in-one scripts include every AJAX, ModelLibrary and Dataservice adapter we ship. Your application may only need one adapter from each category.
 
-Therefore this package also includes a "base" Breeze version (breeze.base.debug.js) with no adapters (breeze.base.j is the minified version). You can deploy this script and the adapter scripts you need, drawn from the Adapters folder.
+Therefore this package also includes a "base" Breeze version (breeze.base.debug.js) with no adapters (breeze.base.min.js) is the minified version). You can deploy this script and the adapter scripts you need, drawn from the Adapters folder.
 
 Finally, the Scripts folder includes the "Q" promises library (plain and minified) from https://github.com/kriskowal/q. Breeze depends on "Q".
 
 Breeze Runtime Server Files
 ----------------------------
-WebApi/Breeze.webApi.dll for building backend services with an ASP Web API. The WebApi/Irony.dll is there to provide legacy support for early versions of Breeze. 
+Dlls for building backend services with ASP.NET Web API/Web API 2.
+
+Samples
+------
+The runtime-plus-samples package includes everything in the runtime package plus the sample applications, including the DocCode companion to the Breeze online documentation.
 
 -------------------------------------------------------------------------------------
 
