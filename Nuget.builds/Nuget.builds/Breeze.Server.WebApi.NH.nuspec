@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
-        <id>Breeze.Server.WebApi.NH</id>
+        <id>../Nuget.builds/Breeze.Server.WebApi.NH</id>
         <version>1.4.7</version>
         <title>Breeze Server (obsolete) - for Legacy ASP.NET Web API and NHibernate (BETA)</title>
         <authors>Jay Traband</authors>
@@ -17,7 +17,7 @@
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        
         <tags>javascript WebApi NHibernate Breeze SPA</tags>
 		<dependencies>
-            <dependency id="Breeze.Server.WebApi.Core" version="1.4.7"/>
+            <dependency id="Breeze.Server.WebApi.Core" version="{{version}}"/>
 			<dependency id="NHibernate" />
 		</dependencies>
     </metadata>

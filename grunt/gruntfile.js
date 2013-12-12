@@ -6,8 +6,8 @@ module.exports = function(grunt) {
   var msBuildOptions = ' /p:Configuration=Release /verbosity:minimal ';
   
   var samplesDir = '../Samples/';
-  var tempDir = '../_temp2/';
-  var solutionNames = [
+  var tempDir = '../_temp/';
+  var sampleNames = [
            'DocCode',
            'ToDo',
            'ToDo-Angular',
@@ -18,19 +18,20 @@ module.exports = function(grunt) {
            'Edmunds',
            'TempHire',
         ];
-  var solutionFileNames = solutionNames.map(function(sn) {
+  var sampleSolutionDirs = sampleNames.map(function(sn) {
+    return samplesDir + sn + '/';
+  });        
+  var sampleSolutionFileNames = sampleNames.map(function(sn) {
     return samplesDir + sn + '/' + sn + '.sln';
   });
-  var solutionDirs = solutionNames.map(function(sn) {
-    return samplesDir + sn + '/';
-  });
-  
-    
+ 
   var versionNum = getBreezeVersion();
   var zipFileName = '../breeze-runtime-' + versionNum + '.zip';
   var zipPlusFileName = '../breeze-runtime-plus-' + versionNum + '.zip';
+
   grunt.log.writeln('zipName: ' + zipPlusFileName);
   grunt.file.write(tempDir + 'version.txt', 'Version: ' + versionNum);
+  grunt.log.writeln('localAppData: ' + process.env.LOCALAPPDATA);
   
   var nugetPackageNames = [
      'Breeze.WebApi', 
@@ -41,18 +42,26 @@ module.exports = function(grunt) {
      'Breeze.Server.ContextProvider'
 	];
   
+  var breezeDlls = [
+    'Breeze.WebApi', 
+    'Breeze.WebApi.EF', 
+    'Breeze.WebApi.NH',
+    'Breeze.ContextProvider', 
+    'Breeze.ContextProvider.EF6',
+    'Breeze.ContextProvider.NH',
+    'Breeze.WebApi2'
+  ];
+  
   var tempPaths = [
      'bin','obj', 'packages','*_Resharper*','*.suo'
   ];
   
   
-  var nuPackNames = 'Breeze.WebApi, Breeze.WebApi2.EF6'
 	 
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-  	solutionNames: solutionNames,
-    solutionDirs: solutionDirs,
+
 	  msBuild: {
       source: {
         msBuildOptions: msBuildOptions,
@@ -60,18 +69,29 @@ module.exports = function(grunt) {
       },
       samples: {
         msBuildOptions: msBuildOptions,
-        solutionFileNames: solutionFileNames,
+        solutionFileNames: sampleSolutionFileNames,
       },
     },
     clean: {
       options: {
+        // uncomment to test
         // "no-write": true,
         force: true,
       },
       samplePackages: ['../Samples/**/packages'],  
-      samples:  join(solutionDirs, tempPaths)
+      samples:  join(sampleSolutionDirs, tempPaths),
+      nupkgs: ['../Nuget.builds/**/*.nupkg']
     },
     copy: {
+      testNupkg: {
+        files: [ { 
+          expand: true, 
+          cwd: '../Nuget.builds', 
+          src: ['**/*.nupkg' ], 
+          flatten: true,
+          dest: process.env.LOCALAPPDATA + '/Nuget/Cache' 
+        }]
+      }, 
       preZip: {
         files: [ 
           { expand: true, cwd: '../Breeze.Client', src: ['Scripts/breeze*.js'], dest: tempDir },
@@ -107,40 +127,43 @@ module.exports = function(grunt) {
     },
     compress: {
       base: {
-        options: {
-          archive:  zipFileName,
-          mode: 'zip',
-          level: 9,
-          
-        },
+        options: { archive:  zipFileName, mode: 'zip', level: 9 },
         files: [ 
           { expand: true, cwd: tempDir, src: [ '**/**', '!Samples/**/*' ], dest: '/' } 
         ]
       },
       baseWithSamples: {
-        options: {
-          archive:  zipPlusFileName,
-          mode: 'zip',
-          level: 9
-        },
+        options: { archive:  zipPlusFileName, mode: 'zip', level: 9  },
         files: [ 
           { expand: true, dot: true, cwd: tempDir, src: [ '**/*' ], dest: '/' } 
         ]
       }
     },
-    nugetUpdate: {
-      samples: {
-        solutionFileNames: solutionFileNames
+    updateFiles: {
+      // copy all instance of files in source over like named files in dest.
+      nugetScripts: { 
+        src: ['../Breeze.Client/Scripts/breeze.*.js'] ,
+        destFolders: ['../Nuget.builds']
+      },
+      nugetLibs: {
+        src: breezeDlls.map(function(x) {
+          return '../' + x + '/*.dll';
+        }),
+        destFolders: ['../Nuget.builds']
       }
     },
-    prepareSample: {
+    
+    nugetSolutionUpdate: {
       samples: {
-        solutionFileNames: solutionFileNames
+        solutionFileNames: sampleSolutionFileNames
       }
+    },
+    buildNupkg: {
+      build: { src: [ '../Nuget.builds/**/Default.nuspec' ] }
     },
     listFiles: {
       samples: {
-        src: ['../Samples/**/packages.config']
+        src: ['../Nuget.builds/**/Default.nuspec']
       }
     },
    
@@ -152,10 +175,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-compress');
   
-  grunt.registerMultiTask('nugetUpdate', 'nuget update', function( ) {
-    
+  grunt.registerMultiTask('nugetSolutionUpdate', 'nuget update', function( ) {   
     // dynamically build the exec tasks
-    grunt.log.writeln('target: ' + this.target);
     var that = this;
     
     this.data.solutionFileNames.forEach(function(solutionFileName) {
@@ -166,7 +187,6 @@ module.exports = function(grunt) {
    
   grunt.registerMultiTask('msBuild', 'Execute MsBuild', function( ) {
     // dynamically build the exec tasks
-    grunt.log.writeln('target: ' + this.target);
     grunt.log.writeln('msBuildOptions: ' + this.data.msBuildOptions);
     var that = this;
     
@@ -175,6 +195,32 @@ module.exports = function(grunt) {
     });
     
   });  
+  
+  grunt.registerMultiTask('updateFiles', 'update files to latest version', function() {
+    var that = this;
+    this.files.forEach(function(fileGroup) {
+      fileGroup.src.forEach(function(srcFileName) {
+        grunt.log.writeln('Updating from: ' + srcFileName);
+        var baseName = path.basename(srcFileName);
+        that.data.destFolders.forEach(function(df) {
+          var destPattern = df + '/**/' + baseName;
+          var destFiles = grunt.file.expand(destPattern);
+          destFiles.forEach(function(destFileName) {
+            grunt.log.writeln('           to: ' + destFileName);
+            grunt.file.copy(srcFileName, destFileName);
+          });
+        });
+      });
+    });
+  });
+  
+  grunt.registerMultiTask('buildNupkg', 'package nuget files', function() {   
+    this.files.forEach(function(fileGroup) {
+      fileGroup.src.forEach(function(fileName) {
+        packNuget(fileName);
+      });
+    });
+  });
   
   // for debugging file patterns
   grunt.registerMultiTask('listFiles', 'List files', function() {
@@ -187,10 +233,15 @@ module.exports = function(grunt) {
     });
   });
 
-  grunt.registerTask('buildRelease', ['msBuild:source', 'nugetUpdate', 'clean:samplePackages', 'msBuild:samples']);
-  grunt.registerTask('packageRelease', [ 'clean:samples', 'copy:preZip', 'compress']);     
-  grunt.registerTask('default', ['buildRelease', 'packageRelease']);
+  grunt.registerTask('buildRelease', 
+   ['msBuild:source', 'nugetSolutionUpdate', 'clean:samplePackages', 'msBuild:samples']);
+  grunt.registerTask('packageRelease', 
+   [ 'clean:samples', 'copy:preZip', 'compress']);    
+  grunt.registerTask('packageNuget',   
+   [ 'clean:nupkgs', 'updateFiles:nugetScripts', 'updateFiles:nugetLibs', 'buildNupkg', 'copy:testNupkg']);
   
+  grunt.registerTask('default', ['buildRelease', 'packageRelease', 'packageNuget']);
+    
   function getBreezeVersion() {
      var versionFile = grunt.file.read('../Breeze.Client/Scripts/IBlade/_head.jsfrag');    
      var regex = /\s+version:\s*"(\d.\d\d*.?\d*)"/
@@ -213,6 +264,27 @@ module.exports = function(grunt) {
       });
     });
     return result;
+  }
+  
+  function packNuget(nuspecFileName) {
+    var folderName = path.dirname(nuspecFileName);
+    grunt.log.writeln('Nuspec folder: ' + folderName);
+    
+    var text = grunt.file.read(nuspecFileName);
+    var folders = folderName.split('/');
+    var folderId = folders[folders.length-1];
+    
+    text = text.replace(/{{version}}/g, versionNum);
+    text = text.replace(/{{id}}/g, folderId);
+    var destFileName = folderName + '/' + folderId + '.nuspec';
+    grunt.log.writeln('nuspec file: ' + destFileName);
+    grunt.file.write(destFileName, text);
+    // "nuget pack $folderName.nuspec"
+    runExec('nugetpack', {
+      cwd: folderName,
+      cmd: 'nuget pack ' + folderId + '.nuspec'
+    });   
+
   }
   
   function buildSampleCopy(srcRoot, destRoot, sampleName, patternsToExclude) {

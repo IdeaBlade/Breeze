@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
-        <id>Breeze.Server.ContextProvider.EF6</id>
+        <id>../Nuget.builds/Breeze.WebApi2.EF6</id>
         <version>1.4.7</version>
-        <title>Breeze Server - ContextProvider for Entity Framework 6</title>
+        <title>Breeze Client and Server - Javascript client with ASP.NET Web API 2 and Entity Framework 6.</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
         <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Core data access library for a Breeze Server working with Entity Framework v6</description>
-        <summary>Breeze Server - ContextProvider for Entity Framework 6.  This package is usually used in conjunction with the Breeze.WebApi2 package.</summary>
+        <description>The files and references that are essential for a Breeze ASP.NET Web API 2 client and server on Entity Framework 6.</description>
+        <summary>Breeze Client and Server - Javascript client with ASP.NET Web API 2 and Entity Framework 6.</summary>
         <copyright>Copyright IdeaBlade 2012, 2013</copyright>
         <language>en-US</language>
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        
         <tags>javascript WebApi Breeze SPA</tags>
 		<dependencies>
-		    <dependency id="Breeze.Server.ContextProvider" version="[1.4.7]"/>
-			<dependency id="EntityFramework" version="[6.0, 7.0)" />
+		    <dependency id="Breeze.Client" version="[{{version}}]"/>
+		    <dependency id="Breeze.Server.WebApi2" version="[{{version}}]"/>
+			<dependency id="Breeze.Server.ContextProvider.EF6" version="[{{version}}]" />
 		</dependencies>
     </metadata>
     <files>
-        <file src="lib\Breeze.ContextProvider.EF6.dll" target="lib\Breeze.ContextProvider.EF6.dll" />
         <file src="readme.txt" target="readme.txt" />
     </files>
 </package>
