@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{15246B9C-5558-4BCE-894F-52C4F785BBCC}</ProjectGuid>
+    <ProjectGuid>{9DF09802-357C-4E82-B98E-032445FB2747}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Breeze.ContextProvider.NH</RootNamespace>

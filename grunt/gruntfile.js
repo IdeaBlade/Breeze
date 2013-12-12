@@ -161,6 +161,9 @@ module.exports = function(grunt) {
     buildNupkg: {
       build: { src: [ '../Nuget.builds/**/Default.nuspec' ] }
     },
+    deployNupkg: {
+      base: { src: ['../Nuget.builds/**/*.nupkg', '!../Nuget.builds/**/Breeze.Angular.*'] }
+    },
     listFiles: {
       samples: {
         src: ['../Nuget.builds/**/Default.nuspec']
@@ -209,6 +212,18 @@ module.exports = function(grunt) {
             grunt.log.writeln('           to: ' + destFileName);
             grunt.file.copy(srcFileName, destFileName);
           });
+        });
+      });
+    });
+  });
+  
+  grunt.registerMultiTask('deployNupkg', 'deploy nuget package', function() {   
+    this.files.forEach(function(fileGroup) {
+      fileGroup.src.forEach(function(fileName) {
+        grunt.log.writeln('Deploy: ' + fileName);
+        var folderName = path.dirname(fileName);
+        runExec('deployNupkg', {
+          cmd: 'nuget push ' + fileName 
         });
       });
     });
