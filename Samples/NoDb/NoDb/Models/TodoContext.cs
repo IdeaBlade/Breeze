@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Breeze.WebApi;
+using Breeze.ContextProvider;
+using Breeze.WebApi2;
 
 namespace NoDb.Models
 {

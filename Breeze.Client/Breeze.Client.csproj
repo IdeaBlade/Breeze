@@ -57,7 +57,7 @@
     <Content Include="Scripts\IBlade\a20_config.js" />
     <Content Include="Scripts\IBlade\a25_observableArray.js" />
     <Content Include="Scripts\IBlade\a30_primitiveArray.js" />
-    <Content Include="Scripts\IBlade\a40_dataType.js" />
+    <Content Include="Scripts\IBlade\a37_dataType.js" />
     <Content Include="Scripts\IBlade\a25_validate.js" />
     <Content Include="Scripts\IBlade\a30_entityAspect.js" />
     <Content Include="Scripts\IBlade\a35_defaultPropertyInterceptor.js" />
@@ -65,6 +65,7 @@
     <Content Include="Scripts\IBlade\a45_entityQuery.js" />
     <Content Include="Scripts\IBlade\a40_keyGenerator.js" />
     <Content Include="Scripts\IBlade\a30_relationArray.js" />
+    <Content Include="Scripts\IBlade\a55_mappingContext.js" />
     <Content Include="Scripts\IBlade\a50_entityManager.js" />
     <Content Include="Scripts\IBlade\b00_breeze.ajax.jQuery.js" />
     <Content Include="Scripts\IBlade\b00_breeze.dataService.odata.js" />
@@ -86,6 +87,7 @@
     <Content Include="Scripts\IBlade\a60_abstractDataServiceAdapter.js" />
     <Content Include="Scripts\IBlade\breeze.dataService.mongo.js" />
     <Content Include="Scripts\IBlade\b00_breeze.ajax.angular.js" />
+    <Content Include="Scripts\IBlade\iface.ajaxInterface.js" />
     <Content Include="Scripts\IBlade\iface.keyGeneratorInterface.js" />
     <Content Include="Scripts\IBlade\iface.promise.js" />
     <Content Include="Scripts\IBlade\node_modules\uglify-js\lib\ast.js" />
@@ -173,6 +175,8 @@
     <Content Include="Scripts\jquery-1.8.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.8.2.js" />
     <Content Include="Scripts\jquery-1.8.2.min.js" />
+    <Content Include="Scripts\Tests\notrackingTests.js" />
+    <Content Include="Scripts\Tests\queryAnyAllTests.js" />
     <Content Include="Scripts\Tests\saveTransactionTests.js" />
     <Content Include="Scripts\Tests\testFns.js" />
     <None Include="Scripts\IBlade\_head.jsfrag" />
@@ -268,8 +272,8 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <PropertyGroup>
-    <PostBuildEvent>cd $(ProjectDir)Scripts\iblade
-powershell .\_build</PostBuildEvent>
+    <PostBuildEvent>cd $(ProjectDir)grunt
+grunt</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

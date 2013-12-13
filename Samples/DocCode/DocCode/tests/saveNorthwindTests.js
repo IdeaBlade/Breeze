@@ -133,6 +133,74 @@
         }
 
     });
+
+    asyncTest("delete of Product clears its related Category before save", 4, function () {
+        var em = newNorthwindEm();
+
+        EntityQuery.from('Products').top(1)
+            .expand('Category')
+            .using(em).execute()
+            .then(doDelete).fail(handleSaveFailed).fin(start);
+
+        function doDelete(data) {
+            var product = data.results[0];
+            ok(product != null, "should have a product");
+            if (product) {
+                // precondition
+                ok(product.Category() !== null, "product should have a Category before delete");
+
+                // ACT
+                product.entityAspect.setDeleted();
+
+                ok(product.Category() === null, "product should NOT have a Category after product deleted");
+                // FKs of principle related entities are retained. Should they be cleared too?
+                ok(product.CategoryID() !== 0, "product should have a non-zero CategoryID after product deleted");
+            }
+        }
+
+    });
+    
+    asyncTest("delete of Order clears its related entities before save", 10, function () {
+        var em = newNorthwindEm();
+
+        EntityQuery.from('Orders').top(1)
+            .expand('Customer, Employee, OrderDetails')
+            .using(em).execute()
+            .then(doDelete).fail(handleSaveFailed).fin(start);
+
+        function doDelete(data) {
+            var order = data.results[0];
+            ok(order != null, "should have an order");
+            if (order) {
+                // precondition
+                ok(order.Customer() !== null, "order should have a Customer before delete");
+                ok(order.Employee() !== null, "order should have a Employee before delete");
+                var details = order.OrderDetails();
+                ok(details.length !== 0, "order should have OrderDetails before delete");
+
+                // ACT
+                order.entityAspect.setDeleted();
+
+                // ASSERT
+                ok(order.Customer() === null, "order should NOT have a Customer after order deleted");
+                ok(order.Employee() === null, "order should NOT have a Employee after order deleted");
+                ok(order.OrderDetails().length === 0,
+                    "order should NOT have OrderDetails after order deleted");
+
+                // FKs of principle related entities are retained. Should they be cleared too?
+                ok(order.CustomerID() !== 0, "order should have a non-zero CustomerID after order deleted");
+                ok(order.EmployeeID() !== 0, "order should have a non-zero EmployeeID after order deleted");
+
+                // Breeze should have set OrderID of all former details to zero
+                var allOrderIdAreZero = true;
+                details.forEach(function (d) {
+                    allOrderIdAreZero = allOrderIdAreZero && d.OrderID() === 0;
+                });
+                ok(allOrderIdAreZero, "OrderID of every original detail should be zero");
+            }
+        }
+    });
+    
     /************************** TEST HELPERS *************************/
     function entitySaveTester(masterEntity, shouldSave) {
         var typeName = masterEntity.entityType.shortName;

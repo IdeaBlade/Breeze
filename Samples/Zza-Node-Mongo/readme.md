@@ -23,8 +23,8 @@ You only have to install this database once.
 
 3. Use npm to install the following three modules:
 <pre style="margin-left: 2em">
-npm install mongodb
 npm install express
+npm install mongodb
 npm install breeze-mongodb
 </pre>
 

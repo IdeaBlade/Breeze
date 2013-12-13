@@ -24,7 +24,7 @@
     <script src="Scripts/ThirdParty/underscore.js"></script>
     <script src="Scripts/ThirdParty/backbone.js"></script>
     <script src="Scripts/ThirdParty/jquery-1.6.2.js"></script>
-    <script src="Scripts/ThirdParty/datajs-1.1.0.js"></script>
+    <script src="Scripts/ThirdParty/datajs-1.1.1.js"></script>
  
     <!-- Test helper scripts  --> 
     <!-- These two must come first -->    

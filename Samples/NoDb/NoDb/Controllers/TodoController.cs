@@ -10,7 +10,8 @@
 namespace NoDb.Controllers {
     using System.Linq;
     using System.Web.Http;
-    using Breeze.WebApi;
+    using Breeze.ContextProvider;
+    using Breeze.WebApi2;
     using Models;
     using Newtonsoft.Json.Linq;
 

@@ -52,6 +52,20 @@ namespace NorthBreeze.Controllers
         }
 
         [HttpGet]
+        public IQueryable<Customer> SimilarCustomersGET([FromUri] Customer customer)
+        {
+            var list = new List<Customer> { customer };
+            return list.AsQueryable();
+        }
+
+        [HttpPost]
+        public IQueryable<Customer> SimilarCustomersPOST(Customer customer)
+        {
+            var list = new List<Customer> { customer };
+            return list.AsQueryable();
+        }
+
+        [HttpGet]
         public IQueryable<Customer> Customers()
         {
             var custs = northwind.Customers;

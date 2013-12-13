@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Breeze.WebApi;
+using Breeze.ContextProvider;
+// using Breeze.ContextProvider.EF6;
 using Northwind.Models;
 
 namespace DocCode.DataAccess
@@ -8,7 +9,7 @@ namespace DocCode.DataAccess
     internal class NorthwindEntitySaveGuard
     {
         /// <summary>
-        /// Get and set the current UserSesionId;
+        /// Get and set the current UserSessionId;
         /// </summary>
         public Guid UserSessionId { get; set; }
 
@@ -50,7 +51,7 @@ namespace DocCode.DataAccess
                 }
             }
 
-            if (String.IsNullOrEmpty(saveError))
+            if (!String.IsNullOrEmpty(saveError))
             {
                 throw new InvalidOperationException(
                     "'" + arg.Entity.GetType().Name + "' may not be saved because " +

@@ -44,66 +44,23 @@
         };
 
         proto.setProperty = function (propertyName, value) {
-            if (!this._backingStore.hasOwnProperty(propertyName)) {
-                throw new Error("Unknown property name:" + propertyName);
-            }
+            //if (!this._backingStore.hasOwnProperty(propertyName)) {
+            //    throw new Error("Unknown property name:" + propertyName);
+            //}
             this[propertyName] = value;
             // allow setProperty chaining.
             return this;
         };
 
-        //// called after any create during a query;
-        // this method cannot be called while a 'defineProperty' accessor is executing
-        // because of IE bug 
-        proto.initializeFrom = function (rawEntity) {
-            // HACK:
-            // copy unmapped properties from newly created client entity to the rawEntity.
-            // This is so that we don't lose them when we update from the rawEntity to the target.
-            // Something that will occur immediately after this method completes. 
-            var that = this;
-            this.entityType.unmappedProperties.forEach(function(prop) {
-                var propName = prop.name;
-                rawEntity[propName] = that[propName];
-            });
-            
-            if (!this._backingStore) {
-                this._backingStore = { };
-            }
-        };
-
-        // internal implementation details - ugly because of IE9 issues with defineProperty.
-
-        proto._pendingSets = [];
-        proto._pendingSets.schedule = function(entity, propName, value) {
-            this.push({ entity: entity, propName: propName, value: value });
-            if (!this.isPending) {
-                this.isPending = true;
-                var that = this;
-                setTimeout(function() { that.process(); });
-            }
-        };
-        proto._pendingSets.process = function() {
-            if (this.length === 0) return;
-            this.forEach(function(ps) {
-                if (!ps.entity._backingStore) {
-                    ps.entity._backingStore = { };
-                }
-                ps.entity._backingStore[ps.propName] = ps.value;
-            });
-            this.length = 0;
-            this.isPending = false;
-        };
-
         movePropDefsToProto(proto);
-
     };
 
-    // This method is called when an instance is first created via materialization or createEntity.
+    // This method is called when an EntityAspect is first created - this will occur as part of the entityType.createEntity call. 
+    // which can be called either directly or via standard query materialization
 
     // entity is either an entity or a complexObject
     ctor.prototype.startTracking = function (entity, proto) {
         // can't touch the normal property sets within this method - access the backingStore directly instead. 
-        proto._pendingSets.process();
         var bs = movePropsToBackingStore(entity);
 
         // assign default values to the entity
@@ -148,7 +105,7 @@
 
     // private methods
 
-    // This method is called during Metadata initialization to correct "wrap" properties.
+    // This method is called during Metadata initialization to correctly "wrap" properties.
     function movePropDefsToProto(proto) {
         var stype = proto.entityType || proto.complexType;
         var extra = stype._extra;
@@ -177,10 +134,9 @@
     // because of IE bug mentioned above.
 
     function movePropsToBackingStore(instance) {
+        
+        var bs = getBackingStore(instance);
         var proto = Object.getPrototypeOf(instance);
-        if (!instance._backingStore) {
-            instance._backingStore = { };
-        }
         var stype = proto.entityType || proto.complexType;
         stype.getProperties().forEach(function(prop) {
             var propName = prop.name;
@@ -190,37 +146,25 @@
             delete instance[propName];
             instance[propName] = value;
         });
-        return instance._backingStore;
+        return bs;
     }
 
     function makePropDescription(proto, property) {
         var propName = property.name;
-        var getAccessorFn = function(backingStore) {
-            return function() {
-                if (arguments.length == 0) {
-                    return backingStore[propName];
-                } else {
-                    backingStore[propName] = arguments[0];
-                }
-            };
-        };
+        var pendingStores = proto._pendingBackingStores;
+        if (!pendingStores) {
+            pendingStores = [];
+            proto._pendingBackingStores = pendingStores;
+        }
         var descr = {
-            get: function() {
-                var bs = this._backingStore;
-                if (!bs) {
-                    this._pendingSets.process();
-                    bs = this._backingStore;
-                    if (!bs) return;
-                }
+            get: function () {
+                var bs = this._backingStore || getBackingStore(this);
                 return bs[propName];
             },
-            set: function(value) {
-                var bs = this._backingStore;
-                if (!bs) {
-                    this._pendingSets.schedule(this, propName, value);
-                    return;
-                }
-                var accessorFn = getAccessorFn(bs);
+            set: function (value) {
+                // IE9 cannot touch instance._backingStore here
+                var bs = this._backingStore || getPendingBackingStore(this);
+                var accessorFn = getAccessorFn(bs, propName);
                 this._$interceptor(property, value, accessorFn);
             },
             enumerable: true,
@@ -228,6 +172,35 @@
         };
         Object.defineProperty(proto, propName, descr);
     }
+
+    function getAccessorFn(bs, propName) {
+        return function () {
+            if (arguments.length == 0) {
+                return bs[propName];
+            } else {
+                bs[propName] = arguments[0];
+            }
+        };
+    }
+
+    // caching version of the above code - perf gain is minimal or negative based on simple testing.
+
+    //function getAccessorFn(bs, propName) {
+    //    // check if fn is already cached 
+    //    var fns = bs.__fns || (bs.__fns = {});
+    //    var fn = fns[propName];
+    //    if (fn) return fn;
+        
+    //    fn = function () {
+    //        if (arguments.length == 0) {
+    //            return bs[propName];
+    //        } else {
+    //            bs[propName] = arguments[0];
+    //        }
+    //    };
+    //    fns[propName] = fn;
+    //    return fn;
+    //}
 
     function wrapPropDescription(proto, property) {
         if (!proto.hasOwnProperty(property.name)) {
@@ -253,7 +226,6 @@
                 }
             }
         };
-   
             
         var newDescr = {
             get: function () {
@@ -267,6 +239,43 @@
         };
         Object.defineProperty(proto, property.name, newDescr);
     };
+
+   
+    
+
+    function getBackingStore(instance) {
+        var proto = Object.getPrototypeOf(instance);
+        processPendingStores(proto);
+        var bs = instance._backingStore;
+        if (!bs) {
+            bs = {};
+            instance._backingStore = bs;
+        }
+        return bs;
+    }
+
+    // workaround for IE9 bug where instance properties cannot be changed when executing a property 'set' method.
+    function getPendingBackingStore(instance) {
+        var proto = Object.getPrototypeOf(instance);
+        var pendingStores = proto._pendingBackingStores;
+        var pending = core.arrayFirst(pendingStores, function (pending) {
+            return pending.entity === instance;
+        });
+        if (pending) return pending.backingStore;
+        bs = {};
+        pendingStores.push({ entity: instance, backingStore: bs });
+        return bs;
+    }
+
+    function processPendingStores(proto) {
+        var pendingStores = proto._pendingBackingStores;
+        if (pendingStores) {
+            pendingStores.forEach(function (pending) {
+                pending.entity._backingStore = pending.backingStore;
+            });
+            pendingStores.length = 0;
+        }
+    }
         
 
     breeze.config.registerAdapter("modelLibrary", ctor);

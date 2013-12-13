@@ -6,8 +6,9 @@
     toastr.options.positionClass = 'toast-bottom-right';
 
     // configure Breeze for this app
+    var userSessionId = breeze.core.getUuid();
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
-    initBreezeAjaxAdapter(config.userSessionId);
+    initBreezeAjaxAdapter(userSessionId);
     var app = angular.module('app');
     
     app.factory('config', ['environment', config]);
@@ -23,7 +24,7 @@
             devServiceName: environment.devServiceName,
             productImageBasePath: productImageBasePath,
             productUnknownImage: productUnknownImage,
-            userSessionId: breeze.core.getUuid(),
+            userSessionId: userSessionId,
             serverTimeoutMs: 5000 // 5 seconds should be long enough
         };
     }

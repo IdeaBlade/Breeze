@@ -32,6 +32,64 @@
         teardown: function () { }
     });
 
+    test("delete without query", function () {
+        var em = newEm();
+        var em2 = newEm();
+        var similarEmp;
+        var similarAspect;
+        var emp = em.createEntity("Employee");
+        emp.setProperty("firstName", "Test fn");
+        emp.setProperty("lastName", "Test ln");
+        emp.setProperty("fullName", "foo");
+        em.addEntity(emp);
+        stop();
+        em.saveChanges().then(function (sr) {
+            var savedEnts = sr.entities;
+            ok(savedEnts.length === 1, "should have saved 1 entity");
+            ok(emp === savedEnts[0], "should be same emp");
+            var empKeyValue = emp.getProperty(testFns.employeeKeyName);
+            var empKey = emp.entityAspect.getKey();
+            similarEmp = em2.createEntity("Employee");
+            similarEmp.setProperty(testFns.employeeKeyName, empKeyValue);
+            similarAspect = similarEmp.aspect;
+            similarAspect.setUnchanged();
+            similarAspect.setDeleted();
+            ok(similarAspect.entityState.isDeleted(), "should be deleted");
+            return em2.saveChanges();
+        }).then(function (sr) {
+            var savedEnts = sr.entities;
+            ok(savedEnts.length === 1, "should have saved 1 entity");
+            ok(savedEnts[0] === similarEmp, "should be the same similarEmp");
+            ok(similarAspect.entityState.isDetached(), "should be detached");
+        }).fail(testFns.handleFail).fin(start);
+
+
+    });
+
+    test("pk update", function () {
+        var em = newEm();
+
+        var q = new EntityQuery("Territories").orderBy("territoryID desc").take(1);
+        stop();
+        var order;
+        var freight;
+        q.using(em).execute().then(function (data) {
+            ok(data.results.length === 1, "should be one result");
+            var terr = data.results[0];
+            var id = terr.getProperty("territoryID");
+            terr.setProperty("territoryID", id + 1);
+
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(false, "should not get here");
+            
+
+        }).fail(function (e) {
+            var isOk = e.message.indexOf("part of the entity's key") > 0;
+            ok(isOk, "error message should mention the entity key");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("exceptions thrown on server", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
@@ -106,8 +164,6 @@
     //});
 
     test("check unmapped property on server", function () {
-        // this test does not fail. Must debug server and 'dig' to find unmapped property value since it's not available in the interceptors
-        // var em = newEm();
         
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var customerType = em.metadataStore.getEntityType("Customer");
@@ -131,8 +187,90 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
+    test("test unmapped property serialization on server", function () {
+
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var customerType = em.metadataStore.getEntityType("Customer");
+        customerType.setProperties({
+            serializerFn: function (dp, value) {
+                if (typeof (value) === "string") return value.toUpperCase();
+                if (dp.isUnmapped) {
+                    if (dp.name == "anotherOne") {
+                        value.extra = 666;
+                    }
+                }
+                return value;
+            }
+        })
+        var Customer = function () {
+            this.myUnmappedProperty = "anything22";
+            var x = {
+                x: "22",
+                y: "test",
+                z: ["a1", 3, true, null, undefined, { foo: 4 }, function (x, y, z) { return 666 }],
+                testFn: function(a, b) { return a+b;}
+            }
+            x.recursive = { ok: true, notOk: x }; // notOk should not get serialized.
+            this.anotherOne = x;
+        };
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+
+        var cust = customerType.createEntity();
+        cust.setProperty("companyName", "Test_compName");
+        em.addEntity(cust);
+
+        var entitiesToSave = new Array(cust);
+        var saveOptions = new SaveOptions({ resourceName: "SaveCheckUnmappedPropertySerialized" });
+        stop();
+
+        em.saveChanges(entitiesToSave, saveOptions).then(function (sr) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("test unmapped property suppression", function () {
+
+        var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
+        var customerType = em.metadataStore.getEntityType("Customer");
+        customerType.setProperties({
+            serializerFn: function (dp, value) {
+                if (dp.isUnmapped) return undefined;
+                return value;
+            }
+        })
+        var Customer = function () {
+            this.myUnmappedProperty = "anything22";
+            var x = {
+                x: "22",
+                y: "test",
+                z: ["a1", 3, true, null, undefined, { foo: 4 }]
+            }
+            x.recursive = { ok: true, notOk: x }; // notOk should not get serialized.
+            this.anotherOne = x;
+        };
+        em.metadataStore.registerEntityTypeCtor("Customer", Customer);
+
+
+        var cust = customerType.createEntity();
+        cust.setProperty("companyName", "Test_compName");
+        em.addEntity(cust);
+
+        var entitiesToSave = new Array(cust);
+        var saveOptions = new SaveOptions({ resourceName: "SaveCheckUnmappedPropertySuppressed" });
+        stop();
+
+        em.saveChanges(entitiesToSave, saveOptions).then(function (sr) {
+            ok(true);
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+
     test("check initializer is hit for entities added/saved on server", function () {
-        // var em = newEm();
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
 
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
@@ -161,6 +299,12 @@
     });
 
     test("entities modified on server being saved as new entities", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
+
         if (testFns.DEBUG_MONGO) {
             ok(true, "N/A for Mongo - test not yet implemented - requires server side async call");
             return;
@@ -184,6 +328,11 @@
     });
 
     test("save data with with additional entity added on server", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
         var em = newEm();
         
         var supplier = em.createEntity("Supplier", { companyName: "CompName" });
@@ -659,7 +808,7 @@
         }).fin(start);
     });
 
-    test("save with server side entity level validation error", 3, function () {
+    test("save with server side entity level validation error", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
             return;
@@ -863,6 +1012,12 @@
     });
 
     test("save custom data annotation validation", function () {
+
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped test - OData does not support server interception or alt resources");
+            return;
+        };
+
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
             return;
@@ -1414,6 +1569,11 @@
     });
 
     test("insert using existing entity re-attached", function () {
+        if (testFns.DEBUG_ODATA) {
+            ok(true, "Skipped tests - not applicable to OData");
+            return;
+        };
+
         var em = newEm();
         var q = new EntityQuery()
             .from("TimeGroups")

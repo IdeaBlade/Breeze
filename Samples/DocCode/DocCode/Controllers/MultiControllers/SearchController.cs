@@ -2,7 +2,7 @@ using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Http;
-using Breeze.WebApi;
+using Breeze.WebApi2;
 using Northwind.Models;
 
 namespace DocCode.Controllers.MultiControllers
@@ -47,9 +47,9 @@ namespace DocCode.Controllers.MultiControllers
             return Repository.Orders
                 .Where(o =>
                     o.ShipName.Contains(searchText) ||
-                    o.ShipAddress.Contains(searchText) ||
-                    o.ShipCity.Contains(searchText) ||
-                    o.ShipCountry.StartsWith(searchText) ||
+                    o.ShipTo.Address.Contains(searchText) ||
+                    o.ShipTo.City.Contains(searchText) ||
+                    o.ShipTo.Country.StartsWith(searchText) ||
                     o.Customer.CompanyName.Contains(searchText) ||
                     o.Employee.FirstName.Contains(searchText) ||
                     o.Employee.LastName.Contains(searchText))

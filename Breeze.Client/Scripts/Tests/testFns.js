@@ -51,6 +51,10 @@ breezeTestFns = (function (breeze) {
     function updateTitle() {
         testFns.title = "dataService: " + (testFns.dataService || "--NONE SPECIFIED --") + ", modelLibrary: " + testFns.modelLibrary;
     }
+
+    testFns.setSampleNamespace = function (value) {
+        testFns.sampleNamespace = value;
+    };
     
     testFns.setDataService = function (value) {
 
@@ -338,6 +342,15 @@ breezeTestFns = (function (breeze) {
 
     };
 
+    testFns.haveSameContents = function(a1, a2) {
+        var areBothArrays = Array.isArray(a1) && Array.isArray(a2);
+        if (!areBothArrays) return false;
+        if (a1.length !== a2.length) return false;
+        return a1.every(function(v) {
+            return a2.indexOf(v)>= 0;
+        });
+    }
+
     function compare(a, b, propertyName, dataType, isDescending, isCaseSensitive) {
         var value1 = a && a.getProperty(propertyName);
         var value2 = b && b.getProperty(propertyName);
@@ -375,30 +388,7 @@ breezeTestFns = (function (breeze) {
 
     }
 
-    testFns.StopCount = function (count) {
-        this.count = count;
-        stop();
-    };
-
-    testFns.StopCount.prototype.start = function () {
-        this.count--;
-        if (!this.count) {
-            start();
-            return true;
-        } else {
-            return false;
-        }
-    };
-
-    testFns.StopCount.prototype.handleFail = function (error) {
-        ok(false, "failed");
-        if (error.message) {
-            ok(false, error.message);
-        } else {
-            ok(false, "Failed: " + error.toString());
-        }
-        this.start();
-    };
+   
 
     testFns.output = function (text) {
         document.body.appendChild(document.createElement('pre')).innerHTML = text;
@@ -551,7 +541,7 @@ breezeTestFns = (function (breeze) {
         } else if (testFns.modelLibrary == "backbone") {
             return Backbone.Model.extend({
                 defaults: {
-                    isObsolete: false,
+                    isObsolete: false
                 },
                 init: init
             });
@@ -589,6 +579,16 @@ breezeTestFns = (function (breeze) {
     };
 
     testFns.sizeOf = sizeOf;
+
+    testFns.arrayDistinct = function(array) {
+        array = array || [];
+        var result = [];
+        for (var i = 0, j = array.length; i < j; i++) {
+            if (result.indexOf(array[i]) < 0)
+                result.push(array[i]);
+        }
+        return result;
+    }
 
     testFns.sizeOfDif = sizeOfDif;
 

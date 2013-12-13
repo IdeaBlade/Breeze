@@ -78,11 +78,19 @@
             return this;
         };
 
-        if (Object.getPrototypeOf) {
+        if (canIsolateES5Props()) {
             isolateES5Props(proto);
         }
 
     };
+
+    function canIsolateES5Props() {
+        try {
+            return Object.getPrototypeOf && Object.defineProperty({}, 'x', {});
+        } catch (e) {
+            return false;
+        }
+    }
 
     function isolateES5Props(proto) {
         
@@ -104,7 +112,9 @@
     }
 
     function getES5PropDescriptor(proto, propName) {
-        
+        if (!canIsolateES5Props()) {
+            return null;
+        }
         if (proto.hasOwnProperty(propName)) {
             return Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(proto, propName);
         } else {
@@ -115,10 +125,11 @@
 
     ctor.prototype.startTracking = function (entity, proto) {
         // create ko's for each property and assign defaultValues
-        // force unmapped properties to the end
+
         var stype = entity.entityType || entity.complexType;
         var es5Descriptors = stype._extra.es5Descriptors || {};
-        
+
+        // sort unmapped properties to the end
         stype.getProperties().sort(function (p1, p2) {
             var v1 = p1.isUnmapped ? 1 :  0;
             var v2 = p2.isUnmapped ? 1 :  0;

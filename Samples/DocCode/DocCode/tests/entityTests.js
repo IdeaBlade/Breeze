@@ -7,7 +7,11 @@
     *********************************************************/
     var serviceName = testFns.northwindServiceName;
     var newEm = testFns.newEmFactory(serviceName);
-
+    
+    // convenience variables
+    var EntityState = breeze.EntityState;
+    var dummyCustID = testFns.newGuidComb();
+    
     module("entityTests", testFns.getModuleOptions(newEm));
 
     /*********************************************************
@@ -15,20 +19,25 @@
     *********************************************************/
     test("add Customer with manager.CreateEntity", 1, function() {
         var em = newEm();
-        var newCust = em.createEntity("Customer", { CustomerID: testFns.newGuidComb() });
+        var newCust = em.createEntity("Customer",
+            { CustomerID: testFns.newGuidComb() }); // initializes the client-generated key
         ok(newCust.entityAspect.entityState.isAdded(), "newCust should be 'added'");
     });
 
     /*********************************************************
-    * Add a Customer with the EntityType and confirm its EntityState
-    * Most of the tests in this file are still use this
-    * older, less preferred, more verbose approach using the EntityType
-    * Todo: update these tests to use EntityManager.CreateEntity
+    * Add a Customer using the EntityType and confirm its EntityState
+    * Do so in the more verbose approach using the EntityType
+    *   - get the type
+    *   - use the type to create the entity instance
+    *   - initialize values of the entity (the key in this case)
+    *   - add the entity to the EntityManager's cache
+    * Many of the tests in this file use this technique
+    * Either technique works; this is just more verbose
     *********************************************************/
-    test("add Customer with the EntityType", 1, function() {
+    test("add Customer using the EntityType", 1, function() {
         var em = newEm();
         var customerType = em.metadataStore.getEntityType("Customer");
-        var newCust = customerType.createEntity();
+        var newCust = customerType.createEntity();      
         newCust.CustomerID(testFns.newGuidComb());
         em.addEntity(newCust);
 
@@ -37,19 +46,85 @@
 
 
     /*********************************************************
-    * Add an Order with initializer that set its parent Customer by Id
+    * create a Customer with a known key
+    * in the unchanged state as if it had been queried
+    * A technique often used in testing to create a mock entity
+    *********************************************************/
+    test("create a Customer in the unchanged state as if it had been queried", 1, function () {
+        var em = newEm();
+        var cust = em.createEntity('Customer',
+              {
+                  CustomerID: dummyCustID,
+                  CompanyName: 'Foo Co',
+                  ContactName: 'Ima Kiddin'
+              },
+            EntityState.Unchanged);  // creates the entity in the Unchanged state
+        ok(cust.entityAspect.entityState.isUnchanged(), "cust should be 'Unchanged'");
+    });
+
+    /*********************************************************
+    * create a Customer with a known key 
+    * in the modified state as if it had been queried
+    * A technique often used in testing to create a mock entity
+    *********************************************************/
+    test("create a Customer in the modified state as if it had been queried", 8, function () {
+        var em = newEm();
+        var cust = em.createEntity('Customer',
+            {
+                CustomerID: dummyCustID,
+                CompanyName: 'Foo Co',
+                ContactName: 'Ima Kiddin'
+            },
+            EntityState.Unchanged);  // creates the entity in the Unchanged state first
+        
+        // now modify it to suit your needs
+        cust.CompanyName("Bar Co");
+        cust.Phone("510-555-1212");
+        
+        ok(cust.entityAspect.entityState.isModified(), "cust should be 'Modified'");
+        equal(cust.CompanyName(), 'Bar Co', "should have modified CompanyName");
+        equal(cust.ContactName(), 'Ima Kiddin', "should have modified ContactName");
+        equal(cust.Phone(), "510-555-1212", "should have expected Phone");
+        
+        // revert it
+        cust.entityAspect.rejectChanges();
+        ok(cust.entityAspect.entityState.isUnchanged(), "cust should be 'Unchanged' after rejectChanges");
+
+        equal(cust.CompanyName(), 'Foo Co', "should have reverted CompanyName after rejectChanges");
+        equal(cust.ContactName(), 'Ima Kiddin', "should have same ContactName after rejectChanges");
+        equal(cust.Phone(), null, "should have reverted Phone to null after rejectChanges");
+    });
+ 
+    /*********************************************************
+    * create a Customer in the deleted state w/o querying it first
+    * when you know which entity to delete but don't want to retrieve it first
+    * Always specify the key and any properties necessary
+    * to satisfy server-side validity and concurrency checks
+    *********************************************************/
+    test("create a Customer in the deleted state w/o querying it first", 1, function () {
+        var em = newEm();
+        var cust = em.createEntity('Customer',
+            { CustomerID: dummyCustID },
+            EntityState.Deleted);  // creates the entity in the Deleted state
+        ok(cust.entityAspect.entityState.isDeleted(), "cust should be 'Deleted'");
+    });
+
+    /*********************************************************
+    * Add an Order with initializer that sets its parent Customer by Id
     *********************************************************/
     test("add Customer created using initializer with parent Customer Id", 4, function() {
         var em = newEm();
 
         // create a new parent Customer
         var parentCustomer = em.createEntity("Customer", {
-            CustomerID: breeze.core.getUuid(),
+            CustomerID: dummyCustID,
             CompanyName: 'TestCo'
         });
 
         // a new Order which is a child of the parent Customer
-        var newOrder = em.createEntity("Order", { CustomerID: parentCustomer.CustomerID() });
+        var newOrder = em.createEntity("Order", {
+             CustomerID: parentCustomer.CustomerID()
+        });
 
         ok(newOrder.entityAspect.entityState.isAdded(), "newOrder should be 'added'");
         ok(parentCustomer.entityAspect.entityState.isAdded(), "parentCustomer should be 'added'");
@@ -66,7 +141,8 @@
     *********************************************************/
     test("add OrderDetail created using initializer with parent ids", 1, function() {
         var em = newEm();
-        var newDetail = em.createEntity("OrderDetail", { OrderID: 1, ProductID: 1 });
+        var newDetail = em.createEntity("OrderDetail",
+            { OrderID: 1, ProductID: 1 });
         ok(newDetail.entityAspect.entityState.isAdded(), "newDetail should be 'added'");
     });
 
@@ -78,8 +154,10 @@
         var em = newEm();
         var newDetail = null;
         // pretend parent entities were queried
-        var parentOrder = em.createEntity("Order", { OrderID: 1 }, breeze.EntityState.Unchanged);
-        var parentProduct = em.createEntity("Product", { ProductID: 1 }, breeze.EntityState.Unchanged);
+        var parentOrder = em.createEntity("Order",
+            { OrderID: 1   }, EntityState.Unchanged);
+        var parentProduct = em.createEntity("Product",
+            { ProductID: 1 }, EntityState.Unchanged);
         try {
             // Can't initialize with related entity. Feature request to make this possible         
             newDetail = em.createEntity("OrderDetail", { Order: parentOrder, Product: parentProduct });
@@ -247,7 +325,7 @@
             var employee = em.createEntity('Employee', {
                 EmployeeID: 1,
                 LastName: "Jones"
-            }, breeze.EntityState.Unchanged); // attach as Unchanged. 
+            }, EntityState.Unchanged); // attach as Unchanged. 
 
             // After next change, should be tracking original value, 'Jones'
             employee.LastName("Black");
@@ -277,7 +355,7 @@
             var employee = em.createEntity('Employee', {
                 EmployeeID: 1,
                 FirstName: "Bob"
-            }, breeze.EntityState.Unchanged); // attach as Unchanged.
+            }, EntityState.Unchanged); // attach as Unchanged.
 
             employee.FirstName(employee.FirstName());
 
@@ -297,12 +375,12 @@
             var employee1 = em.createEntity('Employee', {
                 EmployeeID: 1,
                 FirstName: "Bob"
-            }, breeze.EntityState.Unchanged); // attach as Unchanged.
+            }, EntityState.Unchanged); // attach as Unchanged.
 
             var employee2 = em.createEntity('Employee', {
                 EmployeeID: 2,
                 FirstName: "Sally"
-            }, breeze.EntityState.Unchanged); // attach as Unchanged.
+            }, EntityState.Unchanged); // attach as Unchanged.
 
             var orderType = em.metadataStore.getEntityType("Order");
             var order = orderType.createEntity();
@@ -434,7 +512,7 @@
         var employee = em.createEntity('Employee', {
             EmployeeID: 1,
             LastName: "Jones"
-        }, breeze.EntityState.Unchanged); // attach as Unchanged.
+        }, EntityState.Unchanged); // attach as Unchanged.
 
         var changedName = "Black";
         employee.LastName(changedName);
@@ -549,7 +627,7 @@
      *********************************************************/
     test("detaching parent entity has no effect on in-cache children", 5,
         function () {
-            var unchanged = breeze.EntityState.Unchanged;
+            var unchanged = EntityState.Unchanged;
             var em = newEm(); // new empty EntityManager
             var order = em.createEntity('Order', {
                  OrderID: 1
@@ -567,7 +645,7 @@
             em.detachEntity(order); // THE MOMENT OF TRUTH
  
             var orderStateName = order.entityAspect.entityState.name;
-            equal(orderStateName, breeze.EntityState.Detached.name,
+            equal(orderStateName, EntityState.Detached.name,
                  "parent 'order' should be detached");
             var detailStateName = detail.entityAspect.entityState.name;
             equal(detailStateName, unchanged.name,
@@ -583,8 +661,8 @@
     *********************************************************/
     test("Can detach parent and children in one step", 3,
         function () {
-            var unchanged = breeze.EntityState.Unchanged;
-            var detached = breeze.EntityState.Detached;
+            var unchanged = EntityState.Unchanged;
+            var detached = EntityState.Detached;
             
             var em = newEm(); // new empty EntityManager
             var order = em.createEntity('Order', {
@@ -736,7 +814,7 @@
         
         var customerType = em.metadataStore.getEntityType("Customer");
         var customer = customerType.createEntity();
-        customer.CustomerID(testFns.newGuidComb());
+        customer.CustomerID(dummyCustID);
         customer.entityState = ko.observable("Detached");
 
         var expectedChangedStates = [];
@@ -797,11 +875,12 @@
     test("Changing a part of a date doesn't trigger property changed", 3, function() {
        
         var em = newEm();
-        var orderType = em.metadataStore.getEntityType("Order");
-        var order = orderType.createEntity();
-        order.setProperty("OrderDate", new Date(2013, 1, 1));
-        order.setProperty("OrderID", 42);
-        em.attachEntity(order); // unmodified state
+        var order = em.createEntity('Order',
+            {
+                OrderID: 42,
+                OrderDate: new Date(2013, 1, 1)
+            },
+            EntityState.Unchanged);
         
         var orderDate = order.getProperty("OrderDate");
         var originalDate = new Date(orderDate); // clone it
@@ -827,11 +906,12 @@
     test("Changing the whole date does trigger property changed", 1, function () {
 
         var em = newEm();
-        var orderType = em.metadataStore.getEntityType("Order");
-        var order = orderType.createEntity();
-        order.setProperty("OrderDate", new Date(2013, 1, 1));
-        order.setProperty("OrderID", 42);
-        em.attachEntity(order); // unmodified state
+        var order = em.createEntity('Order',
+            {
+                OrderID: 42,
+                OrderDate: new Date(2013, 1, 1)
+            },
+            EntityState.Unchanged);
 
         var newOrderDate = getDifferentDate(order.getProperty("OrderDate"));
         order.setProperty("OrderDate", newOrderDate);
@@ -851,6 +931,7 @@
     test("Store-managed int ID is a negative temp id after addEntity", 2, function() {
 
         var em = newEm();
+        em.createEntity('Employee')
         var employeeType = em.metadataStore.getEntityType("Employee");
         var emp = employeeType.createEntity();
         equal(emp.EmployeeID(), 0, "id should be zero at creation");
@@ -876,7 +957,7 @@
         // manager should NOT replace '0' with generated temp id 
         em.attachEntity(emp);
         var id = emp.EmployeeID();
-        equal(emp.EmployeeID(), 0,
+        equal(id, 0,
             "id should still be '0' after attachEntity whose state is "+
             emp.entityAspect.entityState.name);
     });
@@ -884,22 +965,12 @@
     /*********************************************************
     * TEST HELPERS
     *********************************************************/
-
-    // new but not added to em
-    function createCustomer(em, name) {
-        name = name || "New customer";
-        var customerType = em.metadataStore.getEntityType("Customer");
-        var customer = customerType.createEntity();
-        customer.CompanyName(name);
-        return customer;
-    }
-
     function getFakeExistingcustomer(em, name) {
-        name = name || "Just Kidding";
-        var customer = createCustomer(em, name);
-        customer.CustomerID(breeze.core.getUuid());
-        // pretend already exists
-        return em.attachEntity(customer);
+        return em.createEntity('Customer',
+        {
+            CustomerID: dummyCustID,
+            CompanyName: name || "Just Kidding"
+        }, EntityState.Unchanged);
     }
     
     function getFakeDeletedcustomer(em, name) {
@@ -911,24 +982,9 @@
     // get the names of properties whose original values are in the originalValues hash map
     function getOriginalValuesPropertyNames(entity) {
         var names = [];
-        for (var name in entity.entityAspect.originalValues) { names.push(name); }
+        var originalValues = entity.entityAspect.originalValues;
+        for (var name in originalValues) { names.push(name); }
         return names;
     }
 
-    /*  Suggested future Test subjects
-    *----------------------
-    * Id Generation 
-    *  Guid Ids of a new customer are store generated
-    *  Int Ids of a new Order are store generated
-    *  Ids of the composite key of a new OrderDetail must be client generated
-    *
-    * EntityAspect
-    *    isBeingSaved (in combination with EM.entityChanged)
-    *
-    * EntityManager
-    *   Clearing cache detaches all entities
-    *   4 flavors of GetEntities
-    *   EM.setProperties
-    *   EM.entityChanged and EntityAction(query, save, add, attach)
-    */
 })(docCode.testFns);

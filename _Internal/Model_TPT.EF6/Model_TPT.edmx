@@ -1,0 +1,352 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="ProduceTPTModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityContainer Name="ProduceTPTModelStoreContainer">
+          <EntitySet Name="Apple" EntityType="ProduceTPTModel.Store.Apple" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Fruit" EntityType="ProduceTPTModel.Store.Fruit" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="ItemOfProduce" EntityType="ProduceTPTModel.Store.ItemOfProduce" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Strawberry" EntityType="ProduceTPTModel.Store.Strawberry" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Tomato" EntityType="ProduceTPTModel.Store.Tomato" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Vegetable" EntityType="ProduceTPTModel.Store.Vegetable" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="WhitePotato" EntityType="ProduceTPTModel.Store.WhitePotato" store:Type="Tables" Schema="dbo" />
+          <AssociationSet Name="FK_Apple_Fruit" Association="ProduceTPTModel.Store.FK_Apple_Fruit">
+            <End Role="Fruit" EntitySet="Fruit" />
+            <End Role="Apple" EntitySet="Apple" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Fruit_ItemOfProduce" Association="ProduceTPTModel.Store.FK_Fruit_ItemOfProduce">
+            <End Role="ItemOfProduce" EntitySet="ItemOfProduce" />
+            <End Role="Fruit" EntitySet="Fruit" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Strawberry_Fruit" Association="ProduceTPTModel.Store.FK_Strawberry_Fruit">
+            <End Role="Fruit" EntitySet="Fruit" />
+            <End Role="Strawberry" EntitySet="Strawberry" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Tomato_Vegetable" Association="ProduceTPTModel.Store.FK_Tomato_Vegetable">
+            <End Role="Vegetable" EntitySet="Vegetable" />
+            <End Role="Tomato" EntitySet="Tomato" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Vegetable_ItemOfProduce" Association="ProduceTPTModel.Store.FK_Vegetable_ItemOfProduce">
+            <End Role="ItemOfProduce" EntitySet="ItemOfProduce" />
+            <End Role="Vegetable" EntitySet="Vegetable" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WhitePotato_Vegetable" Association="ProduceTPTModel.Store.FK_WhitePotato_Vegetable">
+            <End Role="Vegetable" EntitySet="Vegetable" />
+            <End Role="WhitePotato" EntitySet="WhitePotato" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Apple">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Variety" Type="nvarchar" MaxLength="50" />
+          <Property Name="Description" Type="nvarchar" MaxLength="250" />
+          <Property Name="Photo" Type="image" />
+        </EntityType>
+        <EntityType Name="Fruit">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="USDACategory" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="ItemOfProduce">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ItemNumber" Type="nchar" Nullable="false" MaxLength="8" />
+          <Property Name="UnitPrice" Type="money" />
+          <Property Name="QuantityPerUnit" Type="nvarchar" MaxLength="20" />
+          <Property Name="UnitsInStock" Type="smallint" />
+          <Property Name="UnitsOnOrder" Type="smallint" Nullable="false" />
+          <Property Name="RowVersion" Type="int" />
+        </EntityType>
+        <EntityType Name="Strawberry">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Variety" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="Description" Type="nvarchar" MaxLength="200" />
+          <Property Name="Photo" Type="image" />
+        </EntityType>
+        <EntityType Name="Tomato">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Variety" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="Description" Type="nvarchar" MaxLength="100" />
+          <Property Name="Determinate" Type="bit" />
+          <Property Name="Photo" Type="image" />
+        </EntityType>
+        <EntityType Name="Vegetable">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="USDACategory" Type="nvarchar" MaxLength="50" />
+          <Property Name="AboveGround" Type="bit" />
+        </EntityType>
+        <EntityType Name="WhitePotato">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Variety" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="SkinColor" Type="nvarchar" MaxLength="20" />
+          <Property Name="Eyes" Type="nvarchar" MaxLength="20" />
+          <Property Name="PrimaryUses" Type="nvarchar" MaxLength="50" />
+          <Property Name="Photo" Type="image" />
+        </EntityType>
+        <Association Name="FK_Apple_Fruit">
+          <End Role="Fruit" Type="ProduceTPTModel.Store.Fruit" Multiplicity="1" />
+          <End Role="Apple" Type="ProduceTPTModel.Store.Apple" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Fruit">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Apple">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Fruit_ItemOfProduce">
+          <End Role="ItemOfProduce" Type="ProduceTPTModel.Store.ItemOfProduce" Multiplicity="1" />
+          <End Role="Fruit" Type="ProduceTPTModel.Store.Fruit" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="ItemOfProduce">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Fruit">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Strawberry_Fruit">
+          <End Role="Fruit" Type="ProduceTPTModel.Store.Fruit" Multiplicity="1" />
+          <End Role="Strawberry" Type="ProduceTPTModel.Store.Strawberry" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Fruit">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Strawberry">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Tomato_Vegetable">
+          <End Role="Vegetable" Type="ProduceTPTModel.Store.Vegetable" Multiplicity="1" />
+          <End Role="Tomato" Type="ProduceTPTModel.Store.Tomato" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Vegetable">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Tomato">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Vegetable_ItemOfProduce">
+          <End Role="ItemOfProduce" Type="ProduceTPTModel.Store.ItemOfProduce" Multiplicity="1" />
+          <End Role="Vegetable" Type="ProduceTPTModel.Store.Vegetable" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="ItemOfProduce">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Vegetable">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WhitePotato_Vegetable">
+          <End Role="Vegetable" Type="ProduceTPTModel.Store.Vegetable" Multiplicity="1" />
+          <End Role="WhitePotato" Type="ProduceTPTModel.Store.WhitePotato" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Vegetable">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="WhitePotato">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="ProduceTPTModel" Alias="Self" xmlns="http://schemas.microsoft.com/ado/2009/11/edm" xmlns:ib12="http://www.ideablade.com/edm/2012">
+        <EntityContainer Name="ProduceTPTEntities" annotation:LazyLoadingEnabled="true" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:ib12="http://www.ideablade.com/edm/2012" ib12:EntityManagerName="DomainModelEntityManager" ib12:DataSourceKey="ProduceTPT" ib12:DevForceEnabled="true">
+          <EntitySet Name="ItemsOfProduce" EntityType="ProduceTPTModel.ItemOfProduce" />
+        </EntityContainer>
+        <EntityType Name="Apple" BaseType="ProduceTPTModel.Fruit">
+          <Property Name="Variety" Type="String" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="Description" Type="String" MaxLength="250" Unicode="true" FixedLength="false" />
+          <Property Name="Photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+        <EntityType Name="Fruit" BaseType="ProduceTPTModel.ItemOfProduce" Abstract="true">
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="USDACategory" Type="String" MaxLength="50" Unicode="true" FixedLength="false" />
+        </EntityType>
+        <EntityType Name="ItemOfProduce" Abstract="true">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Guid" Nullable="false" />
+          <Property Name="ItemNumber" Type="String" Nullable="false" MaxLength="8" Unicode="true" FixedLength="true" />
+          <Property Name="UnitPrice" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="QuantityPerUnit" Type="String" MaxLength="20" Unicode="true" FixedLength="false" />
+          <Property Name="UnitsInStock" Type="Int16" />
+          <Property Name="UnitsOnOrder" Type="Int16" Nullable="false" />
+          <Property Name="RowVersion" Type="Int32" DefaultValue="0" ConcurrencyMode="Fixed" xmlns:ib12="http://www.ideablade.com/edm/2012" ib12:ConcurrencyStrategy="ServerCallback" />
+        </EntityType>
+        <EntityType Name="Strawberry" BaseType="ProduceTPTModel.Fruit">
+          <Property Name="Variety" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="Description" Type="String" MaxLength="200" Unicode="true" FixedLength="false" />
+          <Property Name="Photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+        <EntityType Name="Tomato" BaseType="ProduceTPTModel.Vegetable">
+          <Property Name="Variety" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="Description" Type="String" MaxLength="100" Unicode="true" FixedLength="false" />
+          <Property Name="Determinate" Type="Boolean" />
+          <Property Name="Photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+        <EntityType Name="Vegetable" BaseType="ProduceTPTModel.ItemOfProduce" Abstract="true">
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="USDACategory" Type="String" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="AboveGround" Type="Boolean" />
+        </EntityType>
+        <EntityType Name="WhitePotato" BaseType="ProduceTPTModel.Vegetable">
+          <Property Name="Variety" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="SkinColor" Type="String" MaxLength="20" Unicode="true" FixedLength="false" />
+          <Property Name="Eyes" Type="String" MaxLength="20" Unicode="true" FixedLength="false" />
+          <Property Name="PrimaryUses" Type="String" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="Photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="ProduceTPTModelStoreContainer" CdmEntityContainer="ProduceTPTEntities">
+          <EntitySetMapping Name="ItemsOfProduce">
+            <EntityTypeMapping TypeName="IsTypeOf(ProduceTPTModel.ItemOfProduce)">
+              <MappingFragment StoreEntitySet="ItemOfProduce">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
+                <ScalarProperty Name="UnitsOnOrder" ColumnName="UnitsOnOrder" />
+                <ScalarProperty Name="UnitsInStock" ColumnName="UnitsInStock" />
+                <ScalarProperty Name="QuantityPerUnit" ColumnName="QuantityPerUnit" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UnitPrice" />
+                <ScalarProperty Name="ItemNumber" ColumnName="ItemNumber" /></MappingFragment></EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(ProduceTPTModel.Fruit)">
+              <MappingFragment StoreEntitySet="Fruit">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="USDACategory" ColumnName="USDACategory" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                </MappingFragment></EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(ProduceTPTModel.Strawberry)">
+              <MappingFragment StoreEntitySet="Strawberry">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Photo" ColumnName="Photo" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Variety" ColumnName="Variety" />
+                </MappingFragment></EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(ProduceTPTModel.Apple)">
+              <MappingFragment StoreEntitySet="Apple">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Photo" ColumnName="Photo" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Variety" ColumnName="Variety" />
+                </MappingFragment></EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(ProduceTPTModel.Vegetable)">
+              <MappingFragment StoreEntitySet="Vegetable">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="AboveGround" ColumnName="AboveGround" />
+                <ScalarProperty Name="USDACategory" ColumnName="USDACategory" />
+                <ScalarProperty Name="Name" ColumnName="Name" /></MappingFragment></EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(ProduceTPTModel.Tomato)">
+              <MappingFragment StoreEntitySet="Tomato">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Photo" ColumnName="Photo" />
+                <ScalarProperty Name="Determinate" ColumnName="Determinate" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Variety" ColumnName="Variety" />
+                </MappingFragment></EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(ProduceTPTModel.WhitePotato)">
+              <MappingFragment StoreEntitySet="WhitePotato">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Photo" ColumnName="Photo" />
+                <ScalarProperty Name="PrimaryUses" ColumnName="PrimaryUses" />
+                <ScalarProperty Name="Eyes" ColumnName="Eyes" />
+                <ScalarProperty Name="SkinColor" ColumnName="SkinColor" />
+                <ScalarProperty Name="Variety" ColumnName="Variety" />
+                </MappingFragment></EntityTypeMapping>
+            </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams>
+      <Diagram Name="ProduceTPT">
+        <EntityTypeShape EntityType="ProduceTPTModel.Apple" Width="1.5" PointX="5.375" PointY="3.375" Height="1.59568359375" IsExpanded="true" />
+        <EntityTypeShape EntityType="ProduceTPTModel.Fruit" Width="1.5" PointX="3.125" PointY="4.75" Height="1.4033821614583326" IsExpanded="true" />
+        <EntityTypeShape EntityType="ProduceTPTModel.ItemOfProduce" Width="1.5" PointX="0.75" PointY="5.5" Height="2.3648893229166656" IsExpanded="true" />
+        <EntityTypeShape EntityType="ProduceTPTModel.Strawberry" Width="1.5" PointX="5.625" PointY="5.375" Height="1.5956835937499996" IsExpanded="true" />
+        <EntityTypeShape EntityType="ProduceTPTModel.Tomato" Width="1.5" PointX="5.375" PointY="7.25" Height="1.7879850260416657" IsExpanded="true" />
+        <EntityTypeShape EntityType="ProduceTPTModel.Vegetable" Width="1.5" PointX="3.125" PointY="8.25" Height="1.5956835937499996" IsExpanded="true" />
+        <EntityTypeShape EntityType="ProduceTPTModel.WhitePotato" Width="1.5" PointX="5.25" PointY="9.25" Height="1.9802864583333335" IsExpanded="true" />
+        <InheritanceConnector EntityType="ProduceTPTModel.WhitePotato">
+          <ConnectorPoint PointX="4.625" PointY="9.547841796875" />
+          <ConnectorPoint PointX="5.25" PointY="9.547841796875" />
+          </InheritanceConnector>
+        <InheritanceConnector EntityType="ProduceTPTModel.Strawberry" ManuallyRouted="false">
+          <ConnectorPoint PointX="4.625" PointY="5.7641910807291659" />
+          <ConnectorPoint PointX="5.625" PointY="5.7641910807291659" />
+          </InheritanceConnector>
+        <InheritanceConnector EntityType="ProduceTPTModel.Apple" ManuallyRouted="false">
+          <ConnectorPoint PointX="3.875" PointY="4.75" />
+          <ConnectorPoint PointX="3.875" PointY="4.51" />
+          <ConnectorPoint PointX="4.865" PointY="4.51" />
+          <ConnectorPoint PointX="4.865" PointY="5.21068359375" />
+          <ConnectorPoint PointX="6.125" PointY="5.21068359375" />
+          <ConnectorPoint PointX="6.125" PointY="4.97068359375" />
+          </InheritanceConnector>
+        <InheritanceConnector EntityType="ProduceTPTModel.Vegetable">
+          <ConnectorPoint PointX="1.5" PointY="7.8648893229166656" />
+          <ConnectorPoint PointX="1.5" PointY="8.1148893229166656" />
+          <ConnectorPoint PointX="3.875" PointY="8.1148893229166656" />
+          <ConnectorPoint PointX="3.875" PointY="8.25" />
+          </InheritanceConnector>
+        <InheritanceConnector EntityType="ProduceTPTModel.Tomato">
+          <ConnectorPoint PointX="4.625" PointY="8.4564925130208337" />
+          <ConnectorPoint PointX="5.25" PointY="8.4564925130208337" /></InheritanceConnector>
+        <InheritanceConnector EntityType="ProduceTPTModel.Fruit" ManuallyRouted="false">
+          <ConnectorPoint PointX="2.25" PointY="5.8266910807291659" />
+          <ConnectorPoint PointX="3.125" PointY="5.8266910807291659" />
+          </InheritanceConnector>
+        </Diagram></Diagrams>
+  </Designer>
+</edmx:Edmx>

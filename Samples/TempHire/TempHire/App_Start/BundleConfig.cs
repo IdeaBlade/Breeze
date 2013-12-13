@@ -14,7 +14,7 @@ namespace TempHire
               new ScriptBundle("~/scripts/vendor")
                 .Include("~/scripts/jquery-{version}.js")
                 .Include("~/scripts/knockout-{version}.debug.js")
-                .Include("~/scripts/sammy-{version}.js")
+                //.Include("~/scripts/sammy-{version}.js")
                 //.Include("~/scripts/toastr-{version}.js")
                 .Include("~/scripts/toastr.js")
                 .Include("~/scripts/Q.js")

@@ -11,16 +11,12 @@
         testFns = definition();
     }
 
-})(function()  {
+})(function () {
     'use strict';
 
     extendString();
+    var serviceRoot = window.location.protocol + '//' + window.location.host + '/';
 
-    var userSessionId = newGuid();
-    configureBreeze();
-
-    var devServiceName = 'http://localhost:5452/breeze/dev';
-    var serviceName = 'http://localhost:5452/breeze/ZzaEf' ;
     var metadataStore = new breeze.MetadataStore();
 
     //TODO: Add server ping test because a common cause of failure is that
@@ -31,13 +27,14 @@
         setManagerToFetchFromCache: setManagerToFetchFromCache,
         addLookupsToManager: addLookupsToManager,
         fetchMetadata: fetchMetadata,
-        userSessionId: userSessionId,
-        serviceName: serviceName,
+        serviceRoot: serviceRoot,
+        serviceName: null,
+        devServiceName: 'breeze/dev',
         metadataStore: metadataStore,
         newEm: newEm,
         getNextIntId: getNextIntId,
         newGuid: newGuid,
-        newGuidComb: newGuidComb, 
+        newGuidComb: newGuidComb,
         zzaReset: zzaReset,
         FakeLogger: FakeLogger
     };
@@ -48,14 +45,18 @@
 
     /*** ALL FUNCTION DECLARATIONS FROM HERE DOWN; NO MORE REACHABLE CODE ***/
     function noop() { }
-    
+
+    function getServiceName() {
+        if (!fns.serviceName) { throw "Need a serviceName; serviceName = " + fns.serviceName; }
+        return fns.serviceRoot + fns.serviceName;
+    }
     /*********************************************************
     * new instance of a test EntityManager, synchronously primed with metadata 
     *********************************************************/
     function newTestManager() {
         var em = newEm();
         var store = em.metadataStore;
-        if (!store.hasMetadataFor(fns.serviceName)) {
+        if (!store.hasMetadataFor(getServiceName())) {
             // Import metadata that were downloaded as a script file
             store.importMetadata(zza.metadata);
         }
@@ -65,25 +66,26 @@
         manager.setProperties({
             queryOptions: new breeze.QueryOptions({
                 // query the cache by default
-                fetchStrategy: breeze.FetchStrategy.FromLocalCache,
+                fetchStrategy: breeze.FetchStrategy.FromLocalCache
             })
         });
     }
     function addLookupsToManager(manager) {
         manager.importEntities(zza.lookups);
     }
-    function fetchMetadata(){
-        if (fns.metadataStore.hasMetadataFor(fns.serviceName)) {
-            console.log("already has metadata for "+fns.serviceName);
+    function fetchMetadata() {
+        var serviceName = getServiceName();
+        if (fns.metadataStore.hasMetadataFor(serviceName)) {
+            console.log("already has metadata for " + serviceName);
             return Q(true);
         }
 
-        return fns.metadataStore.fetchMetadata(fns.serviceName)
-            .then(function(){
-                console.log("got metadata for "+fns.serviceName);
+        return fns.metadataStore.fetchMetadata(serviceName)
+            .then(function () {
+                console.log("got metadata for " + serviceName);
                 return true;
-            }).fail(function(error){
-                console.log("failed to get "+fns.serviceName+" metadata: "+error.message) ;
+            }).fail(function (error) {
+                console.log("failed to get " + serviceName + " metadata: " + error.message);
                 console.log("*** CONFIRM THAT ZZA SERVER IS RUNNING ON EXPECTED PORT ***");
                 throw error;
             });
@@ -94,7 +96,7 @@
      *********************************************************/
     function newEm() {
         return new breeze.EntityManager({
-            serviceName: serviceName,
+            serviceName: getServiceName(),
             metadataStore: metadataStore
         });
     }
@@ -132,7 +134,9 @@
      * Zza database reset - full by default, optionally just this session
      *********************************************************/
     function zzaReset(fullReset) {
-        fullReset = (fullReset === undefined)||fullReset;
+        var devServiceName = fns.serviceRoot + fns.devServiceName;
+
+        fullReset = (fullReset === undefined) || fullReset;
         var options = fullReset ? "/?options=fullreset" : "";
         var deferred = Q.defer();
 
@@ -141,7 +145,7 @@
                 deferred.resolve(
                     "Reset svc returned '" + xhr.status + "' with message: " + data);
             })
-            .error(function(xhr, textStatus, errorThrown) {
+            .error(function (xhr, textStatus, errorThrown) {
                 deferred.reject(getjQueryError(xhr, textStatus, errorThrown));
             });
 
@@ -159,29 +163,10 @@
         try {
             var reason = JSON.parse(xhr.responseText).Message;
             message += "\n" + reason;
-        } catch(ex) {
+        } catch (ex) {
             message += "\n" + xhr.responseText;
         }
         return message;
-    }
-
-    /*********************************************************
-     * Configure Breeze
-     *********************************************************/
-    function configureBreeze() {
-        breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
-        breeze.NamingConvention.camelCase.setAsDefault();
-        initAjaxAdapter();
-    }
-
-    function initAjaxAdapter() {
-        // get the current default Breeze AJAX adapter
-        var ajaxAdapter = breeze.config.getAdapterInstance("ajax");
-        ajaxAdapter.defaultSettings = {
-            headers: {
-                "X-UserSessionId": userSessionId
-            }
-        };
     }
 
     /*******************************************************

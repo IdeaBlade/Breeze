@@ -23,6 +23,25 @@
         teardown: function () {
         }
     });
+
+    test("select company names of orders with Freight > 500",  function () {
+
+        var em = newEm();
+                
+        var query = EntityQuery.from("Orders")
+            .where("freight", FilterQueryOp.GreaterThan, 500)
+            .select("customer.companyName")
+            .orderBy("customer.companyName");
+            //.expand("customer");
+        var queryUrl = query._toUri(em.metadataStore);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var results = data.results;
+            ok(results.length > 0, "should be some results");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     
     test("select - complex type", function () {
         var em = newEm();
@@ -39,6 +58,7 @@
             anons.forEach(function (a) {
                 ok(a.companyName);
                 ok(a.location);
+                ok("city" in a.location, "should have found a.location.city")
             });
         }).fail(testFns.handleFail).fin(start);
     });
@@ -150,7 +170,8 @@
         var query = new EntityQuery("Customers")
             .where("companyName", "startsWith", "C")
             .orderBy("companyName")
-            .select(["companyName", "orders"]);
+            .select(["companyName", "orders"])
+            .expand("orders");
         if (testFns.DEBUG_ODATA) {
             query = query.expand("orders");
         }        
@@ -187,6 +208,7 @@
             // .orderBy("customer.companyName");  - problem for the OData Web api provider.
         if (testFns.DEBUG_WEBAPI) {
             query = query.select("customer.companyName, customer, orderDate");
+            query = query.expand("customer");
         } else if (testFns.DEBUG_ODATA) {
             query = query.select("customer, orderDate");
             query = query.expand("customer");

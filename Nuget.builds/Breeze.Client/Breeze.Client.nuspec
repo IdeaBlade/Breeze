@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Client</id>
-        <version>1.4.2</version>
+        <version>1.4.7</version>
         <title>Breeze Client - Javascript</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
@@ -10,21 +10,21 @@
         <projectUrl>http://www.breezejs.com</projectUrl>
         <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>The files and references that are essential for a Breeze client side javascript application. You may want to use one of the other Breeze nuget packages in order to get integrated support for EntityFramework, NHibernate etc </description>
-        <summary>Breeze Client - Javascript</summary>
+        <description>The files and references that are essential for a Breeze client side javascript application. </description>
+        <summary>Breeze Client - Javascript.  This package works with both Breeze.WebApi2 servers as well as legacy Breeze.WebApi servers.</summary>
         <copyright>Copyright IdeaBlade 2012</copyright>
         <language>en-US</language>
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        
         <tags>javascript Breeze SPA</tags>
-		<dependencies>
+		    <dependencies>
             <dependency id="Q" />
-		</dependencies>
+		    </dependencies>
     </metadata>
     <files>
         <file src="content\Scripts\breeze.intellisense.js" target="content\Scripts\breeze.intellisense.js" />
         <file src="content\Scripts\breeze.debug.js" target="content\Scripts\breeze.debug.js" />
-		<file src="content\Scripts\breeze.min.js" target="content\Scripts\breeze.min.js" />
-		<file src="tools\install.ps1" target="tools\install.ps1" />
+		    <file src="content\Scripts\breeze.min.js" target="content\Scripts\breeze.min.js" />
+		    <file src="tools\install.ps1" target="tools\install.ps1" />
         <file src="readme.txt" target="readme.txt" />
     </files>
 </package>

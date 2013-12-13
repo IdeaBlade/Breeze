@@ -73,7 +73,7 @@
         var em = newEm();
 
         var query = EntityQuery.from("SearchCustomers")
-            .withParameters( { CompanyName: "A", ContactNames: ["B", "C"] , City: "Los Angeles",  } );
+            .withParameters( { CompanyName: "A", ContactNames: ["B", "C"] , City: "Los Angeles"  } );
         stop();
         em.executeQuery(query, function (data) {
             var results = data.results;
@@ -90,7 +90,7 @@
         }
         var em = newEm();
         var qbeArray = [
-            { CompanyName: "A", ContactNames: ["B", "C"], City: "Los Angeles", },
+            { CompanyName: "A", ContactNames: ["B", "C"], City: "Los Angeles" },
             { CompanyName: "C", ContactNames: ["D", "E"], City: "San Diego" }
             ];
                    

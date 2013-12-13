@@ -32,7 +32,9 @@ namespace Northwind.Models
     public string Description {get;set;}
     public byte[] Picture {get;set;}
     public int RowVersion {get;set;}
-    public ICollection<Product> Products {get;set;}
+
+    // Don't offer the navigation from Category to Products
+    // public ICollection<Product> Products {get;set;}
 
   }
   #endregion Category class
@@ -85,7 +87,7 @@ namespace Northwind.Models
     public Guid? UserSessionId { get; set; }
     public string CanAdd()
     {
-        return CustomerID == Guid.Empty ? null : "must provide a CustomerID";
+        return CustomerID == Guid.Empty ? "must provide a CustomerID" : null;
     }
   }
   #endregion Customer class
@@ -195,10 +197,48 @@ namespace Northwind.Models
   }
   #endregion EmployeeTerritory class
 
+  #region Location ComplexType class
+
+  [ComplexType]
+  public partial class Location
+  {
+      [MaxLength(60)]
+      public string Address { get; set; }
+
+      [MaxLength(15)]
+      public string City { get; set; }
+
+      [MaxLength(15)]
+      public string Region { get; set; }
+
+      [MaxLength(10)]
+      public string PostalCode { get; set; }
+
+      [MaxLength(15)]
+      public string Country { get; set; }
+
+      [JsonIgnore]
+      public bool HasValue
+      {
+          get
+          {
+              return (Address != null || City != null || Region != null || PostalCode != null || Country != null);
+          }
+      }
+
+  }
+
+  #endregion Location
+
   #region Order class
 
   public class Order  : ISaveable {
-    
+
+    public Order() {
+        // always initialize complex types
+        ShipTo = new Location();
+    } 
+       
     public int OrderID {get; set;}
     public Guid? CustomerID {get; set;}    
     public int? EmployeeID {get; set;}    
@@ -206,10 +246,12 @@ namespace Northwind.Models
     public DateTime? RequiredDate {get; set;}    
     public DateTime? ShippedDate {get; set;}    
     public decimal? Freight {get; set;}
-    
+
     [MaxLength(40)]
     public string ShipName {get; set;}
 
+    public Location ShipTo { get; set; }
+    /*
     [MaxLength(60)]
     public string ShipAddress {get; set;}
     
@@ -224,6 +266,8 @@ namespace Northwind.Models
     
     [MaxLength(15)]
     public string ShipCountry {get; set;}
+
+     */
     
     public int RowVersion {get; set;}
 
@@ -274,8 +318,7 @@ namespace Northwind.Models
     public string CanAdd()
     {
         return (OrderID == 0 || ProductID == 0) ? 
-            null : 
-            "must provide non-zero OrderID and ProductID";
+                "must provide non-zero OrderID and ProductID" : null;
     }
   }
 
@@ -361,8 +404,6 @@ namespace Northwind.Models
     public DateTime? DiscontinuedDate {get;set;}    
     public int RowVersion {get;set;}
 
-    [ForeignKey("CategoryID")]
-    [InverseProperty("Products")]
     public Category Category {get;set;}
 
     // Disable the navigation from Product to OrderDetails
@@ -371,8 +412,6 @@ namespace Northwind.Models
     //[InverseProperty("Product")]
     //public ICollection<OrderDetail> OrderDetails {get;set;}
     
-    [ForeignKey("SupplierID")]
-    [InverseProperty("Products")]
     public Supplier Supplier {get;set;}
 
   }
@@ -417,6 +456,11 @@ namespace Northwind.Models
 
   public class Supplier {
 
+    public Supplier() {
+        // always initialize complex types
+        Location = new Location();
+    }
+
     public int SupplierID { get; set; }
 
     [Required, MaxLength(40)]
@@ -427,7 +471,10 @@ namespace Northwind.Models
     
     [MaxLength(30)]
     public string ContactTitle {get; set;}
-    
+
+    public Location Location { get; set; }
+
+  /*  
     [MaxLength(60)]
     public string Address {get; set;}
     
@@ -442,6 +489,7 @@ namespace Northwind.Models
 
     [MaxLength(15)]
     public string Country {get; set;}
+*/
 
     [MaxLength(24)]
     public string Phone {get; set;}

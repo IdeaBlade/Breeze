@@ -70,11 +70,12 @@
     ctor.prototype.executeQuery = function (mappingContext) {
 
         var deferred = Q.defer();
+        var url = mappingContext.getUrl();
 
         var that = this;
         var params = {
             type: "GET",
-            url: mappingContext.url,
+            url: url,
             params: mappingContext.query.parameters,
             dataType: 'json',
             success: function (httpResponse) {
@@ -191,8 +192,7 @@
             if (entityErrors && httpResponse.saveContext) {
                 processEntityErrors(err, entityErrors, httpResponse.saveContext);
             } else {
-                errObj = errObj.InnerException || errObj;
-                err.message = errObj.ExceptionMessage || errObj.Message;
+                err.message = extractInnerMessage(errObj)
             }
         } else {
             err.message = httpResponse.error && httpResponse.error.toString();
@@ -200,6 +200,13 @@
         
         return err;
     };
+
+    function extractInnerMessage(errObj) {
+        while (errObj.InnerException) {
+            errObj = errObj.InnerException;
+        }
+        return errObj.ExceptionMessage || errObj.Message || errObj.toString();
+    }
 
     function processEntityErrors(err, entityErrors, saveContext) {
         err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";

@@ -51,7 +51,7 @@
             var count = data.results.length;
             ok(count > 0, "supplier query returned " + count);
 
-            var predicate = breeze.Predicate.create('supplierID', '==', 0)
+            var predicate = breeze.Predicate.create(testFns.supplierKeyName, '==', 0)
                 .or('companyName', '==', 'Papa');
 
             var localQuery = breeze.EntityQuery
@@ -268,6 +268,7 @@
         stop();
         var tlimit, tlimit2;
         var duration = "PT7H17M40S";
+        var sDuration = core.durationToSeconds(duration);
         var zeroTime;
         em.executeQuery(query).then(function (data) {
             var results = data.results;
@@ -287,7 +288,8 @@
             var ents = sr.entities;
             ok(ents.length === 2);
             var maxTime = tlimit.getProperty("maxTime");
-            ok(maxTime === duration, "maxTime should = " + duration);
+            sMaxTime = core.durationToSeconds(maxTime);
+            ok(sMaxTime === sDuration, "maxTime should = " + sDuration);
             zeroTime = tlimit2.getProperty("maxTime");
             var q2 = EntityQuery.fromEntities([tlimit, tlimit2]).orderBy("minTime");
             var em2 = newEm();
@@ -298,7 +300,8 @@
             var tl1 = r[0];
             var tl2 = r[1];
             var maxTime = tl1.getProperty("maxTime");
-            ok(maxTime === duration, "maxTime should = " + duration);
+            var sMaxTime = core.durationToSeconds(maxTime);
+            ok(sMaxTime === sDuration, "maxTime should = " + duration);
             var minTime = tlimit.getProperty("minTime");
             ok(minTime == null, "minTime should be null or undefined");
             var zt = tl2.getProperty("maxTime");           

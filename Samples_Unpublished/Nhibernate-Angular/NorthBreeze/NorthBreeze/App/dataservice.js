@@ -1,9 +1,10 @@
 ﻿app.dataservice = (function (breeze, logger) {
 
-    breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
-    //breeze.NamingConvention.camelCase.setAsDefault();
 
-    var serviceName = 'breeze/NorthBreeze'; // route to the same origin Web Api controller
+    breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
+
+    //var serviceName = 'breeze/NorthBreeze'; // route to the same origin Web Api controller
+    var serviceName = 'breeze/Criteria'; // route to the same origin Web Api controller
 
     //var manager = new breeze.EntityManager(serviceName);  // gets metadata from /breeze/NorthBreeze/Metadata
     var metadataStore = getMetadataStore();     // gets metadata from metadata.js
@@ -17,6 +18,8 @@
     return {
         getAllCustomers: getAllCustomers,
         getCustomerPage: getCustomerPage,
+        getSimilarCustomersGET: getSimilarCustomersGET,
+        getSimilarCustomersPOST: getSimilarCustomersPOST,
         getOrders: getOrders,
         getOrdersTimes100: getOrdersTimes100,
         createCustomer: createCustomer,
@@ -24,6 +27,30 @@
     };
 
     /*** implementation details ***/
+
+    // Query using GET
+    function getSimilarCustomersGET() {
+        var query = breeze.EntityQuery.from('SimilarCustomersGET')
+                    .withParameters({
+                        CompanyName: 'Hilo Hattie', ContactName: 'Donald', City: 'Duck', Country: 'USA', Phone: '808-234-5678' 
+                    });
+
+        return manager.executeQuery(query);
+    }
+
+    // Query using POST
+    function getSimilarCustomersPOST() {
+        var query = breeze.EntityQuery.from('SimilarCustomersPOST')
+            .withParameters({ 
+                $method: 'POST',
+                $encoding: 'JSON',
+                $data: { CompanyName: 'Hilo Hattie', ContactName: 'Donald', City: 'Duck', Country: 'USA', Phone: '808-234-5678' } 
+            });
+
+        return manager.executeQuery(query);
+    }
+
+
 
     function getMetadataStore() {
         var store = new breeze.MetadataStore();
@@ -62,7 +89,8 @@
         var query = breeze.EntityQuery
                 .from("Customers")
                 .orderBy("CompanyName")
-                .skip(skip).take(take);
+                .skip(skip).take(take)
+                .inlineCount(true);
         if (searchText) {
             query = query.where("CompanyName", "contains", searchText);
         }

@@ -194,6 +194,7 @@
     <content Include="content\bootstrap-responsive.min.css" />
     <content Include="content\bootstrap.css" />
     <content Include="content\bootstrap.min.css" />
+    <Content Include="content\breeze.directives.css" />
     <content Include="content\font-awesome-ie7.min.css" />
     <content Include="content\font-awesome.css" />
     <content Include="content\font-awesome.min.css" />
@@ -202,20 +203,51 @@
     <content Include="content\images\glyphicons-halflings-white.png" />
     <content Include="content\images\glyphicons-halflings.png" />
     <content Include="content\styles.css" />
-    <content Include="content\toastr.css" />
-    <content Include="content\toastr.less" />
     <content Include="content\font\fontawesome-webfont.eot" />
     <content Include="content\font\fontawesome-webfont.ttf" />
     <content Include="content\font\fontawesome-webfont.woff" />
     <content Include="content\font\FontAwesome.otf" />
-    <content Include="content\toastr.min.css" />
+    <Content Include="content\toastr.css" />
+    <Content Include="content\toastr.min.css" />
     <content Include="Global.asax" />
     <content Include="index.html" />
+    <content Include="scripts\angular.js" />
+    <content Include="scripts\angular.min.js">
+      <DependentUpon>angular.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular.min.js.map">
+      <DependentUpon>angular.min.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-mocks.js">
+      <DependentUpon>angular.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-animate.js">
+      <DependentUpon>angular.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-animate.min.js">
+      <DependentUpon>angular-animate.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-animate.min.js.map">
+      <DependentUpon>angular-animate.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-route.js">
+      <DependentUpon>angular.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-route.min.js">
+      <DependentUpon>angular-route.js</DependentUpon>
+    </content>
+    <content Include="scripts\angular-route.min.js.map">
+      <DependentUpon>angular-route.js</DependentUpon>
+    </content>
     <content Include="scripts\breeze.debug.js" />
-    <None Include="scripts\breeze.intellisense.js">
+    <Content Include="content\toastr.less" />
+    <none Include="scripts\breeze.intellisense.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
-    </None>
+    </none>
     <content Include="scripts\breeze.min.js">
+      <DependentUpon>breeze.debug.js</DependentUpon>
+    </content>
+    <content Include="scripts\breeze.directives.validation.js">
       <DependentUpon>breeze.debug.js</DependentUpon>
     </content>
     <content Include="scripts\breeze.savequeuing.js">
@@ -228,17 +260,11 @@
     <Content Include="scripts\q.min.js">
       <DependentUpon>q.js</DependentUpon>
     </Content>
+    <Content Include="scripts\toastr.js" />
+    <Content Include="scripts\toastr.min.js" />
     <content Include="scripts\ui-bootstrap-tpls-0.4.0.js" />
     <content Include="test\config\karma.conf.js" />
-    <content Include="scripts\angular.js" />
-    <content Include="scripts\angular.min.js">
-      <DependentUpon>angular.js</DependentUpon>
-    </content>
     <content Include="scripts\modernizr-2.6.2.js" />
-    <content Include="scripts\toastr.js" />
-    <content Include="scripts\toastr.min.js">
-      <DependentUpon>toastr.js</DependentUpon>
-    </content>
     <content Include="scripts\jquery-2.0.2.js" />
     <content Include="scripts\jquery-2.0.2.min.js">
       <DependentUpon>jquery-2.0.2.js</DependentUpon>
@@ -254,7 +280,6 @@
     <content Include="test\prepareTestData.html" />
     <content Include="test\helpers\jasmineTestFns.js" />
     <content Include="test\helpers\testFns.js" />
-    <content Include="test\lib\angular-mocks.js" />
     <content Include="test\lib\jasmine-async.js" />
     <content Include="test\lib\jasmine-async.min.js" />
     <content Include="test\lib\jasmine-html.js" />
@@ -263,15 +288,15 @@
     <content Include="test\lib\sinon-1.7.1.js" />
     <content Include="test\config\jasmineTestRunnerConfig.js" />
     <content Include="test\testdata\smallOrderTestData.js" />
-    <content Include="test\unit\utilSpec.js" />
+    <content Include="test\specs\utilSpec.js" />
     <content Include="test\testRunner.html" />
     <content Include="test\testdata\lookups.js" />
-    <content Include="test\unit\configSpec.js" />
-    <content Include="test\midway\dataserviceSpec.js" />
-    <content Include="test\unit\firstspec.js" />
-    <content Include="test\midway\testControllerSpec.js" />
-    <content Include="test\async\queryspec.js" />
-    <content Include="test\async\savespec.js" />
+    <content Include="test\specs\configSpec.js" />
+    <content Include="test\specs\dataserviceSpec.js" />
+    <content Include="test\specs\firstspec.js" />
+    <content Include="test\specs\testControllerSpec.js" />
+    <content Include="test\specs\query-async-spec.js" />
+    <content Include="test\specs\save-async-spec.js" />
     <content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -288,6 +313,7 @@
   </ItemGroup>
   <ItemGroup>
     <content Include="packages.config" />
+    <Content Include="scripts\toastr.min.js.map" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -323,9 +349,9 @@
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>5455</DevelopmentServerPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:5452/</IISUrl>
+          <IISUrl>http://localhost:12955/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
@@ -347,7 +373,19 @@
       COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.debug.js" "$(ProjectDir)scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.intellisense.js" "$(ProjectDir)scripts" /Y
       COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\IBlade\breeze.dataservice.mongo.js" "$(ProjectDir)scripts" /Y
-      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)scripts" /Y</PreBuildEvent>
+	  COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.directives.validation.js" "$(ProjectDir)scripts" /Y
+	  COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.directives.css" "$(ProjectDir)content" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)scripts" /Y
+	  
+	  echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\scripts\' to ..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.min.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.debug.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\breeze.intellisense.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\IBlade\breeze.dataservice.mongo.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+	  COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.directives.validation.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+	  COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.directives.css" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\content" /Y
+      COPY "$(ProjectDir)..\..\..\Breeze.Client\scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)..\..\..\Samples\Zza-Node-Mongo\Zza-Node-Mongo\public\scripts" /Y
+	</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
