@@ -1,4 +1,11 @@
-define(['ko', 'breeze', 'logger'], function (ko, breeze, logger) {
+/*
+ * The data access service for this app.
+ * It requires the Breeze Labs breeze.savequeuing extension which patches Breeze itself.
+ * Get it from https://github.com/IdeaBlade/Breeze/blob/master/Breeze.Client/Scripts/Labs/breeze.savequeuing.js
+ * This extension module doesn't return a value so we don't both providing a parameter for it
+ * in the module defining function.
+ */
+define(['ko', 'breeze', 'logger', 'breeze.savequeuing'], function (ko, breeze, logger) {
     
     var serviceName = 'breeze/todos'; // route to the Web Api controller
   

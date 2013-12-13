@@ -19,8 +19,7 @@
         // require the 'viewModel' shell 
         // require '../text' which is an html-loader require plugin; 
         //     see http://requirejs.org/docs/api.html#text
-        // require 'breeze.savequeuing` so that it will extend breeze before the app starts.
-        require(['viewModel', '../text!view.html', 'breeze.savequeuing'],
+        require(['viewModel', '../text!view.html'],
 
         function (viewModel, viewHtml) {
             var $view = $(viewHtml);
