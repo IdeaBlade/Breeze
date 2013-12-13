@@ -45,13 +45,32 @@
         }
         
         jqConfig.success = function (data, textStatus, XHR) {
-            var httpResponse = {
-                data: data,
-                status: XHR.status,
-                getHeaders: getHeadersFn(XHR),
-                config: config
-            };
-            config.success(httpResponse);
+            var httpResponse;
+            var xRespondedJson = XHR.getResponseHeader("X-Responded-JSON");
+            if (xRespondedJson != undefined) {
+                var xRespondedObj = JSON.parse(xRespondedJson);
+                httpResponse = {
+                    data: data,
+                    status: xRespondedObj.status != undefined ? xRespondedObj.status : XHR.status,
+                    getHeaders: getMergedHeadersFn(XHR, xRespondedObj.headers),
+                    error: data.Message,
+                    config: config
+                };
+            } else {
+                httpResponse = {
+                    data: data,
+                    status: XHR.status,
+                    getHeaders: getHeadersFn(XHR),
+                    config: config
+                };
+            }
+            
+            if (httpResponse.status > 300) {
+                config.error(httpResponse);
+            } else {
+                config.success(httpResponse);
+            }
+        
             XHR.onreadystatechange = null;
             XHR.abort = null;
         };
@@ -82,6 +101,24 @@
         };
     }
     
+	//Returns headers from XHR object as well as headers from additional container
+	//We need it cause MVC 5 now returns 'X-Responded-JSON' header containing JSON object with additional 'headers' property
+    function getMergedHeadersFn(XHR, additionalHeaders) {
+        if (additionalHeaders == undefined) return getHeadersFn(XHR);
+
+        return function (headerName) {
+            if (headerName && headerName.length > 0) {
+                var header = XHR.getResponseHeader(headerName);
+                return header != undefined ? header : additionalHeaders[headerName];
+            } else {
+                var headers = XHR.getAllResponseHeaders();
+                for (var propname in additionalHeaders) {
+                    headers = headers + '\n\r' + propname + ': ' + additionalHeaders[propname];
+                }
+                return headers;
+            };
+        };
+    }
 
     breeze.config.registerAdapter("ajax", ctor);
     
