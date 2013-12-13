@@ -14,7 +14,7 @@
     //  Start by requiring the 3rd party libraries that Breeze should find
     define(['require', 'ko', 'jquery', 'logger', 'Q'], function (require, ko, $, logger) {
 
-    logger.info('Breeze Todo is booting');
+        logger.info('Breeze Todo is booting');
 
         // require the 'viewModel' shell 
         // require '../text' which is an html-loader require plugin; 
