@@ -22,12 +22,11 @@
         // require 'breeze.savequeuing` so that it will extend breeze before the app starts.
         require(['viewModel', '../text!view.html', 'breeze.savequeuing'],
 
-            function (viewModel, viewHtml) {
-                var $view = $(viewHtml);
-                ko.applyBindings(viewModel, $view.get(0));
-                $("#applicationHost").append($view);
-            });
+        function (viewModel, viewHtml) {
+            var $view = $(viewHtml);
+            ko.applyBindings(viewModel, $view.get(0));
+            $("#applicationHost").append($view);
+        });
     });
 
-    
 })();
