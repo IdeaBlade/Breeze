@@ -65,7 +65,7 @@
                 };
             }
             
-            if (httpResponse.status > 300) {
+            if (httpResponse.status >= 300) {
                 config.error(httpResponse);
             } else {
                 config.success(httpResponse);
@@ -113,7 +113,7 @@
             } else {
                 var headers = XHR.getAllResponseHeaders();
                 for (var propname in additionalHeaders) {
-                    headers = headers + '\n\r' + propname + ': ' + additionalHeaders[propname];
+                    headers = headers.replace(/^\s+|\s+$/g, '') + '\n' + propname + ': ' + additionalHeaders[propname];
                 }
                 return headers;
             };
