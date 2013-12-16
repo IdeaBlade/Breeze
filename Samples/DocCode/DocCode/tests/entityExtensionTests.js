@@ -8,6 +8,7 @@
     var MetadataStore = breeze.MetadataStore;
     var EntityManager = breeze.EntityManager;
     var EntityQuery = breeze.EntityQuery;
+    var EntityState = breeze.EntityState;
 
     var moduleMetadataStore = new MetadataStore();
     var northwindService = testFns.northwindServiceName;
@@ -167,6 +168,71 @@
 
     });
 
+    
+    /*********************************************************
+    * Changes to properties within ctor do NOT change EntityState
+    * Doesn't matter if they are mapped or unmapped
+    *********************************************************/
+    asyncTest("changes to properties within ctor should not change EntityState", 3, function () {
+
+        var store = cloneModuleMetadataStore();
+        var employeeCtor = function () {
+            // Mapped properties
+            this.FirstName = "Jolly";
+            this.LastName = "Rodger";
+            // Unmapped property
+            this.FunkyName = "Funky";
+        };
+        store.registerEntityTypeCtor("Employee", employeeCtor);
+        
+        var em = newEm(store);
+
+        EntityQuery.from('Employees').top(1)
+            .using(em).execute()
+            .then(success).fail(handleFail).fin(start);
+
+        function success(data) {
+            var emp = data.results[0];
+            var stateName = emp.entityAspect.entityState.name;
+            equal(stateName, EntityState.Unchanged.name,
+                "queried entity whose ctor sets properties should remain Unchanged");
+            notEqual(emp.FirstName(), "Jolly",
+                "queried entity's initial FirstName should be overridden by query; is " + emp.FirstName());
+            deepEqual(emp.entityAspect.originalValues, {},
+                "queried entity should have no 'originalValues' and therefore no initial values to 'restore'.");
+        }
+    });
+
+    /*********************************************************
+    * changes to properties within custom initializer should not change EntityState
+    * even if change is to mapped property
+    *********************************************************/
+    asyncTest("changes to properties within custom initializer should not change EntityState", 3, function () {
+
+        var store = cloneModuleMetadataStore();
+        var employeeInitializer = function (emp) {           
+            emp.FirstName("Jolly"); // change a mapped property
+        };
+        store.registerEntityTypeCtor("Employee", null, employeeInitializer);
+
+        var em = newEm(store);
+
+        EntityQuery.from('Employees').top(1)
+            .using(em).execute()
+            .then(success).fail(handleFail).fin(start);
+
+        function success(data) {
+            var emp = data.results[0];
+            var stateName = emp.entityAspect.entityState.name;
+            equal(stateName, EntityState.Unchanged.name,
+                "queried entity whose initer set a mapped property should remain Unchanged");
+            equal(emp.FirstName(), "Jolly",
+                "queried entity's FirstName should be overridden by initer; is " + emp.FirstName());
+            deepEqual(emp.entityAspect.originalValues, {},
+                "queried entity should have no 'originalValues' and therefore no initial values to 'restore'.");
+        }
+    });
+
     /*********************************************************
     * when unmapped property changes, what happens to 
     * notifications, EntityState, and originalValues
@@ -187,7 +253,7 @@
         var cust = manager.createEntity(
             'Customer',
             { CustomerID: testFns.newGuidComb() },
-            breeze.EntityState.Unchanged);
+              EntityState.Unchanged);
 
         // Listen for foo changes
         var koFooNotified, breezeFooNotified;
@@ -218,6 +284,7 @@
         ok(hasOriginalValues,
             "'originalValues' have 'foo'; it is " + JSON.stringify(originalValues));
     });
+    
     /*********************************************************
     * reject changes should revert an unmapped property
     *********************************************************/
@@ -235,7 +302,7 @@
 
         // create a fake customer
         var cust = manager.createEntity("Customer", { CompanyName: "Acme" },
-            breeze.EntityState.Unchanged);
+                   EntityState.Unchanged);
         var touched = cust.lastTouched();
 
         // an hour passes ... and we visit the customer object
