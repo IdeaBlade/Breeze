@@ -20,6 +20,7 @@ var q = {
 }
 
 === ALL with 1 predicate ======================================
+
 // Order.OrderDetails.all(UnitPrice < 10);
 var q = {
   OrderDetails: {
@@ -57,31 +58,18 @@ var q = {
 }
 
 ===  ANY with OR predicates =============================================
-// Order.OrderDetails.any(Quantity < 5 or UnitPrice < 5)
+
+// Order.OrderDetails.any(Quantity < 2 or UnitPrice < 3)
 var q = {
   OrderDetails: {
-    $not: {
-      $elemMatch: {
-	    Quantity: { $not: { $lt: 5} },
-		UnitPrice: { $not: { $lt: 5} },
-      }
+    $elemMatch: {
+      $or: [
+        { Quantity: { $lt: 2} } ,
+        { UnitPrice: { $lt: 3} },
+      ]
     }
   }
 }
-
-// same as above
-// Order.OrderDetails.any(Quantity < 5 or UnitPrice < 5)
-var q = {
-  OrderDetails: {
-    $not: {
-      $elemMatch: {
-	    Quantity: { $gte: 5} ,
-		UnitPrice: { $gte: 5} ,
-      }
-    }
-  }
-}
-
 
 === ALL with OR predicates ===========================
 
