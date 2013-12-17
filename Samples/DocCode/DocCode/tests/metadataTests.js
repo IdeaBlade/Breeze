@@ -17,6 +17,57 @@
     var customerType;
 
     //#region Basic metadata tests
+    module("metadataTests (EntityType inspection)");
+
+    /*********************************************************
+    * Can identify FK property name for child (dependent) EntityType
+    * Fails in v.1.4.7
+    * See SO http://stackoverflow.com/questions/20566093/breeze-create-entity-from-existing-one/20579971?noredirect=1#comment30860601_20579971
+    *********************************************************/
+    asyncTest("can identify FK property name for child (dependent) EntityType", function () {
+
+        var em = new breeze.EntityManager(northwindService);
+
+        em.metadataStore.fetchMetadata(northwindService)
+            .then(metaSuccess, metaFail).fail(handleFail).fin(start);
+
+        function metaSuccess() {
+            // Now that we have metadata, query for first employee and its territories
+            // The following Web API URL does work
+            //http://localhost:31439/breeze/Northwind/Employees/?$top=1&$expand=EmployeeTerritories
+            return breeze.EntityQuery.from('Employees')
+                .expand('EmployeeTerritories').top(1)
+                .using(em).execute().then(querySuccess, queryFail);
+        }
+
+        function metaFail(error) {
+            ok(false, "metadata fetch failed: " + error.message);
+        }
+
+        function querySuccess(data) {
+            var emp = data.results[0];
+            var empTerrs = emp.EmployeeTerritories();
+            equal(empTerrs.length, 3, "Should have 3 Employee Territories");
+
+            // THIS IS WHAT I WANT TO VERIFY
+            var employeeType = em.metdataStore.getEntityType('Employee');
+            var navProp = employeeType.getProperty('EmployeeTerritories');
+            
+            // should be the name of the FK property on the child EmployeeTerritory type
+            var fkPropName = navProp.invForeignKeyNames[0];
+
+            equal(fkPropName, "EmpID", // Expecting EmployeeTerritory.EmpID
+                "EmployeeTerritory FK for parent Employee should be 'EmpID'");
+        }
+        
+        function queryFail(error) {
+            // If this fails with "DirectReports is not a function"
+            // know that this is a Breeze failure not EF modeling
+            // because the following URL returns the correct results from Web API
+            // http://localhost:31439/breeze/Northwind/Employees/?$filter=EmployeeID%20eq%202&$expand=DirectReports
+            ok(false, "query failed: " + error.message);
+        }
+    });
 
     module("metadataTests", { setup: northwindMetadataStoreSetup });
 
@@ -248,7 +299,7 @@
         }
 
     });
-    
+
     function defineEmployeePartialType(metadataStore) {
         var empType = metadataStore.getEntityType('Employee');
 

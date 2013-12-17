@@ -23,6 +23,7 @@ namespace Northwind.Models
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
 
             modelBuilder.Configurations.Add(new CustomerConfiguration());
+            modelBuilder.Configurations.Add(new EmployeeConfiguration());
             modelBuilder.Configurations.Add(new OrderConfiguration());
             modelBuilder.Configurations.Add(new OrderDetailConfiguration());
             modelBuilder.Configurations.Add(new PreviousEmployeeConfiguration());
@@ -64,6 +65,23 @@ namespace Northwind.Models
         {
             Property(c => c.CustomerID)
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
+        }
+    }
+
+    public class EmployeeConfiguration : EntityTypeConfiguration<Employee>
+    {
+        public EmployeeConfiguration()
+        {
+            HasMany(e => e.EmployeeTerritories)
+            .WithRequired()
+
+            // Either of the following configs is fine in EF and Web API
+            // (assuming the corresponding EmployeeTerritory property name is in play)
+            // Confirm by hitting this URL in a browser
+            //http://localhost:31439/breeze/Northwind/Employees/?$top=1&$expand=EmployeeTerritories
+
+            .HasForeignKey(et => et.EmployeeID); // THIS WORKS IN BREEZE (sort of)
+            //.HasForeignKey(et => et.EmpID); // THIS DOESN'T IN BREEZE
         }
     }
 
