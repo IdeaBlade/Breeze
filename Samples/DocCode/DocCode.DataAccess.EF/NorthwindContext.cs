@@ -74,8 +74,14 @@ namespace Northwind.Models
         {
             HasMany(e => e.EmployeeTerritories)
             .WithRequired()
-            .HasForeignKey(et => et.EmployeeID); // THIS WORKS
-            //.HasForeignKey(et => et.EmpID); // THIS DOESN'T
+
+            // Either of the following configs is fine in EF and Web API
+            // (assuming the corresponding EmployeeTerritory property name is in play)
+            // Confirm by hitting this URL in a browser
+            //http://localhost:31439/breeze/Northwind/Employees/?$top=1&$expand=EmployeeTerritories
+
+            .HasForeignKey(et => et.EmployeeID); // THIS WORKS IN BREEZE (sort of)
+            //.HasForeignKey(et => et.EmpID); // THIS DOESN'T IN BREEZE
         }
     }
 

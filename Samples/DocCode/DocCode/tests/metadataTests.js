@@ -21,6 +21,8 @@
 
     /*********************************************************
     * Can identify FK property name for child (dependent) EntityType
+    * Fails in v.1.4.7
+    * See SO http://stackoverflow.com/questions/20566093/breeze-create-entity-from-existing-one/20579971?noredirect=1#comment30860601_20579971
     *********************************************************/
     asyncTest("can identify FK property name for child (dependent) EntityType", function () {
 
