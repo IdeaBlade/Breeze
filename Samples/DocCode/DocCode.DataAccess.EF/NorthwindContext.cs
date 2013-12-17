@@ -23,6 +23,7 @@ namespace Northwind.Models
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
 
             modelBuilder.Configurations.Add(new CustomerConfiguration());
+            modelBuilder.Configurations.Add(new EmployeeConfiguration());
             modelBuilder.Configurations.Add(new OrderConfiguration());
             modelBuilder.Configurations.Add(new OrderDetailConfiguration());
             modelBuilder.Configurations.Add(new PreviousEmployeeConfiguration());
@@ -64,6 +65,17 @@ namespace Northwind.Models
         {
             Property(c => c.CustomerID)
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
+        }
+    }
+
+    public class EmployeeConfiguration : EntityTypeConfiguration<Employee>
+    {
+        public EmployeeConfiguration()
+        {
+            HasMany(e => e.EmployeeTerritories)
+            .WithRequired()
+            .HasForeignKey(et => et.EmployeeID); // THIS WORKS
+            //.HasForeignKey(et => et.EmpID); // THIS DOESN'T
         }
     }
 
