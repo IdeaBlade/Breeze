@@ -15,6 +15,8 @@ To compile odataParser.peg
 To run odataParser testing
 
     run parseTest
+      run from the parseTest dir
+      >node parseTest.js   
 
 To run server
 

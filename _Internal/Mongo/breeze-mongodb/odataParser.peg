@@ -237,7 +237,12 @@ n1Expr   = wsp* p1:n2Expr x:(mathExpr)* {
       }
 }
 
-n2Expr   =  literal / parenExpr / unaryExpr / methodCallExpr / memberExpr
+n2Expr   =  literal / parenExpr / unaryExpr / methodCallExpr / anyAllExpr / memberExpr
+
+// Orders/any(x1: x1/Freight gt 950m)
+anyAllExpr = member:identifier "/" op:anyAllOp "(" lambda:identifier ":" wsp+ subquery:filterExpr ")" {
+    return { type: "op_anyAll", op:op, member:member, lambda:lambda, subquery:subquery };
+}
 
 andOrExpr  =   wsp+ op:andOrOp  wsp+ p2:filterExpr { return { type: "op_andOr", op:op, p2: p2 }}
 boolExpr   =   wsp+ op:boolOp   wsp+ p2:n0Expr   { return { type: "op_bool",  op:op, p2: p2 }}
@@ -262,16 +267,14 @@ unaryExpr   = op:unaryExprOp expr:filterExpr     { return { type: "op_unary", op
 boolOp = "eq" / "ne" / "lt" / "le" / "gt" / "ge"
 mathOp = "add" / "sub" / "mul" / "div" / "mod"
 andOrOp =  "and" / "or"
+anyAllOp = "any" / "all"
 
 // subExpr = identifierPart / anyMethodCallExpr / allMethodCallExpr
+// lambdaVariable = identifier + ":"
+// lambdaExpr     = lambdaVariable  filterExpr
 
-lambdaVariable = identifier + ":"
-lambdaExpr     = lambdaVariable  filterExpr
 
-
-methodCallExpr          =   anyMethodCallExpr
-                          / allMethodCallExpr
-                          / replaceMethodCallExpr
+methodCallExpr          =  replaceMethodCallExpr
                           / substring2MethodCallExpr
                           / substring3MethodCallExpr
                           / toLowerMethodCallExpr
@@ -295,8 +298,8 @@ methodCallExpr          =   anyMethodCallExpr
                           / startsWithMethodCallExpr
                           / endsWithMethodCallExpr
 
-anyMethodCallExpr         = n:"any"         a:larg    { return fn(n, a); }
-allMethodCallExpr         = n:"all"         a:larg    { return fn(n, a); }
+// anyMethodCallExpr         = n:"any"         a:larg    { return fn(n, a); }
+// allMethodCallExpr         = n:"all"         a:larg    { return fn(n, a); }
 replaceMethodCallExpr     = n:"replace"     a:args3   { return fn(n, a); }
 substring3MethodCallExpr  = n:"substring"   a:args3   { return fn(n, a); }
 substring2MethodCallExpr  = n:"substring"   a:args2   { return fn(n, a); }
@@ -323,7 +326,7 @@ floorMethodCallExpr       = n:"floor"       a:args1   { return fn(n, a); }
 isOf1MethodCallExpr       = n:"isof"        a:args1   { return fn(n, a); }
 isOf2MethodCallExpr       = n:"isof"        a:args2   { return fn(n, a); }
 
-larg  = "(" p1:lambdaExpr ")"                               { return [ p1 ]; }
+// larg  = "(" p1:lambdaExpr ")"                               { return [ p1 ]; }
 args1 = "(" p1:filterExpr ")"                                 { return [ p1 ]; }
 args2 = "(" p1:filterExpr "," p2:filterExpr ")"                 { return [ p1, p2 ]; }
 args3 = "(" p1:filterExpr "," p2:filterExpr "," p3:filterExpr ")" { return [ p1, p2, p3 ]; }

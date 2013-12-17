@@ -59,6 +59,8 @@ x = tryParse("$filter='xxx'");
 
 x = tryParse("$filter=Name/foo")
 
+x = tryParse("$filter=Orders/any(x1: x1/Freight gt 950m)");
+
 //parseAndCompare("$filter", "$filter=DateValue eq datetime'2012-05-06T16:11:00Z'",
 parseAndCompare("$filter", "$filter=OrderDate gt datetime'1998-04-01T07:00:00.000Z'",
     { type: "op_bool", op: "gt",
@@ -237,13 +239,18 @@ parseAndCompare("$filter","$filter=StringValue ne 'Group1 not Group2'",
     } );
 
 function parseAndCompare(nodeName, expr, expectedResult) {
-    var r = tryParse(expr);
+    var r = tryParseCore(expr);
     if (r == null) return;
     if (nodeName) r = r[nodeName];
     compare(expr, r, expectedResult);
 }
 
 function tryParse(s) {
+    console.log("tryParse: " + s);
+    tryParseCore(s);
+}
+
+function tryParseCore(s) {
     try {
         return parser.parse(s);
     } catch (e)  {
@@ -251,6 +258,8 @@ function tryParse(s) {
         return null;
     }
 }
+
+
 
 function compare(title, o1, o2) {
     try {
