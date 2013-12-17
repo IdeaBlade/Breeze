@@ -350,26 +350,39 @@ function __requireLib(libNames, errMessage) {
         throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
     }
 }
-    
-function __requireLibCore(libName) {
-    var lib;
-    try {
-        if (this.window) {
-            var window = this.window;
-            lib = window[libName];
-            if (lib) return lib;
-            if (window.require) {
-                lib = window.require(libName);
-            }
-            if (lib) return lib;
-        }
-        if (require) {
-            lib = require(libName);
-        }
-    } catch(e) {
 
+// Returns the 'libName' module if loaded or else returns undefined
+function __requireLibCore(libName) {
+    var window = this.window;
+    if (!window) return; // Must run in a browser. Todo: add commonjs support
+
+    // get library from browser globals if we can
+    var lib = window[libName];
+    if (lib) return lib;
+
+    // if require exists, maybe require can get it.
+    // This method is synchronous so it can't load modules with AMD.
+    // It can only obtain modules from require that have already been loaded.
+    // Developer should bootstrap such that the breeze module
+    // loads after all other libraries that breeze should find with this method
+    // See documentation 
+    var r = window.require;
+    if (r) { // if require exists
+        if (r.defined) { // require.defined is not standard and may not exist
+            // require.defined returns true if module has been loaded
+            return r.defined(libName) ? r(libName) : undefined; 
+        } else {
+            // require.defined does not exist so we have to call require('libName') directly.
+            // The require('libName') overload is synchronous and does not load modules.
+            // It throws an exception if the module isn't already loaded.
+            try {
+                return r(libName);  
+            } catch (e) {
+                // require('libName') threw because module not loaded
+                return; 
+            }             
+        }     
     }
-    return lib;
 }
 
 function __using(obj, property, tempValue, fn) {

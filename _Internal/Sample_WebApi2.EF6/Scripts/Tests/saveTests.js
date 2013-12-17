@@ -51,7 +51,7 @@
             var empKey = emp.entityAspect.getKey();
             similarEmp = em2.createEntity("Employee");
             similarEmp.setProperty(testFns.employeeKeyName, empKeyValue);
-            similarAspect = similarEmp.aspect;
+            similarAspect = similarEmp.entityAspect;
             similarAspect.setUnchanged();
             similarAspect.setDeleted();
             ok(similarAspect.entityState.isDeleted(), "should be deleted");
@@ -67,6 +67,12 @@
     });
 
     test("pk update", function () {
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "TODO for Mongo - needs to be written specifically for Mongo - should succeed in Mongo");
+            return;
+        }
+
         var em = newEm();
 
         var q = new EntityQuery("Territories").orderBy("territoryID desc").take(1);
@@ -164,6 +170,11 @@
     //});
 
     test("check unmapped property on server", function () {
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - Have not yet added SaveCheck code for Mongo");
+            return;
+        }
         
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var customerType = em.metadataStore.getEntityType("Customer");
@@ -188,6 +199,11 @@
     });
 
     test("test unmapped property serialization on server", function () {
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - Have not yet added SaveCheck code for Mongo");
+            return;
+        }
 
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var customerType = em.metadataStore.getEntityType("Customer");
@@ -231,6 +247,11 @@
 
     test("test unmapped property suppression", function () {
 
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - Have not yet added SaveCheck code for Mongo");
+            return;
+        }
+
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var customerType = em.metadataStore.getEntityType("Customer");
         customerType.setProperties({
@@ -273,7 +294,7 @@
         };
 
         if (testFns.DEBUG_MONGO) {
-            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
+            ok(true, "N/A for Mongo - Have not yet added SaveCheck code for Mongo");
             return;
         }
 
@@ -643,14 +664,14 @@
 
         var em = newEm();
 
-        var q = new EntityQuery("Orders").where("shipCity", "ne", null).take(1);
+        var q = new EntityQuery("Orders").where("shipCountry", "ne", null).take(1);
         stop();
-        var order, freight, shipCity;
+        var order, freight, shipCountry;
         q.using(em).execute().then(function (data) {
             order = data.results[0];
             freight = order.getProperty("freight");
-            shipCity = testFns.morphString(order.getProperty("shipCity"));
-            order.setProperty("shipCity", shipCity);
+            shipCountry = testFns.morphString(order.getProperty("shipCountry"));
+            order.setProperty("shipCountry", shipCountry);
             var so = new SaveOptions({ resourceName: "SaveWithFreight", tag: "freight update-force" });
             return em.saveChanges(null, so);
         }).then(function (sr) {
@@ -672,14 +693,14 @@
 
         var em = newEm();
 
-        var q = new EntityQuery("Orders").where("shipCity", "ne", null).take(1);
+        var q = new EntityQuery("Orders").where("shipCountry", "ne", null).take(1);
         stop();
         var order, freight, shipCity;
         q.using(em).execute().then(function (data) {
             order = data.results[0];
             freight = order.getProperty("freight");
-            shipCity = testFns.morphString(order.getProperty("shipCity"));
-            order.setProperty("shipCity", shipCity);
+            shipCity = testFns.morphString(order.getProperty("shipCountry"));
+            order.setProperty("shipCountry", shipCity);
             var so = new SaveOptions({ resourceName: "SaveWithFreight", tag: "freight update-ov" });
             return em.saveChanges(null, so);
         }).then(function (sr) {
@@ -1573,6 +1594,11 @@
             ok(true, "Skipped tests - not applicable to OData");
             return;
         };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "TODO for Mongo - need to create this test");
+            return;
+        }
 
         var em = newEm();
         var q = new EntityQuery()

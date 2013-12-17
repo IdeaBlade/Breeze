@@ -271,7 +271,7 @@ function executeQuery(db, collectionName, query, fn) {
         }
 
         // Mongo doesn't handle limit = 0 as a real limit.
-        if (query.options.limit && query.options.limit === 0) {
+        if (query.options && query.options.limit && query.options.limit === 0) {
             fn(err, []);
             return;
         }

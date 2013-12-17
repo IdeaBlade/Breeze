@@ -40,10 +40,10 @@
         cust1.city = "xxx";
         var ea = new breeze.EntityAspect(cust1);
         cust1.setProperty("city", "yyy");
-        cust1.setProperty("customerID", breeze.core.getUuid());
+        cust1.setProperty(testFns.customerKeyName, breeze.core.getUuid());
 
         var cust2 = em.metadataStore.getEntityType("Customer").createEntity();
-        cust2.setProperty("customerID", breeze.core.getUuid());
+        cust2.setProperty(testFns.customerKeyName, breeze.core.getUuid());
 
         em.attachEntity(cust1);
         em.attachEntity(cust2);
@@ -65,7 +65,7 @@
         if (testFns.modelLibrary === "backingStore") {
             var cust0 = new Customer();
             cust0.setProperty("city", "zzz");
-            cust0.setProperty("customerID", breeze.core.getUuid());
+            cust0.setProperty(testFns.customerKeyName, breeze.core.getUuid());
             em.attachEntity(cust0);
             ok(cust0.getProperty("city") === "zzz", "city should be zzz");
        
@@ -73,7 +73,7 @@
             cust1.city = "zzz";
             var city = cust1.city;
             ok(city === "zzz", "city should be 'zzz'");
-            cust1.customerID = breeze.core.getUuid();
+            cust1[testFns.customerKeyName]  = breeze.core.getUuid();
             em.attachEntity(cust1);
             ok(cust1.getProperty("city") === "zzz", "city should be zzz");
         } else if (testFns.modelLibrary = "ko") {
@@ -81,13 +81,13 @@
             cust1.city = "zzz";
             var city = cust1.city;
             ok(city === "zzz", "city should be 'zzz'");
-            cust1.customerID = breeze.core.getUuid();
+            cust1.setProperty(testFns.customerKeyName, breeze.core.getUuid());
             em.attachEntity(cust1);
             ok(cust1.getProperty("city") === "zzz", "city should be zzz");
         } else if (testFns.modelLibrary === "backbone") {
             var cust0 = new Customer();
             cust0.setProperty("city", "zzz");
-            cust0.setProperty("customerID", breeze.core.getUuid());
+            cust0.setProperty(testFns.customerKeyName, breeze.core.getUuid());
             em.attachEntity(cust0);
             ok(cust0.getProperty("city") === "zzz", "city should be zzz");
         }
@@ -1025,7 +1025,10 @@
     });
 
     test("category default rowversion value", function () {
-
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for MONGO - no default values");
+            return true;
+        }
         em = newEm();
         var catType = em.metadataStore.getEntityType("Category");
         var cat = em.createEntity("Category");

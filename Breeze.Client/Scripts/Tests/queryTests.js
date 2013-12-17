@@ -104,11 +104,12 @@
     });
 
     test("test date in projection", function () {
-
+        
         var manager = newEm();
         var query = new breeze.EntityQuery()
             .from("Orders")
-            .where(testFns.orderKeyName, "==", 10248);
+            .where("orderDate", "!=", null)
+            .take(3);
 
         var orderDate;
         var orderDate2;
@@ -120,7 +121,8 @@
             var manager2 = newEm();
             var query = new breeze.EntityQuery()
                 .from("Orders")
-                .where(testFns.orderKeyName, "==", 10248)
+                .where("orderDate", "!=", null)
+                .take(3)
                 .select("orderDate");
             return manager2.executeQuery(query);
         }).then(function (data2) {
@@ -189,8 +191,10 @@
         stop();
         manager.executeQuery(query).then(function (data) {
             ok(data.results.length > 0, "there should be records returned");
-            var empId = data.results[0].getProperty("employeeID");
-            ok(empId < 6, "should <  6");
+            var empId = data.results[0].getProperty(testFns.employeeKeyName);
+            if (!testFns.DEBUG_MONGO) {
+                ok(empId < 6, "should <  6");
+            }
         }).fail(testFns.handleFail).fin(start);
 
     });

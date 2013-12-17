@@ -55,10 +55,10 @@
             ok(!em.metadataStore.isEmpty(), "metadata should not be empty");
             ok(data.results.length > 0, "empty data");
             var anons = data.results;
-            anons.forEach(function (a) {
+            anons.some(function (a) {
                 ok(a.companyName);
                 ok(a.location);
-                ok("city" in a.location, "should have found a.location.city")
+                return "city" in a.location;
             });
         }).fail(testFns.handleFail).fin(start);
     });

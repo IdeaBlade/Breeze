@@ -350,7 +350,7 @@ function __requireLib(libNames, errMessage) {
         throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
     }
 }
-    
+
 // Returns the 'libName' module if loaded or else returns undefined
 function __requireLibCore(libName) {
     var window = this.window;
