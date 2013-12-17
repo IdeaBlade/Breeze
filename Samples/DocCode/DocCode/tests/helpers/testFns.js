@@ -25,6 +25,7 @@ docCode.testFns = (function () {
     *********************************************************/
     var testFns = {
         assertIsSorted: assertIsSorted,
+        breeze: breeze,
         ensureIsEm: ensureIsEm,
         getModuleOptions: getModuleOptions,
         getNextIntId: getNextIntId,
