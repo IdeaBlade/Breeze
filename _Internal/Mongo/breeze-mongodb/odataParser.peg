@@ -241,7 +241,11 @@ n2Expr   =  literal / parenExpr / unaryExpr / methodCallExpr / anyAllExpr / memb
 
 // Orders/any(x1: x1/Freight gt 950m)
 anyAllExpr = member:identifier "/" op:anyAllOp "(" lambda:identifier ":" wsp+ subquery:filterExpr ")" {
-    return { type: "op_anyAll", op:op, member:member, lambda:lambda, subquery:subquery };
+    if (lambda) {
+        return { type: "op_anyAll", op:op, member:member[0], lambda:lambda[0], subquery:subquery };
+    } else {
+        return { type: "op_anyAll", op:op, member:member[0] };
+    }
 }
 
 andOrExpr  =   wsp+ op:andOrOp  wsp+ p2:filterExpr { return { type: "op_andOr", op:op, p2: p2 }}
@@ -269,10 +273,6 @@ mathOp = "add" / "sub" / "mul" / "div" / "mod"
 andOrOp =  "and" / "or"
 anyAllOp = "any" / "all"
 
-// subExpr = identifierPart / anyMethodCallExpr / allMethodCallExpr
-// lambdaVariable = identifier + ":"
-// lambdaExpr     = lambdaVariable  filterExpr
-
 
 methodCallExpr          =  replaceMethodCallExpr
                           / substring2MethodCallExpr
@@ -298,8 +298,7 @@ methodCallExpr          =  replaceMethodCallExpr
                           / startsWithMethodCallExpr
                           / endsWithMethodCallExpr
 
-// anyMethodCallExpr         = n:"any"         a:larg    { return fn(n, a); }
-// allMethodCallExpr         = n:"all"         a:larg    { return fn(n, a); }
+
 replaceMethodCallExpr     = n:"replace"     a:args3   { return fn(n, a); }
 substring3MethodCallExpr  = n:"substring"   a:args3   { return fn(n, a); }
 substring2MethodCallExpr  = n:"substring"   a:args2   { return fn(n, a); }
@@ -326,7 +325,6 @@ floorMethodCallExpr       = n:"floor"       a:args1   { return fn(n, a); }
 isOf1MethodCallExpr       = n:"isof"        a:args1   { return fn(n, a); }
 isOf2MethodCallExpr       = n:"isof"        a:args2   { return fn(n, a); }
 
-// larg  = "(" p1:lambdaExpr ")"                               { return [ p1 ]; }
 args1 = "(" p1:filterExpr ")"                                 { return [ p1 ]; }
 args2 = "(" p1:filterExpr "," p2:filterExpr ")"                 { return [ p1, p2 ]; }
 args3 = "(" p1:filterExpr "," p2:filterExpr "," p3:filterExpr ")" { return [ p1, p2, p3 ]; }

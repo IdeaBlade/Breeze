@@ -3520,7 +3520,11 @@ module.exports = (function(){
         }
         if (result0 !== null) {
           result0 = (function(offset, member, op, lambda, subquery) {
-            return { type: "op_anyAll", op:op, member:member, lambda:lambda, subquery:subquery };
+            if (lambda) {
+                return { type: "op_anyAll", op:op, member:member[0], lambda:lambda[0], subquery:subquery };
+            } else {
+                return { type: "op_anyAll", op:op, member:member[0] };
+            }
         })(pos0, result0[0], result0[2], result0[4], result0[7]);
         }
         if (result0 === null) {
