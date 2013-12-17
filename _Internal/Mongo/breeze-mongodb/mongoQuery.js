@@ -49,11 +49,13 @@ MongoQuery.prototype._parseUrl = function(reqQuery) {
     }
 
     section = reqQuery.$top;
-    if (section) {
+    // not ok to ignore top: 0
+    if (section !== undefined) {
         extend(this.options, { limit: parseInt(section, 10)});
     }
 
     section = reqQuery.$skip;
+    // ok to ignore skip: 0
     if (section) {
         extend(this.options, { skip: parseInt(section, 10)});
     }
@@ -73,8 +75,16 @@ MongoQuery.prototype.execute = function(db, collectionName, fn) {
         }
         var src;
 
+        // Note special handling for 'options.limit' = 0 as a real limit.
+
         if (that.inlineCount) {
             collection.count(that.filter, function(err, count) {
+                // Mongo doesn't handle limit = 0 as a real limit.
+                if (that.options && that.options.limit === 0) {
+                    var resultsWith =  { Results: [], InlineCount: count };
+                    fn(null, resultsWith);
+                    return;
+                }
                 src = collection.find(that.filter, that.select, that.options);
                 src.toArray(function (err, results) {
                     results = processResults(results, that.resultEntityType);
@@ -83,6 +93,11 @@ MongoQuery.prototype.execute = function(db, collectionName, fn) {
                 });
             });
         } else {
+            // Mongo doesn't handle limit = 0 as a real limit.
+            if (that.options && that.options.limit === 0) {
+                fn(err, []);
+                return;
+            }
             src = collection.find(that.filter, that.select, that.options);
             src.toArray(function (err, results) {
                 results = processResults(results, that.resultEntityType);
@@ -91,6 +106,7 @@ MongoQuery.prototype.execute = function(db, collectionName, fn) {
         }
     });
 };
+
 
 function processResults(results, resultEntityType) {
     results == results || [];
