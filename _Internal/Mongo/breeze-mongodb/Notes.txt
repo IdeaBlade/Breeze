@@ -1,0 +1,147 @@
+/**
+ * Created by Jay on 12/17/13.
+ */
+
+
+=== ANY with 1 predicate ========================================
+// Order.OrderDetails.any(UnitPrice > 100);
+var q {
+  OrderDetails: {
+     $elemMatch: {
+	   UnitPrice: { $gte: 100 }
+     }
+  }
+}
+
+// same as above
+// Order.OrderDetails.any(UnitPrice > 100);
+var q = {
+  "OrderDetails.UnitPrice": { $gte: 100 }
+}
+
+=== ALL with 1 predicate ======================================
+// Order.OrderDetails.all(UnitPrice < 10);
+var q = {
+  OrderDetails: {
+    $not: {
+      $elemMatch: {
+        UnitPrice: { $not: { $lt: 10 }}
+      },
+    }
+  }
+}
+
+// same as above
+// Order.OrderDetails.all(UnitPrice < 10);
+var q = {
+  OrderDetails: {
+    $not: {
+      $elemMatch: {
+        UnitPrice: { $gte: 10 }
+      },
+    }
+  }
+}
+
+===  ANY with AND predicates =============================================
+
+// ANY with AND
+// Order.OrderDetails.any(UnitPrice >= 50 and Quantity >= 50)
+var q = {
+  OrderDetails: {
+    $elemMatch: {
+      UnitPrice: { $gte: 50 }
+      Quantity: { $gte: 50} ,
+    } ,
+  }
+}
+
+===  ANY with OR predicates =============================================
+// Order.OrderDetails.any(Quantity < 5 or UnitPrice < 5)
+var q = {
+  OrderDetails: {
+    $not: {
+      $elemMatch: {
+	    Quantity: { $not: { $lt: 5} },
+		UnitPrice: { $not: { $lt: 5} },
+      }
+    }
+  }
+}
+
+// same as above
+// Order.OrderDetails.any(Quantity < 5 or UnitPrice < 5)
+var q = {
+  OrderDetails: {
+    $not: {
+      $elemMatch: {
+	    Quantity: { $gte: 5} ,
+		UnitPrice: { $gte: 5} ,
+      }
+    }
+  }
+}
+
+
+=== ALL with OR predicates ===========================
+
+// Order.OrderDetails.all(UnitPrice < 5 or Quantity < 5)
+var q = {
+  OrderDetails: {
+    $not: {
+      $elemMatch: {
+	      Quantity: { $not: { $lt: 5}},
+		  UnitPrice: { $not: { $lt: 5}},
+      }
+    }
+  }
+}
+
+=== ALL with AND predicates ===========================
+
+// Order.OrderDetails.all(UnitPrice < 10 and Quantity < 10)
+var q = {
+  OrderDetails: {
+    $not: {
+      $elemMatch: {
+	    $or: [
+	      { Quantity: { $not: { $lt: 10}}},
+		  { UnitPrice: { $not: { $lt: 10}}},
+        ]
+      }
+    }
+  }
+}
+
+// Order.OrderDetails.all(UnitPrice < 10 and Quantity < 10)
+// same as above
+var q = {
+  OrderDetails: {
+    $not: {
+      $elemMatch: {
+	    $or: [
+	      { Quantity: { $gte: 10} },
+		  { UnitPrice: { $gte: 10} },
+        ]
+      }
+    }
+  }
+}
+
+=== Other stuff ================================================
+
+// other
+// Orders.Freight >= 100 and Orders.OrderDetails.all(freight < 20);
+var q = {
+  Freight: { $gte: 100 },
+  OrderDetails: {
+    $not: {
+      $elemMatch: {
+        Quantity: { $gte: 20}
+      }
+    }
+  }
+}
+
+
+db.Orders.find(q);
