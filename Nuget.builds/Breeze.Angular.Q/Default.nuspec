@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Angular.Q</id>
-        <version>0.9.1-pre</version>
+        <version>1.0.0</version>
         <title>Breeze Labs Q-promises for Angular</title>
         <authors>Ward Bell</authors>
         <owners>Ward Bell</owners>
