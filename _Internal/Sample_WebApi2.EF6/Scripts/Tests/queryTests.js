@@ -26,6 +26,28 @@
         }
     });
 
+    test("query same field twice", function () {
+        var manager = newEm();
+        var p = Predicate.create("freight", ">", 100).and("freight", "<", 200);
+
+        var query = new breeze.EntityQuery()
+            .from("Orders")
+            .where(p);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var orders = data.results;
+            ok(orders.length > 0, "should be some results");
+            orders.forEach(function(o) {
+                var f = o.getProperty("freight");
+                if (f > 100 && f < 200) {
+
+                } else {
+                    ok(false, "freight should be > 100 and < 200");
+                }
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("one to one", function () {
         var manager = newEm();
         var query = new breeze.EntityQuery()

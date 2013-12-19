@@ -1,4 +1,4 @@
-﻿// Generated on: Mon Dec 16 2013 19:24:46 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Thu Dec 19 2013 10:03:22 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -2117,7 +2117,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
-  'inlineCount': function() {
+  'noTracking': function() {
     /// <signature>
     ///   <summary>
     ///   Returns a query with the 'noTracking' capability either enabled or disabled.  With 'noTracking' enabled, the results of this query }
