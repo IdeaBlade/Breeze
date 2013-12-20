@@ -24,6 +24,71 @@
 
         }
     });
+
+    test("query same field twice", function () {
+        var manager = newEm();
+        var p = Predicate.create("freight", ">", 100).and("freight", "<", 200);
+
+        var query = new breeze.EntityQuery()
+            .from("Orders")
+            .where(p);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var orders = data.results;
+            ok(orders.length > 0, "should be some results");
+            orders.forEach(function(o) {
+                var f = o.getProperty("freight");
+                if (f > 100 && f < 200) {
+
+                } else {
+                    ok(false, "freight should be > 100 and < 200");
+                }
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("query contains", function () {
+        var manager = newEm();
+        var p = Predicate.create("city", "contains", 'on');
+
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(p);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var emps = data.results;
+            ok(emps.length > 0, "should be some results");
+            emps.forEach(function(o) {
+                var city = o.getProperty("city");
+                if (city.indexOf("on") === -1) {
+                    ok(false, "city should contain 'on'");
+                }
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("query same field twice with string ops", function () {
+        var manager = newEm();
+        var p = Predicate.create("city", "contains", 'on').and("city", "startsWith", "L");
+
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(p);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var emps = data.results;
+            ok(emps.length > 0, "should be some results");
+            emps.forEach(function(o) {
+                var city = o.getProperty("city");
+                if (city.indexOf("on") === -1) {
+                    ok(false, "city should contain 'on'");
+                }
+                if (city.substring(0,1) !== "L") {
+                    ok(false, "city should start with 'L'");
+                }
+            });
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     if (!testFns.DEBUG_MONGO) {
         test("Skipping Mongo specific tests", function () {
@@ -108,27 +173,7 @@
 
     });
 
-    test("query same field twice", function () {
-        var manager = newEm();
-        var p = Predicate.create("freight", ">", 100).and("freight", "<", 200);
 
-        var query = new breeze.EntityQuery()
-            .from("Orders")
-            .where(p);
-        stop();
-        manager.executeQuery(query).then(function (data) {
-            var orders = data.results;
-            ok(orders.length > 0, "should be some results");
-            orders.forEach(function(o) {
-                var f = o.getProperty("freight");
-                if (f > 100 && f < 200) {
-
-                } else {
-                    ok(false, "freight should be > 100 and < 200");
-                }
-            });
-        }).fail(testFns.handleFail).fin(start);
-    });
 
 
     // TODO: add a nested property to OrderDetail

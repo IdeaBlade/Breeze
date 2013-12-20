@@ -190,11 +190,13 @@ function makeBoolFilter(node, context) {
             }
             if (op === "eq") {
                 q[p1Value] = p2Value;
-                return q;
             } else {
                 var mop = boolOpMap[op].mongoOp;
-                return addClause(q, p1Value, mop, p2Value);
+                var crit = {};
+                crit[mop] = p2Value;
+                q[p1Value] = crit;
             }
+            return q;
         } else if (p2.type === "member") {
             var jop = boolOpMap[op].jsOp;
             var p2Value = context.translateMember(p2.value);
@@ -269,9 +271,10 @@ function makeAndOrFilter(node, context) {
     var q2 = toQueryExpr(node.p2, context);
     var q;
     if (node.op === "and") {
-        q = extendQuery(q1, q2);
+        // q = extendQuery(q1, q2);
+        q = { "$and": [q1, q2] };
     } else {
-        q = { "$or": [q1, q2] }
+        q = { "$or": [q1, q2] };
     }
     return q;
 }
@@ -328,18 +331,6 @@ function applyNot(q1) {
     }
 }
 
-function addClause(q, propertyName, mop, value) {
-    if (mop) {
-        var crit = {};
-        crit[mop] = value;
-        q[propertyName] = crit;
-    } else {
-        q[propertyName] = value;
-    }
-
-    return q;
-}
-
 function addWhereClause(q, whereClause) {
     whereClause = "(" + whereClause + ")";
     var whereFn = wherePrefix + whereClause + whereSuffix;
@@ -353,11 +344,14 @@ function extendQuery(target, source) {
     for (var name in source) {
         if (source.hasOwnProperty(name)) {
             var targetClause = target[name];
-            if (targetClause && typeof(targetClause) === 'object') {
+            if (targetClause) {
                 if (name === "$where") {
                     target[name] = mergeWhereClauses(targetClause, source[name]);
-                } else {
+                } else if (typeof(targetClause) === 'object') {
                     extendQuery(targetClause, source[name]);
+                } else {
+                    var crit = {};
+                    var crit = { }
                 }
             } else {
                 target[name] = source[name];
