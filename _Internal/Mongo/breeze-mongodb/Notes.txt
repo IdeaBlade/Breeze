@@ -72,8 +72,8 @@ var q = {
     $not: {
       $elemMatch: {
         $and: [
-	      { Quantity: { $not: { $lt: 5} } },
-		  { UnitPrice: { $not: { $lt: 5}} },
+	      { Quantity: { $not: { $lt: 3} } },
+		  { UnitPrice: { $not: { $lt: 3}} },
 		]
       }
     },
@@ -81,24 +81,55 @@ var q = {
   }
 }
 
-
-=== ALL with AND predicates ===========================
-
-// Order.OrderDetails.all(UnitPrice < 10 and Quantity < 10)
+// OR
 var q = {
   "OrderDetails.0": { $exists: true },
   OrderDetails: {
     $not: {
       $elemMatch: {
-	    $or: [
-	      { Quantity: { $not: { $lt: 10}}},
-		  { UnitPrice: { $not: { $lt: 10}}},
-        ]
+        $nor: [
+	      { Quantity: { $lt: 3} } ,
+		  { UnitPrice: {  $lt: 3}} ,
+		]
       }
     },
 
   }
 }
+
+=== ALL with AND predicates ===========================
+
+// Order.OrderDetails.all(UnitPrice < 10 and Quantity < 10)
+var q = {
+   "OrderDetails.0": { $exists: true },
+   OrderDetails: {
+     $not: {
+       $elemMatch: {
+ 	    $or: [
+ 	      { Quantity: { $not: { $lt: 10}}},
+ 		  { UnitPrice: { $not: { $lt: 10}}},
+         ]
+       }
+     },
+
+   }
+ }
+
+ var q = {
+   "OrderDetails.0": { $exists: true },
+   OrderDetails: {
+     $not: {
+       $elemMatch: {
+ 	    $or: [
+ 	      { $nor: [{ Quantity:  { $lt: 10}}] },
+ 		  { $nor: [{ UnitPrice: { $lt: 10}}] },
+         ]
+       }
+     },
+
+   }
+ }
+
 
 // Order.OrderDetails.all(UnitPrice < 10 and Quantity == 5)
 // a and b == not(not(a) or not(b))

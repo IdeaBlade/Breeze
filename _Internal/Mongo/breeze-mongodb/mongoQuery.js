@@ -296,8 +296,13 @@ function makeAnyFilter(node, context) {
     return q;
 }
 
-function makeAllFilter(node) {
-    var y = node;
+function makeAllFilter(node, context) {
+    var subq = toQueryExpr(node.subquery, context);
+    var notSubq = applyNot(subq);
+    var q = {};
+    q[node.member] = { $not: { "$elemMatch" : notSubq } } ;
+    q[node.member + ".0"] = { $exists: true };
+    return q;
 }
 
 function applyNot(q1) {
@@ -306,27 +311,32 @@ function applyNot(q1) {
     // rules are:
     // not { a: 1}             -> { a: { $ne: 1 }}
     // not { a: { $gt: 1 }}    -> { a: { $not: { $gt: 1}}}
-    // not { a: 1, b: 2 }      -> { $or: { a: { $ne: 1 }, b: { $ne 2 }}}
-    // not { $or { a:1, b: 2 } -> { a: { $ne: 1 }, b: { $ne 2 }  // THIS ONE NOT YET COMPLETE
+    // not { $and { a: 1, b: 2 } -> { $or:  { a: { $ne: 1 }, b: { $ne 2 }}}
+    // not { $or  { a: 1, b: 2 } -> { $and: [ a: { $ne: 1 }, b: { $ne 2 }]}
+
     var results = [];
     for (var k in q1) {
-        if (k === "$or") {
-            // haven't handled this case yet so just get out
-            throw new Error("Not yet implemented: $not with $or operation: " + stringify(q1) );
-            // break;
-        }
-        var result = {};
         var v = q1[k];
-        if ( v!=null && typeof(v) === "object") {
-            result[k] = { $not: v };
+        if (k === "$or") {
+           result = { $and: [ applyNot(v[0]), applyNot(v[1]) ] }
+        } else if (k === "$and") {
+           result = {  $or: [ applyNot(v[0]), applyNot(v[1]) ] }
         } else {
-            result[k] = { "$ne": v };
+            result = {};
+            if ( v!=null && typeof(v) === "object") {
+                result[k] = { $not: v };
+            } else {
+                result[k] = { "$ne": v };
+            }
         }
+
         results.push(result);
     }
     if (results.length === 1) {
         return results[0];
     } else {
+        // Don't think we should ever get here with the current logic because all
+        // queries should only have a single node
         return { "$or": results };
     }
 }
@@ -337,42 +347,6 @@ function addWhereClause(q, whereClause) {
     q.$where = whereFn;
     return q;
 }
-
-
-function extendQuery(target, source) {
-    if (!source) return target;
-    for (var name in source) {
-        if (source.hasOwnProperty(name)) {
-            var targetClause = target[name];
-            if (targetClause) {
-                if (name === "$where") {
-                    target[name] = mergeWhereClauses(targetClause, source[name]);
-                } else if (typeof(targetClause) === 'object') {
-                    extendQuery(targetClause, source[name]);
-                } else {
-                    var crit = {};
-                    var crit = { }
-                }
-            } else {
-                target[name] = source[name];
-            }
-        }
-    }
-    return target;
-}
-
-
-function mergeWhereClauses(targetFn, sourceFn) {
-    var targetClause = whereFnToWhereClause(targetFn);
-    var sourceClause = whereFnToWhereClause(sourceFn);
-    var whereFn = wherePrefix + targetClause + " && " + sourceClause + whereSuffix;
-    return whereFn;
-}
-
-function whereFnToWhereClause(whereFn) {
-    return whereFn.substring(wherePrefix.length, whereFn.length-whereSuffix.length);
-}
-
 
 function startsWith(str, prefix) {
     // returns false for empty strings too
@@ -408,19 +382,53 @@ function isEmpty(obj) {
     return true;
 }
 
-
-
-function extend(target, source) {
-    if (!source) return target;
-    for (var name in source) {
-        if (source.hasOwnProperty(name)) {
-            var targetVal = target[name];
-            if (targetVal && typeof targetVal === 'object') {
-                extend(targetVal, source[name]);
-            } else {
-                target[name] = source[name];
-            }
-        }
-    }
-    return target;
-}
+// No longer needed.
+//function extendQuery(target, source) {
+//    if (!source) return target;
+//    for (var name in source) {
+//        if (source.hasOwnProperty(name)) {
+//            var targetClause = target[name];
+//            if (targetClause) {
+//                if (name === "$where") {
+//                    target[name] = mergeWhereClauses(targetClause, source[name]);
+//                } else if (typeof(targetClause) === 'object') {
+//                    extendQuery(targetClause, source[name]);
+//                } else {
+//                    var crit = {};
+//                    var crit = { }
+//                }
+//            } else {
+//                target[name] = source[name];
+//            }
+//        }
+//    }
+//    return target;
+//}
+//
+//
+//function mergeWhereClauses(targetFn, sourceFn) {
+//    var targetClause = whereFnToWhereClause(targetFn);
+//    var sourceClause = whereFnToWhereClause(sourceFn);
+//    var whereFn = wherePrefix + targetClause + " && " + sourceClause + whereSuffix;
+//    return whereFn;
+//}
+//
+//function whereFnToWhereClause(whereFn) {
+//    return whereFn.substring(wherePrefix.length, whereFn.length-whereSuffix.length);
+//}
+//
+//
+//function extend(target, source) {
+//    if (!source) return target;
+//    for (var name in source) {
+//        if (source.hasOwnProperty(name)) {
+//            var targetVal = target[name];
+//            if (targetVal && typeof targetVal === 'object') {
+//                extend(targetVal, source[name]);
+//            } else {
+//                target[name] = source[name];
+//            }
+//        }
+//    }
+//    return target;
+//}

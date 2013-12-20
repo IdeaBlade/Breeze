@@ -339,11 +339,66 @@
 
     });
 
+    test("all with or'd predicates ", function () {
+        var em = newEm();
+        var subp = Predicate.create("quantity", "<", 3).or("unitPrice", "<", 3);
+
+        var p = Predicate.create("orderDetails", "all", subp);
+        var query = EntityQuery.from("Orders").where(p);
+
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var orders = data.results;
+            ok(orders.length > 0, "should be some orders");
+            orders.forEach(function (order) {
+                var orderDetails = order.getProperty("orderDetails");
+                var isOk = orderDetails.every(function (o) {
+                    return o.getProperty("quantity") < 3 || o.getProperty("unitPrice") < 3;
+                });
+                ok(isOk, "every orderDetail should satisfy condition");
+            })
+
+            var orders2 = em.executeQueryLocally(query);
+            var isOk = testFns.haveSameContents(orders, orders2);
+            ok(isOk, "arrays should have the same contents");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("all with and'd predicates ", function () {
+        var em = newEm();
+        var subp = Predicate.create("quantity", "<", 10).and("unitPrice", "<", 10);
+
+        var p = Predicate.create("orderDetails", "all", subp);
+        var query = EntityQuery.from("Orders").where(p);
+
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var orders = data.results;
+            ok(orders.length > 0, "should be some orders");
+            orders.forEach(function (order) {
+                var orderDetails = order.getProperty("orderDetails");
+                var isOk = orderDetails.every(function (o) {
+                    return o.getProperty("quantity") < 10 && o.getProperty("unitPrice") < 10;
+                });
+                ok(isOk, "every orderDetail should satisfy condition");
+            })
+
+            var orders2 = em.executeQueryLocally(query);
+            var isOk = testFns.haveSameContents(orders, orders2);
+            ok(isOk, "arrays should have the same contents");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+
     test("all with composite predicates ", function () {
         var em = newEm();
-        var p2 = Predicate.create("quantity", "<", 10);
+        var p2 = Predicate.create("quantity", "<", 30);
         var p1 = Predicate.create("orderDetails", "all", p2);
-        var p0 = Predicate.create("freight", ">", "200").and(p1);
+        var p0 = Predicate.create("freight", ">", 200).and(p1);
 
         var query = EntityQuery.from("Orders").where(p0);
 
@@ -355,9 +410,9 @@
                 ok(order.getProperty("freight") > 200, "freight should be > 200");
                 var orderDetails = order.getProperty("orderDetails");
                 var isOk = orderDetails.every(function (o) {
-                    return o.getProperty("quantity") < 10;
+                    return o.getProperty("quantity") < 30;
                 });
-                ok(isOk, "every orderDetail should have a quantity < 10");
+                ok(isOk, "every orderDetail should have a quantity < 30");
             })
 
             var orders2 = em.executeQueryLocally(query);
