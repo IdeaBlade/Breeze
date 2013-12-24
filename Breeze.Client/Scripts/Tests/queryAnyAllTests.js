@@ -176,6 +176,34 @@
 
     });
 
+    test("any 1->1->n", function () {
+        var em = newEm();
+        var query = EntityQuery.from("Orders")
+           .where("customer.orders", "any", "freight", ">", 1000)
+           .expand("customer.orders");
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var orders = data.results;
+            ok(orders.length > 0, "should be some orders");
+            orders.forEach(function (order) {
+                var customer = order.getProperty("customer");
+                var orders2 = customer.getProperty("orders");
+                var isOk = orders2.some(function(o2) {
+                    var cust = o2.getProperty("customer");
+                    var freight = o2.getProperty("freight");
+                    return freight > 200;
+                });
+                ok(isOk, "should be some order with the right company name");
+            });
+
+            var orders2 = em.executeQueryLocally(query);
+            var isOk = testFns.haveSameContents(orders, orders2);
+            ok(isOk, "arrays should have the same contents");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+
     test("any with composite predicate and expand", function () {
         var em = newEm();
         var p = Predicate.create("freight", ">", 950).and("shipCountry", "startsWith", "G");

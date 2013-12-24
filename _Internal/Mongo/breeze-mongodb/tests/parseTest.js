@@ -67,8 +67,8 @@ x = tryParse("$filter=((Name eq 'John' and LastName lt 'Doe') and (startswith(x1
 //                                    1    2                   1     2          3              210
 x = tryParse("$filter=OrderDetails/any(x1: (x1/UnitPrice ge 50m) and (startswith(x1/Foo, 'Test') ) )");
 
-//                                    1    23                 2     3                   2     3                   21 0
-x = tryParse("$filter=OrderDetails/all(x1: ((x1/Quantity lt 10) and (x1/UnitPrice lt 10m) and (x1/Notes/Foo gt 999)) )");
+//                                    1    23                 2     3                   2     3                   210
+x = tryParse("$filter=OrderDetails/all(x1: ((x1/Quantity lt 10) and (x1/UnitPrice lt 10m) and (x1/Notes/Foo gt 999))  )");
 
 //                                    1    2            3                       210
 x = tryParse("$filter=OrderDetails/any(x1: (x1/Notes/any(x4: x4/UnitPrice ge 50m)))");

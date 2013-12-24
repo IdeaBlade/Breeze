@@ -51,9 +51,9 @@
     }
  }
 
-start          = query
+start         = query
 
-wsp                         =  ' '  //Whitespace
+wsp           =  ' '  //Whitespace
 
 
 hexdigit      =   [0-9a-fA-F]
@@ -205,8 +205,7 @@ select                      =  "$select=" expr:selectExpr { return { "$select": 
 // returns an array of paths
 selectExpr                  =  wsp* a:identifierPath list:( wsp* "," wsp* ip:identifierPath {return ip})* { return flatten2(a, list) }
 
-identifierPath              =  a:identifier list:("/" ip:identifierPath {return ip})* { return buildString(a, list, "/"); }
-
+identifierPath              =  a:identifier list:("/" !anyAllOp ip:identifierPath {return ip})* { return buildString(a, list, "/"); }
 
 //filter
 filter                      =  "$filter=" expr:filterExpr { return { "$filter": expr  }; }
@@ -240,7 +239,7 @@ n1Expr   = wsp* p1:n2Expr x:(mathExpr)* {
 n2Expr   =  anyAllExpr / literal / parenExpr / unaryExpr / methodCallExpr / memberExpr
 
 // Orders/any(x1: x1/Freight gt 950m)
-anyAllExpr = wsp* member:identifier "/" op:anyAllOp "(" wsp* lambda:identifier ":" wsp+ subquery:filterExpr wsp* ")" {
+anyAllExpr = wsp* member:identifierPath "/" op:anyAllOp "(" wsp* lambda:identifier ":" wsp+ subquery:filterExpr wsp* ")" {
     if (lambda) {
         return { type: "op_anyAll", op:op, member:member[0], lambda:lambda[0], subquery:subquery };
     } else {

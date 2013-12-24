@@ -3068,8 +3068,8 @@ module.exports = (function(){
       }
       
       function parse_identifierPath() {
-        var result0, result1, result2, result3;
-        var pos0, pos1, pos2, pos3;
+        var result0, result1, result2, result3, result4;
+        var pos0, pos1, pos2, pos3, pos4;
         
         pos0 = pos;
         pos1 = pos;
@@ -3088,9 +3088,24 @@ module.exports = (function(){
             }
           }
           if (result2 !== null) {
-            result3 = parse_identifierPath();
+            pos4 = pos;
+            reportFailures++;
+            result3 = parse_anyAllOp();
+            reportFailures--;
+            if (result3 === null) {
+              result3 = "";
+            } else {
+              result3 = null;
+              pos = pos4;
+            }
             if (result3 !== null) {
-              result2 = [result2, result3];
+              result4 = parse_identifierPath();
+              if (result4 !== null) {
+                result2 = [result2, result3, result4];
+              } else {
+                result2 = null;
+                pos = pos3;
+              }
             } else {
               result2 = null;
               pos = pos3;
@@ -3100,7 +3115,7 @@ module.exports = (function(){
             pos = pos3;
           }
           if (result2 !== null) {
-            result2 = (function(offset, ip) {return ip})(pos2, result2[1]);
+            result2 = (function(offset, ip) {return ip})(pos2, result2[2]);
           }
           if (result2 === null) {
             pos = pos2;
@@ -3119,9 +3134,24 @@ module.exports = (function(){
               }
             }
             if (result2 !== null) {
-              result3 = parse_identifierPath();
+              pos4 = pos;
+              reportFailures++;
+              result3 = parse_anyAllOp();
+              reportFailures--;
+              if (result3 === null) {
+                result3 = "";
+              } else {
+                result3 = null;
+                pos = pos4;
+              }
               if (result3 !== null) {
-                result2 = [result2, result3];
+                result4 = parse_identifierPath();
+                if (result4 !== null) {
+                  result2 = [result2, result3, result4];
+                } else {
+                  result2 = null;
+                  pos = pos3;
+                }
               } else {
                 result2 = null;
                 pos = pos3;
@@ -3131,7 +3161,7 @@ module.exports = (function(){
               pos = pos3;
             }
             if (result2 !== null) {
-              result2 = (function(offset, ip) {return ip})(pos2, result2[1]);
+              result2 = (function(offset, ip) {return ip})(pos2, result2[2]);
             }
             if (result2 === null) {
               pos = pos2;
@@ -3429,7 +3459,7 @@ module.exports = (function(){
           result1 = parse_wsp();
         }
         if (result0 !== null) {
-          result1 = parse_identifier();
+          result1 = parse_identifierPath();
           if (result1 !== null) {
             if (input.charCodeAt(pos) === 47) {
               result2 = "/";
