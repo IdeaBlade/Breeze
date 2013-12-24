@@ -179,29 +179,39 @@
     /*********************************************************
     * hasChangesChanged event raised after rejectChanges
     *********************************************************/
-    test("hasChangesChanged event raised after rejectChanges", 1, function () {
+    test("hasChangesChanged event raised after rejectChanges", 4, function () {
         var em = newTodosEm();
-        var hasChangesWasRaised;
+        var hasChangesChangedRaised=[];
         em.hasChangesChanged.subscribe(
-            function () { hasChangesWasRaised = true; }
+            function(eventArgs) {
+                hasChangesChangedRaised.push(eventArgs.hasChanges);
+            }
         );
 
         // add a Todo (and ignore it)
         em.createEntity('TodoItem',{ Description: "Learn to save in breeze" });
 
         em.rejectChanges();
-        ok(hasChangesWasRaised,
-            "hasChangesChanged should have been raised after rejectChanges");
+
+        equal(hasChangesChangedRaised.length, 2,
+         "hasChangesChanged should have been raised twice");
+        ok(hasChangesChangedRaised[0] === true,
+         "first hasChangesChanged is true after create");
+        ok(hasChangesChangedRaised[1] === false,
+         "second hasChangesChanged is false after rejectChanges");
+        ok(!em.hasChanges(),
+         "manager should not have pending changes after rejectChanges");
     });
+
     /*********************************************************
     * hasChangesChanged event raised after saveChanges
     *********************************************************/
-    test("hasChangesChanged event raised after saveChanges", 1, function () {
+    test("hasChangesChanged event raised after saveChanges", 4, function () {
         var em = newTodosEm();    
-        var hasChangesWasRaised;
+        var hasChangesChangedRaised = [];
         em.hasChangesChanged.subscribe(
-            function() {
-                 hasChangesWasRaised = true;
+            function(eventArgs) {
+                hasChangesChangedRaised.push(eventArgs.hasChanges);
             }
         );
 
@@ -211,9 +221,15 @@
         stop();
         em.saveChanges()
            .then ( function() {
-               ok(hasChangesWasRaised,
-                "hasChangesChanged should have been raised after saveChanges");
-           })
+               equal(hasChangesChangedRaised.length, 2,
+                "hasChangesChanged should have been raised twice");
+               ok(hasChangesChangedRaised[0]===true,
+                "first hasChangesChanged is true after create");
+               ok(hasChangesChangedRaised[1]===false,
+                "second hasChangesChanged is false after save");
+               ok(!em.hasChanges(),
+                "manager should not have pending changes after save");
+            })
            .fail(handleSaveFailed)
            .fin(start);
     });
