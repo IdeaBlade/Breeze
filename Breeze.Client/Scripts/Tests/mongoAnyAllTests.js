@@ -173,9 +173,6 @@
 
     });
 
-
-
-
     // TODO: add a nested property to OrderDetail
 //    test("any and nested property", function () {
 //        var em = newEm();
@@ -372,10 +369,10 @@
 
         var p = Predicate.create("orderDetails", "all", subp);
         var query = EntityQuery.from("Orders").where(p);
-
+        var orders;
         stop();
         em.executeQuery(query).then(function (data) {
-            var orders = data.results;
+            orders = data.results;
             ok(orders.length > 0, "should be some orders");
             orders.forEach(function (order) {
                 var orderDetails = order.getProperty("orderDetails");
@@ -392,6 +389,54 @@
         }).fail(testFns.handleFail).fin(start);
 
     });
+
+    test("create and attach nonscalar complex instances", function () {
+        var em = newEm();
+        var em2 = newEm();
+        var subp = Predicate.create("quantity", "<", 10).and("unitPrice", "<", 10);
+
+        var p = Predicate.create("orderDetails", "all", subp);
+        var query = EntityQuery.from("Orders").where(p);
+        var noteType = em.metadataStore.getEntityType("Note");
+        var orders;
+        stop();
+
+        em.executeQuery(query).then(function (data) {
+            orders = data.results;
+            ok(orders.length > 0, "should be some orders");
+            // need to add some data
+            orders = data.results;
+            orders.forEach(function(order) {
+                addNotes(order,noteType)
+            })
+            return em.saveChanges();
+        }).then(function(sr) {
+            subp = subp.and("notes", "any", "note", "startsWith", "Test");
+            var q = EntityQuery.from("Orders").where("orderDetails", "all", subp);
+            return em2.executeQuery(q);
+        }).then(function(data2) {
+            orders2 = data2.results;
+            ok(orders2.length === orders.length, "should be same number of orders");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    function addNotes(order, noteType) {
+        var ods = order.getProperty("orderDetails");
+        var ix = 1;
+        ods.forEach(function(od) {
+            var notes = od.getProperty("notes");
+            if (!notes.length) {
+                for (var i = 1; i<3; i++) {
+                    var note = noteType.createInstance();
+                    note.setProperty("note", "Test note #: " + ix++);
+                    note.setProperty("createdBy", "JT");
+                    note.setProperty("createdOn", new Date());
+                    notes.push(note);
+                }
+            }
+        })
+    }
 
 
     test("all with composite predicates ", function () {

@@ -949,6 +949,11 @@
                "isScalar" : false
             },
             {
+                 "name": "locations",
+                 "complexTypeName":"Location:#Models.NorthwindIB.Mongo",
+                 "isScalar" : false
+            },
+            {
                "name":"lastModification",
                "complexTypeName":"LastMod:#Models.NorthwindIB.Mongo"
             }

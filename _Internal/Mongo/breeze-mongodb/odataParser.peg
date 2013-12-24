@@ -237,10 +237,10 @@ n1Expr   = wsp* p1:n2Expr x:(mathExpr)* {
       }
 }
 
-n2Expr   =  literal / parenExpr / unaryExpr / methodCallExpr / anyAllExpr / memberExpr
+n2Expr   =  anyAllExpr / literal / parenExpr / unaryExpr / methodCallExpr / memberExpr
 
 // Orders/any(x1: x1/Freight gt 950m)
-anyAllExpr = member:identifier "/" op:anyAllOp "(" lambda:identifier ":" wsp+ subquery:filterExpr ")" {
+anyAllExpr = wsp* member:identifier "/" op:anyAllOp "(" wsp* lambda:identifier ":" wsp+ subquery:filterExpr wsp* ")" {
     if (lambda) {
         return { type: "op_anyAll", op:op, member:member[0], lambda:lambda[0], subquery:subquery };
     } else {
@@ -253,7 +253,7 @@ boolExpr   =   wsp+ op:boolOp   wsp+ p2:n0Expr   { return { type: "op_bool",  op
 mathExpr   =   wsp+ op:mathOp   wsp+ p2:n1Expr   { return { type: "op_math",  op:op, p2: p2 }}
 
 memberExpr  =  member:identifierPath           { return { type: "member", value:  member  } }
-parenExpr   = "("  expr:filterExpr  ")"          { return  expr   }
+parenExpr   =  wsp* "("  expr:filterExpr wsp* ")"          { return  expr   }
 
 unaryExprOp =  "not " / "-"
 unaryExpr   = op:unaryExprOp expr:filterExpr     { return { type: "op_unary", op: op, p1: expr } }

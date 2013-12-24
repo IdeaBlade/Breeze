@@ -61,6 +61,25 @@ x = tryParse("$filter=Name/foo")
 
 x = tryParse("$filter=Orders/any(x1: x1/Freight gt 950m)");
 
+x = tryParse("$filter=Orders/any(x1: startswith(x1/Foo, 'Test'))");
+
+x = tryParse("$filter=((Name eq 'John' and LastName lt 'Doe') and (startswith(x1/Foo, 'Test')))");
+//                                    1    2                   1     2          3              210
+x = tryParse("$filter=OrderDetails/any(x1: (x1/UnitPrice ge 50m) and (startswith(x1/Foo, 'Test') ) )");
+
+//                                    1    23                 2     3                   2     3                   21 0
+x = tryParse("$filter=OrderDetails/all(x1: ((x1/Quantity lt 10) and (x1/UnitPrice lt 10m) and (x1/Notes/Foo gt 999)) )");
+
+//                                    1    2            3                       210
+x = tryParse("$filter=OrderDetails/any(x1: (x1/Notes/any(x4: x4/UnitPrice ge 50m)))");
+//                                    1    2            3              4              3        210
+x = tryParse("$filter=OrderDetails/all(x1: (x1/Notes/any(x4: startswith(x4/Note,'GAB') eq true)))");
+
+//                                    1    23                 2     3                   2     3            4              5              4        3 2 10
+x = tryParse("$filter=OrderDetails/all(x1: ((x1/Quantity lt 10) and (x1/UnitPrice lt 10m) and (x1/Notes/any(x4: startswith(x4/Note,'Test') eq true))))");
+//                                    1    23                 2     3                   21     2            3              4              3        210
+x = tryParse("$filter=OrderDetails/all(x1: ((x1/Quantity lt 10) and (x1/UnitPrice lt 10m)) and (x1/Notes/any(x4: startswith(x4/Note,'Test') eq true)))");
+
 //parseAndCompare("$filter", "$filter=DateValue eq datetime'2012-05-06T16:11:00Z'",
 parseAndCompare("$filter", "$filter=OrderDate gt datetime'1998-04-01T07:00:00.000Z'",
     { type: "op_bool", op: "gt",
@@ -246,15 +265,18 @@ function parseAndCompare(nodeName, expr, expectedResult) {
 }
 
 function tryParse(s) {
-    console.log("tryParse: " + s);
-    tryParseCore(s);
+    if (tryParseCore(s)) {
+        console.log("tryParse: " + s);
+    }
 }
 
 function tryParseCore(s) {
     try {
         return parser.parse(s);
     } catch (e)  {
-        console.log("error parsing: " + s + "   error -> " + e.message)
+        console.log("================================")
+        console.log("ERROR parsing: " + s + "   error -> " + e.message);
+        console.log("================================");
         return null;
     }
 }
