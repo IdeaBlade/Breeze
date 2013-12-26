@@ -202,15 +202,19 @@ select                      =  "$select=" expr:selectExpr { return { "$select": 
                             /  "$select=" .* { return {"error": 'invalid $select parameter'}; }
 
 
+
 // returns an array of paths
 selectExpr                  =  wsp* a:identifierPath list:( wsp* "," wsp* ip:identifierPath {return ip})* { return flatten2(a, list) }
 
-identifierPath              =  a:identifier list:("/" !anyAllOp ip:identifierPath {return ip})* { return buildString(a, list, "/"); }
+anyAll   = "/any" / "/all"
+identifierPath              =  a:identifier list:(!anyAll "/" ip:identifierPath {return ip})* { return buildString(a, list, "/"); }
+// OLD
+// identifierPath              =  a:identifier list:("/" ip:identifierPath {return ip})* { return buildString(a, list, "/"); }
+
 
 //filter
 filter                      =  "$filter=" expr:filterExpr { return { "$filter": expr  }; }
                             /  "$filter=" .* { return {"error": 'invalid $filter parameter'}; }
-
 
 filterExpr = wsp* p1:n0Expr x:(andOrExpr)*  {
    if (x.length > 0) {
@@ -239,11 +243,15 @@ n1Expr   = wsp* p1:n2Expr x:(mathExpr)* {
 n2Expr   =  anyAllExpr / literal / parenExpr / unaryExpr / methodCallExpr / memberExpr
 
 // Orders/any(x1: x1/Freight gt 950m)
-anyAllExpr = wsp* member:identifierPath "/" op:anyAllOp "(" wsp* lambda:identifier ":" wsp+ subquery:filterExpr wsp* ")" {
+anyAllPath                  =  member:identifierPath "/" op:anyAllOp {
+    return { member: member, op: op };
+}
+
+anyAllExpr = wsp* anyAllPath:anyAllPath "(" wsp* lambda:identifier ":" wsp+ subquery:filterExpr wsp* ")" {
     if (lambda) {
-        return { type: "op_anyAll", op:op, member:member[0], lambda:lambda[0], subquery:subquery };
+        return { type: "op_anyAll", op:anyAllPath.op, member:anyAllPath.member, lambda:lambda[0], subquery:subquery };
     } else {
-        return { type: "op_anyAll", op:op, member:member[0] };
+        return { type: "op_anyAll", op:anyAllPath.op, member:anyAllPath.member };
     }
 }
 

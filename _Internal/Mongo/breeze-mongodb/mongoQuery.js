@@ -382,6 +382,21 @@ function isEmpty(obj) {
     return true;
 }
 
+function extend(target, source) {
+    if (!source) return target;
+    for (var name in source) {
+        if (source.hasOwnProperty(name)) {
+            var targetVal = target[name];
+            if (targetVal && typeof targetVal === 'object') {
+                extend(targetVal, source[name]);
+            } else {
+                target[name] = source[name];
+            }
+        }
+    }
+    return target;
+}
+
 // No longer needed.
 //function extendQuery(target, source) {
 //    if (!source) return target;
@@ -418,17 +433,3 @@ function isEmpty(obj) {
 //}
 //
 //
-//function extend(target, source) {
-//    if (!source) return target;
-//    for (var name in source) {
-//        if (source.hasOwnProperty(name)) {
-//            var targetVal = target[name];
-//            if (targetVal && typeof targetVal === 'object') {
-//                extend(targetVal, source[name]);
-//            } else {
-//                target[name] = source[name];
-//            }
-//        }
-//    }
-//    return target;
-//}

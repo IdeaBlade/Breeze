@@ -57,26 +57,26 @@ parseAndCompare("$select", "$select= LastName ,FirstName, Name/Foo , Name/Foo/Ba
 
 x = tryParse("$filter='xxx'");
 
-x = tryParse("$filter=Name/foo")
+x = tryParse("$filter=Name/foo", true)
 
-x = tryParse("$filter=Orders/any(x1: x1/Freight gt 950m)");
+x = tryParse("$filter=Orders/any(x1: x1/Freight gt 950m)", true);
 
 x = tryParse("$filter=Orders/any(x1: startswith(x1/Foo, 'Test'))");
 
 x = tryParse("$filter=((Name eq 'John' and LastName lt 'Doe') and (startswith(x1/Foo, 'Test')))");
 //                                    1    2                   1     2          3              210
-x = tryParse("$filter=OrderDetails/any(x1: (x1/UnitPrice ge 50m) and (startswith(x1/Foo, 'Test') ) )");
+x = tryParse("$filter=OrderDetails/any(x1: (x1/UnitPrice ge 50m) and (startswith(x1/Foo, 'Test') ) )", true);
 
 //                                    1    23                 2     3                   2     3                   210
-x = tryParse("$filter=OrderDetails/all(x1: ((x1/Quantity lt 10) and (x1/UnitPrice lt 10m) and (x1/Notes/Foo gt 999))  )");
+x = tryParse("$filter=OrderDetails/all(x1: ((x1/Quantity lt 10) and (x1/UnitPrice lt 10m) and (x1/Notes/Foo gt 999))  )", true);
 
 //                                    1    2            3                       210
-x = tryParse("$filter=OrderDetails/any(x1: (x1/Notes/any(x4: x4/UnitPrice ge 50m)))");
+x = tryParse("$filter=OrderDetails/any(x1: (x1/Notes/any(x4: x4/UnitPrice ge 50m)))", true);
 //                                    1    2            3              4              3        210
-x = tryParse("$filter=OrderDetails/all(x1: (x1/Notes/any(x4: startswith(x4/Note,'GAB') eq true)))");
+x = tryParse("$filter=OrderDetails/all(x1: (x1/Notes/any(x4: startswith(x4/Note,'GAB') eq true)))", true);
 
 //                                    1    23                 2     3                   2     3            4              5              4        3 2 10
-x = tryParse("$filter=OrderDetails/all(x1: ((x1/Quantity lt 10) and (x1/UnitPrice lt 10m) and (x1/Notes/any(x4: startswith(x4/Note,'Test') eq true))))");
+x = tryParse("$filter=OrderDetails/all(x1: ((x1/Quantity lt 10) and (x1/UnitPrice lt 10m) and (x1/Notes/any(x4: startswith(x4/Note,'Test') eq true))))", true);
 //                                    1    23                 2     3                   21     2            3              4              3        210
 x = tryParse("$filter=OrderDetails/all(x1: ((x1/Quantity lt 10) and (x1/UnitPrice lt 10m)) and (x1/Notes/any(x4: startswith(x4/Note,'Test') eq true)))");
 
@@ -264,9 +264,13 @@ function parseAndCompare(nodeName, expr, expectedResult) {
     compare(expr, r, expectedResult);
 }
 
-function tryParse(s) {
-    if (tryParseCore(s)) {
+function tryParse(s, shouldLog) {
+    var r = tryParseCore(s);
+    if (r) {
         console.log("tryParse: " + s);
+        if (shouldLog) {
+           console.log(JSON.stringify(r,null, "  "));
+        }
     }
 }
 
