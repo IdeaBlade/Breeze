@@ -177,17 +177,11 @@ function makeBoolFilter(node, context) {
     var op = node.op;
     var p1 = node.p1;
     var p2 = node.p2;
-    if (p1.type === "member") {
-        // handles nested paths. '/' -> "."
-        var p1Value = context.translateMember(p1.value);
+    var p1Value = parseNodeValue(p1, context);
+    var p2Value = parseNodeValue(p2, context);
 
-        var p2Value;
+    if (p1.type === "member") {
         if (startsWith(p2.type, "lit_")) {
-            if (p2.type === "lit_string") {
-                p2Value = parseLitString(p2.value);
-            } else {
-                p2Value = p2.value;
-            }
             if (op === "eq") {
                 q[p1Value] = p2Value;
             } else {
@@ -199,13 +193,12 @@ function makeBoolFilter(node, context) {
             return q;
         } else if (p2.type === "member") {
             var jop = boolOpMap[op].jsOp;
-            var p2Value = context.translateMember(p2.value);
             var fn =  "this." + p1Value + " " + jop + " this." + p2Value ;
             return addWhereClause(q, fn);
         }
     } else if (p2.type === "lit_boolean") {
         var q = toQueryExpr(p1, context);
-        if (p2.value === true) {
+        if (p2Value === true) {
             return q;
         } else {
             return applyNot(q);
@@ -231,31 +224,32 @@ function makeFn2Filter(node, context) {
     var p1 = node.p1;
     var p2 = node.p2;
     var q = {};
-    if (p2.type === "member") {
-        var p2Value = context.translateMember(p2.value);
-    }
+
+    var p1Value = parseNodeValue(p1, context);
+    var p2Value = parseNodeValue(p2, context);
+
     if (p1.type === "member") {
         // TODO: need to handle nested paths. '/' -> "."
-        var key = p1.value;
+
         if (startsWith(p2.type, "lit_")) {
             if (fnName === "startswith") {
-                q[key] =  new RegExp("^" +p2.value, 'i' ) ;
+                q[p1Value] =  new RegExp("^" +p2Value, 'i' ) ;
             }   else if (fnName === "endswith") {
-                q[key] =  new RegExp( p2.value + "$", 'i');
+                q[p1Value] =  new RegExp( p2Value + "$", 'i');
             }
         } else if (p2.type === "member") {
             var fn;
             if (fnName === "startswith") {
-                fn =  "(new RegExp('^' + this." + p2Value + ",'i')).test(this." +  p1.value + ")";
+                fn =  "(new RegExp('^' + this." + p2Value + ",'i')).test(this." +  p1Value + ")";
                 addWhereClause(q, fn);
             }   else if (fnName === "endswith") {
-                fn =  "(new RegExp(this." + p2Value + " + '$','i')).test(this." +  p1.value + ")";
+                fn =  "(new RegExp(this." + p2Value + " + '$','i')).test(this." +  p1Value + ")";
                 addWhereClause(q, fn);
             }
         }
     } else if (fnName === "substringof") {
         if (p1.type === "lit_string" && p2.type === "member") {
-            q[p2Value] = new RegExp(p1.value, "i");
+            q[p2Value] = new RegExp(p1Value, "i");
         }
     }
 
@@ -292,7 +286,8 @@ function makeAnyAllFilter(node, context) {
 function makeAnyFilter(node, context) {
     var subq = toQueryExpr(node.subquery, context);
     var q = {};
-    q[node.member] = { "$elemMatch" : subq } ;
+    var key = context.translateMember(node.member);
+    q[key] = { "$elemMatch" : subq } ;
     return q;
 }
 
@@ -300,9 +295,21 @@ function makeAllFilter(node, context) {
     var subq = toQueryExpr(node.subquery, context);
     var notSubq = applyNot(subq);
     var q = {};
-    q[node.member] = { $not: { "$elemMatch" : notSubq } } ;
-    q[node.member + ".0"] = { $exists: true };
+    var key = context.translateMember(node.member);
+    q[key] = { $not: { "$elemMatch" : notSubq } } ;
+    q[key + ".0"] = { $exists: true };
     return q;
+}
+
+function parseNodeValue(node, context) {
+    if (!node) return null;
+    if (node.type === "member") {
+        return context.translateMember(node.value);
+    } else if (node.type === "lit_string" ) {
+        return parseLitString(node.value);
+    } else {
+        return node.value;
+    }
 }
 
 function applyNot(q1) {

@@ -426,7 +426,10 @@
         var ix = 1;
         ods.forEach(function(od) {
             var notes = od.getProperty("notes");
-            if (!notes.length) {
+            var hasTestNotes = notes.some(function(note) {
+                return note.getProperty("note").indexOf("Test")=== 0;
+            });
+            if (!hasTestNotes) {
                 for (var i = 1; i<3; i++) {
                     var note = noteType.createInstance();
                     note.setProperty("note", "Test note #: " + ix++);
