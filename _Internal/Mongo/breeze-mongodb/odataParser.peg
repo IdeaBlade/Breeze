@@ -208,9 +208,6 @@ selectExpr                  =  wsp* a:identifierPath list:( wsp* "," wsp* ip:ide
 
 anyAll   = "/any" / "/all"
 identifierPath              =  a:identifier list:(!anyAll "/" ip:identifierPath {return ip})* { return buildString(a, list, "/"); }
-// OLD
-// identifierPath              =  a:identifier list:("/" ip:identifierPath {return ip})* { return buildString(a, list, "/"); }
-
 
 //filter
 filter                      =  "$filter=" expr:filterExpr { return { "$filter": expr  }; }

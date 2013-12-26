@@ -1,7 +1,7 @@
 {
     "name": "breeze-mongodb",
     "description": "Classes and helper methods to allow Breeze <-> Mongo interop.",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "main": "breeze-mongodb",
     "dependencies": {
         "mongodb": ">=1.3.0"
@@ -17,5 +17,5 @@
     "engines": {
         "node": ">= 0.6.6"
     },
-    "readme": "breezeToMongoDb\n======\n\nProvides helper classes to faciliatate Breez <-> Mongo interop.\n"
+    "readme": "breezeToMongoDb\n======\n\nProvides helper classes to faciliatate BreezeJs <-> Mongo interop. -- See www.breeze.js.com \n"
 }
