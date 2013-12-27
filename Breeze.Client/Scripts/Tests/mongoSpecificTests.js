@@ -34,12 +34,14 @@
 
     test("query with quote", function() {
         var em = newEm();
-        var q = EntityQuery.from("Employees").where("firstName", "startsWith", "Test''s");
+        var q = EntityQuery.from("Customers").where("companyName", "contains", "'");
         stop();
-        var emps, emp;
+        var recs;
         em.executeQuery(q).then(function(data) {
-            var emps = data.results;
-            ok(emps.length === 0, "should not be any Emps");
+            var recs = data.results;
+            ok(recs.length >  0, "should have found some recs");
+            var recs2 = em.executeQueryLocally(q);
+            ok(recs.length === recs2.length, "local query should have returned the same recs");
         }).fail(testFns.handleFail).fin(start);
 
     });
