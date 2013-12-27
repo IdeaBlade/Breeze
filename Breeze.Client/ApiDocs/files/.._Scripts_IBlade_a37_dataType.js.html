@@ -312,7 +312,7 @@ var DataType = (function () {
     };
 
     var fmtString = function (val) {
-        return val == null ? null : &quot;&#x27;&quot; + val + &quot;&#x27;&quot;;
+        return val == null ? null : &quot;&#x27;&quot; + val.replace(/&#x27;/g,&quot;&#x27;&#x27;&quot;) + &quot;&#x27;&quot;;
     };
 
     var fmtInt = function (val) {

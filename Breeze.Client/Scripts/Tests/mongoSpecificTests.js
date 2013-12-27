@@ -32,6 +32,19 @@
         return;
     };
 
+    test("query with quote", function() {
+        var em = newEm();
+        var q = EntityQuery.from("Employees").where("firstName", "startsWith", "Test''s");
+        stop();
+        var emps, emp;
+        em.executeQuery(q).then(function(data) {
+            var emps = data.results;
+            ok(emps.length === 0, "should not be any Emps");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+
     test("get/save employee hobbies", function() {
         var em = newEm();
         var q = EntityQuery.from("Employees").take(5);

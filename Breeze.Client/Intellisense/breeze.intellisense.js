@@ -1,4 +1,4 @@
-﻿// Generated on: Thu Dec 19 2013 10:03:22 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Thu Dec 26 2013 16:36:58 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -1393,6 +1393,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   Imports a previously exported serialized MetadataStore into this MetadataStore. }
     ///   </summary>
     ///   <param name="exportedMetadata" type="String|JSON Object" optional="true">A previously exported MetadataStore.</param>
+    ///   <param name="allowMerge" type="Boolean" optional="true">Allows custom metadata to be merged into existing metadata types.</param>
     ///   <returns type="breeze.breeze.MetadataStore" >This MetadataStore.</returns>
     /// </signature>
   },

@@ -131,6 +131,7 @@
         var query = new breeze.EntityQuery()
             .from("Orders")
             .where("orderDate", "!=", null)
+            .orderBy("orderDate")
             .take(3);
 
         var orderDate;
@@ -144,6 +145,7 @@
             var query = new breeze.EntityQuery()
                 .from("Orders")
                 .where("orderDate", "!=", null)
+                .orderBy("orderDate")
                 .take(3)
                 .select("orderDate");
             return manager2.executeQuery(query);
@@ -562,15 +564,15 @@
     test("query with quotes", function () {
         var em = newEm();
 
-        var q = EntityQuery.from("Employees")
-            .where("firstName", 'contains', "abc''defg")
+        var q = EntityQuery.from("Customers")
+            .where("companyName", 'contains', "'")
             .using(em);
         stop();
 
         q.execute().then(function (data) {
-            ok(data.results.length === 0);
+            ok(data.results.length > 0);
             var r = em.executeQueryLocally(q);
-            ok(r.length === 0);
+            ok(r.length === data.results.length, "local query should return same subset");
         }).fail(testFns.handleFail).fin(start);
             
     });
