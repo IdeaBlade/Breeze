@@ -1,0 +1,14 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="EmployeeTerritory" table="`EmployeeTerritory`" dynamic-update="true">
+    <id name="id" column="`ID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="rowVersion" type="int" />
+    <many-to-one name="employee" column="`EmployeeID`" class="Employee" />
+    <many-to-one name="territory" column="`TerritoryID`" class="Territory" />
+    <property name="employeeID" type="int" not-null="true" insert="false" update="false" />
+    <property name="territoryID" type="int" not-null="true" insert="false" update="false" />
+  </class>
+</hibernate-mapping>

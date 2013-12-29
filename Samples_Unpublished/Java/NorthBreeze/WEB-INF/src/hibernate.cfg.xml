@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  ~ Hibernate, Relational Persistence for Idiomatic Java
+  ~
+  ~ Copyright (c) 2010, Red Hat Inc. or third-party contributors as
+  ~ indicated by the @author tags or express copyright attribution
+  ~ statements applied by the authors.  All third-party contributions are
+  ~ distributed under license by Red Hat Inc.
+  ~
+  ~ This copyrighted material is made available to anyone wishing to use, modify,
+  ~ copy, or redistribute it subject to the terms and conditions of the GNU
+  ~ Lesser General Public License, as published by the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  ~ or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+  ~ for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public License
+  ~ along with this distribution; if not, write to:
+  ~ Free Software Foundation, Inc.
+  ~ 51 Franklin Street, Fifth Floor
+  ~ Boston, MA  02110-1301  USA
+  -->
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+
+    <session-factory>
+
+        <!-- Database connection settings -->
+        <!-- H2 settings
+        <property name="connection.driver_class">org.h2.Driver</property>
+        <property name="connection.url">jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MVCC=TRUE</property>
+        <property name="connection.username">sa</property>
+        <property name="connection.password"/>
+        -->
+        <property name="connection.driver_class">net.sourceforge.jtds.jdbc.Driver</property>
+        <property name="connection.url">jdbc:jtds:sqlserver://STEVE-IBPC/NorthwindIB</property>
+        <property name="connection.username">oracle</property>
+        <property name="connection.password">oracle</property>
+
+        <!-- JDBC connection pool (use the built-in) -->
+        <property name="connection.pool_size">1</property>
+
+        <!-- SQL dialect -->
+        <property name="dialect">org.hibernate.dialect.SQLServer2008Dialect</property>
+
+        <!-- Disable the second-level cache  -->
+        <property name="cache.provider_class">org.hibernate.cache.internal.NoCacheProvider</property>
+
+        <!-- Echo all executed SQL to stdout -->
+        <property name="show_sql">true</property>
+
+		<mapping resource="northwind/mapping/Category.hbm.xml"/>
+		<mapping resource="northwind/mapping/Customer.hbm.xml"/>
+		<mapping resource="northwind/mapping/Employee.hbm.xml"/>
+		<mapping resource="northwind/mapping/EmployeeTerritory.hbm.xml"/>
+		<mapping resource="northwind/mapping/InternationalOrder.hbm.xml"/>
+		<mapping resource="northwind/mapping/NextId.hbm.xml"/>
+		<mapping resource="northwind/mapping/Order.hbm.xml"/>
+		<mapping resource="northwind/mapping/OrderDetail.hbm.xml"/>
+		<!--mapping resource="northwind/mapping/PreviousEmployee.hbm.xml"/-->
+		<mapping resource="northwind/mapping/Product.hbm.xml"/>
+		<mapping resource="northwind/mapping/Region.hbm.xml"/>
+		<mapping resource="northwind/mapping/Role.hbm.xml"/>
+		<mapping resource="northwind/mapping/Supplier.hbm.xml"/>
+		<mapping resource="northwind/mapping/Territory.hbm.xml"/>
+		<mapping resource="northwind/mapping/User.hbm.xml"/>
+		<mapping resource="northwind/mapping/UserRole.hbm.xml"/>
+
+    </session-factory>
+
+</hibernate-configuration>

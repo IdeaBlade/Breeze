@@ -1,0 +1,26 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="Customer" table="`Customer`" dynamic-update="true">
+    <id name="customerID" column="`CustomerID`" type="java.util.UUID">
+      <generator class="guid" />
+    </id>
+    <version name="rowVersion" type="int" />
+    <property name="customerID_OLD" column="`CustomerID_OLD`" type="string" length="5" />
+    <property name="companyName" type="string" length="40" not-null="true" />
+    <property name="contactName" type="string" length="30" />
+    <property name="contactTitle" type="string" length="30" />
+    <property name="address" type="string" length="60" />
+    <property name="city" type="string" length="15" />
+    <property name="region" type="string" length="15" />
+    <property name="postalCode" type="string" length="10" />
+    <property name="country" type="string" length="15" />
+    <property name="phone" type="string" length="24" />
+    <property name="fax" type="string" length="24" />
+    <!--Foreign key to Order (Order)-->
+    <set name="orders" table="`Order`" cascade="all-delete-orphan" inverse="true">
+      <key column="`CustomerID`" foreign-key="FK_Order_Customer" />
+      <one-to-many class="Order" />
+    </set>
+  </class>
+</hibernate-mapping>

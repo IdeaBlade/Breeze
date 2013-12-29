@@ -1,0 +1,26 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="PreviousEmployee" table="`PreviousEmployee`" dynamic-update="true">
+    <id name="employeeID" column="`EmployeeID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="rowVersion" type="int" />
+    <property name="lastName" type="string" length="20" not-null="true" />
+    <property name="firstName" type="string" length="10" not-null="true" />
+    <property name="title" type="string" length="30" />
+    <property name="titleOfCourtesy" type="string" length="25" />
+    <property name="birthDate" type="DateTime" />
+    <property name="hireDate" type="DateTime" />
+    <property name="address" type="string" length="60" />
+    <property name="city" type="string" length="15" />
+    <property name="region" type="string" length="15" />
+    <property name="postalCode" type="string" length="10" />
+    <property name="country" type="string" length="15" />
+    <property name="homePhone" type="string" length="24" />
+    <property name="extension" type="string" length="4" />
+    <property name="photo" type="System.Byte[]" />
+    <property name="notes" column="`Notes`" type="string" length="1073741823" />
+    <property name="photoPath" type="string" length="255" />
+  </class>
+</hibernate-mapping>

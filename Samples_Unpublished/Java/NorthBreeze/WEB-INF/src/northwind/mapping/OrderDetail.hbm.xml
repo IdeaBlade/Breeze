@@ -1,0 +1,17 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="OrderDetail" table="`OrderDetail`" dynamic-update="true">
+    <!--TODO- composite keys are a BAD IDEA-->
+    <composite-id>
+      <key-many-to-one column="`OrderID`" name="order" class="Order" />
+      <key-many-to-one column="`ProductID`" name="product" class="Product" />
+    </composite-id>
+    <version name="rowVersion" type="int" />
+    <property name="orderID" type="int" not-null="true" insert="false" update="false" />
+    <property name="productID" type="int" not-null="true" insert="false" update="false" />
+    <property name="unitPrice" type="big_decimal" not-null="true" />
+    <property name="quantity" type="short" not-null="true" />
+    <property name="discount" type="float" not-null="true" />
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,14 @@
+*.svn
+*.idea
+*.user
+*.docx
+*.vsmdi
+*.cmd
+*.testsettings
+*.old
+*.suo
+
+bin
+classes
+.settings
+

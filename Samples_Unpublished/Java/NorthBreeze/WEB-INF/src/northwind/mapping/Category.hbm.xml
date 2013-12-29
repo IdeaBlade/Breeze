@@ -1,0 +1,18 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="Category" table="`Category`" dynamic-update="true">
+    <id name="categoryID" column="`CategoryID`" type="int" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <version name="rowVersion" type="int" />
+    <property name="categoryName" type="string" length="15" not-null="true" />
+    <property name="description" type="string" />
+    <property name="picture" type="blob" length="10000000"/>
+    <!--Foreign key to Product (Product)-->
+    <set name="products" table="`Product`" cascade="all-delete-orphan" inverse="true">
+      <key column="`CategoryID`" foreign-key="FK_Product_Category" />
+      <one-to-many class="Product" />
+    </set>
+  </class>
+</hibernate-mapping>

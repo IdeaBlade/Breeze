@@ -1,0 +1,10 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="NextId" table="`NextId`" dynamic-update="true" optimistic-lock="dirty">
+    <id name="name" column="`Name`" type="string" length="50" unsaved-value="">
+      <generator class="assigned" />
+    </id>
+    <property name="nextId1" column="`NextId`" type="long" not-null="true" />
+  </class>
+</hibernate-mapping>

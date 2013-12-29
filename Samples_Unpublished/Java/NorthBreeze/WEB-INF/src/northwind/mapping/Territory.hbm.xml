@@ -1,0 +1,28 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="Territory" table="`Territory`" dynamic-update="true">
+    <id name="territoryID" column="`TerritoryID`" type="int" unsaved-value="0">
+      <generator class="hilo">
+        <param name="table">NextId</param>
+        <param name="column">NextId</param>
+        <param name="max_lo">100</param>
+        <param name="where">Name = 'GLOBAL'</param>
+      </generator>
+    </id>
+    <version name="rowVersion" type="int" />
+    <property name="territoryDescription" type="string" length="50" not-null="true" />
+    <many-to-one name="region" column="`RegionID`" class="Region" />
+    <property name="regionID" type="int" not-null="true" insert="false" update="false" />
+    <!--Foreign key to EmployeeTerritory (EmployeeTerritory)-->
+    <set name="employeeTerritories" table="`EmployeeTerritory`" cascade="all-delete-orphan" inverse="true">
+      <key column="`TerritoryID`" foreign-key="FK_EmployeeTerritory_Territory" />
+      <one-to-many class="EmployeeTerritory" />
+    </set>
+    <!--Foreign key to EmployeeTerritoryNoPayload (EmployeeTerritoryNoPayload)
+    <set name="employees" table="`EmployeeTerritoryNoPayload`" cascade="all-delete-orphan" inverse="true">
+      <key column="`TerritoryID`" foreign-key="FK_EmployeeTerritoryNoPayload_Territory" />
+      <many-to-many class="Employee" column="EmployeeID"/>
+    </set>-->
+  </class>
+</hibernate-mapping>
