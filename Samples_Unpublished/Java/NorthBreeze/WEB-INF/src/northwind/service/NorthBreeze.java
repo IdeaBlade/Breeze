@@ -8,6 +8,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import org.hibernate.Session;
 import com.breezejs.BreezeHibernateMetadata;
+import com.breezejs.OdataParameters;
 import com.sun.json.JSONSerializer;
 
 @Path("northbreeze")
@@ -72,9 +73,14 @@ public class NorthBreeze {
 	 */
     public static void main(String[] args) throws Exception {
     	
-    	NorthBreeze nb = new NorthBreeze();
-    	String meta = nb.getMetadata();
-    	System.out.println(meta);
+//    	NorthBreeze nb = new NorthBreeze();
+//    	String meta = nb.getMetadata();
+//    	System.out.println(meta);
+    	
+    	OdataParameters op = OdataParameters.parse("?$top=5&$filter=Country eq 'Brazil'");
+    	op = OdataParameters.parse("http://localhost:7149/breeze/DemoNH/Customers?$top=3&$expand=Orders");
+    	op = OdataParameters.parse("$top=3&$select=Country,PostalCode&$inlinecount=allpages");
+    	System.out.println(op);
     }
     
 	
