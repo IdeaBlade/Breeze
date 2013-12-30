@@ -18,7 +18,7 @@ public class NorthBreeze {
 	}
 
 	@GET
-	@Path("metadata")
+	@Path("Metadata")
 	@Produces("application/json; charset=UTF-8")
 	public String getMetadata() {
 		BreezeHibernateMetadata metaGen = new BreezeHibernateMetadata(NorthwindSessionFactory.getSessionFactory(), NorthwindSessionFactory.getConfiguration());
@@ -28,14 +28,14 @@ public class NorthBreeze {
 	}
 	
 	@GET
-	@Path("customers")
+	@Path("Customers")
 	@Produces("application/json; charset=UTF-8")
 	public String getCustomers() {
 		return queryToJson("from Customer where companyName like 'C%'");
 	}
 
 	@GET
-	@Path("orders")
+	@Path("Orders")
 	@Produces("application/json; charset=UTF-8")
 	public String getOrders() {
 		return queryToJson("from Order where orderId in (10248, 10249, 10250)");

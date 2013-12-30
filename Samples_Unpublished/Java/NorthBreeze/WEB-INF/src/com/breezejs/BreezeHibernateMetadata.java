@@ -96,7 +96,7 @@ public class BreezeHibernateMetadata {
         cmap.put("shortName", type.getSimpleName());
         cmap.put("namespace", type.getPackage().getName());
 
-        PersistentClass persistentClass = _configuration.getClassMapping(classKey);
+        PersistentClass persistentClass = _configuration.getClassMapping(type.getName());
         PersistentClass superClass = persistentClass.getSuperclass();
         if (superClass != null) 
         {
@@ -471,8 +471,8 @@ public class BreezeHibernateMetadata {
      */
     String getEntityTypeName(Class clazz)
     {
-    	return clazz.getName();
-//    	return clazz.getSimpleName() + ":#" + clazz.getPackage().getName();
+//    	return clazz.getName();
+    	return clazz.getSimpleName() + ":#" + clazz.getPackage().getName();
     }
 
     /**
