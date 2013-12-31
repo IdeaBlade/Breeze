@@ -21,13 +21,12 @@
 
 })(function () {  
     var breeze = {
-        version: "1.4.6",
+        version: "1.4.7",
         metadataVersion: "1.0.5"
     };
 
 
-    
-/**
+    ;/**
  @module core
  **/
 
@@ -351,26 +350,39 @@ function __requireLib(libNames, errMessage) {
         throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
     }
 }
-    
-function __requireLibCore(libName) {
-    var lib;
-    try {
-        if (this.window) {
-            var window = this.window;
-            lib = window[libName];
-            if (lib) return lib;
-            if (window.require) {
-                lib = window.require(libName);
-            }
-            if (lib) return lib;
-        }
-        if (require) {
-            lib = require(libName);
-        }
-    } catch(e) {
 
+// Returns the 'libName' module if loaded or else returns undefined
+function __requireLibCore(libName) {
+    var window = this.window;
+    if (!window) return; // Must run in a browser. Todo: add commonjs support
+
+    // get library from browser globals if we can
+    var lib = window[libName];
+    if (lib) return lib;
+
+    // if require exists, maybe require can get it.
+    // This method is synchronous so it can't load modules with AMD.
+    // It can only obtain modules from require that have already been loaded.
+    // Developer should bootstrap such that the breeze module
+    // loads after all other libraries that breeze should find with this method
+    // See documentation 
+    var r = window.require;
+    if (r) { // if require exists
+        if (r.defined) { // require.defined is not standard and may not exist
+            // require.defined returns true if module has been loaded
+            return r.defined(libName) ? r(libName) : undefined; 
+        } else {
+            // require.defined does not exist so we have to call require('libName') directly.
+            // The require('libName') overload is synchronous and does not load modules.
+            // It throws an exception if the module isn't already loaded.
+            try {
+                return r(libName);  
+            } catch (e) {
+                // require('libName') threw because module not loaded
+                return; 
+            }             
+        }     
     }
-    return lib;
 }
 
 function __using(obj, property, tempValue, fn) {
@@ -593,7 +605,7 @@ core.parent = breeze;
 breeze.core = core;
 
 
-/**
+;/**
  @module core
  **/
 
@@ -955,7 +967,7 @@ core.assertConfig = assertConfig;
 
 
 
-/**
+;/**
  @module core
  **/
 
@@ -1229,7 +1241,7 @@ var Enum = (function() {
 core.Enum = Enum;
 
 
-/**
+;/**
 @module core
 **/
 
@@ -1255,6 +1267,7 @@ var Event = (function() {
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
+
     var ctor = function(name, publisher, defaultErrorCallback) {
         assertParam(name, "eventName").isNonEmptyString().check();
         assertParam(publisher, "publisher").isObject().check();
@@ -1513,8 +1526,7 @@ var Event = (function() {
 
 })();
 
-core.Event = Event;
-/**
+core.Event = Event;;/**
 @module breeze   
 **/
 
@@ -1743,7 +1755,7 @@ var __config = (function () {
         __config.typeRegistry[typeName] = ctor;
     };
 
-    __config.stringifyPad = "  ";
+    __config.stringifyPad = '';
 
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
         var instance = impl.defaultInstance;
@@ -1793,8 +1805,7 @@ var __modelLibraryDef = __config.interfaceRegistry.modelLibrary;
 // legacy
 core.config = __config;
 
-breeze.config = __config;
-
+breeze.config = __config;;
 var observableArray = (function() {
 
     var mixin = {};
@@ -1952,8 +1963,7 @@ var observableArray = (function() {
 
 
 
-})();
-/**
+})();;/**
 @module breeze
 **/
 
@@ -2923,7 +2933,7 @@ var ValidationError = (function () {
 breeze.Validator = Validator;
 breeze.ValidationError = ValidationError;
  
-/**
+;/**
 @module breeze
 **/
    
@@ -3050,7 +3060,7 @@ breeze.ValidationOptions = ValidationOptions;
 
 
 
-
+;
 breeze.makeComplexArray = (function() {
     var complexArrayMixin = {};
 
@@ -3178,8 +3188,7 @@ breeze.makeComplexArray = (function() {
     }
 
     return makeComplexArray;
-})();
-/**
+})();;/**
 @module breeze   
 **/
 
@@ -3315,7 +3324,7 @@ var EntityAction = (function () {
 
 breeze.EntityAction= EntityAction;
 
-/**
+;/**
 @module breeze   
 **/
 
@@ -3836,7 +3845,7 @@ var EntityAspect = (function() {
         if (property) {
             var propertyName = typeof (property) === 'string' ? property : property.name;
             result = result.filter(function (ve) {
-                return (ve.property.name === propertyName);
+                return (ve.property && ve.property.name === propertyName);
             });
         }
         return result;
@@ -3999,29 +4008,32 @@ var EntityAspect = (function() {
     function removeFromRelationsCore(entity, isDeleted) {
         entity.entityType.navigationProperties.forEach(function (np) {
             var inverseNp = np.inverse;
-            if (!inverseNp) return;
             var npValue = entity.getProperty(np.name);
             if (np.isScalar) {
                 if (npValue) {
-                    if (inverseNp.isScalar) {
-                        clearNp(npValue, inverseNp, isDeleted);
-                    } else {
-                        var collection = npValue.getProperty(inverseNp.name);
-                        if (collection.length) {
-                            __arrayRemoveItem(collection, entity);
+                    if (inverseNp) {
+                        if (inverseNp.isScalar) {
+                            clearNp(npValue, inverseNp, isDeleted);
+                        } else {
+                            var collection = npValue.getProperty(inverseNp.name);
+                            if (collection.length) {
+                                __arrayRemoveItem(collection, entity);
+                            }
                         }
                     }
                     entity.setProperty(np.name, null);
                 }
             } else {
-                // npValue is a live list so we need to copy it first.
-                npValue.slice(0).forEach(function (v) {
-                    if (inverseNp.isScalar) {
-                        clearNp(v, inverseNp, isDeleted);
-                    } else {
-                        // TODO: many to many - not yet handled.
-                    }
-                });
+                if (inverseNp) {
+                    // npValue is a live list so we need to copy it first.
+                    npValue.slice(0).forEach(function (v) {
+                        if (inverseNp.isScalar) {
+                            clearNp(v, inverseNp, isDeleted);
+                        } else {
+                            // TODO: many to many - not yet handled.
+                        }
+                    });
+                }
                 // now clear it.
                 npValue.length = 0;
             }
@@ -4194,7 +4206,7 @@ var ComplexAspect = (function() {
 
 breeze.EntityAspect= EntityAspect;
 breeze.ComplexAspect= ComplexAspect;
-/**
+;/**
 @module breeze   
 **/
     
@@ -4347,7 +4359,7 @@ var EntityKey = (function () {
 })();
 
 breeze.EntityKey = EntityKey;
-/**
+;/**
 @module breeze   
 **/
 
@@ -4490,7 +4502,7 @@ var EntityState = (function () {
 })();
    
 breeze.EntityState= EntityState;
-
+;
 breeze.makePrimitiveArray = (function() {
     var primitiveArrayMixin = {};
 
@@ -4574,8 +4586,7 @@ breeze.makePrimitiveArray = (function() {
     }
 
     return makePrimitiveArray;
-})();
-
+})();;
 breeze.makeRelationArray = (function() {
 
     var relationArrayMixin = {};
@@ -4754,8 +4765,7 @@ breeze.makeRelationArray = (function() {
     }
 
     return makeRelationArray;
-})();
-
+})();;
 function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     // 'this' is the entity itself in this context.
 
@@ -5141,8 +5151,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         inProcess.pop();
     }
 }
-    
-/**
+    ;/**
   @module breeze
   **/
 
@@ -5249,7 +5258,7 @@ var DataType = (function () {
     };
 
     var fmtString = function (val) {
-        return val == null ? null : "'" + val + "'";
+        return val == null ? null : "'" + val.replace(/'/g,"''") + "'";
     };
 
     var fmtInt = function (val) {
@@ -5617,7 +5626,7 @@ var DataType = (function () {
 
 breeze.DataType = DataType;
 
-/**
+;/**
 @module breeze
 **/
 
@@ -5878,11 +5887,37 @@ breeze.DataService= DataService;
 breeze.JsonResultsAdapter = JsonResultsAdapter;
 
 
-/**
+;/**
 @module breeze
 **/
 
-var Q = __requireLib("Q", "See https://github.com/kriskowal/q ");
+// Get the promises library called Q
+// define a quick failing version if not found.
+var Q = __requireLibCore("Q");
+
+if (!Q) {
+    // No Q.js! Substitute a placeholder Q which always fails 
+    // Should be replaced by the app via breeze.config.setQ
+    // For example, see Breeze Labs "breeze.use$q"
+    Q = function() {
+        var eMsg = 'Q is undefined. Are you missing Q.js? See https://github.com/kriskowal/q';
+        throw new Error(eMsg);
+    }
+    
+    // all Q methods called by Breeze should fail
+    Q.defer = Q.resolve = Q.reject = Q;
+}
+    
+
+/**
+(Re)set Q with a promises implementation suitable for Breeze internal use  
+@method setQ
+@param q {Object} - a  "thenable" promises implementation like Q.js with the API that Breeze requires internally.
+@param [q.defer] {Function} A function returning a deferred.
+@param [q.resolve] {Function} A function returning a resolved promise.
+@param [q.reject] {Function} A function returning a rejected promise.
+**/
+breeze.config.setQ = function (q) { Q = q; }
 
 // TODO: still need to handle inheritence here.
              
@@ -6091,6 +6126,7 @@ var MetadataStore = (function () {
         newMetadataStore.importMetadata(metadataFromStorage);
     @method importMetadata
     @param exportedMetadata {String|JSON Object} A previously exported MetadataStore.
+    @param [allowMerge] {Boolean} Allows custom metadata to be merged into existing metadata types.
     @return {MetadataStore} This MetadataStore.
     @chainable
     **/
@@ -7594,10 +7630,9 @@ var EntityType = (function () {
     };
 
     proto._updateTargetFromRaw = function (target, raw, rawValueFn) {
-
+        // called recursively for complex properties
         this.dataProperties.forEach(function (dp) {
-            // recursive call
-            // updateTargetPropertyFromRaw(target, raw, dp, rawValueFn);
+            
             var rawVal = rawValueFn(raw, dp);
             if (rawVal === undefined) return;
             var dataType = dp.dataType; // this will be a complexType when dp is a complexProperty
@@ -7637,9 +7672,17 @@ var EntityType = (function () {
                 }
             }
         });
+
+        // if merging from an import then raw will have an entityAspect or a complexAspect
+        var rawAspect = raw.entityAspect || raw.complexAspect;
+        if (rawAspect && rawAspect.originalValuesMap) {
+            targetAspect = target.entityAspect || target.complexAspect;
+            targetAspect.originalValues = rawAspect.originalValuesMap;
+        }
+
     }
 
-    
+  
 
     /**
     Returns a string representation of this EntityType.
@@ -8096,6 +8139,7 @@ var ComplexType = (function () {
         "_updateCps",
         "_initializeInstance",
         "_updateTargetFromRaw",
+        "_clientPropertyPathToServer",
         "_setCtor"
     ]);
     
@@ -8746,7 +8790,7 @@ breeze.AutoGeneratedKeyType = AutoGeneratedKeyType;
 MetadataStore.normalizeTypeName = CsdlMetadataParser.normalizeTypeName;
 
 
-/**
+;/**
  @module breeze
  **/
 
@@ -8866,8 +8910,7 @@ var KeyGenerator = (function () {
     return ctor;
 })();
 
-breeze.KeyGenerator = KeyGenerator;
-/**
+breeze.KeyGenerator = KeyGenerator;;/**
 @module breeze
 **/
 
@@ -8964,7 +9007,7 @@ var LocalQueryComparisonOptions = (function () {
 breeze.LocalQueryComparisonOptions = LocalQueryComparisonOptions;
 
 
-/**
+;/**
 @module breeze
 **/
     
@@ -9095,7 +9138,7 @@ var NamingConvention = (function () {
 breeze.NamingConvention = NamingConvention;
 
 
-    
+;    
 var EntityQuery = (function () {
     /**
     An EntityQuery instance is used to query entities either from a remote datasource or from a local {{#crossLink "EntityManager"}}{{/crossLink}}. 
@@ -9131,6 +9174,7 @@ var EntityQuery = (function () {
         this.expandClause = null;
         this.parameters = {};
         this.inlineCountEnabled = false;
+        this.noTrackingEnabled = false;
         // default is to get queryOptions and dataService from the entityManager.
         // this.queryOptions = new QueryOptions();
         // this.dataService = new DataService();
@@ -9576,7 +9620,7 @@ var EntityQuery = (function () {
             .noTracking(true);
    
 
-    @method inlineCount
+    @method noTracking
     @param enabled {Boolean=true} Whether or not the noTracking capability should be enabled. If this parameter is omitted, true is assumed. 
     @return {EntityQuery}
     @chainable
@@ -9904,6 +9948,7 @@ var EntityQuery = (function () {
             "takeCount",
             "expandClause",
             "inlineCountEnabled",
+            "noTrackingEnabled",
             "queryOptions", 
             "entityManager",
             "dataService",
@@ -10031,7 +10076,6 @@ var EntityQuery = (function () {
 
     // private functions
         
-        
     function normalizePropertyPaths(propertyPaths) {
         assertParam(propertyPaths, "propertyPaths").isOptional().isString().or().isArray().isString().check();
         if (typeof propertyPaths === 'string') {
@@ -10110,7 +10154,7 @@ var QueryFuncs = (function() {
         tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: DataType.String },
         substring:   { fn: function (source, pos, length) { return source.substring(pos, length); }, dataType: DataType.String },
         substringof: { fn: function (find, source) { return source.indexOf(find) >= 0;}, dataType: DataType.Boolean },
-        length:      { fn: function(source) { return source.length; }, dataType: DataType.Int32 },
+        length:      { fn: function (source) { return source.length; }, dataType: DataType.Int32 },
         trim:        { fn: function (source) { return source.trim(); }, dataType: DataType.String },
         concat:      { fn: function (s1, s2) { return s1.concat(s2); }, dataType: DataType.String },
         replace:     { fn: function (source, find, replace) { return source.replace(find, replace); }, dataType: DataType.String },
@@ -10147,7 +10191,7 @@ var FnNode = (function() {
             // value is either a string, a quoted string, a number, a bool value, or a date
             // if a string ( not a quoted string) then this represents a property name.
             var firstChar = value.substr(0,1);
-            var quoted = firstChar === "'" || firstChar === '"';
+            var quoted = (firstChar === "'" || firstChar === '"') && value.length > 1 && value.substr(value.length - 1) === firstChar;
             if (quoted) {
                 var unquoted = value.substr(1, value.length - 2);
                 this.fn = function (entity) { return unquoted; };
@@ -10287,8 +10331,6 @@ var FnNode = (function() {
             });
         }
     };
-
-
         
     function createPropFunction(propertyPath) {
         var properties = propertyPath.split('.');
@@ -10364,7 +10406,7 @@ var FilterQueryOp = (function () {
     @final
     @static
     **/
-    aEnum.Contains = aEnum.addSymbol({ operator: "substringof", isFunction: true, isStringFn: true });
+    aEnum.Contains = aEnum.addSymbol({ operator: "substringof", aliases: ["contains"], isFunction: true, isStringFn: true });
     /**
     @property StartsWith {FilterQueryOp}
     @final
@@ -10807,8 +10849,6 @@ var SimplePredicate = (function () {
             }
         }
     };
-
-   
 
     proto.toFunction = function (entityType) {
         if (this._odataExpr) {
@@ -11391,7 +11431,7 @@ breeze.FnNode = FnNode;
 // Not documented - only exposed for testing purposes
 breeze.OrderByClause = OrderByClause;
 
-/**
+;/**
 @module breeze
 **/
    
@@ -11606,7 +11646,7 @@ breeze.FetchStrategy= FetchStrategy;
 breeze.MergeStrategy = MergeStrategy;
 
 
-/**
+;/**
 @module breeze
 **/
 
@@ -11764,7 +11804,7 @@ var EntityGroup = (function () {
 // do not expose EntityGroup - internal only
 
 
-/**
+;/**
 @module breeze
 **/
 
@@ -12059,6 +12099,8 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
     @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
     merging into an existing EntityManager.
+    @param [config.metadataVersionFn} {Function} A function that takes two arguments ( the current metadataVersion and the imported store's 'name'} 
+        and may be used to perform version checking.
     @return {EntityManager} A new EntityManager.  Note that the return value of this method call is different from that 
     provided by the same named method on an EntityManager instance. Use that method if you need additional information
     regarding the imported entities.
@@ -12113,18 +12155,19 @@ var EntityManager = (function () {
         em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
     @method exportEntities
     @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted or null
-    @param [includeMetadata = true] Whether to include metadata in the export; the default is true
+    @param [includeMetadata = true] {Boolean} Whether to include metadata in the export; the default is true
 
     @return {String} A serialized version of the exported data.
     **/
     proto.exportEntities = function (entities, includeMetadata) {
         assertParam(includeMetadata, "includeMetadata").isBoolean().isOptional().check();
         includeMetadata = (includeMetadata == null) ? true : includeMetadata;
+        
         var exportBundle = exportEntityGroups(this, entities);
-        json = __extend({}, this, ["dataService", "saveOptions", "queryOptions", "validationOptions"]);
-        var json = __extend( json, exportBundle, ["tempKeys", "entityGroupMap"]);
-       
+        var json = __extend( {}, exportBundle, ["tempKeys", "entityGroupMap"]);
+
         if (includeMetadata) {
+            json = __extend(json, this, ["dataService", "saveOptions", "queryOptions", "validationOptions"]);
             json.metadataStore = this.metadataStore.exportMetadata();
         } else {
             json.metadataVersion = breeze.metadataVersion;
@@ -12164,6 +12207,8 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
         @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
         merging into an existing EntityManager.
+        @param [config.metadataVersionFn} {Function} A function that takes two arguments ( the current metadataVersion and the imported store's 'name'} 
+        and may be used to perform version checking.
     @return result {Object} 
 
         result.entities {Array of Entities} The entities that were imported.
@@ -12180,18 +12225,19 @@ var EntityManager = (function () {
         var json = (typeof exportedString === "string") ? JSON.parse(exportedString) : exportedString;
         if (json.metadataStore) {
             this.metadataStore.importMetadata(json.metadataStore);
+            // the || clause is for backwards compat with an earlier serialization format.           
+            this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
+
+            this.saveOptions = new SaveOptions(json.saveOptions);
+            this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
+            this.validationOptions = new ValidationOptions(json.validationOptions);
         } else {
             config.metadataVersionFn && config.metadataVersionFn({
                 metadataVersion: json.metadataVersion,
                 metadataStoreName: json.metadataStoreName
             });
         }
-        // the || clause is for backwards compat with an earlier serialization format.           
-        this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
         
-        this.saveOptions = new SaveOptions(json.saveOptions);
-        this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
-        this.validationOptions = new ValidationOptions(json.validationOptions);
 
         var tempKeyMap = {};
         json.tempKeys.forEach(function (k) {
@@ -13523,19 +13569,17 @@ var EntityManager = (function () {
 
             if (targetEntity) {
                 if (mergeStrategy === MergeStrategy.SkipMerge) {
-                    entitiesToLink.push(targetEntity);
-                    targetEntity = null;
+                    // deliberate fall thru
                 } else if (mergeStrategy === MergeStrategy.Disallowed) {
                     throw new Error("A MergeStrategy of 'Disallowed' prevents " + entityKey.toString() + " from being merged");
                 } else {
                     var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                     if (mergeStrategy === MergeStrategy.OverwriteChanges || wasUnchanged) {
                         entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
+                        targetEntity.entityAspect.entityState = entityState;
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                         em._checkStateChange(targetEntity, wasUnchanged, entityState.isUnchanged());
-                    } else {
-                        entitiesToLink.push(targetEntity);
-                        targetEntity = null;
+                        
                     } 
                 }
             } else {
@@ -13546,6 +13590,7 @@ var EntityManager = (function () {
                     targetEntity.setProperty(entityType.keyProperties[0].name, newTempKey.values[0]);
 
                     // fixup foreign keys
+                    // This is safe because the entity is detached here and therefore originalValues will not be updated.
                     if (newAspect.tempNavPropNames) {
                         newAspect.tempNavPropNames.forEach(function (npName) {
                             var np = entityType.getNavigationProperty(npName);
@@ -13560,27 +13605,19 @@ var EntityManager = (function () {
                 // Now performed in attachEntity
                 // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
-                if (entityChanged) {
-                    entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
-                    if (!entityState.isUnchanged()) {
-                        em._notifyStateChange(targetEntity, true);
-                    }
+                entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
+                if (!entityState.isUnchanged()) {
+                    em._notifyStateChange(targetEntity, true);
                 }
+                
             }
 
-            if (targetEntity) {
-                targetEntity.entityAspect.entityState = entityState;
-                if (entityState.isModified()) {
-                    targetEntity.entityAspect.originalValuesMap = newAspect.originalValues;
-                }
-                entitiesToLink.push(targetEntity);
-
-            }
+            entitiesToLink.push(targetEntity);
         });
         return entitiesToLink;
     }
 
-     function promiseWithCallbacks(promise, callback, errorCallback) {
+    function promiseWithCallbacks(promise, callback, errorCallback) {
 
         promise = promise.then(function (data) {
             if (callback) callback(data);
@@ -13698,12 +13735,13 @@ var EntityManager = (function () {
             }
             
             if (queryOptions.fetchStrategy === FetchStrategy.FromLocalCache) {
-                return Q.fcall(function () {
+                try {
                     var results = em.executeQueryLocally(query);
-                    return { results: results, query: query };
-                });
+                    return Q.resolve({ results: results, query: query });
+                } catch(e) {
+                    return Q.reject(e);
+                }
             }
-
 
             var mappingContext = new MappingContext({
                     query: query,
@@ -13994,7 +14032,7 @@ var EntityManager = (function () {
 // expose
 breeze.EntityManager = EntityManager;
 
-/**
+;/**
 @module breeze
 **/
 
@@ -14372,7 +14410,7 @@ var MappingContext = (function () {
    
 
 
-/**
+;/**
 @module breeze
 **/
    
@@ -14476,7 +14514,7 @@ var SaveOptions = (function () {
 breeze.SaveOptions= SaveOptions;
 
 
-breeze.AbstractDataServiceAdapter = (function () {
+;breeze.AbstractDataServiceAdapter = (function () {
     
     var ajaxImpl;
     
@@ -14704,7 +14742,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     return ctor;
 
 })();
-// needs Angular
+;// needs Angular
 (function(factory) {
     // Module systems magic dance.
     if (breeze) {
@@ -14831,7 +14869,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     breeze.config.registerAdapter("ajax", ctor);
     
 }));
-// needs JQuery
+;// needs JQuery
 (function(factory) {
     // Module systems magic dance.
     if (breeze) {
@@ -14919,7 +14957,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     breeze.config.registerAdapter("ajax", ctor);
     
 }));
-(function (factory) {
+;(function (factory) {
     if (breeze) {
         factory(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
@@ -15222,7 +15260,7 @@ breeze.AbstractDataServiceAdapter = (function () {
 
 }));
 
-(function(factory) {
+;(function(factory) {
     if (breeze) {
         factory(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
@@ -15313,8 +15351,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     
     breeze.config.registerAdapter("dataService", ctor);
 
-}));
-"use strict";
+}));;"use strict";
 (function (factory) {
     if (breeze) {
         factory(breeze);
@@ -15519,7 +15556,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     // private methods
 
 }));
-"use strict";
+;"use strict";
 (function (factory) {
     if (breeze) {
         factory(breeze);
@@ -15802,7 +15839,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     breeze.config.registerAdapter("modelLibrary", ctor);
 
 }));
-"use strict";
+;"use strict";
 (function (factory) {
     if (breeze) {
         factory(breeze);
@@ -15916,7 +15953,9 @@ breeze.AbstractDataServiceAdapter = (function () {
     }
 
     function getES5PropDescriptor(proto, propName) {
-        
+        if (!canIsolateES5Props()) {
+            return null;
+        }
         if (proto.hasOwnProperty(propName)) {
             return Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(proto, propName);
         } else {
@@ -16064,7 +16103,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     breeze.config.registerAdapter("modelLibrary", ctor);
     
 }));
-
+;
 // set defaults
 // will no longer fail at initialization time if jQuery is not found.
 breeze.config.initializeAdapterInstances( { dataService: "webApi", ajax: "jQuery" });

@@ -32,6 +32,70 @@
         teardown: function () { }
     });
 
+    test("delete without query", function () {
+        var em = newEm();
+        var em2 = newEm();
+        var similarEmp;
+        var similarAspect;
+        var emp = em.createEntity("Employee");
+        emp.setProperty("firstName", "Test fn");
+        emp.setProperty("lastName", "Test ln");
+        emp.setProperty("fullName", "foo");
+        em.addEntity(emp);
+        stop();
+        em.saveChanges().then(function (sr) {
+            var savedEnts = sr.entities;
+            ok(savedEnts.length === 1, "should have saved 1 entity");
+            ok(emp === savedEnts[0], "should be same emp");
+            var empKeyValue = emp.getProperty(testFns.employeeKeyName);
+            var empKey = emp.entityAspect.getKey();
+            similarEmp = em2.createEntity("Employee");
+            similarEmp.setProperty(testFns.employeeKeyName, empKeyValue);
+            similarAspect = similarEmp.entityAspect;
+            similarAspect.setUnchanged();
+            similarAspect.setDeleted();
+            ok(similarAspect.entityState.isDeleted(), "should be deleted");
+            return em2.saveChanges();
+        }).then(function (sr) {
+            var savedEnts = sr.entities;
+            ok(savedEnts.length === 1, "should have saved 1 entity");
+            ok(savedEnts[0] === similarEmp, "should be the same similarEmp");
+            ok(similarAspect.entityState.isDetached(), "should be detached");
+        }).fail(testFns.handleFail).fin(start);
+
+
+    });
+
+    test("pk update", function () {
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "TODO for Mongo - needs to be written specifically for Mongo - should succeed in Mongo");
+            return;
+        }
+
+        var em = newEm();
+
+        var q = new EntityQuery("Territories").orderBy("territoryID desc").take(1);
+        stop();
+        var order;
+        var freight;
+        q.using(em).execute().then(function (data) {
+            ok(data.results.length === 1, "should be one result");
+            var terr = data.results[0];
+            var id = terr.getProperty("territoryID");
+            terr.setProperty("territoryID", id + 1);
+
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(false, "should not get here");
+            
+
+        }).fail(function (e) {
+            var isOk = e.message.indexOf("part of the entity's key") > 0;
+            ok(isOk, "error message should mention the entity key");
+        }).fail(testFns.handleFail).fin(start);
+    });
+
     test("exceptions thrown on server", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
@@ -106,6 +170,11 @@
     //});
 
     test("check unmapped property on server", function () {
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - Have not yet added SaveCheck code for Mongo");
+            return;
+        }
         
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var customerType = em.metadataStore.getEntityType("Customer");
@@ -130,6 +199,11 @@
     });
 
     test("test unmapped property serialization on server", function () {
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - Have not yet added SaveCheck code for Mongo");
+            return;
+        }
 
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var customerType = em.metadataStore.getEntityType("Customer");
@@ -173,6 +247,11 @@
 
     test("test unmapped property suppression", function () {
 
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - Have not yet added SaveCheck code for Mongo");
+            return;
+        }
+
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
         var customerType = em.metadataStore.getEntityType("Customer");
         customerType.setProperties({
@@ -215,7 +294,7 @@
         };
 
         if (testFns.DEBUG_MONGO) {
-            ok(true, "NA for Mongo - server side 'test' logic not yet implemented");
+            ok(true, "N/A for Mongo - Have not yet added SaveCheck code for Mongo");
             return;
         }
 
@@ -585,14 +664,14 @@
 
         var em = newEm();
 
-        var q = new EntityQuery("Orders").where("shipCity", "ne", null).take(1);
+        var q = new EntityQuery("Orders").where("shipCountry", "ne", null).take(1);
         stop();
-        var order, freight, shipCity;
+        var order, freight, shipCountry;
         q.using(em).execute().then(function (data) {
             order = data.results[0];
             freight = order.getProperty("freight");
-            shipCity = testFns.morphString(order.getProperty("shipCity"));
-            order.setProperty("shipCity", shipCity);
+            shipCountry = testFns.morphString(order.getProperty("shipCountry"));
+            order.setProperty("shipCountry", shipCountry);
             var so = new SaveOptions({ resourceName: "SaveWithFreight", tag: "freight update-force" });
             return em.saveChanges(null, so);
         }).then(function (sr) {
@@ -614,14 +693,14 @@
 
         var em = newEm();
 
-        var q = new EntityQuery("Orders").where("shipCity", "ne", null).take(1);
+        var q = new EntityQuery("Orders").where("shipCountry", "ne", null).take(1);
         stop();
         var order, freight, shipCity;
         q.using(em).execute().then(function (data) {
             order = data.results[0];
             freight = order.getProperty("freight");
-            shipCity = testFns.morphString(order.getProperty("shipCity"));
-            order.setProperty("shipCity", shipCity);
+            shipCity = testFns.morphString(order.getProperty("shipCountry"));
+            order.setProperty("shipCountry", shipCity);
             var so = new SaveOptions({ resourceName: "SaveWithFreight", tag: "freight update-ov" });
             return em.saveChanges(null, so);
         }).then(function (sr) {
@@ -1515,6 +1594,11 @@
             ok(true, "Skipped tests - not applicable to OData");
             return;
         };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "TODO for Mongo - need to create this test");
+            return;
+        }
 
         var em = newEm();
         var q = new EntityQuery()

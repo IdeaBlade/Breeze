@@ -10164,11 +10164,11 @@ var QueryFuncs = (function() {
         round:       { fn: function (source) { return Math.round(source); }, dataType: DataType.Int32 },
         ceiling:     { fn: function (source) { return Math.ceil(source); }, dataType: DataType.Int32 },
         floor:       { fn: function (source) { return Math.floor(source); }, dataType: DataType.Int32 },
-        second:      { fn: function (source) { return source.second; }, dataType: DataType.Int32 },
-        minute:      { fn: function (source) { return source.minute; }, dataType: DataType.Int32 },
-        day:         { fn: function (source) { return source.day; }, dataType: DataType.Int32 },
-        month:       { fn: function (source) { return source.month; }, dataType: DataType.Int32 },
-        year:        { fn: function (source) { return source.year; }, dataType: DataType.Int32 }
+        second:      { fn: function (source) { return source.getSeconds(); }, dataType: DataType.Int32 },
+        minute:      { fn: function (source) { return source.getMinutes(); }, dataType: DataType.Int32 },
+        day:         { fn: function (source) { return source.getDate(); }, dataType: DataType.Int32 },
+        month:       { fn: function (source) { return source.getMonth() + 1; }, dataType: DataType.Int32 },
+        year:        { fn: function (source) { return source.getFullYear(); }, dataType: DataType.Int32 }
     };
         
     return obj;
