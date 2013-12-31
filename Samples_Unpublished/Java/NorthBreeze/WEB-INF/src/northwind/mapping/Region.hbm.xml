@@ -1,0 +1,21 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="Region" table="`Region`" dynamic-update="true">
+    <id name="regionID" column="`RegionID`" type="int" unsaved-value="0">
+      <generator class="hilo">
+        <param name="table">NextId</param>
+        <param name="column">NextId</param>
+        <param name="max_lo">100</param>
+        <param name="where">Name = 'GLOBAL'</param>
+      </generator>
+    </id>
+    <version name="rowVersion" type="int" />
+    <property name="regionDescription" type="string" length="50" not-null="true" />
+    <!--Foreign key to Territory (Territory)-->
+    <set name="territories" table="`Territory`" cascade="all-delete-orphan" inverse="true">
+      <key column="`RegionID`" foreign-key="FK_Territory_Region" />
+      <one-to-many class="Territory" />
+    </set>
+  </class>
+</hibernate-mapping>

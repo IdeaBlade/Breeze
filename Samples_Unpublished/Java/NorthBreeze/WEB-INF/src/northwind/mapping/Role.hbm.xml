@@ -1,0 +1,21 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="Role" table="`Role`" dynamic-update="true" optimistic-lock="version">
+    <id name="id" type="long" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <!-- Should be able to use generated="always" with the timestamp column, but a bug in hibernate 4.3.0 prevents it
+    https://hibernate.atlassian.net/browse/HHH-8784
+    <version name="ts" column="`Ts`" type="timestamp" generated="always" /> -->
+    <version name="ts" column="`Ts`" type="timestamp" />
+    <property name="name" type="string" length="50" not-null="true" />
+    <property name="description" type="string" length="2000" />
+    <property name="roleType" type="northwind.model.RoleType" />
+    <!--Foreign key to UserRole (UserRole)-->
+    <set name="userRoles" table="`UserRole`" cascade="all-delete-orphan" inverse="true">
+      <key column="`RoleId`" foreign-key="FK_UserRole_Role" />
+      <one-to-many class="UserRole" />
+    </set>
+  </class>
+</hibernate-mapping>

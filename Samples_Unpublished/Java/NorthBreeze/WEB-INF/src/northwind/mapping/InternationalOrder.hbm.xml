@@ -1,0 +1,15 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="InternationalOrder" table="`InternationalOrder`" dynamic-update="true">
+    <id name="orderID" column="`OrderID`" type="int" unsaved-value="0">
+      <generator class="foreign">
+        <param name="property">Order</param>
+      </generator>
+    </id>
+    <version name="rowVersion" type="int" />
+    <one-to-one name="order" class="Order" foreign-key="none" constrained="true"/>
+    <property name="customsDescription" type="string" length="100" not-null="true" />
+    <property name="exciseTax" type="big_decimal" not-null="true" />
+  </class>
+</hibernate-mapping>

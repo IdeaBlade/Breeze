@@ -1,0 +1,12 @@
+﻿.gridStyle {
+    border: 1px solid rgb(212,212,212);
+    width: 400px; 
+    height: 300px
+}
+.form-horizontal .control-group {
+    margin-bottom: 5px;
+}
+
+table .table-small {
+    font-size: smaller;
+}

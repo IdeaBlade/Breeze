@@ -1,0 +1,26 @@
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="northwind.model">
+  <class name="User" table="`User`" dynamic-update="true">
+    <id name="id" type="long" unsaved-value="0">
+      <generator class="native" />
+    </id>
+    <property name="rowVersion" type="big_decimal" not-null="true" />
+    <property name="userName" type="string" length="100" not-null="true" />
+    <property name="userPassword" type="string" length="200" />
+    <property name="firstName" type="string" length="100" not-null="true" />
+    <property name="lastName" type="string" length="100" not-null="true" />
+    <property name="email" type="string" length="100" not-null="true" />
+    <property name="createdBy" type="string" length="100" not-null="true" />
+    <property name="createdByUserId" type="long" not-null="true" />
+    <property name="createdDate" type="timestamp" not-null="true" />
+    <property name="modifiedBy" type="string" length="100" not-null="true" />
+    <property name="modifiedByUserId" type="long" not-null="true" />
+    <property name="modifiedDate" type="timestamp" not-null="true" />
+    <!--Foreign key to UserRole (UserRole)-->
+    <set name="userRoles" table="`UserRole`" cascade="all-delete-orphan" inverse="true">
+      <key column="`UserId`" foreign-key="FK_UserRole_User" />
+      <one-to-many class="UserRole" />
+    </set>
+  </class>
+</hibernate-mapping>
