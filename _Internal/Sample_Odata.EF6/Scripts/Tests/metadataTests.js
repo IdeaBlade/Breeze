@@ -166,6 +166,11 @@
             return;
         }
 
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - TimeList and Timegroup not yet added");
+            return;
+        };
+
         var em = createEmWithTimeGroupMetadata();
 
         var timeGroupType = em.metadataStore.getEntityType("TimeGroup");
@@ -191,6 +196,11 @@
 
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped tests - not applicable to OData");
+            return;
+        };
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - TimeList and Timegroup not yet added");
             return;
         };
 

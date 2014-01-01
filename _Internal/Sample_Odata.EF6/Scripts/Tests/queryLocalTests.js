@@ -174,6 +174,26 @@
             ok(r.length == r2.length);
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("local query with ordering", function () {
+        var em = newEm();
+        var query = EntityQuery
+            .from("Products")
+            .orderBy("discontinuedDate, productName, unitPrice")
+            .where("discontinuedDate", "!=", null);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var r = data.results;
+            ok(r.length > 0, "should have returned some entities");
+            var r2 = em.executeQueryLocally(query);
+
+            ok(r.length === r2.length, "should have returned the same number of results");
+            core.arrayZip(r, r2, function (a, b) {
+                ok(a === b, "should be the same object");
+            });
+
+        }).fail(testFns.handleFail).fin(start);
+    });
     
     test("local query with select", function () {
         var em = newEm();
@@ -195,6 +215,7 @@
 
         }).fail(testFns.handleFail).fin(start);
     });
+
     
     test("local query with complex select", function () {
         if (testFns.DEBUG_MONGO) {
