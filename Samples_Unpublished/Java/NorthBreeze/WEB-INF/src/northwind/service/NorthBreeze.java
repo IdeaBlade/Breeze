@@ -1,87 +1,41 @@
 package northwind.service;
 
-import java.util.List;
-import java.util.Map;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import org.hibernate.Session;
-import com.breezejs.BreezeHibernateMetadata;
-import com.breezejs.OdataParameters;
-import com.sun.json.JSONSerializer;
+
+import northwind.model.Customer;
+
+import com.breezejs.hib.DataService;
 
 @Path("northbreeze")
 public class NorthBreeze {
 	
+	private DataService dataService;
 	public NorthBreeze() {
-    	System.out.println("new NorthBreeze");
+    	dataService = new DataService();
 	}
 
 	@GET
 	@Path("Metadata")
 	@Produces("application/json; charset=UTF-8")
 	public String getMetadata() {
-		BreezeHibernateMetadata metaGen = new BreezeHibernateMetadata(NorthwindSessionFactory.getSessionFactory(), NorthwindSessionFactory.getConfiguration());
-		Map<String, Object> metaMap = metaGen.buildMetadata();
-		String metaJson = serializeJson(metaMap, false, false);
-		return metaJson;
+		return dataService.getMetadata();
 	}
 	
 	@GET
 	@Path("Customers")
 	@Produces("application/json; charset=UTF-8")
 	public String getCustomers() {
-		return queryToJson("from Customer where companyName like 'C%'");
+		return dataService.queryToJson(Customer.class, "&$skip=10&$top=5&$inlinecount=allpages");
 	}
 
 	@GET
 	@Path("Orders")
 	@Produces("application/json; charset=UTF-8")
 	public String getOrders() {
-		return queryToJson("from Order where orderId in (10248, 10249, 10250)");
+		return dataService.queryToJson("from Order where orderId in (10248, 10249, 10250)");
 	}	  
 	  
-	  
-	protected String queryToJson(String query) {
-
-		Session session = NorthwindSessionFactory.openSession();
-		session.beginTransaction();
-		List result = session.createQuery(query).list();
-		session.getTransaction().commit();
-		session.close();
-		return serializeJson(result);
-
-	}
-
-	public String serializeJson(Object obj) {
-		return serializeJson(obj, true, true);
-	}
-	
-	public String serializeJson(Object obj, boolean withId, boolean withClass) {
-		try {
-			return JSONSerializer.toString(obj, withId, withClass, false);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return e.toString();
-		}
-
-	}
-	
-	/**
-	 * For debugging
-	 */
-    public static void main(String[] args) throws Exception {
-    	
-//    	NorthBreeze nb = new NorthBreeze();
-//    	String meta = nb.getMetadata();
-//    	System.out.println(meta);
-    	
-    	OdataParameters op = OdataParameters.parse("?$top=5&$filter=Country eq 'Brazil'");
-    	op = OdataParameters.parse("http://localhost:7149/breeze/DemoNH/Customers?$top=3&$expand=Orders");
-    	op = OdataParameters.parse("$top=3&$select=Country,PostalCode&$inlinecount=allpages");
-    	System.out.println(op);
-    }
-    
 	
 }

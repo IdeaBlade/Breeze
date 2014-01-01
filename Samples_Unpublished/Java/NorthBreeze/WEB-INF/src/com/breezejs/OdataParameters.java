@@ -21,7 +21,7 @@ public class OdataParameters {
 		
 		OdataParameters op = new OdataParameters();
 		for (String param : chunks) {
-			if (param.charAt(0) == '$') {
+			if (param.length() > 1 && param.charAt(0) == '$') {
 				// ignore things that don't start with $, because they aren't OData parameters.
 				String[] nameValue = param.split("=", 2);
 				if (nameValue.length == 2)

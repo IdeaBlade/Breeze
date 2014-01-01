@@ -1,4 +1,4 @@
-package com.breezejs;
+package com.breezejs.hib;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import org.hibernate.type.*;
  * @author Steve
  *
  */
-public class BreezeHibernateMetadata {
+public class MetadataBuilder {
 	
     private SessionFactory _sessionFactory;
     private Configuration _configuration;
@@ -39,7 +39,7 @@ public class BreezeHibernateMetadata {
 
     public static final String FK_MAP = "fkMap";
     
-    public BreezeHibernateMetadata(SessionFactory sessionFactory, Configuration configuration)
+    public MetadataBuilder(SessionFactory sessionFactory, Configuration configuration)
     {
         _sessionFactory = sessionFactory;
         _configuration = configuration;
