@@ -1,4 +1,4 @@
-﻿// Generated on: Tue Dec 31 2013 12:24:26 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Thu Jan 02 2014 11:49:09 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -142,7 +142,7 @@ intellisense.annotate(breeze.core.Event.prototype, {
     ///   Publish data for this event. }
     ///   </summary>
     ///   <param name="data" type="Object" optional="true">Data to publish</param>
-    ///   <param name="publishAsync" type="" optional="true">Whether to publish asynchonously or not.</param>
+    ///   <param name="publishAsync" type="Boolean" optional="true">Whether to publish asynchonously or not.</param>
     ///   <param name="errorCallback" type="Function" optional="true">Will be called for any errors that occur during publication. If omitted,  errors will be eaten.</param>
     ///   <returns type="Boolean" >false if event is disabled; true otherwise.</returns>
     /// </signature>
@@ -1365,6 +1365,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   in the MetadataStore an exception will be thrown. }
     ///   </summary>
     ///   <param name="dataService" type="breeze.breeze.DataService" optional="true">The DataService to add</param>
+    ///   <param name="shouldOverwrite" type="Boolean" optional="true">Permit overwrite of existing DataService rather than throw exception</param>
     
     /// </signature>
   },
