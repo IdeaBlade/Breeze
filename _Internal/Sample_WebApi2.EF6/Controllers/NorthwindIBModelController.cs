@@ -565,7 +565,11 @@ namespace Sample_WebApi2.Controllers {
 
     [HttpGet]
     // [BreezeQueryable]
+#if NHIBERNATE
+    [BreezeNHQueryable(MaxAnyAllExpressionDepth = 3)]
+#else
     [BreezeQueryable(MaxAnyAllExpressionDepth = 3)]
+#endif
     public IQueryable<Customer> Customers() {
       var custs = ContextProvider.Context.Customers;
       return custs;
@@ -615,7 +619,11 @@ namespace Sample_WebApi2.Controllers {
     }
 
     [HttpGet]
+#if NHIBERNATE
+    [BreezeNHQueryable(MaxExpansionDepth = 3)]
+#else
     [BreezeQueryable(MaxExpansionDepth = 3)]
+#endif
     public IQueryable<Order> Orders() {
       var orders = ContextProvider.Context.Orders;
       return orders;
@@ -810,7 +818,7 @@ namespace Sample_WebApi2.Controllers {
 
     [HttpGet]
 #if NHIBERNATE
-    public IQueryable<Object> CompanyInfoAndOrders(ODataQueryOptions options) {
+    public IQueryable<Object> CompanyInfoAndOrders(System.Web.Http.OData.Query.ODataQueryOptions options) {
         // Need to handle this specially for NH, to prevent $top being applied to Orders
         var query = ContextProvider.Context.Customers;
         var queryHelper = new NHQueryHelper();

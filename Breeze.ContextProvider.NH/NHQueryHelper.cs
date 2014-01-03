@@ -122,6 +122,7 @@ namespace Breeze.ContextProvider.NH
         private void ConfigureFormatter(JsonMediaTypeFormatter jsonFormatter, ISession session)
         {
             var settings = jsonFormatter.SerializerSettings;
+
             settings.Formatting = Formatting.Indented;  // TODO debug only - makes the payload larger
 
             if (session != null)
@@ -144,6 +145,19 @@ namespace Breeze.ContextProvider.NH
                     args.ErrorContext.Handled = true;
             };
             settings.Converters.Add(new NHibernateProxyJsonConverter());
+        }
+
+        /// <summary>
+        /// Release any resources associated with this QueryHelper.
+        /// </summary>
+        /// <param name="responseObject">Response payload, which may have associated resources.</param>
+        public override void Close(object responseObject)
+        {
+            session = GetSession(responseObject as IQueryable);
+            if (session != null)
+            {
+                if (session.IsOpen) session.Close();
+            }
         }
 
     }
