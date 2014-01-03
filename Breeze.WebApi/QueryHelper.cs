@@ -260,6 +260,12 @@ namespace Breeze.WebApi {
     public virtual void ConfigureFormatter(JsonMediaTypeFormatter jsonFormatter, IQueryable queryable) {
     }
 
+    /// <summary>
+    /// Release any resources associated with this QueryHelper.
+    /// </summary>
+    /// <param name="responseObject">Response payload, which may have associated resources.</param>
+    public virtual void Close(object responseObject) {
+    }
 
   }
 

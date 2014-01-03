@@ -128,6 +128,7 @@ namespace Breeze.WebApi.NH
             {
                 // Only serialize the properties that were initialized before session was closed
                 if (session.IsOpen) session.Close();
+                settings.ContractResolver = NHibernateContractResolver.Instance;
             }
             else if (expandMap.map.Count > 0)
             {
@@ -144,6 +145,19 @@ namespace Breeze.WebApi.NH
                     args.ErrorContext.Handled = true;
             };
             settings.Converters.Add(new NHibernateProxyJsonConverter());
+        }
+
+        /// <summary>
+        /// Release any resources associated with this QueryHelper.
+        /// </summary>
+        /// <param name="responseObject">Response payload, which may have associated resources.</param>
+        public override void Close(object responseObject)
+        {
+            session = GetSession(responseObject as IQueryable);
+            if (session != null)
+            {
+                if (session.IsOpen) session.Close();
+            }
         }
 
     }

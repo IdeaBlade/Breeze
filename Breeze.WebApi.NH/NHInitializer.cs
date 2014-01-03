@@ -1,4 +1,5 @@
 ﻿using NHibernate;
+using NHibernate.Proxy;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -90,6 +91,12 @@ namespace Breeze.WebApi.NH
                 else
                 {
                     NHibernateUtil.Initialize(child);
+                    var proxy = child as INHibernateProxy;
+                    if (proxy != null)
+                    {
+                        child = proxy.HibernateLazyInitializer.GetImplementation();
+                    }
+
                     InitializeWithCascade(child, map, remainingDepth);
                 }
             }

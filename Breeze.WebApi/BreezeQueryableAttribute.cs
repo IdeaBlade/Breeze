@@ -66,7 +66,7 @@ namespace Breeze.WebApi {
     public override void OnActionExecuted(HttpActionExecutedContext actionExecutedContext) {
 
       var response = actionExecutedContext.Response;
-      if (response == null || !response.IsSuccessStatusCode) {
+      if (response == null) {
         return;
       }
 
@@ -78,23 +78,32 @@ namespace Breeze.WebApi {
       var request = actionExecutedContext.Request;
       var returnType = actionExecutedContext.ActionContext.ActionDescriptor.ReturnType;
       var queryHelper = GetQueryHelper(request);
-      if (typeof(IEnumerable).IsAssignableFrom(returnType) || responseObject is IEnumerable) {
-        // QueryableAttribute only applies for IQueryable and IEnumerable return types
-        base.OnActionExecuted(actionExecutedContext);
-        if (!actionExecutedContext.Response.IsSuccessStatusCode) {
+
+      try {
+        if (!response.IsSuccessStatusCode) { 
           return;
         }
-        if (!response.TryGetContentValue(out responseObject)) {
-          return;
+        if (typeof(IEnumerable).IsAssignableFrom(returnType) || responseObject is IEnumerable) {
+          // QueryableAttribute only applies for IQueryable and IEnumerable return types
+          // this calls ValidateQuery and then ApplyQuery        
+          base.OnActionExecuted(actionExecutedContext);
+          if (!actionExecutedContext.Response.IsSuccessStatusCode) {
+            return;
+          }
+          if (!response.TryGetContentValue(out responseObject)) {
+            return;
+          }
+          var queryResult = queryHelper.ApplySelectAndExpand(responseObject as IQueryable, request.RequestUri.ParseQueryString());
+          queryHelper.WrapResult(request, response, queryResult);
+        } else {
+          // For non-IEnumerable results, post-processing must be done manually by the developer.
         }
-        var queryResult = queryHelper.ApplySelectAndExpand(responseObject as IQueryable, request.RequestUri.ParseQueryString());
-        queryHelper.WrapResult(request, response, queryResult);
-      } else {
-        // For non-IEnumerable results, post-processing must be done manually by the developer.
+
+        queryHelper.ConfigureFormatter(actionExecutedContext.Request, responseObject as IQueryable);
       }
-
-      queryHelper.ConfigureFormatter(actionExecutedContext.Request, responseObject as IQueryable);
-
+      finally {
+        queryHelper.Close(responseObject);
+      }
     }
 
 
