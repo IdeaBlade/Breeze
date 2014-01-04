@@ -587,6 +587,12 @@ em1.setProperties( { metadataStore: ms });</code></pre>
                     
                 </li>
             
+                <li class="arg">
+                    
+                        <code class="optional">[shouldOverwrite=false]</code>
+                    
+                </li>
+            
             </ul><span class="paren">)</span>
         </div>
     
@@ -654,6 +660,23 @@ in the MetadataStore an exception will be thrown.</p>
                     
                 </li>
             
+                <li class="param">
+                    
+                        <code class="param-name optional">[shouldOverwrite=false]</code>
+                        <span class="type">Boolean</span>
+                        <span class="flag optional" title="This parameter is optional.">optional</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Permit overwrite of existing DataService rather than throw exception</p>
+
+                    </div>
+
+                    
+                </li>
+            
             </ul>
         </div>
     
@@ -706,7 +729,7 @@ in the MetadataStore an exception will be thrown.</p>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l139"><code>..\Scripts\IBlade\a40_entityMetadata.js:139</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l140"><code>..\Scripts\IBlade\a40_entityMetadata.js:140</code></a>
         
         </p>
 
@@ -790,7 +813,7 @@ been added to the MetadataStore.</p>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l201"><code>..\Scripts\IBlade\a40_entityMetadata.js:201</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l202"><code>..\Scripts\IBlade\a40_entityMetadata.js:202</code></a>
         
         </p>
 
@@ -903,7 +926,7 @@ newMetadataStore.importMetadata(metadataFromStorage);</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l347"><code>..\Scripts\IBlade\a40_entityMetadata.js:347</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l348"><code>..\Scripts\IBlade\a40_entityMetadata.js:348</code></a>
         
         </p>
 
@@ -1104,7 +1127,7 @@ ms.fetchMetadata(&quot;breeze/NorthwindIBModel&quot;)
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l327"><code>..\Scripts\IBlade\a40_entityMetadata.js:327</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l328"><code>..\Scripts\IBlade\a40_entityMetadata.js:328</code></a>
         
         </p>
 
@@ -1226,7 +1249,7 @@ var adapterName = ds.adapterName; // may be null</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l496"><code>..\Scripts\IBlade\a40_entityMetadata.js:496</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l497"><code>..\Scripts\IBlade\a40_entityMetadata.js:497</code></a>
         
         </p>
 
@@ -1360,7 +1383,7 @@ var odType = em1.metadataStore.getEntityType(&quot;OrderDetail&quot;);</code></p
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l552"><code>..\Scripts\IBlade\a40_entityMetadata.js:552</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l553"><code>..\Scripts\IBlade\a40_entityMetadata.js:553</code></a>
         
         </p>
 
@@ -1443,7 +1466,7 @@ can be obtained via the  <a href="..\classes\EntityType.html" class="crosslink">
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l533"><code>..\Scripts\IBlade\a40_entityMetadata.js:533</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l534"><code>..\Scripts\IBlade\a40_entityMetadata.js:534</code></a>
         
         </p>
 
@@ -1534,7 +1557,7 @@ var allTypes = em1.metadataStore.getEntityTypes();</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l312"><code>..\Scripts\IBlade\a40_entityMetadata.js:312</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l313"><code>..\Scripts\IBlade\a40_entityMetadata.js:313</code></a>
         
         </p>
 
@@ -1653,7 +1676,7 @@ if (!em1.metadataStore.hasMetadataFor(&quot;breeze/NorthwindIBModel&quot;))) {
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l291"><code>..\Scripts\IBlade\a40_entityMetadata.js:291</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l292"><code>..\Scripts\IBlade\a40_entityMetadata.js:292</code></a>
         
         </p>
 
@@ -1782,7 +1805,7 @@ var newMetadataStore = MetadataStore.importMetadata(metadataFromStorage);</code>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l228"><code>..\Scripts\IBlade\a40_entityMetadata.js:228</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l229"><code>..\Scripts\IBlade\a40_entityMetadata.js:229</code></a>
         
         </p>
 
@@ -1911,7 +1934,7 @@ newMetadataStore.importMetadata(metadataFromStorage);</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l482"><code>..\Scripts\IBlade\a40_entityMetadata.js:482</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l483"><code>..\Scripts\IBlade\a40_entityMetadata.js:483</code></a>
         
         </p>
 
@@ -2030,7 +2053,7 @@ if (em1.metadataStore.isEmpty()) {
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l423"><code>..\Scripts\IBlade\a40_entityMetadata.js:423</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l424"><code>..\Scripts\IBlade\a40_entityMetadata.js:424</code></a>
         
         </p>
 
@@ -2248,7 +2271,7 @@ em1.metadataStore.registerEntityTypeCtor(&quot;Customer&quot;, Customer);
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l563"><code>..\Scripts\IBlade\a40_entityMetadata.js:563</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l564"><code>..\Scripts\IBlade\a40_entityMetadata.js:564</code></a>
         
         </p>
 
@@ -2641,7 +2664,7 @@ em1.metadataStore.setProperties( {
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l407"><code>..\Scripts\IBlade\a40_entityMetadata.js:407</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l408"><code>..\Scripts\IBlade\a40_entityMetadata.js:408</code></a>
         
         </p>
 
@@ -2737,7 +2760,7 @@ i.e. an unmapped type.</p>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l194"><code>..\Scripts\IBlade\a40_entityMetadata.js:194</code></a>
+        <a href="../files/.._Scripts_IBlade_a40_entityMetadata.js.html#l195"><code>..\Scripts\IBlade\a40_entityMetadata.js:195</code></a>
         
         </p>
 

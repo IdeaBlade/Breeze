@@ -264,7 +264,46 @@
 
     });
 
-    test("OData predicate", function () {
+    test("OData predicate - date(year) function", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Mongo does not yet support the 'year' OData predicate");
+            return;
+        }
+        var manager = newEm();
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where("year(hireDate)", ">", 1993);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var emps = data.results;
+            ok(emps.length > 0, "there should be records returned"); 
+            var emps2 = manager.executeQueryLocally(query);
+            ok(emps2.length == emps.length, "should be the same recs");
+            
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("OData predicate - date(month) function", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "Mongo does not yet support the 'year' OData predicate");
+            return;
+        }
+        var manager = newEm();
+        var p = Predicate.create("month(hireDate)", ">", 6).and("month(hireDate)", "<", 11);
+        var query = new breeze.EntityQuery()
+            .from("Employees")
+            .where(p);
+        stop();
+        manager.executeQuery(query).then(function (data) {
+            var emps = data.results;
+            ok(emps.length > 0, "there should be records returned");
+            var emps2 = manager.executeQueryLocally(query);
+            ok(emps2.length == emps.length, "should be the same recs");
+
+        }).fail(testFns.handleFail).fin(start);
+    });
+
+    test("OData predicate - add ", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "Mongo does not yet support the 'add' OData predicate");
             return;
@@ -285,7 +324,7 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
-    test("OData predicate combined with regular predicate", function () {
+    test("OData predicate - add combined with regular predicate", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "Mongo does not yet support the 'add' OData predicate");
             return;
