@@ -4,6 +4,7 @@ using NHibernate;
 using NHibernate.Linq;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Formatting;
 using System.Reflection;
@@ -36,6 +37,16 @@ namespace Breeze.ContextProvider.NH
             {
                 queryable = ApplyExpand(nhQueryable);
             }
+            queryable = ApplyExpand(queryable, queryOptions);
+
+            if (!string.IsNullOrWhiteSpace(queryOptions.RawValues.Expand))
+            {
+                var optionsToRemove = new List<String>() { "$select", "$expand" };
+                var newOptions = RemoveOptions(queryOptions, optionsToRemove);
+                queryable = newOptions.ApplyTo(queryable, querySettings);
+                queryable = Queryable.AsQueryable(Enumerable.ToList((dynamic)queryable));
+            }
+            
             return queryable;
         }
 
@@ -129,6 +140,7 @@ namespace Breeze.ContextProvider.NH
             {
                 // Only serialize the properties that were initialized before session was closed
                 if (session.IsOpen) session.Close();
+                settings.ContractResolver = NHibernateContractResolver.Instance;
             }
             else if (expandMap.map.Count > 0)
             {

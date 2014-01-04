@@ -5,6 +5,7 @@ using NHibernate;
 using NHibernate.Proxy;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Collections;
 
 namespace Breeze.ContextProvider.NH
 {
@@ -16,14 +17,9 @@ namespace Breeze.ContextProvider.NH
     /// </summary>
     public class NHibernateContractResolver : DefaultContractResolver
     {
-        //protected override JsonContract CreateContract(Type objectType) {
-        //    if (typeof(NHibernate.Proxy.INHibernateProxy).IsAssignableFrom(objectType))
+        public static readonly NHibernateContractResolver Instance = new NHibernateContractResolver();
 
-        //        return base.CreateContract(objectType.BaseType);
-        //    else
-        //        return base.CreateContract(objectType);
-        //}
-
+        /*
         private static readonly MemberInfo[] NHibernateProxyInterfaceMembers = typeof(INHibernateProxy).GetMembers();
 
         protected override List<MemberInfo> GetSerializableMembers(Type objectType)
@@ -71,20 +67,33 @@ namespace Breeze.ContextProvider.NH
         {
             return Array.Exists(NHibernateProxyInterfaceMembers, mi => memberInfo.Name == mi.Name);
         }
-
+        */
+        /// <summary>
+        /// Control serialization NHibernate collections by using JsonProperty.ShouldSerialize.
+        /// Serialization should only be attempted on collections that are initialized.
+        /// </summary>
+        /// <param name="member"></param>
+        /// <param name="memberSerialization"></param>
+        /// <returns></returns>
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
             JsonProperty property = base.CreateProperty(member, memberSerialization);
+            PropertyInfo pinfo = member as PropertyInfo;
 
-            property.ShouldSerialize =
-            instance =>
+            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && pinfo != null)
             {
-                var inited = NHibernateUtil.IsInitialized(instance);
-                return inited;
-            };
+                property.ShouldSerialize =
+                instance =>
+                {
+                    var value = pinfo.GetValue(instance);
+                    var inited = NHibernateUtil.IsInitialized(value);
+                    return inited;
+                };
+            }
 
             return property;
         }
+
 
     }
 }

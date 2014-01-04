@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using NHibernate;
-using NHibernate.Collection;
 using NHibernate.Proxy;
 using System;
 
@@ -38,7 +37,7 @@ namespace Breeze.ContextProvider.NH
 
         public override bool CanConvert(Type objectType)
         {
-            return (typeof(INHibernateProxy).IsAssignableFrom(objectType) || typeof(IPersistentCollection).IsAssignableFrom(objectType));
+            return typeof(INHibernateProxy).IsAssignableFrom(objectType);
         }
     }
 }
