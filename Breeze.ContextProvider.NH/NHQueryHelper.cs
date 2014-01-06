@@ -30,6 +30,9 @@ namespace Breeze.ContextProvider.NH
         {
         }
 
+        // Controls whether we always handle expands (vs. letting WebApi take care of it)
+        public override bool ManuallyExpand { get { return true; } }
+
         /// <summary>
         /// Before applying the queryOptions to the queryable, perform special processing to handle
         /// $expand and work around the NHibernate IQueryable limitations
@@ -46,16 +49,6 @@ namespace Breeze.ContextProvider.NH
             }
             queryable = NHApplyExpand(queryable, queryOptions);
 
-            if (!string.IsNullOrWhiteSpace(queryOptions.RawValues.Expand))
-            {
-                // if $expand is present, execute the query the query now, without $select and $expand, so NH won't choke on them later
-                // This causes issues with nested orderby, but at least it works in the simple cases.
-                var optionsToRemove = new List<String>() { "$select", "$expand", "$orderby" };
-                var newOptions = RemoveOptions(queryOptions, optionsToRemove);
-                queryable = newOptions.ApplyTo(queryable, querySettings);
-                queryable = Queryable.AsQueryable(Enumerable.ToList((dynamic)queryable));
-            }
-            
             return queryable;
         }
 

@@ -37,6 +37,8 @@ namespace Breeze.WebApi2 {
       return settings;
     }
 
+    // Controls whether we always handle expands (vs. letting WebApi take care of it)
+    public virtual bool ManuallyExpand { get { return false; } }
 
     /// <summary>
     /// Provide a hook to do any processing before applying the query.  This implementation does nothing.
@@ -89,6 +91,8 @@ namespace Breeze.WebApi2 {
       if (!string.IsNullOrWhiteSpace(selectQueryString)) {
         newQueryOptions = QueryHelper.RemoveSelectExpandOrderBy(newQueryOptions);
       } else if ((!string.IsNullOrWhiteSpace(orderByQueryString)) && orderByQueryString.IndexOf('/') >= 0) {
+        newQueryOptions = QueryHelper.RemoveSelectExpandOrderBy(newQueryOptions);
+      } else if (ManuallyExpand && !string.IsNullOrWhiteSpace(expandQueryString))  {
         newQueryOptions = QueryHelper.RemoveSelectExpandOrderBy(newQueryOptions);
       }
 
