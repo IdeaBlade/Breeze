@@ -635,6 +635,12 @@ namespace Sample_WebApi2.Controllers {
     }
 
     [HttpGet]
+    [BreezeQueryable]
+    public IEnumerable<Employee> EnumerableEmployees() {
+      return ContextProvider.Context.Employees.ToList();
+    }
+
+    [HttpGet]
     public IQueryable<Employee> EmployeesFilteredByCountryAndBirthdate(DateTime birthDate, string country) {
       return ContextProvider.Context.Employees.Where(emp => emp.BirthDate >= birthDate && emp.Country == country);
     }
