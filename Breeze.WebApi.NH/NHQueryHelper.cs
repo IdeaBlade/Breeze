@@ -1,4 +1,4 @@
-﻿using Breeze.WebApi;
+using Breeze.WebApi;
 using Newtonsoft.Json;
 using NHibernate;
 using NHibernate.Linq;
@@ -122,7 +122,6 @@ namespace Breeze.WebApi.NH
         private void ConfigureFormatter(JsonMediaTypeFormatter jsonFormatter, ISession session)
         {
             var settings = jsonFormatter.SerializerSettings;
-            settings.Formatting = Formatting.Indented;  // TODO debug only - makes the payload larger
 
             if (session != null)
             {

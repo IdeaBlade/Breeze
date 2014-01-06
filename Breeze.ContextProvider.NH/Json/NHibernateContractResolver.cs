@@ -80,7 +80,7 @@ namespace Breeze.ContextProvider.NH
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             PropertyInfo pinfo = member as PropertyInfo;
 
-            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && pinfo != null)
+            if ((typeof(string) != property.PropertyType) && typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && pinfo != null)
             {
                 property.ShouldSerialize =
                 instance =>

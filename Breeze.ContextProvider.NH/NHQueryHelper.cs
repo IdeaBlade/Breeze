@@ -30,18 +30,27 @@ namespace Breeze.ContextProvider.NH
         {
         }
 
+        /// <summary>
+        /// Before applying the queryOptions to the queryable, perform special processing to handle
+        /// $expand and work around the NHibernate IQueryable limitations
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <param name="queryOptions"></param>
+        /// <returns></returns>
         public override IQueryable BeforeApplyQuery(IQueryable queryable, ODataQueryOptions queryOptions)
         {
             var nhQueryable = queryable as IQueryableInclude;
             if (nhQueryable != null)
             {
-                queryable = ApplyExpand(nhQueryable);
+                queryable = NHApplyExpand(nhQueryable);
             }
-            queryable = ApplyExpand(queryable, queryOptions);
+            queryable = NHApplyExpand(queryable, queryOptions);
 
             if (!string.IsNullOrWhiteSpace(queryOptions.RawValues.Expand))
             {
-                var optionsToRemove = new List<String>() { "$select", "$expand" };
+                // if $expand is present, execute the query the query now, without $select and $expand, so NH won't choke on them later
+                // This causes issues with nested orderby, but at least it works in the simple cases.
+                var optionsToRemove = new List<String>() { "$select", "$expand", "$orderby" };
                 var newOptions = RemoveOptions(queryOptions, optionsToRemove);
                 queryable = newOptions.ApplyTo(queryable, querySettings);
                 queryable = Queryable.AsQueryable(Enumerable.ToList((dynamic)queryable));
@@ -56,7 +65,7 @@ namespace Breeze.ContextProvider.NH
         /// </summary>
         /// <param name="queryable"></param>
         /// <returns></returns>
-        public IQueryable ApplyExpand(IQueryableInclude queryable)
+        protected IQueryable NHApplyExpand(IQueryableInclude queryable)
         {
             var expands = queryable.GetIncludes();
             if (expands == null || expands.Count == 0) return queryable;
@@ -74,13 +83,38 @@ namespace Breeze.ContextProvider.NH
         /// <param name="queryable"></param>
         /// <param name="expandsQueryString"></param>
         /// <returns></returns>
-        public override IQueryable ApplyExpand(IQueryable queryable, ODataQueryOptions queryOptions) {
+        protected IQueryable NHApplyExpand(IQueryable queryable, ODataQueryOptions queryOptions) {
             var expandQueryString = queryOptions.RawValues.Expand;
             if (string.IsNullOrWhiteSpace(expandQueryString)) return queryable;
             var session = GetSession(queryable);
             var fetcher = new NHEagerFetch(session.SessionFactory);
             queryable = fetcher.ApplyExpansions(queryable, expandQueryString, expandMap);
 
+            // hack to patch up expandMap to prepare for anonymous types created by $select
+            // NHInitializer recognizes "Type" as a placeholder for anonymous types
+            if (!string.IsNullOrWhiteSpace(queryOptions.RawValues.Select))
+            {
+                var map = expandMap.map;
+                var topType = queryable.ElementType;
+                if (map.ContainsKey(topType))
+                {
+                    var list = map[topType];
+                    map.Add(typeof(Type), list);
+                }
+            }
+
+            return queryable;
+        }
+
+        /// <summary>
+        /// Override ApplyExpand to do nothing.  NHApplyExpand takes care of expands for NH, and 
+        /// it is executed earlier in the query processing (in BeforeApplyQuery)
+        /// </summary>
+        /// <param name="queryable"></param>
+        /// <param name="queryOptions"></param>
+        /// <returns></returns>
+        public override IQueryable ApplyExpand(IQueryable queryable, ODataQueryOptions queryOptions)
+        {
             return queryable;
         }
 
@@ -133,8 +167,6 @@ namespace Breeze.ContextProvider.NH
         private void ConfigureFormatter(JsonMediaTypeFormatter jsonFormatter, ISession session)
         {
             var settings = jsonFormatter.SerializerSettings;
-
-            settings.Formatting = Formatting.Indented;  // TODO debug only - makes the payload larger
 
             if (session != null)
             {

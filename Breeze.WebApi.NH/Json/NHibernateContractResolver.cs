@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NHibernate;
@@ -11,7 +11,7 @@ namespace Breeze.WebApi.NH
 {
     /// <summary>
     /// Newtonsoft.Json ContractResolver for NHibernate objects.
-    /// Allows JSON serializer to skip properties that are not already resolved, thus preventing the 
+    /// Allows JSON serializer to skip properties that are not already resolved, thus preventing the
     /// serializer from trying to serialize the entire object graph.
     /// Code copied from https://github.com/PeteGoo/NHibernate.QueryService
     /// </summary>
@@ -80,7 +80,7 @@ namespace Breeze.WebApi.NH
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             PropertyInfo pinfo = member as PropertyInfo;
 
-            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && pinfo != null)
+            if ((typeof(string) != property.PropertyType) && typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && pinfo != null)
             {
                 property.ShouldSerialize =
                 instance =>
