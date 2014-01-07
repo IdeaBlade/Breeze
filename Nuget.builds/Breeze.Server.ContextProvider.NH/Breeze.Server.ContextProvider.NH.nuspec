@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
-        <id>Breeze.WebApi2.EF6</id>
+        <id>Breeze.Server.ContextProvider.NH</id>
         <version>1.4.8</version>
-        <title>Breeze Client and Server - Javascript client with ASP.NET Web API 2 and Entity Framework 6.</title>
-        <authors>Jay Traband</authors>
+        <title>Breeze Server - ContextProvider for NHibernate</title>
+        <authors>Jay Traband, Steve Schmitt</authors>
         <owners>IdeaBlade</owners>
         <licenseUrl>http://www.breezejs.com/license</licenseUrl>
         <projectUrl>http://www.breezejs.com</projectUrl>
         <iconUrl>http://www.breezejs.com/sites/all/images/breezepkg.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>The files and references that are essential for a Breeze ASP.NET Web API 2 client and server on Entity Framework 6.</description>
-        <summary>Breeze Client and Server - Javascript client with ASP.NET Web API 2 and Entity Framework 6.</summary>
-        <copyright>Copyright IdeaBlade 2012, 2013</copyright>
+        <description>Core data access library for a Breeze Server working with NHibernate</description>
+        <summary>Breeze Server - ContextProvider for NHibernate.  This package is usually used in conjunction with the Breeze.WebApi2 package.</summary>
+        <copyright>Copyright IdeaBlade 2012, 2013, 2014</copyright>
         <language>en-US</language>
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        
         <tags>javascript WebApi Breeze SPA</tags>
 		<dependencies>
-		    <dependency id="Breeze.Client" version="[1.4.8]"/>
-		    <dependency id="Breeze.Server.WebApi2" version="[1.4.8]"/>
-			<dependency id="Breeze.Server.ContextProvider.EF6" version="[1.4.8]" />
+		    <dependency id="Breeze.Server.ContextProvider" version="[1.4.8]"/>
+			<dependency id="NHibernate" version="[3.3, 4.0)" />
 		</dependencies>
     </metadata>
     <files>
+        <file src="lib\Breeze.ContextProvider.NH.dll" target="lib\Breeze.ContextProvider.NH.dll" />
         <file src="readme.txt" target="readme.txt" />
     </files>
 </package>

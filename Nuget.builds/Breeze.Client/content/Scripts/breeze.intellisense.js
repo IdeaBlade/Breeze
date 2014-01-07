@@ -1,4 +1,4 @@
-﻿// Generated on: Thu Dec 12 2013 13:33:33 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Mon Jan 06 2014 19:41:52 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -142,7 +142,7 @@ intellisense.annotate(breeze.core.Event.prototype, {
     ///   Publish data for this event. }
     ///   </summary>
     ///   <param name="data" type="Object" optional="true">Data to publish</param>
-    ///   <param name="publishAsync" type="" optional="true">Whether to publish asynchonously or not.</param>
+    ///   <param name="publishAsync" type="Boolean" optional="true">Whether to publish asynchonously or not.</param>
     ///   <param name="errorCallback" type="Function" optional="true">Will be called for any errors that occur during publication. If omitted,  errors will be eaten.</param>
     ///   <returns type="Boolean" >false if event is disabled; true otherwise.</returns>
     /// </signature>
@@ -1365,6 +1365,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   in the MetadataStore an exception will be thrown. }
     ///   </summary>
     ///   <param name="dataService" type="breeze.breeze.DataService" optional="true">The DataService to add</param>
+    ///   <param name="shouldOverwrite" type="Boolean" optional="true">Permit overwrite of existing DataService rather than throw exception</param>
     
     /// </signature>
   },
@@ -1393,6 +1394,7 @@ intellisense.annotate(breeze.breeze.MetadataStore.prototype, {
     ///   Imports a previously exported serialized MetadataStore into this MetadataStore. }
     ///   </summary>
     ///   <param name="exportedMetadata" type="String|JSON Object" optional="true">A previously exported MetadataStore.</param>
+    ///   <param name="allowMerge" type="Boolean" optional="true">Allows custom metadata to be merged into existing metadata types.</param>
     ///   <returns type="breeze.breeze.MetadataStore" >This MetadataStore.</returns>
     /// </signature>
   },
@@ -2117,7 +2119,7 @@ intellisense.annotate(breeze.breeze.EntityQuery.prototype, {
     ///   <returns type="breeze.breeze.EntityQuery" ></returns>
     /// </signature>
   },
-  'inlineCount': function() {
+  'noTracking': function() {
     /// <signature>
     ///   <summary>
     ///   Returns a query with the 'noTracking' capability either enabled or disabled.  With 'noTracking' enabled, the results of this query }

@@ -36,9 +36,11 @@ module.exports = function(grunt) {
   var nugetPackageNames = [
      'Breeze.WebApi', 
 	   'Breeze.WebApi2.EF6',
+     'Breeze.WebApi2.NH',
 	   'Breeze.Client',
 	   'Breeze.Server.WebApi2',
      'Breeze.Server.ContextProvider.EF6',
+     'Breeze.Server.ContextProvider.NH',
      'Breeze.Server.ContextProvider'
 	];
   
@@ -111,6 +113,7 @@ module.exports = function(grunt) {
           { expand: true, cwd: '../Breeze.WebApi2', src: ['Breeze.WebApi2.dll'], dest: tempDir + 'Server'},
           { expand: true, cwd: '../Breeze.ContextProvider', src: ['Breeze.ContextProvider.dll'], dest: tempDir + 'Server'},
           { expand: true, cwd: '../Breeze.ContextProvider.EF6', src: ['Breeze.ContextProvider.EF6.dll'], dest: tempDir + 'Server'},
+          { expand: true, cwd: '../Breeze.ContextProvider.NH', src: ['Breeze.ContextProvider.NH.dll'], dest: tempDir + 'Server'},
           
           { expand: true, cwd: '../Nuget.builds', src: ['readme.txt'], dest: tempDir },
           buildSampleCopy('../', tempDir , 'DocCode', ['**/Todos.sdf']),

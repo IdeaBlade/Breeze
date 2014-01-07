@@ -1195,14 +1195,14 @@ var CsdlMetadataParser = (function () {
 
         var principal = constraint.principal;
         var dependent = constraint.dependent;
-        var propRefs;
+        
+        var propRefs = __toArray(dependent.propertyRef);
+        var fkNames = propRefs.map(__pluck(&quot;name&quot;));
         if (csdlProperty.fromRole === principal.role) {
-            propRefs = __toArray(principal.propertyRef);
-            cfg.invForeignKeyNamesOnServer = propRefs.map(__pluck(&quot;name&quot;));
+            cfg.invForeignKeyNamesOnServer = fkNames;
         } else {
-            propRefs = __toArray(dependent.propertyRef);
             // will be used later by np._update
-            cfg.foreignKeyNamesOnServer = propRefs.map(__pluck(&quot;name&quot;));
+            cfg.foreignKeyNamesOnServer = fkNames;
         }
 
         var np = new NavigationProperty(cfg);
@@ -2200,8 +2200,8 @@ var EntityType = (function () {
             np.invForeignKeyNames.forEach(function (invFkName) {
                 var fkProp = entityType.getDataProperty(invFkName);
                 var invEntityType = np.parentType;
-                fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np) {
-                    return np.invForeignKeyNames &amp;&amp; np.invForeignKeyNames.indexOf(fkProp.name) &gt;= 0;
+                fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np2) {
+                    return np2.invForeignKeyNames &amp;&amp; np2.invForeignKeyNames.indexOf(fkProp.name) &gt;= 0 &amp;&amp; np2.entityType === fkProp.parentType;
                 });
                 // entityType.foreignKeyProperties.push(fkProp);
                 addUniqueItem(entityType.foreignKeyProperties, fkProp);
