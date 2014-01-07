@@ -3,6 +3,7 @@
 
 using NHibernate;
 using NHibernate.Metadata;
+using NHibernate.Persister.Entity;
 using NHibernate.Type;
 using System;
 using System.Collections.Generic;
@@ -179,9 +180,7 @@ namespace Breeze.ContextProvider.NH
         private object GetRelatedEntity(string propName, IType propType, EntityInfo entityInfo, IClassMetadata meta, bool canUseSession)
         {
             object relatedEntity = null;
-            var relKey = meta.EntityName + '.' + propName;
-            var foreignKeyName = fkMap[relKey];
-
+            string foreignKeyName = FindForeignKey(propName, meta);
             object id = GetForeignKeyValue(entityInfo, meta, foreignKeyName, canUseSession);
 
             if (id != null)
@@ -195,6 +194,32 @@ namespace Breeze.ContextProvider.NH
                 }
             }
             return relatedEntity;
+        }
+
+        /// <summary>
+        /// Find a foreign key matching the given property, by looking in the fkMap.
+        /// The property may be defined on the class or a superclass, so this function calls itself recursively.
+        /// </summary>
+        /// <param name="propName">Name of the property e.g. "Product"</param>
+        /// <param name="meta">Class metadata, for traversing the class hierarchy</param>
+        /// <returns>The name of the foreign key, e.g. "ProductID"</returns>
+        private string FindForeignKey(string propName, IClassMetadata meta)
+        {
+            var relKey = meta.EntityName + '.' + propName;
+            if (fkMap.ContainsKey(relKey))
+            {
+                return fkMap[relKey];
+            }
+            else if (meta.IsInherited && meta is AbstractEntityPersister)
+            {
+                var superEntityName = ((AbstractEntityPersister)meta).MappedSuperclass;
+                var superMeta = session.SessionFactory.GetClassMetadata(superEntityName);
+                return FindForeignKey(propName, superMeta);
+            }
+            else
+            {
+                throw new ArgumentException("Foreign Key '" + relKey + "' could not be found.");
+            }
         }
 
         /// <summary>
