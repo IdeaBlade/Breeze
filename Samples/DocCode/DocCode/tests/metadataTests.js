@@ -50,7 +50,7 @@
             equal(empTerrs.length, 3, "Should have 3 Employee Territories");
 
             // THIS IS WHAT I WANT TO VERIFY
-            var employeeType = em.metdataStore.getEntityType('Employee');
+            var employeeType = em.metadataStore.getEntityType('Employee');
             var navProp = employeeType.getProperty('EmployeeTerritories');
             
             // should be the name of the FK property on the child EmployeeTerritory type

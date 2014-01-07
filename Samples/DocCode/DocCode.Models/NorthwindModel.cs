@@ -188,14 +188,8 @@ namespace Northwind.Models
     [Column("EmployeeID")]
     // Renamed EmployeeID FK property should demonstrate that 
     // FK property doesn't have to match the table column name 
-
-    // THIS WORKS IN BREEZE and EF (most of the time)
-    public int EmployeeID { get; set; } 
-     
-    // THIS FAILS IN BREEZE (but not EF)
-    //public int EmpID { get; set; } 
+    public int EmpID { get; set; } 
     
-       
     public int TerritoryID {get;set;}    
     public int RowVersion {get;set;}
     
