@@ -31,6 +31,24 @@
         return;
     }
 
+    test("enumerable query", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - this endpoint not yet implemented");
+            return;
+        }
+
+        var em = newEm();
+
+        var query = EntityQuery.from("EnumerableEmployees")
+            .take(4);
+        stop();
+        em.executeQuery(query).then(function (data) {
+            var emps = data.results;
+            ok(emps.length === 4);
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     test("first or default", function () {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - this endpoint not yet implemented");

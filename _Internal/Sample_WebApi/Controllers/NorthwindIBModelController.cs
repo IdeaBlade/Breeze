@@ -1,9 +1,9 @@
 ﻿// Only one of the next 5 should be uncommented.
-#define CODEFIRST_PROVIDER
+//#define CODEFIRST_PROVIDER
 //#define DATABASEFIRST_OLD
 //#define DATABASEFIRST_NEW
 //#define ORACLE_EDMX
-//#define NHIBERNATE
+#define NHIBERNATE
 
 
 #define CLASS_ACTIONFILTER
