@@ -41,11 +41,10 @@ namespace Breeze.ContextProvider.NH
         }
 
         /// <summary>
-        /// Connect the related entities in the saveMap to other entities.
+        /// Connect the related entities in the saveMap to other entities.  If the related entities
+        /// are not in the saveMap, they are loaded from the session.
         /// </summary>
-        /// <param name="canUseSession">Whether we can load the related entity via the Session.  
-        /// If false, we only connect entities that are also in the saveMap</param>
-        public void FixupRelationships(bool canUseSession)
+        public void FixupRelationships()
         {
             foreach (var kvp in saveMap)
             {
@@ -54,7 +53,7 @@ namespace Breeze.ContextProvider.NH
 
                 foreach (var entityInfo in kvp.Value)
                 {
-                    FixupRelationships(entityInfo, classMeta, canUseSession);
+                    FixupRelationships(entityInfo, classMeta);
                 }
             }
         }
@@ -65,23 +64,22 @@ namespace Breeze.ContextProvider.NH
         /// </summary>
         /// <param name="entityInfo">Entity that will be saved</param>
         /// <param name="meta">Metadata about the entity type</param>
-        /// <param name="canUseSession">Whether we can load the related entity via the Session.  
-        /// If false, we only connect entities that are also in the saveMap</param>
-        private void FixupRelationships(EntityInfo entityInfo, IClassMetadata meta, bool canUseSession)
+        private void FixupRelationships(EntityInfo entityInfo, IClassMetadata meta)
         {
             var propNames = meta.PropertyNames;
             var propTypes = meta.PropertyTypes;
+            
 
             if (meta.IdentifierType != null)
             {
                 var propType = meta.IdentifierType;
                 if (propType.IsAssociationType && propType.IsEntityType)
                 {
-                    FixupRelationship(meta.IdentifierPropertyName, meta.IdentifierType, entityInfo, meta, canUseSession);
+                    FixupRelationship(meta.IdentifierPropertyName, meta.IdentifierType, entityInfo, meta);
                 }
                 else if (propType.IsComponentType)
                 {
-                    FixupComponentRelationships(meta.IdentifierPropertyName, (ComponentType)propType, entityInfo, meta, canUseSession);
+                    FixupComponentRelationships(meta.IdentifierPropertyName, (ComponentType)propType, entityInfo, meta);
                 }
             }
 
@@ -90,11 +88,11 @@ namespace Breeze.ContextProvider.NH
                 var propType = propTypes[i];
                 if (propType.IsAssociationType && propType.IsEntityType)
                 {
-                    FixupRelationship(propNames[i], propTypes[i], entityInfo, meta, canUseSession);
+                    FixupRelationship(propNames[i], propTypes[i], entityInfo, meta);
                 }
                 else if (propType.IsComponentType)
                 {
-                    FixupComponentRelationships(propNames[i], (ComponentType)propType, entityInfo, meta, canUseSession);
+                    FixupComponentRelationships(propNames[i], (ComponentType)propType, entityInfo, meta);
                 }
             }
         }
@@ -107,9 +105,7 @@ namespace Breeze.ContextProvider.NH
         /// <param name="compType">Type of the component</param>
         /// <param name="entityInfo">Breeze EntityInfo</param>
         /// <param name="meta">Metadata for the entity class</param>
-        /// <param name="canUseSession">Whether we can load the related entity via the Session.  
-        /// If false, we only connect entities that are also in the saveMap</param>
-        private void FixupComponentRelationships(string propName, ComponentType compType, EntityInfo entityInfo, IClassMetadata meta, bool canUseSession)
+        private void FixupComponentRelationships(string propName, ComponentType compType, EntityInfo entityInfo, IClassMetadata meta)
         {
             var compPropNames = compType.PropertyNames;
             var compPropTypes = compType.Subtypes;
@@ -130,7 +126,7 @@ namespace Breeze.ContextProvider.NH
                     if (compValues[j] == null)
                     {
                         // the related entity is null
-                        var relatedEntity = GetRelatedEntity(compPropNames[j], compPropType, entityInfo, meta, canUseSession);
+                        var relatedEntity = GetRelatedEntity(compPropNames[j], compPropType, entityInfo, meta);
                         if (relatedEntity != null)
                         {
                             compValues[j] = relatedEntity;
@@ -153,44 +149,42 @@ namespace Breeze.ContextProvider.NH
         /// <param name="propType">Type of the property</param>
         /// <param name="entityInfo">Breeze EntityInfo</param>
         /// <param name="meta">Metadata for the entity class</param>
-        /// <param name="canUseSession">Whether we can load the related entity via the Session.  
-        /// If false, we only connect entities that are also in the saveMap</param>
-        private void FixupRelationship(string propName, IType propType, EntityInfo entityInfo, IClassMetadata meta, bool canUseSession)
+        private void FixupRelationship(string propName, IType propType, EntityInfo entityInfo, IClassMetadata meta)
         {
             var entity = entityInfo.Entity;
             object relatedEntity = GetPropertyValue(meta, entity, propName);
             if (relatedEntity != null) return;    // entities are already connected
 
-            relatedEntity = GetRelatedEntity(propName, propType, entityInfo, meta, canUseSession);
+            relatedEntity = GetRelatedEntity(propName, propType, entityInfo, meta);
 
             if (relatedEntity != null)
                 meta.SetPropertyValue(entity, propName, relatedEntity, EntityMode.Poco);
         }
 
         /// <summary>
-        /// Get a related entity based on the value of the foreign key.
+        /// Get a related entity based on the value of the foreign key.  Attempts to find the related entity in the
+        /// saveMap; if its not found there, it is loaded via the Session (which should create a proxy, not actually load 
+        /// the entity from the database).
         /// </summary>
         /// <param name="propName">Name of the navigation/association property of the entity, e.g. "Customer".  May be null if the property is the entity's identifier.</param>
         /// <param name="propType">Type of the property</param>
         /// <param name="entityInfo">Breeze EntityInfo</param>
         /// <param name="meta">Metadata for the entity class</param>
-        /// <param name="canUseSession">Whether we can load the related entity via the Session.  
-        /// If false, we only connect entities that are also in the saveMap</param>
         /// <returns></returns>
-        private object GetRelatedEntity(string propName, IType propType, EntityInfo entityInfo, IClassMetadata meta, bool canUseSession)
+        private object GetRelatedEntity(string propName, IType propType, EntityInfo entityInfo, IClassMetadata meta)
         {
             object relatedEntity = null;
             string foreignKeyName = FindForeignKey(propName, meta);
-            object id = GetForeignKeyValue(entityInfo, meta, foreignKeyName, canUseSession);
+            object id = GetForeignKeyValue(entityInfo, meta, foreignKeyName);
 
             if (id != null)
             {
                 relatedEntity = FindInSaveMap(propType.ReturnedClass, id);
 
-                if (relatedEntity == null && canUseSession)
+                if (relatedEntity == null && (entityInfo.EntityState == EntityState.Added || entityInfo.EntityState == EntityState.Modified))
                 {
                     var relatedEntityName = propType.Name;
-                    relatedEntity = session.Load(relatedEntityName, id);
+                    relatedEntity = session.Load(relatedEntityName, id, LockMode.None);
                 }
             }
             return relatedEntity;
@@ -224,15 +218,13 @@ namespace Breeze.ContextProvider.NH
 
         /// <summary>
         /// Get the value of the foreign key property.  This comes from the entity, but if that value is
-        /// null, we may try to get it from the originalValuesMap.
+        /// null, and the entity is deleted, we try to get it from the originalValuesMap.
         /// </summary>
         /// <param name="entityInfo">Breeze EntityInfo</param>
         /// <param name="meta">Metadata for the entity class</param>
         /// <param name="foreignKeyName">Name of the foreign key property of the entity, e.g. "CustomerID"</param>
-        /// <param name="currentValuesOnly">if false, and the entity is deleted, try to get the value from the originalValuesMap 
-        /// if we were unable to get it from the entity.</param>
         /// <returns></returns>
-        private object GetForeignKeyValue(EntityInfo entityInfo, IClassMetadata meta, string foreignKeyName, bool currentValuesOnly)
+        private object GetForeignKeyValue(EntityInfo entityInfo, IClassMetadata meta, string foreignKeyName)
         {
             var entity = entityInfo.Entity;
             object id = null;
@@ -252,7 +244,7 @@ namespace Breeze.ContextProvider.NH
                 }
             }
 
-            if (id == null && !currentValuesOnly && entityInfo.EntityState == EntityState.Deleted)
+            if (id == null && entityInfo.EntityState == EntityState.Deleted)
             {
                 entityInfo.OriginalValuesMap.TryGetValue(foreignKeyName, out id);
             }
