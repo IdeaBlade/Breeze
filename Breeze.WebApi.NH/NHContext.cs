@@ -164,7 +164,7 @@ namespace Breeze.WebApi.NH {
       var fixer = new NHRelationshipFixer(saveMap, fkMap, session);
 
       // Relate entities in the saveMap to other NH entities, so NH can save the FK values.
-      fixer.FixupRelationships(true);
+      fixer.FixupRelationships();
 
       foreach (var kvp in saveMap) {
         var entityType = kvp.Key;
