@@ -17,7 +17,7 @@ public class Customer {
 	private String country;
 	private String phone;
 	private String fax;
-	private int rowVersion;
+	private Integer rowVersion;
 
 	private Collection<Order> orders;
 
@@ -117,11 +117,11 @@ public class Customer {
 		this.fax = fax;
 	}
 
-	public int getRowVersion() {
+	public Integer getRowVersion() {
 		return rowVersion;
 	}
 
-	public void setRowVersion(int rowVersion) {
+	public void setRowVersion(Integer rowVersion) {
 		this.rowVersion = rowVersion;
 	}
 

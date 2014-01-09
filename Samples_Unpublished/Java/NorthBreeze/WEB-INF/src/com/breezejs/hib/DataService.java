@@ -1,5 +1,6 @@
 package com.breezejs.hib;
 
+import java.util.HashMap;
 import java.util.List;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -18,11 +19,15 @@ public class DataService {
 		}
 		return metadataJson;
 	}
-	
+
 	public String queryToJson(Class clazz, String queryString) {
+    	OdataParameters op = OdataParameters.parse(queryString);
+    	return queryToJson(clazz, op);
+	}
+	
+	public String queryToJson(Class clazz, OdataParameters op) {
 //    	op = OdataParameters.parse("http://localhost:7149/breeze/DemoNH/Customers?$top=3&$expand=Orders");
 //    	op = OdataParameters.parse("$top=3&$select=Country,PostalCode&$inlinecount=allpages");
-    	OdataParameters op = OdataParameters.parse(queryString);
     	log(op);
 
 		Session session = StaticSessionFactory.openSession();
@@ -37,7 +42,7 @@ public class DataService {
 	    	OdataCriteria.applyParameters(crit, op);
 	    	log(crit);
 
-	    	String json = queryToJson(crit, op.inlinecount);
+	    	String json = queryToJson(crit, op.hasInlineCount());
 	    	
 			session.getTransaction().commit();
 			return json;
@@ -65,7 +70,9 @@ public class DataService {
 			long countResult = (long) crit.uniqueResult();
 			log(countResult);
 			
-			QueryResult qr = new QueryResult(result, countResult);
+			HashMap<String, Object> qr = new HashMap<String, Object>();
+			qr.put("InlineCount", countResult);
+			qr.put("Results", result);
 			json = serializeJson(qr);
 			
 		} else {
