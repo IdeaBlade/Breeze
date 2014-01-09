@@ -70,9 +70,7 @@ public class DataService {
 			long countResult = (long) crit.uniqueResult();
 			log(countResult);
 			
-			HashMap<String, Object> qr = new HashMap<String, Object>();
-			qr.put("InlineCount", countResult);
-			qr.put("Results", result);
+			QueryResult qr = new QueryResult(result, countResult);
 			json = serializeJson(qr);
 			
 		} else {
@@ -142,8 +140,8 @@ public class DataService {
     public static void main(String[] args) throws Exception {
     	
     	DataService ds = new DataService();
-//    	String meta = nb.getMetadata();
-//    	log(meta);
+    	String meta = ds.getMetadata();
+    	ds.log(meta);
 //    	Session session = NorthwindSessionFactory.openSession();
     	
 //    	OdataParameters op = OdataParameters.parse("?$top=5&$filter=Country eq 'Brazil'");
@@ -155,7 +153,7 @@ public class DataService {
 //    	OdataCriteria.applyParameters(crit, op);
     	
 //    	nb.queryToJson(Customer.class, "?$top=5&$filter=country eq 'Brazil'");
-    	ds.queryToJson(northwind.model.Customer.class, "?$top=5&$filter=country eq 'Brazil'&$inlinecount=allpages");
+//    	ds.queryToJson(northwind.model.Customer.class, "?$top=5&$filter=country eq 'Brazil'&$inlinecount=allpages");
     	System.exit(0);
     }
     

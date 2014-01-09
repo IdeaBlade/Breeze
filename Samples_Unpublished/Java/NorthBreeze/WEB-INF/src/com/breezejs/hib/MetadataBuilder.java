@@ -279,7 +279,7 @@ public class MetadataBuilder {
     {
         Class type = compType.getReturnedClass();
 
-        // "Location:#Breeze.Nhibernate.NorthwindIBModel"
+        // "Location:#com.breezejs.model"
         String classKey = getEntityTypeName(type);
         if (_typeNames.contains(classKey))
         {
@@ -287,7 +287,7 @@ public class MetadataBuilder {
             return classKey;
         }
 
-        HashMap<String, Object> cmap = new HashMap<String, Object>();
+        HashMap<String, Object> cmap = new LinkedHashMap<String, Object>();
         _typeList.add(0, cmap);
         _typeNames.add(classKey);
 
@@ -345,7 +345,7 @@ public class MetadataBuilder {
      */
     private HashMap<String, Object> makeDataProperty(String propName, String typeName, boolean isNullable, Column col, boolean isKey, boolean isVersion)
     {
-        String newType = BreezeTypeMap.get(typeName);
+        String newType = BreezeTypeMap.get(typeName.toLowerCase());
         typeName = newType != null ? newType : typeName;
 
         HashMap<String, Object> dmap = new LinkedHashMap<String, Object>();
@@ -372,10 +372,9 @@ public class MetadataBuilder {
         {
             validators.add(newMap("name", "required"));
         }
-        if (col != null && col.getLength() > 0)
+        if (!NoLength.contains(typeName) && col != null && col.getLength() > 0)
         {
             dmap.put("maxLength", col.getLength());
-
             validators.add(newMap("maxLength", Integer.toString(col.getLength()), "name", "maxLength"));
         }
 
@@ -558,35 +557,65 @@ public class MetadataBuilder {
     static final String ONE2ONE = "_1to1";
     static final String ASSN = "AN_";
 
-    // Map of NH datatype to Breeze datatype.
+    // Map of Hibernate datatype to Breeze datatype.
     static HashMap<String, String> BreezeTypeMap;
 
     // Map of data type to Breeze validation type
     static HashMap<String, String> ValidationTypeMap;
     
+    // Set of Breeze types which don't need a maxlength validation
+    static HashSet<String> NoLength;
+    
     static 
     {
         BreezeTypeMap = new HashMap<String, String>();
         BreezeTypeMap.put("byte[]", "Binary");
-        BreezeTypeMap.put("binaryBlob", "Binary");
+        BreezeTypeMap.put("binary", "Binary");
+        BreezeTypeMap.put("binaryblob", "Binary");
         BreezeTypeMap.put("blob", "Binary");
         BreezeTypeMap.put("timestamp", "DateTime");
-        BreezeTypeMap.put("TimeAsTimeSpan", "Time");
+        BreezeTypeMap.put("timeastimespan", "Time");
+        BreezeTypeMap.put("short", "Int16");
+        BreezeTypeMap.put("integer", "Int32");
+        BreezeTypeMap.put("long", "Int64");
+        BreezeTypeMap.put("boolean", "Boolean");
+        BreezeTypeMap.put("byte", "Byte");
+        BreezeTypeMap.put("datetime", "DateTime");
+        BreezeTypeMap.put("date", "DateTime");
+        BreezeTypeMap.put("datetimeoffset", "DateTimeOffset");
+        BreezeTypeMap.put("big_decimal", "Decimal");
+        BreezeTypeMap.put("double", "Double");
+        BreezeTypeMap.put("float", "Single");
+        BreezeTypeMap.put("uuid", "Guid");
+        BreezeTypeMap.put("uuid-binary", "Guid");
+        BreezeTypeMap.put("string", "String");
+        BreezeTypeMap.put("time", "Time");
+        
+        NoLength = new HashSet<String>();
+        NoLength.add("Byte");
+        NoLength.add("Int16");
+        NoLength.add("Int32");
+        NoLength.add("Int64");
+        NoLength.add("DateTime");
+        NoLength.add("Time");
+        NoLength.add("Boolean");
+        NoLength.add("Guid");
 
         ValidationTypeMap = new HashMap<String, String>();
         ValidationTypeMap.put("Boolean", "bool");
         ValidationTypeMap.put("Byte", "byte");
         ValidationTypeMap.put("DateTime", "date");
         ValidationTypeMap.put("DateTimeOffset", "date");
-        ValidationTypeMap.put("BigDecimal", "number");
+        ValidationTypeMap.put("Decimal", "number");
+        ValidationTypeMap.put("Double", "number");
+        ValidationTypeMap.put("Single", "number");
         ValidationTypeMap.put("Guid", "guid");
-        ValidationTypeMap.put("UUID", "guid");
-        ValidationTypeMap.put("Short", "int16");
-        ValidationTypeMap.put("Integer", "int32");
-        ValidationTypeMap.put("Long", "integer");
+        ValidationTypeMap.put("Int16", "int16");
+        ValidationTypeMap.put("Int32", "int32");
+        ValidationTypeMap.put("Int64", "int64");
         ValidationTypeMap.put("Float", "number");
+//        ValidationTypeMap.put("String", "string");
         ValidationTypeMap.put("Time", "duration");
-        ValidationTypeMap.put("TimeAsTimeSpan", "duration");
         
     }
 
