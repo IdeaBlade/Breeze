@@ -1,10 +1,14 @@
 package com.breezejs.hib;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
+import org.hibernate.internal.CriteriaImpl;
+import org.hibernate.internal.CriteriaImpl.OrderEntry;
+
 import com.breezejs.OdataParameters;
 import com.breezejs.OperatorExpression;
 
@@ -37,7 +41,7 @@ public class OdataCriteria {
     	if (op.top > 0) crit.setMaxResults(op.top);
     	if (op.skip > 0) crit.setFirstResult(op.skip);
     	if (op.orderby != null) {
-    		for(String s: op.orderby) {
+    		for(String s: op.orderbys()) {
     			String[] seg = s.split(WHITESPACE, 2);
     			String field = seg[0].replace('/', '.');
     			if (seg.length == 2 && "desc".equals(seg[1])) {
@@ -74,7 +78,7 @@ public class OdataCriteria {
 
 	/**
 	 * Apply the OData $inlinecount to the (already filtered) Criteria.
-	 * Removes $skip and $top operations and adds a rowCount projection.
+	 * Removes $skip and $top and $orderby operations and adds a rowCount projection.
 	 * @param crit a Criteria object.  Should already contain only filters that affect the row count.
 	 * @return the same Criteria that was passed in, with operations added.
 	 */
@@ -82,6 +86,12 @@ public class OdataCriteria {
 	{
     	crit.setMaxResults(0);
     	crit.setFirstResult(0);
+    	CriteriaImpl impl = (CriteriaImpl) crit;
+    	Iterator<OrderEntry> iter = impl.iterateOrderings();
+    	while (iter.hasNext()) {
+    		iter.next();
+    		iter.remove();
+    	}
 		crit.setProjection( Projections.rowCount());
 		return crit;
 	}

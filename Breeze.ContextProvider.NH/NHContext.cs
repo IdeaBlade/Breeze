@@ -123,6 +123,7 @@ namespace Breeze.ContextProvider.NH {
     /// <param name="saveMap">Map of Type -> List of entities of that type</param>
     protected override void SaveChangesCore(SaveWorkState saveWorkState) {
       var saveMap = saveWorkState.SaveMap;
+      session.FlushMode = FlushMode.Commit;
       var tx = session.Transaction;
       var hasExistingTransaction = tx.IsActive;
       if (!hasExistingTransaction) tx.Begin(BreezeConfig.Instance.GetTransactionSettings().IsolationLevelAs);
@@ -163,8 +164,8 @@ namespace Breeze.ContextProvider.NH {
       var fkMap = (IDictionary<string, string>)GetMetadata()[NHBreezeMetadata.FK_MAP];
       var fixer = new NHRelationshipFixer(saveMap, fkMap, session);
 
-      // Relate entities in the saveMap to each other
-      fixer.FixupRelationships(false);
+      // Relate entities in the saveMap to other NH entities, so NH can save the FK values.
+      fixer.FixupRelationships();
 
       foreach (var kvp in saveMap) {
         var entityType = kvp.Key;
@@ -175,10 +176,6 @@ namespace Breeze.ContextProvider.NH {
           ProcessEntity(entityInfo, classMeta);
         }
       }
-
-      // Relate entities in the saveMap to other NH entities, so NH can save the FK values.
-      fixer.FixupRelationships(true);
-
     }
 
 
@@ -214,7 +211,7 @@ namespace Breeze.ContextProvider.NH {
     /// <param name="entityInfo"></param>
     /// <param name="classMeta"></param>
     private void RestoreOldVersionValue(EntityInfo entityInfo, IClassMetadata classMeta) {
-      if (entityInfo.OriginalValuesMap == null) return;
+      if (entityInfo.OriginalValuesMap == null || entityInfo.OriginalValuesMap.Count == 0) return;
       var vcol = classMeta.VersionProperty;
       var vname = classMeta.PropertyNames[vcol];
       object oldVersion;

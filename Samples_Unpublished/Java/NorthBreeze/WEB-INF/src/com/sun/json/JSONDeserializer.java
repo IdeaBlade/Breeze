@@ -106,6 +106,15 @@ public class JSONDeserializer {
         return deserializer.read();
     }
 
+    /**
+     * Read (deserialize) an object from a Map into the given Class
+     */
+    public static Object read(Class clazz, Map map) 
+                     throws IOException, JSONException {
+        Deserializer deserializer = new Deserializer(null, false);       
+        return deserializer.read(clazz, map);
+    }
+    
     // reads all contents from a Reader and returns a string
     private static String readFully(Reader reader)
                       throws IOException { 
@@ -170,6 +179,14 @@ public class JSONDeserializer {
             fixIdReferences();
             return obj;
         }
+
+        public Object read(Class target, Map map) 
+                throws JSONException {
+	        JSONObject jobj = new JSONObject(map);
+	        Object obj = convert(jobj, target);
+	        fixIdReferences();
+	        return obj;
+ 	    }
 
         private void fixIdReferences() throws JSONException {
             if (idRefSetters != null) {
@@ -474,6 +491,9 @@ public class JSONDeserializer {
                 } catch (Exception exp) {
                     throw makeJSONException(exp);
                 }
+            }
+            else if (target == java.util.UUID.class) {
+                 return java.util.UUID.fromString(str);
             }
 
             // try String accepting constructor

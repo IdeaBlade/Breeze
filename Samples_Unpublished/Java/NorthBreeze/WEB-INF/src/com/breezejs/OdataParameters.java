@@ -1,5 +1,11 @@
 package com.breezejs;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.ws.rs.QueryParam;
+
 /**
  * A simple parser for OData URL strings.  Does NOT implement complete OData parsing.
  * @author Steve
@@ -45,51 +51,46 @@ public class OdataParameters {
 			op.top = Integer.parseInt(value);
 		}
 		else if ("$expand".equals(name)) {
-			op.expand = value.split(",");
+			op.expand = value;
 		}
 		else if ("$filter".equals(name)) {
 			op.filter = value;
 		}
 		else if ("$orderby".equals(name)) {
-			op.orderby = value.split(",");		
+			op.orderby = value;
 		}
 		else if ("$format".equals(name)) {
 			op.format = value;
 		}
 		else if ("$inlinecount".equals(name)) {
-			setInlineCount(op, value);
+			op.inlinecount = value;
 		}
 		else if ("$select".equals(name)) {
-			op.select = value.split(",");				
+			op.select = value;		
 		}
 	}
 	
-	static void setInlineCount(OdataParameters op, String value)
+	public boolean hasInlineCount()
 	{
-		if ("allpages".equals(value)) 
-			op.inlinecount = true;
-		else if ("none".equals(value))
-			op.inlinecount = false;
-		else
-			throw new IllegalArgumentException("$inlinecount must be 'allpages' or 'none'");
+		return ("allpages".equals(inlinecount));
 	}
 	
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append("OdataParameters ");
-		if (skip > 0) sb.append("$skip=").append(skip);
-		if (top > 0) sb.append("$top=").append(top);
-		if (expand != null) sb.append("$expand=").append(arr(sb, expand));
-		if (filter != null) sb.append("$filter=").append(filter);
-		if (orderby != null) sb.append("$orderby=").append(arr(sb, orderby));
-		if (format != null) sb.append("$format=").append(format);
-		if (inlinecount) sb.append("$inlinecount=allpages");
-		if (select != null) sb.append("$select=").append(arr(sb, select));
+		if (skip > 0) sb.append(" $skip=").append(skip);
+		if (top > 0) sb.append(" $top=").append(top);
+		if (expand != null) sb.append(" $expand=").append(expand);
+		if (filter != null) sb.append(" $filter=").append(filter);
+		if (orderby != null) sb.append(" $orderby=").append(orderby);
+		if (format != null) sb.append(" $format=").append(format);
+		if (inlinecount != null) sb.append(" $inlinecount=").append(inlinecount);
+		if (select != null) sb.append(" $select=").append(select);
 		return sb.toString();
 	}
 	
-	String arr(StringBuilder sb, String[] arr)
+	String arr(StringBuilder sb, List<String> arr)
 	{
 		for(String s: arr) {
 			sb.append(s).append(',');
@@ -98,13 +99,37 @@ public class OdataParameters {
 		return "";
 	}
 	
+	String[] toArray(String value) {
+		return value == null ? null : value.split(",");
+	}
+	
+	public String[] expands() { return toArray(expand); }
+	public String[] orderbys() { return toArray(orderby); }
+	public String[] selects() { return toArray(select); }
+	
+	@QueryParam("$skip")
 	public int skip;
+	
+	@QueryParam("$top")
 	public int top;
-	public String[] expand;
+	
+	@QueryParam("$expand")
+	public String expand;
+	
+	@QueryParam("$filter")
 	public String filter;
-	public String[] orderby;
+	
+	@QueryParam("$orderby")
+	public String orderby;
+	
+	@QueryParam("$format")
 	public String format;
-	public boolean inlinecount;
-	public String[] select;
+	
+	@QueryParam("$inlinecount")
+	public String inlinecount;
+	
+	@QueryParam("$select")
+	public String select;
+	
 	
 }

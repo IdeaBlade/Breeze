@@ -1,37 +1,18 @@
 package com.breezejs;
 
 import java.util.Collection;
+import java.util.HashMap;
 
 /**
  * Wrapper for results that have an InlineCount, to support paged result sets.
  * @author Steve
  */
-public class QueryResult {
-	private Collection results;
-	private Long inlineCount;
-	
+public class QueryResult extends HashMap<String, Object> {
+	private static final long serialVersionUID = 1L;
 	
 	public QueryResult(Collection results, Long inlineCount) {
-		super();
-		this.results = results;
-		this.inlineCount = inlineCount;
-	}
-//	public QueryResult(Collection results, int inlineCount) {
-//		super();
-//		this.results = results;
-//		this.inlineCount = new Long(inlineCount);
-//	}
-	
-	public Collection getResults() {
-		return results;
-	}
-	public void setResults(Collection results) {
-		this.results = results;
-	}
-	public Long getInlineCount() {
-		return inlineCount;
-	}
-	public void setInlineCount(Long inlineCount) {
-		this.inlineCount = inlineCount;
+		super(2);
+		super.put("Results", results);
+		super.put("InlineCount", inlineCount);
 	}
 }
