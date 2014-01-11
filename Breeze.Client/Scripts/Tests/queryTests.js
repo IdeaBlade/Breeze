@@ -26,6 +26,20 @@
         }
     });
 
+    test("query by entity key without preexisting metadata", function() {
+        manager = new breeze.EntityManager(testFns.serviceName);
+        manager.fetchMetadata().then(function () { 
+            var empType = manager.metadataStore.getEntityType("Employee");
+            var entityKey = new EntityKey(empType, 1);
+            var query = EntityQuery.fromEntityKey(entityKey);
+            return manager.executeQuery(query);
+        }).then(function (data) {
+            var results = data.results;
+            ok(results.length === 1, "should have returned a single record");
+            var emp = results[0];
+        }).fail(testFns.handleFail).fin(start);
+     });
+
     test("query same field twice", function () {
         var manager = newEm();
         var p = Predicate.create("freight", ">", 100).and("freight", "<", 200);
