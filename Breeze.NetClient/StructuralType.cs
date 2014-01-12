@@ -14,9 +14,13 @@ namespace Breeze.Metadata {
   }
 
   public abstract class StructuralType {
+    public StructuralType() {
+      Warnings = new List<string>();
+    }
     public String ShortName { get; internal set; }
     public String Namespace { get; internal set;}
     public dynamic Custom { get; set; }
+    public List<String> Warnings { get; internal set; }
 
   }
 

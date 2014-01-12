@@ -24,7 +24,7 @@ namespace Breeze.Metadata {
       this.ComplexTypeName = dp.ComplexTypeName;
       this.DataType = dp.DataType;
       this.DefaultValue = dp.DefaultValue;
-      this.EnumType = dp.EnumType;
+      this.EnumTypeName = dp.EnumTypeName;
       this.IsNullable = dp.IsNullable;
       this.IsPartOfKey = dp.IsPartOfKey;
       this.IsUnmapped = dp.IsUnmapped;
@@ -33,17 +33,17 @@ namespace Breeze.Metadata {
       this.RawTypeName = dp.RawTypeName;
     }
 
-    public Type DataType { get; internal set; }
+    public DataType DataType { get; internal set; }
     
     public bool IsNullable { get; internal set; }
     public bool IsUnmapped { get; internal set; }
     public bool IsPartOfKey { get; internal set; }
     public Object DefaultValue { get; internal set; }
     public ConcurrencyMode ConcurrencyMode { get; internal set; }
-    public int? MaxLength { get; internal set; }
+    public Int64? MaxLength { get; internal set; }
     
     public String ComplexTypeName { get; set; }
-    public Type EnumType { get; set; }
+    public String EnumTypeName { get; set; }
     public String RawTypeName { get; internal set; }
 
     public bool IsComplexProperty { get { return ComplexTypeName != null;}}

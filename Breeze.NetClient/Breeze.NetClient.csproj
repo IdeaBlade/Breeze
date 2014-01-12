@@ -36,6 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AbstractProperty.cs" />
+    <Compile Include="DataType.cs" />
     <Compile Include="StructuralType.cs" />
     <Compile Include="CsdlMetadataProcessor.cs" />
     <Compile Include="ComplexType.cs" />

@@ -50,9 +50,9 @@ namespace Breeze.Metadata {
 
     public static DataType Int64 = new NumericDataType(typeof(Int64), "L", true);
 
-    public static DataType Int32 = new NumericDataType(typeof(Int64), "", true);
+    public static DataType Int32 = new NumericDataType(typeof(Int32), "", true);
 
-    public static DataType Int16 = new NumericDataType(typeof(Int64), "", true);
+    public static DataType Int16 = new NumericDataType(typeof(Int16), "", true);
 
     public static DataType Byte  = new NumericDataType(typeof(Byte), "", true);
 
@@ -63,14 +63,14 @@ namespace Breeze.Metadata {
     public static DataType Single = new NumericDataType(typeof(Single), "f", false);
 
     public static DataType DateTime = new DataType(typeof(DateTime)) {
-      DefaultValue = new DateTime(1900, 0, 1),
+      DefaultValue = new DateTime(1900, 1, 1),
       FmtOData = FmtDateTime,
       GetNext = null,
       DataTypeInfo = DataTypeInfo.IsDate
     };
 
     public static DataType DateTimeOffset = new DataType(typeof(DateTimeOffset)) {
-      DefaultValue = new DateTimeOffset(1900, 0, 1,0,0,0, new TimeSpan()),
+      DefaultValue = new DateTimeOffset(1900, 1, 1,0,0,0, new TimeSpan()),
       FmtOData = FmtDateTime,
       DataTypeInfo = DataTypeInfo.IsDate
     };
@@ -168,7 +168,7 @@ namespace Breeze.Metadata {
     protected static String FmtGuid(Object val) {
       if (val == null) return null;
       var guid = (Guid)val;
-      var tmp = guid.ToString()
+      var tmp = guid.ToString();
       return "guid'" + tmp + "'";
     }
 

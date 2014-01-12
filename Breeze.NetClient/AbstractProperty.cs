@@ -22,12 +22,12 @@ namespace Breeze.Metadata {
       this.IsScalar = prop.IsScalar;
       this.Validators = new ValidatorCollection(prop.Validators);
     }
-    public String Name { get; protected set; }
-    public String NameOnServer { get; protected set; }
-    public bool IsScalar { get; protected set; }
-    public bool IsInherited { get; set; }
-    public ValidatorCollection Validators { get; protected set; }
-    public dynamic Custom { get; set; }
+    public String Name { get; internal set; }
+    public String NameOnServer { get; internal set; }
+    public bool IsScalar { get; internal set; }
+    public bool IsInherited { get; internal set; }
+    public ValidatorCollection Validators { get; internal set; }
+    public dynamic Custom { get; internal set; }
 
     public abstract bool IsDataProperty { get;  }
     public abstract bool IsNavigationProperty { get; }

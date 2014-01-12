@@ -18,6 +18,7 @@ namespace Breeze.Metadata {
         throw new Exception("Unable to locate an EntityType: " + typeName);
       }
     }
+    public static String ANONTYPE_PREFIX = "_IB_";
   }
 
   

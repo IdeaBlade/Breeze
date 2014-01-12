@@ -11,25 +11,30 @@ namespace Breeze.Metadata {
   class CsdlMetadataProcessor {
     
     public CsdlMetadataProcessor(MetadataStore store, String jsonMetadata) {
-      var json = (dynamic) JsonConvert.DeserializeObject(jsonMetadata);
-      var schema = json.schema;
-      _namespace = schema["namespace"];
+      var json = (JObject) JsonConvert.DeserializeObject(jsonMetadata);
+      _schema = json["schema"];
+      _namespace = (String) _schema["namespace"];
 
-      var entityTypes = ToEnumerable((Object)schema.entityType)
-        .Select(ToEntityType).ToList();
-      var complexTypes = ToEnumerable((Object)schema.complexType)
-        .Select(ToComplexType).ToList();
+      var entityTypes = ToEnumerable( _schema["entityType"]).Cast<JObject>()
+        .Select(ParseCsdlEntityType).ToList();
+      var complexTypes = ToEnumerable( _schema["complexType"]).Cast<JObject>()
+        .Select(ParseCsdlComplexType).ToList();
     }
 
-    public EntityType ToEntityType(dynamic csdlEntityType) {
-      var isAbstract = csdlEntityType["abstract"] == "true";
+    public EntityType ParseCsdlEntityType(JObject csdlEntityType) {
+      var abstractVal = (String) csdlEntityType["abstract"];
+      var baseTypeVal = (String) csdlEntityType["baseType"];
+      var nameVal = (String)csdlEntityType["name"];
+
+      var isAbstract = abstractVal == "true";
       var entityType = new EntityType {
-        ShortName = csdlEntityType.name
+        ShortName = nameVal
       };
-      if (csdlEntityType.baseType!=null) {
-        var baseTypeName = ParseTypeName(csdlEntityType.baseType);
+      if (baseTypeVal != null) {
+        var baseTypeInfo = ParseTypeName(baseTypeVal);
+        var baseTypeName = baseTypeInfo.TypeName;
         entityType.BaseTypeName = baseTypeName;
-        var baseEntityType = MetadataStore.GetEntityType(baseTypeName, true);
+        var baseEntityType = _metadataStore.GetEntityType(baseTypeName, true);
         if (baseEntityType == null) {
           CompleteParseCsdlEntityType(entityType, csdlEntityType, baseEntityType);
         } else {
@@ -49,7 +54,7 @@ namespace Breeze.Metadata {
       return entityType;
     }
 
-    private void CompleteParseCsdlEntityType(EntityType entityType, dynamic csdlEntityType, EntityType baseEntityType) {
+    private void CompleteParseCsdlEntityType(EntityType entityType, JObject csdlEntityType, EntityType baseEntityType) {
       var baseKeyNamesOnServer = new List<string>();
       if (baseEntityType != null) {
         entityType.BaseEntityType = baseEntityType;
@@ -66,17 +71,22 @@ namespace Breeze.Metadata {
           entityType.AddNavigationProperty(np);
         });
       }
-      var keyNamesOnServer = csdlEntityType.key == null 
+      var keyVal = csdlEntityType["key"];
+      var keyNamesOnServer = keyVal == null 
         ? new List<String>() 
-        : ToEnumerable((Object)csdlEntityType.key.propertyRef).Select(x => (String)((dynamic)x).name).ToList();
+        : ToEnumerable(keyVal["propertyRef"]).Select(x => (String) x["name"]).ToList();
       keyNamesOnServer.AddRange(baseKeyNamesOnServer);
 
-      ToEnumerable((Object)csdlEntityType.property).ForEach(csdlDataProp => {
-        ParseCsdlDataProperty(entityType, csdlDataProp, keyNamesOnServer);
+      ToEnumerable(csdlEntityType["property"]).ForEach(csdlDataProp => {
+        ParseCsdlDataProperty(entityType, (JObject) csdlDataProp, keyNamesOnServer);
+      });
+
+      ToEnumerable(csdlEntityType["navigationproperty"]).ForEach(csdlNavProp => {
+        ParseCsdlNavigationProperty(entityType, (JObject)csdlNavProp);
       });
     }
 
-    private DataProperty ParseCsdlDataProperty(EntityType parentEntityType, dynamic csdlProperty, List<String> keyNamesOnServer) {
+    private DataProperty ParseCsdlDataProperty(EntityType parentEntityType, JObject csdlProperty, List<String> keyNamesOnServer) {
       DataProperty dp;
       var typeParts = ExtractTypeNameParts(csdlProperty);
 
@@ -85,53 +95,155 @@ namespace Breeze.Metadata {
       } else {
         if (IsEnumType(csdlProperty)) {
           dp = ParseCsdlSimpleProperty(parentEntityType, csdlProperty, keyNamesOnServer);
-          dp.EnumType = csdlProperty.type;
+          dp.EnumTypeName = (String) csdlProperty["type"];
         } else {
           dp = ParseCsdlComplexProperty(parentEntityType, csdlProperty);
         }
-        if (dp != null) {
-          parentEntityType.AddDataProperty(dp);
-          AddValidators(dp);
-        }
+      }
+
+      if (dp != null) {
+        parentEntityType.AddDataProperty(dp);
+        AddValidators(dp);
       }
       return dp;
     }
 
-    private DataProperty ParseCsdlSimpleProperty(EntityType parentEntityType, dynamic csdlProperty, List<String> keyNamesOnServer) {
+    private DataProperty ParseCsdlSimpleProperty(EntityType parentEntityType, JObject csdlProperty, List<String> keyNamesOnServer) {
+      
+      var typeVal = (String) csdlProperty["type"];
+      var nameVal = (String)csdlProperty["name"];
+      var nullableVal = (String) csdlProperty["nullable"];
+      var maxLengthVal = (String) csdlProperty["maxLength"];
+      var concurrencyModeVal = (String)csdlProperty["concurrencyMode"];
 
+      var dataType = DataType.FromEdmType(typeVal);
+      if (dataType == DataType.Undefined) {
+        parentEntityType.Warnings.Add("Unable to recognize DataType for property: " + nameVal + " DateType: " + typeVal);
+      }
+      
+      var isNullable = nullableVal == "true" || nullableVal == null;
+      var isPartOfKey = keyNamesOnServer != null && keyNamesOnServer.IndexOf( nameVal) >= 0;
+      if (isPartOfKey && parentEntityType.AutoGeneratedKeyType == AutoGeneratedKeyType.None) {
+        if (IsIdentityProperty(csdlProperty)) {
+          parentEntityType.AutoGeneratedKeyType = AutoGeneratedKeyType.Identity;
+        }
+      }
+      // TODO: nit - don't set maxLength if null;
+      
+      var maxLength = (maxLengthVal == null || maxLengthVal == "Max") ? (Int64?)null : Int64.Parse(maxLengthVal);
+      var concurrencyMode = concurrencyModeVal == "fixed" ? ConcurrencyMode.Fixed : ConcurrencyMode.None;
+      var dp = new DataProperty() {
+        NameOnServer = nameVal,
+        DataType = dataType,
+        IsNullable = isNullable,
+        IsPartOfKey = isPartOfKey,
+        MaxLength = maxLength,
+        DefaultValue = csdlProperty["defaultValue"],
+        // fixedLength: fixedLength,
+        ConcurrencyMode = concurrencyMode
+      };
+
+      if (dataType == DataType.Undefined) {
+        dp.RawTypeName = typeVal;
+      }
+      return dp;
     }
 
-    private DataProperty ParseCsdlComplexProperty(EntityType parentEntityType, dynamic csdlProperty) {
-
+    private DataProperty ParseCsdlComplexProperty(EntityType parentEntityType, JObject csdlProperty) {
+      return null;
     }
 
-    //function completeParseCsdlEntityType(entityType, csdlEntityType, schema, metadataStore, baseEntityType) {
-    //    var baseKeyNamesOnServer = [];
+    private DataProperty ParseCsdlNavigationProperty(EntityType parentEntityType, JObject csdlProperty) {
 
-    //    var keyNamesOnServer = csdlEntityType.key ? __toArray(csdlEntityType.key.propertyRef).map(__pluck("name")) : [];
-    //    keyNamesOnServer = baseKeyNamesOnServer.concat(keyNamesOnServer);
-
-    //    __toArray(csdlEntityType.property).forEach(function (prop) {
-    //        parseCsdlDataProperty(entityType, prop, schema, keyNamesOnServer);
+    //  function parseCsdlNavProperty(entityType, csdlProperty, schema) {
+    //    var association = getAssociation(csdlProperty, schema);
+    //    var toEnd = __arrayFirst(association.end, function (assocEnd) {
+    //        return assocEnd.role === csdlProperty.toRole;
     //    });
 
-    //    __toArray(csdlEntityType.navigationProperty).forEach(function (prop) {
-    //        parseCsdlNavProperty(entityType, prop, schema);
-    //    });
+    //    var isScalar = toEnd.multiplicity !== "*";
+    //    var dataType = parseTypeName(toEnd.type, schema).typeName;
 
-    //    metadataStore.addEntityType(entityType);
-    //    entityType.defaultResourceName = metadataStore._entityTypeResourceMap[entityType.name];
+    //    var constraint = association.referentialConstraint;
+    //    if (!constraint) {
+    //        // TODO: Revisit this later - right now we just ignore many-many and assocs with missing constraints.
+    //        return;
+    //        // Think about adding this back later.
+    //        //if (association.end[0].multiplicity == "*" && association.end[1].multiplicity == "*") {
+    //        //    // many to many relation
+    //        //    ???
+    //        //} else {
+    //        //    throw new Error("Foreign Key Associations must be turned on for this model");
+    //        //}
+    //    }
+        
+    //    var cfg = {
+    //        nameOnServer: csdlProperty.name,
+    //        entityTypeName: dataType,
+    //        isScalar: isScalar,
+    //        associationName: association.name
+    //    };
 
-    //    var deferredTypes = metadataStore._deferredTypes;
-    //    var deferrals = deferredTypes[entityType.name];
-    //    if (deferrals) {
-    //        deferrals.forEach(function (d) {
-    //            completeParseCsdlEntityType(d.entityType, d.csdlEntityType, schema, metadataStore, entityType);
-    //        });
-    //        delete deferredTypes[entityType.name];
+    //    var principal = constraint.principal;
+    //    var dependent = constraint.dependent;
+        
+    //    var propRefs = __toArray(dependent.propertyRef);
+    //    var fkNames = propRefs.map(__pluck("name"));
+    //    if (csdlProperty.fromRole === principal.role) {
+    //        cfg.invForeignKeyNamesOnServer = fkNames;
+    //    } else {
+    //        // will be used later by np._update
+    //        cfg.foreignKeyNamesOnServer = fkNames;
     //    }
 
+    //    var np = new NavigationProperty(cfg);
+    //    entityType.addProperty(np);
+    //    return np;
     //}
+      return null;
+    }
+
+    private JObject GetAssociation(JObject csdlNavProperty) {
+      var assocsVal = _schema["association"];
+      if (assocsVal == null) return null;
+      
+      var relationshipVal = (String) csdlNavProperty["relationship"];
+      var assocName = ParseTypeName(relationshipVal).ShortTypeName;
+
+      var association = ToEnumerable(assocsVal).FirstOrDefault(assoc => (String) assoc["name"] == assocName);
+          
+      return (JObject) association;
+    }
+
+   
+
+    
+
+    private ComplexType ParseCsdlComplexType(JObject csdlComplexType) {
+      var nameVal = (String)csdlComplexType["name"];
+      return new ComplexType {
+        ShortName = nameVal
+      };
+    }
+
+
+    private bool IsIdentityProperty(JObject csdlProperty) {
+
+      var subProp = csdlProperty.Properties().FirstOrDefault(p => p.Name.IndexOf("StoreGeneratedPattern") > 0);
+      if (subProp != null) {
+        return subProp.Name == "Identity";
+      } else {
+        // see if Odata feed
+        var extensionsVal = csdlProperty["extensions"];
+        if (extensionsVal == null) return false;
+        // TODO: NOT YET TESTED
+        var identityExtn = ToEnumerable(extensionsVal).FirstOrDefault(extn => {
+          return (String) extn["name"] == "StoreGeneratedPattern" && (String) extn["value"] == "Identity";
+        });
+        return identityExtn != null;
+      }
+    }
+      
 
     private void AddValidators(DataProperty dp) {
       if (!dp.IsNullable) {
@@ -163,50 +275,87 @@ namespace Breeze.Metadata {
 
     //}
 
-    private bool IsEnumType(dynamic csdlProperty) {
-        if (!_schema.enumType) return false;
-        var enumTypes = ToEnumerable((object) _schema.enumType);
-        var typeParts = ExtractTypeNameParts(csdlProperty);
-        var baseTypeName = typeParts[typeParts.length - 1];
-        return enumTypes.Any( enumType => ((dynamic) enumType).name == baseTypeName);
+    private bool IsEnumType(JObject csdlProperty) {
+      var enumTypeVal = _schema["enumType"];
+      if ( enumTypeVal == null) return false;
+      var enumTypes = ToEnumerable(enumTypeVal);
+      var typeParts = ExtractTypeNameParts(csdlProperty);
+      var baseTypeName = typeParts[typeParts.Length - 1];
+      return enumTypes.Any( enumType => ((String) enumType["name"] == baseTypeName));
     }
 
-    private String[] ExtractTypeNameParts(dynamic csdlProperty) {
-        var typeParts = ((String)csdlProperty.type).Split('.');
+    private String[] ExtractTypeNameParts(JObject csdlProperty) {
+        var typeParts = ((String)csdlProperty["type"]).Split('.');
         return typeParts;
     }
 
-    private String ParseTypeName(String typeName) {
-      return typeName;
-    }
+    private TypeNameInfo ParseTypeName(String entityTypeName) {
+      if (String.IsNullOrEmpty(entityTypeName)) return null;
+      if (entityTypeName.StartsWith(MetadataStore.ANONTYPE_PREFIX)) {
+        return new TypeNameInfo() {
+          ShortTypeName = entityTypeName,
+          Namespace = "",
+          TypeName = entityTypeName,
+          IsAnonymous = true,
+        };
+      }
 
-    private IEnumerable<Object> ToEnumerable(Object d) {
-      if (d == null) {
-        return Enumerable.Empty<Object>();
-      } else if (d.GetType() == typeof(JArray)) {
-        return ((IEnumerable)d).Cast<Object>();
+      var entityTypeNameNoAssembly = entityTypeName.Split(',')[0];
+        var nameParts = entityTypeNameNoAssembly.Split('.');
+      if (nameParts.Length > 1) {
+        var shortName = nameParts[nameParts.Length - 1];
+        var  nsParts =  nameParts.Take(nameParts.Length - 1).ToArray();
+        var ns = String.Join(".", nsParts);
+        //if (schema) {
+        //    ns = getNamespaceFor(shortName, schema);
+        //} else {
+        //    var namespaceParts = nameParts.slice(0, nameParts.length - 1);
+        //    ns = namespaceParts.join(".");
+        //}
+        return new TypeNameInfo() {
+            ShortTypeName =  shortName,
+            Namespace =  ns,
+            TypeName =  QualifyTypeName(shortName, ns)
+        };
       } else {
-        return new Object[] { d };
+         return new TypeNameInfo() {
+            ShortTypeName =  entityTypeName,
+            Namespace =  "",
+            TypeName =  entityTypeName
+        };
       }
     }
 
-    private ComplexType ToComplexType(dynamic ct) {
-      return new ComplexType {
-        ShortName = ct.name,
+    private String QualifyTypeName(String shortName, String ns) {
+      return shortName + ":#" + ns;
+    }
 
+    private IEnumerable<T> ToEnumerable<T>(T d) {
+      if (d == null) {
+        return Enumerable.Empty<T>();
+      } else if (d.GetType() == typeof(JArray)) {
+        return ((IEnumerable)d).Cast<T>();
+      } else {
+        return new T[] { d };
+      }
+    }
 
-      };
+    internal class TypeNameInfo {
+      public String ShortTypeName { get; set; }
+      public String Namespace { get; set; }
+      public String TypeName { get; set; }
+      public Boolean IsAnonymous { get; set; }
     }
 
     private class DeferredTypeInfo {
       public EntityType EntityType { get; set; }
-      public dynamic CsdlEntityType { get; set; }
+      public JObject CsdlEntityType { get; set; }
     }
 
-    private dynamic _schema;
+    private JToken _schema;
     private String _namespace;
     private MetadataStore _metadataStore;
-    private Dictionary<String, DeferredTypeInfo> _deferredTypeMap = new Dictionary<String, DeferredTypeInfo>();
+    private Dictionary<String, List<DeferredTypeInfo>> _deferredTypeMap = new Dictionary<String, List<DeferredTypeInfo>>();
 
 
 
