@@ -47,8 +47,8 @@ namespace Breeze.Metadata {
     public String RawTypeName { get; internal set; }
 
     public bool IsComplexProperty { get { return ComplexTypeName != null;}}
-    public override bool IsDataProperty { get { return false; } }
-    public override bool IsNavigationProperty { get { return true; } }
+    public override bool IsDataProperty { get { return true; } }
+    public override bool IsNavigationProperty { get { return false; } }
     
   }
 

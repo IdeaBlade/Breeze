@@ -14,6 +14,9 @@ namespace Breeze.Metadata {
   }
 
   public class NavigationProperty : AbstractProperty {
+    public NavigationProperty() {
+
+    }
     public String EntityTypeName { get; internal set; }
     public String AssociationName { get; internal set; }
     public List<String> ForeignKeyNames { get; internal set;}

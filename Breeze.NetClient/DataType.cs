@@ -76,6 +76,7 @@ namespace Breeze.Metadata {
     };
 
     public static DataType Time = new DataType(typeof(TimeSpan)) {
+      Name = "Time",
       DefaultValue = new TimeSpan(0),
       FmtOData = FmtTime,
     };
@@ -91,7 +92,8 @@ namespace Breeze.Metadata {
       GetNext = () => GetNextValue(typeof(Guid))
     };
 
-    public static DataType Binary = new DataType(typeof(Guid)) {
+    public static DataType Binary = new DataType(typeof(Byte[])) {
+      Name = "Binary",
       DefaultValue = null,
       FmtOData = FmtBinary,
     };

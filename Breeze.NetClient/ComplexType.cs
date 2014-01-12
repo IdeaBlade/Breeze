@@ -15,8 +15,23 @@ namespace Breeze.Metadata {
 
   public class ComplexType: StructuralType {
     
-    public DataPropertyCollection DataProperties { get; internal set; }   
+    public DataPropertyCollection DataProperties { get; internal set; }
 
+    internal override DataProperty AddDataProperty(DataProperty dp) {
+      _dataProperties.Add(dp);
+
+
+      if (dp.IsComplexProperty) {
+        _complexProperties.Add(dp);
+      }
+
+      if (dp.IsUnmapped) {
+        _unmappedProperties.Add(dp);
+      }
+      return dp;
+    }
+
+   
   }
 
 }

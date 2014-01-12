@@ -22,6 +22,23 @@ namespace Breeze.Metadata {
     public dynamic Custom { get; set; }
     public List<String> Warnings { get; internal set; }
 
+    internal abstract DataProperty AddDataProperty(DataProperty dp);
+
+    public IEnumerable<DataProperty> DataProperties {
+      get { return _dataProperties.AsEnumerable(); }
+    }
+
+    public IEnumerable<DataProperty> ComplexProperties {
+      get { return _complexProperties.AsEnumerable(); }
+    }
+
+    public IEnumerable<DataProperty> UnmappedProperties {
+      get { return _unmappedProperties.AsEnumerable(); }
+    }
+
+    protected DataPropertyCollection _dataProperties = new DataPropertyCollection();
+    protected List<DataProperty> _complexProperties = new List<DataProperty>();
+    protected List<DataProperty> _unmappedProperties = new List<DataProperty>(); 
   }
 
 
