@@ -34,16 +34,13 @@ import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.UUID;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.json.JSONWriter;
 import static com.sun.json.JSONConstants.*;
 

@@ -6,12 +6,13 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import northwind.model.Customer;
+import northwind.model.Order;
 
 import com.breezejs.OdataParameters;
 import com.breezejs.hib.DataService;
-import com.breezejs.save.SaveOptions;
 
 /**
  * NorthBreeze service returning JSON.
@@ -36,9 +37,8 @@ public class NorthBreeze {
 	
 	@POST
 	@Path("SaveChanges")
-	public String saveChanges(String saveBundle) {
-		dataService.log(saveBundle);
-		return dataService.getMetadata();
+	public Response saveChanges(String saveBundle) {
+		return dataService.saveChanges(saveBundle);
 	}
 	
 	@GET
@@ -50,8 +50,9 @@ public class NorthBreeze {
 
 	@GET
 	@Path("Orders")
-	public String getOrders() {
-		return dataService.queryToJson("from Order where orderId in (10248, 10249, 10250)");
+	public String getOrders(@BeanParam OdataParameters odataParameters) {
+		return dataService.queryToJson(Order.class, odataParameters);
+//		return dataService.queryToJson("from Order where orderId in (10248, 10249, 10250)");
 	}	  
 	  
 	

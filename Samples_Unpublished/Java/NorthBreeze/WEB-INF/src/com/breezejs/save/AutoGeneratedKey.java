@@ -1,8 +1,5 @@
 package com.breezejs.save;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 
 import com.breezejs.util.Assert;

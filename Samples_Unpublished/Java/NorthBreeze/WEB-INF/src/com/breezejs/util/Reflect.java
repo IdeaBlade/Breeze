@@ -49,4 +49,24 @@ public class Reflect {
 		}
 	}
 	
+	/**
+	 * Make PropertyDescriptors for the given names.  This is used in BeanInfo classes
+	 * to create proper-case names for properties, which Breeze prefers.
+	 * @param beanClass Class which has the properties
+	 * @param names property names
+	 * @return
+	 */
+	public static PropertyDescriptor[] makePropertyDescriptors(Class<?> beanClass, String... names) {
+
+		PropertyDescriptor[] props = new PropertyDescriptor[names.length];
+		try {
+			for (int i = 0; i < names.length; i++) {
+				props[i] = new PropertyDescriptor(names[i], beanClass);
+			}
+			return props;
+		} catch (IntrospectionException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 }

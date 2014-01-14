@@ -26,7 +26,6 @@ package com.sun.json;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
-import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.Reader;
@@ -34,13 +33,10 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -321,27 +317,24 @@ public class JSONDeserializer {
                 try {
                     BeanInfo binfo = Introspector.getBeanInfo(bean.getClass());
                     PropertyDescriptor[] propDescs = binfo.getPropertyDescriptors();
-                    while (props.hasNext()) {
-                        String name = props.next().toString();
-                        Object value = jobj.get(name);
-                        final String idRef = getIdRef(value);
-                        // FIXME: store it in a Map and cache..
-                        for (PropertyDescriptor pd : propDescs) {
-                            if (name.equals(pd.getName())) {
-                                final Method m = pd.getWriteMethod();
-                                Class type = pd.getPropertyType();
-                                if (m != null) {                                    
-                                    if (idRef != null) {
-                                        idRefSetters().add(new PropertySetter() {
-                                            public void set() throws Exception {
-                                                m.invoke(bean, idToObj().get(idRef));
-                                            }
-                                        });
-                                    } else {
-                                        m.invoke(bean, convert(value, type));
+                    
+                    for (PropertyDescriptor pd : propDescs) {
+                    	String pdName = pd.getName();
+                    	Object value = jobj.opt(pdName);
+                    	if (value == null) continue;
+
+                        final Method m = pd.getWriteMethod();
+                        if (m != null) {                                    
+                        	final String idRef = getIdRef(value);
+                            if (idRef != null) {
+                                idRefSetters().add(new PropertySetter() {
+                                    public void set() throws Exception {
+                                        m.invoke(bean, idToObj().get(idRef));
                                     }
-                                }
-                                break;                 
+                                });
+                            } else {
+                                Class type = pd.getPropertyType();
+                                m.invoke(bean, convert(value, type));
                             }
                         }
                     }

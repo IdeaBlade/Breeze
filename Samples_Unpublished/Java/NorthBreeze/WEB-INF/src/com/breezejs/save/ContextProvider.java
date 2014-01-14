@@ -18,9 +18,18 @@ public class ContextProvider {
 		List entityMaps = (List<Map>) saveBundle.get("entities");
 		SaveWorkState sw = new SaveWorkState(this, entityMaps);
 		
-		sw.beforeSave();
-		saveChangesCore(sw);
-		sw.afterSave();
+		try {
+			sw.beforeSave();
+			saveChangesCore(sw);
+			sw.afterSave();
+		} catch (EntityErrorsException e) {
+			sw.entityErrors = e.entityErrors;
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (!handleSaveException(e, sw)) {
+				throw e;
+			}
+		}
 		
 		SaveResult sr = sw.toSaveResult();
 		return sr;
@@ -32,7 +41,7 @@ public class ContextProvider {
 	 * @param entityInfo
 	 * @return true if the entity should be included in the saveMap, false if not.  
 	 */
-	public boolean beforeSaveEntity(EntityInfo entityInfo) {
+	public boolean beforeSaveEntity(EntityInfo entityInfo) throws EntityErrorsException {
 		return true;
 	}
 	
@@ -41,7 +50,7 @@ public class ContextProvider {
 	 * @param saveMap all entities that will be saved
 	 * @return saveMap, which may have entities added, changed, or removed.
 	 */
-	public Map<Class, List<EntityInfo>> beforeSaveEntities(Map<Class, List<EntityInfo>> saveMap) {
+	public Map<Class, List<EntityInfo>> beforeSaveEntities(Map<Class, List<EntityInfo>> saveMap) throws EntityErrorsException {
 		return saveMap;
 	}
 	
@@ -50,14 +59,29 @@ public class ContextProvider {
 	 * @param saveMap all entities which have been saved
 	 * @param keyMappings mapping of temporary keys to real keys
 	 */
-	public void afterSaveEntities(Map<Class, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings) {
+	public void afterSaveEntities(Map<Class, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings) throws EntityErrorsException {
 	}
 	
 	/**
 	 * Save the changes to the database.
 	 */
 	protected void saveChangesCore(SaveWorkState sw) {
-		
+	}
+	
+	/**
+	 * Allows subclasses to plug in their own exception handling.  
+	 * This method is called when saveChangesCore throws an exception.
+	 * Subclass implementations of this method should either:
+	 *  1. Throw an exception
+	 *  2. Return false (exception not handled)
+	 *  3. Return true (exception handled) and modify the SaveWorkState accordingly.
+	 * Base implementation returns false (exception not handled).
+	 * @param e Exception that was thrown by saveChangesCore
+	 * @param saveWorkState SaveWorkState when the exception was thrown
+	 * @return true (exception handled) or false (exception not handled)
+	 */
+	protected boolean handleSaveException(Exception e, SaveWorkState saveWorkState) {
+		return false;
 	}
 	
 }
