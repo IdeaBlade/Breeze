@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+    <metadata>
+        <id>Angular.MidwayTester</id>
+        <version>0.1.1-pre</version>
+        <authors>Matias Niemelä</authors>
+        <owners>Ward Bell</owners>
+        <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
+        <projectUrl>https://github.com/yearofmoo/ngMidwayTester</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>A pure-javascript integration tester for AngularJS that can be run inline with application code.
+
+This package adds a single file, "ngMidwayTester.js" to you project's "scripts" folder.
+
+See the author's post, "Full-Spectrum Testing with AngularJS and Karma", for an extensive discussion of the why and how (http://www.yearofmoo.com/2013/01/full-spectrum-testing-with-angularjs-and-karma.html)</description>
+        <summary>Helper library for AngularJS asynchronous integration testing.</summary>
+        <copyright>Copyright © 2014 Matias Niemeläe</copyright>
+        <tags>angular testing asynchronous midway javascript</tags>
+        <dependencies>
+            <dependency id="AngularJS.Core" />
+            <dependency id="AngularJS.Route" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\..\..\CC-Angular-Breeze\final\CC.Web\test\lib\ngMidwayTester.js" target="content\scripts\ngMidwayTester.js" />
+    </files>
+</package>
