@@ -32,6 +32,7 @@ public class RelationshipFixer {
     private Map<Class, List<EntityInfo>> saveMap;
     private Map<String, String> fkMap;
     private Session session;
+    private SessionFactory sessionFactory;
     
     /**
      * Create new instance with the given saveMap and fkMap.  Since the saveMap is unique per save, 
@@ -45,6 +46,7 @@ public class RelationshipFixer {
 		this.saveMap = saveMap;
 		this.fkMap = fkMap;
 		this.session = session;
+		this.sessionFactory = session.getSessionFactory();
 	}
 
 	/**
@@ -53,11 +55,10 @@ public class RelationshipFixer {
 	 */
     public void fixupRelationships()
     {
-    	SessionFactory sf = session.getSessionFactory();
     	for (Entry<Class, List<EntityInfo>> entry : saveMap.entrySet()) {
     		
             Class entityType = entry.getKey();
-            ClassMetadata classMeta = sf.getClassMetadata(entityType);
+            ClassMetadata classMeta = sessionFactory.getClassMetadata(entityType);
 
             for (EntityInfo entityInfo : entry.getValue())
             {
@@ -214,7 +215,7 @@ public class RelationshipFixer {
         else if (meta.isInherited() && meta instanceof AbstractEntityPersister)
         {
             String superEntityName = ((AbstractEntityPersister)meta).getMappedSuperclass();
-            ClassMetadata superMeta = session.getSessionFactory().getClassMetadata(superEntityName);
+            ClassMetadata superMeta = sessionFactory.getClassMetadata(superEntityName);
             return findForeignKey(propName, superMeta);
         }
         else
@@ -285,7 +286,7 @@ public class RelationshipFixer {
         List<EntityInfo> entityInfoList = saveMap.get(entityType);
         if (entityInfoList != null)
         {
-            ClassMetadata meta = session.getSessionFactory().getClassMetadata(entityType);
+            ClassMetadata meta = sessionFactory.getClassMetadata(entityType);
             for (EntityInfo entityInfo : entityInfoList)
             {
                 Object entity = entityInfo.entity;

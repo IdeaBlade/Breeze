@@ -29,7 +29,7 @@ public class SaveWorkState {
 	}
 
 	/** Build the saveMap, and call context.beforeSaveEntity/ies */
-	protected void beforeSave() {
+	protected void beforeSave() throws EntityErrorsException {
 		for (Object o : entityMaps) {
 			EntityInfo entityInfo = createEntityInfoFromJson((Map) o);
 
@@ -46,7 +46,7 @@ public class SaveWorkState {
 	}
 
 	/** Call context.afterSaveEntities */
-	protected void afterSave() {
+	protected void afterSave() throws EntityErrorsException {
 		context.afterSaveEntities(saveMap, keyMappings);
 	}
 

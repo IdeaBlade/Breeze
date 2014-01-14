@@ -44,7 +44,7 @@ public class HibernateContext extends ContextProvider {
 		if (!hasExistingTransaction)
 			tx.begin();
 		try {
-			ProcessSaves(saveMap);
+			processSaves(saveMap);
 
 			session.flush();
 			//          RemoveRelationships(saveMap);
@@ -73,7 +73,7 @@ public class HibernateContext extends ContextProvider {
 	 * Persist the changes to the entities in the saveMap.
 	 * @param saveMap
 	 */
-	private void ProcessSaves(Map<Class, List<EntityInfo>> saveMap) {
+	private void processSaves(Map<Class, List<EntityInfo>> saveMap) {
 		// Get the map of foreign key relationships
 		Map<String, String> fkMap = (Map<String, String>) metadataMap.get(MetadataBuilder.FK_MAP);
 		RelationshipFixer fixer = new RelationshipFixer(saveMap, fkMap, session);
@@ -87,8 +87,8 @@ public class HibernateContext extends ContextProvider {
 			ClassMetadata classMeta = sf.getClassMetadata(entityType);
 
 			for (EntityInfo entityInfo : entry.getValue()) {
-				AddKeyMapping(entityInfo, entityType, classMeta);
-				ProcessEntity(entityInfo, classMeta);
+				addKeyMapping(entityInfo, entityType, classMeta);
+				processEntity(entityInfo, classMeta);
 			}
 		}
 	}
@@ -98,13 +98,13 @@ public class HibernateContext extends ContextProvider {
 	 * @param entityInfo
 	 * @param classMeta
 	 */
-	private void ProcessEntity(EntityInfo entityInfo, ClassMetadata classMeta) {
+	private void processEntity(EntityInfo entityInfo, ClassMetadata classMeta) {
 		Object entity = entityInfo.entity;
 		EntityState state = entityInfo.entityState;
 
 		// Restore the old value of the concurrency column so Hibernate will be able to save the entity
 		if (classMeta.isVersioned()) {
-			RestoreOldVersionValue(entityInfo, classMeta);
+			restoreOldVersionValue(entityInfo, classMeta);
 		}
 
 		if (state == EntityState.Modified) {
@@ -125,11 +125,13 @@ public class HibernateContext extends ContextProvider {
 	 * @param type
 	 * @param meta
 	 */
-	private void AddKeyMapping(EntityInfo entityInfo, Class type, ClassMetadata meta) {
-		Object entity = entityInfo.entity;
-		Object id = GetIdentifier(entity, meta);
-		KeyMapping km = new KeyMapping(type.getName(), id);
-		entityKeyMapping.put(entityInfo, km);
+	private void addKeyMapping(EntityInfo entityInfo, Class type, ClassMetadata meta) {
+		if (entityInfo.entityState == EntityState.Added) {
+			Object entity = entityInfo.entity;
+			Object id = getIdentifier(entity, meta);
+			KeyMapping km = new KeyMapping(type.getName(), id);
+			entityKeyMapping.put(entityInfo, km);
+		}
 	}
 
 	/**
@@ -139,7 +141,7 @@ public class HibernateContext extends ContextProvider {
 	 * @param meta
 	 * @return
 	 */
-	private Object GetIdentifier(Object entity, ClassMetadata meta) {
+	private Object getIdentifier(Object entity, ClassMetadata meta) {
 		Class type = entity.getClass();
 		if (meta == null)
 			meta = session.getSessionFactory().getClassMetadata(type);
@@ -171,8 +173,8 @@ public class HibernateContext extends ContextProvider {
 	 * @param meta
 	 * @return
 	 */
-	private Object[] GetIdentifierAsArray(Object entity, ClassMetadata meta) {
-		Object value = GetIdentifier(entity, meta);
+	private Object[] getIdentifierAsArray(Object entity, ClassMetadata meta) {
+		Object value = getIdentifier(entity, meta);
 		if (value.getClass().isArray()) {
 			return (Object[]) value;
 		} else {
@@ -186,7 +188,7 @@ public class HibernateContext extends ContextProvider {
 	 * @param entityInfo
 	 * @param classMeta
 	 */
-	private void RestoreOldVersionValue(EntityInfo entityInfo, ClassMetadata classMeta) {
+	private void restoreOldVersionValue(EntityInfo entityInfo, ClassMetadata classMeta) {
 		if (entityInfo.originalValuesMap == null || entityInfo.originalValuesMap.size() == 0)
 			return;
 		int vcol = classMeta.getVersionProperty();
@@ -214,7 +216,7 @@ public class HibernateContext extends ContextProvider {
 			KeyMapping km = entityKeyMapping.get(entityInfo);
 			if (km != null && km.getTempValue() != null) {
 				Object entity = entityInfo.entity;
-				Object id = GetIdentifier(entity, null);
+				Object id = getIdentifier(entity, null);
 				km.setRealValue(id);
 				list.add(km);
 			}
