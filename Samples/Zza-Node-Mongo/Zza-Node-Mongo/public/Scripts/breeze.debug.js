@@ -21,13 +21,12 @@
 
 })(function () {  
     var breeze = {
-        version: "1.4.5",
+        version: "1.4.8",
         metadataVersion: "1.0.5"
     };
 
 
-    
-/**
+    ;/**
  @module core
  **/
 
@@ -68,6 +67,8 @@ function __objectMapToArray(obj, kvFn) {
     return results;
 }
 
+
+
 // Functional extensions 
 
 // can be used like: persons.filter(propEq("firstName", "John"))
@@ -95,15 +96,22 @@ function __getOwnPropertyValues(source) {
     return result;
 }
 
-function __extend(target, source) {
+function __extend(target, source, propNames) {
     if (!source) return target;
-    for (var name in source) {
-        if (__hasOwnProperty(source, name)) {
-            target[name] = source[name];
+    if (propNames) {
+        propNames.forEach(function (propName) {
+            target[propName] = source[propName];
+        })
+    } else {
+        for (var propName in source) {
+            if (__hasOwnProperty(source, propName)) {
+                target[propName] = source[propName];
+            }
         }
     }
     return target;
 }
+
 
 function __updateWithDefaults(target, defaults) {
     for (var name in defaults) {
@@ -217,6 +225,7 @@ function __toArray(item) {
     }
 }
 
+// a version of Array.map that doesn't require an array, i.e. works on arrays and scalars.
 function __map(items, fn) {
     if (items == null) return items;
     var result;
@@ -265,13 +274,11 @@ function __arrayRemoveItem(array, predicateOrItem, shouldRemoveMultiple) {
 }
 
 function __arrayZip(a1, a2, callback) {
-
     var result = [];
     var n = Math.min(a1.length, a2.length);
     for (var i = 0; i < n; ++i) {
         result.push(callback(a1[i], a2[i]));
     }
-
     return result;
 }
 
@@ -343,26 +350,39 @@ function __requireLib(libNames, errMessage) {
         throw new Error("Unable to initialize " + libNames + ".  " + errMessage || "");
     }
 }
-    
-function __requireLibCore(libName) {
-    var lib;
-    try {
-        if (this.window) {
-            var window = this.window;
-            lib = window[libName];
-            if (lib) return lib;
-            if (window.require) {
-                lib = window.require(libName);
-            }
-            if (lib) return lib;
-        }
-        if (require) {
-            lib = require(libName);
-        }
-    } catch(e) {
 
+// Returns the 'libName' module if loaded or else returns undefined
+function __requireLibCore(libName) {
+    var window = this.window;
+    if (!window) return; // Must run in a browser. Todo: add commonjs support
+
+    // get library from browser globals if we can
+    var lib = window[libName];
+    if (lib) return lib;
+
+    // if require exists, maybe require can get it.
+    // This method is synchronous so it can't load modules with AMD.
+    // It can only obtain modules from require that have already been loaded.
+    // Developer should bootstrap such that the breeze module
+    // loads after all other libraries that breeze should find with this method
+    // See documentation 
+    var r = window.require;
+    if (r) { // if require exists
+        if (r.defined) { // require.defined is not standard and may not exist
+            // require.defined returns true if module has been loaded
+            return r.defined(libName) ? r(libName) : undefined; 
+        } else {
+            // require.defined does not exist so we have to call require('libName') directly.
+            // The require('libName') overload is synchronous and does not load modules.
+            // It throws an exception if the module isn't already loaded.
+            try {
+                return r(libName);  
+            } catch (e) {
+                // require('libName') threw because module not loaded
+                return; 
+            }             
+        }     
     }
-    return lib;
 }
 
 function __using(obj, property, tempValue, fn) {
@@ -477,8 +497,6 @@ function __isGuid(value) {
     
 function __isDuration(value) {
     return (typeof value === "string") && /^(-|)?P[T]?[\d\.,\-]+[YMDTHS]/.test(value);
-    // old version
-    // return (typeof value === "string") && /^(-|)?P([0-9]+Y|)?([0-9]+M|)?([0-9]+D|)?T?([0-9]+H|)?([0-9]+M|)?([0-9]+S|)?/.test(value);
 }
 
 function __isEmpty(obj) {
@@ -492,8 +510,6 @@ function __isEmpty(obj) {
     }
     return true;
 }
-
-
 
 function __isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
@@ -589,7 +605,7 @@ core.parent = breeze;
 breeze.core = core;
 
 
-/**
+;/**
  @module core
  **/
 
@@ -951,7 +967,7 @@ core.assertConfig = assertConfig;
 
 
 
-/**
+;/**
  @module core
  **/
 
@@ -1225,7 +1241,7 @@ var Enum = (function() {
 core.Enum = Enum;
 
 
-/**
+;/**
 @module core
 **/
 
@@ -1251,6 +1267,7 @@ var Event = (function() {
     errorCallback([e])
     @param [defaultErrorCallback.e] {Error} Any error encountered during subscription execution.
     **/
+
     var ctor = function(name, publisher, defaultErrorCallback) {
         assertParam(name, "eventName").isNonEmptyString().check();
         assertParam(publisher, "publisher").isObject().check();
@@ -1280,7 +1297,7 @@ var Event = (function() {
         });
     @method publish
     @param data {Object} Data to publish
-    @param [publishAsync=false] Whether to publish asynchonously or not.
+    @param [publishAsync=false] {Boolean} Whether to publish asynchonously or not.
     @param [errorCallback] {Function} Will be called for any errors that occur during publication. If omitted, 
     errors will be eaten.
 
@@ -1509,8 +1526,7 @@ var Event = (function() {
 
 })();
 
-core.Event = Event;
-/**
+core.Event = Event;;/**
 @module breeze   
 **/
 
@@ -1739,7 +1755,7 @@ var __config = (function () {
         __config.typeRegistry[typeName] = ctor;
     };
 
-    __config.stringifyPad = "  ";
+    __config.stringifyPad = '';
 
     function initializeAdapterInstanceCore(interfaceDef, impl, isDefault) {
         var instance = impl.defaultInstance;
@@ -1789,8 +1805,7 @@ var __modelLibraryDef = __config.interfaceRegistry.modelLibrary;
 // legacy
 core.config = __config;
 
-breeze.config = __config;
-
+breeze.config = __config;;
 var observableArray = (function() {
 
     var mixin = {};
@@ -1948,8 +1963,7 @@ var observableArray = (function() {
 
 
 
-})();
-/**
+})();;/**
 @module breeze
 **/
 
@@ -2919,7 +2933,7 @@ var ValidationError = (function () {
 breeze.Validator = Validator;
 breeze.ValidationError = ValidationError;
  
-/**
+;/**
 @module breeze
 **/
    
@@ -3046,7 +3060,7 @@ breeze.ValidationOptions = ValidationOptions;
 
 
 
-
+;
 breeze.makeComplexArray = (function() {
     var complexArrayMixin = {};
 
@@ -3174,8 +3188,7 @@ breeze.makeComplexArray = (function() {
     }
 
     return makeComplexArray;
-})();
-/**
+})();;/**
 @module breeze   
 **/
 
@@ -3311,7 +3324,7 @@ var EntityAction = (function () {
 
 breeze.EntityAction= EntityAction;
 
-/**
+;/**
 @module breeze   
 **/
 
@@ -3356,6 +3369,9 @@ var EntityAspect = (function() {
         this.originalValues = {};
         this.hasValidationErrors = false;
         this._validationErrors = {};
+
+        // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+        // this._loadedNavPropMap = {};
         
         this.validationErrorsChanged = new Event("validationErrorsChanged", this);
         this.propertyChanged = new Event("propertyChanged", this);
@@ -3676,7 +3692,7 @@ var EntityAspect = (function() {
             });
     @method loadNavigationProperty
     @async
-    @param navigationProperty {NavigationProperty} The NavigationProperty to 'load'.
+    @param navigationProperty {NavigationProperty|String} The NavigationProperty or the name of the NavigationProperty to 'load'.
     @param [callback] {Function} Function to call on success.
     @param [errorCallback] {Function} Function to call on failure.
     @return {Promise} 
@@ -3688,9 +3704,29 @@ var EntityAspect = (function() {
     proto.loadNavigationProperty = function (navigationProperty, callback, errorCallback) {
         var entity = this.entity;
         var navProperty = entity.entityType._checkNavProperty(navigationProperty);
-        var query = EntityQuery.fromEntityNavigation(entity, navProperty, callback, errorCallback);
+        var query = EntityQuery.fromEntityNavigation(entity, navProperty);
         return entity.entityAspect.entityManager.executeQuery(query, callback, errorCallback);
     };
+
+    ///**
+    //Marks this navigationProperty on this entity as already having been loaded.
+    //@example
+    //        emp.entityAspect.markAsLoaded("Orders");
+            
+    //@method markAsLoaded
+    //@async
+    //@param navigationProperty {NavigationProperty|String} The NavigationProperty or name of NavigationProperty to 'load'.   
+    //**/
+    //proto.markNavigationPropertyAsLoaded = function(navigationProperty) {
+    //    var navProperty = this.entity.entityType._checkNavProperty(navigationProperty);
+    //    this._loadedNavPropMap[navProperty.name] = true;
+    //}
+
+    //proto.isNavigationPropertyLoaded = function (navigationProperty) {
+    //    var navProperty = this.entity.entityType._checkNavProperty(navigationProperty);
+    //    return !!_loadedNavPropMap[navProperty.name];
+    //}
+
 
     /**
     Performs validation on the entity, any errors encountered during the validation are available via the 
@@ -3809,7 +3845,7 @@ var EntityAspect = (function() {
         if (property) {
             var propertyName = typeof (property) === 'string' ? property : property.name;
             result = result.filter(function (ve) {
-                return (ve.property.name === propertyName);
+                return (ve.property && ve.property.name === propertyName);
             });
         }
         return result;
@@ -3972,29 +4008,32 @@ var EntityAspect = (function() {
     function removeFromRelationsCore(entity, isDeleted) {
         entity.entityType.navigationProperties.forEach(function (np) {
             var inverseNp = np.inverse;
-            if (!inverseNp) return;
             var npValue = entity.getProperty(np.name);
             if (np.isScalar) {
                 if (npValue) {
-                    if (inverseNp.isScalar) {
-                        clearNp(npValue, inverseNp, isDeleted);
-                    } else {
-                        var collection = npValue.getProperty(inverseNp.name);
-                        if (collection.length) {
-                            __arrayRemoveItem(collection, entity);
+                    if (inverseNp) {
+                        if (inverseNp.isScalar) {
+                            clearNp(npValue, inverseNp, isDeleted);
+                        } else {
+                            var collection = npValue.getProperty(inverseNp.name);
+                            if (collection.length) {
+                                __arrayRemoveItem(collection, entity);
+                            }
                         }
                     }
                     entity.setProperty(np.name, null);
                 }
             } else {
-                // npValue is a live list so we need to copy it first.
-                npValue.slice(0).forEach(function (v) {
-                    if (inverseNp.isScalar) {
-                        clearNp(v, inverseNp, isDeleted);
-                    } else {
-                        // TODO: many to many - not yet handled.
-                    }
-                });
+                if (inverseNp) {
+                    // npValue is a live list so we need to copy it first.
+                    npValue.slice(0).forEach(function (v) {
+                        if (inverseNp.isScalar) {
+                            clearNp(v, inverseNp, isDeleted);
+                        } else {
+                            // TODO: many to many - not yet handled.
+                        }
+                    });
+                }
                 // now clear it.
                 npValue.length = 0;
             }
@@ -4167,7 +4206,7 @@ var ComplexAspect = (function() {
 
 breeze.EntityAspect= EntityAspect;
 breeze.ComplexAspect= ComplexAspect;
-/**
+;/**
 @module breeze   
 **/
     
@@ -4320,7 +4359,7 @@ var EntityKey = (function () {
 })();
 
 breeze.EntityKey = EntityKey;
-/**
+;/**
 @module breeze   
 **/
 
@@ -4463,7 +4502,7 @@ var EntityState = (function () {
 })();
    
 breeze.EntityState= EntityState;
-
+;
 breeze.makePrimitiveArray = (function() {
     var primitiveArrayMixin = {};
 
@@ -4547,8 +4586,7 @@ breeze.makePrimitiveArray = (function() {
     }
 
     return makePrimitiveArray;
-})();
-
+})();;
 breeze.makeRelationArray = (function() {
 
     var relationArrayMixin = {};
@@ -4727,8 +4765,7 @@ breeze.makeRelationArray = (function() {
     }
 
     return makeRelationArray;
-})();
-
+})();;
 function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
     // 'this' is the entity itself in this context.
 
@@ -5114,8 +5151,7 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         inProcess.pop();
     }
 }
-    
-/**
+    ;/**
   @module breeze
   **/
 
@@ -5222,7 +5258,7 @@ var DataType = (function () {
     };
 
     var fmtString = function (val) {
-        return val == null ? null : "'" + val + "'";
+        return val == null ? null : "'" + val.replace(/'/g,"''") + "'";
     };
 
     var fmtInt = function (val) {
@@ -5318,7 +5354,7 @@ var DataType = (function () {
     DataType.Int64 = DataType.addSymbol({
         defaultValue: 0, isNumeric: true, isInteger: true, quoteJsonOData: true,
         parse: coerceToInt,
-        fmtOData: fmtInt,
+        fmtOData: makeFloatFmt("L"),
         getNext: getNextNumber
     });
     /**
@@ -5590,7 +5626,7 @@ var DataType = (function () {
 
 breeze.DataType = DataType;
 
-/**
+;/**
 @module breeze
 **/
 
@@ -5851,11 +5887,37 @@ breeze.DataService= DataService;
 breeze.JsonResultsAdapter = JsonResultsAdapter;
 
 
-/**
+;/**
 @module breeze
 **/
 
-var Q = __requireLib("Q", "See https://github.com/kriskowal/q ");
+// Get the promises library called Q
+// define a quick failing version if not found.
+var Q = __requireLibCore("Q");
+
+if (!Q) {
+    // No Q.js! Substitute a placeholder Q which always fails 
+    // Should be replaced by the app via breeze.config.setQ
+    // For example, see Breeze Labs "breeze.use$q"
+    Q = function() {
+        var eMsg = 'Q is undefined. Are you missing Q.js? See https://github.com/kriskowal/q';
+        throw new Error(eMsg);
+    }
+    
+    // all Q methods called by Breeze should fail
+    Q.defer = Q.resolve = Q.reject = Q;
+}
+    
+
+/**
+(Re)set Q with a promises implementation suitable for Breeze internal use  
+@method setQ
+@param q {Object} - a  "thenable" promises implementation like Q.js with the API that Breeze requires internally.
+@param [q.defer] {Function} A function returning a deferred.
+@param [q.resolve] {Function} A function returning a resolved promise.
+@param [q.reject] {Function} A function returning a rejected promise.
+**/
+breeze.config.setQ = function (q) { Q = q; }
 
 // TODO: still need to handle inheritence here.
              
@@ -5940,6 +6002,7 @@ var MetadataStore = (function () {
     in the MetadataStore an exception will be thrown. 
     @method addDataService
     @param dataService {DataService} The DataService to add
+    @param [shouldOverwrite=false] {Boolean} Permit overwrite of existing DataService rather than throw exception
     **/
         
     proto.addDataService = function(dataService, shouldOverwrite) {
@@ -6064,6 +6127,7 @@ var MetadataStore = (function () {
         newMetadataStore.importMetadata(metadataFromStorage);
     @method importMetadata
     @param exportedMetadata {String|JSON Object} A previously exported MetadataStore.
+    @param [allowMerge] {Boolean} Allows custom metadata to be merged into existing metadata types.
     @return {MetadataStore} This MetadataStore.
     @chainable
     **/
@@ -6223,7 +6287,7 @@ var MetadataStore = (function () {
         return dataService.adapterInstance.fetchMetadata(this, dataService).then(function (rawMetadata) {
             if (callback) callback(rawMetadata);
             return Q.resolve(rawMetadata);
-        }).fail(function (error) {
+        }, function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
         });
@@ -6747,15 +6811,19 @@ var CsdlMetadataParser = (function () {
         var maxLength = csdlProperty.maxLength;
         maxLength = (maxLength == null || maxLength === "Max") ? null : parseInt(maxLength,10);
         // can't set the name until we go thru namingConventions and these need the dp.
+        
+            
         var dp = new DataProperty({
             nameOnServer: csdlProperty.name,
             dataType: dataType,
             isNullable: isNullable,
             isPartOfKey: isPartOfKey,
             maxLength: maxLength,
+            defaultValue: csdlProperty.defaultValue,
             // fixedLength: fixedLength,
             concurrencyMode: csdlProperty.concurrencyMode
-        });
+        })
+
         if (dataType === DataType.Undefined) {
             dp.rawTypeName = csdlProperty.type;
         }
@@ -6809,14 +6877,14 @@ var CsdlMetadataParser = (function () {
 
         var principal = constraint.principal;
         var dependent = constraint.dependent;
-        var propRefs;
+        
+        var propRefs = __toArray(dependent.propertyRef);
+        var fkNames = propRefs.map(__pluck("name"));
         if (csdlProperty.fromRole === principal.role) {
-            propRefs = __toArray(principal.propertyRef);
-            cfg.invForeignKeyNamesOnServer = propRefs.map(__pluck("name"));
+            cfg.invForeignKeyNamesOnServer = fkNames;
         } else {
-            propRefs = __toArray(dependent.propertyRef);
             // will be used later by np._update
-            cfg.foreignKeyNamesOnServer = propRefs.map(__pluck("name"));
+            cfg.foreignKeyNamesOnServer = fkNames;
         }
 
         var np = new NavigationProperty(cfg);
@@ -7280,12 +7348,6 @@ var EntityType = (function () {
                 initialValues._$eref = instance;
             };
            
-            //this.dataProperties.forEach(function (dp) {
-            //    var val = initialValues[dp.name];
-            //    if (val !== undefined) {
-            //        instance.setProperty(dp.name, val);
-            //    }
-            //});
             this._updateTargetFromRaw(instance, initialValues, getRawValueFromConfig);
             
             this.navigationProperties.forEach(function (np) {
@@ -7312,14 +7374,8 @@ var EntityType = (function () {
     };
 
     function getRawValueFromConfig(rawEntity, dp) {
-        var val;
-        if (rawEntity.entityAspect || rawEntity.complexAspect) {
-            // this can happen if an initializer contains an actaul instance of an already created complex object.
-            val = rawEntity.getProperty(dp.name);
-        } else {
-            val = rawEntity[dp.name];
-        }
-        return val !== undefined ? val : dp.defaultValue;
+        // 'true' fork can happen if an initializer contains an actaul instance of an already created complex object.
+        return (rawEntity.entityAspect || rawEntity.complexAspect) ? rawEntity.getProperty(dp.name) : rawEntity[dp.name];
     }
 
     proto._createInstanceCore = function() {
@@ -7375,7 +7431,6 @@ var EntityType = (function () {
             this._extra = undefined;
         }
         
-
         if (!aCtor) {
             var createCtor = __modelLibraryDef.getDefaultInstance().createCtor;
             aCtor = createCtor ? createCtor(this) : createEmptyCtor();
@@ -7576,10 +7631,9 @@ var EntityType = (function () {
     };
 
     proto._updateTargetFromRaw = function (target, raw, rawValueFn) {
-
+        // called recursively for complex properties
         this.dataProperties.forEach(function (dp) {
-            // recursive call
-            // updateTargetPropertyFromRaw(target, raw, dp, rawValueFn);
+            
             var rawVal = rawValueFn(raw, dp);
             if (rawVal === undefined) return;
             var dataType = dp.dataType; // this will be a complexType when dp is a complexProperty
@@ -7619,9 +7673,17 @@ var EntityType = (function () {
                 }
             }
         });
+
+        // if merging from an import then raw will have an entityAspect or a complexAspect
+        var rawAspect = raw.entityAspect || raw.complexAspect;
+        if (rawAspect && rawAspect.originalValuesMap) {
+            targetAspect = target.entityAspect || target.complexAspect;
+            targetAspect.originalValues = rawAspect.originalValuesMap;
+        }
+
     }
 
-    
+  
 
     /**
     Returns a string representation of this EntityType.
@@ -7820,8 +7882,8 @@ var EntityType = (function () {
             np.invForeignKeyNames.forEach(function (invFkName) {
                 var fkProp = entityType.getDataProperty(invFkName);
                 var invEntityType = np.parentType;
-                fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np) {
-                    return np.invForeignKeyNames && np.invForeignKeyNames.indexOf(fkProp.name) >= 0;
+                fkProp.inverseNavigationProperty = __arrayFirst(invEntityType.navigationProperties, function (np2) {
+                    return np2.invForeignKeyNames && np2.invForeignKeyNames.indexOf(fkProp.name) >= 0 && np2.entityType === fkProp.parentType;
                 });
                 // entityType.foreignKeyProperties.push(fkProp);
                 addUniqueItem(entityType.foreignKeyProperties, fkProp);
@@ -8068,18 +8130,24 @@ var ComplexType = (function () {
     @method getCtor
     **/
 
-    proto.addValidator = EntityType.prototype.addValidator;
-    proto.getProperty = EntityType.prototype.getProperty;
-    proto.getPropertyNames = EntityType.prototype.getPropertyNames;
-    proto.createInstance = EntityType.prototype.createEntity;  // name change
-    proto._addDataProperty = EntityType.prototype._addDataProperty;
-    proto._updateNames = EntityType.prototype._updateNames;
-    proto._updateCps = EntityType.prototype._updateCps;
-    proto._initializeInstance = EntityType.prototype._initializeInstance;
-    proto._updateTargetFromRaw = EntityType.prototype._updateTargetFromRaw;
+    // copy entityType methods onto complexType
+    proto = __extend(proto, EntityType.prototype, [
+        "addValidator",
+        "getProperty",
+        "getPropertyNames",
+        "_addDataProperty",
+        "_updateNames",
+        "_updateCps",
+        "_initializeInstance",
+        "_updateTargetFromRaw",
+        "_clientPropertyPathToServer",
+        "_setCtor"
+    ]);
+    
     // note the name change.
+    proto.createInstance = EntityType.prototype.createEntity;  // name change
     proto.getCtor = EntityType.prototype.getEntityCtor;
-    proto._setCtor = EntityType.prototype._setCtor;
+    
         
     proto.toJSON = function () {
         return __toJson(this, {
@@ -8723,7 +8791,7 @@ breeze.AutoGeneratedKeyType = AutoGeneratedKeyType;
 MetadataStore.normalizeTypeName = CsdlMetadataParser.normalizeTypeName;
 
 
-/**
+;/**
  @module breeze
  **/
 
@@ -8843,8 +8911,7 @@ var KeyGenerator = (function () {
     return ctor;
 })();
 
-breeze.KeyGenerator = KeyGenerator;
-/**
+breeze.KeyGenerator = KeyGenerator;;/**
 @module breeze
 **/
 
@@ -8941,7 +9008,7 @@ var LocalQueryComparisonOptions = (function () {
 breeze.LocalQueryComparisonOptions = LocalQueryComparisonOptions;
 
 
-/**
+;/**
 @module breeze
 **/
     
@@ -9072,7 +9139,7 @@ var NamingConvention = (function () {
 breeze.NamingConvention = NamingConvention;
 
 
-    
+;    
 var EntityQuery = (function () {
     /**
     An EntityQuery instance is used to query entities either from a remote datasource or from a local {{#crossLink "EntityManager"}}{{/crossLink}}. 
@@ -9108,6 +9175,7 @@ var EntityQuery = (function () {
         this.expandClause = null;
         this.parameters = {};
         this.inlineCountEnabled = false;
+        this.noTrackingEnabled = false;
         // default is to get queryOptions and dataService from the entityManager.
         // this.queryOptions = new QueryOptions();
         // this.dataService = new DataService();
@@ -9198,13 +9266,7 @@ var EntityQuery = (function () {
     proto.from = function (resourceName) {
         // TODO: think about allowing entityType as well 
         assertParam(resourceName, "resourceName").isString().check();
-        var currentName = this.resourceName;
-        if (currentName && currentName !== resourceName) {
-            throw new Error("This query already has an resourceName - the resourceName may only be set once per query");
-        }
-        var eq = this._clone();
-        eq.resourceName = resourceName;
-        return eq;
+        return clone(this, "resourceName", resourceName);
     };
         
     /**
@@ -9240,9 +9302,7 @@ var EntityQuery = (function () {
     **/
     proto.toType = function(entityType) {
         assertParam(entityType, "entityType").isString().or().isInstanceOf(EntityType).check();
-        var eq = this._clone();
-        eq.resultEntityType = entityType;
-        return eq;
+        return clone(this, "resultEntityType", entityType)
     };
 
         
@@ -9299,24 +9359,23 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.where = function (predicate) {
-        var eq = this._clone();
+        var wherePredicate;
         if (predicate == null) {
-            eq.wherePredicate = null;
-            return eq;
-        }
-        var pred;
-        if (Predicate.isPredicate(predicate)) {
-            pred = predicate;
+            wherePredicate = null;
         } else {
-            pred = Predicate.create(__arraySlice(arguments));
+            var pred;
+            if (predicate instanceof Predicate) {
+                wherePredicate = predicate;
+            } else {
+                wherePredicate = Predicate.create(__arraySlice(arguments));
+            }
+            if (this.entityType) wherePredicate.validate(this.entityType);
+            if (this.wherePredicate) {
+                wherePredicate = new CompositePredicate('and', [this.wherePredicate, wherePredicate]);
+            } 
         }
-        if (eq.entityType) pred.validate(eq.entityType);
-        if (eq.wherePredicate) {
-            eq.wherePredicate = new CompositePredicate('and', [eq.wherePredicate, pred]);
-        } else {
-            eq.wherePredicate = pred;
-        }
-        return eq;
+        return clone(this, "wherePredicate", wherePredicate);
+
     };
 
     /**
@@ -9418,7 +9477,8 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.select = function (propertyPaths) {
-        return selectCore(this, propertyPaths);
+        var selectClause = propertyPaths == null ? null : new SelectClause(normalizePropertyPaths(propertyPaths));
+        return clone(this, "selectClause", selectClause);
     };
 
 
@@ -9436,13 +9496,7 @@ var EntityQuery = (function () {
     **/
     proto.skip = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
-        var eq = this._clone();
-        if (count == null) {
-            eq.skipCount = null;
-        } else {
-            eq.skipCount = count;
-        }
-        return eq;
+        return clone(this, "skipCount", (count == null) ? null : count);
     };
         
     /**
@@ -9475,13 +9529,7 @@ var EntityQuery = (function () {
     **/
     proto.take = function (count) {
         assertParam(count, "count").isOptional().isNumber().check();
-        var eq = this._clone();
-        if (count == null) {
-            eq.takeCount = null;
-        } else {
-            eq.takeCount = count;
-        }
-        return eq;
+        return clone(this, "takeCount", (count == null) ? null : count);
     };
         
     /**
@@ -9508,7 +9556,8 @@ var EntityQuery = (function () {
     @chainable
     **/
     proto.expand = function (propertyPaths) {
-        return expandCore(this, propertyPaths);
+        var expandClause = propertyPaths == null ? null : new ExpandClause(normalizePropertyPaths(propertyPaths));
+        return clone(this, "expandClause", expandClause);
     };
 
     /**
@@ -9535,7 +9584,7 @@ var EntityQuery = (function () {
     **/
     proto.withParameters = function(parameters) {
         assertParam(parameters, "parameters").isObject().check();
-        return withParametersCore(this, parameters);
+        return clone(this, "parameters", parameters);
     };
 
     /**
@@ -9555,13 +9604,10 @@ var EntityQuery = (function () {
     @return {EntityQuery}
     @chainable
     **/
-    proto.inlineCount = function(enabled) {
-        // if (enabled === undefined) enabled = true;
+    proto.inlineCount = function (enabled) {
+        assertParam(enabled, "enabled").isBoolean().isOptional().check();
         enabled = (enabled === undefined) ? true : !!enabled;
-        if (this.enabled == enabled) return this;
-        var eq = this._clone();
-        eq.inlineCountEnabled = enabled;
-        return eq;
+        return clone(this, "inlineCountEnabled", enabled);
     };
 
     /**
@@ -9575,17 +9621,15 @@ var EntityQuery = (function () {
             .noTracking(true);
    
 
-    @method inlineCount
+    @method noTracking
     @param enabled {Boolean=true} Whether or not the noTracking capability should be enabled. If this parameter is omitted, true is assumed. 
     @return {EntityQuery}
     @chainable
     **/
     proto.noTracking = function (enabled) {
+        assertParam(enabled, "enabled").isBoolean().isOptional().check();
         enabled = (enabled === undefined) ? true : !!enabled;
-        if (this.enabled == enabled) return this;
-        var eq = this._clone();
-        eq.noTrackingEnabled = enabled;
-        return eq;
+        return clone(this, "noTrackingEnabled", enabled);
     };
     
     /**
@@ -9615,7 +9659,7 @@ var EntityQuery = (function () {
     **/
     proto.using = function (obj) {
         if (!obj) return this;
-        var eq = this._clone();
+        var eq = clone(this);
         processUsing(eq, {
             entityManager: null,
             dataService: null,
@@ -9810,13 +9854,12 @@ var EntityQuery = (function () {
     @method fromEntityNavigation
     @static
     @param entity {Entity} The Entity whose navigation property will be queried.
-    @param navigationProperty {NavigationProperty} The {{#crossLink "NavigationProperty"}}{{/crossLink}} to be queried.
+    @param navigationProperty {NavigationProperty|String} The {{#crossLink "NavigationProperty"}}{{/crossLink}} or name of the NavigationProperty to be queried.
     @return {EntityQuery}
     @chainable
     **/
     ctor.fromEntityNavigation = function (entity, navigationProperty) {
         assertParam(entity, "entity").isEntity().check();
-        assertParam(navigationProperty, "navigationProperty").isInstanceOf(NavigationProperty).check();
         var navProperty = entity.entityType._checkNavProperty(navigationProperty);
         var q = new EntityQuery(navProperty.entityType.defaultResourceName);
         var pred = buildNavigationPredicate(entity, navProperty);
@@ -9886,31 +9929,38 @@ var EntityQuery = (function () {
             // resolve it, if possible, via the resourceName
             // do not cache this value in this case
             // cannot determine the resultEntityType if a selectClause is present.
-            
             return skipFromCheck ? null : (!this.selectClause) && this._getFromEntityType(metadataStore, false);
         }
     };
 
-    proto._clone = function () {
-        var copy = new EntityQuery();
-        copy.resourceName = this.resourceName;
-        copy.entityType = this.entityType;
-        copy.wherePredicate = this.wherePredicate;
-        copy.orderByClause = this.orderByClause;
-        copy.selectClause = this.selectClause;
-        copy.skipCount = this.skipCount;
-        copy.takeCount = this.takeCount;
-        copy.expandClause = this.expandClause;
-        copy.inlineCountEnabled = this.inlineCountEnabled;
-        copy.parameters = __extend({}, this.parameters);
-        // default is to get queryOptions from the entityManager.
-        copy.queryOptions = this.queryOptions; // safe because QueryOptions are immutable; 
-        copy.entityManager = this.entityManager;
-        copy.dataService = this.dataService;
-        copy.resultEntityType = this.resultEntityType;
-
+    function clone(that, propName, value) {
+        // immutable queries mean that we don't need to clone if no change in value.
+        if (propName) {
+            if (that[propName] === value) return that;
+        }
+        // copying QueryOptions is safe because they are are immutable; 
+        copy = __extend(new EntityQuery(), that, [
+            "resourceName",
+            "entityType",
+            "wherePredicate",
+            "orderByClause",
+            "selectClause",
+            "skipCount",
+            "takeCount",
+            "expandClause",
+            "inlineCountEnabled",
+            "noTrackingEnabled",
+            "queryOptions", 
+            "entityManager",
+            "dataService",
+            "resultEntityType"
+        ]);
+        copy.parameters = __extend({}, that.parameters);
+        if (propName) {
+            copy[propName] = value;
+        }
         return copy;
-    };
+    }
 
     proto._toUri = function (metadataStore) {
         // force entityType validation;
@@ -9941,7 +9991,8 @@ var EntityQuery = (function () {
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
-            return clause.toOdataFragment(entityType);
+            Predicate._next = 0;
+            return clause.toODataFragment(entityType);
         }
             
         function toInlineCountString() {
@@ -9955,7 +10006,7 @@ var EntityQuery = (function () {
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
-            return clause.toOdataFragment(entityType);
+            return clause.toODataFragment(entityType);
         }
             
             function toSelectString() {
@@ -9964,13 +10015,13 @@ var EntityQuery = (function () {
             if (eq.entityType) {
                 clause.validate(eq.entityType);
             }
-            return clause.toOdataFragment(entityType);
+            return clause.toODataFragment(entityType);
         }
             
         function toExpandString() {
             var clause = eq.expandClause;
             if (!clause) return;
-            return clause.toOdataFragment(entityType);
+            return clause.toODataFragment(entityType);
         }
 
         function toSkipString() {
@@ -10026,7 +10077,6 @@ var EntityQuery = (function () {
 
     // private functions
         
-        
     function normalizePropertyPaths(propertyPaths) {
         assertParam(propertyPaths, "propertyPaths").isOptional().isString().or().isArray().isString().check();
         if (typeof propertyPaths === 'string') {
@@ -10053,52 +10103,20 @@ var EntityQuery = (function () {
     // isDesc parameter trumps isDesc in propertyName.
 
     function orderByCore(that, propertyPaths, isDesc) {
-        var newClause;
-        var eq = that._clone();
-        if (propertyPaths==null) {
-            eq.orderByClause = null;
-            return eq;
-        }
-
-        propertyPaths = normalizePropertyPaths(propertyPaths);
-        newClause = OrderByClause.create(propertyPaths, isDesc);
-
-        if (eq.orderByClause) {
-            eq.orderByClause.addClause(newClause);
+        var orderByClause;
+        if (propertyPaths == null) {
+            orderByClause = null;
         } else {
-            eq.orderByClause = newClause;
+            propertyPaths = normalizePropertyPaths(propertyPaths);
+            orderByClause = OrderByClause.create(propertyPaths, isDesc);
+            if (that.orderByClause) {
+                orderByClause = that.orderByClause.addClause(orderByClause);
+            }
         }
-        return eq;
+        return clone(that, "orderByClause", orderByClause);
     }
+                
         
-    function selectCore(that, propertyPaths) {
-        var eq = that._clone();
-        if (propertyPaths==null) {
-            eq.selectClause = null;
-            return eq;
-        }
-        propertyPaths = normalizePropertyPaths(propertyPaths);
-        eq.selectClause = new SelectClause(propertyPaths);
-        return eq;
-    }
-        
-    function expandCore(that, propertyPaths) {
-        var eq = that._clone();
-        if (propertyPaths==null) {
-            eq.expandClause = null;
-            return eq;
-        }
-        propertyPaths = normalizePropertyPaths(propertyPaths);
-        eq.expandClause = new ExpandClause(propertyPaths);
-        return eq;
-    }
-        
-    function withParametersCore(that, parameters) {
-        var eq = that._clone();
-        eq.parameters = parameters;
-        return eq;
-    }
-
     function buildKeyPredicate(entityKey) {
         var keyProps = entityKey.entityType.keyProperties;
         var preds = __arrayZip(keyProps, entityKey.values, function (kp, v) {
@@ -10137,7 +10155,7 @@ var QueryFuncs = (function() {
         tolower:     { fn: function (source) { return source.toLowerCase(); }, dataType: DataType.String },
         substring:   { fn: function (source, pos, length) { return source.substring(pos, length); }, dataType: DataType.String },
         substringof: { fn: function (find, source) { return source.indexOf(find) >= 0;}, dataType: DataType.Boolean },
-        length:      { fn: function(source) { return source.length; }, dataType: DataType.Int32 },
+        length:      { fn: function (source) { return source.length; }, dataType: DataType.Int32 },
         trim:        { fn: function (source) { return source.trim(); }, dataType: DataType.String },
         concat:      { fn: function (s1, s2) { return s1.concat(s2); }, dataType: DataType.String },
         replace:     { fn: function (source, find, replace) { return source.replace(find, replace); }, dataType: DataType.String },
@@ -10147,11 +10165,11 @@ var QueryFuncs = (function() {
         round:       { fn: function (source) { return Math.round(source); }, dataType: DataType.Int32 },
         ceiling:     { fn: function (source) { return Math.ceil(source); }, dataType: DataType.Int32 },
         floor:       { fn: function (source) { return Math.floor(source); }, dataType: DataType.Int32 },
-        second:      { fn: function (source) { return source.second; }, dataType: DataType.Int32 },
-        minute:      { fn: function (source) { return source.minute; }, dataType: DataType.Int32 },
-        day:         { fn: function (source) { return source.day; }, dataType: DataType.Int32 },
-        month:       { fn: function (source) { return source.month; }, dataType: DataType.Int32 },
-        year:        { fn: function (source) { return source.year; }, dataType: DataType.Int32 }
+        second:      { fn: function (source) { return source.getSeconds(); }, dataType: DataType.Int32 },
+        minute:      { fn: function (source) { return source.getMinutes(); }, dataType: DataType.Int32 },
+        day:         { fn: function (source) { return source.getDate(); }, dataType: DataType.Int32 },
+        month:       { fn: function (source) { return source.getMonth() + 1; }, dataType: DataType.Int32 },
+        year:        { fn: function (source) { return source.getFullYear(); }, dataType: DataType.Int32 }
     };
         
     return obj;
@@ -10174,7 +10192,7 @@ var FnNode = (function() {
             // value is either a string, a quoted string, a number, a bool value, or a date
             // if a string ( not a quoted string) then this represents a property name.
             var firstChar = value.substr(0,1);
-            var quoted = firstChar === "'" || firstChar === '"';
+            var quoted = (firstChar === "'" || firstChar === '"') && value.length > 1 && value.substr(value.length - 1) === firstChar;
             if (quoted) {
                 var unquoted = value.substr(1, value.length - 2);
                 this.fn = function (entity) { return unquoted; };
@@ -10272,11 +10290,11 @@ var FnNode = (function() {
         }
     };
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         this._validate(entityType);
         if (this.fnName) {
             var args = this.fnNodes.map(function(fnNode) {
-                return fnNode.toOdataFragment(entityType);
+                return fnNode.toODataFragment(entityType);
             });                
             var uri = this.fnName + "(" + args.join(",") + ")";
             return uri;
@@ -10314,8 +10332,6 @@ var FnNode = (function() {
             });
         }
     };
-
-
         
     function createPropFunction(propertyPath) {
         var properties = propertyPath.split('.');
@@ -10391,7 +10407,7 @@ var FilterQueryOp = (function () {
     @final
     @static
     **/
-    aEnum.Contains = aEnum.addSymbol({ operator: "substringof", isFunction: true, isStringFn: true });
+    aEnum.Contains = aEnum.addSymbol({ operator: "substringof", aliases: ["contains"], isFunction: true, isStringFn: true });
     /**
     @property StartsWith {FilterQueryOp}
     @final
@@ -10404,6 +10420,22 @@ var FilterQueryOp = (function () {
     @static
     **/
     aEnum.EndsWith = aEnum.addSymbol({ operator: "endswith", isFunction: true, isStringFn: true });
+
+    /**
+    Aliases: "some"
+    @property Any {FilterQueryOp}
+    @final
+    @static
+    **/
+    aEnum.Any = aEnum.addSymbol({ operator: "any", isAnyAll: true, aliases: ["some"] });
+
+    /**
+    Aliases: "every"
+    @property All {FilterQueryOp}
+    @final
+    @static
+    **/
+    aEnum.All = aEnum.addSymbol({ operator: "all", isAnyAll: true, aliases: ["every"] });
 
     aEnum.IsTypeOf = aEnum.addSymbol({ operator: "isof", isFunction: true, aliases: ["isTypeOf"] });
     
@@ -10487,29 +10519,30 @@ var Predicate = (function () {
                 to one of the breeze.DataType enumeration instances.
     
     **/
-    var ctor = function (propertyOrExpr, operator, value ) {
+    var ctor = function (propertyOrExpr, operator, value) {
+        // params above are just for doc purposes 
         if (arguments[0].prototype === true) {
             // used to construct prototype
             return this;
         }
-        return new SimplePredicate(propertyOrExpr, operator, value);
+        return new SimplePredicate(__arraySlice(arguments));
     };
     var proto = ctor.prototype;
 
-    /**  
-    Returns whether an object is a Predicate
-    @example
-        var p1 = new Predicate("CompanyName", "StartsWith", "B");
-        if (Predicate.isPredicate(p1)) {
-            // do something
-        }
-    @method isPredicate
-    @param o {Object}
-    @static
-    **/
-    ctor.isPredicate = function (o) {
-        return o instanceof Predicate;
-    };
+    ///**  
+    //Returns whether an object is a Predicate
+    //@example
+    //    var p1 = new Predicate("CompanyName", "StartsWith", "B");
+    //    if (Predicate.isPredicate(p1)) {
+    //        // do something
+    //    }
+    //@method isPredicate
+    //@param o {Object}
+    //@static
+    //**/
+    //ctor.isPredicate = function (o) {
+    //    return o instanceof Predicate;
+    //};
 
     /**  
     Creates a new 'simple' Predicate.  Note that this method can also take its parameters as an array.
@@ -10533,12 +10566,9 @@ var Predicate = (function () {
                 to one of the breeze.DataType enumeration instances.
     
     **/
-    ctor.create = function (property, operator, value ) {
-        if (Array.isArray(property)) {
-            return new SimplePredicate(property[0], property[1], property[2]);
-        } else {
-            return new SimplePredicate(property, operator, value);
-        }
+    ctor.create = function (property, operator, value) {
+        var args = Array.isArray(property) && arguments.length === 1 ? property : __arraySlice(arguments);
+        return new SimplePredicate(args);
     };
 
     /**  
@@ -10709,7 +10739,7 @@ var Predicate = (function () {
             args = argsx[0];
         } else {
             var args = __arraySlice(argsx);
-            if (!Predicate.isPredicate(args[0])) {
+            if (! (args[0] instanceof Predicate)) {
                 args = [Predicate.create(args)];
             }
         }
@@ -10726,29 +10756,40 @@ var Predicate = (function () {
 // Does not need to be exposed.
 var SimplePredicate = (function () {
 
-    var ctor = function(propertyOrExpr, operator, value) {
-        assertParam(propertyOrExpr, "propertyOrExpr").isString().isOptional().check();
-        if (arguments.length == 3 && operator != null) {
-            assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
-            assertParam(value, "value").isRequired(true).check();
-        } else {
-            this._odataExpr = propertyOrExpr;
+    var ctor = function (args) {
+    
+        if (args.length === 1) {
+            this._odataExpr = args[0];
             return;
         }
+    
+        var propertyOrExpr = args[0];
+        assertParam(propertyOrExpr, "propertyOrExpr").isString().isOptional().check();
         
-        this._filterQueryOp = FilterQueryOp.from(operator);
-        if (!this._filterQueryOp) {
+        var operator = args[1];
+        assertParam(operator, "operator").isEnumOf(FilterQueryOp).or().isString().check();
+        var filterQueryOp = FilterQueryOp.from(operator);
+        if (!filterQueryOp) {
             throw new Error("Unknown query operation: " + operator);
         }
+        this._filterQueryOp = filterQueryOp;
+
         if (propertyOrExpr) {
             this._propertyOrExpr = propertyOrExpr;
-            // this._fnNode1 = FnNode.create(propertyOrExpr, null, this._filterQueryOp);
         } else {
-            if (this._filterQueryOp !== FilterQueryOp.IsTypeOf) {
+            if (filterQueryOp !== FilterQueryOp.IsTypeOf) {
                 throw new Error("propertyOrExpr cannot be null except when using the 'IsTypeOf' operator");
             }
         }
 
+        var value = args[2];
+        if (filterQueryOp && filterQueryOp.isAnyAll) {
+            this._value = (value instanceof Predicate) ? value : new SimplePredicate(args.slice(2));
+            this._isLiteral = undefined;
+            return;
+        } 
+        assertParam(value, "value").isRequired(true).check();
+        
         // _datatype is just a guess here - it will only be used if we aren't certain from the rest of the expression.
         if ((value != null) && (typeof (value) === "object") && value.value !== undefined) {
             this._dataType = value.dataType || DataType.fromValue(value.value);
@@ -10763,41 +10804,52 @@ var SimplePredicate = (function () {
         
     var proto = new Predicate({ prototype: true });
     ctor.prototype = proto;
-        
+    
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType, prefix) {
         if (this._odataExpr) {
             return this._odataExpr;
         }
-        if (this._filterQueryOp == FilterQueryOp.IsTypeOf) {
-            var oftype = entityType.metadataStore.getEntityType(this._value);
+        var filterQueryOp = this._filterQueryOp;
+        var value = this._value;
+        if (filterQueryOp == FilterQueryOp.IsTypeOf) {
+            var oftype = entityType.metadataStore.getEntityType(value);
             var typeName = oftype.namespace + '.' + oftype.shortName;
-            return this._filterQueryOp.operator + "(" + DataType.String.fmtOData(typeName) + ")";
+            return filterQueryOp.operator + "(" + DataType.String.fmtOData(typeName) + ")";
         }
 
         this.validate(entityType);
 
-        var v1Expr = this._fnNode1 && this._fnNode1.toOdataFragment(entityType);
-        var v2Expr;
-        if (this._fnNode2) {
-            v2Expr = this._fnNode2.toOdataFragment(entityType);
+        var v1Expr = this._fnNode1 && this._fnNode1.toODataFragment(entityType);
+        if (prefix) {
+            v1Expr = prefix + "/" + v1Expr;
+        } 
+
+        Predicate._next += 1;
+        prefix = "x" + Predicate._next;
+
+        if (filterQueryOp.isAnyAll) {
+            return v1Expr + "/" + filterQueryOp.operator + "(" + prefix + ": " + value.toODataFragment(this.dataType, prefix) + ")";
         } else {
-            var dataType = this._fnNode1.dataType || this._dataType;
-            v2Expr = dataType.fmtOData(this._value);
-        }
-        if (this._filterQueryOp.isFunction) {
-            if (this._filterQueryOp == FilterQueryOp.Contains) {
-                return this._filterQueryOp.operator + "(" + v2Expr + "," + v1Expr + ") eq true";
+            var v2Expr;
+            if (this._fnNode2) {
+                v2Expr = this._fnNode2.toODataFragment(entityType);
             } else {
-                return this._filterQueryOp.operator + "(" + v1Expr + "," + v2Expr + ") eq true";
+                var dataType = this._fnNode1.dataType || this._dataType;
+                v2Expr = dataType.fmtOData(value);
             }
-                
-        } else {
-            return v1Expr + " " + this._filterQueryOp.operator + " " + v2Expr;
+            if (filterQueryOp.isFunction) {
+                if (filterQueryOp == FilterQueryOp.Contains) {
+                    return filterQueryOp.operator + "(" + v2Expr + "," + v1Expr + ") eq true";
+                } else {
+                    return filterQueryOp.operator + "(" + v1Expr + "," + v2Expr + ") eq true";
+                }
+
+            } else {
+                return v1Expr + " " + filterQueryOp.operator + " " + v2Expr;
+            }
         }
     };
-
-   
 
     proto.toFunction = function (entityType) {
         if (this._odataExpr) {
@@ -10815,10 +10867,17 @@ var SimplePredicate = (function () {
                 return predFn(v1Fn(entity), v2Fn(entity));
             };
         } else {
-            var val = this._value;
-            return function (entity) {
-                return predFn(v1Fn(entity), val);
-            };
+            if (this._filterQueryOp && this._filterQueryOp.isAnyAll) {
+                var fn2 = this._value.toFunction(dataType);
+                return function (entity) {
+                    return predFn(v1Fn(entity), fn2);
+                };
+            } else {
+                var val = this._value;
+                return function (entity) {
+                    return predFn(v1Fn(entity), val);
+                };
+            }
         }
             
     };
@@ -10828,13 +10887,19 @@ var SimplePredicate = (function () {
     };
 
     proto.validate = function (entityType) {
+        var filterQueryOp = this._filterQueryOp;
         if (this._fnNode1 === undefined && this._propertyOrExpr) {
-            this._fnNode1 = FnNode.create(this._propertyOrExpr, entityType, this._filterQueryOp);
+            this._fnNode1 = FnNode.create(this._propertyOrExpr, entityType, filterQueryOp);
             this.dataType = this._fnNode1.dataType;
         }
 
+        if (filterQueryOp && filterQueryOp.isAnyAll) {
+            this._value.validate(this.dataType);
+            return;
+        }
+
         if (this._fnNode2 === undefined && !this._isLiteral) {
-            this._fnNode2 = FnNode.create(this._value, entityType);
+           this._fnNode2 = FnNode.create(this._value, entityType);
         }
 
     };
@@ -10887,6 +10952,12 @@ var SimplePredicate = (function () {
                 break;
             case FilterQueryOp.Contains:
                 predFn = function (v1, v2) { return stringContains(v1, v2, lqco); };
+                break;
+            case FilterQueryOp.Any: 
+                predFn = function (v1, v2) { return v1.some(function(v) { return v2(v); }); };
+                break;
+            case FilterQueryOp.All: 
+                predFn = function (v1, v2) { return v1.every(function(v) { return v2(v); }); };
                 break;
             default:
                 throw new Error("Unknown FilterQueryOp: " + filterQueryOp);
@@ -10962,12 +11033,12 @@ var CompositePredicate = (function () {
     var proto  = new Predicate({ prototype: true });
     ctor.prototype = proto;
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType, prefix) {
         if (this._predicates.length == 1) {
-            return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toOdataFragment(entityType) + ")";
+            return this._booleanQueryOp.operator + " " + "(" + this._predicates[0].toODataFragment(entityType, prefix) + ")";
         } else {
             var result = this._predicates.map(function (p) {
-                return "(" + p.toOdataFragment(entityType) + ")";
+                return "(" + p.toODataFragment(entityType, prefix) + ")";
             }).join(" " + this._booleanQueryOp.operator + " ");
             return result;
         }
@@ -11153,7 +11224,7 @@ var SimpleOrderByClause = (function () {
         this.lastProperty = entityType.getProperty(this.propertyPath, true);
     };
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         return entityType._clientPropertyPathToServer(this.propertyPath) + (this.isDesc ? " desc" : "");
     };
 
@@ -11223,9 +11294,9 @@ var CompositeOrderByClause = (function () {
         });
     };
 
-    proto.toOdataFragment = function (entityType) {
+    proto.toODataFragment = function (entityType) {
         var strings = this._orderByClauses.map(function (obc) {
-            return obc.toOdataFragment(entityType);
+            return obc.toODataFragment(entityType);
         });
         // should return something like CompanyName,Address/City desc
         return strings.join(',');
@@ -11269,7 +11340,7 @@ var SelectClause = (function () {
         });
     };
 
-    proto.toOdataFragment = function(entityType) {
+    proto.toODataFragment = function(entityType) {
         var frag = this.propertyPaths.map(function (pp) {
                 return entityType._clientPropertyPathToServer(pp);
             }).join(",");
@@ -11305,7 +11376,7 @@ var ExpandClause = (function () {
 //            
 //        };
 
-    proto.toOdataFragment = function(entityType) {
+    proto.toODataFragment = function(entityType) {
         var frag = this.propertyPaths.map(function(pp) {
             return entityType._clientPropertyPathToServer(pp);
         }).join(",");
@@ -11361,7 +11432,7 @@ breeze.FnNode = FnNode;
 // Not documented - only exposed for testing purposes
 breeze.OrderByClause = OrderByClause;
 
-/**
+;/**
 @module breeze
 **/
    
@@ -11576,7 +11647,7 @@ breeze.FetchStrategy= FetchStrategy;
 breeze.MergeStrategy = MergeStrategy;
 
 
-/**
+;/**
 @module breeze
 **/
 
@@ -11734,7 +11805,7 @@ var EntityGroup = (function () {
 // do not expose EntityGroup - internal only
 
 
-/**
+;/**
 @module breeze
 **/
 
@@ -12029,6 +12100,8 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
     @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
     merging into an existing EntityManager.
+    @param [config.metadataVersionFn} {Function} A function that takes two arguments ( the current metadataVersion and the imported store's 'name'} 
+        and may be used to perform version checking.
     @return {EntityManager} A new EntityManager.  Note that the return value of this method call is different from that 
     provided by the same named method on an EntityManager instance. Use that method if you need additional information
     regarding the imported entities.
@@ -12083,23 +12156,19 @@ var EntityManager = (function () {
         em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
     @method exportEntities
     @param [entities] {Array of entities} The entities to export; all entities are exported if this is omitted or null
-    @param [includeMetadata = true] Whether to include metadata in the export; the default is true
+    @param [includeMetadata = true] {Boolean} Whether to include metadata in the export; the default is true
 
     @return {String} A serialized version of the exported data.
     **/
     proto.exportEntities = function (entities, includeMetadata) {
         assertParam(includeMetadata, "includeMetadata").isBoolean().isOptional().check();
         includeMetadata = (includeMetadata == null) ? true : includeMetadata;
+        
         var exportBundle = exportEntityGroups(this, entities);
-        var json = {
-            dataService: this.dataService,
-            saveOptions: this.saveOptions,
-            queryOptions: this.queryOptions,
-            validationOptions: this.validationOptions,
-            tempKeys: exportBundle.tempKeys,
-            entityGroupMap: exportBundle.entityGroupMap
-        };
+        var json = __extend( {}, exportBundle, ["tempKeys", "entityGroupMap"]);
+
         if (includeMetadata) {
+            json = __extend(json, this, ["dataService", "saveOptions", "queryOptions", "validationOptions"]);
             json.metadataStore = this.metadataStore.exportMetadata();
         } else {
             json.metadataVersion = breeze.metadataVersion;
@@ -12139,6 +12208,8 @@ var EntityManager = (function () {
     @param [config] {Object} A configuration object.
         @param [config.mergeStrategy] {MergeStrategy} A  {{#crossLink "MergeStrategy"}}{{/crossLink}} to use when 
         merging into an existing EntityManager.
+        @param [config.metadataVersionFn} {Function} A function that takes two arguments ( the current metadataVersion and the imported store's 'name'} 
+        and may be used to perform version checking.
     @return result {Object} 
 
         result.entities {Array of Entities} The entities that were imported.
@@ -12155,18 +12226,19 @@ var EntityManager = (function () {
         var json = (typeof exportedString === "string") ? JSON.parse(exportedString) : exportedString;
         if (json.metadataStore) {
             this.metadataStore.importMetadata(json.metadataStore);
+            // the || clause is for backwards compat with an earlier serialization format.           
+            this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
+
+            this.saveOptions = new SaveOptions(json.saveOptions);
+            this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
+            this.validationOptions = new ValidationOptions(json.validationOptions);
         } else {
             config.metadataVersionFn && config.metadataVersionFn({
                 metadataVersion: json.metadataVersion,
                 metadataStoreName: json.metadataStoreName
             });
         }
-        // the || clause is for backwards compat with an earlier serialization format.           
-        this.dataService = (json.dataService && DataService.fromJSON(json.dataService)) || new DataService({ serviceName: json.serviceName });
         
-        this.saveOptions = new SaveOptions(json.saveOptions);
-        this.queryOptions = QueryOptions.fromJSON(json.queryOptions);
-        this.validationOptions = new ValidationOptions(json.validationOptions);
 
         var tempKeyMap = {};
         json.tempKeys.forEach(function (k) {
@@ -12238,14 +12310,8 @@ var EntityManager = (function () {
     @return {EntityManager} A new EntityManager.
     **/
     proto.createEmptyCopy = function () {
-        var copy = new ctor({
-            dataService: this.dataService,
-            metadataStore: this.metadataStore,
-            queryOptions: this.queryOptions,
-            saveOptions: this.saveOptions,
-            validationOptions: this.validationOptions,
-            keyGeneratorCtor: this.keyGeneratorCtor
-        });
+        var copy = new ctor(__extend({}, this, 
+            ["dataService", "metadataStore", "queryOptions", "saveOptions", "validationOptions", "keyGeneratorCtor"]));
         return copy;
     };
 
@@ -12290,7 +12356,7 @@ var EntityManager = (function () {
         mergeStrategy = assertParam(mergeStrategy, "mergeStrategy").isEnumOf(MergeStrategy).isOptional().check(MergeStrategy.Disallowed);
 
         if (entity.entityType.metadataStore !== this.metadataStore) {
-            throw new Error("Cannot attach this entity because the EntityType and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
+            throw new Error("Cannot attach this entity because the EntityType (" + entity.entityType.name + ") and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
         }
         var aspect = entity.entityAspect;
         if (aspect) {
@@ -12756,14 +12822,12 @@ var EntityManager = (function () {
     function createEntityErrors(entities) {
         var entityErrors = [];
         entities.forEach(function (entity) {
-            __objectForEach(entity.entityAspect._validationErrors, function (key, ve) {
-                entityErrors.push({
+            __objectForEach(entity.entityAspect._validationErrors, function (key, ve)  {
+                var cfg = __extend( { 
                     entity: entity,
-                    errorName: ve.validator.name,
-                    errorMessage: ve.errorMessage,
-                    propertyName: ve.propertyName,
-                    isServerError: ve.isServerError
-                });
+                    errorName: ve.validator.name 
+                }, ve, ["errorMessage", "propertyName", "isServerError"]);
+                entityErrors.push(cfg);
             });
         });
         return entityErrors;
@@ -12797,13 +12861,10 @@ var EntityManager = (function () {
                 entity.entityAspect.addValidationError(ve);
             }
 
-            var entityError = {
+            var entityError = __extend({
                 entity: entity,
-                errorName: serr.errorName,
-                errorMessage: serr.errorMessage,
-                propertyName: serr.propertyName,
                 isServerError: true
-            };
+            }, serr, ["errorName", "errorMessage", "propertyName"]);
             return entityError;
         });
     }
@@ -13420,7 +13481,7 @@ var EntityManager = (function () {
             var value = so.getProperty(dpName);
             if (value == null && dp.defaultValue == null) return;
 
-            if (value && value.complexType) {
+            if (value && dp.isComplexProperty) {
                 var newValue;
                 var coDps = dp.dataType.dataProperties;
                 value = __map(value, function (v) {
@@ -13509,19 +13570,17 @@ var EntityManager = (function () {
 
             if (targetEntity) {
                 if (mergeStrategy === MergeStrategy.SkipMerge) {
-                    entitiesToLink.push(targetEntity);
-                    targetEntity = null;
+                    // deliberate fall thru
                 } else if (mergeStrategy === MergeStrategy.Disallowed) {
                     throw new Error("A MergeStrategy of 'Disallowed' prevents " + entityKey.toString() + " from being merged");
                 } else {
                     var wasUnchanged = targetEntity.entityAspect.entityState.isUnchanged();
                     if (mergeStrategy === MergeStrategy.OverwriteChanges || wasUnchanged) {
                         entityType._updateTargetFromRaw(targetEntity, rawEntity, rawValueFn);
+                        targetEntity.entityAspect.entityState = entityState;
                         entityChanged.publish({ entityAction: EntityAction.MergeOnImport, entity: targetEntity });
                         em._checkStateChange(targetEntity, wasUnchanged, entityState.isUnchanged());
-                    } else {
-                        entitiesToLink.push(targetEntity);
-                        targetEntity = null;
+                        
                     } 
                 }
             } else {
@@ -13532,6 +13591,7 @@ var EntityManager = (function () {
                     targetEntity.setProperty(entityType.keyProperties[0].name, newTempKey.values[0]);
 
                     // fixup foreign keys
+                    // This is safe because the entity is detached here and therefore originalValues will not be updated.
                     if (newAspect.tempNavPropNames) {
                         newAspect.tempNavPropNames.forEach(function (npName) {
                             var np = entityType.getNavigationProperty(npName);
@@ -13546,32 +13606,24 @@ var EntityManager = (function () {
                 // Now performed in attachEntity
                 // entityType._initializeInstance(targetEntity);
                 targetEntity = entityGroup.attachEntity(targetEntity, entityState);
-                if (entityChanged) {
-                    entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
-                    if (!entityState.isUnchanged()) {
-                        em._notifyStateChange(targetEntity, true);
-                    }
+                entityChanged.publish({ entityAction: EntityAction.AttachOnImport, entity: targetEntity });
+                if (!entityState.isUnchanged()) {
+                    em._notifyStateChange(targetEntity, true);
                 }
+                
             }
 
-            if (targetEntity) {
-                targetEntity.entityAspect.entityState = entityState;
-                if (entityState.isModified()) {
-                    targetEntity.entityAspect.originalValuesMap = newAspect.originalValues;
-                }
-                entitiesToLink.push(targetEntity);
-
-            }
+            entitiesToLink.push(targetEntity);
         });
         return entitiesToLink;
     }
 
-     function promiseWithCallbacks(promise, callback, errorCallback) {
+    function promiseWithCallbacks(promise, callback, errorCallback) {
 
         promise = promise.then(function (data) {
             if (callback) callback(data);
             return Q.resolve(data);
-        }).fail(function (error) {
+        }, function (error) {
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
         });
@@ -13635,7 +13687,7 @@ var EntityManager = (function () {
             } else {
                 // we will allow attaches of entities where only part of the key is set.
                 if (keyPropsWithDefaultValues.length === ek.values.length) {
-                    throw new Error("Cannot attach an object to an EntityManager without first setting its key or setting its entityType 'AutoGeneratedKeyType' property to something other than 'None'");
+                    throw new Error("Cannot attach an object of type  (" + entity.entityType.name + ") to an EntityManager without first setting its key or setting its entityType 'AutoGeneratedKeyType' property to something other than 'None'");
                 }
             }
         }
@@ -13684,12 +13736,13 @@ var EntityManager = (function () {
             }
             
             if (queryOptions.fetchStrategy === FetchStrategy.FromLocalCache) {
-                return Q.fcall(function () {
+                try {
                     var results = em.executeQueryLocally(query);
-                    return { results: results, query: query };
-                });
+                    return Q.resolve({ results: results, query: query });
+                } catch(e) {
+                    return Q.reject(e);
+                }
             }
-
 
             var mappingContext = new MappingContext({
                     query: query,
@@ -13727,7 +13780,6 @@ var EntityManager = (function () {
                     var nodes = dataService.jsonResultsAdapter.extractResults(data);
                     nodes = __toArray(nodes);
                     
-                    
                     var results = mappingContext.visitAndMerge(nodes, { nodeType: "root" });
                     if (validateOnQuery) {
                         results.forEach(function (r) {
@@ -13739,7 +13791,7 @@ var EntityManager = (function () {
                     return { results: results, query: query, entityManager: em, httpResponse: data.httpResponse, inlineCount: data.inlineCount };
                 });
                 return Q.resolve(result);
-            }).fail(function (e) {
+            }, function (e) {
                 if (e) {
                     e.query = query;
                     e.entityManager = em;
@@ -13981,7 +14033,7 @@ var EntityManager = (function () {
 // expose
 breeze.EntityManager = EntityManager;
 
-/**
+;/**
 @module breeze
 **/
 
@@ -13990,13 +14042,10 @@ breeze.EntityManager = EntityManager;
 var MappingContext = (function () {
     
     var ctor = function (config) {
-        //  this is optional. 
-        this.query = config.query;
 
-        // these are not
-        this.entityManager = config.entityManager
-        this.dataService = config.dataService;
-        this.mergeOptions = config.mergeOptions;
+        __extend(this, config, [
+            "query", "entityManager", "dataService", "mergeOptions"
+        ]);
 
         // calc'd props
         this.refMap = {};
@@ -14215,11 +14264,7 @@ var MappingContext = (function () {
             }
         } else {
             targetEntity = entityType._createInstanceCore();
-            // No longer needed
-            //if (targetEntity.initializeFrom) {
-            //    // allows any injected post ctor activity to be performed by modelLibrary impl.
-            //    targetEntity.initializeFrom(node);
-            //}
+          
             updateEntity(mc, targetEntity, node);
             
             if (meta.extra) {
@@ -14275,9 +14320,11 @@ var MappingContext = (function () {
     function mergeRelatedEntities(mc, navigationProperty, targetEntity, rawEntity) {
         var relatedEntities = mergeRelatedEntitiesCore(mc, rawEntity, navigationProperty);
         if (relatedEntities == null) return;
-
+        // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+        // targetEntity.entityAspect.markNavigationPropertyAsLoaded(navigationProperty);
         var inverseProperty = navigationProperty.inverse;
         if (!inverseProperty) return;
+
         var originalRelatedEntities = targetEntity.getProperty(navigationProperty.name);
         originalRelatedEntities.wasLoaded = true;
         
@@ -14322,6 +14369,10 @@ var MappingContext = (function () {
         if (!relatedEntity) return;
         var propName = navigationProperty.name;
         var currentRelatedEntity = targetEntity.getProperty(propName);
+
+        // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+        // targetEntity.entityAspect.markNavigationPropertyAsLoaded(navigationProperty);
+
         // check if the related entity is already hooked up
         if (currentRelatedEntity !== relatedEntity) {
             // if not hook up both directions.
@@ -14330,15 +14381,21 @@ var MappingContext = (function () {
             if (!inverseProperty) return;
             if (inverseProperty.isScalar) {
                 relatedEntity.setProperty(inverseProperty.name, targetEntity);
+
+                // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+                // relatedEntity.entityAspect.markNavigationPropertyAsLoaded(inverseProperty);
             } else {
                 var collection = relatedEntity.getProperty(inverseProperty.name);
                 collection.push(targetEntity);
+                // can't call _markAsLoaded here because this may be only a partial load.
             }
         }
     } 
 
     function updateRelatedEntityInCollection(relatedEntity, relatedEntities, targetEntity, inverseProperty) {
         if (!relatedEntity) return;
+        // Uncomment when we implement entityAspect.isNavigationPropertyLoaded method
+        // relatedEntity.entityAspect.markNavigationPropertyAsLoaded(inverseProperty);
         // check if the related entity is already hooked up
         var thisEntity = relatedEntity.getProperty(inverseProperty.name);
         if (thisEntity !== targetEntity) {
@@ -14354,7 +14411,7 @@ var MappingContext = (function () {
    
 
 
-/**
+;/**
 @module breeze
 **/
    
@@ -14458,7 +14515,7 @@ var SaveOptions = (function () {
 breeze.SaveOptions= SaveOptions;
 
 
-breeze.AbstractDataServiceAdapter = (function () {
+;breeze.AbstractDataServiceAdapter = (function () {
     
     var ajaxImpl;
     
@@ -14652,8 +14709,7 @@ breeze.AbstractDataServiceAdapter = (function () {
             if (entityErrors && httpResponse.saveContext) {
                 processEntityErrors(err, entityErrors, httpResponse.saveContext);
             } else {
-                errObj = errObj.InnerException || errObj;
-                err.message = errObj.ExceptionMessage || errObj.Message || errObj.toString();
+                err.message = extractInnerMessage(errObj)
             }
         } else {
             err.message = httpResponse.error && httpResponse.error.toString();
@@ -14661,6 +14717,13 @@ breeze.AbstractDataServiceAdapter = (function () {
         
         return err;
     };
+
+    function extractInnerMessage(errObj) {
+        while (errObj.InnerException) {
+            errObj = errObj.InnerException;
+        }
+        return errObj.ExceptionMessage || errObj.Message || errObj.toString();
+    }
 
     function processEntityErrors(err, entityErrors, saveContext) {
         err.message = "Server side errors encountered - see the entityErrors collection on this object for more detail";
@@ -14680,7 +14743,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     return ctor;
 
 })();
-// needs Angular
+;// needs Angular
 (function(factory) {
     // Module systems magic dance.
     if (breeze) {
@@ -14807,7 +14870,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     breeze.config.registerAdapter("ajax", ctor);
     
 }));
-// needs JQuery
+;// needs JQuery
 (function(factory) {
     // Module systems magic dance.
     if (breeze) {
@@ -14895,7 +14958,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     breeze.config.registerAdapter("ajax", ctor);
     
 }));
-(function (factory) {
+;(function (factory) {
     if (breeze) {
         factory(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
@@ -15143,7 +15206,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     function updateDeleteMergeRequest(request, aspect, prefix) {
         var extraMetadata = aspect.extraMetadata;
         var uri = extraMetadata.uri || extraMetadata.id;
-        if (__stringStartsWith(uri, prefix)) {
+        if (core.stringStartsWith(uri, prefix)) {
             uri = uri.substring(prefix.length);
         }
         request.requestUri = uri;
@@ -15198,7 +15261,7 @@ breeze.AbstractDataServiceAdapter = (function () {
 
 }));
 
-(function(factory) {
+;(function(factory) {
     if (breeze) {
         factory(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
@@ -15289,8 +15352,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     
     breeze.config.registerAdapter("dataService", ctor);
 
-}));
-"use strict";
+}));;"use strict";
 (function (factory) {
     if (breeze) {
         factory(breeze);
@@ -15495,7 +15557,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     // private methods
 
 }));
-"use strict";
+;"use strict";
 (function (factory) {
     if (breeze) {
         factory(breeze);
@@ -15778,7 +15840,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     breeze.config.registerAdapter("modelLibrary", ctor);
 
 }));
-"use strict";
+;"use strict";
 (function (factory) {
     if (breeze) {
         factory(breeze);
@@ -15892,7 +15954,9 @@ breeze.AbstractDataServiceAdapter = (function () {
     }
 
     function getES5PropDescriptor(proto, propName) {
-        
+        if (!canIsolateES5Props()) {
+            return null;
+        }
         if (proto.hasOwnProperty(propName)) {
             return Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(proto, propName);
         } else {
@@ -16040,7 +16104,7 @@ breeze.AbstractDataServiceAdapter = (function () {
     breeze.config.registerAdapter("modelLibrary", ctor);
     
 }));
-
+;
 // set defaults
 // will no longer fail at initialization time if jQuery is not found.
 breeze.config.initializeAdapterInstances( { dataService: "webApi", ajax: "jQuery" });
