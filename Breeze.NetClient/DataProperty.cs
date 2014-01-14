@@ -22,6 +22,7 @@ namespace Breeze.Metadata {
       
       this.ConcurrencyMode = dp.ConcurrencyMode;
       this.ComplexTypeName = dp.ComplexTypeName;
+      this.ComplexType = dp.ComplexType;
       this.DataType = dp.DataType;
       this.DefaultValue = dp.DefaultValue;
       this.EnumTypeName = dp.EnumTypeName;
@@ -36,14 +37,17 @@ namespace Breeze.Metadata {
     public DataType DataType { get; internal set; }
     
     public bool IsNullable { get; internal set; }
-    public bool IsUnmapped { get; internal set; }
+    
     public bool IsPartOfKey { get; internal set; }
     public Object DefaultValue { get; internal set; }
     public ConcurrencyMode ConcurrencyMode { get; internal set; }
     public Int64? MaxLength { get; internal set; }
-    
-    public String ComplexTypeName { get; set; }
-    public String EnumTypeName { get; set; }
+
+    public NavigationProperty InverseNavigationProperty { get; internal set; }
+    public NavigationProperty RelatedNavigationProperty { get; internal set; } // only set if fk
+    public ComplexType ComplexType { get; internal set; }
+    public String ComplexTypeName { get; internal set; }
+    public String EnumTypeName { get; internal set; }
     public String RawTypeName { get; internal set; }
 
     public bool IsComplexProperty { get { return ComplexTypeName != null;}}
@@ -53,8 +57,8 @@ namespace Breeze.Metadata {
   }
 
   public enum ConcurrencyMode {
-    None = 1,
-    Fixed = 2
+    None = 0,
+    Fixed = 1
   }
 
 

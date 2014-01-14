@@ -20,12 +20,15 @@ namespace Breeze.Metadata {
       this.Custom = prop.Custom;
       this.IsInherited = prop.IsInherited;
       this.IsScalar = prop.IsScalar;
+      this.IsUnmapped = prop.IsUnmapped;
       this.Validators = new ValidatorCollection(prop.Validators);
     }
+    public StructuralType ParentType { get; internal set; }
     public String Name { get; internal set; }
     public String NameOnServer { get; internal set; }
     public bool IsScalar { get; internal set; }
     public bool IsInherited { get; internal set; }
+    public bool IsUnmapped { get; internal set; }
     public ValidatorCollection Validators { get; internal set; }
     public dynamic Custom { get; internal set; }
 

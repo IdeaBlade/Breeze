@@ -15,7 +15,13 @@ namespace Breeze.Metadata {
 
   public class ComplexType: StructuralType {
     
-    public DataPropertyCollection DataProperties { get; internal set; }
+    public override IEnumerable<AbstractProperty> Properties {
+      get { return _dataProperties.AsEnumerable().Cast<AbstractProperty>(); }
+    }
+
+    public override bool IsEntityType {
+      get { return false; }
+    }
 
     internal override DataProperty AddDataProperty(DataProperty dp) {
       _dataProperties.Add(dp);

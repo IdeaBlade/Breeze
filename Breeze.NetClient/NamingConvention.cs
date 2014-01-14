@@ -12,8 +12,8 @@ namespace Breeze.Metadata {
     public virtual String ClientPropertyNameToServer(String serverName) {
       return serverName;
     }
-    public static NamingConvention DefaultNamingConvention = new NamingConvention();
-    public static NamingConvention CamelCaseNamingConvention = new CamelCaseNamingConvention();
+    public static NamingConvention Default = new NamingConvention();
+    public static NamingConvention CamelCase = new CamelCaseNamingConvention();
   }
 
   public class CamelCaseNamingConvention : NamingConvention {
