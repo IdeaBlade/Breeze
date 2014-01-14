@@ -26,7 +26,6 @@ namespace Breeze.Metadata {
     internal override DataProperty AddDataProperty(DataProperty dp) {
       _dataProperties.Add(dp);
 
-
       if (dp.IsComplexProperty) {
         _complexProperties.Add(dp);
       }

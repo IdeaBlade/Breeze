@@ -97,9 +97,6 @@ namespace Breeze.Metadata {
 
       structuralType.Properties.ForEach(prop => {
         structuralType.UpdateClientServerNames(this.NamingConvention, prop);
-        if (!prop.IsUnmapped) {
-          structuralType._mappedPropertiesCount++;
-        }
       });
 
       UpdateComplexProperties(structuralType);
@@ -126,7 +123,6 @@ namespace Breeze.Metadata {
           entityType.BaseEntityType._subtypes.Add(entityType);
         }
       }
-
 
     }
 

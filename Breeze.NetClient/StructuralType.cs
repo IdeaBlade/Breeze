@@ -60,31 +60,33 @@ namespace Breeze.Metadata {
     internal void UpdateClientServerNames(NamingConvention nc, AbstractProperty property) {
       // TODO: add check for name roundtriping ( to see if ok)
       if (!String.IsNullOrEmpty(property.Name)) {
-        property.NameOnServer = nc.ClientPropertyNameToServer(property.Name);
+        property.NameOnServer = nc.Test(property.Name, true);
       } else {
-        property.Name = nc.ServerPropertyNameToClient(property.NameOnServer);
+        property.Name = nc.Test(property.NameOnServer, false);
       }
 
       var navProp = property as NavigationProperty;
       if (navProp != null) {
         if (navProp._foreignKeyNames.Count > 0) {
-          navProp._foreignKeyNamesOnServer = navProp._foreignKeyNames.Select(fkn => nc.ClientPropertyNameToServer(fkn)).ToList();
+          navProp._foreignKeyNamesOnServer = navProp._foreignKeyNames.Select(fkn => nc.Test(fkn, true)).ToList();
         } else {
-          navProp._foreignKeyNames = navProp._foreignKeyNamesOnServer.Select(fkn => nc.ServerPropertyNameToClient(fkn)).ToList();
+          navProp._foreignKeyNames = navProp._foreignKeyNamesOnServer.Select(fkn => nc.Test(fkn, false)).ToList();
         }
 
         if (navProp._invForeignKeyNames.Count > 0) {
-          navProp._invForeignKeyNamesOnServer = navProp._invForeignKeyNames.Select(fkn => nc.ClientPropertyNameToServer(fkn)).ToList();
+          navProp._invForeignKeyNamesOnServer = navProp._invForeignKeyNames.Select(fkn => nc.Test(fkn, true)).ToList();
         } else {
-          navProp._invForeignKeyNames = navProp._invForeignKeyNamesOnServer.Select(fkn => nc.ServerPropertyNameToClient(fkn)).ToList();
+          navProp._invForeignKeyNames = navProp._invForeignKeyNamesOnServer.Select(fkn => nc.Test(fkn, false)).ToList();
         }
       }
     }
 
+    
+
     protected DataPropertyCollection _dataProperties = new DataPropertyCollection();
     protected List<DataProperty> _complexProperties = new List<DataProperty>();
     protected List<DataProperty> _unmappedProperties = new List<DataProperty>();
-    internal int _mappedPropertiesCount;
+    
   }
 
 
