@@ -5,11 +5,13 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 1.0
+ * Version: 1.0.2
  * --------------------------------------------------------------------------------
  * Adds "Save Queuing" capability to new EntityManagers
  * "Save Queuing" automatically queues and defers an EntityManager.saveChanges call
  * when another save is in progress for that manager.
+ *
+ * Depends on Breeze (which it patches) and Q.js
  *
  * Without "Save Queuing", an EntityManager will throw an exception when
  * saveChanges is called while another save is in progress.
@@ -35,6 +37,21 @@
  * touch them at your own risk.
  */
 //#endregion
+(function (definition) {
+
+    // CommonJS
+    if (typeof exports === "object") {
+        var b = require('breeze');
+        var q = require('Q');
+        definition(b, q);
+    // RequireJS
+    } else if (typeof define === "function") {
+        define(['breeze', 'Q'], definition);
+    // <script>
+    } else {
+        definition(breeze, Q);
+    }
+})
 (function (breeze, Q) {
     var EntityManager = breeze.EntityManager;
 
@@ -94,14 +111,14 @@
         var savePromise = deferredSave.promise;
         return savePromise
             .then(function () { return self.innerSaveChanges(args); })
-            .fail(function (error) { self.saveFailed(error); });
+            .then(null,function (error) { self.saveFailed(error); });
     };
 
     SaveQueuing.prototype.innerSaveChanges = function (args) {
         var self = this;
         return self.baseSaveChanges.apply(self.entityManager, args)
             .then(function (saveResult) { return self.saveSucceeded(saveResult); })
-            .fail(function (error) { self.saveFailed(error); });
+            .then(null, function (error) { self.saveFailed(error); });
     };
 
     // Default methods and Error class for initializing new saveQueuing objects
@@ -145,4 +162,4 @@
     QueuedSaveFailedError.prototype.constructor = QueuedSaveFailedError;
     //#endregion
 
-})(breeze, Q);
+});

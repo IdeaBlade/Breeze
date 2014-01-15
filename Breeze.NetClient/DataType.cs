@@ -19,7 +19,7 @@ namespace Breeze.Metadata {
     public NumericDataType(Type clrType, String fmtSuffix, bool isInteger) : base(clrType) {
       DefaultValue = Convert.ChangeType(0, clrType);
       FmtOData = (Object source) => FmtNumber(source, clrType, fmtSuffix);
-      GetNext = () => GetNextValue(clrType);
+      GetNext = () => GetNextNumber(clrType);
       DataTypeInfo = DataTypeInfo.IsNumeric | (isInteger ? DataTypeInfo.IsInteger : DataTypeInfo.None);
     }
   }
@@ -30,6 +30,12 @@ namespace Breeze.Metadata {
       ClrType = clrType;
       All.Add(this);
     }
+
+    public static Int64 NextNumber = -1;
+    public static Int64 NextNumberIncrement = -1;
+    
+    public static String StringPrefix = "K_";
+      
     public String Name { get; internal set; }
     public Type ClrType { get; internal set; }
     public Object DefaultValue { get; internal set; }
@@ -65,7 +71,7 @@ namespace Breeze.Metadata {
     public static DataType DateTime = new DataType(typeof(DateTime)) {
       DefaultValue = new DateTime(1900, 1, 1),
       FmtOData = FmtDateTime,
-      GetNext = null,
+      GetNext = () => GetNextDateTime(),
       DataTypeInfo = DataTypeInfo.IsDate
     };
 
@@ -89,7 +95,7 @@ namespace Breeze.Metadata {
     public static DataType Guid = new DataType(typeof(Guid)) {
       DefaultValue = System.Guid.Empty,
       FmtOData = FmtGuid,
-      GetNext = () => GetNextValue(typeof(Guid))
+      GetNext = () => GetNextGuid()
     };
 
     public static DataType Binary = new DataType(typeof(Byte[])) {
@@ -126,13 +132,30 @@ namespace Breeze.Metadata {
       }
       return dt;
     }
-   
 
-    protected static Object GetNextValue(Type t) {
-      // TODO: implement this for numbers, guids and dateTimes
-      return null;
+    protected static String GetNextString() {
+      return StringPrefix + GetNextNumber(typeof(Int64)).ToString();
     }
 
+    protected static Object GetNextNumber(Type clrType) {
+      var result = Convert.ChangeType(NextNumber, clrType);
+      NextNumber++;
+      return result;
+    }
+
+    protected static Guid GetNextGuid() {
+      return System.Guid.NewGuid();
+    }
+
+    protected static DateTime GetNextDateTime() {
+      var result = new DateTime();
+      if (result == __prevDateTime) {
+        result = result.AddTicks(1);
+      }
+      __prevDateTime = result;
+      return result;
+    }
+    private static DateTime __prevDateTime;
 
 
     protected static String FmtString(Object val) {
