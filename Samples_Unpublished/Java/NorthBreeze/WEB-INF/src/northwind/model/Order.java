@@ -9,7 +9,7 @@ public class Order {
 
     private int orderID;
     private UUID customerID;
-    private int employeeID;
+    private Integer employeeID;
     private Date orderDate;
     private Date requiredDate;
     private Date shippedDate;
@@ -39,10 +39,10 @@ public class Order {
 	public void setCustomerID(UUID customerID) {
 		this.customerID = customerID;
 	}
-	public int getEmployeeID() {
+	public Integer getEmployeeID() {
 		return employeeID;
 	}
-	public void setEmployeeID(int employeeID) {
+	public void setEmployeeID(Integer employeeID) {
 		this.employeeID = employeeID;
 	}
 	public Date getOrderDate() {
