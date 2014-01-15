@@ -5,7 +5,7 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 1.0.1
+ * Version: 1.0.2
  * --------------------------------------------------------------------------------
  * Adds "Save Queuing" capability to new EntityManagers
  * "Save Queuing" automatically queues and defers an EntityManager.saveChanges call
@@ -111,14 +111,14 @@
         var savePromise = deferredSave.promise;
         return savePromise
             .then(function () { return self.innerSaveChanges(args); })
-            .fail(function (error) { self.saveFailed(error); });
+            .then(null,function (error) { self.saveFailed(error); });
     };
 
     SaveQueuing.prototype.innerSaveChanges = function (args) {
         var self = this;
         return self.baseSaveChanges.apply(self.entityManager, args)
             .then(function (saveResult) { return self.saveSucceeded(saveResult); })
-            .fail(function (error) { self.saveFailed(error); });
+            .then(null, function (error) { self.saveFailed(error); });
     };
 
     // Default methods and Error class for initializing new saveQueuing objects
