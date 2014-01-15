@@ -321,8 +321,7 @@ public class JSONSerializer {
                         write(method.invoke(obj, (Object[])null));
                     } catch (Exception exp) {
                     	//if (!(exp instanceof org.hibernate.LazyInitializationException))
-                    	exp.printStackTrace();
-                    		throw makeJSONException(exp);
+                		throw makeJSONException(exp);
                     }
                 }
             }

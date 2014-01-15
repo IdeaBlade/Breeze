@@ -44,7 +44,7 @@ public class OdataCriteria {
     		for(String s: op.orderbys()) {
     			String[] seg = s.split(WHITESPACE, 2);
     			String field = seg[0].replace('/', '.');
-    			if (seg.length == 2 && "desc".equals(seg[1])) {
+    			if (seg.length == 2 && "desc".equalsIgnoreCase(seg[1])) {
     				crit.addOrder(Order.desc(field));
     			} else {
     				crit.addOrder(Order.asc(field));

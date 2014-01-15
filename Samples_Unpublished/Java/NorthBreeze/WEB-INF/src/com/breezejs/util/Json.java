@@ -27,8 +27,7 @@ public class Json {
 		try {
 			return JSONSerializer.toString(obj, withId, withClass, false);
 		} catch (Exception e) {
-			e.printStackTrace();
-			return e.toString();
+			throw new RuntimeException("Exception serializing " + obj, e);
 		}
 	}
 	

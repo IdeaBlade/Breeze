@@ -48,12 +48,15 @@
         <!-- SQL dialect -->
         <property name="dialect">org.hibernate.dialect.SQLServer2008Dialect</property>
 
-        <!-- Disable the second-level cache  -->
+        <!-- Disable the second-level cache, for transparency  -->
         <property name="cache.provider_class">org.hibernate.cache.internal.NoCacheProvider</property>
 
         <!-- Echo all executed SQL to stdout -->
         <property name="show_sql">true</property>
 
+        <!-- Fetch lazy-loaded properties in batches -->
+		<property name="default_batch_fetch_size">32</property>
+        
 		<mapping resource="northwind/mapping/Category.hbm.xml"/>
 		<mapping resource="northwind/mapping/Customer.hbm.xml"/>
 		<mapping resource="northwind/mapping/Employee.hbm.xml"/>

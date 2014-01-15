@@ -43,8 +43,6 @@ public class Reflect {
 			Class clazz = Class.forName(className);
 			return clazz;
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 			throw new RuntimeException("No class found for " + entityTypeName, e);
 		}
 	}
