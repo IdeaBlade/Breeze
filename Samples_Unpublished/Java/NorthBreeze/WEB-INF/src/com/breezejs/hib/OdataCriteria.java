@@ -10,8 +10,15 @@ import org.hibernate.internal.CriteriaImpl;
 import org.hibernate.internal.CriteriaImpl.OrderEntry;
 
 import com.breezejs.OdataParameters;
-import com.breezejs.OperatorExpression;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 
+/**
+ * Simple parsing for simple OData expressions.
+ * @author Steve
+ * @see http://www.odata.org/documentation/odata-v2-documentation/uri-conventions/
+ */
 public class OdataCriteria {
 	
 	// Maps OData operators to Hibernate criteria operators
@@ -110,15 +117,30 @@ public class OdataCriteria {
 
 		String field = filter[0].replace('/', '.');
 		String op = filter[1].toLowerCase();
-		String value = filter[2];
+		String stringValue = filter[2];
 		
 		String restrictionOp = operatorMap.get(op);
 		if (restrictionOp == null)
 			throw new IllegalArgumentException("Filter string not handled: " + filterString);
 
-		// Remove quotes from string values
-		if (value.charAt(0) == '\'') {
-			value = value.substring(1, value.length() - 1);
+		Object value;
+		if (stringValue.charAt(0) == '\'') {
+			// Remove quotes from string values
+			value = stringValue.substring(1, stringValue.length() - 1);
+		} else {
+			// Non-quoted values are numbers or other fields
+			value = Ints.tryParse(stringValue);
+			if (value == null) {
+				value = Longs.tryParse(stringValue);
+			}
+			if (value == null) {
+				value = Doubles.tryParse(stringValue);
+			}
+			if (value == null) {
+				// expression comparing two properties
+				crit.add(new PropertyExpression(field, stringValue, restrictionOp));
+				return;
+			}
 		}
 		
 		crit.add(new OperatorExpression(field, value, restrictionOp));

@@ -18,6 +18,10 @@ import com.breezejs.util.Reflect;
 /**
  * Initializes Hibernate proxies and collections prior to serialization.
  * This is used to implement the OData $expand operation.
+ * 
+ * Be sure to set the default_batch_fetch_size property in your Hibernate configuration, e.g.
+ * 	<property name="default_batch_fetch_size">32</property>
+ * so that lazy loading happens in batches, instead of one at a time.
  * @author Steve
  *
  */
