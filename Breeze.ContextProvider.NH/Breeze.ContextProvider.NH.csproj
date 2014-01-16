@@ -93,6 +93,7 @@
     <Compile Include="NHBreezeMetadata.cs" />
     <Compile Include="NHContext.cs" />
     <Compile Include="NHEagerFetch.cs" />
+    <Compile Include="NHExpander.cs" />
     <Compile Include="NHInitializer.cs" />
     <Compile Include="NhQueryableInclude.cs" />
     <Compile Include="NHQueryHelper.cs" />

@@ -1,4 +1,4 @@
-package com.breezejs;
+package com.breezejs.hib;
 
 import org.hibernate.criterion.SimpleExpression;
 
@@ -8,10 +8,10 @@ import org.hibernate.criterion.SimpleExpression;
  *
  */
 public class OperatorExpression extends SimpleExpression {
+	private static final long serialVersionUID = 1L;
 
 	public OperatorExpression(String propertyName, Object value, String op) {
 		super(propertyName, value, op);
-		// TODO Auto-generated constructor stub
 	}
 
 }
