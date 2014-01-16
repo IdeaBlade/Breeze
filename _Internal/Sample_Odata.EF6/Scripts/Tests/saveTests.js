@@ -96,6 +96,72 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
+    test("product update active", function () { 
+        updateProduct(4);
+    });
+    test("product update discontinued", function () {
+        updateProduct(5);
+    });
+
+    function updateProduct(productId) {
+
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "TODO for Mongo - needs to be written specifically for Mongo - should succeed in Mongo");
+            return;
+        }
+
+        var em = newEm();
+
+        var q = new EntityQuery("Products").where("productID", "eq", productId);
+        stop();
+        var order;
+        var freight;
+        q.using(em).execute().then(function (data) {
+            ok(data.results.length === 1, "should be one result");
+            var product = data.results[0];
+            var unitsInStock = product.getProperty("unitsInStock");
+            product.setProperty("unitsInStock", unitsInStock + 10);
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(true, "save succeeded");
+        }).fail(function (e) {
+            ok(false, "error on save: " + e.message);
+        }).fail(testFns.handleFail).fin(start);
+    }
+
+    test("add UserRole", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "TODO for Mongo - needs to be written specifically for Mongo - should succeed in Mongo");
+            return;
+        }
+
+        var em = newEm();
+        var roleId = 10;
+        var userId;
+        var p2 = breeze.Predicate.create("roleId", "ne", roleId);
+        var p1 = breeze.Predicate.create("userRoles", "all", p2);
+
+        var q = new EntityQuery("Users").where(p1).take(1);
+        stop();
+        q.using(em).execute().then(function (data) {
+            ok(data.results.length === 1, "should be one result");
+            var userrole = data.results[0];
+            userId = userrole.getProperty("id");
+
+            var newUserRole = em.createEntity('UserRole', {
+                userId: userId,
+                roleId: roleId
+            });
+
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(true, "save succeeded");
+        }).fail(function (e) {
+            ok(false, "error on save: " + e.message);
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     test("exceptions thrown on server", function () {
         if (testFns.DEBUG_ODATA) {
             ok(true, "Skipped test - OData does not support server interception or alt resources");
