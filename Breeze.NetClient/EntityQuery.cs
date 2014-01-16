@@ -23,25 +23,28 @@ namespace Breeze.NetClient {
     public EntityQuery( ) : base() {
       var context = new DataServiceContext(new Uri(__placeHolderServiceName), DataServiceProtocolVersion.V3);
       _dataServiceQuery = context.CreateQuery<T>(__placeHolderResourceName);
-      _expression = _dataServiceQuery.Expression;
     }
 
-    public EntityQuery(Expression expression, IQueryable queryable) {
-      _expression = expression;
-
-      var query = queryable as EntityQuery;
+    public EntityQuery(EntityQuery<T> query) : this(query.ResourceName) {
+      DataServiceQuery = query.DataServiceQuery;
     }
 
-
-    protected DataServiceQuery<T> _dataServiceQuery;
-    protected Expression _expression;
+    protected DataServiceQuery<T> DataServiceQuery {
+      get {
+        return (DataServiceQuery<T>) _dataServiceQuery;
+      }
+      set {
+        _dataServiceQuery = value;
+      }
+    }
 
     public Task<IEnumerable<T>> Execute(EntityManager em) {
       return em.ExecuteQuery<T>(this);
     }
 
     public String GetResourcePath() {
-      var requestUri = _dataServiceQuery.RequestUri;
+      var dsq = (DataServiceQuery<T>)_dataServiceQuery;
+      var requestUri = dsq.RequestUri;
       var s2 = requestUri.AbsoluteUri.Replace(__placeHolderServiceName, "");
       // if any filter conditions
       var queryResource = s2.Replace(__placeHolderResourceName + "()", ResourceName);
@@ -50,12 +53,27 @@ namespace Breeze.NetClient {
       return queryResource;
     }
 
+    public EntityQuery<T> Expand<TTarget>(Expression<Func<T, TTarget>> navigationPropertyAccessor) {
+      var q = new EntityQuery<T>(this);
+      q.DataServiceQuery = this.DataServiceQuery.Expand(navigationPropertyAccessor);
+      return q;
+    }
+
+    public EntityQuery<T> Expand(String path) {
+      var q = new EntityQuery<T>(this);
+      q.DataServiceQuery = this.DataServiceQuery.Expand(path);
+      return q;
+    }
+
+
+    #region IQueryable impl 
+
     public IEnumerator<T> GetEnumerator() {
-      throw new NotImplementedException();
+      throw new Exception("EntityQueries cannot be enumerated because they can only be executed asynchronously");
     }
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
-      throw new NotImplementedException();
+      throw new Exception("EntityQueries cannot be enumerated because they can only be executed asynchronously");
     }
 
     public Type ElementType {
@@ -63,14 +81,22 @@ namespace Breeze.NetClient {
     }
 
     public System.Linq.Expressions.Expression Expression {
-      get { return _expression; }
+      get { return _dataServiceQuery.Expression; }
     }
 
     public IQueryProvider Provider {
       get { return this; }
     }
 
+    #endregion
+
     #region IQueryProvider Members
+
+    public EntityQuery(Expression expression, IQueryable queryable) {
+      var prevEntityQuery = (EntityQuery)queryable;
+      _dataServiceQuery = (DataServiceQuery<T>) prevEntityQuery._dataServiceQuery.Provider.CreateQuery<T>(expression);
+      ResourceName = prevEntityQuery.ResourceName;
+    }
 
     /// <summary>
     /// Internal use only - part of <see cref="IQueryProvider"/> implementation.
@@ -79,10 +105,7 @@ namespace Breeze.NetClient {
     /// <param name="expression"></param>
     /// <returns></returns>
     IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression) {
-      var q = new EntityQuery<TElement>(expression, this);
-      q._dataServiceQuery = (DataServiceQuery<TElement>)_dataServiceQuery.Provider.CreateQuery<TElement>(expression);
-      q.ResourceName = ResourceName;
-      return q;
+      return new EntityQuery<TElement>(expression, this);
     }
 
     /// <summary>
@@ -146,5 +169,7 @@ namespace Breeze.NetClient {
 
 
     public String ResourceName { get; protected set; }
+    internal DataServiceQuery _dataServiceQuery;
+    protected Expression _expression;
   }
 }
