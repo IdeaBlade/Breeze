@@ -1,5 +1,3 @@
-using Breeze.WebApi;
-using Newtonsoft.Json;
 using NHibernate;
 using NHibernate.Linq;
 using System;
@@ -13,7 +11,7 @@ namespace Breeze.WebApi.NH
 {
     public class NHQueryHelper : QueryHelper
     {
-        protected ExpandTypeMap expandMap = new ExpandTypeMap();
+        protected string[] expandPaths;
         protected ISession session;
 
         public NHQueryHelper(bool enableConstantParameterization, bool ensureStableOrdering, HandleNullPropagationOption handleNullPropagation, int pageSize)
@@ -48,12 +46,11 @@ namespace Breeze.WebApi.NH
         public IQueryable ApplyExpand(IQueryableInclude queryable)
         {
             var expands = queryable.GetIncludes();
-            if (expands == null || expands.Count == 0) return queryable;
-            var session = GetSession(queryable);
-            var fetcher = new NHEagerFetch(session.SessionFactory);
-            var expandedQueryable = fetcher.ApplyExpansions(queryable, expands.ToArray(), expandMap);
-
-            return expandedQueryable;
+            if (expands != null && expands.Count > 0)
+            {
+                this.expandPaths = expands.ToArray();
+            }
+            return queryable;
         }
 
         /// <summary>
@@ -66,9 +63,15 @@ namespace Breeze.WebApi.NH
         public override IQueryable ApplyExpand(IQueryable queryable, string expandsQueryString)
         {
             if (string.IsNullOrWhiteSpace(expandsQueryString)) return queryable;
-            var session = GetSession(queryable);
-            var fetcher = new NHEagerFetch(session.SessionFactory);
-            queryable = fetcher.ApplyExpansions(queryable, expandsQueryString, expandMap);
+            string[] expandPaths = expandsQueryString.Split(',').Select(s => s.Trim()).ToArray();
+            if (this.expandPaths != null)
+            {
+                this.expandPaths = this.expandPaths.Concat(expandPaths).ToArray();
+            }
+            else
+            {
+                this.expandPaths = expandPaths;
+            }
 
             return queryable;
         }
@@ -98,7 +101,10 @@ namespace Breeze.WebApi.NH
         /// <param name="list"></param>
         public override IEnumerable PostExecuteQuery(IEnumerable list)
         {
-            NHInitializer.InitializeList(list, expandMap);
+            if (expandPaths != null)
+            {
+                NHExpander.InitializeList(list, expandPaths);
+            }
             return list;
         }
 
@@ -127,13 +133,9 @@ namespace Breeze.WebApi.NH
             {
                 // Only serialize the properties that were initialized before session was closed
                 if (session.IsOpen) session.Close();
-                settings.ContractResolver = NHibernateContractResolver.Instance;
             }
-            else if (expandMap.map.Count > 0)
-            {
-                // Limit serialization by only allowing properties in the map
-                settings.ContractResolver = new IncludingContractResolver(expandMap.map);
-            }
+
+            settings.ContractResolver = NHibernateContractResolver.Instance;
 
             settings.Error = delegate(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)
             {
