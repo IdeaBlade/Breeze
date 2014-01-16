@@ -81,12 +81,14 @@ namespace Breeze.NetClient {
 
       try {
         var resourcePath = query.GetResourcePath();
+        // HACK
+        resourcePath = resourcePath.Replace("/*", "");
         var response = await _client.GetAsync(resourcePath);
         response.EnsureSuccessStatusCode(); // Throw on error code.
 
         var result = await response.Content.ReadAsStringAsync();
         var x = JsonConvert.DeserializeObject<IEnumerable<T>>(result);
-        
+        // var x = (IEnumerable<T>) JsonConvert.DeserializeObject(result, typeof(IEnumerable<T>));
         return x;
       } catch (Newtonsoft.Json.JsonException jEx) {
         // This exception indicates a problem deserializing the request body.

@@ -57,6 +57,42 @@ namespace Breeze.NetClient {
       return (EntityQuery<TSource>)Queryable.OrderByDescending(source, keySelector);
     }
 
+    /// <summary>
+    /// Projects each element of a sequence into a new form.
+    /// </summary>
+    /// <typeparam name="TSource"></typeparam>
+    /// <typeparam name="TResult"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="selector"></param>
+    /// <returns></returns>
+    /// <include file='EntityQueryExtensions.Examples.xml' path='//Class[@name="EntityQueryExtensions"]/method[@name="Select1"]/*' />
+    public static EntityQuery<TResult> Select<TSource, TResult>(this EntityQuery<TSource> source, Expression<Func<TSource, TResult>> selector) {
+      return (EntityQuery<TResult>)Queryable.Select(source, selector);
+    }
+
+    /// <summary>
+    /// Bypasses a specified number of elements in a sequence and then returns the remaining elements.
+    /// </summary>
+    /// <typeparam name="TSource"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    /// <include file='EntityQueryExtensions.Examples.xml' path='//Class[@name="EntityQueryExtensions"]/method[@name="Skip2"]/*' />
+    public static EntityQuery<TSource> Skip<TSource>(this EntityQuery<TSource> source, int count) {
+      return (EntityQuery<TSource>)Queryable.Skip(source, count);
+    }
+
+    /// <summary>
+    /// Returns a specified number of contiguous elements from the start of a sequence.
+    /// </summary>
+    /// <typeparam name="TSource"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    /// <include file='EntityQueryExtensions.Examples.xml' path='//Class[@name="EntityQueryExtensions"]/method[@name="Skip2"]/*' />
+    public static EntityQuery<TSource> Take<TSource>(this EntityQuery<TSource> source, int count) {
+      return (EntityQuery<TSource>)Queryable.Take(source, count);
+    }
 
   }
 }
