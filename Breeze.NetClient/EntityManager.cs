@@ -10,20 +10,24 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
-  public class WebApi {
-    HttpClient _client;
+  public class EntityManager {
+
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="baseUri">"http://localhost:9000/"</param>
-    public void Initialize(String baseUri) {
+    /// <param name="serviceName">"http://localhost:9000/"</param>
+    public EntityManager(String serviceName) {
       _client = new HttpClient();
-      _client.BaseAddress = new Uri(baseUri);
+      _client.BaseAddress = new Uri(serviceName);
 
       // Add an Accept header for JSON format.
       _client.DefaultRequestHeaders.Accept.Add(
           new MediaTypeWithQualityHeaderValue("application/json"));
     }
+
+    public String ServiceName { get; private set; }
+    HttpClient _client;
+    
 
     public async Task<Object> FetchMetadata() {
       
@@ -52,7 +56,7 @@ namespace Breeze.NetClient {
     /// 
     /// </summary>
     /// <param name="webApiQuery">"api/products"</param>
-    public async Task<Object> ExecuteQuery(string resourcePath, Type type) {
+    public async Task<Object> ExecuteQuery(string resourcePath) {
       
       try {
 
@@ -70,6 +74,27 @@ namespace Breeze.NetClient {
         throw;
       } finally {
         
+      }
+    }
+
+    public async Task<IEnumerable<T>> ExecuteQuery<T>(EntityQuery<T> query) {
+
+      try {
+        var resourcePath = query.GetResourcePath();
+        var response = await _client.GetAsync(resourcePath);
+        response.EnsureSuccessStatusCode(); // Throw on error code.
+
+        var result = await response.Content.ReadAsStringAsync();
+        var x = JsonConvert.DeserializeObject<IEnumerable<T>>(result);
+        
+        return x;
+      } catch (Newtonsoft.Json.JsonException jEx) {
+        // This exception indicates a problem deserializing the request body.
+        throw;
+      } catch (HttpRequestException ex) {
+        throw;
+      } finally {
+
       }
     }
   }

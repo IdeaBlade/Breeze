@@ -28,23 +28,41 @@ namespace Sample_WPF.EF6 {
     }
 
     private async void ExecuteQuery() {
-      var client = new WebApi();
-
       var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-      var query = "Employees";
-      client.Initialize(serviceName);
-      var metadata = await client.FetchMetadata();
-      var uri = new Uri(serviceName);
+      var em = new EntityManager(serviceName);
 
       
-      var Customers = new DataServiceContext(uri, DataServiceProtocolVersion.V3).CreateQuery<Foo.Customer>("Customers");
-      var q = (DataServiceQuery) Customers.Where(c => c.CompanyName.StartsWith("C") && c.Country == "USA" && c.Orders.Any(o => o.Freight > 100));
-      var s = q.RequestUri;
+      var query = "Employees";
+      
+      // var metadata = await client.FetchMetadata();
 
-      var x = await client.ExecuteQuery(query, typeof(Object));
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C") && c.Orders.Any(o => o.Freight > 10));
+      
+      var q3 = q2.Expand(c => c.Orders);
+      
+      var q4 = q3.OrderBy(c => c.CompanyName);
+      var zzz = q4.GetResourcePath();
+      var x = await q4.Execute(em);
+      // var x = await em.ExecuteQuery<Foo.Customer>(query);
       var y = x;
     }
 
+    public void OldCode() {
+
+      // var metadata = await client.FetchMetadata();
+
+      //var uri = new Uri(serviceName);
+      //var Customers = new DataServiceContext(uri, DataServiceProtocolVersion.V3).CreateQuery<Foo.Customer>("Customers");
+      //var q = (DataServiceQuery)Customers.Where(c => c.CompanyName.StartsWith("C") && c.Orders.Any(o => o.Freight > 10));
+      //var s = q.RequestUri;
+      //var s2 = s.AbsoluteUri.Replace(serviceName, "");
+      //query = s2.Replace("()", "");
+
+      //// var x = await client.ExecuteQuery(query, typeof(Object));
+      //var x = await em.ExecuteQuery<Foo.Customer>(query);
+      //var y = x;
+    }
 
   }
 }
