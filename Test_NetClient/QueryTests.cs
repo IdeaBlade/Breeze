@@ -22,9 +22,40 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
+    public async Task InlineCount() {
+
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C")) ;
+      var q3 = q2.InlineCount();
+
+      var r = await q3.Execute(_em1);
+
+      var count = ((IHasInlineCount) r).InlineCount;
+      
+      Assert.IsTrue(r.Count() > 0);
+      Assert.IsTrue(r.Count() == count, "counts should be the same");
+      Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
+    }
+
+    [TestMethod]
+    public async Task InlineCount2() {
+
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C")).Take(2);
+      var q3 = q2.InlineCount();
+
+      var r = await q3.Execute(_em1);
+
+      var count = ((IHasInlineCount)r).InlineCount;
+
+      Assert.IsTrue(r.Count() == 2);
+      Assert.IsTrue(r.Count() < count, "counts should be the same");
+      Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
+    }
+
+    [TestMethod]
     public async Task WhereAnyOrderBy() {
       
-
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C") && c.Orders.Any(o => o.Freight > 10));
       var q3 = q2.OrderBy(c => c.CompanyName).Skip(2);
