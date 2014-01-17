@@ -11,10 +11,11 @@ using System.Data.Services.Common;
 using System.Linq.Expressions;
 
 namespace Breeze.NetClient {
+
+  // TODO: EntityQuery is currently just additive - i.e. no way to remove clauses
   public class EntityQuery<T> : EntityQuery, IQueryable<T>, IOrderedQueryable<T>, IQueryProvider {
 
-    private static String __placeHolderServiceName = "http://localhost:7890/breeze/Foo/";
-    private static String __placeHolderResourceName = "__Test__";
+
     public EntityQuery(String resourceName)
       : this() {
         ResourceName = resourceName;
@@ -29,28 +30,15 @@ namespace Breeze.NetClient {
       DataServiceQuery = query.DataServiceQuery;
     }
 
-    protected DataServiceQuery<T> DataServiceQuery {
-      get {
-        return (DataServiceQuery<T>) _dataServiceQuery;
-      }
-      set {
-        _dataServiceQuery = value;
-      }
+    public EntityQuery<T> From(String resourceName) {
+      var q = new EntityQuery<T>(this);
+      q.ResourceName = resourceName;
+      return q;
     }
+
 
     public Task<IEnumerable<T>> Execute(EntityManager em) {
       return em.ExecuteQuery<T>(this);
-    }
-
-    public String GetResourcePath() {
-      var dsq = (DataServiceQuery<T>)_dataServiceQuery;
-      var requestUri = dsq.RequestUri;
-      var s2 = requestUri.AbsoluteUri.Replace(__placeHolderServiceName, "");
-      // if any filter conditions
-      var queryResource = s2.Replace(__placeHolderResourceName + "()", ResourceName);
-      // if no filter conditions
-      queryResource = queryResource.Replace(__placeHolderResourceName, ResourceName);
-      return queryResource;
     }
 
     public EntityQuery<T> Expand<TTarget>(Expression<Func<T, TTarget>> navigationPropertyAccessor) {
@@ -65,6 +53,28 @@ namespace Breeze.NetClient {
       return q;
     }
 
+    public EntityQuery<T> AddQueryOption(string name, Object value) {
+      var q = new EntityQuery<T>(this);
+      q.DataServiceQuery = this.DataServiceQuery.AddQueryOption(name, value);
+      return q;
+    }
+    
+    public EntityQuery<T> InlineCount() {
+      var q = new EntityQuery<T>(this);
+      q.DataServiceQuery = this.DataServiceQuery.IncludeTotalCount();
+      return q;
+    }
+
+    public String GetResourcePath() {
+      var dsq = (DataServiceQuery<T>)_dataServiceQuery;
+      var requestUri = dsq.RequestUri;
+      var s2 = requestUri.AbsoluteUri.Replace(__placeHolderServiceName, "");
+      // if any filter conditions
+      var queryResource = s2.Replace(__placeHolderResourceName + "()", ResourceName);
+      // if no filter conditions
+      queryResource = queryResource.Replace(__placeHolderResourceName, ResourceName);
+      return queryResource;
+    }
 
     #region IQueryable impl 
 
@@ -149,6 +159,18 @@ namespace Breeze.NetClient {
 
     #endregion 
 
+    protected DataServiceQuery<T> DataServiceQuery {
+      get {
+        return (DataServiceQuery<T>)_dataServiceQuery;
+      }
+      set {
+        _dataServiceQuery = value;
+      }
+    }
+
+    private static String __placeHolderServiceName = "http://localhost:7890/breeze/Undefined/";
+    private static String __placeHolderResourceName = "__Undefined__";
+
   }
   
   public class EntityQuery {
@@ -162,14 +184,7 @@ namespace Breeze.NetClient {
 
     }
 
-    //public static EntityQuery From(String resourceName) {
-    //  return new EntityQuery(resourceName);
-    //}
-
-
-
     public String ResourceName { get; protected set; }
     internal DataServiceQuery _dataServiceQuery;
-    protected Expression _expression;
   }
 }

@@ -81,13 +81,19 @@ namespace Breeze.NetClient {
 
       try {
         var resourcePath = query.GetResourcePath();
+        // HACK
+        resourcePath = resourcePath.Replace("/*", "");
         var response = await _client.GetAsync(resourcePath);
         response.EnsureSuccessStatusCode(); // Throw on error code.
-
-        var result = await response.Content.ReadAsStringAsync();
-        var x = JsonConvert.DeserializeObject<IEnumerable<T>>(result);
         
-        return x;
+        var result = await response.Content.ReadAsStringAsync();
+        if (resourcePath.Contains("inlinecount")) {
+          return JsonConvert.DeserializeObject<QueryResult<T>>(result);
+          
+        } else {
+          return JsonConvert.DeserializeObject<IEnumerable<T>>(result);
+        }
+        
       } catch (Newtonsoft.Json.JsonException jEx) {
         // This exception indicates a problem deserializing the request body.
         throw;
@@ -97,5 +103,30 @@ namespace Breeze.NetClient {
 
       }
     }
+
   }
+
+  // JsonObject attribute is needed so this is NOT deserialized as an Enumerable
+  [JsonObject]
+  public class QueryResult<T> : IEnumerable<T>, IHasInlineCount  {
+    public IEnumerable<T> Results { get; set; }
+    public Int64? InlineCount { get; set; }
+    public IEnumerator<T> GetEnumerator() {
+      return Results.GetEnumerator();
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+      return Results.GetEnumerator();
+    }
+    
+  }
+
+  public interface IHasInlineCount {
+    Int64? InlineCount { get; }
+  }
+
+  
 }
+
+
+

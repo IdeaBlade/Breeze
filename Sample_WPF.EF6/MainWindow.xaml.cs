@@ -38,14 +38,22 @@ namespace Sample_WPF.EF6 {
 
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C") && c.Orders.Any(o => o.Freight > 10));
+      var q3 = q2.OrderBy(c => c.CompanyName).Skip(2);
+      // var q3 = q2.Select(c => c.Orders); // fails
+      // var q4 = q2.Select(c => new Dummy() { Orders = c.Orders}  );
+      // var q4 = q2.Select(c => new { Orders = c.Orders });
+      // var q4 = q3.Select(c => new { c.CompanyName, c.Orders });
+      var x = await q3.Execute(em);
+      //var q3 = q2.Expand(c => c.Orders);
+      //var q4 = q3.OrderBy(c => c.CompanyName);
+      //var zzz = q4.GetResourcePath();
+      //var x = await q4.Execute(em);
       
-      var q3 = q2.Expand(c => c.Orders);
-      
-      var q4 = q3.OrderBy(c => c.CompanyName);
-      var zzz = q4.GetResourcePath();
-      var x = await q4.Execute(em);
-      // var x = await em.ExecuteQuery<Foo.Customer>(query);
       var y = x;
+    }
+
+    public class Dummy {
+      public IEnumerable<Foo.Order> Orders;
     }
 
     public void OldCode() {
