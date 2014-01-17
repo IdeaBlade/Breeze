@@ -23,6 +23,8 @@ namespace Breeze.WebApi.NH
         private Dictionary<Type, List<EntityInfo>> saveMap;
         private IDictionary<string, string> fkMap;
         private ISession session;
+        private List<EntityInfo> saveOrder;
+        private bool removeMode;
 
         /// <summary>
         /// Create new instance with the given saveMap and fkMap.  Since the saveMap is unique per save, 
@@ -36,13 +38,50 @@ namespace Breeze.WebApi.NH
             this.saveMap = saveMap;
             this.fkMap = fkMap;
             this.session = session;
+            SetSaveOrder();
+        }
+
+        /// <summary>
+        /// Set the original save order for the entities, which is just the order that they appear in the saveMap.
+        /// The order will change as the relationships are processed.
+        /// </summary>
+        private void SetSaveOrder()
+        {
+            saveOrder = new List<EntityInfo>();
+            foreach (var kvp in saveMap)
+            {
+                foreach (var entityInfo in kvp.Value)
+                {
+                    saveOrder.Add(entityInfo);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Move the entityInfo in the saveOrder according to its EntityState.  
+        /// Added are moved to the top, Deleted to the bottom, others left alone.
+        /// </summary>
+        /// <param name="entityInfo"></param>
+        private void Promote(EntityInfo entityInfo)
+        {
+            var state = entityInfo.EntityState;
+            if (state == EntityState.Added)
+            {
+                saveOrder.Remove(entityInfo);
+                saveOrder.Insert(0, entityInfo);
+            }
+            else if (state == EntityState.Deleted)
+            {
+                saveOrder.Remove(entityInfo);
+                saveOrder.Add(entityInfo);
+            }
         }
 
         /// <summary>
         /// Connect the related entities in the saveMap to other entities.  If the related entities
         /// are not in the saveMap, they are loaded from the session.
         /// </summary>
-        public void FixupRelationships()
+        public List<EntityInfo> FixupRelationships()
         {
             foreach (var kvp in saveMap)
             {
@@ -54,6 +93,18 @@ namespace Breeze.WebApi.NH
                     FixupRelationships(entityInfo, classMeta);
                 }
             }
+            return saveOrder;
+        }
+
+        /// <summary>
+        /// Remove the navigations between entities in the saveMap.  This flattens the JSON
+        /// result so Breeze can handle it.
+        /// </summary>
+        /// <param name="saveMap">Map of entity types -> entity instances to save</param>
+        public void RemoveRelationships()
+        {
+            this.removeMode = true;
+            FixupRelationships();
         }
 
         /// <summary>
@@ -131,6 +182,12 @@ namespace Breeze.WebApi.NH
                             isChanged = true;
                         }
                     }
+                    else if (removeMode)
+                    {
+                        // remove the relationship
+                        compValues[j] = null;
+                        isChanged = true;
+                    }
                 }
             }
             if (isChanged)
@@ -150,6 +207,11 @@ namespace Breeze.WebApi.NH
         private void FixupRelationship(string propName, IType propType, EntityInfo entityInfo, IClassMetadata meta)
         {
             var entity = entityInfo.Entity;
+            if (removeMode)
+            {
+                meta.SetPropertyValue(entity, propName, null, EntityMode.Poco);
+                return;
+            }
             object relatedEntity = GetPropertyValue(meta, entity, propName);
             if (relatedEntity != null) return;    // entities are already connected
 
@@ -163,6 +225,7 @@ namespace Breeze.WebApi.NH
         /// Get a related entity based on the value of the foreign key.  Attempts to find the related entity in the
         /// saveMap; if its not found there, it is loaded via the Session (which should create a proxy, not actually load 
         /// the entity from the database).
+        /// Related entities are Promoted in the saveOrder according to their state.
         /// </summary>
         /// <param name="propName">Name of the navigation/association property of the entity, e.g. "Customer".  May be null if the property is the entity's identifier.</param>
         /// <param name="propType">Type of the property</param>
@@ -177,12 +240,20 @@ namespace Breeze.WebApi.NH
 
             if (id != null)
             {
-                relatedEntity = FindInSaveMap(propType.ReturnedClass, id);
+                EntityInfo relatedEntityInfo = FindInSaveMap(propType.ReturnedClass, id);
 
-                if (relatedEntity == null && (entityInfo.EntityState == EntityState.Added || entityInfo.EntityState == EntityState.Modified))
+                if (relatedEntityInfo == null) 
                 {
-                    var relatedEntityName = propType.Name;
-                    relatedEntity = session.Load(relatedEntityName, id, LockMode.None);
+                    if (entityInfo.EntityState == EntityState.Added || entityInfo.EntityState == EntityState.Modified)
+                    {
+                        var relatedEntityName = propType.Name;
+                        relatedEntity = session.Load(relatedEntityName, id, LockMode.None);
+                    }
+                }
+                else
+                {
+                    Promote(relatedEntityInfo);
+                    relatedEntity = relatedEntityInfo.Entity;
                 }
             }
             return relatedEntity;
@@ -271,7 +342,7 @@ namespace Breeze.WebApi.NH
         /// <param name="entityType">Type of entity, e.g. Order</param>
         /// <param name="entityId">Key value of the entity</param>
         /// <returns>The entity, or null if not found</returns>
-        private object FindInSaveMap(Type entityType, object entityId)
+        private EntityInfo FindInSaveMap(Type entityType, object entityId)
         {
             var entityIdString = entityId.ToString();
             List<EntityInfo> entityInfoList;
@@ -282,7 +353,8 @@ namespace Breeze.WebApi.NH
                 {
                     var entity = entityInfo.Entity;
                     var id = meta.GetIdentifier(entity, EntityMode.Poco);
-                    if (id != null && entityIdString.Equals(id.ToString())) return entity;
+                    if (id != null && entityIdString.Equals(id.ToString()))
+                        return entityInfo;
                 }
             }
             return null;

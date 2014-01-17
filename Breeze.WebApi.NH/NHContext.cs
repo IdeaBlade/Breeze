@@ -113,6 +113,7 @@ namespace Breeze.WebApi.NH {
     private Dictionary<EntityInfo, KeyMapping> EntityKeyMapping = new Dictionary<EntityInfo, KeyMapping>();
     private List<EntityError> entityErrors = new List<EntityError>();
     private IDictionary<string, object> _metadata;
+    private NHRelationshipFixer fixer;
 
     /// <summary>
     /// Persist the changes to the entities in the saveMap.
@@ -122,18 +123,20 @@ namespace Breeze.WebApi.NH {
     /// <param name="saveMap">Map of Type -> List of entities of that type</param>
     protected override void SaveChangesCore(SaveWorkState saveWorkState) {
       var saveMap = saveWorkState.SaveMap;
-      session.FlushMode = FlushMode.Commit;
+      session.FlushMode = FlushMode.Never;
       var tx = session.Transaction;
       var hasExistingTransaction = tx.IsActive;
       if (!hasExistingTransaction) tx.Begin(BreezeConfig.Instance.GetTransactionSettings().IsolationLevelAs);
       try {
         ProcessSaves(saveMap);
-
+          
         session.Flush();
-        RemoveRelationships(saveMap);
         RefreshFromSession(saveMap);
         if (!hasExistingTransaction) tx.Commit();
-      } catch (PropertyValueException pve) {
+        fixer.RemoveRelationships();
+      }
+      catch (PropertyValueException pve)
+      {
         // NHibernate can throw this
         if (tx.IsActive) tx.Rollback();
         entityErrors.Add(new EntityError() {
@@ -161,19 +164,18 @@ namespace Breeze.WebApi.NH {
     private void ProcessSaves(Dictionary<Type, List<EntityInfo>> saveMap) {
       // Get the map of foreign key relationships
       var fkMap = (IDictionary<string, string>)GetMetadata()[NHBreezeMetadata.FK_MAP];
-      var fixer = new NHRelationshipFixer(saveMap, fkMap, session);
+      fixer = new NHRelationshipFixer(saveMap, fkMap, session);
 
       // Relate entities in the saveMap to other NH entities, so NH can save the FK values.
-      fixer.FixupRelationships();
-
-      foreach (var kvp in saveMap) {
-        var entityType = kvp.Key;
-        var classMeta = session.SessionFactory.GetClassMetadata(entityType);
-
-        foreach (var entityInfo in kvp.Value) {
+      var saveOrder = fixer.FixupRelationships();
+      
+      var sessionFactory = session.SessionFactory;
+      foreach (var entityInfo in saveOrder)
+      {
+          var entityType = entityInfo.Entity.GetType();
+          var classMeta = sessionFactory.GetClassMetadata(entityType);
           AddKeyMapping(entityInfo, entityType, classMeta);
           ProcessEntity(entityInfo, classMeta);
-        }
       }
     }
 
@@ -227,6 +229,7 @@ namespace Breeze.WebApi.NH {
     /// </summary>
     /// <param name="entityInfo"></param>
     private void AddKeyMapping(EntityInfo entityInfo, Type type, IClassMetadata meta) {
+      if (entityInfo.EntityState != EntityState.Added) return;
       var entity = entityInfo.Entity;
       var id = GetIdentifier(entity, meta);
       var km = new KeyMapping() { EntityTypeName = type.FullName, TempValue = id };
@@ -295,41 +298,6 @@ namespace Breeze.WebApi.NH {
         }
       }
       return list;
-    }
-
-
-    /// <summary>
-    /// Remove the navigations between entities in the saveMap.  This flattens the JSON
-    /// result so Breeze can handle it.
-    /// </summary>
-    /// <param name="saveMap">Map of entity types -> entity instances to save</param>
-    private void RemoveRelationships(Dictionary<Type, List<EntityInfo>> saveMap) {
-      foreach (var kvp in saveMap) {
-        var entityType = kvp.Key;
-        var classMeta = session.SessionFactory.GetClassMetadata(entityType);
-
-        foreach (var entityInfo in kvp.Value) {
-          RemoveRelationships(entityInfo, classMeta);
-        }
-      }
-    }
-
-    /// <summary>
-    /// Set the navigation properties to null on the given entity.
-    /// </summary>
-    /// <param name="entityInfo"></param>
-    /// <param name="meta"></param>
-    private void RemoveRelationships(EntityInfo entityInfo, IClassMetadata meta) {
-      var entity = entityInfo.Entity;
-      var propNames = meta.PropertyNames;
-      var propTypes = meta.PropertyTypes;
-
-      for (int i = 0; i < propNames.Length; i++) {
-        var propType = propTypes[i];
-        if (propType.IsAssociationType && propType.IsEntityType) {
-          meta.SetPropertyValue(entity, propNames[i], null, EntityMode.Poco);
-        }
-      }
     }
 
     /// <summary>
