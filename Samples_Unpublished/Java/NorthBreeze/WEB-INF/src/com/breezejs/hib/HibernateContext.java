@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-
 import org.hibernate.EntityMode;
 import org.hibernate.FlushMode;
 import org.hibernate.LockMode;
@@ -26,6 +24,7 @@ public class HibernateContext extends ContextProvider {
 	private Session session;
 	private List<EntityError> entityErrors = new ArrayList<EntityError>();
 	private Map<EntityInfo, KeyMapping> entityKeyMapping = new HashMap<EntityInfo, KeyMapping>();
+	private RelationshipFixer fixer;
 
 	/**
 	 * @param session Hibernate session to be used for saving
@@ -38,7 +37,7 @@ public class HibernateContext extends ContextProvider {
 
 	protected void saveChangesCore(SaveWorkState saveWorkState) {
 		Map<Class, List<EntityInfo>> saveMap = saveWorkState.saveMap;
-		session.setFlushMode(FlushMode.COMMIT);
+		session.setFlushMode(FlushMode.NEVER);
 		Transaction tx = session.getTransaction();
 		boolean hasExistingTransaction = tx.isActive();
 		if (!hasExistingTransaction)
@@ -47,10 +46,10 @@ public class HibernateContext extends ContextProvider {
 			processSaves(saveMap);
 
 			session.flush();
-			//          RemoveRelationships(saveMap);
 			//          RefreshFromSession(saveMap);
 			if (!hasExistingTransaction)
 				tx.commit();
+			fixer.removeRelationships();
 		} catch (PropertyValueException pve) {
 			// NHibernate can throw this
 			if (tx.isActive())
@@ -76,20 +75,17 @@ public class HibernateContext extends ContextProvider {
 	private void processSaves(Map<Class, List<EntityInfo>> saveMap) {
 		// Get the map of foreign key relationships
 		Map<String, String> fkMap = (Map<String, String>) metadataMap.get(MetadataBuilder.FK_MAP);
-		RelationshipFixer fixer = new RelationshipFixer(saveMap, fkMap, session);
+		fixer = new RelationshipFixer(saveMap, fkMap, session);
 
 		// Relate entities in the saveMap to other NH entities, so NH can save the FK values.
-		fixer.fixupRelationships();
+		List<EntityInfo> saveOrder = fixer.fixupRelationships();
 		
 		SessionFactory sf = session.getSessionFactory();
-		for (Entry<Class, List<EntityInfo>> entry : saveMap.entrySet()) {
-			Class entityType = entry.getKey();
-			ClassMetadata classMeta = sf.getClassMetadata(entityType);
-
-			for (EntityInfo entityInfo : entry.getValue()) {
-				addKeyMapping(entityInfo, entityType, classMeta);
-				processEntity(entityInfo, classMeta);
-			}
+		for (EntityInfo entityInfo : saveOrder) {
+	        Class entityType = entityInfo.entity.getClass();
+	        ClassMetadata classMeta = sf.getClassMetadata(entityType);
+	        addKeyMapping(entityInfo, entityType, classMeta);
+	        processEntity(entityInfo, classMeta);
 		}
 	}
 

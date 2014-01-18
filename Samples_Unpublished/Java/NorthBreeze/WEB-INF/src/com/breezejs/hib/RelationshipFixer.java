@@ -1,7 +1,10 @@
 package com.breezejs.hib;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -12,6 +15,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.type.AssociationType;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.Type;
 
@@ -33,6 +37,10 @@ public class RelationshipFixer {
     private Map<String, String> fkMap;
     private Session session;
     private SessionFactory sessionFactory;
+    private List<EntityInfo> saveOrder;
+    private List<EntityInfo> deleteOrder;
+    private Map<EntityInfo, List<EntityInfo>> dependencyGraph;
+    private boolean removeMode;
     
     /**
      * Create new instance with the given saveMap and fkMap.  Since the saveMap is unique per save, 
@@ -47,13 +55,98 @@ public class RelationshipFixer {
 		this.fkMap = fkMap;
 		this.session = session;
 		this.sessionFactory = session.getSessionFactory();
+        this.dependencyGraph = new HashMap<EntityInfo, List<EntityInfo>>();
 	}
 
+	
 	/**
 	 * Connect the related entities in the saveMap to other entities.  If the related entities
 	 * are not in the saveMap, they are loaded from the session.
+	 * @return The list of entities in the order they should be save, according to their relationships.
 	 */
-    public void fixupRelationships()
+    public List<EntityInfo> fixupRelationships()
+    {
+        this.removeMode = false;
+        processRelationships();
+    	return sortDependencies();
+    }
+    
+    /**
+     * Remove the navigations between entities in the saveMap.
+     * This flattens the JSON result so Breeze can handle it.
+     */
+    public void removeRelationships()
+    {
+        this.removeMode = true;
+        processRelationships();
+    }
+    
+    /**
+     * Add the relationship to the dependencyGraph
+     * @param child Entity that depends on parent (e.g. has a many-to-one relationship to parent)
+     * @param parent Entity that child depends on (e.g. one parent has one-to-many children)
+     * @param removeReverse True to find and remove the reverse relationship.  Used for handling one-to-ones.
+     */
+    private void addToGraph(EntityInfo child, EntityInfo parent, boolean removeReverse)
+    {
+        List<EntityInfo> list = dependencyGraph.get(child);
+        if (list == null) {
+            list = new ArrayList<EntityInfo>(5);
+            dependencyGraph.put(child, list);
+        }
+        if (parent != null) list.add(parent);
+
+        if (removeReverse) {
+            List<EntityInfo> parentList = dependencyGraph.get(parent);
+            if (parentList != null) {
+                parentList.remove(child);
+            }
+        }
+    }
+
+    /**
+     * Sort the entries in the dependency graph according to their dependencies.
+     * @return the sorted list
+     */
+    private List<EntityInfo> sortDependencies()
+    {
+        saveOrder = new ArrayList<EntityInfo>();
+        deleteOrder = new ArrayList<EntityInfo>();
+        for (EntityInfo entityInfo : dependencyGraph.keySet()) {
+            addToSaveOrder(entityInfo, 0);
+        }
+        Collections.reverse(deleteOrder);
+        saveOrder.addAll(deleteOrder);
+        return saveOrder;
+    }
+
+    /**
+     * Recursively add entities to the saveOrder or deleteOrder according to their dependencies
+     * @param entityInfo Entity to be added.  Its dependencies will be added depth-first.
+     * @param depth prevents infinite recursion in case of cyclic dependencies
+     */
+    private void addToSaveOrder(EntityInfo entityInfo, int depth)
+    {
+        if (saveOrder.contains(entityInfo)) return;
+        if (deleteOrder.contains(entityInfo)) return;
+        if (depth > 10) return;
+
+        List<EntityInfo> dependencies = dependencyGraph.get(entityInfo);
+        for (EntityInfo dep : dependencies) {
+            addToSaveOrder(dep, depth + 1);
+        }
+
+        if (entityInfo.entityState == EntityState.Deleted)
+            deleteOrder.add(entityInfo);
+        else
+            saveOrder.add(entityInfo);
+    }
+    
+    
+    /**
+     * Add or remove the entity relationships according to the current removeMode.
+     */
+    private void processRelationships()
     {
     	for (Entry<Class, List<EntityInfo>> entry : saveMap.entrySet()) {
     		
@@ -62,9 +155,10 @@ public class RelationshipFixer {
 
             for (EntityInfo entityInfo : entry.getValue())
             {
+                addToGraph(entityInfo, null, false); // make sure every entity is in the graph
                 fixupRelationships(entityInfo, classMeta);
             }
-        }
+        }    	
     }
 	
     /**
@@ -83,7 +177,7 @@ public class RelationshipFixer {
         {
             if (propType.isAssociationType() && propType.isEntityType())
             {
-                fixupRelationship(meta.getIdentifierPropertyName(), propType, entityInfo, meta);
+                fixupRelationship(meta.getIdentifierPropertyName(), (AssociationType)propType, entityInfo, meta);
             }
             else if (propType.isComponentType())
             {
@@ -96,7 +190,7 @@ public class RelationshipFixer {
             propType = propTypes[i];
             if (propType.isAssociationType() && propType.isEntityType())
             {
-                fixupRelationship(propNames[i], propTypes[i], entityInfo, meta);
+                fixupRelationship(propNames[i], (AssociationType)propTypes[i], entityInfo, meta);
             }
             else if (propType.isComponentType())
             {
@@ -134,12 +228,18 @@ public class RelationshipFixer {
                 if (compValues[j] == null)
                 {
                     // the related entity is null
-                    Object relatedEntity = getRelatedEntity(compPropNames[j], compPropType, entityInfo, meta);
+                    Object relatedEntity = getRelatedEntity(compPropNames[j], (AssociationType)compPropType, entityInfo, meta);
                     if (relatedEntity != null)
                     {
                         compValues[j] = relatedEntity;
                         isChanged = true;
                     }
+                }
+                else if (removeMode)
+                {
+                    // remove the relationship
+                    compValues[j] = null;
+                    isChanged = true;
                 }
             }
         }
@@ -157,9 +257,14 @@ public class RelationshipFixer {
      * @param entityInfo Breeze EntityInfo
      * @param meta Metadata for the entity class
      */
-    private void fixupRelationship(String propName, Type propType, EntityInfo entityInfo, ClassMetadata meta)
+    private void fixupRelationship(String propName, AssociationType propType, EntityInfo entityInfo, ClassMetadata meta)
     {
         Object entity = entityInfo.entity;
+        if (removeMode)
+        {
+            meta.setPropertyValue(entity, propName, null);
+            return;
+        }
         Object relatedEntity = getPropertyValue(meta, entity, propName);
         if (relatedEntity != null) return;    // entities are already connected
 
@@ -173,13 +278,14 @@ public class RelationshipFixer {
      * Get a related entity based on the value of the foreign key.  Attempts to find the related entity in the
      * saveMap; if its not found there, it is loaded via the Session (which should create a proxy, not actually load
      * the entity from the database).
+     * Related entities are Promoted in the saveOrder according to their state.
      * @param propName Name of the navigation/association property of the entity, e.g. "Customer".  May be null if the property is the entity's identifier.
      * @param propType Type of the property
      * @param entityInfo Breeze EntityInfo
      * @param meta Metadata for the entity class
      * @return
      */
-    private Object getRelatedEntity(String propName, Type propType, EntityInfo entityInfo, ClassMetadata meta)
+    private Object getRelatedEntity(String propName, AssociationType propType, EntityInfo entityInfo, ClassMetadata meta)
     {
     	Object relatedEntity = null;
     	String foreignKeyName = findForeignKey(propName, meta);
@@ -187,12 +293,17 @@ public class RelationshipFixer {
 
         if (id != null)
         {
-            relatedEntity = findInSaveMap(propType.getReturnedClass(), id);
+            EntityInfo relatedEntityInfo = findInSaveMap(propType.getReturnedClass(), id);
 
-            if (relatedEntity == null && (entityInfo.entityState == EntityState.Added || entityInfo.entityState == EntityState.Modified))
-            {
-            	String relatedEntityName = propType.getName();
-                relatedEntity = session.load(relatedEntityName, (Serializable) id, LockOptions.NONE);
+            if (relatedEntityInfo == null) {
+            	if (entityInfo.entityState == EntityState.Added || entityInfo.entityState == EntityState.Modified) {
+                	String relatedEntityName = propType.getName();
+                    relatedEntity = session.load(relatedEntityName, (Serializable) id, LockOptions.NONE);
+            	}
+            } else {
+            	boolean removeReverseRelationship = propType.useLHSPrimaryKey();
+                addToGraph(entityInfo, relatedEntityInfo, removeReverseRelationship);
+                relatedEntity = relatedEntityInfo.entity;
             }
         }
         return relatedEntity;
@@ -280,7 +391,7 @@ public class RelationshipFixer {
      * @param entityId Key value of the entity
      * @return The entity, or null if not found
      */
-    private Object findInSaveMap(Class entityType, Object entityId)
+    private EntityInfo findInSaveMap(Class entityType, Object entityId)
     {
         String entityIdString = entityId.toString();
         List<EntityInfo> entityInfoList = saveMap.get(entityType);
@@ -291,7 +402,7 @@ public class RelationshipFixer {
             {
                 Object entity = entityInfo.entity;
                 Object id = meta.getIdentifier(entity);
-                if (id != null && entityIdString.equals(id.toString())) return entity;
+                if (id != null && entityIdString.equals(id.toString())) return entityInfo;
             }
         }
         return null;

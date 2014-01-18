@@ -24,6 +24,8 @@ namespace Breeze.WebApi.NH
         private IDictionary<string, string> fkMap;
         private ISession session;
         private List<EntityInfo> saveOrder;
+        private List<EntityInfo> deleteOrder;
+        private Dictionary<EntityInfo, List<EntityInfo>> dependencyGraph;
         private bool removeMode;
 
         /// <summary>
@@ -38,62 +40,19 @@ namespace Breeze.WebApi.NH
             this.saveMap = saveMap;
             this.fkMap = fkMap;
             this.session = session;
-            SetSaveOrder();
-        }
-
-        /// <summary>
-        /// Set the original save order for the entities, which is just the order that they appear in the saveMap.
-        /// The order will change as the relationships are processed.
-        /// </summary>
-        private void SetSaveOrder()
-        {
-            saveOrder = new List<EntityInfo>();
-            foreach (var kvp in saveMap)
-            {
-                foreach (var entityInfo in kvp.Value)
-                {
-                    saveOrder.Add(entityInfo);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Move the entityInfo in the saveOrder according to its EntityState.  
-        /// Added are moved to the top, Deleted to the bottom, others left alone.
-        /// </summary>
-        /// <param name="entityInfo"></param>
-        private void Promote(EntityInfo entityInfo)
-        {
-            var state = entityInfo.EntityState;
-            if (state == EntityState.Added)
-            {
-                saveOrder.Remove(entityInfo);
-                saveOrder.Insert(0, entityInfo);
-            }
-            else if (state == EntityState.Deleted)
-            {
-                saveOrder.Remove(entityInfo);
-                saveOrder.Add(entityInfo);
-            }
+            this.dependencyGraph = new Dictionary<EntityInfo, List<EntityInfo>>();
         }
 
         /// <summary>
         /// Connect the related entities in the saveMap to other entities.  If the related entities
         /// are not in the saveMap, they are loaded from the session.
         /// </summary>
+        /// <returns>The list of entities in the order they should be save, according to their relationships.</returns>
         public List<EntityInfo> FixupRelationships()
         {
-            foreach (var kvp in saveMap)
-            {
-                var entityType = kvp.Key;
-                var classMeta = session.SessionFactory.GetClassMetadata(entityType);
-
-                foreach (var entityInfo in kvp.Value)
-                {
-                    FixupRelationships(entityInfo, classMeta);
-                }
-            }
-            return saveOrder;
+            this.removeMode = false;
+            ProcessRelationships();
+            return SortDependencies();
         }
 
         /// <summary>
@@ -104,7 +63,91 @@ namespace Breeze.WebApi.NH
         public void RemoveRelationships()
         {
             this.removeMode = true;
-            FixupRelationships();
+            ProcessRelationships();
+        }
+
+        /// <summary>
+        /// Add the relationship to the dependencyGraph
+        /// </summary>
+        /// <param name="child">Entity that depends on parent (e.g. has a many-to-one relationship to parent)</param>
+        /// <param name="parent">Entity that child depends on (e.g. one parent has one-to-many children)</param>
+        /// <param name="removeReverse">True to find and remove the reverse relationship.  Used for handling one-to-ones.</param>
+        private void AddToGraph(EntityInfo child, EntityInfo parent, bool removeReverse)
+        {
+            List<EntityInfo> list;
+            if (!dependencyGraph.TryGetValue(child, out list))
+            {
+                list = new List<EntityInfo>(5);
+                dependencyGraph.Add(child, list);
+            }
+            if (parent != null) list.Add(parent);
+
+            if (removeReverse)
+            {
+                List<EntityInfo> parentList;
+                if (dependencyGraph.TryGetValue(parent, out parentList))
+                {
+                    parentList.Remove(child);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sort the entries in the dependency graph according to their dependencies.
+        /// </summary>
+        /// <returns></returns>
+        private List<EntityInfo> SortDependencies()
+        {
+            saveOrder = new List<EntityInfo>();
+            deleteOrder = new List<EntityInfo>();
+            foreach (var entityInfo in dependencyGraph.Keys)
+            {
+                AddToSaveOrder(entityInfo, 0);
+            }
+            deleteOrder.Reverse();
+            saveOrder.AddRange(deleteOrder);
+            return saveOrder;
+        }
+
+        /// <summary>
+        /// Recursively add entities to the saveOrder or deleteOrder according to their dependencies
+        /// </summary>
+        /// <param name="entityInfo">Entity to be added.  Its dependencies will be added depth-first.</param>
+        /// <param name="depth">prevents infinite recursion in case of cyclic dependencies</param>
+        private void AddToSaveOrder(EntityInfo entityInfo, int depth)
+        {
+            if (saveOrder.Contains(entityInfo)) return;
+            if (deleteOrder.Contains(entityInfo)) return;
+            if (depth > 10) return;
+
+            var dependencies = dependencyGraph[entityInfo];
+            foreach (var dep in dependencies)
+            {
+                AddToSaveOrder(dep, depth + 1);
+            }
+
+            if (entityInfo.EntityState == EntityState.Deleted)
+                deleteOrder.Add(entityInfo);
+            else
+                saveOrder.Add(entityInfo);
+        }
+
+        /// <summary>
+        /// Add or remove the entity relationships according to the removeMode.
+        /// </summary>
+        private void ProcessRelationships()
+        {
+            foreach (var kvp in saveMap)
+            {
+                var entityType = kvp.Key;
+                var classMeta = session.SessionFactory.GetClassMetadata(entityType);
+
+                foreach (var entityInfo in kvp.Value)
+                {
+                    AddToGraph(entityInfo, null, false); // make sure every entity is in the graph
+                    FixupRelationships(entityInfo, classMeta);
+                }
+            }
         }
 
         /// <summary>
@@ -117,14 +160,14 @@ namespace Breeze.WebApi.NH
         {
             var propNames = meta.PropertyNames;
             var propTypes = meta.PropertyTypes;
-            
+
 
             if (meta.IdentifierType != null)
             {
                 var propType = meta.IdentifierType;
                 if (propType.IsAssociationType && propType.IsEntityType)
                 {
-                    FixupRelationship(meta.IdentifierPropertyName, meta.IdentifierType, entityInfo, meta);
+                    FixupRelationship(meta.IdentifierPropertyName, (IAssociationType)propType, entityInfo, meta);
                 }
                 else if (propType.IsComponentType)
                 {
@@ -137,7 +180,7 @@ namespace Breeze.WebApi.NH
                 var propType = propTypes[i];
                 if (propType.IsAssociationType && propType.IsEntityType)
                 {
-                    FixupRelationship(propNames[i], propTypes[i], entityInfo, meta);
+                    FixupRelationship(propNames[i], (IAssociationType)propTypes[i], entityInfo, meta);
                 }
                 else if (propType.IsComponentType)
                 {
@@ -175,7 +218,7 @@ namespace Breeze.WebApi.NH
                     if (compValues[j] == null)
                     {
                         // the related entity is null
-                        var relatedEntity = GetRelatedEntity(compPropNames[j], compPropType, entityInfo, meta);
+                        var relatedEntity = GetRelatedEntity(compPropNames[j], (IAssociationType)compPropType, entityInfo, meta);
                         if (relatedEntity != null)
                         {
                             compValues[j] = relatedEntity;
@@ -204,7 +247,7 @@ namespace Breeze.WebApi.NH
         /// <param name="propType">Type of the property</param>
         /// <param name="entityInfo">Breeze EntityInfo</param>
         /// <param name="meta">Metadata for the entity class</param>
-        private void FixupRelationship(string propName, IType propType, EntityInfo entityInfo, IClassMetadata meta)
+        private void FixupRelationship(string propName, IAssociationType propType, EntityInfo entityInfo, IClassMetadata meta)
         {
             var entity = entityInfo.Entity;
             if (removeMode)
@@ -232,7 +275,7 @@ namespace Breeze.WebApi.NH
         /// <param name="entityInfo">Breeze EntityInfo</param>
         /// <param name="meta">Metadata for the entity class</param>
         /// <returns></returns>
-        private object GetRelatedEntity(string propName, IType propType, EntityInfo entityInfo, IClassMetadata meta)
+        private object GetRelatedEntity(string propName, IAssociationType propType, EntityInfo entityInfo, IClassMetadata meta)
         {
             object relatedEntity = null;
             string foreignKeyName = FindForeignKey(propName, meta);
@@ -242,7 +285,7 @@ namespace Breeze.WebApi.NH
             {
                 EntityInfo relatedEntityInfo = FindInSaveMap(propType.ReturnedClass, id);
 
-                if (relatedEntityInfo == null) 
+                if (relatedEntityInfo == null)
                 {
                     if (entityInfo.EntityState == EntityState.Added || entityInfo.EntityState == EntityState.Modified)
                     {
@@ -252,7 +295,8 @@ namespace Breeze.WebApi.NH
                 }
                 else
                 {
-                    Promote(relatedEntityInfo);
+                    bool removeReverseRelationship = propType.UseLHSPrimaryKey;
+                    AddToGraph(entityInfo, relatedEntityInfo, removeReverseRelationship);
                     relatedEntity = relatedEntityInfo.Entity;
                 }
             }
