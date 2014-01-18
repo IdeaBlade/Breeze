@@ -16,93 +16,53 @@ namespace Breeze.NetClient {
     /// 
     /// </summary>
     /// <param name="serviceName">"http://localhost:9000/"</param>
-    public EntityManager(String serviceName) {
-      _client = new HttpClient();
-      _client.BaseAddress = new Uri(serviceName);
-
-      // Add an Accept header for JSON format.
-      _client.DefaultRequestHeaders.Accept.Add(
-          new MediaTypeWithQualityHeaderValue("application/json"));
+    public EntityManager(String serviceName, MetadataStore metadataStore=null) {
+      DefaultDataService = new DataService(serviceName);
+      MetadataStore = metadataStore != null ? metadataStore : new MetadataStore();
+      JsonConverter = new JsonEntityConverter(MetadataStore);
     }
 
-    public String ServiceName { get; private set; }
-    HttpClient _client;
-    
-
-    public async Task<Object> FetchMetadata() {
-      
-      try {
-
-        var response = await _client.GetAsync("Metadata");
-        response.EnsureSuccessStatusCode(); // Throw on error code.
-
-        var metadata = await response.Content.ReadAsStringAsync();
-        var metadataStore = new MetadataStore();
-        var metadataProcessor = new CsdlMetadataProcessor(metadataStore, metadata);
-
-        return metadata;
-      } catch (Newtonsoft.Json.JsonException jEx) {
-        // This exception indicates a problem deserializing the request body.
-        throw;
-      } catch (HttpRequestException ex) {
-        throw;
-      } finally {
-        
-      }
+    public EntityManager(EntityManager em) {
+      MetadataStore = em.MetadataStore;
+      DefaultDataService = em.DefaultDataService;
+      JsonConverter = em.JsonConverter;
     }
-  
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="webApiQuery">"api/products"</param>
-    public async Task<Object> ExecuteQuery(string resourcePath) {
-      
-      try {
+    public DataService DefaultDataService { get; private set; }
 
-        var response = await _client.GetAsync(resourcePath);
-        response.EnsureSuccessStatusCode(); // Throw on error code.
+    public MetadataStore MetadataStore { get; private set; }
 
-        var result = await response.Content.ReadAsStringAsync();
-        var x = JsonConvert.DeserializeObject(result);
-        var a = (JArray)x;
-        return a;
-      } catch (Newtonsoft.Json.JsonException jEx) {
-        // This exception indicates a problem deserializing the request body.
-        throw;
-      } catch (HttpRequestException ex) {
-        throw;
-      } finally {
-        
-      }
+    public JsonConverter JsonConverter { get; private set; }
+
+    public async Task<String> FetchMetadata(DataService dataService = null) {
+      dataService = dataService != null ? dataService : this.DefaultDataService;
+      var metadata = await MetadataStore.FetchMetadata(dataService);
+      return metadata;
     }
 
     public async Task<IEnumerable<T>> ExecuteQuery<T>(EntityQuery<T> query) {
+      var dataService = query.DataService != null ? query.DataService : this.DefaultDataService;
+      await FetchMetadata(dataService);
+      var resourcePath = query.GetResourcePath();
+      // HACK
+      resourcePath = resourcePath.Replace("/*", "");
+      var result = await dataService.GetAsync(resourcePath);
 
-      try {
-        var resourcePath = query.GetResourcePath();
-        // HACK
-        resourcePath = resourcePath.Replace("/*", "");
-        var response = await _client.GetAsync(resourcePath);
-        response.EnsureSuccessStatusCode(); // Throw on error code.
-        
-        var result = await response.Content.ReadAsStringAsync();
-        if (resourcePath.Contains("inlinecount")) {
-          return JsonConvert.DeserializeObject<QueryResult<T>>(result);
-          
-        } else {
-          return JsonConvert.DeserializeObject<IEnumerable<T>>(result);
-        }
-        
-      } catch (Newtonsoft.Json.JsonException jEx) {
-        // This exception indicates a problem deserializing the request body.
-        throw;
-      } catch (HttpRequestException ex) {
-        throw;
-      } finally {
-
+      if (resourcePath.Contains("inlinecount")) {
+        return JsonConvert.DeserializeObject<QueryResult<T>>(result, JsonConverter);
+      } else {
+        return JsonConvert.DeserializeObject<IEnumerable<T>>(result, JsonConverter);
       }
+       
     }
+
+    ///// <summary>
+    ///// 
+    ///// </summary>
+    ///// <param name="webApiQuery">"api/products"</param>
+    //public async Task<Object> ExecuteQuery(string resourcePath) {
+    // }
+
 
   }
 

@@ -5,21 +5,60 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Breeze.Core;
+using Breeze.NetClient;
 
 namespace Breeze.Metadata {
   public class MetadataStore {
     public MetadataStore() {
       NamingConvention = NamingConvention.Default;
+      ClrEntityTypes = new HashSet<Type>();
+      _dataServiceMap = new Dictionary<String, string>();
     }
+
     public IEnumerable<EntityType> EntityTypes {
       get { return _structuralTypes.OfType<EntityType>(); }
-
     }
+    public HashSet<Type> ClrEntityTypes {
+      get;
+      set;
+    }
+
+
     public IEnumerable<ComplexType> ComplexTypes {
       get { return _structuralTypes.OfType<ComplexType>(); }
     }
 
     public NamingConvention NamingConvention { get; set; }
+
+    private readonly AsyncSemaphore _asyncSemaphore = new AsyncSemaphore(1);
+
+    public async Task<String> FetchMetadata(DataService dataService) {
+
+      var serviceName = dataService.ServiceName;
+      if (_dataServiceMap.ContainsKey(serviceName)) {
+        return _dataServiceMap[serviceName];
+      }
+
+      await _asyncSemaphore.WaitAsync();
+      try {
+        if (_dataServiceMap.ContainsKey(serviceName)) {
+          return _dataServiceMap[serviceName];
+        }
+      
+        var metadata = await dataService.GetAsync("Metadata");
+
+        _dataServiceMap[serviceName] = metadata;
+        var metadataProcessor = new CsdlMetadataProcessor(this, metadata);
+
+        return metadata;
+
+      } finally {
+        _asyncSemaphore.Release(); 
+      }
+
+
+    }
+
 
     public EntityType GetEntityType(String typeName, bool okIfNotFound = false) {
       return GetStructuralType<EntityType>(typeName, okIfNotFound);
@@ -256,6 +295,7 @@ namespace Breeze.Metadata {
     private Dictionary<String, String> _resourceNameEntityTypeMap = new Dictionary<string, string>();
     private Dictionary<String, List<NavigationProperty>> _incompleteTypeMap = new Dictionary<string, List<NavigationProperty>>(); // key is typeName
     private Dictionary<String, List<DataProperty>> _incompleteComplexTypeMap = new Dictionary<string, List<DataProperty>>();   // key is typeName
+    private Dictionary<String, String> _dataServiceMap;
 
   }
 

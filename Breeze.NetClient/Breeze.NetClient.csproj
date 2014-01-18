@@ -36,11 +36,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AbstractProperty.cs" />
+    <Compile Include="AsyncSemaphore.cs" />
+    <Compile Include="DataService.cs" />
     <Compile Include="DataType.cs" />
     <Compile Include="EntityQuery.cs" />
     <Compile Include="EntityQueryExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="JsonNet.cs" />
     <Compile Include="StructuralType.cs" />
     <Compile Include="CsdlMetadataProcessor.cs" />
     <Compile Include="ComplexType.cs" />

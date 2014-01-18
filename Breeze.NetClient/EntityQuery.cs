@@ -21,6 +21,11 @@ namespace Breeze.NetClient {
         ResourceName = resourceName;
     }
 
+    public DataService DataService {
+      get;
+      set;
+    }
+
     public EntityQuery( ) : base() {
       var context = new DataServiceContext(new Uri(__placeHolderServiceName), DataServiceProtocolVersion.V3);
       _dataServiceQuery = context.CreateQuery<T>(__placeHolderResourceName);

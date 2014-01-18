@@ -9,11 +9,20 @@ namespace Test_NetClient {
   [TestClass]
   public class QueryTests {
     String _serviceName;
-    EntityManager _em1;
+    private static EntityManager _em1;
     [TestInitialize()]
-    public void SetUp() {
-      _serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-      _em1 = new EntityManager(_serviceName);
+    public async void SetUp() {
+      if (_em1 == null) {
+        _serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
+        _em1 = new EntityManager(_serviceName);
+        await _em1.FetchMetadata();
+        _em1.MetadataStore.ClrEntityTypes.Add(typeof(Foo.Customer));
+        _em1.MetadataStore.ClrEntityTypes.Add(typeof(Foo.Order));
+      } else {
+        _em1 = new EntityManager(_em1);
+      }
+      
+      var z = 2;
     }
 
     [TestCleanup]
@@ -68,7 +77,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task WhereOrderByTake() {
-
+      
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")) ;
       var q3 = q2.OrderBy(c => c.CompanyName).Take(2);

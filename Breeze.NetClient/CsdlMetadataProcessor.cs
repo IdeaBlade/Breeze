@@ -26,6 +26,7 @@ namespace Breeze.Metadata {
         .Select(ParseCsdlEntityType).ToList();
       var complexTypes = ToEnumerable(_schema["complexType"]).Cast<JObject>()
         .Select(ParseCsdlComplexType).ToList();
+
     }
 
     public EntityType ParseCsdlEntityType(JObject csdlEntityType) {
