@@ -240,6 +240,8 @@ public class JSONDeserializer {
                         return toPrimitive(obj, target);
                     } else if (target == String.class) {
                         return obj.toString();
+                    } else if (obj instanceof Number) {
+                        return fromNumber((Number)obj, target);
                     } else if (obj instanceof String) {
                         return fromString((String)obj, target);
                     } else {
@@ -494,6 +496,44 @@ public class JSONDeserializer {
                 Constructor ctr = target.getConstructor(
                         new Class[] { String.class });
                 return ctr.newInstance(str);
+            } catch (Exception exp) {
+                throw makeJSONException(exp);
+            }
+        }
+        
+        private Object fromNumber(Number num, Class target) throws JSONException {
+            try {
+            	Class numClass = num.getClass();
+            	
+            	Constructor[] constructors = target.getConstructors();
+            	for (Constructor ctr : constructors) {
+            		Class[] parameterTypes = ctr.getParameterTypes();
+            		if (parameterTypes.length == 1) {
+            			Class pClass = parameterTypes[0];
+            			if (pClass == numClass) {
+                			return ctr.newInstance(num);
+            			}
+            			else if (num instanceof Integer && pClass == int.class){
+            				return ctr.newInstance(num.intValue());
+            			}
+            			else if (num instanceof Long && pClass == long.class){
+            				return ctr.newInstance(num.longValue());
+            			}
+            			else if (num instanceof Float && pClass == float.class){
+            				return ctr.newInstance(num.floatValue());
+            			}
+            			else if (num instanceof Double && pClass == double.class){
+            				return ctr.newInstance(num.doubleValue());
+            			}
+            			else if (num instanceof Short && pClass == short.class){
+            				return ctr.newInstance(num.shortValue());
+            			}
+            			else if (num instanceof Byte && pClass == byte.class){
+            				return ctr.newInstance(num.byteValue());
+            			}
+            		}
+            	}
+            	return num;
             } catch (Exception exp) {
                 throw makeJSONException(exp);
             }
