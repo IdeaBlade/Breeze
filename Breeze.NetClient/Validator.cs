@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 
-namespace Breeze.Metadata {
+namespace Breeze.NetClient {
 
   public class ValidatorCollection : KeyedMap<String, Validator> {
     public ValidatorCollection() {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Breeze.Metadata {
+namespace Breeze.NetClient {
   public class NamingConvention {
     public NamingConvention(String name) {
       Name = name;

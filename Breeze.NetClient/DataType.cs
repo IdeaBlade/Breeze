@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Breeze.Metadata {
+namespace Breeze.NetClient {
   
   [Flags]
   public enum DataTypeInfo {

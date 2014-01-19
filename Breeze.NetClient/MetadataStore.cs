@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Breeze.Core;
 using Breeze.NetClient;
 
-namespace Breeze.Metadata {
+namespace Breeze.NetClient {
   public class MetadataStore {
     public MetadataStore() {
       NamingConvention = NamingConvention.Default;

@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace Breeze.Metadata {
+namespace Breeze.NetClient {
 
-  public class PropertyCollection : KeyedCollection<String, AbstractProperty> {
-    protected override String GetKeyForItem(AbstractProperty item) {
+  public class PropertyCollection : KeyedCollection<String, EntityProperty> {
+    protected override String GetKeyForItem(EntityProperty item) {
       return item.Name;
     }
   }
 
-  public abstract class AbstractProperty  {
-    public AbstractProperty() { }
+  public abstract class EntityProperty  {
+    public EntityProperty() { }
 
-    public AbstractProperty(AbstractProperty prop) {
+    public EntityProperty(EntityProperty prop) {
       this.Name = prop.Name;
       this.NameOnServer = prop.NameOnServer;
       this.Custom = prop.Custom;
@@ -34,6 +34,12 @@ namespace Breeze.Metadata {
 
     public abstract bool IsDataProperty { get;  }
     public abstract bool IsNavigationProperty { get; }
+    public Object GetValueRaw(IStructuralObject entity) {
+      return entity.GetValueRaw(this.Name);
+    }
+    public void SetValueRaw(IStructuralObject entity, Object value) {
+      entity.SetValueRaw(this.Name, value);
+    }
   }
 
 

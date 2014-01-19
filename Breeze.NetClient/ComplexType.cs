@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Breeze.Metadata {
+namespace Breeze.NetClient {
 
   public class ComplexTypeCollection : KeyedCollection<String, ComplexType> {
     protected override String GetKeyForItem(ComplexType item) {
@@ -15,8 +15,8 @@ namespace Breeze.Metadata {
 
   public class ComplexType: StructuralType {
     
-    public override IEnumerable<AbstractProperty> Properties {
-      get { return _dataProperties.AsEnumerable().Cast<AbstractProperty>(); }
+    public override IEnumerable<EntityProperty> Properties {
+      get { return _dataProperties.AsEnumerable().Cast<EntityProperty>(); }
     }
 
     public override bool IsEntityType {

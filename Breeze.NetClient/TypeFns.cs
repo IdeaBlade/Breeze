@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -49,6 +50,30 @@ namespace Breeze.Core {
 
       Type finalType = genericType.MakeGenericType(argTypes);
       return Activator.CreateInstance(finalType, constructorParams);
+    }
+
+    /// <summary>
+    /// Try and convert a value to the specified conversion type.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="conversionType"></param>
+    /// <param name="throwIfError"></param>
+    /// <returns></returns>
+    public static object ConvertType(object value, Type conversionType, bool throwIfError) {
+      if (value == null) return null;
+      return Convert.ChangeType(value, conversionType, CultureInfo.CurrentCulture);
+      // wont compile on PCL
+      //try {
+      //  if (typeof(IConvertible).IsAssignableFrom(conversionType)) {
+      //    return Convert.ChangeType(value, conversionType, System.Threading.Thread.CurrentThread.CurrentCulture);
+      //  }
+      //  // Guids fail above - try this
+      //  TypeConverter typeConverter = TypeDescriptor.GetConverter(conversionType);
+      //  return typeConverter.ConvertFrom(value);
+      //} catch {
+      //  if (throwIfError) throw;
+      //}
+      //return null;
     }
 
 

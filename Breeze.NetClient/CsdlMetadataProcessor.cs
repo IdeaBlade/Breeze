@@ -7,7 +7,7 @@ using System.Linq;
 
 using Breeze.Core;
 
-namespace Breeze.Metadata {
+namespace Breeze.NetClient {
   class CsdlMetadataProcessor {
 
     public CsdlMetadataProcessor(MetadataStore metadataStore, String jsonMetadata) {

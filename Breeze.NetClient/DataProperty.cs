@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace Breeze.Metadata {
+namespace Breeze.NetClient {
 
   public class DataPropertyCollection : KeyedMap<String, DataProperty> {
     protected override String GetKeyForItem(DataProperty item) {
@@ -13,7 +13,7 @@ namespace Breeze.Metadata {
     }
   }
 
-  public class DataProperty : AbstractProperty {
+  public class DataProperty : EntityProperty {
     public DataProperty() {
 
     }
@@ -37,6 +37,8 @@ namespace Breeze.Metadata {
     public DataType DataType { get; internal set; }
     
     public bool IsNullable { get; internal set; }
+    // Not sure how this is set;
+    public bool IsAutoIncrementing { get; internal set; }
     
     public bool IsPartOfKey { get; internal set; }
     public Object DefaultValue { get; internal set; }
@@ -51,6 +53,8 @@ namespace Breeze.Metadata {
     public String RawTypeName { get; internal set; }
 
     public bool IsComplexProperty { get { return ComplexTypeName != null;}}
+    public bool IsForeignKey { get { return RelatedNavigationProperty != null; } }
+    public bool IsConcurrencyProperty { get { return ConcurrencyMode != ConcurrencyMode.None; } }
     public override bool IsDataProperty { get { return true; } }
     public override bool IsNavigationProperty { get { return false; } }
     

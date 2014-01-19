@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Breeze.Core;
-using Breeze.Metadata;
+
 using System.Data.Services.Client;
 using System.Data.Services.Common;
 using System.Linq.Expressions;

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Breeze.Core;
 
-namespace Breeze.Metadata {
+namespace Breeze.NetClient {
 
   public class StructuralTypeCollection : KeyedCollection<String, StructuralType> {
     protected override String GetKeyForItem(StructuralType item) {
@@ -30,6 +30,14 @@ namespace Breeze.Metadata {
     public String Name { 
       get { return QualifyTypeName(ShortName, Namespace); }
     }
+    public Type ClrType {
+      get {
+        if (_clrType == null) {
+          _clrType = MetadataStore.ClrEntityTypes.FirstOrDefault(t => t.Name == Name && t.Namespace == Namespace);
+        }
+        return _clrType;
+      }
+    }
     public String ShortName { get; internal set; }
     public String Namespace { get; internal set;}
     public dynamic Custom { get; set; }
@@ -38,7 +46,7 @@ namespace Breeze.Metadata {
     public bool IsAnonymous { get; internal set; }
     public List<String> Warnings { get; internal set; }
     public abstract bool IsEntityType { get;  }
-    public abstract IEnumerable<AbstractProperty> Properties { get; }
+    public abstract IEnumerable<EntityProperty> Properties { get; }
     public DataProperty GetDataProperty(String dpName) {
       return _dataProperties[dpName];
     }
@@ -57,7 +65,7 @@ namespace Breeze.Metadata {
       get { return new ReadOnlyCollection<DataProperty>(_unmappedProperties); }
     }
       
-    internal void UpdateClientServerNames(NamingConvention nc, AbstractProperty property) {
+    internal void UpdateClientServerNames(NamingConvention nc, EntityProperty property) {
       // TODO: add check for name roundtriping ( to see if ok)
       if (!String.IsNullOrEmpty(property.Name)) {
         property.NameOnServer = nc.Test(property.Name, true);
@@ -86,7 +94,7 @@ namespace Breeze.Metadata {
     protected DataPropertyCollection _dataProperties = new DataPropertyCollection();
     protected List<DataProperty> _complexProperties = new List<DataProperty>();
     protected List<DataProperty> _unmappedProperties = new List<DataProperty>();
-    
+    private Type _clrType;
   }
 
 

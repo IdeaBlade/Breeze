@@ -6,7 +6,7 @@ using System.Text;
 
 using Breeze.Core;
 
-namespace Breeze.Metadata {
+namespace Breeze.NetClient {
 
   public class EntityTypeCollection : KeyedCollection<String, EntityType> {
     protected override String GetKeyForItem(EntityType item) {
@@ -34,12 +34,20 @@ namespace Breeze.Metadata {
       return _navigationProperties[npName];
     }
 
-    public override IEnumerable<AbstractProperty> Properties {
-      get { return _dataProperties.AsEnumerable().Cast<AbstractProperty>().Concat(_navigationProperties.AsEnumerable()); }
+    public override IEnumerable<EntityProperty> Properties {
+      get { return _dataProperties.AsEnumerable().Cast<EntityProperty>().Concat(_navigationProperties.AsEnumerable()); }
     }
 
     public ReadOnlyCollection<DataProperty> KeyProperties {
       get { return new ReadOnlyCollection<DataProperty>(_keyProperties); }
+    }
+
+    public IEnumerable<DataProperty> ForeignKeyProperties {
+      get { return _dataProperties.Where(dp => dp.IsForeignKey);  }
+    }
+
+    public IEnumerable<DataProperty> ConcurrencyProperties {
+      get { return _dataProperties.Where(dp => dp.IsConcurrencyProperty); }
     }
 
     public override bool IsEntityType {
@@ -47,7 +55,7 @@ namespace Breeze.Metadata {
     }
 
     // public Func<> SerializerFn { get; set; }
-    public AbstractProperty AddProperty(AbstractProperty prop) {
+    public EntityProperty AddProperty(EntityProperty prop) {
       // TODO: check that property is not already on this type
       // and that it isn't also on some other type.
       if (prop.IsDataProperty) {
