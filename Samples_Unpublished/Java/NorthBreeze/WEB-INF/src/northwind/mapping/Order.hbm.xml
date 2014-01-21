@@ -8,7 +8,7 @@
     <version name="rowVersion" type="int" />
     <many-to-one name="customer" column="`CustomerID`" class="Customer" />
     <many-to-one name="employee" column="`EmployeeID`" class="Employee" />
-    <property name="customerID" type="java.util.UUID" insert="false" update="false" />
+    <property name="customerID" type="string" insert="false" update="false" />
     <property name="employeeID" type="int" insert="false" update="false" />
     <property name="orderDate" type="timestamp" />
     <property name="requiredDate" type="timestamp" />
