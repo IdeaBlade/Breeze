@@ -363,16 +363,14 @@ namespace Breeze.NetClient {
     }
 
     internal void DetachEntityAspect(EntityAspect aspect) {
-      this.EntityManager.MarkTempIdAsMapped(aspect, true);
-      aspect.SetEntityStateCore(EntityState.Detached);
       _entityAspects.Remove(aspect);
       RemoveFromKeyMap(aspect);
     }
 
-    internal void UpdatePrimaryKey(EntityAspect aspect, EntityKey oldKey) {
+    internal void ReplaceKey(EntityAspect entityAspect, EntityKey oldKey, EntityKey newKey) {
       if (IsNullGroup) return;
       _entityKeyMap.Remove(oldKey);  // it may not exist if this object was just Imported or Queried.
-      AddToKeyMap(aspect);
+      _entityKeyMap.Add(newKey, entityAspect);
     }
       
     private EntityAspect MergeEntityAspect(EntityAspect entityAspect, EntityAspect targetEntityAspect, EntityState entityState, MergeStrategy mergeStrategy) {

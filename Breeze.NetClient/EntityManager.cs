@@ -240,7 +240,7 @@ namespace Breeze.NetClient {
       return entity.EntityAspect.RemoveFromManager();
     }
 
-    internal EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
+    private EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
       var group = GetOrCreateEntityGroup(entityAspect.EntityType.ClrType);
       var attachedEntityAspect = group.AttachEntityAspect(entityAspect, entityState, mergeStrategy);
       LinkRelatedEntities(attachedEntityAspect.Entity);
@@ -268,7 +268,6 @@ namespace Breeze.NetClient {
       }
     }
 
- 
 
     #region EntityGroup methods
 
@@ -483,11 +482,9 @@ namespace Breeze.NetClient {
 
     // backdoor the "really" check for changes.
     private bool HasChangesCore(IEnumerable<Type> entityTypes) {
-      // entityTypes = checkEntityTypes(this, entityTypes);
       var entityGroups = entityTypes.Select(et => GetEntityGroup(et));
-      return entityGroups.Any(eg => eg.HasChanges());
+      return entityGroups.Any(eg => eg != null && eg.HasChanges());
     }
-
 
     internal void CheckStateChange(EntityAspect entityAspect, bool wasUnchanged, bool isUnchanged) {
       if (wasUnchanged) {

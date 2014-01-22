@@ -19,7 +19,7 @@ namespace Breeze.NetClient {
     /// and before it is added to the EntityManager, or if it has been removed from the
     /// EntityManager.
     /// </summary>
-    Detached = 1,
+    Detached = 0,
     /// <summary>
     ///     The entity has not changed since last queried or saved.
     /// </summary>

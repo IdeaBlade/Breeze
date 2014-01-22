@@ -35,7 +35,7 @@ namespace Breeze.NetClient {
     public NavigationProperty Inverse { get; internal set; }
 
     // AsReadOnly doesn't seem to exist in the PCL
-    public IEnumerable<DataProperty> RelatedDataProperties {
+    public ReadOnlyCollection<DataProperty> RelatedDataProperties {
       get { return new ReadOnlyCollection<DataProperty>(_relatedDataProperties); }
     }
     

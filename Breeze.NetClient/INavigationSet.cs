@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 namespace Breeze.NetClient {
 
 
-  public interface INavigationSet {
+  public interface INavigationSet : IEnumerable {
     void Add(IEntity entity);
     void Remove(IEntity entity);
   }
@@ -22,6 +23,8 @@ namespace Breeze.NetClient {
     void INavigationSet.Remove(IEntity entity) {
       Remove((T)entity);
     }
+
+    
   }
 }
 

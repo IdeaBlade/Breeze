@@ -55,19 +55,11 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="entity"></param>
     public EntityAspect(IEntity entity) {
-      if (entity is EntityAspect) {
-        throw new ArgumentException("already an EntityAspect");
-      }
       _entity = entity;
+      IndexInEntityGroup = -1;
     }
 
-    protected override StructuralType StructuralType {
-      get { return this.EntityType; }
-    }
 
-    protected override IStructuralObject StructuralObject {
-      get { return this.Entity; ; }
-    }
 
     /// <summary>
     /// Returns the wrapped entity.
@@ -85,32 +77,12 @@ namespace Breeze.NetClient {
 
     public EntityType EntityType { get; private set; }
 
-    internal bool InProcess {
-      get;
-      set;
+    protected override StructuralType StructuralType {
+      get { return this.EntityType; }
     }
 
-    public EntityKey GetParentKey(NavigationProperty np) {
-      // returns null for np's that do not have a parentKey
-      var fkNames = np.ForeignKeyNames;
-      if (fkNames.Count == 0) return null;
-      var fkValues = fkNames.Select(fkn => this.Entity.GetValue(fkn));
-
-      return new EntityKey(np.EntityType, fkValues);
-    }
-
-    internal void ProcessNavigationProperties(Action<IEntity> action) {
-      var entity = this.Entity;
-      this.EntityType.NavigationProperties.ForEach(prop => {
-        var val = this.GetValue(prop);
-        if (prop.IsScalar) {
-          action((IEntity)val);
-
-        } else {
-          ((IEnumerable)val).Cast<IEntity>().ForEach(e => action(e));
-        }
-      });
-
+    protected override IStructuralObject StructuralObject {
+      get { return this.Entity; ; }
     }
 
 
@@ -175,15 +147,18 @@ namespace Breeze.NetClient {
 
       var group = this.EntityGroup;
       if (group == null) return false; // no group === already detached.
+      EntityManager.MarkTempIdAsMapped(this, true);
+
       group.DetachEntityAspect(this);
       RemoveFromRelations(EntityState.Detached);
 
       this.EntityGroup = null;
-      this.EntityState = EntityState.Detached;
       this.OriginalValuesMap = null;
       this.PreproposedValuesMap = null;
       // this._validationErrors = {};
 
+      SetEntityStateCore(EntityState.Detached);
+      EntityManager.NotifyStateChange(this, false);
       this.InternalEntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
       return true;
     }
@@ -286,20 +261,65 @@ namespace Breeze.NetClient {
 
     #region EntityState change methods
 
+    /// <summary>
+    /// The <see cref="T:IdeaBlade.EntityModel.EntityState"/> of this entity.
+    /// </summary>
+    // [DataMember(Order = 2)]
+    public EntityState EntityState {
+      get {
+        if (_entityState == 0 || EntityGroup.IsDetached) {
+          // this can occur after an entityManager or entityGroup clear or 
+          // during materialization because entity state hasn't yet been set.
+          _entityState = EntityState.Detached;
+        }
+        return _entityState;
+      }
+      set {
+        if (!this.EntityGroup.ChangeNotificationEnabled) {
+          _entityState = value;
+        } else if (value == EntityState.Added) {
+          SetAdded();
+        } else if (value == EntityState.Modified) {
+          SetModified();
+        } else if (value == EntityState.Unchanged) {
+          AcceptChanges();
+        } else if (value == EntityState.Deleted) {
+          this.Delete();
+        } else if (value == EntityState.Detached) {
+          this.RemoveFromManager();
+        }
+      }
+    }
+
+
+
+    internal void SetEntityStateCore(EntityState value) {
+
+      if (!this.EntityGroup.ChangeNotificationEnabled) {
+        _entityState = value;
+      } else {
+        if (value.IsAdded()) {
+          OriginalValuesMap = null;
+        }
+        var hadChanges = _entityState != EntityState.Unchanged;
+        _entityState = value;
+        var hasChanges = _entityState != EntityState.Unchanged;
+        OnEntityAspectPropertyChanged("EntityState");
+        if (hadChanges != hasChanges) {
+          OnEntityAspectPropertyChanged("IsChanged");
+        }
+      }
+    }
+
 
     // Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}
 
-    public void SetUnchanged() {
+    private void SetUnchanged() {
       if (this.EntityState == EntityState.Unchanged) return;
       ClearOriginalValues();
       //    delete this.hasTempKey;
-      this.EntityState = EntityState.Unchanged;
+      SetEntityStateCore(EntityState.Unchanged);
       this.EntityManager.NotifyStateChange(this, false);
-    }
-
-    private void ClearOriginalValues() {
-      OriginalValuesMap.Clear();
-      this.ProcessComplexProperties(co => co.AcceptChanges());
     }
 
     /// <summary>
@@ -309,7 +329,7 @@ namespace Breeze.NetClient {
     /// You will usually have no reason to call this method from application code.  The EntityState
     /// is automatically set to Added by the framework when a new entity is added to an EntityManager.
     /// </remarks>
-    public void SetAdded() {
+    private void SetAdded() {
       if (this.EntityState == EntityState.Added) return;
       if (this.EntityState == EntityState.Detached) {
         throw new InvalidOperationException("Detached objects must be attached before calling SetAdded");
@@ -317,6 +337,7 @@ namespace Breeze.NetClient {
       SetEntityStateCore(EntityState.Added);
       _entityKey = null;
       EntityManager.UpdatePkIfNeeded(this);
+      EntityManager.NotifyStateChange(this, true);
     }
 
     /// <summary>
@@ -326,34 +347,52 @@ namespace Breeze.NetClient {
     /// You will usually have no reason to call this method from application code.  The EntityState
     /// is automatically set to Modified by the framework when any EntityProperty of the entity is changed.
     /// </remarks>
-    public void SetModified() {
+    private void SetModified() {
       if (this.EntityState == EntityState.Modified) return;
       if (this.EntityState == EntityState.Detached) {
         throw new InvalidOperationException("Detached objects must be attached before calling SetModified");
       }
       if (!FireEntityChanging(EntityAction.EntityStateChange)) return;
-      //if (this.EntityState == EntityState.Unchanged || this.EntityState == EntityState.Deleted) {
-      //  CreateBackupVersion(EntityVersion.Original);
-      //}
       SetEntityStateCore(EntityState.Modified);
-      EntityGroup.OnEntityChanged(this.Entity, EntityAction.EntityStateChange);
+      EntityManager.NotifyStateChange(this, true);
     }
+
+    private void ClearOriginalValues() {
+      OriginalValuesMap.Clear();
+      this.ProcessComplexProperties(co => co.AcceptChanges());
+    }
+
 
     #endregion
 
-
-
     #region GetValue(s)/SetValue methods
+
+    public void SetValue(String propertyName, object newValue) {
+      var prop = EntityType.GetProperty(propertyName);
+      if (prop != null) {
+        SetValue(prop, newValue);
+      } else {
+        throw new Exception("Unable to locate property: " + EntityType.Name + ":" + propertyName);
+      }
+    }
 
     public Object GetValue(EntityProperty property) {
       return Entity.GetValue(property.Name);
     }
 
-    internal void SetValue(NavigationProperty property, object newValue) {
-
+    internal void SetValue(EntityProperty property, object newValue) {
+      if (property.IsDataProperty) {
+        SetValue((DataProperty)property, newValue);
+      } else {
+        SetValue((NavigationProperty)property, newValue);
+      }
     }
 
     internal void SetValue(DataProperty property, object newValue) {
+
+      if (!property.IsScalar) {
+        throw new Exception("Nonscalar data properties are readonly - items may be added or removed but the collection may not be changed.");
+      }
 
       var oldValue = Entity.GetValue(property.Name);
       if (Object.Equals(oldValue, newValue)) return;
@@ -361,6 +400,12 @@ namespace Breeze.NetClient {
       if (IsNullEntity) {
         throw new Exception("Null entities cannot be modified");
       }
+
+      // TODO: may need to do this:::
+      // Note that we need to handle multiple properties in process, not just one in order to avoid recursion. 
+      // ( except in the case of null propagation with fks where null -> 0 in some cases.)
+      // (this may not be needed because of the newValue === oldValue test above)
+
 
       // var changeNotificationEnabled = EntityState != EntityState.Detached && this.EntityGroup.ChangeNotificationEnabled;
       var changeNotificationEnabled = this.EntityGroup.ChangeNotificationEnabled;
@@ -374,20 +419,11 @@ namespace Breeze.NetClient {
 
       }
 
-      TrackChange(property);
-
-      InitializeDefaultValues();
-      // TODO: might be a bug if we CancelEdit after a key change ( need to reverse key change as well)
-      // maybe disallow key change while in IEditableObject
-      if (property.IsPartOfKey) {
-        SetKeyValue(property, newValue);
-      } else if (property.IsComplexProperty) {
-        SetComplexValue(property, newValue);
+      if (property.IsComplexProperty) {
+        SetCpValue(property, newValue, oldValue);
       } else {
-        this.Entity.SetValue(property.Name, newValue);
+        SetDpValue(property, newValue, oldValue);
       }
-
-      UpdateRelated(property, newValue, oldValue);
 
 
       if (this.EntityState.IsUnchanged() && !InternalEntityManager.IsLoadingEntity) {
@@ -399,6 +435,216 @@ namespace Breeze.NetClient {
         this.EntityGroup.OnEntityChanged(this.Entity, EntityAction.PropertyChange);
       }
     }
+
+    private void SetCpValue(DataProperty property, object newValue, object oldValue) {
+      if (property.IsScalar) {
+        if (newValue == null) {
+          throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
+        }
+        var oldCo = (IComplexObject)oldValue;
+        var newCo = (IComplexObject)newValue;
+        oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
+      } else {
+        throw new Exception(String.Format("You cannot set the non-scalar complex property: '{0}' on the type: '{1}'." +
+            "Instead get the property and use collection functions like 'Add' and 'Remove' to change its contents.",
+            property.Name, property.ParentType.Name));
+      }
+
+    }
+
+    private void SetDpValue(DataProperty property, object newValue, object oldValue) {
+      // if we are changing the key update our internal entityGroup indexes.
+      if (property.IsPartOfKey && EntityManager != null && !EntityManager.IsLoadingEntity) {
+
+        var values = EntityType.KeyProperties.Select(p => (p == property) ? newValue : GetValue(p));
+        var newKey = new EntityKey(EntityType, values);
+        if (EntityManager.FindEntityByKey(newKey) != null) {
+          throw new Exception("An entity with this key is already in the cache: " + newKey);
+        }
+        var oldKey = EntityKey;
+        var eg = EntityManager.GetEntityGroup(EntityType.ClrType);
+        eg.ReplaceKey(this, oldKey, newKey);
+      }
+
+      TrackChange(property);
+
+      UpdateRelated(property, newValue, oldValue);
+
+      // Actually set the value;
+      Entity.SetValue(property.Name, newValue);
+
+      // NOTE: next few lines are the same as above but not refactored for perf reasons.
+      if (EntityManager != null && !EntityManager.IsLoadingEntity) {
+        if (EntityState.IsUnchanged() && !property.IsUnmapped) {
+          EntityState = EntityState.Modified;
+        }
+        //if (entityManager.validationOptions.validateOnPropertyChange) {
+        //    entityAspect._validateProperty(newValue,
+        //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
+        //}
+      }
+
+      if (property.IsPartOfKey) {
+        // propogate pk change to all related entities;
+
+        var propertyIx = EntityType.KeyProperties.IndexOf(property);
+        EntityType.NavigationProperties.ForEach(np => {
+          var inverseNp = np.Inverse;
+          var fkNames = inverseNp != null ? inverseNp.ForeignKeyNames : np.InvForeignKeyNames;
+
+          if (fkNames.Count == 0) return;
+          var npValue = GetValue(np);
+          var fkName = fkNames[propertyIx];
+          if (np.IsScalar) {
+            if (npValue == null) return;
+            ((IEntity)npValue).EntityAspect.SetValue(fkName, newValue);
+          } else {
+            ((INavigationSet)npValue).Cast<IEntity>().ForEach(e => e.EntityAspect.SetValue(fkName, newValue));
+          }
+        });
+        // insure that cached key is updated.
+        EntityKey = null;
+      }
+
+    }
+
+    internal void SetValue(NavigationProperty property, object newValue) {
+      // property is a NavigationProperty
+
+      if (!property.IsScalar) {
+        throw new Exception("Nonscalar navigation properties are readonly - entities can be added or removed but the collection may not be changed.");
+      }
+
+
+      var oldValue = Entity.GetValue(property.Name);
+      if (Object.Equals(oldValue, newValue)) return;
+
+      var newEntity = (IEntity)newValue;
+      var oldEntity = (IEntity)oldValue;
+      var newAspect = newEntity.EntityAspect;
+      var oldAspect = oldEntity.EntityAspect;
+
+      var inverseProp = property.Inverse;
+
+      // manage attachment -
+      if (newValue != null) {
+
+        if (EntityManager != null) {
+          if (newAspect.EntityState.IsDetached()) {
+            if (!EntityManager.IsLoadingEntity) {
+              EntityManager.AttachEntity(newEntity, EntityState.Added);
+            }
+          } else {
+            if (newAspect.EntityManager != EntityManager) {
+              throw new Exception("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
+            }
+          }
+        } else {
+          if (newAspect != null && newAspect.EntityManager != null) {
+            var em = newAspect.EntityManager;
+            if (!em.IsLoadingEntity) {
+              em.AttachEntity(this.Entity, EntityState.Added);
+            }
+          }
+        }
+      }
+
+      // process related updates ( the inverse relationship) first so that collection dups check works properly.
+      // update inverse relationship
+      if (inverseProp != null) {
+
+        ///
+        if (inverseProp.IsScalar) {
+          // Example: bidirectional navProperty: 1->1: order -> internationalOrder
+          // order.internationalOrder <- internationalOrder || null
+          //    ==> (oldInternationalOrder.order = null)
+          //    ==> internationalOrder.order = order
+          if (oldValue != null) {
+            // TODO: null -> NullEntity later
+            oldAspect.SetValue(inverseProp, null);
+          }
+          if (newValue != null) {
+            newAspect.SetValue(inverseProp, this);
+          }
+        } else {
+          // Example: bidirectional navProperty: 1->n: order -> orderDetails
+          // orderDetail.order <- newOrder || null
+          //    ==> (oldOrder).orderDetails.remove(orderDetail)
+          //    ==> order.orderDetails.push(newOrder)
+          if (oldValue != null) {
+            var oldSiblings = (INavigationSet)oldAspect.GetValue(inverseProp);
+            oldSiblings.Remove(this.Entity);
+          }
+          if (newValue != null) {
+            var siblings = (INavigationSet)newAspect.GetValue(inverseProp);
+            // recursion check if already in the collection is performed by the relationArray
+            siblings.Add(this.Entity);
+          }
+        }
+      } else if (property.InvForeignKeyNames != null && EntityManager != null) { // && !EntityManager._inKeyFixup) {
+        var invForeignKeyNames = property.InvForeignKeyNames;
+        if (newValue != null) {
+          // Example: unidirectional navProperty: 1->1: order -> internationalOrder
+          // order.InternationalOrder <- internationalOrder
+          //    ==> internationalOrder.orderId = orderId
+          //      and
+          // Example: unidirectional navProperty: 1->n: order -> orderDetails
+          // orderDetail.order <-xxx newOrder
+          //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
+          var pkValues = this.EntityKey.Values;
+          invForeignKeyNames.ForEach((fkName, i) => newAspect.SetValue(fkName, pkValues[i]));
+
+        } else {
+          // Example: unidirectional navProperty: 1->1: order -> internationalOrder
+          // order.internationalOrder <- null
+          //    ==> (old internationalOrder).orderId = null
+          //        and
+          // Example: unidirectional navProperty: 1->n: order -> orderDetails
+          // orderDetail.order <-xxx newOrder
+          //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
+          if (oldValue != null) {
+            invForeignKeyNames.ForEach(fkName => {
+              var fkProp = oldAspect.EntityType.GetDataProperty(fkName);
+              if (!fkProp.IsPartOfKey) {
+                // don't update with null if fk is part of the key
+                oldAspect.SetValue(fkProp, null);
+              }
+            });
+          }
+        }
+      }
+
+      Entity.SetValue(property.Name, newValue);
+
+      if (EntityManager != null && !EntityManager.IsLoadingEntity) {
+        if (EntityState.IsUnchanged() && !property.IsUnmapped) {
+          EntityState = EntityState.Modified;
+        }
+        //if (EntityManager.ValidationOptions.validateOnPropertyChange) {
+        //    ValidateProperty(newValue,
+        //        { entity: this, property: property, propertyName: propPath, oldValue: oldValue });
+        //}
+      }
+
+      // update fk data property - this can only occur if this navProperty has
+      // a corresponding fk on this entity.
+      if (property.RelatedDataProperties.Count > 0) {
+        if (!EntityState.IsDeleted()) {
+          var inverseKeyProps = property.EntityType.KeyProperties;
+          inverseKeyProps.ForEach((keyProp, i) => {
+            var relatedDataProp = property.RelatedDataProperties[i];
+            // Do not trash related property if it is part of that entity's key
+            if (newValue != null || !relatedDataProp.IsPartOfKey) {
+              var relatedValue = newValue != null ? newAspect.GetValue(keyProp) : relatedDataProp.DefaultValue;
+              SetValue(relatedDataProp, relatedValue);
+            }
+          });
+        }
+      }
+
+    }
+
+
 
     private void UpdateRelated(DataProperty property, object newValue, object oldValue) {
       if (EntityManager == null) return;
@@ -480,33 +726,10 @@ namespace Breeze.NetClient {
       }
     }
 
-    private void SetKeyValue(DataProperty property, object newValue) {
-      // don't try to update the map deserializing or detached.
-      if (!this.EntityState.IsDetached() && this.InternalEntityManager != null) {
-        // a non detached entity that does not have an EntityManager can still occur
-        // here during a EntityCacheState transfer. The entities in an entityCacheState need to have
-        // non-detached entityStates in order to Merge correctly but they will not yet be associated
-        // with an EntityManager. Hence the EntityManager check in the line above.
-        if (!this.EntityState.IsAdded()) {
-          throw new InvalidOperationException(
-            "You cannot change the primary key of an entity that already exists in the data store. " +
-            "You can copy the original entity values to a new entity, give it the new key, add it to the EntityManager, " +
-            "delete the original entity, and then save.");
-        }
-        IfTempIdThenCleanup(property);
-        var oldKey = this.EntityKey;
-        this.Entity.SetValue(property.Name, newValue);
-        this.EntityGroup.UpdatePrimaryKey(this, oldKey);
-      } else {
-        this.Entity.SetValue(property.Name, newValue);
-      }
-    }
+
 
     private void SetComplexValue(DataProperty property, object newValue) {
-      // TODO: we are assuming that a complex type cannot be part of the key - is this safe???
-      var co = (IComplexObject)this.Entity.GetValue(property.Name);
-      var newCo = (IComplexObject)newValue;
-      co.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
+
     }
 
 
@@ -532,12 +755,12 @@ namespace Breeze.NetClient {
         if (this.EntityVersion == EntityVersion.Proposed) {
           result = GetPreproposedValue(property);
         } else {
-          result = this.Entity.GetValue(property.Name);
+          result = GetValue(property);
         }
       } else if (version == EntityVersion.Original) {
         result = GetOriginalValue(property);
       } else if (version == EntityVersion.Proposed) {
-        result = this.Entity.GetValue(property.Name);
+        result = GetValue(property);
       } else {
         throw new ArgumentException("Invalid entity version");
       }
@@ -599,9 +822,6 @@ namespace Breeze.NetClient {
         }
       });
     }
-
-
-
 
     private void IfTempIdThenCleanup(DataProperty property) {
       var oldValue = this.Entity.GetValue(property.Name);
@@ -687,46 +907,13 @@ namespace Breeze.NetClient {
         return _entityKey;
       }
       protected set {
+        // set it to null to force recalc
         _entityKey = value;
         OnEntityAspectPropertyChanged("EntityKey");
       }
     }
 
-    internal bool HasDefaultEntityKey {
-      get {
-        return this.EntityType.KeyProperties
-          .Select(p => p.DefaultValue)
-          .SequenceEqual(EntityKey.Values);
-      }
-    }
-
-    ///// <summary>
-    ///// Returns whether the primary key for this Entity has changed.
-    ///// </summary>
-    ///// <remarks>
-    ///// Returns <c>false</c> for Detached, Added and Deleted objects because the change 
-    ///// state is either meaningless or cannot be determined.
-    ///// </remarks>
-    //internal bool EntityKeyHasChanged {
-    //  get {
-    //    if (this.EntityState != EntityState.Modified) {
-    //      return false;
-    //    }
-    //    var keyProperties = this.EntityType.KeyProperties;
-
-    //    for (int i = 0; i < keyProperties.Count; i++) {
-    //      object original = this.GetValue(keyProperties[i], EntityVersion.Original);
-    //      object current = this.Entity.GetValue(keyProperties[i].Name);
-    //      if (original == null) return false; // should not happen
-    //      // need ! Equals here - do not use ==; it will give wrong results
-    //      if (!original.Equals(current)) return true;
-    //    }
-    //    return false;
-    //  }
-    //}
-
     #endregion
-
 
     #region INotifyPropertyChanged Members
 
@@ -858,66 +1045,17 @@ namespace Breeze.NetClient {
       }
     }
 
-    internal bool HasTemporaryEntityKey {
-      get {
-        var prop = this.EntityType.KeyProperties.First();
-        var uid = new UniqueId(prop, this.Entity.GetValue(prop.Name));
-        if (EntityState == EntityState.Detached) {
-          return InternalEntityManager.GetKeyGenerator(this.EntityType.ClrType).IsTempId(uid);
-        } else {
-          return InternalEntityManager.TempIds.Contains(uid);
-        }
-      }
-    }
-
     /// <summary>
-    /// The <see cref="T:IdeaBlade.EntityModel.EntityState"/> of this entity.
+    /// Returns whether the current instance is a null entity.
     /// </summary>
-    // [DataMember(Order = 2)]
-    public EntityState EntityState {
-      get {
-        if (_entityState == 0 || EntityGroup.IsDetached) {
-          // this can occur after an entityManager or entityGroup clear or 
-          // during materialization because entity state hasn't yet been set.
-          _entityState = EntityState.Detached;
-        }
-        return _entityState;
-      }
-      set {
-        if (!this.EntityGroup.ChangeNotificationEnabled) {
-          _entityState = value;
-        } else if (value == EntityState.Added) {
-          SetAdded();
-        } else if (value == EntityState.Modified) {
-          SetModified();
-        } else if (value == EntityState.Unchanged) {
-          AcceptChanges();
-        } else if (value == EntityState.Deleted) {
-          this.Delete();
-        } else if (value == EntityState.Detached) {
-          this.RemoveFromManager();
-        }
-      }
-    }
-
-
-
-    internal void SetEntityStateCore(EntityState value) {
-
-      if (!this.EntityGroup.ChangeNotificationEnabled) {
-        _entityState = value;
-      } else {
-        if (value.IsAdded()) {
-          OriginalValuesMap = null;
-        }
-        var hadChanges = _entityState != EntityState.Unchanged;
-        _entityState = value;
-        var hasChanges = _entityState != EntityState.Unchanged;
-        OnEntityAspectPropertyChanged("EntityState");
-        if (hadChanges != hasChanges) {
-          OnEntityAspectPropertyChanged("IsChanged");
-        }
-      }
+    /// <remarks>
+    /// The EntityManager will return a NullEntity instead of a null value when
+    /// a requested entity is not found.
+    /// </remarks>
+    /// <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="IsNullEntity"]/*' />
+    public bool IsNullEntity {
+      get;
+      internal set;
     }
 
     internal EntityVersion EntityVersion {
@@ -948,15 +1086,6 @@ namespace Breeze.NetClient {
       internal set;
     }
 
-
-    /// <summary>
-    /// An internally generated id that identifies the most recent datasource query to select this entity.
-    /// </summary>
-    internal Guid CurrentQueryId {
-      get;
-      set;
-    }
-
     internal bool FireEntityChanging(EntityAction action) {
       var entityArgs = new EntityChangingEventArgs(this.Entity, action);
       this.EntityGroup.OnEntityChanging(entityArgs);
@@ -982,7 +1111,7 @@ namespace Breeze.NetClient {
         this.EntityManager.DetachEntity(entity);
         this.EntityManager.NotifyStateChange(this, false);
       } else {
-        this.EntityState = EntityState.Deleted;
+        this.SetEntityStateCore(EntityState.Deleted);
         RemoveFromRelations(EntityState.Deleted);
         this.EntityManager.NotifyStateChange(this, true);
       }
@@ -1217,31 +1346,49 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region NullEntity methods
-
-    /// <summary>
-    /// Returns whether the current instance is a null entity.
-    /// </summary>
-    /// <remarks>
-    /// The EntityManager will return a NullEntity instead of a null value when
-    /// a requested entity is not found.
-    /// </remarks>
-    /// <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="IsNullEntity"]/*' />
-    public bool IsNullEntity {
-      get { return _isNullEntity; }
-    }
-
-
-    internal void SetNullEntity() {
-      _isNullEntity = true;
-    }
-
-    #endregion
-
-
-
-
     #region Misc private and internal methods/properties
+
+    internal bool InProcess {
+      get;
+      set;
+    }
+
+    internal bool HasTemporaryEntityKey {
+      get {
+        var prop = this.EntityType.KeyProperties.First();
+        var uid = new UniqueId(prop, this.Entity.GetValue(prop.Name));
+        if (EntityState == EntityState.Detached) {
+          return InternalEntityManager.GetKeyGenerator(this.EntityType.ClrType).IsTempId(uid);
+        } else {
+          return InternalEntityManager.TempIds.Contains(uid);
+        }
+      }
+    }
+
+    internal EntityKey GetParentKey(NavigationProperty np) {
+      // returns null for np's that do not have a parentKey
+      var fkNames = np.ForeignKeyNames;
+      if (fkNames.Count == 0) return null;
+      var fkValues = fkNames.Select(fkn => this.Entity.GetValue(fkn));
+
+      return new EntityKey(np.EntityType, fkValues);
+    }
+
+    internal void ProcessNavigationProperties(Action<IEntity> action) {
+      var entity = this.Entity;
+      this.EntityType.NavigationProperties.ForEach(prop => {
+        var val = this.GetValue(prop);
+        if (prop.IsScalar) {
+          action((IEntity)val);
+
+        } else {
+          ((IEnumerable)val).Cast<IEntity>().ForEach(e => action(e));
+        }
+      });
+
+    }
+
+
 
     //internal Object[] GetCurrentValues() {
     //  var entity = this.Entity;
@@ -1282,27 +1429,9 @@ namespace Breeze.NetClient {
 
 
     internal int IndexInEntityGroup {
-      get { return _indexInEntityGroup; }
-      set { _indexInEntityGroup = value; }
+      get;
+      set;
     }
-
-    #endregion
-
-    #region Change Tracking
-
-    // DataForm blows unless we use String.Empty - see B1112 - we're keeping 
-    // old non-SL behavior because this change was made at last minute and couldn't
-    // be adequately tested.
-#if NET
-    private static readonly PropertyChangedEventArgs AllPropertiesChangedEventArgs
-      = new PropertyChangedEventArgs(null);
-#else
-    private static readonly PropertyChangedEventArgs AllPropertiesChangedEventArgs
-      = new PropertyChangedEventArgs(String.Empty);
-
-#endif
-
-
 
     #endregion
 
@@ -1331,8 +1460,6 @@ namespace Breeze.NetClient {
 
     #endregion
 
-
-
     #region INotifyDataErrorInfo
 
     /// <summary>
@@ -1357,13 +1484,8 @@ namespace Breeze.NetClient {
     }
 
     IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName) {
-
-
       return null;
     }
-
-
-
 
     /// <summary>
     /// Raises the ErrorsChanged event.
@@ -1389,133 +1511,6 @@ namespace Breeze.NetClient {
     private event EventHandler<DataErrorsChangedEventArgs> _errorsChangedHandler;
 
     #endregion
-
-
-
-
-
-
-    //#region Related entity methods
-
-    ///// <summary>
-    ///// Finds any cached entities related to this entity by the specified link.
-    ///// </summary>
-    ///// <param name="relationLink"></param>
-    ///// <param name="includeDeleted"></param>
-    ///// <returns></returns>
-    ///// <remarks>
-    ///// Entities will not be retrieved from a backend data source if not found in cache.
-    ///// </remarks>
-    //public IEnumerable<Object> FindRelatedEntities(EntityRelationLink relationLink, bool includeDeleted) {
-    //  return FindRelatedAspects(relationLink, includeDeleted).Select(w => w.Entity);
-    //}
-
-    ///// <summary>
-    ///// Returns the related entity via a <see cref="EntityRelationLink"/>.
-    ///// </summary>
-    ///// <param name="relationLink"></param>
-    ///// <returns></returns>
-    ///// <remarks>
-    ///// The current <see cref="P:IdeaBlade.EntityModel.EntityManager.DefaultQueryStrategy"/> is used
-    ///// to determine how this query is fulfilled.
-    ///// </remarks>
-    //public Object GetRelatedEntity(EntityRelationLink relationLink) {
-    //  return GetRelatedEntity(relationLink, null);
-    //}
-
-    ///// <summary>
-    ///// Returns the related entity via a <see cref="EntityRelationLink"/>.
-    ///// </summary>
-    ///// <typeparam name="T"></typeparam>
-    ///// <param name="relationLink"></param>
-    ///// <returns></returns>
-    ///// <remarks>
-    ///// The current <see cref="P:IdeaBlade.EntityModel.EntityManager.DefaultQueryStrategy"/> is used
-    ///// to determine how this query is fulfilled.
-    ///// </remarks>
-    //public T GetRelatedEntity<T>(EntityRelationLink relationLink) where T : class {
-    //  return GetRelatedEntity<T>(relationLink, null);
-    //}
-
-    ///// <summary>
-    ///// Returns the related entity via a <see cref="EntityRelationLink"/> using the specified QueryStrategy.
-    ///// </summary>
-    ///// <typeparam name="T"></typeparam>
-    ///// <param name="relationLink"></param>
-    ///// <param name="strategy"></param>
-    ///// <returns></returns>
-    //public T GetRelatedEntity<T>(EntityRelationLink relationLink, QueryStrategy strategy) where T : class {
-    //  if (!typeof(T).IsAssignableFrom(relationLink.ToRole.EntityType)) {
-    //    throw new ArgumentException("relationLink.ToType does not match return type");
-    //  }
-    //  return (T)GetRelatedEntity(relationLink, strategy);
-    //}
-
-    ///// <summary>
-    ///// Returns all related entities via the specified <see cref="EntityRelationLink"/>.
-    ///// </summary>
-    ///// <param name="relationLink"></param>
-    ///// <returns></returns>
-    ///// <remarks>
-    ///// The current <see cref="P:IdeaBlade.EntityModel.EntityManager.DefaultQueryStrategy"/> is used
-    ///// to determine how this query is fulfilled.
-    ///// </remarks>
-    //public IEnumerable GetRelatedEntities(EntityRelationLink relationLink) {
-    //  return GetRelatedEntities(relationLink, null);
-    //}
-
-    ///// <summary>
-    ///// Returns all related entities via the specified <see cref="EntityRelationLink"/>.
-    ///// </summary>
-    ///// <typeparam name="T"></typeparam>
-    ///// <param name="relationLink"></param>
-    ///// <returns></returns>
-    ///// <remarks>
-    ///// The current <see cref="P:IdeaBlade.EntityModel.EntityManager.DefaultQueryStrategy"/> is used
-    ///// to determine how this query is fulfilled.
-    ///// </remarks>
-    //public IEnumerable<T> GetRelatedEntities<T>(EntityRelationLink relationLink)
-    //  where T : class {
-    //  return GetRelatedEntities<T>(relationLink, null);
-    //}
-
-    ///// <summary>
-    ///// Returns all related entities via the specified <see cref="EntityRelationLink"/> using the specified QueryStrategy.
-    ///// </summary>
-    ///// <typeparam name="T"></typeparam>
-    ///// <param name="relationLink"></param>
-    ///// <param name="strategy"></param>
-    ///// <returns></returns>
-    //public IEnumerable<T> GetRelatedEntities<T>(EntityRelationLink relationLink, QueryStrategy strategy)
-    //  where T : class {
-    //  return GetRelatedEntities(relationLink, strategy).Cast<T>();
-    //}
-
-    ///// <summary>
-    ///// Returns the related entity via a <see cref="EntityRelationLink"/> using the specified QueryStrategy.
-    ///// </summary>
-    ///// <param name="relationLink"></param>
-    ///// <param name="strategy"></param>
-    ///// <returns></returns>
-    //public Object GetRelatedEntity(EntityRelationLink relationLink, QueryStrategy strategy) {
-    //  var query = new EntityRelationQuery(this.Entity, relationLink);
-    //  return query.With(this.InternalEntityManager, strategy).FirstOrNullEntity();
-    //}
-
-
-    ///// <summary>
-    ///// Returns all related entities via the specified <see cref="EntityRelationLink"/> using the specified QueryStrategy.
-    ///// </summary>
-    ///// <param name="relationLink"></param>
-    ///// <param name="strategy"></param>
-    ///// <returns></returns>
-    //public IEnumerable GetRelatedEntities(EntityRelationLink relationLink, QueryStrategy strategy) {
-    //  var query = new EntityRelationQuery(this.Entity, relationLink);
-    //  return query.With(this.InternalEntityManager, strategy).Execute();
-    //}
-
-
-    //#endregion
 
     #region BAD ideas
 
@@ -1559,18 +1554,26 @@ namespace Breeze.NetClient {
 
     #region Fields
 
+    // DataForm blows unless we use String.Empty - see B1112 - we're keeping 
+    // old non-SL behavior because this change was made at last minute and couldn't
+    // be adequately tested.
+#if NET
+    private static readonly PropertyChangedEventArgs AllPropertiesChangedEventArgs
+      = new PropertyChangedEventArgs(null);
+#else
+    private static readonly PropertyChangedEventArgs AllPropertiesChangedEventArgs
+      = new PropertyChangedEventArgs(String.Empty);
+
+#endif
+
+
+
     private IEntity _entity;
     private EntityKey _entityKey;
     private EntityState _entityState = EntityState.Detached;
 
     // should only ever be set to either current or proposed ( never original)
     private EntityVersion _entityVersion = EntityVersion.Current;
-
-    private bool _isNullEntity;
-    private int _indexInEntityGroup = -1;
-
-    internal bool _defaultValuesInitialized = false;
-
 
     #endregion
 
