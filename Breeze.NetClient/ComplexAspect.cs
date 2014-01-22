@@ -16,9 +16,25 @@ namespace Breeze.NetClient {
   /// <remarks>
   /// The <b>ComplexAspect</b> provides verification and change tracking capaibilities to the ComplexObject.
   /// </remarks>
-  public class ComplexAspect : INotifyDataErrorInfo  {
+  public class ComplexAspect : StructuralAspect, INotifyDataErrorInfo  {
 
     private ComplexAspect() { }
+
+    protected override StructuralType StructuralType {
+      get { return this.ComplexType; }
+    }
+
+    protected override IStructuralObject StructuralObject {
+      get { return this.ComplexObject; ; }
+    }
+
+    internal void RejectChangesCore() {
+      var co = this.ComplexObject;
+      this.OriginalValuesMap.ForEach(kvp => {
+        co.SetValue(kvp.Key, kvp.Value);
+      });
+      this.ProcessComplexProperties(co2 => co2.ComplexAspect.RejectChangesCore());
+    }
 
     /// <summary>
     /// 
@@ -236,7 +252,7 @@ namespace Breeze.NetClient {
 
 
 
-    internal object GetValueRaw(DataProperty property, EntityVersion version) {
+    internal object GetValue(DataProperty property, EntityVersion version) {
       InitializeDefaultValues();
 
       if (version == EntityVersion.Default) {
@@ -247,12 +263,12 @@ namespace Breeze.NetClient {
         if (this.ParentEntity != null && this.ParentEntity.EntityAspect.EntityVersion == EntityVersion.Proposed) {
           result = GetPreproposedValue(property);
         } else {
-          result = this.ComplexObject.GetValueRaw(property.Name);
+          result = this.ComplexObject.GetValue(property.Name);
         }
       } else if (version == EntityVersion.Original) {
         result = GetOriginalValue(property);
       } else if (version == EntityVersion.Proposed) {
-        result = this.ComplexObject.GetValueRaw(property.Name);
+        result = this.ComplexObject.GetValue(property.Name);
       } else {
         throw new ArgumentException("Invalid entity version");
       }
@@ -261,7 +277,7 @@ namespace Breeze.NetClient {
         var co = (IComplexObject)result;
         if (co == null) {
           co = Create(this.ComplexObject, property, true);
-          this.ComplexObject.SetValueRaw(property.Name, co);
+          this.ComplexObject.SetValue(property.Name, co);
           return co;
         } else if (co.ComplexAspect.Parent == null || co.ComplexAspect.Parent != _complexObject) {
           co.ComplexAspect.Parent = _complexObject;
@@ -285,9 +301,9 @@ namespace Breeze.NetClient {
         try {
           
           if (dp.IsComplexProperty) {
-            this.ComplexObject.SetValueRaw(dp.Name, ComplexAspect.Create(this.ComplexObject, dp, true));
+            this.ComplexObject.SetValue(dp.Name, ComplexAspect.Create(this.ComplexObject, dp, true));
           } else if (dp.DefaultValue != null) {
-            this.ComplexObject.SetValueRaw(dp.Name, dp.DefaultValue);
+            this.ComplexObject.SetValue(dp.Name, dp.DefaultValue);
           }
         } catch (Exception e) {
           Debug.WriteLine("Exception caught during initialization of {0}.{1}: {2}", this.ComplexObject.GetType().Name, dp.Name, e.Message);
@@ -297,19 +313,19 @@ namespace Breeze.NetClient {
 
 
     internal void SetValueWithChangeNotification(DataProperty property, object newValue) {
-      var oldValue = GetValueRaw(property, EntityVersion.Default);
+      var oldValue = GetValue(property, EntityVersion.Default);
       if (Object.Equals(oldValue, newValue)) return;
       EntityGroup entityGroup = null;
       if (ParentEntity != null) {
         entityGroup = this.ParentEntity.EntityAspect.EntityGroup;
 
-        if (!this.ParentEntity.EntityAspect.FireEntityChanging(EntityAction.Change)) return;
+        if (!this.ParentEntity.EntityAspect.FireEntityChanging(EntityAction.PropertyChange)) return;
         // TODO: problem here is that if this is a nested property on a nested complex object - we need to send the
         // change event to the top level parent entity regarding the top level parent entity property ( not the property that is actually changing)
         // In turn we also need to send the "top level" complex object that is changing- but to do this we need to clone the
         // entire complex object - because it may be rejected. 
 
-        var propArgs = new EntityPropertyChangingEventArgs(this.ParentEntity.EntityAspect, this.ParentEntityProperty, this, property, newValue);
+        var propArgs = new EntityPropertyChangingEventArgs(this.ParentEntity, this.ParentEntityProperty, this.ComplexObject, property, newValue);
 
         entityGroup.OnEntityPropertyChanging(propArgs);
         if (propArgs.Cancel) return;
@@ -322,14 +338,14 @@ namespace Breeze.NetClient {
           ParentEntity.EntityAspect.SetEntityStateCore(EntityState.Modified);
         }
 
-        entityGroup.OnEntityPropertyChanged(new EntityPropertyChangedEventArgs(ParentEntity.EntityAspect, this.ParentEntityProperty, this, property, newValue));
-        entityGroup.OnEntityChanged(new EntityChangedEventArgs(ParentEntity.EntityAspect, EntityAction.Change));
+        entityGroup.OnEntityPropertyChanged(new EntityPropertyChangedEventArgs(ParentEntity, this.ParentEntityProperty, this.ComplexObject, property, newValue));
+        entityGroup.OnEntityChanged(new EntityChangedEventArgs(ParentEntity, EntityAction.PropertyChange));
       }
     }
 
     internal void SetValueWithChangeTracking(DataProperty property, Object newValue) {
       TrackChange(property);
-      SetValueRaw(property, newValue);
+      SetValue(property, newValue);
     }
 
     /// <summary>
@@ -337,15 +353,15 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="property"></param>
     /// <param name="newValue"></param>
-    internal void SetValueRaw(DataProperty property, object newValue) {
+    internal void SetValue(DataProperty property, object newValue) {
       InitializeDefaultValues();
 
       if ( property.IsComplexProperty) {
-        var thisAspect = ((IComplexObject) this.ComplexObject.GetValueRaw(property.Name)).ComplexAspect;
+        var thisAspect = ((IComplexObject) this.ComplexObject.GetValue(property.Name)).ComplexAspect;
         var newAspect = ((IComplexObject)newValue).ComplexAspect;
         thisAspect.AbsorbCurrentValues(newAspect);
       } else {
-        this.ComplexObject.SetValueRaw(property.Name, newValue);
+        this.ComplexObject.SetValue(property.Name, newValue);
       }
     }
 
@@ -355,7 +371,7 @@ namespace Breeze.NetClient {
 
       this.ComplexType.DataProperties.ForEach(p => {
         var ov = this.GetOriginalValue(p);
-        cloneAspect.ComplexObject.SetValueRaw(p.Name, ov);
+        cloneAspect.ComplexObject.SetValue(p.Name, ov);
       });
       return originalClone;
     }
@@ -365,23 +381,23 @@ namespace Breeze.NetClient {
     private Object GetOriginalValue(DataProperty property) {
       object result;
       if (property.IsComplexProperty) {
-        var co = (IComplexObject)GetValueRaw(property, EntityVersion.Current);
+        var co = (IComplexObject)GetValue(property, EntityVersion.Current);
         return co.ComplexAspect.GetOriginalVersion();
       } else {
-        if (_originalValuesMap != null && _originalValuesMap.TryGetValue(property.Name, out result)) {
+        if (OriginalValuesMap != null && OriginalValuesMap.TryGetValue(property.Name, out result)) {
           return result;
         } else {
-          return this.ComplexObject.GetValueRaw(property.Name);
+          return this.ComplexObject.GetValue(property.Name);
         }
       }
     }
 
     private Object GetPreproposedValue(DataProperty property) {
       object result;
-      if (_preproposedValuesMap != null && _preproposedValuesMap.TryGetValue(property.Name, out result)) {
+      if ( PreproposedValuesMap != null && PreproposedValuesMap.TryGetValue(property.Name, out result)) {
         return result;
       } else {
-        return this.ComplexObject.GetValueRaw(property.Name);
+        return this.ComplexObject.GetValue(property.Name);
       }
     }
 
@@ -411,22 +427,22 @@ namespace Breeze.NetClient {
     private void BackupOriginalValueIfNeeded(DataProperty property) {
       if (ParentEntity.EntityAspect.EntityState.IsAdded()) return;
       if (ParentEntity.EntityAspect.EntityState.IsDetached()) return;
-      if (_originalValuesMap == null) {
-        _originalValuesMap = new OriginalValuesMap();
+      if (OriginalValuesMap == null) {
+        OriginalValuesMap = new OriginalValuesMap();
       }
 
-      if (_originalValuesMap.ContainsKey(property.Name)) return;
+      if (OriginalValuesMap.ContainsKey(property.Name)) return;
       // reference copy of complex object is deliberate - actual original values will be stored in the co itself.
-      _originalValuesMap.Add(property.Name, this.ComplexObject.GetValueRaw(property.Name));
+      OriginalValuesMap.Add(property.Name, this.ComplexObject.GetValue(property.Name));
     }
 
     private void BackupProposedValueIfNeeded(DataProperty property) {
-      if (_preproposedValuesMap == null) {
-        _preproposedValuesMap = new BackupValuesMap();
+      if (PreproposedValuesMap == null) {
+        PreproposedValuesMap = new BackupValuesMap();
       }
 
-      if (_preproposedValuesMap.ContainsKey(property.Name)) return;
-      _preproposedValuesMap.Add(property.Name, this.ComplexObject.GetValueRaw(property.Name));
+      if (PreproposedValuesMap.ContainsKey(property.Name)) return;
+      PreproposedValuesMap.Add(property.Name, this.ComplexObject.GetValue(property.Name));
     }
 
     #endregion
@@ -441,21 +457,21 @@ namespace Breeze.NetClient {
 
       if (version == EntityVersion.Original) {
         // this will only occur on an accept changes call.
-        if (_originalValuesMap != null) {
+        if (OriginalValuesMap != null) {
           ClearBackupVersionCore(version);
-          _originalValuesMap = null;
+          OriginalValuesMap = null;
         }
       } else if (version == EntityVersion.Proposed) {
-        if (_preproposedValuesMap != null) {
+        if (PreproposedValuesMap != null) {
           ClearBackupVersionCore(version);
-          _preproposedValuesMap = null;
+          PreproposedValuesMap = null;
         }
       }
     }
 
     private void ClearBackupVersionCore(EntityVersion version) {
       this.ComplexType.DataProperties.Where(dp => dp.IsComplexProperty).ForEach(dp => {
-        var co = (IComplexObject) this.ComplexObject.GetValueRaw(dp.Name);
+        var co = (IComplexObject) this.ComplexObject.GetValue(dp.Name);
         if (co != null) {
           co.ComplexAspect.ClearBackupVersion(version);
         }
@@ -468,14 +484,14 @@ namespace Breeze.NetClient {
     /// <param name="version"></param>
     internal void RestoreBackupVersion(EntityVersion version) {
       if (version == EntityVersion.Original) {
-        if (_originalValuesMap != null) {
-          RestoreOriginalValues(_originalValuesMap, version);
-          _originalValuesMap = null;
+        if (OriginalValuesMap != null) {
+          RestoreOriginalValues(OriginalValuesMap, version);
+          OriginalValuesMap = null;
         }
       } else if (version == EntityVersion.Proposed) {
-        if (_preproposedValuesMap != null) {
-          RestoreOriginalValues(_preproposedValuesMap, version);
-          _preproposedValuesMap = null;
+        if (PreproposedValuesMap != null) {
+          RestoreOriginalValues(PreproposedValuesMap, version);
+          PreproposedValuesMap = null;
         }
       }
     }
@@ -486,7 +502,7 @@ namespace Breeze.NetClient {
         if (value is IComplexObject) {
           ((IComplexObject)value).ComplexAspect.RestoreBackupVersion(version);
         }
-        this.ComplexObject.SetValueRaw(kvp.Key, value);
+        this.ComplexObject.SetValue(kvp.Key, value);
         
       });
     }
@@ -496,42 +512,34 @@ namespace Breeze.NetClient {
 
     #region Misc private and internal methods/properties
 
-    private IStructuralObject ParentToStructuralObject(Object parent) {
-      if (parent is IEntity) {
-        return ((IEntity)parent).EntityAspect;
-      } else {
-        return ((IComplexObject)parent).ComplexAspect;
-      }
-    }
 
     internal void AbsorbCurrentValues(ComplexAspect sourceAspect, bool isCloning = false) {
       if (isCloning) {
-        if (sourceAspect._originalValuesMap != null) {
-          this._originalValuesMap = new OriginalValuesMap(sourceAspect._originalValuesMap);
+        if (sourceAspect.OriginalValuesMap != null) {
+          this.OriginalValuesMap = new OriginalValuesMap(sourceAspect.OriginalValuesMap);
         }
       }
 
       this.ComplexType.DataProperties.ForEach(p => {
-        var sourceValue = sourceAspect.ComplexObject.GetValueRaw(p.Name);
+        var sourceValue = sourceAspect.ComplexObject.GetValue(p.Name);
         if (p.IsComplexProperty) {
-          var thisChildCo = (IComplexObject) this.ComplexObject.GetValueRaw(p.Name);
+          var thisChildCo = (IComplexObject) this.ComplexObject.GetValue(p.Name);
           if (thisChildCo == null) {
             thisChildCo = ComplexAspect.Create(this.ComplexObject, p, true);
-            this.ComplexObject.SetValueRaw(p.Name, thisChildCo);
+            this.ComplexObject.SetValue(p.Name, thisChildCo);
           }
           var thisChildAspect = thisChildCo.ComplexAspect;
 
           var sourceCo = (IComplexObject)sourceValue;
           if (sourceCo == null) {
             sourceCo = ComplexAspect.Create(sourceAspect.ComplexObject, p, true);
-            sourceAspect.ComplexObject.SetValueRaw(p.Name, sourceCo);
+            sourceAspect.ComplexObject.SetValue(p.Name, sourceCo);
           }
           var sourceChildAspect = sourceCo.ComplexAspect;
 
           thisChildAspect.AbsorbCurrentValues(sourceChildAspect, isCloning);
         } else {
-          var so = this as IStructuralObject;
-          so.SetValueWithChangeNotification(p, sourceValue);
+          this.ComplexObject.SetValue(p.Name, sourceValue);
         }
       });
     }
@@ -540,7 +548,7 @@ namespace Breeze.NetClient {
 
     internal Object[] GetCurrentValues() {
       var props = ComplexType.DataProperties;
-      var currentValues = props.Select(p => this.ComplexObject.GetValueRaw(p.Name)).ToArray();
+      var currentValues = props.Select(p => this.ComplexObject.GetValue(p.Name)).ToArray();
       return currentValues;
     }
 
@@ -593,14 +601,12 @@ namespace Breeze.NetClient {
 
     #region Fields
     
-    private bool _defaultValuesInitialized;
+    
     private IComplexObject _complexObject;
     
     // private Object[] _currentValues;
     // Required on Server in order to determine what props have changed.
     
-    internal OriginalValuesMap _originalValuesMap;
-    private BackupValuesMap _preproposedValuesMap;
 
     // do not need to be serialized
     private IStructuralObject _parent;

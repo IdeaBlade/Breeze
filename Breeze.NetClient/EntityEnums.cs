@@ -181,54 +181,59 @@ namespace Breeze.NetClient {
   [Flags]
   public enum EntityAction {
 
+    Attach = 1, // isAttach
+        
+    
     /// <summary>
-    /// The entity has not changed.
+    /// Entity was attached as a result of a query.
     /// </summary>
-    Nothing = 0,
+    AttachOnQuery = 2,  // isAttach
+
     /// <summary>
-    /// The entity was removed from the EntityGroup.
+    /// AttachOnImport - Entity was attached as a result of an import.
     /// </summary>
-    Remove = 1,
+    AttachOnImport = 4,  // isAttach
+        
     /// <summary>
-    /// The entity has changed.
+    /// AttachOnQuery - Entity was detached.
     /// </summary>
-    Change = 2,
+    Detach = 8, // isDetach
+
+    Delete = 16, 
+        
+    
+    // MergeOnQuery - Properties on the entity were merged as a result of a query.
     /// <summary>
-    /// The most recent change to the entity has been rolled back.
+    /// MergeOnQuery - Properties on the entity were merged as a result of a query.
     /// </summary>
-    Rollback = 4,
-    /// <summary>
-    /// The changes to the entity have been committed.
-    /// </summary>
-    Commit = 8,
-    /// <summary>
-    /// The entity has been added to an EntityGroup.
-    /// </summary>
-    Add = 16,
-    /// <summary>
-    /// The original version of the entity has been changed. (Occurs on Merge with PreserveChangesUpdateOriginal strategy.)
-    /// </summary>
-    ChangeOriginal = 32,
-    /// <summary>
-    /// The original and the current versions of the entity have been changed. (Occurs on Merge.)
-    /// </summary>
-    ChangeCurrentAndOriginal = 64,
-    /// <summary>
-    /// The entity has been added to an EntityGroup as a result of a query.
-    /// </summary>
-    AddOnQuery = 256 + 16,
-    /// <summary>
-    /// The entity has been added to an EntityGroup as a result of an import operation.
-    /// </summary>
-    AddOnImport = 512 + 16, // 
-    /// <summary>
-    /// The entity has been added to an EntityGroup as a result of an attach operation.
-    /// </summary>
-    AddOnAttach = 2048 + 16, // 
-    /// <summary>
-    /// The entity was marked for deletion 
-    /// </summary>
-    Delete = 1024,
+    MergeOnQuery = 32, // isModification
+        
+
+    // MergeOnImport - Properties on the entity were merged as a result of an import.
+    MergeOnImport = 64, // isModification: true 
+        
+    
+    // MergeOnSave - Properties on the entity were merged as a result of a save
+    MergeOnSave = 128, // isModification: true 
+        
+    
+    // PropertyChange - A property on the entity was changed.
+    PropertyChange = 256, // isModification: true
+        
+    
+    // EntityStateChange - The EntityState of the entity was changed.
+    EntityStateChange = 512,
+
+    // AcceptChanges - AcceptChanges was called on the entity, or its entityState was set to Unmodified.
+    AcceptChanges = 1024,
+    
+    // RejectChanges - RejectChanges was called on the entity.
+    RejectChanges = 2048, // isModification
+        
+    
+    // Clear - The EntityManager was cleared.  All entities detached.
+    Clear = 2048, //  isDetach: true
+
   }
   #endregion
 }

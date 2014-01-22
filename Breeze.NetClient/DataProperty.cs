@@ -9,8 +9,9 @@ namespace Breeze.NetClient {
   public class DataPropertyCollection : KeyedMap<String, DataProperty> {
     protected override String GetKeyForItem(DataProperty item) {
       return item.Name;
-
     }
+
+    
   }
 
   public class DataProperty : EntityProperty {

@@ -8,7 +8,7 @@ using Breeze.Core;
 
 namespace Breeze.NetClient {
 
-  public class StructuralTypeCollection : KeyedCollection<String, StructuralType> {
+  public class StructuralTypeCollection : KeyedMap<String, StructuralType> {
     protected override String GetKeyForItem(StructuralType item) {
       return item.ShortName + ":#" + item.Namespace;
     }
@@ -53,8 +53,8 @@ namespace Breeze.NetClient {
 
     internal abstract DataProperty AddDataProperty(DataProperty dp); 
 
-    public ReadOnlyCollection<DataProperty> DataProperties {
-      get { return new ReadOnlyCollection<DataProperty>(_dataProperties);; }
+    public ICollection<DataProperty> DataProperties {
+      get { return _dataProperties.AsReadOnly(); }
     }
 
     public ReadOnlyCollection<DataProperty> ComplexProperties {

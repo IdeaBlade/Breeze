@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
- 
+
 
   /// <summary>
   /// Provides entity services for all persistable business objects used within DevForce.  
@@ -29,7 +29,7 @@ namespace Breeze.NetClient {
   /// </remarks>
 
   [DebuggerDisplay("{EntityKey} - {EntityState}")]
-  public class EntityAspect : IEditableObject, IChangeTracking, IRevertibleChangeTracking, INotifyPropertyChanged,
+  public class EntityAspect : StructuralAspect, IEditableObject, IChangeTracking, IRevertibleChangeTracking, INotifyPropertyChanged,
     INotifyDataErrorInfo, IComparable {
     // what about IDataErrorInfo
     /// <summary>
@@ -61,6 +61,14 @@ namespace Breeze.NetClient {
       _entity = entity;
     }
 
+    protected override StructuralType StructuralType {
+      get { return this.EntityType; }
+    }
+
+    protected override IStructuralObject StructuralObject {
+      get { return this.Entity; ; }
+    }
+
     /// <summary>
     /// Returns the wrapped entity.
     /// </summary>
@@ -76,7 +84,35 @@ namespace Breeze.NetClient {
     }
 
     public EntityType EntityType { get; private set; }
-      
+
+    internal bool InProcess {
+      get;
+      set;
+    }
+
+    public EntityKey GetParentKey(NavigationProperty np) {
+      // returns null for np's that do not have a parentKey
+      var fkNames = np.ForeignKeyNames;
+      if (fkNames.Count == 0) return null;
+      var fkValues = fkNames.Select(fkn => this.Entity.GetValue(fkn));
+
+      return new EntityKey(np.EntityType, fkValues);
+    }
+
+    internal void ProcessNavigationProperties(Action<IEntity> action) {
+      var entity = this.Entity;
+      this.EntityType.NavigationProperties.ForEach(prop => {
+        var val = this.GetValue(prop);
+        if (prop.IsScalar) {
+          action((IEntity)val);
+
+        } else {
+          ((IEnumerable)val).Cast<IEntity>().ForEach(e => action(e));
+        }
+      });
+
+    }
+
 
     #region Add/Remove from manager
     /// <summary>
@@ -135,58 +171,37 @@ namespace Breeze.NetClient {
     ///<para>This does not delete the object from the backend server.  To delete an entity,
     ///use the <see cref="M:IdeaBlade.EntityModel.Entity.Delete"/> method.</para>
     /// </remarks>
-    public void RemoveFromManager() {
-      if (InternalEntityManager != null) {
-        InternalEntityManager.DetachEntity(this.Entity);
-      }
+    public bool RemoveFromManager() {
+
+      var group = this.EntityGroup;
+      if (group == null) return false; // no group === already detached.
+      group.DetachEntityAspect(this);
+      RemoveFromRelations(EntityState.Detached);
+
+      this.EntityGroup = null;
+      this.EntityState = EntityState.Detached;
+      this.OriginalValuesMap = null;
+      this.PreproposedValuesMap = null;
+      // this._validationErrors = {};
+
+      this.InternalEntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
+      return true;
     }
-
-
 
 
     #endregion
 
     #region Accept/Reject/HasChanges and IChangeTracking/IReveribleChangeTracking
 
-    /// <summary>
-    ///  Accepts all changes to this Entity, returning the EntityState to Unchanged.
-    /// </summary>
-    /// <remarks>
-    /// <b>AcceptChanges</b> is automatically called by the EntityManager after a successful 
-    /// <see cref="M:IdeaBlade.EntityModel.EntityManager.SaveChanges()"/> call; there is rarely a need to call this method directly.
-    /// <para>
-    /// The <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityChanging"/> and <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityChanged"/>
-    /// events are fired with an EntityAction of <see cref="EntityAction.Commit"/> when this
-    /// method is executed.
-    /// </para>
-    /// </remarks>
     public void AcceptChanges() {
-      if (this.EntityState.IsUnchanged()) {
-        return; // do we need to check for isProposed as well ???
+      if (!FireEntityChanging(EntityAction.AcceptChanges)) return;
+      if (this.EntityState.IsDeleted()) {
+        this.EntityManager.DetachEntity(this.Entity);
+      } else {
+        this.SetUnchanged();
       }
-      if (!FireEntityChanging(EntityAction.Commit)) return;
-      AcceptChangesCore();
-      this.EntityGroup.OnEntityChanged(new EntityChangedEventArgs(this, EntityAction.Commit));
-    }
+      this.EntityManager.OnEntityChanged(this.Entity, EntityAction.AcceptChanges);
 
-    private void AcceptChangesCore() {
-      ((IEditableObject)this).EndEdit();
-      if (this.EntityState.IsAdded()) {
-        SetEntityStateCore(EntityState.Unchanged);
-        this.EntityManager.MarkTempIdAsMapped(this, true);
-      } else if (this.EntityState.IsAddedOrModified()) {
-        SetEntityStateCore(EntityState.Unchanged);
-        ClearBackupVersion(EntityVersion.Original);
-      } else if (this.EntityState.IsDeleted()) {
-        // sets entityState to Detached
-        this.EntityGroup.RemoveEntity(this);
-      }
-
-      EntityVersion = EntityVersion.Current;
-    }
-
-    void IChangeTracking.AcceptChanges() {
-      AcceptChanges();
     }
 
     /// <summary>
@@ -203,30 +218,42 @@ namespace Breeze.NetClient {
     /// <seealso cref="M:IdeaBlade.EntityModel.Entity.RemoveFromManager()"/>
     /// </remarks>
     public void RejectChanges() {
-      if (!FireEntityChanging(EntityAction.Rollback)) return;
-      UndoMappedTempId(this.EntityState);
-      RejectChangesCore();
-      this.EntityGroup.OnEntityChanged(new EntityChangedEventArgs(this, EntityAction.Rollback));
-    }
+      if (!FireEntityChanging(EntityAction.RejectChanges)) return;
 
-    private void RejectChangesCore() {
+      // we do not want PropertyChange or EntityChange events to occur here
+      // because the single RejectChanges will cover both
+      using (new BooleanUsingBlock((b) => this.EntityManager.IsRejectingChanges = b)) {
+        RejectChangesCore();
+      };
 
-      ((IEditableObject)this).CancelEdit();
-      if (this.EntityState.IsModified()) {
-        RestoreBackupVersion(EntityVersion.Original);
-        SetEntityStateCore(EntityState.Unchanged);
-      } else if (this.EntityState.IsDeleted()) {
-        RestoreBackupVersion(EntityVersion.Original);
-        SetEntityStateCore(EntityState.Unchanged);
-        this.UndeleteReferences();
-      } else if (this.EntityState.IsAdded()) {
-        // sets entityState to Detached
-        this.EntityGroup.RemoveEntity(this);
+
+      if (EntityState.IsAdded()) {
+        // next line is needed because the following line will cause this.entityManager -> null;
+        EntityManager.DetachEntity(Entity);
+        // need to tell em that an entity that needed to be saved no longer does.
+        EntityManager.NotifyStateChange(this, false);
+      } else {
+        if (EntityState.IsDeleted()) {
+          EntityManager.LinkRelatedEntities(Entity);
+        }
+        SetUnchanged();
       }
 
-      // this.ValidationErrors.Clear();
-      
-      EntityVersion = EntityVersion.Current;
+      this.EntityGroup.OnEntityChanged(this.Entity, EntityAction.RejectChanges);
+    }
+
+    public void RejectChangesCore() {
+      var entity = this.Entity;
+      this.OriginalValuesMap.ForEach(kvp => {
+        entity.SetValue(kvp.Key, kvp.Value);
+      });
+      this.ProcessComplexProperties(co => co.ComplexAspect.RejectChangesCore());
+    }
+
+
+
+    void IChangeTracking.AcceptChanges() {
+      AcceptChanges();
     }
 
 
@@ -259,6 +286,22 @@ namespace Breeze.NetClient {
 
     #region EntityState change methods
 
+
+    // Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}
+
+    public void SetUnchanged() {
+      if (this.EntityState == EntityState.Unchanged) return;
+      ClearOriginalValues();
+      //    delete this.hasTempKey;
+      this.EntityState = EntityState.Unchanged;
+      this.EntityManager.NotifyStateChange(this, false);
+    }
+
+    private void ClearOriginalValues() {
+      OriginalValuesMap.Clear();
+      this.ProcessComplexProperties(co => co.AcceptChanges());
+    }
+
     /// <summary>
     /// Forces this entity into the <see cref="EntityState"/> of Added.
     /// </summary>
@@ -267,6 +310,7 @@ namespace Breeze.NetClient {
     /// is automatically set to Added by the framework when a new entity is added to an EntityManager.
     /// </remarks>
     public void SetAdded() {
+      if (this.EntityState == EntityState.Added) return;
       if (this.EntityState == EntityState.Detached) {
         throw new InvalidOperationException("Detached objects must be attached before calling SetAdded");
       }
@@ -287,19 +331,184 @@ namespace Breeze.NetClient {
       if (this.EntityState == EntityState.Detached) {
         throw new InvalidOperationException("Detached objects must be attached before calling SetModified");
       }
-      if (!FireEntityChanging(EntityAction.Change)) return;
+      if (!FireEntityChanging(EntityAction.EntityStateChange)) return;
       //if (this.EntityState == EntityState.Unchanged || this.EntityState == EntityState.Deleted) {
       //  CreateBackupVersion(EntityVersion.Original);
       //}
       SetEntityStateCore(EntityState.Modified);
-      EntityGroup.OnEntityChanged(new EntityChangedEventArgs(this, EntityAction.Change));
+      EntityGroup.OnEntityChanged(this.Entity, EntityAction.EntityStateChange);
     }
 
     #endregion
-    
+
+
+
     #region GetValue(s)/SetValue methods
 
-    #region Get/SetRawValue methods
+    public Object GetValue(EntityProperty property) {
+      return Entity.GetValue(property.Name);
+    }
+
+    internal void SetValue(NavigationProperty property, object newValue) {
+
+    }
+
+    internal void SetValue(DataProperty property, object newValue) {
+
+      var oldValue = Entity.GetValue(property.Name);
+      if (Object.Equals(oldValue, newValue)) return;
+
+      if (IsNullEntity) {
+        throw new Exception("Null entities cannot be modified");
+      }
+
+      // var changeNotificationEnabled = EntityState != EntityState.Detached && this.EntityGroup.ChangeNotificationEnabled;
+      var changeNotificationEnabled = this.EntityGroup.ChangeNotificationEnabled;
+
+      if (changeNotificationEnabled) {
+        if (!FireEntityChanging(EntityAction.PropertyChange)) return;
+
+        var propArgs = new EntityPropertyChangingEventArgs(this.Entity, property, newValue);
+        this.EntityGroup.OnEntityPropertyChanging(propArgs);
+        if (propArgs.Cancel) return;
+
+      }
+
+      TrackChange(property);
+
+      InitializeDefaultValues();
+      // TODO: might be a bug if we CancelEdit after a key change ( need to reverse key change as well)
+      // maybe disallow key change while in IEditableObject
+      if (property.IsPartOfKey) {
+        SetKeyValue(property, newValue);
+      } else if (property.IsComplexProperty) {
+        SetComplexValue(property, newValue);
+      } else {
+        this.Entity.SetValue(property.Name, newValue);
+      }
+
+      UpdateRelated(property, newValue, oldValue);
+
+
+      if (this.EntityState.IsUnchanged() && !InternalEntityManager.IsLoadingEntity) {
+        this.SetEntityStateCore(EntityState.Modified);
+      }
+
+      if (changeNotificationEnabled) {
+        this.EntityGroup.OnEntityPropertyChanged(new EntityPropertyChangedEventArgs(this.Entity, property, newValue));
+        this.EntityGroup.OnEntityChanged(this.Entity, EntityAction.PropertyChange);
+      }
+    }
+
+    private void UpdateRelated(DataProperty property, object newValue, object oldValue) {
+      if (EntityManager == null) return;
+      var relatedNavProp = property.RelatedNavigationProperty;
+      if (relatedNavProp != null) {
+        // Example: bidirectional fkDataProperty: 1->n: order -> orderDetails
+        // orderDetail.orderId <- newOrderId || null
+        //    ==> orderDetail.order = lookupOrder(newOrderId)
+        //    ==> (see set navProp above)
+        //       and
+        // Example: bidirectional fkDataProperty: 1->1: order -> internationalOrder
+        // internationalOrder.orderId <- newOrderId || null
+        //    ==> internationalOrder.order = lookupOrder(newOrderId)
+        //    ==> (see set navProp above)
+
+        if (newValue != null) {
+          var key = new EntityKey(relatedNavProp.EntityType, newValue);
+          var relatedEntity = EntityManager.FindEntityByKey(key);
+
+          if (relatedEntity != null) {
+            this.SetValue(relatedNavProp, relatedEntity);
+          } else {
+            // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+            EntityManager.UnattachedChildrenMap.AddChild(key, relatedNavProp, this.Entity);
+          }
+        } else {
+          this.SetValue(relatedNavProp, null);
+        }
+      } else if (property.InverseNavigationProperty != null) { //  && !EntityManager._inKeyFixup) 
+        // Example: unidirectional fkDataProperty: 1->n: region -> territories
+        // territory.regionId <- newRegionId
+        //    ==> lookupRegion(newRegionId).territories.push(territory)
+        //                and
+        // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+        // internationalOrder.orderId <- newOrderId
+        //    ==> lookupOrder(newOrderId).internationalOrder = internationalOrder
+        //                and
+        // Example: unidirectional fkDataProperty: 1->n: region -> territories
+        // territory.regionId <- null
+        //    ==> lookupRegion(territory.oldRegionId).territories.remove(oldTerritory);
+        //                and
+        // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+        // internationalOrder.orderId <- null
+        //    ==> lookupOrder(internationalOrder.oldOrderId).internationalOrder = null;
+
+        var invNavProp = property.InverseNavigationProperty;
+
+        if (oldValue != null) {
+          var key = new EntityKey((EntityType)invNavProp.ParentType, oldValue);
+          var relatedEntity = EntityManager.FindEntityByKey(key);
+          if (relatedEntity != null) {
+            if (invNavProp.IsScalar) {
+              relatedEntity.EntityAspect.SetValue(invNavProp, null);
+            } else {
+              // remove 'this' from old related nav prop
+              var relatedArray = (INavigationSet)relatedEntity.EntityAspect.GetValue(invNavProp);
+              relatedArray.Remove(this.Entity);
+            }
+          }
+        }
+
+        if (newValue != null) {
+          var key = new EntityKey((EntityType)invNavProp.ParentType, newValue);
+          var relatedEntity = EntityManager.FindEntityByKey(key);
+
+          if (relatedEntity != null) {
+            if (invNavProp.IsScalar) {
+              relatedEntity.EntityAspect.SetValue(invNavProp, this.Entity);
+            } else {
+              var relatedArray = (INavigationSet)relatedEntity.EntityAspect.GetValue(invNavProp);
+              relatedArray.Add(this.Entity);
+            }
+          } else {
+            // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+            EntityManager.UnattachedChildrenMap.AddChild(key, invNavProp, this.Entity);
+          }
+        }
+
+      }
+    }
+
+    private void SetKeyValue(DataProperty property, object newValue) {
+      // don't try to update the map deserializing or detached.
+      if (!this.EntityState.IsDetached() && this.InternalEntityManager != null) {
+        // a non detached entity that does not have an EntityManager can still occur
+        // here during a EntityCacheState transfer. The entities in an entityCacheState need to have
+        // non-detached entityStates in order to Merge correctly but they will not yet be associated
+        // with an EntityManager. Hence the EntityManager check in the line above.
+        if (!this.EntityState.IsAdded()) {
+          throw new InvalidOperationException(
+            "You cannot change the primary key of an entity that already exists in the data store. " +
+            "You can copy the original entity values to a new entity, give it the new key, add it to the EntityManager, " +
+            "delete the original entity, and then save.");
+        }
+        IfTempIdThenCleanup(property);
+        var oldKey = this.EntityKey;
+        this.Entity.SetValue(property.Name, newValue);
+        this.EntityGroup.UpdatePrimaryKey(this, oldKey);
+      } else {
+        this.Entity.SetValue(property.Name, newValue);
+      }
+    }
+
+    private void SetComplexValue(DataProperty property, object newValue) {
+      // TODO: we are assuming that a complex type cannot be part of the key - is this safe???
+      var co = (IComplexObject)this.Entity.GetValue(property.Name);
+      var newCo = (IComplexObject)newValue;
+      co.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
+    }
+
 
     /// <summary>
     /// Low-level access to get a property value without going through
@@ -311,7 +520,7 @@ namespace Breeze.NetClient {
     /// <remarks>
     /// Note that this operation bypasses all custom interception methods.
     /// </remarks>
-    public virtual Object GetValueRaw(DataProperty property, EntityVersion version) {
+    public Object GetValue(DataProperty property, EntityVersion version) {
       InitializeDefaultValues();
 
       if (version == EntityVersion.Default) {
@@ -323,12 +532,12 @@ namespace Breeze.NetClient {
         if (this.EntityVersion == EntityVersion.Proposed) {
           result = GetPreproposedValue(property);
         } else {
-          result = this.Entity.GetValueRaw(property.Name);
+          result = this.Entity.GetValue(property.Name);
         }
       } else if (version == EntityVersion.Original) {
         result = GetOriginalValue(property);
       } else if (version == EntityVersion.Proposed) {
-        result = this.Entity.GetValueRaw(property.Name);
+        result = this.Entity.GetValue(property.Name);
       } else {
         throw new ArgumentException("Invalid entity version");
       }
@@ -337,7 +546,7 @@ namespace Breeze.NetClient {
         var co = (IComplexObject)result;
         if (co == null) {
           co = ComplexAspect.Create(this.Entity, property, true);
-          this.Entity.SetValueRaw(property.Name, co);
+          this.Entity.SetValue(property.Name, co);
           return co;
         } else if (co.ComplexAspect.Parent == null || co.ComplexAspect.Parent != this.Entity) {
           co.ComplexAspect.Parent = this.Entity;
@@ -349,23 +558,41 @@ namespace Breeze.NetClient {
       }
     }
 
-    [DebuggerNonUserCode]
+
+    private Object GetOriginalValue(DataProperty property) {
+      object result;
+      if (property.IsComplexProperty) {
+        var co = (IComplexObject)GetValue(property, EntityVersion.Current);
+        return co.ComplexAspect.GetOriginalVersion();
+      } else {
+        if (OriginalValuesMap != null && OriginalValuesMap.TryGetValue(property.Name, out result)) {
+          return result;
+        } else {
+          return this.Entity.GetValue(property.Name);
+        }
+      }
+    }
+
+    private Object GetPreproposedValue(DataProperty property) {
+      object result;
+      if (PreproposedValuesMap != null && PreproposedValuesMap.TryGetValue(property.Name, out result)) {
+        return result;
+      } else {
+        return this.Entity.GetValue(property.Name);
+      }
+    }
+
     internal void InitializeDefaultValues() {
 
       if (_defaultValuesInitialized) return;
-
-      IEnumerable<DataProperty> properties = this.EntityType.DataProperties;
-      
-
       _defaultValuesInitialized = true;
 
-      properties.ForEach(dp => {
+      this.EntityType.DataProperties.ForEach(dp => {
         try {
-      
           if (dp.IsComplexProperty) {
-            this.Entity.SetValueRaw(dp.Name, ComplexAspect.Create(this.Entity, dp, true));
+            this.Entity.SetValue(dp.Name, ComplexAspect.Create(this.Entity, dp, true));
           } else if (dp.DefaultValue != null) {
-            this.Entity.SetValueRaw(dp.Name, dp.DefaultValue);
+            this.Entity.SetValue(dp.Name, dp.DefaultValue);
           }
         } catch (Exception e) {
           Debug.WriteLine("Exception caught during initialization of {0}.{1}: {2}", this.EntityType.Name, dp.Name, e.Message);
@@ -374,112 +601,17 @@ namespace Breeze.NetClient {
     }
 
 
-    private Object GetOriginalValue(DataProperty property) {
-      object result;
-      if (property.IsComplexProperty) {
-        var co = (IComplexObject)GetValueRaw(property, EntityVersion.Current);
-        return co.ComplexAspect.GetOriginalVersion();
-      } else {
-        if (_originalValuesMap != null && _originalValuesMap.TryGetValue(property.Name, out result)) {
-          return result;
-        } else {
-          return this.Entity.GetValueRaw(property.Name);
-        }
-      }
-    }
 
-    private Object GetPreproposedValue(DataProperty property) {
-      object result;
-      if (_preproposedValuesMap != null && _preproposedValuesMap.TryGetValue(property.Name, out result)) {
-        return result;
-      } else {
-        return this.Entity.GetValueRaw(property.Name);
-      }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="property"></param>
-    /// <param name="newValue"></param>
-    protected internal virtual void SetValueWithChangeTracking(DataProperty property, Object newValue) {
-      if (EntityGroup.ChangeTrackingEnabled | EntityState.IsDetached()) {
-        TrackChange(property);
-      }
-      SetValueRaw(property, newValue);
-      if (property.IsPartOfKey) {
-        UpdateRelatedFks(property, newValue);
-      }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="property"></param>
-    /// <param name="newValue"></param>
-    public virtual void SetValueRaw(DataProperty property, object newValue) {
-      InitializeDefaultValues();
-      // TODO: might be a bug if we CancelEdit after a key change ( need to reverse key change as well)
-      // maybe disallow key change while in IEditableObject
-      if (property.IsPartOfKey) {
-        // don't try to update the map if deserializing or detached.
-        if (!this.EntityState.IsDetached() && this.InternalEntityManager != null) {
-          // a non detached entity that does not have an EntityManager can still occur
-          // here during a EntityCacheState transfer. The entities in an entityCacheState need to have
-          // non-detached entityStates in order to Merge correctly but they will not yet be associated
-          // with an EntityManager. Hence the EntityManager check in the line above.
-          if (!this.EntityState.IsAdded()) {
-            throw new InvalidOperationException(
-              "You cannot change the primary key of an entity that already exists in the data store. " +
-              "You can copy the original entity values to a new entity, give it the new key, add it to the EntityManager, " +
-              "delete the original entity, and then save.");
-          }
-          IfTempIdThenCleanup(property);
-          var oldKey = this.EntityKey;
-          this.Entity.SetValueRaw(property.Name, newValue);
-          this.EntityGroup.UpdatePrimaryKey(this, oldKey);
-        } else {
-          this.Entity.SetValueRaw(property.Name, newValue);
-        }
-      } else {
-        // TODO: we are assuming that a complex type cannot be part of the key - is this safe???
-
-        // SerializationContext check is so that we don't try to clone during a materialization operation.
-        // The EF materializer expects to get back the values it assigns.
-        if (property.IsComplexProperty) {
-          var co = (IComplexObject)this.Entity.GetValueRaw(property.Name);
-          var newCo = (IComplexObject)newValue;
-          co.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
-        } else {
-          this.Entity.SetValueRaw(property.Name, newValue);
-        }
-      }
-    }
-
-    private void UpdateRelatedFks(DataProperty property, Object newValue) {
-      var refs = this.ReferenceManager.InternalReferences
-        .Where(r => (!r.IsEmpty)
-          && (!r.Link.EntityRelation.IsManyToMany)
-          && r.Link.FromRole.EntityRelationRefConstraint == EntityRelationRefConstraint.Principal);
-
-      refs.ForEach(r => {
-        var ix = r.Link.FromRole.Properties.IndexOf(p => p == property);
-        var prop = r.Link.ToRole.Properties.ElementAt(ix);
-        foreach (IEntity entity in r.Values) {
-          entity.EntityAspect.SetValueWithChangeTracking(prop, newValue);
-        }
-      });
-    }
 
     private void IfTempIdThenCleanup(DataProperty property) {
-      var oldValue = this.Entity.GetValueRaw(property.Name);
+      var oldValue = this.Entity.GetValue(property.Name);
       var oldUniqueId = new UniqueId(property, oldValue);
       if (this.InternalEntityManager.TempIds.Contains(oldUniqueId)) {
         this.InternalEntityManager.TempIds.Remove(oldUniqueId);
       }
     }
 
-    #endregion
+
 
     /// <summary>
     /// Retrieve the values of specified properties within this Entity.
@@ -487,65 +619,10 @@ namespace Breeze.NetClient {
     /// <param name="properties">An array of <see cref="EntityProperty"/>s for which values
     /// are desired</param>
     /// <returns>An array of data values corresponding to the specified properties</returns>
-    protected internal Object[] GetValuesRaw(IEnumerable<DataProperty> properties) {
-      var result = properties.Select(p => this.Entity.GetValueRaw(p.Name)).ToArray();
+    protected internal Object[] GetValues(IEnumerable<DataProperty> properties) {
+      var result = properties.Select(p => this.GetValue(p)).ToArray();
       return result;
     }
-
-    
-
-    internal void SetValueWithChangeNotification(DataProperty property, object newValue) {
-
-      var oldValue = this.Entity.GetValueRaw(property.Name);
-      if (Object.Equals(oldValue, newValue)) return;
-
-      if (IsNullEntity) {
-        throw new Exception("Null entities cannot be modified");
-      }
-
-      // var changeNotificationEnabled = EntityState != EntityState.Detached && this.EntityGroup.ChangeNotificationEnabled;
-      var changeNotificationEnabled = this.EntityGroup.ChangeNotificationEnabled;
-
-      if (changeNotificationEnabled) {
-        if (!FireEntityChanging(EntityAction.Change)) return;
-
-        var propArgs = new EntityPropertyChangingEventArgs(this, property, newValue);
-        this.EntityGroup.OnEntityPropertyChanging(propArgs);
-        if (propArgs.Cancel) return;
-
-        // For now no changing event on the related nav property.
-        //if (property.IsForeignKeyProperty) {
-        //  propArgs = new EntityPropertyChangingEventArgs(this, property.RelatedNavigationProperty, newFkPropValue);
-        //  this.EntityGroup.OnEntityPropertyChanging(propArgs);
-        //}
-        //if (propArgs.Cancel) return;
-      }
-
-      SetValueWithChangeTracking(property, newValue);
-      // EntityGroup is null if setting value on an entity in the process of but before being merged into an entity manager. 
-      if (property.IsForeignKey && !this.EntityGroup.IsNullGroup && !this.EntityState.IsDeletedOrDetached()) {
-        var eref = property.RelatedNavigationProperty.GetEntityReference(this);
-        ((IScalarEntityReference)eref).RefreshForFkChange();
-      }
-
-      if (this.EntityState.IsUnchanged() && !InternalEntityManager.IsLoadingEntity  ) {
-        this.SetEntityStateCore(EntityState.Modified);
-      }
-
-      if (changeNotificationEnabled) {
-        this.EntityGroup.OnEntityPropertyChanged(new EntityPropertyChangedEventArgs(this, property, newValue));
-        if (property.IsForeignKey) {
-          var sref = property.RelatedNavigationProperty.GetEntityReference(this);
-          var newNavValue = sref.Value;
-          this.EntityGroup.OnEntityPropertyChanged(new EntityPropertyChangedEventArgs(this, property.RelatedNavigationProperty, newNavValue));
-        }
-        this.EntityGroup.OnEntityChanged(new EntityChangedEventArgs(this, EntityAction.Change));
-      }
-    }
-
-
-
-  
 
     #endregion
 
@@ -557,7 +634,7 @@ namespace Breeze.NetClient {
     /// </summary>
     void IEditableObject.BeginEdit() {
       if (EntityVersion == EntityVersion.Proposed) return;
-      if (IsNullOrPendingEntity) return;
+      if (this.IsNullEntity) return;
       _altEntityState = this.EntityState;
       //ValidationErrors.Backup();
       ClearBackupVersion(EntityVersion.Proposed);
@@ -598,7 +675,7 @@ namespace Breeze.NetClient {
       get {
         // need to insure 
         if (_entityKey == null) {
-          Object[] values = GetValuesRaw(this.EntityType.KeyProperties);
+          Object[] values = GetValues(this.EntityType.KeyProperties);
           var key = new EntityKey(this.EntityType, values, false);
           // do not cache _entityKey values that have not yet
           // gone thru a save
@@ -623,408 +700,33 @@ namespace Breeze.NetClient {
       }
     }
 
-    /// <summary>
-    /// Returns whether the primary key for this Entity has changed.
-    /// </summary>
-    /// <remarks>
-    /// Returns <c>false</c> for Detached, Added and Deleted objects because the change 
-    /// state is either meaningless or cannot be determined.
-    /// </remarks>
-    internal bool EntityKeyHasChanged {
-      get {
-        if (this.EntityState != EntityState.Modified) {
-          return false;
-        }
-        var keyProperties = this.EntityType.KeyProperties;
+    ///// <summary>
+    ///// Returns whether the primary key for this Entity has changed.
+    ///// </summary>
+    ///// <remarks>
+    ///// Returns <c>false</c> for Detached, Added and Deleted objects because the change 
+    ///// state is either meaningless or cannot be determined.
+    ///// </remarks>
+    //internal bool EntityKeyHasChanged {
+    //  get {
+    //    if (this.EntityState != EntityState.Modified) {
+    //      return false;
+    //    }
+    //    var keyProperties = this.EntityType.KeyProperties;
 
-        for (int i = 0; i < keyProperties.Count; i++) {
-          object original = this.GetValueRaw(keyProperties[i], EntityVersion.Original);
-          object current = this.Entity.GetValueRaw(keyProperties[i].Name);
-          if (original == null) return false; // should not happen
-          // need ! Equals here - do not use ==; it will give wrong results
-          if (!original.Equals(current)) return true;
-        }
-        return false;
-      }
-    }
-
-    #endregion
-
-    ////#region EntityRelation methods
-
-
-    /////// <summary>
-    /////// Finds any cached entities related to this entity by the specified link.
-    /////// </summary>
-    /////// <param name="relationLink"></param>
-    /////// <returns></returns>
-    /////// <remarks>
-    /////// Entities will not be retrieved from a backend data source if not found in cache.
-    /////// </remarks>
-    ////internal IEnumerable<EntityAspect> FindRelatedAspects(EntityRelationLink relationLink) {
-    ////  var aRef = ReferenceManager.Get(relationLink);
-    ////  return EntityAspect.WrapAll(aRef.Values);
-    ////}
-
-    ////internal IEnumerable<EntityAspect> FindRelatedAspects(EntityRelationLink relationLink, bool includeDeleted) {
-    ////  if (!relationLink.FromRole.EntityType.IsAssignableFrom(this.EntityType)) {
-    ////    String msg = String.Format("EntityRelationLink: '{0}' with a 'FromType' of '{1}' is not" +
-    ////      " a valid relationlink for an entity of type '{1}'",
-    ////      relationLink.ToString(), relationLink.FromRole.EntityType.ToString(), this.EntityType.ToString());
-    ////    throw new ArgumentException(msg);
-    ////  }
-
-    ////  IEnumerable<EntityAspect> results;
-    ////  if (!includeDeleted) {
-    ////    var entities = relationLink.ToNavigationEntityProperty.GetEntityReference(this).Values;
-    ////    results = EntityAspect.WrapAll(entities);
-    ////  } else if (relationLink.EntityRelation.IsManyToMany) {
-    ////    var entities = relationLink.ToNavigationEntityProperty.GetEntityReference(this).Values;
-    ////    results = EntityAspect.WrapAll(entities);
-    ////    List<ManyToManyChangeMemo> memos; ;
-    ////    if (this.ManyToManyChangeMap != null && this.ManyToManyChangeMap.TryGetValue(relationLink.ToNavigationEntityProperty.Name, out memos)) {
-    ////      // IsDeleted test is needed to distinguish between entities removed from a relationship because of deletion vs removal just to delink entities.
-    ////      var deletedEntities = memos.Where(memo => !memo.WasAdded && EntityAspect.Wrap(memo.Entity).EntityState.IsDeleted()).Select(memo => memo.Entity);
-    ////      results = results.Concat(EntityAspect.WrapAll(deletedEntities));
-    ////    }
-    ////  } else {
-    ////    results = Enumerable.Empty<EntityAspect>();
-    ////    var fromProperties = relationLink.FromRole.Properties;
-    ////    Object[] values = this.GetValuesRaw(fromProperties);
-    ////    var entityCache = this.EntityGroup.EntityCache;
-    ////    foreach (Type entityType in relationLink.ToRole.EntitySubtypes) {
-    ////      var group = entityCache.EntityGroups[entityType];
-    ////      if (group == null) continue;
-    ////      var toProperties = relationLink.ToRole.Properties;
-    ////      results = results.Concat(group.FindEntityAspects(toProperties, values, includeDeleted));
-    ////    }
-    ////  }
-    ////  return results;
-
-
-    ////  // OLD CODE - works but slower when includeDeleted is false.
-    ////  // var results = Enumerable.Empty<EntityAspect>();
-    ////  //if (!relationLink.EntityRelation.IsManyToMany) {
-    ////  //  var fromProperties = relationLink.FromRole.Properties;
-    ////  //  Object[] values = this.GetValuesRaw(fromProperties);
-    ////  //  var entityCache = this.EntityGroup.EntityCache;
-    ////  //  foreach (Type entityType in relationLink.ToRole.EntitySubtypes) {
-    ////  //    var group = entityCache.EntityGroups[entityType];
-    ////  //    if (group == null) continue;
-    ////  //    var toProperties = relationLink.ToRole.Properties;
-    ////  //    results = results.Concat(group.FindEntityAspects(toProperties, values, includeDeleted));
-    ////  //  }
-    ////  //} else {
-    ////  //  var entities = relationLink.ToNavigationEntityProperty.GetEntityReference(this).Values;
-    ////  //  results = EntityAspect.WrapAll(entities);
-    ////  //}
-    ////  //return results;
-    ////}
-
-    ////internal EntityAspect FindRelatedAspect(EntityRelationLink relationLink, bool includeDeleted) {
-    ////  var aspects = FindRelatedAspects(relationLink, true);
-    ////  var aspect = aspects.FirstOrDefault();
-    ////  if (aspect == null) {
-    ////    return null;
-    ////  } else if (aspect.EntityState.IsDeleted()) {
-    ////    return includeDeleted ? aspect : null;
-    ////  } else {
-    ////    return aspect;
-    ////  }
-    ////}
-
-    ////#region EntityReference methods
-
-    /////// <summary>
-    /////// For internal use only.
-    /////// </summary>
-    ////protected internal EntityReferenceManager ReferenceManager {
-    ////  get {
-    ////    if (_referenceManager == null) {
-    ////      _referenceManager = new EntityReferenceManager(this);
-    ////    }
-    ////    return _referenceManager;
-    ////  }
-    ////}
-
-    ////internal void ClearReferenceManager() {
-    ////  _referenceManager = null;
-    ////}
-
-    /////// <summary>
-    /////// 
-    /////// </summary>
-    /////// <param name="link"></param>
-    /////// <returns></returns>
-    ////internal EntityReferenceBase GetEntityReference(EntityRelationLink link) {
-    ////  //var eref = this.ReferenceManager.AllReferences.Where(r => r.Link == link).FirstOrDefault();
-    ////  //return (EntityReferenceBase)eref;
-    ////  return this.ReferenceManager.Get(link);
-    ////}
-
-    ////internal void FixupReferences() {
-    ////  if (this.EntityState.IsDeletedOrDetached()) {
-    ////    this.ReferenceManager.InternalReferences
-    ////     .Where(eref => eref.IsLoaded || !eref.IsEmpty)
-    ////     .ForEach(eref => eref.FixupReferences());
-    ////  } else if (this.EntityState.IsAdded()) {
-    ////    // this is needed because of our rule that added parent records
-    ////    // have all dependents marked as loaded. So we want to make sure that
-    ////    // we still fixup the local cache even if they are marked as loaded.
-    ////    this.ReferenceManager.InternalReferences
-    ////      .ForEach(eref => eref.FixupReferences());
-    ////  } else {
-    ////    this.ReferenceManager.InternalReferences
-    ////      .Where(eref => !eref.IsLoaded)
-    ////      .ForEach(eref => eref.FixupReferences());
-    ////  }
-    ////}
-
-    ////internal void UndeleteReferences() {
-    ////  this.ReferenceManager.InternalReferences
-    ////    .Where(eref => eref.IsLoaded)
-    ////    .ForEach(eref => eref.UndeleteReferences());
-    ////}
-
-    ////internal void DetachRelatedEntities() {
-    ////  var erefs = this.ReferenceManager.InternalReferences
-    ////    .Where(r => !r.IsEmpty);
-    ////  erefs.ForEach(r => {
-    ////    var inverseLink = r.Link.GetInverse();
-    ////    var relatedAspects = EntityAspect.WrapAll(r.Values).ToList(); // ToList is important here to avoid collection modified issue.
-    ////    relatedAspects.ForEach(w => {
-    ////      var invRef = w.GetEntityReference(inverseLink);
-    ////      invRef.RemoveEntity(this.Entity, false);
-    ////    });
-    ////  });
-    ////}
-
-    ////#endregion
-
-    ////#endregion
-
-    #region Entity Load/Import and Replace methods
-
-    internal bool LoadEntity(EntityAspect sourceAspect, MergeStrategy mergeStrategy) {
-      var rowUpdated = true;
-
-      if (this.EntityState.IsUnchanged()) {
-        if (IsCurrent(sourceAspect, false)) {
-          rowUpdated = false;
-          // unchanged but not current
-        } else {
-          ReplaceCurrentOnLoad(sourceAspect);
-          // (not current) and modified
-        }
-      } else {
-        // modified 
-        if (mergeStrategy == MergeStrategy.OverwriteChanges) {
-          ReplaceCurrentOnLoad(sourceAspect);
-          // (not current) and modified
-        } else if (mergeStrategy == MergeStrategy.PreserveChanges) {
-          // one of the preserveChanges mergeStrategies and entity has changed 
-          // do nothing - do not copy source to target
-          rowUpdated = false;
-        } else if (IsCurrent(sourceAspect, false)) {
-          rowUpdated = false;
-          // modified and not current
-        } else if (mergeStrategy == MergeStrategy.PreserveChangesUnlessOriginalObsolete) {
-          // matched and not current - assume source is current
-          // update the target because it is out of date
-          // we want the target to be marked Unchanged ( unless targetEntity was deleted)
-          // targetEntity.ReplaceCurrent(newEntity);
-          sourceAspect.SetEntityStateCore(EntityState.Unchanged);
-          ReplaceAll(sourceAspect, false);
-        } else if (mergeStrategy == MergeStrategy.PreserveChangesUpdateOriginal) {
-          // do not update target's current values - but do update the target's before image
-          ReplaceOriginal(sourceAspect, false);
-        }
-      }
-
-      return rowUpdated;
-    }
-
-    internal bool ImportEntity(EntityAspect sourceAspect, MergeStrategy mergeStrategy) {
-
-      var rowUpdated = true;
-
-
-      if (this.EntityState.IsUnchanged()) {
-        if (IsCurrent(sourceAspect, false) && this.EntityState == sourceAspect.EntityState) {
-          rowUpdated = false;
-          // unchanged but not current
-        } else {
-          ReplaceAll(sourceAspect, true);
-          // (not current) and modified
-        }
-      } else {
-        // modified 
-        if (mergeStrategy == MergeStrategy.OverwriteChanges) {
-          ReplaceAll(sourceAspect, true);
-          // (not current) and modified
-        } else if (mergeStrategy == MergeStrategy.PreserveChanges) {
-          // one of the preserveChanges mergeStrategies and entity has changed 
-          // do nothing - do not copy source to target
-          rowUpdated = false;
-        } else if (IsCurrent(sourceAspect, false)) {
-          rowUpdated = false;
-          // modified and not current
-        } else if (mergeStrategy == MergeStrategy.PreserveChangesUnlessOriginalObsolete) {
-          // matched and not current - assume source is current
-          // update the target because it is out of date
-          ReplaceAll(sourceAspect, true);
-        } else if (mergeStrategy == MergeStrategy.PreserveChangesUpdateOriginal) {
-          // do not update target's current values - but do update the target's before image
-          ReplaceOriginal(sourceAspect, true);
-        }
-      }
-
-      return rowUpdated;
-
-    }
-
-
-
-    internal void AbsorbCurrentValues(EntityAspect sourceAspect, bool isCloning = false) {
-      this.EntityType.DataProperties.ForEach(p => {
-        var sourceValue = sourceAspect.Entity.GetValueRaw(p.Name);
-        if (p.IsComplexProperty) {
-          var thisChildCo = (IComplexObject) this.Entity.GetValueRaw(p.Name);
-          if (thisChildCo == null) {
-            // this should only occur during a cloning operation i.e. a call from CloneCore
-            // where the 'dest' is empty because we are creating a 'new' copy.
-            thisChildCo = ComplexAspect.Create(this.Entity, p, true);
-            this.Entity.SetValueRaw(p.Name, thisChildCo);
-
-          }
-          var thisChildAspect = thisChildCo.ComplexAspect;
-          var sourceCo = (IComplexObject)sourceValue;
-          if (sourceCo == null) {
-            // this should only occur during a cloning operation i.e. a call from CloneCore
-            // where the 'source' is empty because the clone was called before the source was initialized.
-            sourceCo = ComplexAspect.Create(sourceAspect.Entity, p, true);
-            sourceAspect.Entity.SetValueRaw(p.Name, sourceCo);
-          }
-          var sourceChildAspect = sourceCo.ComplexAspect;
-          thisChildAspect.AbsorbCurrentValues(sourceChildAspect, isCloning);
-        } else {
-          this.Entity.SetValueRaw(p.Name, sourceValue);
-        }
-      });
-    }
-
-    internal void ReplaceAll(EntityAspect sourceAspect, bool copy) {
-      if (!FireEntityChanging(EntityAction.ChangeCurrentAndOriginal)) return;
-
-      ReplaceAllCore(sourceAspect, copy);
-      _altEntityState = sourceAspect._altEntityState;
-      EntityVersion = sourceAspect.EntityVersion;
-      SetEntityStateCore(sourceAspect.EntityState);
-      this.EntityGroup.OnEntityChanged(new EntityChangedEventArgs(this, EntityAction.ChangeCurrentAndOriginal));
-    }
-
-    /// <summary>
-    /// Assumes sourceEntity is not around after this operation. i.e. is a transient object
-    /// If not sourceEntity.DataValues must be copied instead of ref'd.
-    /// </summary>
-    /// <param name="sourceAspect"></param>
-    internal void ReplaceCurrentOnLoad(EntityAspect sourceAspect) {
-      if (this.EntityState.IsDetached()) {
-        ReplaceCurrentOnLoadCore(sourceAspect);
-      } else {
-        if (!FireEntityChanging(EntityAction.ChangeCurrentAndOriginal)) return;
-        ReplaceCurrentOnLoadCore(sourceAspect);
-        SetEntityStateCore(EntityState.Unchanged);
-        this.EntityGroup.OnEntityChanged(new EntityChangedEventArgs(this, EntityAction.ChangeCurrentAndOriginal));
-      }
-    }
-
-    /// <summary>
-    /// Assumes sourceEntity is not around after this operation. i.e. is a transient object
-    /// If not sourceEntity.DataValues must be copied instead of ref'd.
-    /// </summary>  
-    internal void ReplaceOriginal(EntityAspect sourceAspect, bool copy) {
-      if (!FireEntityChanging(EntityAction.ChangeOriginal)) return;
-      ReplaceOriginalCore(sourceAspect, copy);
-      if (!this.EntityState.IsDeletedOrDetached()) {
-        SetEntityStateCore(EntityState.Modified);
-      }
-      this.EntityGroup.OnEntityChanged(new EntityChangedEventArgs(this, EntityAction.ChangeOriginal));
-    }
-
-    /// <summary>
-    /// For internal use only.
-    /// </summary>
-    /// <param name="sourceAspect"></param>
-    /// <param name="copy"></param>
-    protected virtual void ReplaceAllCore(EntityAspect sourceAspect, bool copy) {
-      if (sourceAspect._originalValuesMap != null) {
-        _originalValuesMap = new OriginalValuesMap(sourceAspect._originalValuesMap);
-      } else {
-        _originalValuesMap = null;
-      }
-      if (sourceAspect._preproposedValuesMap != null) {
-        _preproposedValuesMap = new BackupValuesMap(sourceAspect._preproposedValuesMap);
-      } else {
-        _preproposedValuesMap = null;
-      }
-
-      // ToList is necessary on the next statement.
-      var fkPropsChanged = sourceAspect.EntityType.ForeignKeyProperties
-        .Where(p => !Object.Equals(sourceAspect.Entity.GetValueRaw(p.Name), this.Entity.GetValueRaw(p.Name)))
-        .ToList();
-      AbsorbCurrentValues(sourceAspect);
-      fkPropsChanged.ForEach(p => {
-        var eref = p.RelatedNavigationProperty.GetEntityReference(this);
-        ((IScalarEntityReference)eref).RefreshForFkChange();
-      });
-    }
-
-    /// <summary>
-    /// For internal use only.
-    /// </summary>
-    /// <param name="sourceAspect"></param>
-    protected virtual void ReplaceCurrentOnLoadCore(EntityAspect sourceAspect) {
-
-      // ToList is necessary on the next statement.
-      var fkPropsChanged = sourceAspect.EntityType.ForeignKeyProperties
-        .Where(p => !Object.Equals(p.GetValueRaw(sourceAspect), p.GetValueRaw(this)))
-        .ToList();
-      AbsorbCurrentValues(sourceAspect);
-
-      ClearBackupVersion(EntityVersion.Original);
-      fkPropsChanged.ForEach(p => {
-        var eref = p.RelatedNavigationProperty.GetEntityReference(this);
-        ((IScalarEntityReference)eref).RefreshForFkChange();
-      });
-    }
-
-    /// <summary>
-    /// For internal use only.
-    /// </summary>
-    /// <param name="sourceAspect"></param>
-    /// <param name="copy"></param>
-    protected virtual void ReplaceOriginalCore(EntityAspect sourceAspect, bool copy) {
-      _originalValuesMap = new OriginalValuesMap();
-      sourceAspect.EntityType.DataProperties
-        .Where(dp => sourceAspect.Entity.GetValueRaw(dp.Name) != this.Entity.GetValueRaw(dp.Name))
-        .ForEach(dp => _originalValuesMap.Add(dp.Name, sourceAspect.Entity.GetValueRaw(dp.Name)));
-    }
-
-
-
-
-    private bool IsCurrent(EntityAspect sourceAspect, bool noConcurrencyPropertyMeansCurrent) {
-      if (this.EntityType.ConcurrencyProperties.Count() == 0) {
-        return noConcurrencyPropertyMeansCurrent;
-      } else if (sourceAspect.EntityState.IsDeleted()) {
-        return false;
-      } else {
-        return AreEqual(sourceAspect, this.EntityType.ConcurrencyProperties);
-      }
-    }
+    //    for (int i = 0; i < keyProperties.Count; i++) {
+    //      object original = this.GetValue(keyProperties[i], EntityVersion.Original);
+    //      object current = this.Entity.GetValue(keyProperties[i].Name);
+    //      if (original == null) return false; // should not happen
+    //      // need ! Equals here - do not use ==; it will give wrong results
+    //      if (!original.Equals(current)) return true;
+    //    }
+    //    return false;
+    //  }
+    //}
 
     #endregion
+
 
     #region INotifyPropertyChanged Members
 
@@ -1159,9 +861,9 @@ namespace Breeze.NetClient {
     internal bool HasTemporaryEntityKey {
       get {
         var prop = this.EntityType.KeyProperties.First();
-        var uid = new UniqueId(prop, this.Entity.GetValueRaw(prop.Name));
+        var uid = new UniqueId(prop, this.Entity.GetValue(prop.Name));
         if (EntityState == EntityState.Detached) {
-          return InternalEntityManager.DataSourceResolver.GetIdGenerator(this.EntityType).IsTempId(uid);
+          return InternalEntityManager.GetKeyGenerator(this.EntityType.ClrType).IsTempId(uid);
         } else {
           return InternalEntityManager.TempIds.Contains(uid);
         }
@@ -1206,7 +908,7 @@ namespace Breeze.NetClient {
         _entityState = value;
       } else {
         if (value.IsAdded()) {
-          _originalValuesMap = null;
+          OriginalValuesMap = null;
         }
         var hadChanges = _entityState != EntityState.Unchanged;
         _entityState = value;
@@ -1242,15 +944,8 @@ namespace Breeze.NetClient {
     /// in the event that this entity is not yet attached to a specific entity manager. 
     /// </remarks>
     public EntityGroup EntityGroup {
-      get {
-        if (_entityGroup == null) {
-          _entityGroup = EntityGroup.GetNull(this.EntityType);
-        }
-        return _entityGroup;
-      }
-      set {
-        _entityGroup = value;
-      }
+      get;
+      internal set;
     }
 
 
@@ -1263,115 +958,11 @@ namespace Breeze.NetClient {
     }
 
     internal bool FireEntityChanging(EntityAction action) {
-      var entityArgs = new EntityChangingEventArgs(this, action);
+      var entityArgs = new EntityChangingEventArgs(this.Entity, action);
       this.EntityGroup.OnEntityChanging(entityArgs);
       return !entityArgs.Cancel;
     }
 
-
-    /// <summary>
-    /// For internal use only.  
-    /// Makes a copy of the entity including its EntityState; it does not copy related entities.
-    /// </summary>
-    /// <returns></returns>
-    /// <remarks>
-    /// <b>CloneCore</b> copies the Entity "in depth" including the entity’s <see cref="EntityState"/>.
-    /// Related entities are not copied.
-    /// Derived classes that override <b>CloneCore</b> typically call base.CloneCore first to let 
-    /// DevForce do the initial cloning before proceeding to their custom functionality.
-    ///<para>
-    /// <b>Beware:</b> the result of <b>CloneCore</b> is not attached to any EntityManager even though the value of its 
-    /// EntityState indicates that it is! CloneCore should be called only within a Clone() method 
-    /// that understands this and that will ultimately expose the cloned entity as a properly 
-    /// formed entity with a correct EntityState.
-    /// </para><para>
-    /// The source EntityState is preserved so that the calling Clone() method can know and make use of the source 
-    /// entity’s EntityState. It is critical that the calling Clone() method return a properly formed Entity 
-    /// which means that, unless the method attaches the clone to a different EntityManager, the returned clone’s 
-    /// EntityState should be reset to "Detached".
-    /// </para><para>
-    /// <b>CloneCore</b> is called within other DevForce Clone() methods (<see cref="IdeaBlade.EntityModel.EntityGroup.Clone()">EntityGroup.Clone</see> for example).
-    /// You can invoke it yourself by casting the entity as <see cref="ICloneable"/> and calling Clone() as in 
-    /// <code>(Foo) ((ICloneable) foo).Clone())</code>.
-    /// The resulting clone does not belong to an EntityManager and its EntityState is "Detached".
-    /// </para>
-    /// </remarks>
-    /// <summary>
-    /// For internal use only.  
-    /// Makes a copy of the entity including its EntityState; it does not copy related entities.
-    /// </summary>
-    /// <returns></returns>
-    /// <remarks>
-    /// <b>CloneCore</b> copies the Entity "in depth" including the entity’s <see cref="EntityState"/>.
-    /// Related entities are not copied.
-    /// Derived classes that override <b>CloneCore</b> typically call base.CloneCore first to let 
-    /// DevForce do the initial cloning before proceeding to their custom functionality.
-    ///<para>
-    /// <b>Beware:</b> the result of <b>CloneCore</b> is not attached to any EntityManager even though the value of its 
-    /// EntityState indicates that it is! CloneCore should be called only within a Clone() method 
-    /// that understands this and that will ultimately expose the cloned entity as a properly 
-    /// formed entity with a correct EntityState.
-    /// </para><para>
-    /// The source EntityState is preserved so that the calling Clone() method can know and make use of the source 
-    /// entity’s EntityState. It is critical that the calling Clone() method return a properly formed Entity 
-    /// which means that, unless the method attaches the clone to a different EntityManager, the returned clone’s 
-    /// EntityState should be reset to "Detached".
-    /// </para><para>
-    /// <b>CloneCore</b> is called within other DevForce Clone() methods (<see cref="IdeaBlade.EntityModel.EntityGroup.Clone()">EntityGroup.Clone</see> for example).
-    /// You can invoke it yourself by casting the entity as <see cref="ICloneable"/> and calling Clone() as in 
-    /// <code>(Foo) ((ICloneable) foo).Clone())</code>.
-    /// The resulting clone does not belong to an EntityManager and its EntityState is "Detached".
-    /// </para>
-    /// </remarks>
-    public virtual EntityAspect CloneCore() {
-      // NOTE: this method is dangerous in that it copies all fields from
-      // source into clone.  This is fine for DF managed fields but 
-      // any custom data will get copied 'by ref' to the clone.
-      // This may not be expected.  So this method should only get called 
-      // internally. 
-
-      var nonCFEntity = this.Entity as IEntity;
-      IEntity cloneEntity;
-      // an Entities 'state' is primarily contained by the EntityAspect
-      // for non CF Entities CloneCore will also clone non ORM persistable fields
-      // for CF Entites CloneCore will only handle ORM persistable fields - any
-      // other fields will need to be cloned after calling cloneCore.
-      if (nonCFEntity != null) {
-        cloneEntity = (IEntity)nonCFEntity.ShallowClone();
-      } else {
-        cloneEntity = (IEntity) EntityType.CreateEntity();
-      }
-
-      var cloneAspect = (EntityAspect)MemberwiseClone();
-      ((IEntitySvcs)cloneEntity).SetEntityAspect(cloneAspect);
-      cloneAspect._entityState = this._entityState;
-      cloneAspect._entityVersion = this._entityVersion;
-      cloneAspect._isNullEntity = this._isNullEntity;
-
-
-      cloneAspect._indexInEntityGroup = -1;
-      cloneAspect._entityGroup = null;
-      cloneAspect._referenceManager = null;
-      cloneAspect.EntityKey = null;
-
-      cloneAspect.LoadedNavigationPropertyNames = null;
-
-      // clear event handlers
-      cloneAspect._errorsChangedHandler -= this._errorsChangedHandler;
-      cloneAspect.EntityPropertyChanged -= this.EntityPropertyChanged;
-
-      // backups are immutable after construction
-      if (_originalValuesMap != null) {
-        cloneAspect._originalValuesMap = new OriginalValuesMap(_originalValuesMap);
-      }
-      if (_preproposedValuesMap != null) {
-        cloneAspect._preproposedValuesMap = new BackupValuesMap(_preproposedValuesMap);
-      }
-
-      cloneAspect.AbsorbCurrentValues(this, true);
-      return cloneAspect;
-    }/// 
-  
     /// <summary>
     /// Marks this Entity for deletion; the <see cref="EntityState"/> becomes "Deleted".
     /// </summary>
@@ -1383,88 +974,99 @@ namespace Breeze.NetClient {
     /// will fire during a <b>Delete</b> call with an EntityAction of <see cref="EntityAction.Delete"/>.
     /// </para>  
     /// </remarks>
-    public virtual void Delete() {
+    public void Delete() {
       if (this.EntityState.IsDeletedOrDetached()) return;
-
       if (!FireEntityChanging(EntityAction.Delete)) return;
+      var entity = this.Entity;
+      if (this.EntityState.IsAdded()) {
+        this.EntityManager.DetachEntity(entity);
+        this.EntityManager.NotifyStateChange(this, false);
+      } else {
+        this.EntityState = EntityState.Deleted;
+        RemoveFromRelations(EntityState.Deleted);
+        this.EntityManager.NotifyStateChange(this, true);
+      }
+      this.EntityGroup.OnEntityChanged(entity, EntityAction.Delete);
+    }
 
-      // Cascade delete 
-      // remove all dependent entities.
-      var refs = this.ReferenceManager.InternalReferences
-        .Where(er => er.Link.ShouldCascadeDeletes
-          && !er.Link.EntityRelation.IsManyToMany
-          && !er.IsEmpty);
-      var relatedEntities = refs.SelectMany(r => r.Values.Cast<Object>());
-      EntityAspect.WrapAll(relatedEntities).ToList().ForEach(e => e.Delete());
 
-      // Don't think that this is needed ... left this comment here because I keep thinking about adding it back. 
-      // this.EntityManager.QueryCache.Clear();
 
-      // Remove entity from any many-many collections (this is not a delete);
+    private void RemoveFromRelations(EntityState entityState) {
+      // remove this entity from any collections.
+      // mark the entity deleted or detached
 
-      //var refs2 = this.ReferenceManager.InternalListReferences
-      //  .Where(er => er.Link.ShouldCascadeDeletes
-      //    && er.Link.EntityRelation.IsManyToMany
-      //    && !er.IsEmpty);
-      var refs2 = this.ReferenceManager.InternalListReferences
-        .Where(er => er.Link.EntityRelation.IsManyToMany
-          && !er.IsEmpty);
-      refs2.ForEach(r => {
-        r.Values.Cast<Object>().ToList().ForEach(e => r.RemoveEntity(e, true));
+      var isDeleted = entityState.IsDeleted();
+      if (isDeleted) {
+        RemoveFromRelationsCore(true);
+      } else {
+        using (this.EntityManager.NewIsLoadingBlock()) {
+          RemoveFromRelationsCore(false);
+        }
+      }
+    }
+
+    private void RemoveFromRelationsCore(bool isDeleted) {
+      var entity = this.Entity;
+      this.EntityType.NavigationProperties.ForEach(np => {
+        var inverseNp = np.Inverse;
+        var npValue = entity.GetValue(np.Name);
+        if (np.IsScalar) {
+          if (npValue != null) {
+            if (inverseNp != null) {
+              var npEntity = (IEntity)npValue;
+              if (inverseNp.IsScalar) {
+                npEntity.EntityAspect.ClearNp(inverseNp, isDeleted);
+              } else {
+                var collection = (IList)npEntity.GetValue(inverseNp.Name);
+                if (collection.Count > 0) {
+                  collection.Remove(entity);
+                }
+              }
+            }
+            entity.SetValue(np.Name, null);
+          }
+        } else {
+          var entityList = ((IList)npValue);
+          if (inverseNp != null) {
+
+            // npValue is a live list so we need to copy it first.
+            entityList.Cast<IEntity>().ToList().ForEach(v => {
+              if (inverseNp.IsScalar) {
+                v.EntityAspect.ClearNp(inverseNp, isDeleted);
+              } else {
+                // TODO: many to many - not yet handled.
+              }
+            });
+          }
+          // now clear it.
+          entityList.Clear();
+        }
       });
 
-      UpdateUnresolvedParentMapAfterDeleteOrRemove();
+    }
 
-
-      // Finish up
-
-      if (this.EntityState.IsAdded()) {
-        this.EntityGroup.RemoveEntity(this);
-        EntityVersion = EntityVersion.Current;
+    private void ClearNp(NavigationProperty np, bool relatedIsDeleted) {
+      var entity = this.Entity;
+      if (relatedIsDeleted) {
+        entity.SetValue(np.Name, null);
       } else {
-        SetEntityStateCore(EntityState.Deleted);
-        EntityVersion = EntityVersion.Original;
-      }
+        // relatedEntity was detached.
+        // need to clear child np without clearing child fk or changing the entityState of the child
+        var em = entity.EntityAspect.EntityManager;
 
-      this.EntityGroup.OnEntityChanged(new EntityChangedEventArgs(this, EntityAction.Delete));
-    }
+        var fkNames = np.ForeignKeyNames;
+        List<Object> fkVals = null;
+        if (fkNames.Count > 0) {
+          fkVals = fkNames.Select(fkName => entity.GetValue(np.Name)).ToList();
+        }
+        entity.SetValue(np.Name, null);
+        if (fkVals != null) {
+          fkNames.ForEach((fkName, i) => entity.SetValue(fkName, fkVals[i]));
+        }
 
-    internal void UpdateUnresolvedParentMapAfterDeleteOrRemove() {
-      // update UnresolvedParentMap for all stranded children of this entity that remain after a delete or removal.
-      // add the parent key to the UnresolvedParentMap for every stranded child. 
-      var childRefs = this.ReferenceManager.InternalReferences
-        .Where(er => (!er.IsEmpty) && er.Link.FromRole.EntityRelationRefConstraint == EntityRelationRefConstraint.Principal);
-      if (childRefs.Any() && !this.HasDefaultEntityKey) {
-        childRefs.ForEach(eref => {
-          if (eref.IsScalar) {
-            this.InternalEntityManager.UnresolvedParentMap.AddToMap(this.EntityKey, eref.Link, Wrap(eref.Value));
-          } else {
-            eref.Values.Cast<Object>().ForEach(v => this.InternalEntityManager.UnresolvedParentMap.AddToMap(this.EntityKey, eref.Link, Wrap(v)));
-          }
-        });
-      }
-      var parentRefs = this.ReferenceManager.InternalReferences
-        .Where(er => er.Link.FromRole.EntityRelationRefConstraint == EntityRelationRefConstraint.Dependent);
-      if (parentRefs.Any()) {
-        parentRefs.ForEach(eref => {
-          var parentKey = GetToEntityKey(this, eref.Link);
-          if (parentKey != null) {
-            this.InternalEntityManager.UnresolvedParentMap.RemoveChild(parentKey, eref.Link.GetInverse(), this);
-          }
-        });
       }
     }
 
-    //private EntityKey GetToEntityKey(EntityAspect fromAspect, EntityRelationLink link) {
-    //  // do not cache this value = contents of the FromEntity can change between invocations
-    //  var values = fromAspect.GetValuesRaw(link.FromRole.Properties);
-    //  // if any of the link properties are null ; return null because query will return null;
-    //  if (values.Any(v => v == null)) {
-    //    return null;
-    //  } else {
-    //    return new EntityKey(link.ToRole.EntityType, values, false);
-    //  }
-    //}
 
     #region Misc overrides
 
@@ -1501,7 +1103,7 @@ namespace Breeze.NetClient {
     /// <param name="properties"></param>
     /// <returns></returns>
     protected virtual bool AreEqual(EntityAspect sourceAspect, IEnumerable<DataProperty> properties) {
-      bool isCurrent = properties.All(p => Object.Equals(this.Entity.GetValueRaw(p.Name), sourceAspect.Entity.GetValueRaw(p.Name)));
+      bool isCurrent = properties.All(p => Object.Equals(this.Entity.GetValue(p.Name), sourceAspect.Entity.GetValue(p.Name)));
       return isCurrent;
     }
 
@@ -1518,21 +1120,21 @@ namespace Breeze.NetClient {
     protected internal virtual void ClearBackupVersion(EntityVersion version) {
 
       if (version == EntityVersion.Original) {
-        if (_originalValuesMap != null) {
+        if (OriginalValuesMap != null) {
           ClearComplexBackupVersions(version);
-          _originalValuesMap = null;
+          OriginalValuesMap = null;
         }
       } else if (version == EntityVersion.Proposed) {
-        if (_preproposedValuesMap != null) {
+        if (PreproposedValuesMap != null) {
           ClearComplexBackupVersions(version);
-          _preproposedValuesMap = null;
+          PreproposedValuesMap = null;
         }
       }
     }
 
     private void ClearComplexBackupVersions(EntityVersion version) {
       this.EntityType.DataProperties.Where(dp => dp.IsComplexProperty).ForEach(dp => {
-        var co = (IComplexObject) this.Entity.GetValueRaw(dp.Name);
+        var co = (IComplexObject)this.Entity.GetValue(dp.Name);
         if (co != null) {
           co.ComplexAspect.ClearBackupVersion(version);
         }
@@ -1545,14 +1147,14 @@ namespace Breeze.NetClient {
     /// <param name="version"></param>
     protected virtual void RestoreBackupVersion(EntityVersion version) {
       if (version == EntityVersion.Original) {
-        if (_originalValuesMap != null) {
-          RestoreOriginalValues(_originalValuesMap, version);
-          _originalValuesMap = null;
+        if (OriginalValuesMap != null) {
+          RestoreOriginalValues(OriginalValuesMap, version);
+          OriginalValuesMap = null;
         }
       } else if (version == EntityVersion.Proposed) {
-        if (_preproposedValuesMap != null) {
-          RestoreOriginalValues(_preproposedValuesMap, version);
-          _preproposedValuesMap = null;
+        if (PreproposedValuesMap != null) {
+          RestoreOriginalValues(PreproposedValuesMap, version);
+          PreproposedValuesMap = null;
         }
       }
     }
@@ -1566,12 +1168,13 @@ namespace Breeze.NetClient {
         var dp = this.EntityType.GetDataProperty(kvp.Key);
 
         if (dp.IsForeignKey) {
-          if (this.Entity.GetValueRaw(dp.Name) != value) {
-            this.Entity.SetValueRaw(dp.Name, value);
-            ((IScalarEntityReference)dp.RelatedNavigationProperty.GetEntityReference(this)).RefreshForFkChange();
+          if (this.Entity.GetValue(dp.Name) != value) {
+            this.Entity.SetValue(dp.Name, value);
+            // TODO: review later
+            // ((IScalarEntityReference)dp.RelatedNavigationProperty.GetEntityReference(this)).RefreshForFkChange();
           }
         } else {
-          this.Entity.SetValueRaw(dp.Name, value);
+          this.Entity.SetValue(dp.Name, value);
         }
       });
     }
@@ -1594,22 +1197,22 @@ namespace Breeze.NetClient {
     }
 
     internal void BackupOriginalValueIfNeeded(DataProperty property) {
-      if (_originalValuesMap == null) {
-        _originalValuesMap = new OriginalValuesMap();
+      if (OriginalValuesMap == null) {
+        OriginalValuesMap = new OriginalValuesMap();
       }
 
-      if (_originalValuesMap.ContainsKey(property.Name)) return;
+      if (OriginalValuesMap.ContainsKey(property.Name)) return;
       // reference copy of complex object is deliberate - actual original values will be stored in the co itself.
-      _originalValuesMap.Add(property.Name, this.Entity.GetValueRaw(property.Name));
+      OriginalValuesMap.Add(property.Name, this.Entity.GetValue(property.Name));
     }
 
     internal void BackupProposedValueIfNeeded(DataProperty property) {
-      if (_preproposedValuesMap == null) {
-        _preproposedValuesMap = new BackupValuesMap();
+      if (PreproposedValuesMap == null) {
+        PreproposedValuesMap = new BackupValuesMap();
       }
 
-      if (_preproposedValuesMap.ContainsKey(property.Name)) return;
-      _preproposedValuesMap.Add(property.Name, this.Entity.GetValueRaw(property.Name));
+      if (PreproposedValuesMap.ContainsKey(property.Name)) return;
+      PreproposedValuesMap.Add(property.Name, this.Entity.GetValue(property.Name));
     }
 
     #endregion
@@ -1628,22 +1231,22 @@ namespace Breeze.NetClient {
       get { return _isNullEntity; }
     }
 
-    
+
     internal void SetNullEntity() {
       _isNullEntity = true;
     }
 
     #endregion
 
- 
-   
+
+
 
     #region Misc private and internal methods/properties
 
     //internal Object[] GetCurrentValues() {
     //  var entity = this.Entity;
     //  var props = EntityMetadata.DataProperties;
-    //  var currentValues = props.Select(p => p.GetValueRaw(entity)).ToArray();
+    //  var currentValues = props.Select(p => p.GetValue(entity)).ToArray();
     //  return currentValues;
     //}
 
@@ -1666,10 +1269,7 @@ namespace Breeze.NetClient {
     //}
 
 
-    internal OriginalValuesMap OriginalValuesMap {
-      get { return _originalValuesMap; }
-      set { _originalValuesMap = value; }
-    }
+
 
     private void UndoMappedTempId(EntityState rowState) {
       if (this.EntityState.IsAdded()) {
@@ -1702,33 +1302,7 @@ namespace Breeze.NetClient {
 
 #endif
 
-    // all but EntityAction.Change
-    private const EntityAction MajorEntityChange
-      = EntityAction.Add
-      | EntityAction.Remove
-      | EntityAction.ChangeCurrentAndOriginal
-      | EntityAction.ChangeOriginal
-      | EntityAction.Commit
-      | EntityAction.Delete
-      | EntityAction.Rollback;
 
-
-    internal void TrackChanging(EntityChangingEventArgs e, EntityManager em) {
-      //// em is needed as a parameter because this EntityAspect's EntityManager may not yet 
-      //// be set for a newly added entity.
-      //if (em == null) return;
-      //if (e.Action == EntityAction.Remove) {
-      //  em.MarkTempIdAsMapped(this, true);
-      //} 
-    }
-
-    internal void TrackChanged(EntityChangedEventArgs e) {
-      if (InternalEntityManager == null) return;
-      if ((e.Action & MajorEntityChange) > 0) {
-        // TODO: determine how often this is called when it is not needed.
-        FixupReferences();
-      }
-    }
 
     #endregion
 
@@ -1752,7 +1326,7 @@ namespace Breeze.NetClient {
       }
     }
 
-   
+
 
 
     #endregion
@@ -1783,8 +1357,8 @@ namespace Breeze.NetClient {
     }
 
     IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName) {
-      
-      
+
+
       return null;
     }
 
@@ -1819,7 +1393,7 @@ namespace Breeze.NetClient {
 
 
 
-    
+
 
     //#region Related entity methods
 
@@ -1991,14 +1565,12 @@ namespace Breeze.NetClient {
 
     // should only ever be set to either current or proposed ( never original)
     private EntityVersion _entityVersion = EntityVersion.Current;
-    
+
     private bool _isNullEntity;
-    private EntityGroup _entityGroup;
     private int _indexInEntityGroup = -1;
-   
+
     internal bool _defaultValuesInitialized = false;
-    private OriginalValuesMap _originalValuesMap;
-    private BackupValuesMap _preproposedValuesMap;
+
 
     #endregion
 

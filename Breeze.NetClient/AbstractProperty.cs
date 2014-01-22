@@ -34,11 +34,11 @@ namespace Breeze.NetClient {
 
     public abstract bool IsDataProperty { get;  }
     public abstract bool IsNavigationProperty { get; }
-    public Object GetValueRaw(IStructuralObject entity) {
-      return entity.GetValueRaw(this.Name);
+    public Object GetValue(IStructuralObject entity) {
+      return entity.GetValue(this.Name);
     }
-    public void SetValueRaw(IStructuralObject entity, Object value) {
-      entity.SetValueRaw(this.Name, value);
+    public void SetValue(IStructuralObject entity, Object value) {
+      entity.SetValue(this.Name, value);
     }
   }
 

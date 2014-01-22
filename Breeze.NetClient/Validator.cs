@@ -1,24 +1,24 @@
-﻿using Breeze.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
+using Breeze.Core;
 
 namespace Breeze.NetClient {
-
-  public class ValidatorCollection : KeyedMap<String, Validator> {
-    public ValidatorCollection() {
-
-    }
-    public ValidatorCollection(ValidatorCollection collection)
-      : base(collection) {
-    }
-    protected override String GetKeyForItem(Validator item) {
-      return item.Name;
+  public class Validator {
+    public String Name {
+      get;
+      private set; 
     }
   }
-  public class Validator {
-    public String Name { get; protected set; }
+
+  public class ValidatorCollection : KeyedMap<String, Validator> {
+    public ValidatorCollection(IEnumerable<Validator> validators) : base(validators) { }
+    
+    protected override string GetKeyForItem(Validator value) {
+      return value.Name;
+    }
   }
 }

@@ -108,8 +108,8 @@ namespace Breeze.NetClient {
     // Private and Internal --------------
 
     private T GetStructuralType<T>(String typeName, bool okIfNotFound = false) where T : class {
-      if (_structuralTypes.Contains(typeName)) {
-        var t = _structuralTypes[typeName];
+      var t = _structuralTypes[typeName];
+      if (t != null) {
         var result = t as T;
         if (result == null) {
           throw new Exception("A type by this name exists but is not a " + typeof(T).Name);
@@ -126,7 +126,7 @@ namespace Breeze.NetClient {
       structuralType.MetadataStore = this;
       //// don't register anon types
       if (!structuralType.IsAnonymous) {
-        if (_structuralTypes.Contains(structuralType.Name)) {
+        if (_structuralTypes.ContainsKey(structuralType.Name)) {
           throw new Exception("Type " + structuralType.Name + " already exists in this MetadataStore.");
         }
 
