@@ -21,7 +21,7 @@
     <property name="shipPostalCode" type="string" length="10" />
     <property name="shipCountry" type="string" length="15" />
     <!--Foreign key to InternationalOrder (InternationalOrder)-->
-    <many-to-one name="internationalOrder" column="`OrderID`" class="InternationalOrder" insert="false" update="false" cascade="delete" />
+    <one-to-one name="internationalOrder" class="InternationalOrder" cascade="delete" fetch="join"/>
     <!--Foreign key to OrderDetail (OrderDetail)-->
     <set name="orderDetails" table="`OrderDetail`" cascade="all-delete-orphan" inverse="true">
       <key column="`OrderID`" foreign-key="FK_OrderDetail_Order" />

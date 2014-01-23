@@ -34,6 +34,19 @@ public class HibernateContext extends ContextProvider {
 		this.session = session;
 		this.metadataMap = metadataMap;
 	}
+	
+	/**
+     * Allows subclasses to process entities before they are saved.  This method is called
+     * after BeforeSaveEntities(saveMap), and before any session.Save methods are called.
+     * The foreign-key associations on the entities have been resolved, relating the entities
+     * to each other, and attaching proxies for other many-to-one associations.
+	 * 
+	 * @param entitiesToPersist List of entities in the order they will be saved
+	 * @return The same entitiesToPersist.  Overrides of this method may modify the list.
+	 */
+	public List<EntityInfo> beforeSaveEntityGraph(List<EntityInfo> entitiesToPersist) {
+		return entitiesToPersist;
+	}
 
 	protected void saveChangesCore(SaveWorkState saveWorkState) {
 		Map<Class, List<EntityInfo>> saveMap = saveWorkState.saveMap;
@@ -79,6 +92,9 @@ public class HibernateContext extends ContextProvider {
 
 		// Relate entities in the saveMap to other NH entities, so NH can save the FK values.
 		List<EntityInfo> saveOrder = fixer.fixupRelationships();
+		
+		// Allow subclass to process entities before we save them
+		saveOrder = beforeSaveEntityGraph(saveOrder);
 		
 		SessionFactory sf = session.getSessionFactory();
 		for (EntityInfo entityInfo : saveOrder) {
