@@ -14,6 +14,8 @@ namespace Breeze.WebApi.NH {
   public class NHContext : ContextProvider, IDisposable {
     private ISession session;
     protected Configuration configuration;
+    private static Dictionary<Configuration, IDictionary<string, object>> _configurationMetadata = new Dictionary<Configuration, IDictionary<string, object>>();
+    private static object _metadataLock = new object();
 
     /// <summary>
     /// Create a new context for the given session.  
@@ -114,8 +116,13 @@ namespace Breeze.WebApi.NH {
 
     protected IDictionary<string, object> GetMetadata() {
       if (_metadata == null) {
-        var builder = new NHBreezeMetadata(session.SessionFactory, configuration);
-        _metadata = builder.BuildMetadata();
+          lock (_metadataLock) {
+              if (!_configurationMetadata.TryGetValue(this.configuration, out _metadata)) {
+                  var builder = new NHBreezeMetadata(session.SessionFactory, configuration);
+                  _metadata = builder.BuildMetadata();
+                  _configurationMetadata.Add(this.configuration, _metadata);
+              }
+          }
       }
       return _metadata;
     }
