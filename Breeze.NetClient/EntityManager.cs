@@ -9,6 +9,9 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
+using Breeze.Core;
+using System.Collections;
+
 namespace Breeze.NetClient {
   public class EntityManager {
 
@@ -16,7 +19,7 @@ namespace Breeze.NetClient {
     /// 
     /// </summary>
     /// <param name="serviceName">"http://localhost:9000/"</param>
-    public EntityManager(String serviceName, MetadataStore metadataStore=null) {
+    public EntityManager(String serviceName, MetadataStore metadataStore = null) {
       DefaultDataService = new DataService(serviceName);
       MetadataStore = metadataStore != null ? metadataStore : new MetadataStore();
       JsonConverter = new JsonEntityConverter(MetadataStore);
@@ -28,32 +31,343 @@ namespace Breeze.NetClient {
       JsonConverter = em.JsonConverter;
     }
 
-    public bool IsLoadingEntity {
-      get;
-      internal set;
+    public DataService DefaultDataService { get; private set; }
+
+    public MetadataStore MetadataStore { get; private set; }
+
+    public JsonConverter JsonConverter { get; private set; }
+
+    public async Task<String> FetchMetadata(DataService dataService = null) {
+      dataService = dataService != null ? dataService : this.DefaultDataService;
+      var metadata = await MetadataStore.FetchMetadata(dataService);
+      return metadata;
+    }
+
+    public async Task<IEnumerable<T>> ExecuteQuery<T>(EntityQuery<T> query) {
+      var dataService = query.DataService != null ? query.DataService : this.DefaultDataService;
+      await FetchMetadata(dataService);
+      var resourcePath = query.GetResourcePath();
+      // HACK
+      resourcePath = resourcePath.Replace("/*", "");
+      var result = await dataService.GetAsync(resourcePath);
+
+      if (resourcePath.Contains("inlinecount")) {
+        return JsonConvert.DeserializeObject<QueryResult<T>>(result, JsonConverter);
+      } else {
+        return JsonConvert.DeserializeObject<IEnumerable<T>>(result, JsonConverter);
+      }
+
+    }
+
+    #region Event methods
+
+
+    /// <summary>
+    /// Fired whenever an entity's state is changing in any significant manner.
+    /// </summary>
+    public event EventHandler<EntityChangingEventArgs> EntityChanging;
+
+    /// <summary>
+    /// Fired whenever an entity's state has changed in any significant manner.
+    /// </summary>
+    public event EventHandler<EntityChangedEventArgs> EntityChanged;
+
+    public event EventHandler<EntityManagerHasChangesChangedEventArgs> HasChangesChanged;
+
+
+    internal void OnEntityChanging(IEntity entity, EntityAction entityAction) {
+      OnEntityChanging(new EntityChangingEventArgs(entity, entityAction));
+    }
+
+    internal virtual void OnEntityChanging(EntityChangingEventArgs args) {
+      EventHandler<EntityChangingEventArgs> handler = EntityChanging;
+      if (handler != null) {
+        try {
+          handler(this, args);
+        } catch {
+          // Eat any handler exceptions during load (query or import) - throw for all others. 
+          if (!(args.Action == EntityAction.AttachOnQuery || args.Action == EntityAction.AttachOnImport)) throw;
+        }
+      }
+    }
+
+    internal void OnEntityChanged(IEntity entity, EntityAction entityAction) {
+      OnEntityChanged(new EntityChangedEventArgs(entity, entityAction));
+    }
+
+    internal virtual void OnEntityChanged(EntityChangedEventArgs args) {
+      EventHandler<EntityChangedEventArgs> handler = EntityChanged;
+      if (handler != null) {
+        try {
+          handler(this, args);
+        } catch {
+          // Eat any handler exceptions during load (query or import) - throw for all others. 
+          if (!(args.Action == EntityAction.AttachOnQuery || args.Action == EntityAction.AttachOnImport)) throw;
+        }
+      }
+    }
+
+    internal void OnHasChangesChanged() {
+      OnHasChangesChanged(new EntityManagerHasChangesChangedEventArgs(this));
+    }
+
+    internal virtual void OnHasChangesChanged(EntityManagerHasChangesChangedEventArgs args) {
+      var handler = HasChangesChanged;
+      if (handler != null) {
+        handler(this, args);
+      }
+    }
+
+    internal void FireQueuedEvents() {
+      // IsLoadingEntity will still be true when this occurs.
+      if (!QueuedEvents.Any()) return;
+      var events = QueuedEvents;
+      _queuedEvents = new List<Action>();
+      events.ForEach(a => a());
+
+      // in case any of the previously queued events spawned other events.
+      // FireQueuedEvents();
+
+    }
+
+    internal List<Action> QueuedEvents {
+      get { return _queuedEvents; }
+    }
+
+    #endregion
+
+    #region Misc public methods
+
+    public IEntity FindEntityByKey(EntityKey entityKey) {
+      var subtypes = entityKey.EntityType.Subtypes;
+      EntityAspect ea;
+      if (subtypes.Count > 0) {
+        ea = subtypes.Select(st => {
+          var eg = this.GetEntityGroup(st.ClrType);
+          return (eg == null) ? null : eg.FindEntityAspect(entityKey, true);
+        }).FirstOrDefault(a => a != null);
+      } else {
+        var eg = this.GetEntityGroup(entityKey.EntityType.ClrType);
+        ea = (eg == null) ? null : eg.FindEntityAspect(entityKey, true);
+      }
+      return ea == null ? null : ea.Entity;
     }
 
 
-    public void AttachEntity(IEntity entity, EntityState entityState = EntityState.Added) {
+    #endregion
 
+    #region Attach/Detach entity methods
+
+    public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Added, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
+      var aspect = entity.EntityAspect;
+      if (aspect.EntityType.MetadataStore != this.MetadataStore) {
+        throw new Exception("Cannot attach this entity because the EntityType (" + aspect.EntityType.Name + ") and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
+      }
+      var em = aspect.EntityManager;
+      // check if already attached
+      if (em == this) return entity;
+      if (em != null) {
+        throw new Exception("This entity already belongs to another EntityManager");
+      }
+      using (NewIsLoadingBlock()) {
+
+        if (entityState.IsAdded()) {
+          CheckEntityKey(aspect);
+        }
+        // attachedEntity === entity EXCEPT in the case of a merge.
+        var attachedEntityAspect = AttachEntityAspect(aspect, entityState, mergeStrategy);
+        // TODO: review this???
+        aspect.InProcess = true;
+        try {
+          // entity ( not attachedEntity) is deliberate here.
+          aspect.ProcessNavigationProperties(ent => AttachEntity(ent, entityState, mergeStrategy));
+
+        } finally {
+          aspect.InProcess = false;
+        }
+        // TODO: impl validate on attach
+        //    if (this.validationOptions.validateOnAttach) {
+        //        attachedEntity.entityAspect.validateEntity();
+        //    }
+        if (!entityState.IsUnchanged()) {
+          NotifyStateChange(attachedEntityAspect, true);
+        }
+        OnEntityChanged(attachedEntityAspect.Entity, EntityAction.Attach);
+        return attachedEntityAspect.Entity;
+
+      }
     }
 
-    public void DetachEntity(IEntity entity) {
-
+    public bool DetachEntity(IEntity entity) {
+      return entity.EntityAspect.RemoveFromManager();
     }
+
+    private EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
+      var group = GetOrCreateEntityGroup(entityAspect.EntityType.ClrType);
+      var attachedEntityAspect = group.AttachEntityAspect(entityAspect, entityState, mergeStrategy);
+      LinkRelatedEntities(attachedEntityAspect.Entity);
+      return attachedEntityAspect;
+    }
+
+    internal void LinkRelatedEntities(IEntity entity) {
+      //// we do not want entityState to change as a result of linkage.
+      using (NewIsLoadingBlock()) {
+        LinkUnattachedChildren(entity);
+        LinkNavProps(entity);
+        LinkFkProps(entity);
+      }
+    }
+
+    private void LinkUnattachedChildren(IEntity entity) {
+      var entityKey = entity.EntityAspect.EntityKey;
+      var navChildrenList = UnattachedChildrenMap.GetNavChildrenList(entityKey, false);
+      navChildrenList.ForEach(nc => {
+
+        NavigationProperty childToParentNp = null, parentToChildNp;
+
+        //// np is usually childToParentNp 
+        //// except with unidirectional 1-n where it is parentToChildNp;
+        var np = nc.NavigationProperty;
+        var unattachedChildren = nc.Children;
+        if (np.Inverse != null) {
+          // bidirectional
+          childToParentNp = np;
+          parentToChildNp = np.Inverse;
+
+          if (parentToChildNp.IsScalar) {
+            var onlyChild = unattachedChildren[0];
+            entity.SetValue(parentToChildNp.Name, onlyChild);
+            onlyChild.SetValue(childToParentNp.Name, entity);
+          } else {
+            var currentChildren = (INavigationSet)entity.GetValue(parentToChildNp.Name);
+            unattachedChildren.ForEach(child => {
+              currentChildren.Add(child);
+              child.SetValue(childToParentNp.Name, entity);
+            });
+          }
+        } else {
+          // unidirectional
+          if (np.ParentType == entity.EntityAspect.EntityType) {
+
+            parentToChildNp = np;
+            if (parentToChildNp.IsScalar) {
+              // 1 -> 1 eg parent: Order child: InternationalOrder
+              entity.SetValue(parentToChildNp.Name, unattachedChildren[0]);
+            } else {
+              // 1 -> n  eg: parent: Region child: Terr
+              var currentChildren = (INavigationSet)entity.GetValue(parentToChildNp.Name);
+              unattachedChildren.ForEach(child => {
+                // we know it can't already be there.
+                currentChildren.Add(child);
+              });
+            }
+          } else {
+            // n -> 1  eg: parent: child: OrderDetail parent: Product
+            childToParentNp = np;
+            unattachedChildren.ForEach(child => {
+              child.SetValue(childToParentNp.Name, entity);
+            });
+
+          }
+          if (childToParentNp != null) {
+            UnattachedChildrenMap.RemoveChildren(entityKey, childToParentNp);
+          }
+
+        }
+
+      });
+    }
+
+    private void LinkFkProps(IEntity entity) {
+      // handle unidirectional 1-x where we set x.fk
+      entity.EntityAspect.EntityType.ForeignKeyProperties.ForEach(fkProp => {
+        var invNp = fkProp.InverseNavigationProperty;
+        if (invNp == null) return;
+        // unidirectional fk props only
+        var fkValue = entity.GetValue(fkProp.Name);
+        var parentKey = new EntityKey((EntityType)invNp.ParentType, fkValue);
+        var parent = FindEntityByKey(parentKey);
+        if (parent != null) {
+          if (invNp.IsScalar) {
+            parent.SetValue(invNp.Name, entity);
+          } else {
+            var navSet = (INavigationSet)parent.GetValue(invNp.Name);
+            navSet.Add(entity);
+          }
+        } else {
+          // else add parent to unresolvedParentMap;
+          UnattachedChildrenMap.AddChild(parentKey, invNp, entity);
+        }
+
+      });
+    }
+
+    private void LinkNavProps(IEntity entity) {
+      // now add to unattachedMap if needed.
+      entity.EntityAspect.EntityType.NavigationProperties.ForEach(np => {
+        if (np.IsScalar) {
+          var value = entity.GetValue(np.Name);
+          // property is already linked up
+          if (value != null) return;
+        }
+
+        // first determine if np contains a parent or child
+        // having a parentKey means that this is a child
+        // if a parent then no need for more work because children will attach to it.
+        var parentKey = entity.EntityAspect.GetParentKey(np);
+        if (parentKey != null) {
+          // check for empty keys - meaning that parent id's are not yet set.
+
+          if (parentKey.IsEmpty()) return;
+          // if a child - look for parent in the em cache
+          var parent = FindEntityByKey(parentKey);
+          if (parent != null) {
+            // if found hook it up
+            entity.SetValue(np.Name, parent);
+          } else {
+            // else add parent to unresolvedParentMap;
+            UnattachedChildrenMap.AddChild(parentKey, np, entity);
+          }
+        }
+      });
+    }
+
+    private void CheckEntityKey(EntityAspect entityAspect) {
+      var ek = entityAspect.EntityKey;
+      // return properties that are = to defaultValues
+      var keyProps = entityAspect.EntityType.KeyProperties;
+      var keyPropsWithDefaultValues = keyProps
+        .Zip(ek.Values, (kp, kv) => kp.DefaultValue == kv ? kp : null)
+        .Where(kp => kp != null);
+
+      if (keyPropsWithDefaultValues.Any()) {
+        if (entityAspect.EntityType.AutoGeneratedKeyType != AutoGeneratedKeyType.None) {
+          GenerateId(entityAspect.Entity, keyPropsWithDefaultValues.First(p => p.IsAutoIncrementing));
+        } else {
+          // we will allow attaches of entities where only part of the key is set.
+          if (keyPropsWithDefaultValues.Count() == ek.Values.Length) {
+            throw new Exception("Cannot attach an object of type  (" + entityAspect.EntityType.Name +
+              ") to an EntityManager without first setting its key or setting its entityType 'AutoGeneratedKeyType' property to something other than 'None'");
+          }
+        }
+      }
+    }
+
+    #endregion
 
     #region EntityGroup methods
 
-    public EntityCache EntityCache {
-      get;
-      private set;
-    }
 
     /// <summary>
     /// Collection of all <see cref="EntityGroup"/>s within the cache.
     /// </summary>
-    public EntityGroup[] GetEntityGroups() {
-      return EntityCache.EntityGroups.ToArray();
+    public EntityGroupCollection EntityGroups {
+      get;
+      private set;
+    }
+
+    public EntityGroup GetEntityGroup(Type entityType) {
+      return EntityGroups[entityType];
     }
 
     /// <summary>
@@ -63,15 +377,22 @@ namespace Breeze.NetClient {
     /// <returns>The <see cref="EntityGroup"/> associated with the specified Entity subtype</returns>
     /// <exception cref="ArgumentException">Bad entity type</exception>
     /// <exception cref="EntityServerException"/>
-    public EntityGroup GetEntityGroup(Type entityType) {
-      lock (this.EntityCache.EntityGroups) {
-        var aEntityGroup = this.EntityCache.EntityGroups[entityType];
+    internal EntityGroup GetOrCreateEntityGroup(Type entityType) {
+      lock (this.EntityGroups) {
+        var aEntityGroup = this.EntityGroups[entityType];
         if (aEntityGroup != null) {
           return aEntityGroup;
         }
 
-        var newGroup = CreateEntityGroupAndInitialize(entityType);
+        var newGroup = EntityGroup.Create(entityType);
+        AddEntityGroup(newGroup);
+
+        // ensure that any entities placed into the table on initialization are 
+        // marked so as not to be saved again
+        newGroup.AcceptChanges();
+
         return newGroup;
+
       }
     }
 
@@ -80,13 +401,13 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public EntityGroup<T> GetEntityGroup<T>() where T : class {
-      return (EntityGroup<T>)GetEntityGroup(typeof(T));
+    internal EntityGroup<T> GetOrCreateEntityGroup<T>() where T : class {
+      return (EntityGroup<T>)GetOrCreateEntityGroup(typeof(T));
     }
 
 
     private void AddEntityGroup(EntityGroup entityGroup) {
-      var groups = this.EntityCache.EntityGroups;
+      var groups = this.EntityGroups;
       var oldEntityGroup = groups[entityGroup.ClrType];
       if (oldEntityGroup != null) {
         groups.Remove(oldEntityGroup);
@@ -98,26 +419,15 @@ namespace Breeze.NetClient {
 
     }
 
-    private EntityGroup CreateEntityGroupAndInitialize(Type entityType) {
-      EntityMetadata etInfo = MetadataStore.GetEntityMetadata(entityType);
-      var newGroup = EntityGroup.Create(entityType);
-      AddEntityGroup(newGroup);
 
-      //newGroup.UpdateDefaultValues();
-      // ensure that any entities placed into the table on initialization are 
-      // marked so as not to be saved again
-      newGroup.AcceptChanges();
-
-      // Ensure dskey is loaded (for IdGenerator and any other client-side probing needs)
-      IDataSourceKey key = DataSourceResolver.GetDataSourceKey(entityType);
-
-      // no overhead is incurred if the entity relations for this assembly have already been
-      // handled
-      MetadataStore.InitializeEntityRelations(entityType.GetAssembly());
-      return newGroup;
-    }
 
     #endregion
+
+    #region KeyGenerator methods
+
+    public IKeyGenerator GetKeyGenerator(Type entityType) {
+      return null;
+    }
 
     /// <summary>
     /// Generates a temporary ID for an <see cref="IEntity"/>.  The temporary ID will be mapped to a real ID when
@@ -156,14 +466,13 @@ namespace Breeze.NetClient {
         aspect.EntityGroup = GetEntityGroup(entityType);
       }
 
-      IIdGenerator idGenerator = this.DataSourceResolver.GetIdGenerator(entityType);
-      if (idGenerator is NullIdGenerator) {
-        var keyName = EntityMetadataStore.Instance.GetEntityMetadata(entityType).DataSourceKeyName;
-        throw new IdeaBladeException("Unable to locate a valid IdGenerator for: " + keyName);
+      var keyGenerator = this.GetKeyGenerator(entityType);
+      if (keyGenerator is NullKeyGenerator) {
+        throw new Exception("Unable to locate a valid KeyGenerator for: " + entityType);
       }
 
-      object nextTempId = idGenerator.GetNextTempId(entityProperty);
-      aspect.SetValueWithChangeNotification(entityProperty, nextTempId);
+      object nextTempId = keyGenerator.GetNextTempId(entityProperty);
+      entity.SetValue(entityProperty.Name, nextTempId);
       var aUniqueId = new UniqueId(entityProperty, nextTempId);
       // don't add to tempId's collection until the entity itself is added.
       if (aspect.EntityState != EntityState.Detached) {
@@ -181,24 +490,24 @@ namespace Breeze.NetClient {
       var keyProperties = aspect.EntityType.KeyProperties;
       foreach (var aProperty in keyProperties) {
 
-        var rawValue = aspect.Entity.GetValueRaw(aProperty.Name);
-        var aUniqueId = new UniqueId(aProperty, rawValue);
-        IIdGenerator idGenerator = this.DataSourceResolver.GetIdGenerator(aspect.Entity.GetType());
+        var val = aspect.Entity.GetValue(aProperty.Name);
+        var aUniqueId = new UniqueId(aProperty, val);
+        var keyGenerator = this.GetKeyGenerator(aspect.Entity.GetType());
         // determine if a temp pk is needed.
         if (aProperty.IsAutoIncrementing) {
-          if (!idGenerator.IsTempId(aUniqueId)) {
+          if (!keyGenerator.IsTempId(aUniqueId)) {
             // generate an id if it wasn't already generated
             aUniqueId = GenerateId(aspect.Entity, aProperty);
           }
           AddToTempIds(aUniqueId);
-        } else if (aProperty.DefaultValue == rawValue) {
+        } else if (aProperty.DefaultValue == val) {
           // do not call GenerateId unless the developer is explicit or the key is autoincrementing.
         } else {
-          if (idGenerator is NullIdGenerator) {
+          if (keyGenerator is NullKeyGenerator) {
             return;
           }
           // this occurs if GenerateId was called before Attach - it won't have been added to tempIds in this case.
-          if (idGenerator.IsTempId(aUniqueId)) {
+          if (keyGenerator.IsTempId(aUniqueId)) {
             AddToTempIds(aUniqueId);
           }
         }
@@ -208,13 +517,13 @@ namespace Breeze.NetClient {
     internal void MarkTempIdAsMapped(EntityAspect aspect, bool isMapped) {
       var keyProperties = aspect.EntityType.KeyProperties;
       foreach (var aProperty in keyProperties) {
-        UniqueId aUniqueId = new UniqueId(aProperty, aspect.Entity.GetValueRaw(aProperty.Name));
+        UniqueId aUniqueId = new UniqueId(aProperty, aspect.Entity.GetValue(aProperty.Name));
         if (isMapped) {
-          _tempIds.Remove(aUniqueId);
+          TempIds.Remove(aUniqueId);
         } else {
-          IIdGenerator idGenerator = this.DataSourceResolver.GetIdGenerator(aspect.Entity.GetType());
-          if (idGenerator.IsTempId(aUniqueId)) {
-            _tempIds.Add(aUniqueId);
+          var keyGenerator = this.GetKeyGenerator(aspect.Entity.GetType());
+          if (keyGenerator.IsTempId(aUniqueId)) {
+            TempIds.Add(aUniqueId);
           }
         }
       }
@@ -222,105 +531,111 @@ namespace Breeze.NetClient {
 
     internal void AddToTempIds(UniqueId uniqueId) {
       if (uniqueId != null) {
-        _tempIds.Add(uniqueId);
+        TempIds.Add(uniqueId);
       }
     }
 
     private void RemoveMappedTempIds(UniqueIdMap idMap) {
       foreach (UniqueId uniqueId in idMap.Keys) {
-        _tempIds.Remove(uniqueId);
+        TempIds.Remove(uniqueId);
       }
     }
 
     internal bool AnyStoreGeneratedTempIds {
       get {
-        return _tempIds != null && _tempIds.Any(id => id.Property.IsAutoIncrementing);
+        return TempIds != null && TempIds.Any(id => id.Property.IsAutoIncrementing);
       }
     }
 
     private bool AnyTempIds {
       get {
-        return _tempIds != null && _tempIds.Any();
+        return TempIds != null && TempIds.Any();
       }
-    }  
+    }
 
+    internal HashSet<UniqueId> TempIds {
+      get;
+      private set;
+    }
 
-    /// <summary>
-    /// Fired whenever an entity's state is changing in any significant manner.
-    /// </summary>
-    public event EventHandler<EntityChangingEventArgs> EntityChanging;
+    #endregion
 
-    /// <summary>
-    /// Fired whenever an entity's state has changed in any significant manner.
-    /// </summary>
-    public event EventHandler<EntityChangedEventArgs> EntityChanged;
+    #region HasChanges/StateChange methods
 
-    internal virtual void OnEntityChanging(EntityChangingEventArgs args) {
-      EventHandler<EntityChangingEventArgs> handler = EntityChanging;
-      if (handler != null) {
-        try {
-          handler(this, args);
-        } catch {
-          // Eat any handler exceptions during load (query or import) - throw for all others. 
-          if (!(args.Action == EntityAction.AddOnQuery || args.Action == EntityAction.AddOnImport)) throw;
+    public bool HasChanges(IEnumerable<Type> entityTypes = null) {
+      if (!this._hasChanges) return false;
+      if (entityTypes == null) return this._hasChanges;
+      return this.HasChangesCore(entityTypes);
+    }
+
+    // backdoor the "really" check for changes.
+    private bool HasChangesCore(IEnumerable<Type> entityTypes) {
+      var entityGroups = entityTypes.Select(et => GetEntityGroup(et));
+      return entityGroups.Any(eg => eg != null && eg.HasChanges());
+    }
+
+    internal void CheckStateChange(EntityAspect entityAspect, bool wasUnchanged, bool isUnchanged) {
+      if (wasUnchanged) {
+        if (!isUnchanged) {
+          this.NotifyStateChange(entityAspect, true);
         }
-      }
-    }
-
-    internal virtual void OnEntityChanged(EntityChangedEventArgs args) {
-      EventHandler<EntityChangedEventArgs> handler = EntityChanged;
-      if (handler != null) {
-        try {
-          handler(this, args);
-        } catch {
-          // Eat any handler exceptions during load (query or import) - throw for all others. 
-          if (!(args.Action == EntityAction.AddOnQuery || args.Action == EntityAction.AddOnImport)) throw;
-        }
-      }
-    }
-
-
-    public DataService DefaultDataService { get; private set; }
-
-    public MetadataStore MetadataStore { get; private set; }
-
-    public JsonConverter JsonConverter { get; private set; }
-
-    public async Task<String> FetchMetadata(DataService dataService = null) {
-      dataService = dataService != null ? dataService : this.DefaultDataService;
-      var metadata = await MetadataStore.FetchMetadata(dataService);
-      return metadata;
-    }
-
-    public async Task<IEnumerable<T>> ExecuteQuery<T>(EntityQuery<T> query) {
-      var dataService = query.DataService != null ? query.DataService : this.DefaultDataService;
-      await FetchMetadata(dataService);
-      var resourcePath = query.GetResourcePath();
-      // HACK
-      resourcePath = resourcePath.Replace("/*", "");
-      var result = await dataService.GetAsync(resourcePath);
-
-      if (resourcePath.Contains("inlinecount")) {
-        return JsonConvert.DeserializeObject<QueryResult<T>>(result, JsonConverter);
       } else {
-        return JsonConvert.DeserializeObject<IEnumerable<T>>(result, JsonConverter);
+        if (isUnchanged) {
+          this.NotifyStateChange(entityAspect, false);
+        }
       }
-       
     }
 
-    ///// <summary>
-    ///// 
-    ///// </summary>
-    ///// <param name="webApiQuery">"api/products"</param>
-    //public async Task<Object> ExecuteQuery(string resourcePath) {
-    // }
+    internal void NotifyStateChange(EntityAspect entityAspect, bool needsSave) {
+      OnEntityChanged(entityAspect.Entity, EntityAction.EntityStateChange);
 
+      if (needsSave) {
+        if (!this._hasChanges) {
+          this._hasChanges = true;
+          OnHasChangesChanged();
+        }
+      } else {
+        // called when rejecting a change or merging an unchanged record.
+        if (this._hasChanges) {
+          // NOTE: this can be slow with lots of entities in the cache.
+          this._hasChanges = this.HasChangesCore(null);
+          if (!this._hasChanges) {
+            OnHasChangesChanged();
+          }
+        }
+      }
+    }
+
+    #endregion
+
+    #region Other internal 
+
+    internal BooleanUsingBlock NewIsLoadingBlock() {
+      return new BooleanUsingBlock((b) => this.IsLoadingEntity = b);
+    }
+
+
+    internal bool IsLoadingEntity {
+      get;
+      set;
+    }
+
+    internal bool IsRejectingChanges {
+      get;
+      set;
+    }
+    internal UnattachedChildrenMap UnattachedChildrenMap = new UnattachedChildrenMap();
+
+    #endregion
+
+    private List<Action> _queuedEvents = new List<Action>();
+    private bool _hasChanges;
 
   }
 
   // JsonObject attribute is needed so this is NOT deserialized as an Enumerable
   [JsonObject]
-  public class QueryResult<T> : IEnumerable<T>, IHasInlineCount  {
+  public class QueryResult<T> : IEnumerable<T>, IHasInlineCount {
     public IEnumerable<T> Results { get; set; }
     public Int64? InlineCount { get; set; }
     public IEnumerator<T> GetEnumerator() {
@@ -330,14 +645,14 @@ namespace Breeze.NetClient {
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
       return Results.GetEnumerator();
     }
-    
+
   }
 
   public interface IHasInlineCount {
     Int64? InlineCount { get; }
   }
 
-  
+
 }
 
 

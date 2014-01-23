@@ -11,9 +11,9 @@ namespace Breeze.NetClient {
   public enum MergeStrategy {
 
     /// <summary>
-    /// No merge action applies because there is no data source data. This merge strategy must be used – and may only be used – with the CacheOnly fetch strategy. 
+    /// Do not allow merging
     /// </summary>
-    NotApplicable,
+    Disallowed,
     /// <summary>
     /// Overwrites the cached entity with incoming data and uses the EntityState of the incoming entity (will be 
     /// Unchanged if the incoming entity is from the data source).

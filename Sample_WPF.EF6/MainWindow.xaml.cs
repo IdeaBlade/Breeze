@@ -31,7 +31,10 @@ namespace Sample_WPF.EF6 {
       var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
       var em = new EntityManager(serviceName);
 
-      
+      // HACK until we probe for ClrEntityTypes.
+      em.MetadataStore.ClrEntityTypes.Add(typeof(Foo.Customer));
+      em.MetadataStore.ClrEntityTypes.Add(typeof(Foo.Order));
+
       var query = "Employees";
       
       // var metadata = await client.FetchMetadata();
@@ -48,8 +51,13 @@ namespace Sample_WPF.EF6 {
       //var q4 = q3.OrderBy(c => c.CompanyName);
       //var zzz = q4.GetResourcePath();
       //var x = await q4.Execute(em);
+      var addresses = x.Select(c => {
+        var z = c.CompanyName;
+        var cid = c.CustomerID;
+        c.CompanyName = "Test123";
+        return c.Address;
+      }).ToList();
       
-      var y = x;
     }
 
     public class Dummy {

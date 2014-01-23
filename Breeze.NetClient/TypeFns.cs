@@ -7,7 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Breeze.Core {
-  public class TypeFns {
+  public static class TypeFns {
+
+    public static bool IsAssignableFrom(this Type entityType, Type otherType) {
+      return entityType.GetTypeInfo().IsAssignableFrom(otherType.GetTypeInfo());
+    }
+
     /// <summary>
     /// Gets a single generic argument from a specified type.
     /// </summary>

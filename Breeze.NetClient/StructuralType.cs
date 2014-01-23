@@ -8,7 +8,7 @@ using Breeze.Core;
 
 namespace Breeze.NetClient {
 
-  public class StructuralTypeCollection : KeyedCollection<String, StructuralType> {
+  public class StructuralTypeCollection : KeyedMap<String, StructuralType> {
     protected override String GetKeyForItem(StructuralType item) {
       return item.ShortName + ":#" + item.Namespace;
     }
@@ -30,14 +30,7 @@ namespace Breeze.NetClient {
     public String Name { 
       get { return QualifyTypeName(ShortName, Namespace); }
     }
-    public Type ClrType {
-      get {
-        if (_clrType == null) {
-          _clrType = MetadataStore.ClrEntityTypes.FirstOrDefault(t => t.Name == Name && t.Namespace == Namespace);
-        }
-        return _clrType;
-      }
-    }
+    public Type ClrType { get; internal set;  }
     public String ShortName { get; internal set; }
     public String Namespace { get; internal set;}
     public dynamic Custom { get; set; }
@@ -46,33 +39,56 @@ namespace Breeze.NetClient {
     public bool IsAnonymous { get; internal set; }
     public List<String> Warnings { get; internal set; }
     public abstract bool IsEntityType { get;  }
-    public abstract IEnumerable<EntityProperty> Properties { get; }
+    
+    public virtual  IEnumerable<EntityProperty> Properties {
+      get { return _dataProperties.Cast<EntityProperty>(); }
+    }
+
+    public ICollection<DataProperty> DataProperties {
+      get { return _dataProperties.ReadOnlyValues; }
+    }
+
     public DataProperty GetDataProperty(String dpName) {
       return _dataProperties[dpName];
     }
 
-    internal abstract DataProperty AddDataProperty(DataProperty dp); 
+    internal virtual DataProperty AddDataProperty(DataProperty dp) {
+      UpdateClientServerName(dp);
+      _dataProperties.Add(dp);
 
-    public ReadOnlyCollection<DataProperty> DataProperties {
-      get { return new ReadOnlyCollection<DataProperty>(_dataProperties);; }
-    }
+      if (dp.IsComplexProperty) {
+        _complexProperties.Add(dp);
+      }
+
+      if (dp.IsUnmapped) {
+        _unmappedProperties.Add(dp);
+      }
+
+      return dp;
+    } 
+
+  
 
     public ReadOnlyCollection<DataProperty> ComplexProperties {
-      get { return new ReadOnlyCollection<DataProperty>(_complexProperties); }
+      get { return _complexProperties.ReadOnlyValues; }
     }
 
     public ReadOnlyCollection<DataProperty> UnmappedProperties {
-      get { return new ReadOnlyCollection<DataProperty>(_unmappedProperties); }
+      get { return _unmappedProperties.ReadOnlyValues;  }
     }
-      
-    internal void UpdateClientServerNames(NamingConvention nc, EntityProperty property) {
-      // TODO: add check for name roundtriping ( to see if ok)
+
+    internal void UpdateClientServerName(EntityProperty property) {
+      var nc = MetadataStore.NamingConvention;
       if (!String.IsNullOrEmpty(property.Name)) {
         property.NameOnServer = nc.Test(property.Name, true);
       } else {
         property.Name = nc.Test(property.NameOnServer, false);
       }
-
+    }
+      
+    internal void UpdateClientServerFkNames(EntityProperty property) {
+      // TODO: add check for name roundtriping ( to see if ok)
+      var nc = MetadataStore.NamingConvention;
       var navProp = property as NavigationProperty;
       if (navProp != null) {
         if (navProp._foreignKeyNames.Count > 0) {
@@ -89,12 +105,10 @@ namespace Breeze.NetClient {
       }
     }
 
-    
-
     protected DataPropertyCollection _dataProperties = new DataPropertyCollection();
-    protected List<DataProperty> _complexProperties = new List<DataProperty>();
-    protected List<DataProperty> _unmappedProperties = new List<DataProperty>();
-    private Type _clrType;
+    protected SafeList<DataProperty> _complexProperties = new SafeList<DataProperty>();
+    protected SafeList<DataProperty> _unmappedProperties = new SafeList<DataProperty>();
+
   }
 
 

@@ -18,24 +18,24 @@ namespace Breeze.NetClient {
     /// Create an instance of this class.
     /// </summary>
     /// <param name="entityAspect"></param>
-    protected EntityChangeEventArgs(EntityAspect entityAspect)
+    protected EntityChangeEventArgs(IEntity entity)
       : base() {
-      EntityAspect = entityAspect;
+      Entity = entity;
     }
 
     /// <summary>
     /// Returns the EntityAspect for the entity involved in the event.
     /// </summary>
     public EntityAspect EntityAspect {
-      get;
-      private set;
+      get { return Entity.EntityAspect; }
     }
 
     /// <summary>
     ///  The object that is changing or has been changed.
     /// </summary>
-    public object Entity {
-      get { return EntityAspect.Entity; }
+    public IEntity Entity {
+      get;
+      private set;
     }
 
 
@@ -52,8 +52,8 @@ namespace Breeze.NetClient {
     /// 
     /// </summary>
     /// <param name="entityAspect"></param>
-    protected EntityChangeCancelEventArgs(EntityAspect entityAspect)
-      : base(entityAspect) {
+    protected EntityChangeCancelEventArgs(IEntity entity)
+      : base(entity) {
     }
 
     /// <summary>
@@ -84,31 +84,31 @@ namespace Breeze.NetClient {
     /// <param name="entityAspect"></param>
     /// <param name="property"></param>
     /// <param name="value"></param>
-    public EntityPropertyChangingEventArgs(EntityAspect entityAspect, EntityProperty property, object value)
-      : base(entityAspect) {
-      ProposedValueParent = entityAspect;
+    public EntityPropertyChangingEventArgs(IEntity entity, EntityProperty property, object proposedValue)
+      : base(entity) {
       Property = property;
-      ProposedValueProperty = property;
-      ProposedValue = value;
+      ProposedValue = proposedValue;
       Cancel = false;
     }
 
     /// <summary>
-    /// Ctor.
+    /// 
     /// </summary>
-    /// <param name="topLevelAspect"></param>
-    /// <param name="topLevelProperty"></param>
-    /// <param name="proposedValueParent"></param>
-    /// <param name="proposedValueProperty"></param>
-    /// <param name="value"></param>
-    public EntityPropertyChangingEventArgs(EntityAspect topLevelAspect, EntityProperty topLevelProperty, Object proposedValueParent, EntityProperty proposedValueProperty, object value)
-      : base(topLevelAspect) {
-      ProposedValueParent = ProposedValueParent;
-      Property = topLevelProperty;
-      ProposedValueProperty = proposedValueProperty;
-      ProposedValue = value;
+    /// <param name="entity"></param>
+    /// <param name="property"></param>
+    /// <param name="proposedValue"></param>
+    /// <param name="nestedProperty"></param>
+    /// <param name="nestedProposedValue"></param>
+    public EntityPropertyChangingEventArgs(IEntity entity, EntityProperty property, IComplexObject proposedValue, EntityProperty nestedProperty, object nestedProposedValue)
+      : base(entity) {
+      
+      Property = property;
+      ProposedValue = proposedValue;
+      NestedProperty = nestedProperty;
+      NestedProposedValue = nestedProposedValue;
       Cancel = false;
     }
+
 
     /// <summary>
     /// Property that is changing.
@@ -116,19 +116,20 @@ namespace Breeze.NetClient {
     public EntityProperty Property { get; private set; }
 
     /// <summary>
-    /// The local parent object ( may be a complex object) containing the property being changed.
+    /// Gets or sets the proposed value of the property that is changing. 
     /// </summary>
-    public Object ProposedValueParent { get; private set; }
+    public object ProposedValue { get; set; }
 
     /// <summary>
     /// The local parent property that is actually being changed. Will be different from <see cref="Property"/> when a complex object is involved.
     /// </summary>
-    public EntityProperty ProposedValueProperty { get; private set; }
+    public EntityProperty NestedProperty { get; private set; }
 
     /// <summary>
-    /// Gets or sets the proposed value of the property that is changing.
+    /// The actual value that is being proposed - only avail if the property is on a complex object
     /// </summary>
-    public object ProposedValue { get; set; }
+    public Object NestedProposedValue { get; private set; }
+
 
   }
   #endregion
@@ -148,29 +149,19 @@ namespace Breeze.NetClient {
     /// <param name="entityAspect"></param>
     /// <param name="property"></param>
     /// <param name="newValue"></param>
-    public EntityPropertyChangedEventArgs(EntityAspect entityAspect, EntityProperty property, object newValue)
-      : base(entityAspect) {
-      NewValueParent = entityAspect;
+    public EntityPropertyChangedEventArgs(IEntity entity, EntityProperty property, object newValue)
+      : base(entity) {
       Property = property;
-      NewValueProperty = property;
       NewValue = newValue;
     }
 
-    /// <summary>
-    /// Ctor.
-    /// </summary>
-    /// <param name="topLevelAspect"></param>
-    /// <param name="topLevelProperty"></param>
-    /// <param name="newValueParent"></param>
-    /// <param name="newValueProperty"></param>
-    /// <param name="value"></param>
-    public EntityPropertyChangedEventArgs(EntityAspect topLevelAspect, EntityProperty topLevelProperty, Object newValueParent, EntityProperty newValueProperty, object value)
-      : base(topLevelAspect) {
-      NewValueParent = newValueParent;
-      Property = topLevelProperty;
-      NewValueProperty = newValueProperty;
-      NewValue = value;
-
+     public EntityPropertyChangedEventArgs(IEntity entity, EntityProperty property, IComplexObject newValue, EntityProperty nestedProperty, object nestedNewValue)
+      : base(entity) {
+      
+      Property = property;
+      NewValue = newValue;
+      NestedProperty = nestedProperty;
+      NestedNewValue = nestedNewValue;
     }
 
     /// <summary>
@@ -179,19 +170,21 @@ namespace Breeze.NetClient {
     public EntityProperty Property { get; private set; }
 
     /// <summary>
-    /// For complex objects this is the local complex object property that changed. 
-    /// </summary>
-    public EntityProperty NewValueProperty { get; private set; }
-
-    /// <summary>
-    /// For changes to complex objects this is the local Complex Object that changed.
-    /// </summary>
-    public Object NewValueParent { get; private set; }
-
-    /// <summary>
     /// The value that was just set.
     /// </summary>
     public object NewValue { get; set; }
+
+
+    /// <summary>
+    /// For complex objects this is the local complex object property that changed. 
+    /// </summary>
+    public EntityProperty NestedProperty { get; private set; }
+
+    /// <summary>
+    /// The nested value that was just set.
+    /// </summary>
+    public object NestedNewValue { get; set; }
+
 
   }
   #endregion
@@ -214,8 +207,8 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="entityAspect"></param>
     /// <param name="action"></param>
-    public EntityChangingEventArgs(EntityAspect entityAspect, EntityAction action)
-      : base(entityAspect) {
+    public EntityChangingEventArgs(IEntity entity, EntityAction action)
+      : base(entity) {
       Action = action;
       Cancel = false;
     }
@@ -243,8 +236,8 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="entityAspect"></param>
     /// <param name="action"></param>
-    public EntityChangedEventArgs(EntityAspect entityAspect, EntityAction action)
-      : base(entityAspect) {
+    public EntityChangedEventArgs(IEntity entity, EntityAction action)
+      : base(entity) {
       Action = action;
     }
 

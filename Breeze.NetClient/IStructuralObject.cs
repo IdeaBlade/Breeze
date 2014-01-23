@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
 
-  public interface IStructuralAspect {
-
-  }
+  //public interface IStructuralAspect {
+  //  StructuralType StructuralType;
+  //}
 
   /// <summary>
   /// Interface implemented by entities and complex types.  Internal use only.
@@ -17,32 +17,11 @@ namespace Breeze.NetClient {
   public interface IStructuralObject : IEditableObject, IChangeTracking, IRevertibleChangeTracking, INotifyPropertyChanged,
     INotifyDataErrorInfo, IComparable {
 
+    // IStructuralAspect StructuralAspect { get; }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="property"></param>
-    /// <param name="version"></param>
-    /// <returns></returns>
-    Object GetValueRaw(String propertyName);
-
-    /// <summary>
-    /// performs change notification
-    /// </summary>
-    /// <param name="property"></param>
-    /// <param name="newValue"></param>
+    Object GetValue(String propertyName);
+ 
     void SetValue(String propertyName, Object newValue);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="property"></param>
-    /// <param name="newValue"></param>
-    void SetValueRaw(String propertyName, object newValue);
-
-    
-    
-
 
   }
 

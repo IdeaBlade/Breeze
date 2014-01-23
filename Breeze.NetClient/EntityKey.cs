@@ -66,6 +66,10 @@ namespace Breeze.NetClient {
       }
     }
 
+    public bool IsEmpty() {
+      return (Values == null) || Values.Length == 0;
+    }
+
     /// <summary>
     /// Returns an <see cref="EntityQuery"/> to retrieve the item
     /// represented by this key.

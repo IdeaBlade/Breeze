@@ -41,25 +41,28 @@
     <Compile Include="DataService.cs" />
     <Compile Include="DataType.cs" />
     <Compile Include="DynamicComparer.cs" />
+    <Compile Include="Entity.cs" />
     <Compile Include="EntityAspect.cs" />
-    <Compile Include="EntityCache.cs" />
     <Compile Include="EntityChangeEventArgs.cs" />
     <Compile Include="EntityEnums.cs" />
     <Compile Include="EntityGroup.cs" />
     <Compile Include="EntityKey.cs" />
+    <Compile Include="EntityManagerEventArgs.cs" />
     <Compile Include="EntityQuery.cs" />
     <Compile Include="EntityQueryExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="EnumerableFns.cs" />
     <Compile Include="IEntity.cs" />
-    <Compile Include="IIdGenerator.cs" />
+    <Compile Include="IKeyGenerator.cs" />
+    <Compile Include="INavigationSet.cs" />
     <Compile Include="INotifyVerifierResults.cs" />
     <Compile Include="IStructuralObject.cs" />
     <Compile Include="JsonNet.cs" />
     <Compile Include="MergeStrategy.cs" />
     <Compile Include="OriginalValuesMap.cs" />
     <Compile Include="StackFrame.cs" />
+    <Compile Include="StructuralAspect.cs" />
     <Compile Include="StructuralType.cs" />
     <Compile Include="CsdlMetadataProcessor.cs" />
     <Compile Include="ComplexType.cs" />
@@ -70,12 +73,13 @@
     <Compile Include="MetadataStore.cs" />
     <Compile Include="TraceFns.cs" />
     <Compile Include="TypeFns.cs" />
+    <Compile Include="UnattachedChildrenMap.cs" />
     <Compile Include="UniqueId.cs" />
     <Compile Include="UsingBlock.cs" />
     <Compile Include="Utils.cs" />
-    <Compile Include="Validator.cs" />
     <Compile Include="EntityManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Validator.cs" />
     <Compile Include="WeakRefDictionary.cs" />
   </ItemGroup>
   <ItemGroup>

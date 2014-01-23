@@ -14,6 +14,7 @@ namespace Breeze.NetClient {
       ClrEntityTypes = new HashSet<Type>();
       _dataServiceMap = new Dictionary<String, string>();
     }
+    internal Dictionary<Type, StructuralType> ClrTypeMap = new Dictionary<Type, StructuralType>();
 
     public IEnumerable<EntityType> EntityTypes {
       get { return _structuralTypes.OfType<EntityType>(); }
@@ -22,7 +23,6 @@ namespace Breeze.NetClient {
       get;
       set;
     }
-
 
     public IEnumerable<ComplexType> ComplexTypes {
       get { return _structuralTypes.OfType<ComplexType>(); }
@@ -59,16 +59,60 @@ namespace Breeze.NetClient {
 
     }
 
-
-    public EntityType GetEntityType(String typeName, bool okIfNotFound = false) {
-      return GetStructuralType<EntityType>(typeName, okIfNotFound);
+    public EntityType GetEntityType(Type clrEntityType, bool okIfNotFound = false) {
+      return GetStructuralType<EntityType>(clrEntityType, okIfNotFound);
     }
 
-    public ComplexType GetComplexType(String typeName, bool okIfNotFound = false) {
-      return GetStructuralType<ComplexType>(typeName, okIfNotFound);
+    public ComplexType GetComplexType(Type clrComplexType, bool okIfNotFound = false) {
+      return GetStructuralType<ComplexType>(clrComplexType, okIfNotFound);
+    }
+
+    public T GetStructuralType<T>(Type clrEntityType, bool okIfNotFound = false) where T : class {
+      var stype = GetStructuralType(clrEntityType, okIfNotFound);
+      var ttype = stype as T;
+      if (ttype != null) {
+        return ttype;
+      } else {
+        if (okIfNotFound) return null;
+        throw new Exception("Unable to find a matching " + typeof(T).Name + " for " + clrEntityType.Name);
+      }
     }
 
 
+    public StructuralType GetStructuralType(Type clrEntityType, bool okIfNotFound = false) {
+      StructuralType stype;
+      if (ClrTypeMap.TryGetValue(clrEntityType, out stype)) {
+        return stype;
+      } else {
+        if (okIfNotFound) return null;
+        throw new Exception("Unable to find a matching EntityType or ComplexType for " + clrEntityType.Name);
+      }
+    }
+
+
+    public EntityType GetEntityType(String etName, bool okIfNotFound = false) {
+      return GetStructuralType<EntityType>(etName, okIfNotFound);
+    }
+
+    public ComplexType GetComplexType(String ctName, bool okIfNotFound = false) {
+      return GetStructuralType<ComplexType>(ctName, okIfNotFound);
+    }
+
+
+    public T GetStructuralType<T>(String typeName, bool okIfNotFound = false) where T : class {
+      var t = _structuralTypes[typeName];
+      if (t != null) {
+        var result = t as T;
+        if (result == null) {
+          throw new Exception("A type by this name exists but is not a " + typeof(T).Name);
+        }
+        return result;
+      } else if (okIfNotFound) {
+        return (T)null;
+      } else {
+        throw new Exception("Unable to locate Type: " + typeName);
+      }
+    }
 
     public EntityType AddEntityType(EntityType entityType) {
 
@@ -103,30 +147,24 @@ namespace Breeze.NetClient {
       return resourceName;
     }
 
+   
+
     public static String ANONTYPE_PREFIX = "_IB_";
 
     // Private and Internal --------------
 
-    private T GetStructuralType<T>(String typeName, bool okIfNotFound = false) where T : class {
-      if (_structuralTypes.Contains(typeName)) {
-        var t = _structuralTypes[typeName];
-        var result = t as T;
-        if (result == null) {
-          throw new Exception("A type by this name exists but is not a " + typeof(T).Name);
-        }
-        return result;
-      } else if (okIfNotFound) {
-        return (T)null;
-      } else {
-        throw new Exception("Unable to locate Type: " + typeName);
-      }
-    }
+    
 
     private void AddStructuralType(StructuralType structuralType) {
       structuralType.MetadataStore = this;
+      var clrType = this.ClrEntityTypes.FirstOrDefault(t => t.Name == structuralType.ShortName && t.Namespace == structuralType.Namespace);
+      if (clrType != null) {
+        structuralType.ClrType = clrType;
+        this.ClrTypeMap.Add(clrType, structuralType);
+      }
       //// don't register anon types
       if (!structuralType.IsAnonymous) {
-        if (_structuralTypes.Contains(structuralType.Name)) {
+        if (_structuralTypes.ContainsKey(structuralType.Name)) {
           throw new Exception("Type " + structuralType.Name + " already exists in this MetadataStore.");
         }
 
@@ -134,9 +172,7 @@ namespace Breeze.NetClient {
         _shortNameMap[structuralType.ShortName] = structuralType.Name;
       }
 
-      structuralType.Properties.ForEach(prop => {
-        structuralType.UpdateClientServerNames(this.NamingConvention, prop);
-      });
+      structuralType.Properties.ForEach(prop => structuralType.UpdateClientServerFkNames(prop));
 
       UpdateComplexProperties(structuralType);
 
@@ -159,7 +195,7 @@ namespace Breeze.NetClient {
         // check if this structural type's name, short version or qualified version has a registered ctor.
         //  structuralType.getEntityCtor();
         if (entityType.BaseEntityType != null) {
-          entityType.BaseEntityType._subtypes.Add(entityType);
+          entityType.BaseEntityType.AddSubEntityType(entityType);
         }
       }
 
@@ -173,7 +209,7 @@ namespace Breeze.NetClient {
         }
       });
 
-      GetIncompleteNavigationProperties(entityType.Name).ForEach(np => ResolveNp(np));
+      GetIncompleteNavigationProperties(entityType).ForEach(np => ResolveNp(np));
       _incompleteTypeMap.Remove(entityType.Name);
     }
 
@@ -194,12 +230,14 @@ namespace Breeze.NetClient {
         // unidirectional 1-n relationship
         np.InvForeignKeyNames.ForEach(invFkName => {
           var fkProp = entityType.GetDataProperty(invFkName);
+          
+          fkProp.IsForeignKey = true;
           var invEntityType = (EntityType)np.ParentType;
           fkProp.InverseNavigationProperty = invEntityType.NavigationProperties.FirstOrDefault(np2 => {
             return np2.InvForeignKeyNames != null && np2.InvForeignKeyNames.IndexOf(fkProp.Name) >= 0 && np2.EntityType == fkProp.ParentType;
           });
 
-          entityType._foreignKeyProperties.Add(fkProp);
+          
         });
       }
 
@@ -216,12 +254,9 @@ namespace Breeze.NetClient {
       var parentEntityType = (EntityType)np.ParentType;
       var fkProps = fkNames.Select(fkName => parentEntityType.GetDataProperty(fkName));
 
-      var fkPropCollection = parentEntityType._foreignKeyProperties;
-      // Array.prototype.push.apply(parentEntityType.foreignKeyProperties, fkProps);
-
       fkProps.ForEach(dp => {
-        fkPropCollection.Add(dp);
         dp.RelatedNavigationProperty = np;
+        dp.IsForeignKey = true;
         np._relatedDataProperties.Add(dp);
       });
     }
@@ -250,9 +285,9 @@ namespace Breeze.NetClient {
       return true;
     }
 
-    private IEnumerable<NavigationProperty> GetIncompleteNavigationProperties(String entityTypeName) {
+    private IEnumerable<NavigationProperty> GetIncompleteNavigationProperties(EntityType entityType) {
       List<NavigationProperty> results;
-      if (_incompleteTypeMap.TryGetValue(entityTypeName, out results)) {
+      if (_incompleteTypeMap.TryGetValue(entityType.Name, out results)) {
         return results;
       } else {
         return Enumerable.Empty<NavigationProperty>();
@@ -293,8 +328,9 @@ namespace Breeze.NetClient {
     private Dictionary<String, String> _shortNameMap = new Dictionary<string, string>();
     private Dictionary<String, String> _entityTypeResourceNameMap = new Dictionary<string, string>();
     private Dictionary<String, String> _resourceNameEntityTypeMap = new Dictionary<string, string>();
-    private Dictionary<String, List<NavigationProperty>> _incompleteTypeMap = new Dictionary<string, List<NavigationProperty>>(); // key is typeName
-    private Dictionary<String, List<DataProperty>> _incompleteComplexTypeMap = new Dictionary<string, List<DataProperty>>();   // key is typeName
+    private Dictionary<String, List<NavigationProperty>> _incompleteTypeMap = new Dictionary<String, List<NavigationProperty>>(); // key is typeName
+    private Dictionary<String, List<DataProperty>> _incompleteComplexTypeMap = new Dictionary<String, List<DataProperty>>();   // key is typeName
+    
     private Dictionary<String, String> _dataServiceMap;
 
   }
