@@ -41,6 +41,7 @@
     <Compile Include="DataService.cs" />
     <Compile Include="DataType.cs" />
     <Compile Include="DynamicComparer.cs" />
+    <Compile Include="Entity.cs" />
     <Compile Include="EntityAspect.cs" />
     <Compile Include="EntityChangeEventArgs.cs" />
     <Compile Include="EntityEnums.cs" />

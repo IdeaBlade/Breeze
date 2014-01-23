@@ -32,15 +32,7 @@ namespace Breeze.NetClient {
   public class EntityAspect : StructuralAspect, IEditableObject, IChangeTracking, IRevertibleChangeTracking, INotifyPropertyChanged,
     INotifyDataErrorInfo, IComparable {
     // what about IDataErrorInfo
-    /// <summary>
-    /// See <see cref="TraceFns.Assert(bool)"/>
-    /// </summary>
-    [Conditional("DEBUG")]
-    public static void ViolationCheck(object obj) {
-      if (obj is EntityAspect) {
-        throw new InvalidOperationException("An EntityAspect instance should not get here.");
-      }
-    }
+ 
 
     /// <summary>
     /// 'Magic' string that can be used to return all errors from <see cref="INotifyDataErrorInfo.GetErrors"/>.
@@ -54,26 +46,16 @@ namespace Breeze.NetClient {
     /// 
     /// </summary>
     /// <param name="entity"></param>
-    public EntityAspect(IEntity entity) {
-      _entity = entity;
+    public EntityAspect(IEntity entity, EntityType entityType) {
+      Entity = entity;
+      EntityType = entityType;
       IndexInEntityGroup = -1;
     }
-
-
 
     /// <summary>
     /// Returns the wrapped entity.
     /// </summary>
-    public IEntity Entity {
-      get {
-        EntityAspect.ViolationCheck(_entity);
-        return _entity;
-      }
-      set {
-        EntityAspect.ViolationCheck(value);
-        _entity = value;
-      }
-    }
+    public IEntity Entity { get; private set; }
 
     public EntityType EntityType { get; private set; }
 
@@ -367,6 +349,14 @@ namespace Breeze.NetClient {
 
     #region GetValue(s)/SetValue methods
 
+    public Object GetValue(String propertyName) {
+      return Entity.GetValue(propertyName);
+    }
+
+    public Object GetValue(EntityProperty property) {
+      return Entity.GetValue(property.Name);
+    }
+
     public void SetValue(String propertyName, object newValue) {
       var prop = EntityType.GetProperty(propertyName);
       if (prop != null) {
@@ -376,9 +366,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    public Object GetValue(EntityProperty property) {
-      return Entity.GetValue(property.Name);
-    }
+   
 
     internal void SetValue(EntityProperty property, object newValue) {
       if (property.IsDataProperty) {
@@ -436,85 +424,12 @@ namespace Breeze.NetClient {
       }
     }
 
-    private void SetCpValue(DataProperty property, object newValue, object oldValue) {
-      if (property.IsScalar) {
-        if (newValue == null) {
-          throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
-        }
-        var oldCo = (IComplexObject)oldValue;
-        var newCo = (IComplexObject)newValue;
-        oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
-      } else {
-        throw new Exception(String.Format("You cannot set the non-scalar complex property: '{0}' on the type: '{1}'." +
-            "Instead get the property and use collection functions like 'Add' and 'Remove' to change its contents.",
-            property.Name, property.ParentType.Name));
-      }
-
-    }
-
-    private void SetDpValue(DataProperty property, object newValue, object oldValue) {
-      // if we are changing the key update our internal entityGroup indexes.
-      if (property.IsPartOfKey && EntityManager != null && !EntityManager.IsLoadingEntity) {
-
-        var values = EntityType.KeyProperties.Select(p => (p == property) ? newValue : GetValue(p));
-        var newKey = new EntityKey(EntityType, values);
-        if (EntityManager.FindEntityByKey(newKey) != null) {
-          throw new Exception("An entity with this key is already in the cache: " + newKey);
-        }
-        var oldKey = EntityKey;
-        var eg = EntityManager.GetEntityGroup(EntityType.ClrType);
-        eg.ReplaceKey(this, oldKey, newKey);
-      }
-
-      TrackChange(property);
-
-      UpdateRelated(property, newValue, oldValue);
-
-      // Actually set the value;
-      Entity.SetValue(property.Name, newValue);
-
-      // NOTE: next few lines are the same as above but not refactored for perf reasons.
-      if (EntityManager != null && !EntityManager.IsLoadingEntity) {
-        if (EntityState.IsUnchanged() && !property.IsUnmapped) {
-          EntityState = EntityState.Modified;
-        }
-        //if (entityManager.validationOptions.validateOnPropertyChange) {
-        //    entityAspect._validateProperty(newValue,
-        //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
-        //}
-      }
-
-      if (property.IsPartOfKey) {
-        // propogate pk change to all related entities;
-
-        var propertyIx = EntityType.KeyProperties.IndexOf(property);
-        EntityType.NavigationProperties.ForEach(np => {
-          var inverseNp = np.Inverse;
-          var fkNames = inverseNp != null ? inverseNp.ForeignKeyNames : np.InvForeignKeyNames;
-
-          if (fkNames.Count == 0) return;
-          var npValue = GetValue(np);
-          var fkName = fkNames[propertyIx];
-          if (np.IsScalar) {
-            if (npValue == null) return;
-            ((IEntity)npValue).EntityAspect.SetValue(fkName, newValue);
-          } else {
-            ((INavigationSet)npValue).Cast<IEntity>().ForEach(e => e.EntityAspect.SetValue(fkName, newValue));
-          }
-        });
-        // insure that cached key is updated.
-        EntityKey = null;
-      }
-
-    }
-
     internal void SetValue(NavigationProperty property, object newValue) {
       // property is a NavigationProperty
 
       if (!property.IsScalar) {
         throw new Exception("Nonscalar navigation properties are readonly - entities can be added or removed but the collection may not be changed.");
       }
-
 
       var oldValue = Entity.GetValue(property.Name);
       if (Object.Equals(oldValue, newValue)) return;
@@ -644,6 +559,77 @@ namespace Breeze.NetClient {
 
     }
 
+    private void SetCpValue(DataProperty property, object newValue, object oldValue) {
+      if (property.IsScalar) {
+        if (newValue == null) {
+          throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
+        }
+        var oldCo = (IComplexObject)oldValue;
+        var newCo = (IComplexObject)newValue;
+        oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
+      } else {
+        throw new Exception(String.Format("You cannot set the non-scalar complex property: '{0}' on the type: '{1}'." +
+            "Instead get the property and use collection functions like 'Add' and 'Remove' to change its contents.",
+            property.Name, property.ParentType.Name));
+      }
+
+    }
+
+    private void SetDpValue(DataProperty property, object newValue, object oldValue) {
+      // if we are changing the key update our internal entityGroup indexes.
+      if (property.IsPartOfKey && EntityManager != null && !EntityManager.IsLoadingEntity) {
+
+        var values = EntityType.KeyProperties.Select(p => (p == property) ? newValue : GetValue(p));
+        var newKey = new EntityKey(EntityType, values);
+        if (EntityManager.FindEntityByKey(newKey) != null) {
+          throw new Exception("An entity with this key is already in the cache: " + newKey);
+        }
+        var oldKey = EntityKey;
+        var eg = EntityManager.GetEntityGroup(EntityType.ClrType);
+        eg.ReplaceKey(this, oldKey, newKey);
+      }
+
+      TrackChange(property);
+
+      UpdateRelated(property, newValue, oldValue);
+
+      // Actually set the value;
+      Entity.SetValue(property.Name, newValue);
+
+      // NOTE: next few lines are the same as above but not refactored for perf reasons.
+      if (EntityManager != null && !EntityManager.IsLoadingEntity) {
+        if (EntityState.IsUnchanged() && !property.IsUnmapped) {
+          EntityState = EntityState.Modified;
+        }
+        //if (entityManager.validationOptions.validateOnPropertyChange) {
+        //    entityAspect._validateProperty(newValue,
+        //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
+        //}
+      }
+
+      if (property.IsPartOfKey) {
+        // propogate pk change to all related entities;
+
+        var propertyIx = EntityType.KeyProperties.IndexOf(property);
+        EntityType.NavigationProperties.ForEach(np => {
+          var inverseNp = np.Inverse;
+          var fkNames = inverseNp != null ? inverseNp.ForeignKeyNames : np.InvForeignKeyNames;
+
+          if (fkNames.Count == 0) return;
+          var npValue = GetValue(np);
+          var fkName = fkNames[propertyIx];
+          if (np.IsScalar) {
+            if (npValue == null) return;
+            ((IEntity)npValue).EntityAspect.SetValue(fkName, newValue);
+          } else {
+            ((INavigationSet)npValue).Cast<IEntity>().ForEach(e => e.EntityAspect.SetValue(fkName, newValue));
+          }
+        });
+        // insure that cached key is updated.
+        EntityKey = null;
+      }
+
+    }
 
 
     private void UpdateRelated(DataProperty property, object newValue, object oldValue) {
@@ -1348,6 +1334,14 @@ namespace Breeze.NetClient {
 
     #region Misc private and internal methods/properties
 
+    
+    // TODO: check if ever used
+    internal bool IsCurrent(EntityAspect targetAspect, EntityAspect sourceAspect) {
+      var targetVersion = (targetAspect.EntityState == EntityState.Deleted) ? EntityVersion.Original : EntityVersion.Current;
+      bool isCurrent = EntityType.ConcurrencyProperties.All(c => (Object.Equals(targetAspect.GetValue(c, targetVersion), sourceAspect.GetValue(c, EntityVersion.Current))));
+      return isCurrent;
+    }
+
     internal bool InProcess {
       get;
       set;
@@ -1566,9 +1560,6 @@ namespace Breeze.NetClient {
 
 #endif
 
-
-
-    private IEntity _entity;
     private EntityKey _entityKey;
     private EntityState _entityState = EntityState.Detached;
 

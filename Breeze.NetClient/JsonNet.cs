@@ -20,6 +20,21 @@ namespace Breeze.NetClient {
       return Activator.CreateInstance(objectType);
     }
 
+    protected override Object Populate(Object target, JObject jObject, JsonSerializer serializer) {
+      var entity = target as Entity;
+      if (entity != null) {
+        if (entity.EntityAspect == null) {
+          var entityType = _metadataStore.GetEntityType(target.GetType());
+          entity.EntityAspect = new EntityAspect(entity, entityType);
+        }
+        entity.SetBacking(jObject);
+      } else {
+        // Populate the object properties
+        serializer.Populate(jObject.CreateReader(), target);
+      }
+      return target;
+    }
+
     public override bool CanConvert(Type objectType) {
       return _metadataStore.ClrEntityTypes.Contains(objectType);
     }
@@ -40,6 +55,11 @@ namespace Breeze.NetClient {
     /// <returns></returns>
     protected abstract Object Create(Type objectType, JObject jObject);
 
+    protected virtual Object Populate(Object target, JObject jObject, JsonSerializer serializer) {
+      serializer.Populate(jObject.CreateReader(), target);
+      return target;
+    }
+
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
       
       if (reader.TokenType != JsonToken.Null) {
@@ -50,8 +70,9 @@ namespace Breeze.NetClient {
         // Create target object based on JObject
         var target = Create(objectType, jObject);
 
-        // Populate the object properties
-        serializer.Populate(jObject.CreateReader(), target);
+        Populate(target, jObject, serializer);
+
+
         return target;
       } else {
         return  null;

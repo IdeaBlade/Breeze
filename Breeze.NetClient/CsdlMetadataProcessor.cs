@@ -37,7 +37,8 @@ namespace Breeze.NetClient {
       var isAbstract = abstractVal == "true";
       var entityType = new EntityType {
         ShortName = nameVal,
-        Namespace = GetNamespaceFor(nameVal)
+        Namespace = GetNamespaceFor(nameVal),
+        MetadataStore = _metadataStore
       };
       if (baseTypeVal != null) {
         var baseTypeInfo = ParseTypeName(baseTypeVal);
@@ -166,7 +167,8 @@ namespace Breeze.NetClient {
         MaxLength = maxLength,
         DefaultValue = csdlProperty["defaultValue"],
         // fixedLength: fixedLength,
-        ConcurrencyMode = concurrencyMode
+        ConcurrencyMode = concurrencyMode,
+        IsScalar = true 
       };
 
       if (dataType == DataType.Undefined) {
@@ -257,6 +259,7 @@ namespace Breeze.NetClient {
       var complexType = new ComplexType {
         ShortName = nameVal,
         Namespace = ns,
+        MetadataStore = _metadataStore,
       };
 
       ToEnumerable(csdlComplexType["property"])
@@ -264,6 +267,45 @@ namespace Breeze.NetClient {
 
       _metadataStore.AddComplexType(complexType);
       return complexType;
+    }
+
+    public TypeNameInfo ParseTypeName(String clrTypeName) {
+      if (String.IsNullOrEmpty(clrTypeName)) return null;
+      if (clrTypeName.StartsWith(MetadataStore.ANONTYPE_PREFIX)) {
+        return new TypeNameInfo() {
+          ShortTypeName = clrTypeName,
+          Namespace = "",
+          TypeName = clrTypeName,
+          IsAnonymous = true,
+        };
+      }
+
+      var entityTypeNameNoAssembly = clrTypeName.Split(',')[0];
+      var nameParts = entityTypeNameNoAssembly.Split('.');
+      if (nameParts.Length > 1) {
+        var shortName = nameParts[nameParts.Length - 1];
+        // var nsParts = nameParts.Take(nameParts.Length - 1).ToArray();
+        var ns = GetNamespaceFor(shortName);
+
+        return new TypeNameInfo() {
+          ShortTypeName = shortName,
+          Namespace = ns,
+          TypeName = StructuralType.QualifyTypeName(shortName, ns)
+        };
+      } else {
+        return new TypeNameInfo() {
+          ShortTypeName = clrTypeName,
+          Namespace = "",
+          TypeName = clrTypeName
+        };
+      }
+    }
+
+    internal class TypeNameInfo {
+      public String ShortTypeName { get; set; }
+      public String Namespace { get; set; }
+      public String TypeName { get; set; }
+      public Boolean IsAnonymous { get; set; }
     }
 
     private String GetNamespaceFor(String shortName) {
@@ -342,37 +384,7 @@ namespace Breeze.NetClient {
       return typeParts;
     }
 
-    private TypeNameInfo ParseTypeName(String entityTypeName) {
-      if (String.IsNullOrEmpty(entityTypeName)) return null;
-      if (entityTypeName.StartsWith(MetadataStore.ANONTYPE_PREFIX)) {
-        return new TypeNameInfo() {
-          ShortTypeName = entityTypeName,
-          Namespace = "",
-          TypeName = entityTypeName,
-          IsAnonymous = true,
-        };
-      }
 
-      var entityTypeNameNoAssembly = entityTypeName.Split(',')[0];
-      var nameParts = entityTypeNameNoAssembly.Split('.');
-      if (nameParts.Length > 1) {
-        var shortName = nameParts[nameParts.Length - 1];
-        // var nsParts = nameParts.Take(nameParts.Length - 1).ToArray();
-        var ns = GetNamespaceFor(shortName);
-
-        return new TypeNameInfo() {
-          ShortTypeName = shortName,
-          Namespace = ns,
-          TypeName = StructuralType.QualifyTypeName(shortName, ns)
-        };
-      } else {
-        return new TypeNameInfo() {
-          ShortTypeName = entityTypeName,
-          Namespace = "",
-          TypeName = entityTypeName
-        };
-      }
-    }
 
 
 
@@ -386,12 +398,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    internal class TypeNameInfo {
-      public String ShortTypeName { get; set; }
-      public String Namespace { get; set; }
-      public String TypeName { get; set; }
-      public Boolean IsAnonymous { get; set; }
-    }
+    
 
     private class DeferredTypeInfo {
       public EntityType EntityType { get; set; }

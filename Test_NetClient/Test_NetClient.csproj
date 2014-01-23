@@ -58,9 +58,9 @@
       <Project>{54b1ce10-2847-4565-839a-26da3a51af38}</Project>
       <Name>Breeze.NetClient</Name>
     </ProjectReference>
-    <ProjectReference Include="..\_Internal\Model_NorthwindIB_CF.EF6\Model_NorthwindIB_CF.EF6.csproj">
-      <Project>{763b4341-7a4e-4880-a4e2-31aadc05f1ad}</Project>
-      <Name>Model_NorthwindIB_CF.EF6</Name>
+    <ProjectReference Include="..\_Internal\Model_Northwind_NetClient\Model_Northwind_NetClient.csproj">
+      <Project>{afbede2c-1937-4a3a-88a1-046973d969e5}</Project>
+      <Name>Model_Northwind_NetClient</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

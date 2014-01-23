@@ -40,9 +40,9 @@ namespace Breeze.NetClient {
     /// <summary>
     /// For internal use only.
     /// </summary>
-    /// <param name="entityType"></param>
-    protected EntityGroup(Type entityType) {
-      ClrType = entityType;
+    /// <param name="clrEntityType"></param>
+    protected EntityGroup(Type clrEntityType) {
+      ClrType = clrEntityType;
       Initialize();
     }
 
@@ -57,25 +57,30 @@ namespace Breeze.NetClient {
     /// <summary>
     /// Creates an instance of an EntityGroup for a specific entity type.
     /// </summary>
-    /// <param name="entityType"></param>
+    /// <param name="clrEntityType"></param>
     /// <returns></returns>
-    public static EntityGroup Create(Type entityType) {
+    public static EntityGroup Create(Type clrEntityType) {
       EntityGroup aEntityGroup;
-      Type egType = typeof(EntityGroup<>).MakeGenericType(entityType);
+      Type egType = typeof(EntityGroup<>).MakeGenericType(clrEntityType);
       aEntityGroup = (EntityGroup)Activator.CreateInstance(egType);
-      aEntityGroup.IsNullGroup = false;
+      
       return aEntityGroup;
     }
+
+    #endregion
+
+    #region Null EntityGroup
+
+   
 
     /// <summary>
     /// Whether or not this is the 'null group.  The 'null' group contains no entities and is automatically provided to detached entities.
     /// </summary>
     public bool IsNullGroup {
-      get;
-      internal set;
+      get {  return this.ClrType == typeof(Object); }
     }
 
-    #endregion
+#endregion
 
     #region events
     /// <summary>
@@ -94,6 +99,85 @@ namespace Breeze.NetClient {
     /// Fired whenever an entity's state has changed in any significant manner.
     /// </summary>
     public event EventHandler<EntityChangedEventArgs> EntityChanged;
+
+    internal virtual void OnEntityPropertyChanging(EntityPropertyChangingEventArgs e) {
+      if (!ChangeNotificationEnabled) return;
+      TryToHandle(EntityPropertyChanging, e);
+    }
+
+    // Fires both entity.PropertyChanged and EntityGroup.EntityPropertyChanged
+    internal virtual void OnEntityPropertyChanged(EntityPropertyChangedEventArgs e) {
+      if (!ChangeNotificationEnabled) return;
+      QueueEvent(() => OnEntityPropertyChangedCore(e));
+    }
+
+    private void OnEntityPropertyChangedCore(EntityPropertyChangedEventArgs e) {
+      e.EntityAspect.FirePropertyChanged(new PropertyChangedEventArgs(e.Property.Name));
+      TryToHandle(EntityPropertyChanged, e);
+    }
+
+    // Needs to be call regardless of the ChangeNotification flag
+    internal virtual void OnEntityChanging(EntityChangingEventArgs e) {
+      if (ChangeNotificationEnabled) {
+        TryToHandle(EntityChanging, e);
+        if (!e.Cancel) {
+          if (EntityManager != null) EntityManager.OnEntityChanging(e);
+        }
+      } else {
+
+      }
+    }
+
+    protected internal void OnEntityChanged(IEntity entity, EntityAction entityAction) {
+      OnEntityChanged(new EntityChangedEventArgs(entity, entityAction));
+    }
+
+    /// <summary>
+    /// Raises the <see cref="EntityGroup.EntityChanged"/> event if <see cref="ChangeNotificationEnabled"/> is set.
+    /// </summary>
+    /// <param name="e"></param>
+    // need this because EntityState changes after the PropertyChanged event fires
+    // which causes EntityState to be stale in the PropertyChanged event
+    // Needs to be called regardless of the ChangeNotification flag
+    protected internal void OnEntityChanged(EntityChangedEventArgs e) {
+      if (ChangeNotificationEnabled) {
+        QueueEvent(() => OnEntityChangedCore(e));
+      }
+    }
+
+    private void QueueEvent(Action action) {
+      if (EntityManager != null && EntityManager.IsLoadingEntity) {
+        EntityManager.QueuedEvents.Add(() => action());
+      } else {
+        action();
+      }
+    }
+
+    private void OnEntityChangedCore(EntityChangedEventArgs e) {
+      // change actions will fire property change inside of OnPropertyChanged 
+      if (e.Action != EntityAction.PropertyChange) {
+        e.EntityAspect.FirePropertyChanged(AllPropertiesChangedEventArgs);
+      }
+      TryToHandle(EntityChanged, e);
+      if (EntityManager != null) EntityManager.OnEntityChanged(e);
+    }
+
+    private void TryToHandle<T>(EventHandler<T> handler, T args) where T : EventArgs {
+      if (handler == null) return;
+      try {
+        handler(this, args);
+      } catch {
+        // Throw handler exceptions if not loading.
+        if (EntityManager != null && !EntityManager.IsLoadingEntity) throw;
+        // Also throw if loading but action is add or attach.
+        var changing = args as EntityChangingEventArgs;
+        if (changing != null && (changing.Action == EntityAction.Attach)) throw;
+        var changed = args as EntityChangedEventArgs;
+        if (changed != null && (changed.Action == EntityAction.Attach)) throw;
+        // Other load exceptions are eaten.  Yummy!
+      }
+    }
+
     #endregion
 
     #region Public properties
@@ -107,6 +191,14 @@ namespace Breeze.NetClient {
     }
 
     public Type ClrType {
+      get;
+      private set;
+    }
+
+    /// <summary>
+    /// The <see cref="T:IdeaBlade.EntityModel.EntityManager"/> which manages this EntityGroup.
+    /// </summary>
+    public EntityManager EntityManager {
       get;
       private set;
     }
@@ -126,40 +218,6 @@ namespace Breeze.NetClient {
     }
 
     /// <summary>
-    /// The <see cref="T:IdeaBlade.EntityModel.EntityManager"/> which manages this EntityGroup.
-    /// </summary>
-    public EntityManager EntityManager {
-      get;
-      private set; 
-    }
-
-    internal void Clear() {
-      _entityAspects.Clear();
-      _entityKeyMap.Clear();
-      _selfAndSubtypeGroups = null;
-      IsDetached = true;
-    }
-
-    internal bool IsDetached {
-      get;
-      private set;
-    }
-
-    /// <summary>
-    /// The default name of the entity set to use when creating new entities when a name is not provided.
-    /// </summary>
-    /// <remarks>
-    /// See Microsoft Entity Framework documentation for information on the EntitySet class.  The default
-    /// name is auto-generated by the DevForce Object Mapping tool during code generation.
-    ///</remarks>
-    public virtual String DefaultResourceName {
-      get {
-        return this.EntityType.DefaultResourceName;
-      }
-    }
-
-
-    /// <summary>
     /// Used to suppress change events during the modification of entities within this group.
     /// </summary>
     public bool ChangeNotificationEnabled {
@@ -167,17 +225,14 @@ namespace Breeze.NetClient {
       set;
     }
 
-
     /// <summary>
     /// Returns a list of groups for this entity type and all sub-types.
     /// </summary>
     public ReadOnlyCollection<EntityGroup> SelfAndSubtypeGroups {
       get {
         if (_selfAndSubtypeGroups == null) {
-          //var selfAndSubtypes = EntityType.Instance.GetSelfAndSubtypes(this.EntityType);
-          //_selfAndSubtypeGroups = new ReadOnlyCollection<EntityGroup>(selfAndSubtypes
-          //  .Select(t => this.EntityManager.GetEntityGroup(t))
-          //  .ToList());
+          var list = EntityType.Subtypes.Select(et => EntityManager.GetOrCreateEntityGroup(et.ClrType)).ToList();
+          _selfAndSubtypeGroups = new ReadOnlyCollection<EntityGroup>(list);
         }
         return _selfAndSubtypeGroups;
       }
@@ -185,7 +240,18 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    
+    #region Misc public methods
+
+    /// <summary>
+    /// Returns the EntityGroup name corresponding to any <see cref="IEntity"/> subtype.
+    /// </summary>
+    /// <param name="entityType"></param>
+    /// <returns></returns>
+    public static String GetNameFor(Type entityType) {
+      return entityType.FullName;
+    }
+
+    #endregion
 
     #region Get/Accept/Reject changes methods
 
@@ -226,110 +292,20 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region Misc public methods
+    #region Internal props/methods 
 
-   
-
-    #endregion
-
-    /// <summary>
-    /// Returns the EntityGroup name corresponding to any <see cref="IEntity"/> subtype.
-    /// </summary>
-    /// <param name="entityType"></param>
-    /// <returns></returns>
-    public static String GetNameFor(Type entityType) {
-      return entityType.FullName;
+    internal void Clear() {
+      _entityAspects.Clear();
+      _entityKeyMap.Clear();
+      _selfAndSubtypeGroups = null;
+      IsDetached = true;
     }
 
-    #endregion
-
-    #region OnXXXChanged(Changing) methods ( currently all protected internal)
-
-    internal virtual void OnEntityPropertyChanging(EntityPropertyChangingEventArgs e) {
-      if (!ChangeNotificationEnabled) return;
-      TryToHandle(EntityPropertyChanging, e);
+    internal bool IsDetached {
+      get;
+      private set;
     }
 
-    // Fires both entity.PropertyChanged and EntityGroup.EntityPropertyChanged
-    internal virtual void OnEntityPropertyChanged(EntityPropertyChangedEventArgs e) {
-      if (!ChangeNotificationEnabled) return;
-      QueueEvent(() => OnEntityPropertyChangedCore(e));
-    }
-
-    private void OnEntityPropertyChangedCore(EntityPropertyChangedEventArgs e) {
-      e.EntityAspect.FirePropertyChanged(new PropertyChangedEventArgs(e.Property.Name));
-      TryToHandle(EntityPropertyChanged, e);
-    }
-
-    // Needs to be call regardless of the ChangeNotification flag
-    internal virtual void OnEntityChanging(EntityChangingEventArgs e) {
-      if (ChangeNotificationEnabled) {
-        TryToHandle(EntityChanging, e);
-        if (!e.Cancel) {
-          if (EntityManager != null) EntityManager.OnEntityChanging(e);
-        }
-      } else {
-        
-      }
-    }
-
-    protected internal void OnEntityChanged(IEntity entity, EntityAction entityAction) {
-      OnEntityChanged(new EntityChangedEventArgs(entity, entityAction));
-    }
-
-    /// <summary>
-    /// Raises the <see cref="EntityGroup.EntityChanged"/> event if <see cref="ChangeNotificationEnabled"/> is set.
-    /// </summary>
-    /// <param name="e"></param>
-    // need this because EntityState changes after the PropertyChanged event fires
-    // which causes EntityState to be stale in the PropertyChanged event
-    // Needs to be called regardless of the ChangeNotification flag
-    protected internal void OnEntityChanged(EntityChangedEventArgs e) {
-      if (ChangeNotificationEnabled) {
-        QueueEvent(() => OnEntityChangedCore(e));
-      }
-    }
-
-    private void QueueEvent(Action action) {
-      if (EntityManager != null && EntityManager.IsLoadingEntity) {
-        EntityManager.QueuedEvents.Add(() => action());
-      } else {
-        action();
-      }
-    }
-
-
-
-
-    private void OnEntityChangedCore(EntityChangedEventArgs e) {
-      // change actions will fire property change inside of OnPropertyChanged 
-      if (e.Action != EntityAction.PropertyChange) {
-        e.EntityAspect.FirePropertyChanged(AllPropertiesChangedEventArgs);
-      }
-      TryToHandle(EntityChanged, e);
-      if (EntityManager != null) EntityManager.OnEntityChanged(e);
-    }
-
-    private void TryToHandle<T>(EventHandler<T> handler, T args) where T : EventArgs {
-      if (handler == null) return;
-      try {
-        handler(this, args);
-      } catch {
-        // Throw handler exceptions if not loading.
-        if (EntityManager != null && !EntityManager.IsLoadingEntity) throw;
-        // Also throw if loading but action is add or attach.
-        var changing = args as EntityChangingEventArgs;
-        if (changing != null && (changing.Action == EntityAction.Attach)) throw;
-        var changed = args as EntityChangedEventArgs;
-        if (changed != null && (changed.Action == EntityAction.Attach)) throw;
-        // Other load exceptions are eaten.  Yummy!
-      }
-    }
-
-    #endregion
-
-
-    #region Entity methods ( all internal or private)
 
     internal EntityAspect FindEntityAspect(EntityKey entityKey, bool includeDeleted) {
       EntityAspect result;
@@ -372,7 +348,30 @@ namespace Breeze.NetClient {
       _entityKeyMap.Remove(oldKey);  // it may not exist if this object was just Imported or Queried.
       _entityKeyMap.Add(newKey, entityAspect);
     }
-      
+
+    #endregion
+
+    #region private and protected
+
+    /// <summary>
+    /// Returns a collection of entities of given entity type
+    /// </summary>
+    protected IEnumerable<EntityAspect> LocalEntityAspects {
+      get {
+        return _entityAspects;
+      }
+    }
+
+    /// <summary>
+    /// Returns a collection of entities of given entity type and its sub-types.
+    /// </summary>
+    protected IEnumerable<EntityAspect> EntityAspects {
+      get {
+        return SelfAndSubtypeGroups
+            .SelectMany(f => f.LocalEntityAspects);
+      }
+    }
+
     private EntityAspect MergeEntityAspect(EntityAspect entityAspect, EntityAspect targetEntityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
       if (entityAspect == targetEntityAspect) {
         entityAspect.EntityState = entityState;
@@ -399,20 +398,6 @@ namespace Breeze.NetClient {
       _entityAspects.Add(aspect);
     }
 
-    // can overload for perf if necessary
-    /// <summary>
-    /// For internal use only.
-    /// </summary>
-    /// <param name="targetAspect"></param>
-    /// <param name="sourceAspect"></param>
-    /// <returns></returns>
-    protected virtual bool IsCurrent(EntityAspect targetAspect, EntityAspect sourceAspect) {
-      var targetVersion = (targetAspect.EntityState == EntityState.Deleted) ? EntityVersion.Original : EntityVersion.Current;
-      bool isCurrent = EntityType.ConcurrencyProperties.All(c => (Object.Equals(targetAspect.GetValue(c, targetVersion), sourceAspect.GetValue(c, EntityVersion.Current))));
-      return isCurrent;
-    }
-
-
     private void AddToKeyMap(EntityAspect aspect) {
       try {
         _entityKeyMap.Add(aspect.EntityKey, aspect);
@@ -425,29 +410,6 @@ namespace Breeze.NetClient {
       _entityKeyMap.Remove(aspect.EntityKey);
     }
 
-    #endregion
-
-    #region Internal and Private
-
-    /// <summary>
-    /// Returns a collection of entities of given entity type
-    /// </summary>
-    internal IEnumerable<EntityAspect> LocalEntityAspects {
-      get {
-        return _entityAspects;
-      }
-    }
-
-    /// <summary>
-    /// Returns a collection of entities of given entity type and its sub-types.
-    /// </summary>
-    internal IEnumerable<EntityAspect> EntityAspects {
-      get {
-        return SelfAndSubtypeGroups
-            .SelectMany(f => f.LocalEntityAspects);
-      }
-    }
-
     private void Initialize() {
       _entityAspects = new EntityCollection();
       _entityKeyMap = new Dictionary<EntityKey, EntityAspect>();
@@ -455,7 +417,10 @@ namespace Breeze.NetClient {
       ChangeNotificationEnabled = false;
     }
 
-    
+    #endregion
+
+    #region explict interfaces
+
     Type IGrouping<Type, EntityAspect>.Key {
       get { return this.EntityType.ClrType; }
     }
@@ -467,8 +432,6 @@ namespace Breeze.NetClient {
     IEnumerator IEnumerable.GetEnumerator() {
       return EntityAspects.GetEnumerator();
     }
-
-
 
     #endregion
 
@@ -496,10 +459,9 @@ namespace Breeze.NetClient {
 
     #endregion
 
-
-
   }
-  
+
+  #endregion
 
   #region EntityGroup<T>
   /// <summary>
@@ -556,6 +518,8 @@ namespace Breeze.NetClient {
 
   }
   #endregion
+
+  #region EntityCollection and EntityGroupCollection
 
   internal class EntityCollection : IEnumerable<EntityAspect> {
 
@@ -630,4 +594,5 @@ namespace Breeze.NetClient {
     }
 
   }
+#endregion
 }

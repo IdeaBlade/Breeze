@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample_WPF.EF6", "Sample_WP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_NetClient", "Test_NetClient\Test_NetClient.csproj", "{6CD50150-C95F-4E6C-BE8C-F1C94453D8D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_Northwind_NetClient", "_Internal\Model_Northwind_NetClient\Model_Northwind_NetClient.csproj", "{AFBEDE2C-1937-4A3A-88A1-046973D969E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -334,6 +336,21 @@ Global
 		{6CD50150-C95F-4E6C-BE8C-F1C94453D8D0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{6CD50150-C95F-4E6C-BE8C-F1C94453D8D0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{6CD50150-C95F-4E6C-BE8C-F1C94453D8D0}.Release|x86.ActiveCfg = Release|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Debug-ODATA|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Debug-ODATA|Any CPU.Build.0 = Debug|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Debug-ODATA|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Debug-ODATA|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Debug-ODATA|x86.ActiveCfg = Debug|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

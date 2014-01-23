@@ -31,6 +31,113 @@ namespace Breeze.NetClient {
       JsonConverter = em.JsonConverter;
     }
 
+    public DataService DefaultDataService { get; private set; }
+
+    public MetadataStore MetadataStore { get; private set; }
+
+    public JsonConverter JsonConverter { get; private set; }
+
+    public async Task<String> FetchMetadata(DataService dataService = null) {
+      dataService = dataService != null ? dataService : this.DefaultDataService;
+      var metadata = await MetadataStore.FetchMetadata(dataService);
+      return metadata;
+    }
+
+    public async Task<IEnumerable<T>> ExecuteQuery<T>(EntityQuery<T> query) {
+      var dataService = query.DataService != null ? query.DataService : this.DefaultDataService;
+      await FetchMetadata(dataService);
+      var resourcePath = query.GetResourcePath();
+      // HACK
+      resourcePath = resourcePath.Replace("/*", "");
+      var result = await dataService.GetAsync(resourcePath);
+
+      if (resourcePath.Contains("inlinecount")) {
+        return JsonConvert.DeserializeObject<QueryResult<T>>(result, JsonConverter);
+      } else {
+        return JsonConvert.DeserializeObject<IEnumerable<T>>(result, JsonConverter);
+      }
+
+    }
+
+    #region Event methods
+
+
+    /// <summary>
+    /// Fired whenever an entity's state is changing in any significant manner.
+    /// </summary>
+    public event EventHandler<EntityChangingEventArgs> EntityChanging;
+
+    /// <summary>
+    /// Fired whenever an entity's state has changed in any significant manner.
+    /// </summary>
+    public event EventHandler<EntityChangedEventArgs> EntityChanged;
+
+    public event EventHandler<EntityManagerHasChangesChangedEventArgs> HasChangesChanged;
+
+
+    internal void OnEntityChanging(IEntity entity, EntityAction entityAction) {
+      OnEntityChanging(new EntityChangingEventArgs(entity, entityAction));
+    }
+
+    internal virtual void OnEntityChanging(EntityChangingEventArgs args) {
+      EventHandler<EntityChangingEventArgs> handler = EntityChanging;
+      if (handler != null) {
+        try {
+          handler(this, args);
+        } catch {
+          // Eat any handler exceptions during load (query or import) - throw for all others. 
+          if (!(args.Action == EntityAction.AttachOnQuery || args.Action == EntityAction.AttachOnImport)) throw;
+        }
+      }
+    }
+
+    internal void OnEntityChanged(IEntity entity, EntityAction entityAction) {
+      OnEntityChanged(new EntityChangedEventArgs(entity, entityAction));
+    }
+
+    internal virtual void OnEntityChanged(EntityChangedEventArgs args) {
+      EventHandler<EntityChangedEventArgs> handler = EntityChanged;
+      if (handler != null) {
+        try {
+          handler(this, args);
+        } catch {
+          // Eat any handler exceptions during load (query or import) - throw for all others. 
+          if (!(args.Action == EntityAction.AttachOnQuery || args.Action == EntityAction.AttachOnImport)) throw;
+        }
+      }
+    }
+
+    internal void OnHasChangesChanged() {
+      OnHasChangesChanged(new EntityManagerHasChangesChangedEventArgs(this));
+    }
+
+    internal virtual void OnHasChangesChanged(EntityManagerHasChangesChangedEventArgs args) {
+      var handler = HasChangesChanged;
+      if (handler != null) {
+        handler(this, args);
+      }
+    }
+
+    internal void FireQueuedEvents() {
+      // IsLoadingEntity will still be true when this occurs.
+      if (!QueuedEvents.Any()) return;
+      var events = QueuedEvents;
+      _queuedEvents = new List<Action>();
+      events.ForEach(a => a());
+
+      // in case any of the previously queued events spawned other events.
+      // FireQueuedEvents();
+
+    }
+
+    internal List<Action> QueuedEvents {
+      get { return _queuedEvents; }
+    }
+
+    #endregion
+
+    #region Misc public methods
+
     public IEntity FindEntityByKey(EntityKey entityKey) {
       var subtypes = entityKey.EntityType.Subtypes;
       EntityAspect ea;
@@ -46,6 +153,62 @@ namespace Breeze.NetClient {
       return ea == null ? null : ea.Entity;
     }
 
+
+    #endregion
+
+    #region Attach/Detach entity methods
+
+    public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Added, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
+      var aspect = entity.EntityAspect;
+      if (aspect.EntityType.MetadataStore != this.MetadataStore) {
+        throw new Exception("Cannot attach this entity because the EntityType (" + aspect.EntityType.Name + ") and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
+      }
+      var em = aspect.EntityManager;
+      // check if already attached
+      if (em == this) return entity;
+      if (em != null) {
+        throw new Exception("This entity already belongs to another EntityManager");
+      }
+      using (NewIsLoadingBlock()) {
+
+        if (entityState.IsAdded()) {
+          CheckEntityKey(aspect);
+        }
+        // attachedEntity === entity EXCEPT in the case of a merge.
+        var attachedEntityAspect = AttachEntityAspect(aspect, entityState, mergeStrategy);
+        // TODO: review this???
+        aspect.InProcess = true;
+        try {
+          // entity ( not attachedEntity) is deliberate here.
+          aspect.ProcessNavigationProperties(ent => AttachEntity(ent, entityState, mergeStrategy));
+
+        } finally {
+          aspect.InProcess = false;
+        }
+        // TODO: impl validate on attach
+        //    if (this.validationOptions.validateOnAttach) {
+        //        attachedEntity.entityAspect.validateEntity();
+        //    }
+        if (!entityState.IsUnchanged()) {
+          NotifyStateChange(attachedEntityAspect, true);
+        }
+        OnEntityChanged(attachedEntityAspect.Entity, EntityAction.Attach);
+        return attachedEntityAspect.Entity;
+
+      }
+    }
+
+    public bool DetachEntity(IEntity entity) {
+      return entity.EntityAspect.RemoveFromManager();
+    }
+
+    private EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
+      var group = GetOrCreateEntityGroup(entityAspect.EntityType.ClrType);
+      var attachedEntityAspect = group.AttachEntityAspect(entityAspect, entityState, mergeStrategy);
+      LinkRelatedEntities(attachedEntityAspect.Entity);
+      return attachedEntityAspect;
+    }
+
     internal void LinkRelatedEntities(IEntity entity) {
       //// we do not want entityState to change as a result of linkage.
       using (NewIsLoadingBlock()) {
@@ -53,10 +216,6 @@ namespace Breeze.NetClient {
         LinkNavProps(entity);
         LinkFkProps(entity);
       }
-    }
-
-    internal BooleanUsingBlock NewIsLoadingBlock() {
-      return new BooleanUsingBlock((b) => this.IsLoadingEntity = b);
     }
 
     private void LinkUnattachedChildren(IEntity entity) {
@@ -173,80 +332,6 @@ namespace Breeze.NetClient {
       });
     }
 
-
-    /// <summary>
-    /// Fired whenever an entity's state is changing in any significant manner.
-    /// </summary>
-    public event EventHandler<EntityChangingEventArgs> EntityChanging;
-
-    /// <summary>
-    /// Fired whenever an entity's state has changed in any significant manner.
-    /// </summary>
-    public event EventHandler<EntityChangedEventArgs> EntityChanged;
-
-    public event EventHandler<EntityManagerHasChangesChangedEventArgs> HasChangesChanged;
-
-    internal bool IsLoadingEntity {
-      get;
-      set;
-    }
-
-    internal bool IsRejectingChanges {
-      get;
-      set;
-    }
-
-    public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Added, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
-      var aspect = entity.EntityAspect;
-      if (aspect.EntityType.MetadataStore != this.MetadataStore) {
-        throw new Exception("Cannot attach this entity because the EntityType (" + aspect.EntityType.Name + ") and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
-      }
-      var em = aspect.EntityManager;
-      // check if already attached
-      if (em == this) return entity;
-      if (em != null) {
-        throw new Exception("This entity already belongs to another EntityManager");
-      }
-      using (NewIsLoadingBlock()) {
-
-        if (entityState.IsAdded()) {
-          CheckEntityKey(aspect);
-        }
-        // attachedEntity === entity EXCEPT in the case of a merge.
-        var attachedEntityAspect = AttachEntityAspect(aspect, entityState, mergeStrategy);
-        // TODO: review this???
-        aspect.InProcess = true;
-        try {
-          // entity ( not attachedEntity) is deliberate here.
-          aspect.ProcessNavigationProperties(ent => AttachEntity(ent, entityState, mergeStrategy));
-
-        } finally {
-          aspect.InProcess = false;
-        }
-        // TODO: impl validate on attach
-        //    if (this.validationOptions.validateOnAttach) {
-        //        attachedEntity.entityAspect.validateEntity();
-        //    }
-        if (!entityState.IsUnchanged()) {
-          NotifyStateChange(attachedEntityAspect, true);
-        }
-        OnEntityChanged(attachedEntityAspect.Entity, EntityAction.Attach);
-        return attachedEntityAspect.Entity;
-
-      }
-    }
-
-    public bool DetachEntity(IEntity entity) {
-      return entity.EntityAspect.RemoveFromManager();
-    }
-
-    private EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
-      var group = GetOrCreateEntityGroup(entityAspect.EntityType.ClrType);
-      var attachedEntityAspect = group.AttachEntityAspect(entityAspect, entityState, mergeStrategy);
-      LinkRelatedEntities(attachedEntityAspect.Entity);
-      return attachedEntityAspect;
-    }
-
     private void CheckEntityKey(EntityAspect entityAspect) {
       var ek = entityAspect.EntityKey;
       // return properties that are = to defaultValues
@@ -268,6 +353,7 @@ namespace Breeze.NetClient {
       }
     }
 
+    #endregion
 
     #region EntityGroup methods
 
@@ -474,6 +560,8 @@ namespace Breeze.NetClient {
 
     #endregion
 
+    #region HasChanges/StateChange methods
+
     public bool HasChanges(IEnumerable<Type> entityTypes = null) {
       if (!this._hasChanges) return false;
       if (entityTypes == null) return this._hasChanges;
@@ -518,99 +606,28 @@ namespace Breeze.NetClient {
       }
     }
 
+    #endregion
 
-    #region Event impls
+    #region Other internal 
 
-    internal void OnEntityChanging(IEntity entity, EntityAction entityAction) {
-      OnEntityChanging(new EntityChangingEventArgs(entity, entityAction));
+    internal BooleanUsingBlock NewIsLoadingBlock() {
+      return new BooleanUsingBlock((b) => this.IsLoadingEntity = b);
     }
 
-    internal virtual void OnEntityChanging(EntityChangingEventArgs args) {
-      EventHandler<EntityChangingEventArgs> handler = EntityChanging;
-      if (handler != null) {
-        try {
-          handler(this, args);
-        } catch {
-          // Eat any handler exceptions during load (query or import) - throw for all others. 
-          if (!(args.Action == EntityAction.AttachOnQuery || args.Action == EntityAction.AttachOnImport)) throw;
-        }
-      }
+
+    internal bool IsLoadingEntity {
+      get;
+      set;
     }
 
-    internal void OnEntityChanged(IEntity entity, EntityAction entityAction) {
-      OnEntityChanged(new EntityChangedEventArgs(entity, entityAction));
+    internal bool IsRejectingChanges {
+      get;
+      set;
     }
-
-    internal virtual void OnEntityChanged(EntityChangedEventArgs args) {
-      EventHandler<EntityChangedEventArgs> handler = EntityChanged;
-      if (handler != null) {
-        try {
-          handler(this, args);
-        } catch {
-          // Eat any handler exceptions during load (query or import) - throw for all others. 
-          if (!(args.Action == EntityAction.AttachOnQuery || args.Action == EntityAction.AttachOnImport)) throw;
-        }
-      }
-    }
-
-    internal void OnHasChangesChanged() {
-      OnHasChangesChanged(new EntityManagerHasChangesChangedEventArgs(this));
-    }
-
-    internal virtual void OnHasChangesChanged(EntityManagerHasChangesChangedEventArgs args) {
-      var handler = HasChangesChanged;
-      if (handler != null) {
-        handler(this, args);
-      }
-    }
-
-    internal void FireQueuedEvents() {
-      // IsLoadingEntity will still be true when this occurs.
-      if (!QueuedEvents.Any()) return;
-      var events = QueuedEvents;
-      _queuedEvents = new List<Action>();
-      events.ForEach(a => a());
-
-      // in case any of the previously queued events spawned other events.
-      // FireQueuedEvents();
-
-    }
-
-    internal List<Action> QueuedEvents {
-      get { return _queuedEvents; }
-    }
+    internal UnattachedChildrenMap UnattachedChildrenMap = new UnattachedChildrenMap();
 
     #endregion
 
-    public DataService DefaultDataService { get; private set; }
-
-    public MetadataStore MetadataStore { get; private set; }
-
-    public JsonConverter JsonConverter { get; private set; }
-
-    public async Task<String> FetchMetadata(DataService dataService = null) {
-      dataService = dataService != null ? dataService : this.DefaultDataService;
-      var metadata = await MetadataStore.FetchMetadata(dataService);
-      return metadata;
-    }
-
-    public async Task<IEnumerable<T>> ExecuteQuery<T>(EntityQuery<T> query) {
-      var dataService = query.DataService != null ? query.DataService : this.DefaultDataService;
-      await FetchMetadata(dataService);
-      var resourcePath = query.GetResourcePath();
-      // HACK
-      resourcePath = resourcePath.Replace("/*", "");
-      var result = await dataService.GetAsync(resourcePath);
-
-      if (resourcePath.Contains("inlinecount")) {
-        return JsonConvert.DeserializeObject<QueryResult<T>>(result, JsonConverter);
-      } else {
-        return JsonConvert.DeserializeObject<IEnumerable<T>>(result, JsonConverter);
-      }
-
-    }
-
-    internal UnattachedChildrenMap UnattachedChildrenMap = new UnattachedChildrenMap();
     private List<Action> _queuedEvents = new List<Action>();
     private bool _hasChanges;
 

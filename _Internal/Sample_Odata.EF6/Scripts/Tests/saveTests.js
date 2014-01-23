@@ -136,17 +136,17 @@
         }
 
         var em = newEm();
-        var roleId = 10;
-        var userId;
-        var p2 = breeze.Predicate.create("roleId", "ne", roleId);
+        var roleId;
+        var userId = 6;
+        var p2 = breeze.Predicate.create("userId", "ne", userId);
         var p1 = breeze.Predicate.create("userRoles", "all", p2);
 
-        var q = new EntityQuery("Users").where(p1).take(1);
+        var q = new EntityQuery("Roles").where(p1).take(1);
         stop();
         q.using(em).execute().then(function (data) {
             ok(data.results.length === 1, "should be one result");
-            var userrole = data.results[0];
-            userId = userrole.getProperty("id");
+            var role = data.results[0];
+            roleId = role.getProperty("id");
 
             var newUserRole = em.createEntity('UserRole', {
                 userId: userId,
@@ -156,6 +156,17 @@
             return em.saveChanges();
         }).then(function (sr) {
             ok(true, "save succeeded");
+            var resultRole = sr.entities[0];
+            var roleId2 = resultRole.getProperty("roleId");
+            ok(roleId2 === roleId, "roleIds match");
+            var userId2 = resultRole.getProperty("userId");
+            ok(userId2 === userId, "userIds match");
+            
+            // delete entity
+            resultRole.entityAspect.setDeleted();
+            return em.saveChanges();
+        }).then(function (sr) {
+            ok(true, "delete succeeded");
         }).fail(function (e) {
             ok(false, "error on save: " + e.message);
         }).fail(testFns.handleFail).fin(start);
@@ -462,6 +473,43 @@
             equal(internationalOrderID, orderId,
                 "the new internationalOrder should have the same OrderID as its new parent Order, " + orderId);
             ok(orderId > 0, "the OrderID is positive, indicating it is a permanent order");
+
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    test("can save a Northwind Order & OrderDetail", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "N/A for Mongo - primary keys cannot be shared between collections");
+            return;
+        }
+        // Create and initialize entity to save
+        var em = newEm();
+
+        var order = em.createEntity('Order', {
+            customerID: wellKnownData.alfredsID,
+            employeeID: wellKnownData.nancyID,
+            shipName: "Test " + new Date().toISOString()
+        });
+
+        var orderDetail1 = em.createEntity('OrderDetail', {
+            order: order, // sets OrderID and pulls it into the order's manager
+            productID: wellKnownData.chaiProductID, // wellKnownData.alfredsOrderDetailKey.ProductID
+            quantity: 5
+        });
+        var orderDetail2 = em.createEntity('OrderDetail', {
+            order: order, // sets OrderID and pulls it into the order's manager
+            productID: wellKnownData.alfredsOrderDetailKey.ProductID,
+            quantity: 6
+        });
+        stop();
+        em.saveChanges().then(function (data) {
+
+            var orderId = order.getProperty("orderID");
+            ok(orderId > 0, "orderID is positive");
+
+            
+
 
         }).fail(testFns.handleFail).fin(start);
 

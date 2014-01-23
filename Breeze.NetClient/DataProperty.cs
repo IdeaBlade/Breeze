@@ -20,18 +20,20 @@ namespace Breeze.NetClient {
     }
 
     public DataProperty(DataProperty dp) : base(dp) {
-      
-      this.ConcurrencyMode = dp.ConcurrencyMode;
-      this.ComplexTypeName = dp.ComplexTypeName;
-      this.ComplexType = dp.ComplexType;
+
       this.DataType = dp.DataType;
       this.DefaultValue = dp.DefaultValue;
-      this.EnumTypeName = dp.EnumTypeName;
       this.IsNullable = dp.IsNullable;
       this.IsPartOfKey = dp.IsPartOfKey;
+      this.IsForeignKey = dp.IsForeignKey;
+      this.ConcurrencyMode = dp.ConcurrencyMode;
       this.IsUnmapped = dp.IsUnmapped;
+      this.IsAutoIncrementing = dp.IsAutoIncrementing;
 
+      this.ComplexTypeName = dp.ComplexTypeName;
+      this.ComplexType = dp.ComplexType;
       this.MaxLength = dp.MaxLength;
+      this.EnumTypeName = dp.EnumTypeName;
       this.RawTypeName = dp.RawTypeName;
     }
 
@@ -48,13 +50,13 @@ namespace Breeze.NetClient {
 
     public NavigationProperty InverseNavigationProperty { get; internal set; }
     public NavigationProperty RelatedNavigationProperty { get; internal set; } // only set if fk
+    public bool IsForeignKey { get; internal set; } // may be set even if no RelatedNavigationProperty ( if unidirectional nav)
     public ComplexType ComplexType { get; internal set; }
     public String ComplexTypeName { get; internal set; }
     public String EnumTypeName { get; internal set; }
     public String RawTypeName { get; internal set; }
 
     public bool IsComplexProperty { get { return ComplexTypeName != null;}}
-    public bool IsForeignKey { get { return RelatedNavigationProperty != null; } }
     public bool IsConcurrencyProperty { get { return ConcurrencyMode != ConcurrencyMode.None; } }
     public override bool IsDataProperty { get { return true; } }
     public override bool IsNavigationProperty { get { return false; } }

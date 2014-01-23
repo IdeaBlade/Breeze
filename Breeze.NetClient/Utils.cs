@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -6,6 +7,20 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Breeze.Core {
+
+  public class SafeList<T> : List<T> {
+    public SafeList() : base() { 
+     _values = new ReadOnlyCollection<T>(this);
+    }
+    public SafeList(IEnumerable<T> enumerable) : base(enumerable) {
+     _values = new ReadOnlyCollection<T>(this);
+    }
+    public ReadOnlyCollection<T> ReadOnlyValues {
+      get { return _values;  }
+    }
+
+    private ReadOnlyCollection<T> _values;
+  }
 
   public abstract class KeyedMap<T,U> : ICollection<U> {
     public KeyedMap() {
@@ -23,8 +38,8 @@ namespace Breeze.Core {
       _map.Add(key, value);
     }
 
-    public ICollection<U> AsReadOnly() {
-      return _map.Values;
+    public ICollection<U> ReadOnlyValues {
+      get { return _map.Values; }
     }
 
     public U this[T key] {
@@ -36,7 +51,7 @@ namespace Breeze.Core {
           return default(U);
         }
       }
-      set {
+      internal set {
         _map[key] = value;
       }
     }
@@ -73,11 +88,11 @@ namespace Breeze.Core {
       return _map.Remove(key);
     }
 
-    public IEnumerator<U> GetEnumerator() {
+    IEnumerator<U> IEnumerable<U>.GetEnumerator() {
       return _map.Values.GetEnumerator();
     }
 
-    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+    IEnumerator IEnumerable.GetEnumerator() {
       return _map.Values.GetEnumerator();
     }
 

@@ -36,16 +36,6 @@ namespace Breeze.NetClient {
       this.ProcessComplexProperties(co2 => co2.ComplexAspect.RejectChangesCore());
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="obj"></param>
-    [Conditional("DEBUG")]
-    public static void ViolationCheck(object obj) {
-      if (obj is ComplexAspect) {
-        throw new InvalidOperationException("A ComplexAspect instance should not get here.");
-      }
-    }
 
     // Note: the Parent and ParentProperty properties are assigned either when a IComplexObject is assigned to a parent
     // or when it is first created via a Get from its parent.
@@ -56,8 +46,6 @@ namespace Breeze.NetClient {
     /// <param name="co"></param>
     /// <returns></returns>
     public static ComplexAspect Wrap(IComplexObject co) {
-      ViolationCheck(co);
-
       if (co.ComplexAspect == null) {
         return new ComplexAspect(co);
       } else {
@@ -66,7 +54,6 @@ namespace Breeze.NetClient {
     }
 
     internal ComplexAspect(IComplexObject co) {
-      ViolationCheck(co);
       _complexObject = co;
     }
 
@@ -76,8 +63,6 @@ namespace Breeze.NetClient {
     internal static IComplexObject Create(IStructuralObject parent, DataProperty parentProperty, bool initializeDefaultValues) {
       // the initializeDefaultValues flag should only be set to false, if all of the properties of this 
       // complex object are going to be set immediately after this call.
-      EntityAspect.ViolationCheck(parent);
-      ComplexAspect.ViolationCheck(parent);
       var co = (IComplexObject)Activator.CreateInstance(parentProperty.DataType.ClrType);
       var aspect = co.ComplexAspect;
       aspect.Parent = parent;
@@ -108,10 +93,7 @@ namespace Breeze.NetClient {
     /// </summary>
     public IStructuralObject Parent {
       get { return _parent; }
-      internal set {
-        ComplexAspect.ViolationCheck(value);
-        _parent = value;
-      }
+      internal set { _parent = value; }
     }
 
     /// <summary>
