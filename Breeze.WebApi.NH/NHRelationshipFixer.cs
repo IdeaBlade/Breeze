@@ -18,7 +18,7 @@ namespace Breeze.WebApi.NH
     /// be populated in order for the foreign key value to be saved in the DB.  To work
     /// around this problem, this class uses the IDs sent by Breeze to re-connect the related entities.
     /// </summary>
-    class NHRelationshipFixer
+    public class NHRelationshipFixer
     {
         private Dictionary<Type, List<EntityInfo>> saveMap;
         private IDictionary<string, string> fkMap;
