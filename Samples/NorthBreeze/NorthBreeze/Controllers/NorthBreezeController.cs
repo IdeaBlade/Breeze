@@ -1,5 +1,5 @@
-﻿using Breeze.WebApi;
-using Breeze.WebApi.NH;
+﻿using Breeze.ContextProvider;
+using Breeze.ContextProvider.NH;
 using Models.NorthwindIB.NH;
 using Newtonsoft.Json.Linq;
 using System;
