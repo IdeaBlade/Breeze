@@ -289,7 +289,8 @@ namespace Breeze.ContextProvider.NH
 
                 if (relatedEntityInfo == null) 
                 {
-                    if (!propType.IsNullable)
+                    var state = entityInfo.EntityState;
+                    if (state == EntityState.Added || state == EntityState.Modified || (state == EntityState.Deleted && !propType.IsNullable))
                     {
                         var relatedEntityName = propType.Name;
                         relatedEntity = session.Load(relatedEntityName, id, LockMode.None);
