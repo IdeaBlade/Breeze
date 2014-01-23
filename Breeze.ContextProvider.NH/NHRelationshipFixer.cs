@@ -169,7 +169,7 @@ namespace Breeze.ContextProvider.NH
                 var propType = meta.IdentifierType;
                 if (propType.IsAssociationType && propType.IsEntityType)
                 {
-                    FixupRelationship(meta.IdentifierPropertyName, (IAssociationType)propType, entityInfo, meta);
+                    FixupRelationship(meta.IdentifierPropertyName, (EntityType)propType, entityInfo, meta);
                 }
                 else if (propType.IsComponentType)
                 {
@@ -182,7 +182,7 @@ namespace Breeze.ContextProvider.NH
                 var propType = propTypes[i];
                 if (propType.IsAssociationType && propType.IsEntityType)
                 {
-                    FixupRelationship(propNames[i], (IAssociationType)propTypes[i], entityInfo, meta);
+                    FixupRelationship(propNames[i], (EntityType)propTypes[i], entityInfo, meta);
                 }
                 else if (propType.IsComponentType)
                 {
@@ -220,7 +220,7 @@ namespace Breeze.ContextProvider.NH
                     if (compValues[j] == null)
                     {
                         // the related entity is null
-                        var relatedEntity = GetRelatedEntity(compPropNames[j], (IAssociationType)compPropType, entityInfo, meta);
+                        var relatedEntity = GetRelatedEntity(compPropNames[j], (EntityType)compPropType, entityInfo, meta);
                         if (relatedEntity != null)
                         {
                             compValues[j] = relatedEntity;
@@ -249,7 +249,7 @@ namespace Breeze.ContextProvider.NH
         /// <param name="propType">Type of the property</param>
         /// <param name="entityInfo">Breeze EntityInfo</param>
         /// <param name="meta">Metadata for the entity class</param>
-        private void FixupRelationship(string propName, IAssociationType propType, EntityInfo entityInfo, IClassMetadata meta)
+        private void FixupRelationship(string propName, EntityType propType, EntityInfo entityInfo, IClassMetadata meta)
         {
             var entity = entityInfo.Entity;
             if (removeMode)
@@ -277,7 +277,7 @@ namespace Breeze.ContextProvider.NH
         /// <param name="entityInfo">Breeze EntityInfo</param>
         /// <param name="meta">Metadata for the entity class</param>
         /// <returns></returns>
-        private object GetRelatedEntity(string propName, IAssociationType propType, EntityInfo entityInfo, IClassMetadata meta)
+        private object GetRelatedEntity(string propName, EntityType propType, EntityInfo entityInfo, IClassMetadata meta)
         {
             object relatedEntity = null;
             string foreignKeyName = FindForeignKey(propName, meta);
@@ -289,7 +289,7 @@ namespace Breeze.ContextProvider.NH
 
                 if (relatedEntityInfo == null) 
                 {
-                    if (entityInfo.EntityState == EntityState.Added || entityInfo.EntityState == EntityState.Modified)
+                    if (!propType.IsNullable)
                     {
                         var relatedEntityName = propType.Name;
                         relatedEntity = session.Load(relatedEntityName, id, LockMode.None);
