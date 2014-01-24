@@ -16,9 +16,13 @@ Example:
 
 
 */
-(function (ajaxAdapter) {
+breeze.ajaxpost = (function (ajaxAdapter) {
 
     divertAjaxImpl(ajaxAdapter);
+
+    return {
+        configAjaxAdapter: divertAjaxImpl
+    };
 
     // Add processSettings to ajaxAdapter
     function divertAjaxImpl(ajaxAdapter) {
@@ -51,13 +55,14 @@ Example:
                         settings.contentType = "application/json; charset=UTF-8";
 
                         if (typeof (data) === 'object') {
-                            settings.params = JSON.stringify(data); // encode parameters as JSON
+                            settings.data = JSON.stringify(data); // encode parameters as JSON
                         } else {
-                            settings.params = data;
+                            settings.data = data;
                         }
                     } else {
-                        settings.params = data;
+                        settings.data = data;
                     }
+                    settings.params = null;
                 }
                 settings.url = removeParametersFromQueryString(settings.url, ['$method', '$data', '$encoding']);
             }
