@@ -110,11 +110,11 @@ namespace Breeze.NetClient {
     private void ConvertValues() {
       
       for (int i = 0; i < Values.Length; i++) {
-        var  dataType = EntityType.KeyProperties[i].DataType;
+        var  clrType = EntityType.KeyProperties[i].ClrType;
         var val = Values[i];
         if (val == null) continue;
-        if (dataType.ClrType != val.GetType()) {
-          Values[i] = TypeFns.ConvertType(val, dataType.ClrType, false);
+        if (clrType != val.GetType()) {
+          Values[i] = TypeFns.ConvertType(val, clrType, false);
         }
       }
     }

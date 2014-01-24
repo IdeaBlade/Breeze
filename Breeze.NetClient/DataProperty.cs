@@ -38,6 +38,17 @@ namespace Breeze.NetClient {
     }
 
     public DataType DataType { get; internal set; }
+    public Type ClrType {
+      get {
+        if (_clrType == null) {
+          var rawClrType = DataType.ClrType;
+          _clrType = IsNullable ? TypeFns.GetNullableType(rawClrType) : rawClrType;
+        }
+        return _clrType;
+      }
+    
+    }
+    private Type _clrType;
     
     public bool IsNullable { get; internal set; }
     // Not sure how this is set;

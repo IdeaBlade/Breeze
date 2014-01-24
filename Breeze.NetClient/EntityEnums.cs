@@ -19,7 +19,7 @@ namespace Breeze.NetClient {
     /// and before it is added to the EntityManager, or if it has been removed from the
     /// EntityManager.
     /// </summary>
-    Detached = 0,
+    Detached = 1,
     /// <summary>
     ///     The entity has not changed since last queried or saved.
     /// </summary>
@@ -100,7 +100,7 @@ namespace Breeze.NetClient {
     /// Whether this Entity has been detached (either not yet attached or removed via RemoveFromManager).
     /// </summary>
     public static bool IsDetached(this EntityState es) {
-      return (es & EntityState.Detached) > 0;
+      return es == 0 || (es & EntityState.Detached) > 0;
     }
 
     /// <summary>

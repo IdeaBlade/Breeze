@@ -30,9 +30,11 @@ namespace Breeze.NetClient {
 
     internal void RejectChangesCore() {
       var co = this.ComplexObject;
-      this.OriginalValuesMap.ForEach(kvp => {
-        co.SetValue(kvp.Key, kvp.Value);
-      });
+      if (this.OriginalValuesMap != null) {
+        this.OriginalValuesMap.ForEach(kvp => {
+          co.SetValue(kvp.Key, kvp.Value);
+        });
+      }
       this.ProcessComplexProperties(co2 => co2.ComplexAspect.RejectChangesCore());
     }
 
@@ -63,7 +65,7 @@ namespace Breeze.NetClient {
     internal static IComplexObject Create(IStructuralObject parent, DataProperty parentProperty, bool initializeDefaultValues) {
       // the initializeDefaultValues flag should only be set to false, if all of the properties of this 
       // complex object are going to be set immediately after this call.
-      var co = (IComplexObject)Activator.CreateInstance(parentProperty.DataType.ClrType);
+      var co = (IComplexObject)Activator.CreateInstance(parentProperty.ClrType);
       var aspect = co.ComplexAspect;
       aspect.Parent = parent;
       aspect.ParentProperty = parentProperty;

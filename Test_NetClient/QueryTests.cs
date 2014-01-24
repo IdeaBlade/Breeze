@@ -8,21 +8,28 @@ using System.Collections.Generic;
 namespace Test_NetClient {
   [TestClass]
   public class QueryTests {
-    String _serviceName;
-    private static EntityManager _em1;
-    [TestInitialize()]
-    public async void SetUp() {
-      if (_em1 == null) {
-        _serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-        _em1 = new EntityManager(_serviceName);
-        await _em1.FetchMetadata();
-        _em1.MetadataStore.ClrEntityTypes.Add(typeof(Foo.Customer));
-        _em1.MetadataStore.ClrEntityTypes.Add(typeof(Foo.Order));
-      } else {
-        _em1 = new EntityManager(_em1);
-      }
+
+    private Task<EntityManager> _emTask = null;
+    private EntityManager _em1;
+    private static MetadataStore __metadataStore;
+
+    [TestInitialize]
+    public void TestInitializeMethod() {
+      _emTask = SetUpAsync();
+    }
+
+    public async Task<EntityManager> SetUpAsync() {
+      var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
       
-      var z = 2;
+      if (__metadataStore == null) {
+        _em1 = new EntityManager(serviceName);
+        await _em1.FetchMetadata();
+        __metadataStore = _em1.MetadataStore;
+      } else {
+        _em1 = new EntityManager(serviceName, __metadataStore);
+      }
+      return _em1;
+      
     }
 
     [TestCleanup]
@@ -32,7 +39,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task InlineCount() {
-
+      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")) ;
       var q3 = q2.InlineCount();
@@ -48,7 +55,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task InlineCount2() {
-
+      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")).Take(2);
       var q3 = q2.InlineCount();
@@ -64,7 +71,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task WhereAnyOrderBy() {
-      
+      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C") && c.Orders.Any(o => o.Freight > 10));
       var q3 = q2.OrderBy(c => c.CompanyName).Skip(2);
@@ -73,11 +80,15 @@ namespace Test_NetClient {
 
       Assert.IsTrue(r.Count() > 0);
       Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
+      var cust = r.First();
+      var companyName = cust.CompanyName;
+      var custId = cust.CustomerID;
+      var orders = cust.Orders;
     }
 
     [TestMethod]
     public async Task WhereOrderByTake() {
-      
+      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")) ;
       var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
@@ -88,8 +99,8 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
-    public async Task SelectAnonSimple() {
-
+    public async Task SelectAnonWithEntityCollection() {
+      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Select(c => new { Orders = c.Orders });
@@ -101,11 +112,11 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
-    public async Task SelectAnonComplex() {
-
+    public async Task SelectAnonWithScalarAndEntityCollection() {
+      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
-      var q3 = q2.Select(c => new { c.CompanyName, c.Orders });
+      var q3 = q2.Select(c => new { c.CompanyName, c.Orders});
       var r = await q3.Execute(_em1);
 
       Assert.IsTrue(r.Count() > 0);
@@ -113,11 +124,42 @@ namespace Test_NetClient {
       Assert.IsTrue(ok, "every item of anon should contain a collection of Orders");
       ok = r.All(r1 => r1.CompanyName.Length > 0);
       Assert.IsTrue(ok, "anon type should have a populated company name");
+      
+    }
+
+    [TestMethod]
+    public async Task SelectAnonWithScalarEntity() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Order>("Orders");
+      var q2 = q.Where(c => c.Freight > 500);
+      var q3 = q2.Select(c => new { c.Customer, c.Freight });
+      var r = await q3.Execute(_em1);
+
+      Assert.IsTrue(r.Count() > 0);
+      var ok = r.All(r1 => r1.Freight > 500);
+      Assert.IsTrue(ok, "anon type should the right freight");
+      ok = r.All(r1 => r1.Customer.GetType() == typeof(Foo.Customer));
+      Assert.IsTrue(ok, "anon type should have a populated 'Customer'");
+    }
+
+    [TestMethod]
+    public async Task SelectAnonWithScalarSelf() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
+      var q3 = q2.Select(c => new { c.CompanyName, Customer = c });
+      var r = await q3.Execute(_em1);
+
+      Assert.IsTrue(r.Count() > 0);
+      var ok = r.All(r1 => r1.CompanyName.Length > 0);
+      Assert.IsTrue(ok, "anon type should have a populated company name");
+      ok = r.All(r1 => r1.Customer.GetType() == typeof(Foo.Customer));
+      Assert.IsTrue(ok, "anon type should have a populated 'Customer'");
     }
 
     [TestMethod]
     public async Task Expand() {
-
+      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Expand(c => c.Orders);
@@ -135,7 +177,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SelectIntoCustom() {
-
+      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Select(c => new Dummy() { CompanyName = c.CompanyName, Orders = c.Orders}  );

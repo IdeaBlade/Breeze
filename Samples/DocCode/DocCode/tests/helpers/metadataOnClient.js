@@ -13,9 +13,9 @@
 
     // Breeze Labs: breeze.metadata.helper.js
     var helper = new breeze.MetadataHelper();
-    var addDataService      = helper.addDataService;
-    var addTypeToStore      = helper.addTypeToStore;
-    var setDefaultNamespace = helper.setDefaultNamespace;
+    var addDataService      = helper.addDataService.bind(helper);
+    var addTypeToStore = helper.addTypeToStore.bind(helper);
+    var setDefaultNamespace = helper.setDefaultNamespace.bind(helper);
 
     testFns.metadataOnClient = {
         createDtoMetadataStore: createDtoMetadataStore,
@@ -329,26 +329,3 @@
 
 
 })(docCode.testFns);
-
-
-//#region Imagining a DSL 
-
-/**** Imagining a possible future DSL ****** 
-// automatically infers validators
-
-var et = ET("Category").ns(namespace).identityKeyed()
-                       .resourceNames("Categories");
-
-et.withProperties(
-    DP("categoryID").i32().key().notNull(),
-    DP("categoryName").maxLength(4000),
-    DP("description").maxLength(4000),
-    DP("picture").binary.maxLength(4000),
-    DP("rowVersion").i32().notNull());
-
-et.has("products").of("Product").inAssociation("Product_Category");
-
-return et;
-
-************/
-//#endregion

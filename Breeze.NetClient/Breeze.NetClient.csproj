@@ -41,7 +41,7 @@
     <Compile Include="DataService.cs" />
     <Compile Include="DataType.cs" />
     <Compile Include="DynamicComparer.cs" />
-    <Compile Include="Entity.cs" />
+    <Compile Include="BaseEntity.cs" />
     <Compile Include="EntityAspect.cs" />
     <Compile Include="EntityChangeEventArgs.cs" />
     <Compile Include="EntityEnums.cs" />
@@ -58,10 +58,9 @@
     <Compile Include="INavigationSet.cs" />
     <Compile Include="INotifyVerifierResults.cs" />
     <Compile Include="IStructuralObject.cs" />
-    <Compile Include="JsonNet.cs" />
+    <Compile Include="JsonConverters.cs" />
     <Compile Include="MergeStrategy.cs" />
     <Compile Include="OriginalValuesMap.cs" />
-    <Compile Include="StackFrame.cs" />
     <Compile Include="StructuralAspect.cs" />
     <Compile Include="StructuralType.cs" />
     <Compile Include="CsdlMetadataProcessor.cs" />
@@ -71,7 +70,6 @@
     <Compile Include="NavigationProperty.cs" />
     <Compile Include="DataProperty.cs" />
     <Compile Include="MetadataStore.cs" />
-    <Compile Include="TraceFns.cs" />
     <Compile Include="TypeFns.cs" />
     <Compile Include="UnattachedChildrenMap.cs" />
     <Compile Include="UniqueId.cs" />

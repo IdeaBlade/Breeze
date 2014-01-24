@@ -33,14 +33,8 @@ namespace Breeze.NetClient {
   /// </remarks>
   public abstract class EntityGroup : IGrouping<Type, EntityAspect> {
 
-    // internal static EntityGroup Null = new EntityGroup<EntityCache>();
-
     #region ctors
 
-    /// <summary>
-    /// For internal use only.
-    /// </summary>
-    /// <param name="clrEntityType"></param>
     protected EntityGroup(Type clrEntityType) {
       ClrType = clrEntityType;
       Initialize();
@@ -49,38 +43,48 @@ namespace Breeze.NetClient {
     /// <summary>
     /// For internal use only.
     /// </summary>
-    /// <param name="entityGroup"></param>
-    protected EntityGroup(EntityGroup entityGroup)
-      : this(entityGroup.ClrType) {
+    /// <param name="clrEntityType"></param>
+    protected EntityGroup(Type clrEntityType, EntityType entityType) {
+      ClrType = clrEntityType;
+      EntityType = entityType;
+      Initialize();
     }
+
 
     /// <summary>
     /// Creates an instance of an EntityGroup for a specific entity type.
     /// </summary>
     /// <param name="clrEntityType"></param>
     /// <returns></returns>
-    public static EntityGroup Create(Type clrEntityType) {
-      EntityGroup aEntityGroup;
+    internal static EntityGroup Create(Type clrEntityType) {
+      EntityGroup entityGroup;
       Type egType = typeof(EntityGroup<>).MakeGenericType(clrEntityType);
-      aEntityGroup = (EntityGroup)Activator.CreateInstance(egType);
+      entityGroup = (EntityGroup)Activator.CreateInstance(egType);
       
-      return aEntityGroup;
+      return entityGroup;
     }
+
+    private void Initialize() {
+      _entityAspects = new EntityCollection();
+      _entityKeyMap = new Dictionary<EntityKey, EntityAspect>();
+      _pendingEvents = new List<Action>();
+      ChangeNotificationEnabled = false;
+    }
+
 
     #endregion
 
     #region Null EntityGroup
 
-   
 
-    /// <summary>
-    /// Whether or not this is the 'null group.  The 'null' group contains no entities and is automatically provided to detached entities.
-    /// </summary>
-    public bool IsNullGroup {
-      get {  return this.ClrType == typeof(Object); }
-    }
+    ///// <summary>
+    ///// Whether or not this is the 'null group.  The 'null' group contains no entities and is automatically provided to detached entities.
+    ///// </summary>
+    //public virtual bool IsNullGroup {
+    //  get { return false; }
+    //}
 
-#endregion
+    #endregion
 
     #region events
     /// <summary>
@@ -182,17 +186,17 @@ namespace Breeze.NetClient {
 
     #region Public properties
 
+    public Type ClrType {
+      get;
+      private set;
+    }
+
     /// <summary>
     /// The type of Entity contained within this group.
     /// </summary>
     public EntityType EntityType {
       get;
-      private set;
-    }
-
-    public Type ClrType {
-      get;
-      private set;
+      internal set;
     }
 
     /// <summary>
@@ -200,7 +204,7 @@ namespace Breeze.NetClient {
     /// </summary>
     public EntityManager EntityManager {
       get;
-      private set;
+      protected set;
     }
 
     /// <summary>
@@ -220,7 +224,7 @@ namespace Breeze.NetClient {
     /// <summary>
     /// Used to suppress change events during the modification of entities within this group.
     /// </summary>
-    public bool ChangeNotificationEnabled {
+    public virtual bool ChangeNotificationEnabled {
       get;
       set;
     }
@@ -228,10 +232,10 @@ namespace Breeze.NetClient {
     /// <summary>
     /// Returns a list of groups for this entity type and all sub-types.
     /// </summary>
-    public ReadOnlyCollection<EntityGroup> SelfAndSubtypeGroups {
+    public virtual ReadOnlyCollection<EntityGroup> SelfAndSubtypeGroups {
       get {
         if (_selfAndSubtypeGroups == null) {
-          var list = EntityType.Subtypes.Select(et => EntityManager.GetOrCreateEntityGroup(et.ClrType)).ToList();
+          var list = EntityType.Subtypes.Select(et => EntityManager.GetEntityGroup(et.ClrType)).ToList();
           _selfAndSubtypeGroups = new ReadOnlyCollection<EntityGroup>(list);
         }
         return _selfAndSubtypeGroups;
@@ -297,13 +301,13 @@ namespace Breeze.NetClient {
     internal void Clear() {
       _entityAspects.Clear();
       _entityKeyMap.Clear();
-      _selfAndSubtypeGroups = null;
-      IsDetached = true;
+      
+      
     }
 
-    internal bool IsDetached {
+    public virtual bool IsDetached {
       get;
-      private set;
+      protected set;
     }
 
 
@@ -333,7 +337,7 @@ namespace Breeze.NetClient {
         return MergeEntityAspect(entityAspect, targetEntityAspect, entityState, mergeStrategy);
       } else {
         AddEntityAspect(entityAspect);
-        entityAspect.EntityState = entityState;
+        entityAspect.SetEntityStateCore(entityState);
         return entityAspect;
       }
     }
@@ -344,7 +348,7 @@ namespace Breeze.NetClient {
     }
 
     internal void ReplaceKey(EntityAspect entityAspect, EntityKey oldKey, EntityKey newKey) {
-      if (IsNullGroup) return;
+      // if (IsNullGroup) return;
       _entityKeyMap.Remove(oldKey);  // it may not exist if this object was just Imported or Queried.
       _entityKeyMap.Add(newKey, entityAspect);
     }
@@ -356,7 +360,7 @@ namespace Breeze.NetClient {
     /// <summary>
     /// Returns a collection of entities of given entity type
     /// </summary>
-    protected IEnumerable<EntityAspect> LocalEntityAspects {
+    protected virtual  IEnumerable<EntityAspect> LocalEntityAspects {
       get {
         return _entityAspects;
       }
@@ -410,12 +414,7 @@ namespace Breeze.NetClient {
       _entityKeyMap.Remove(aspect.EntityKey);
     }
 
-    private void Initialize() {
-      _entityAspects = new EntityCollection();
-      _entityKeyMap = new Dictionary<EntityKey, EntityAspect>();
-
-      ChangeNotificationEnabled = false;
-    }
+   
 
     #endregion
 
@@ -441,9 +440,9 @@ namespace Breeze.NetClient {
     // this member will only exist on EntityCache's sent from the server to the client
     // it should always be null on persistent client side entity sets
     private EntityCollection _entityAspects;
-    private Dictionary<EntityKey, EntityAspect> _entityKeyMap = new Dictionary<EntityKey, EntityAspect>();
+    private Dictionary<EntityKey, EntityAspect> _entityKeyMap;
     private ReadOnlyCollection<EntityGroup> _selfAndSubtypeGroups;
-    private List<Action> _pendingEvents = new List<Action>();
+    private List<Action> _pendingEvents;
 
     // DataForm blows unless we use String.Empty - see B1112 - we're keeping 
     // old non-SL behavior because this change was made at last minute and couldn't
@@ -489,7 +488,9 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="entityGroup"></param>
     public EntityGroup(EntityGroup<TEntity> entityGroup)
-      : base(entityGroup.ClrType) {
+      : base(entityGroup.ClrType ) {
+        EntityType = entityGroup.EntityType;
+
     }
 
     #endregion
@@ -518,6 +519,40 @@ namespace Breeze.NetClient {
 
   }
   #endregion
+
+  //public class NullEntityGroup : EntityGroup {
+
+  //  public NullEntityGroup(Type clrType, EntityType entityType) 
+  //    : base(clrType, entityType) {
+  //  }
+
+  //  public override bool ChangeNotificationEnabled {
+  //    get {
+  //      return false; 
+  //    }
+  //    set {
+  //      if (value == true) {
+  //        throw new Exception("ChangeNotificationEnabled cannot be set on a null EntityGroup");
+  //      }
+  //    }
+  //  }
+
+  //  public override bool IsNullGroup { get { return true;  }   }
+  //  public override bool IsDetached  {
+  //    get { return true; } 
+  //    protected set { throw new Exception("IsDetached cannot be set on a null EntityGroup");}
+  //  }
+  //  protected override IEnumerable<EntityAspect> LocalEntityAspects {
+  //    get {
+  //      return Enumerable.Empty<EntityAspect>();
+  //    }
+  //  }
+  //  public override ReadOnlyCollection<EntityGroup> SelfAndSubtypeGroups {
+  //    get { return _selfAndSubtypeGroups.ReadOnlyValues;  }
+  //  }
+
+  //  private SafeList<EntityGroup> _selfAndSubtypeGroups = new SafeList<EntityGroup>();
+  //}
 
   #region EntityCollection and EntityGroupCollection
 
