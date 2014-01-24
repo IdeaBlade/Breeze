@@ -15,6 +15,8 @@ namespace Breeze.ContextProvider.NH {
   public class NHContext : Breeze.ContextProvider.ContextProvider, IDisposable {
     private ISession session;
     protected Configuration configuration;
+    private static Dictionary<Configuration, IDictionary<string, object>> _configurationMetadata = new Dictionary<Configuration, IDictionary<string, object>>();
+    private static object _metadataLock = new object();
 
     /// <summary>
     /// Create a new context for the given session.  
@@ -86,6 +88,19 @@ namespace Breeze.ContextProvider.NH {
       return keyValues;
     }
 
+    /// <summary>
+    /// Allows subclasses to process entities before they are saved.  This method is called
+    /// after BeforeSaveEntities(saveMap), and before any session.Save methods are called.
+    /// The foreign-key associations on the entities have been resolved, relating the entities
+    /// to each other, and attaching proxies for other many-to-one associations.
+    /// </summary>
+    /// <param name="entitiesToPersist">List of entities in the order they will be saved</param>
+    /// <returns>The same entitiesToPersist.  Overrides of this method may modify the list.</returns>
+    public virtual List<EntityInfo> BeforeSaveEntityGraph(List<EntityInfo> entitiesToPersist)
+    {
+        return entitiesToPersist;
+    }
+
     #region Metadata
 
     protected override string BuildJsonMetadata() {
@@ -102,8 +117,13 @@ namespace Breeze.ContextProvider.NH {
 
     protected IDictionary<string, object> GetMetadata() {
       if (_metadata == null) {
-        var builder = new NHBreezeMetadata(session.SessionFactory, configuration);
-        _metadata = builder.BuildMetadata();
+          lock (_metadataLock) {
+              if (!_configurationMetadata.TryGetValue(this.configuration, out _metadata)) {
+                  var builder = new NHBreezeMetadata(session.SessionFactory, configuration);
+                  _metadata = builder.BuildMetadata();
+                  _configurationMetadata.Add(this.configuration, _metadata);
+              }
+          }
       }
       return _metadata;
     }
@@ -169,6 +189,9 @@ namespace Breeze.ContextProvider.NH {
 
       // Relate entities in the saveMap to other NH entities, so NH can save the FK values.
       var saveOrder = fixer.FixupRelationships();
+
+      // Allow subclass to process entities before we save them
+      saveOrder = BeforeSaveEntityGraph(saveOrder);
       
       var sessionFactory = session.SessionFactory;
       foreach (var entityInfo in saveOrder)

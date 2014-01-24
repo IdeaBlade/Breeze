@@ -17,6 +17,8 @@ import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.ComponentType;
+import org.hibernate.type.EntityType;
+import org.hibernate.type.ForeignKeyDirection;
 import org.hibernate.type.Type;
 
 import com.breezejs.save.EntityInfo;
@@ -177,7 +179,7 @@ public class RelationshipFixer {
         {
             if (propType.isAssociationType() && propType.isEntityType())
             {
-                fixupRelationship(meta.getIdentifierPropertyName(), (AssociationType)propType, entityInfo, meta);
+                fixupRelationship(meta.getIdentifierPropertyName(), (EntityType)propType, entityInfo, meta);
             }
             else if (propType.isComponentType())
             {
@@ -190,7 +192,7 @@ public class RelationshipFixer {
             propType = propTypes[i];
             if (propType.isAssociationType() && propType.isEntityType())
             {
-                fixupRelationship(propNames[i], (AssociationType)propTypes[i], entityInfo, meta);
+                fixupRelationship(propNames[i], (EntityType)propTypes[i], entityInfo, meta);
             }
             else if (propType.isComponentType())
             {
@@ -228,7 +230,7 @@ public class RelationshipFixer {
                 if (compValues[j] == null)
                 {
                     // the related entity is null
-                    Object relatedEntity = getRelatedEntity(compPropNames[j], (AssociationType)compPropType, entityInfo, meta);
+                    Object relatedEntity = getRelatedEntity(compPropNames[j], (EntityType)compPropType, entityInfo, meta);
                     if (relatedEntity != null)
                     {
                         compValues[j] = relatedEntity;
@@ -257,7 +259,7 @@ public class RelationshipFixer {
      * @param entityInfo Breeze EntityInfo
      * @param meta Metadata for the entity class
      */
-    private void fixupRelationship(String propName, AssociationType propType, EntityInfo entityInfo, ClassMetadata meta)
+    private void fixupRelationship(String propName, EntityType propType, EntityInfo entityInfo, ClassMetadata meta)
     {
         Object entity = entityInfo.entity;
         if (removeMode)
@@ -285,7 +287,7 @@ public class RelationshipFixer {
      * @param meta Metadata for the entity class
      * @return
      */
-    private Object getRelatedEntity(String propName, AssociationType propType, EntityInfo entityInfo, ClassMetadata meta)
+    private Object getRelatedEntity(String propName, EntityType propType, EntityInfo entityInfo, ClassMetadata meta)
     {
     	Object relatedEntity = null;
     	String foreignKeyName = findForeignKey(propName, meta);
@@ -296,7 +298,9 @@ public class RelationshipFixer {
             EntityInfo relatedEntityInfo = findInSaveMap(propType.getReturnedClass(), id);
 
             if (relatedEntityInfo == null) {
-            	if (entityInfo.entityState == EntityState.Added || entityInfo.entityState == EntityState.Modified) {
+            	EntityState state = entityInfo.entityState;
+            	if (state == EntityState.Added || state == EntityState.Modified || (state == EntityState.Deleted 
+            			&& propType.getForeignKeyDirection() != ForeignKeyDirection.FOREIGN_KEY_TO_PARENT)) {
                 	String relatedEntityName = propType.getName();
                     relatedEntity = session.load(relatedEntityName, (Serializable) id, LockOptions.NONE);
             	}

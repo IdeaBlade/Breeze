@@ -1,4 +1,4 @@
-﻿using Breeze.WebApi.NH;
+﻿using Breeze.ContextProvider.NH;
 using Models.NorthwindIB.NH;
 
 namespace NorthBreeze.Controllers

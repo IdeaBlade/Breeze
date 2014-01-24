@@ -8,7 +8,7 @@ import java.util.UUID;
 public class Order {
 
     private int orderID;
-    private UUID customerID;
+    private String customerID;
     private Integer employeeID;
     private Date orderDate;
     private Date requiredDate;
@@ -33,10 +33,10 @@ public class Order {
 	public void setOrderID(int orderID) {
 		this.orderID = orderID;
 	}
-	public UUID getCustomerID() {
+	public String getCustomerID() {
 		return customerID;
 	}
-	public void setCustomerID(UUID customerID) {
+	public void setCustomerID(String customerID) {
 		this.customerID = customerID;
 	}
 	public Integer getEmployeeID() {

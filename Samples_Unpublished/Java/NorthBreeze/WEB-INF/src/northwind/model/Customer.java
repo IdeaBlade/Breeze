@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public class Customer {
 
-	private UUID customerID;
+	private String customerID;
 	private String customerID_OLD;
 	private String companyName;
 	private String contactName;
@@ -21,11 +21,11 @@ public class Customer {
 
 	private Collection<Order> orders;
 
-	public UUID getCustomerID() {
+	public String getCustomerID() {
 		return customerID;
 	}
 
-	public void setCustomerID(UUID customerID) {
+	public void setCustomerID(String customerID) {
 		this.customerID = customerID;
 	}
 
