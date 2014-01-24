@@ -57,11 +57,11 @@ namespace Breeze.NetClient {
       // HACK
       resourcePath = resourcePath.Replace("/*", "");
       var result = await dataService.GetAsync(resourcePath);
-
+      var jsonConverter = new JsonEntityConverter(this);
       if (resourcePath.Contains("inlinecount")) {
-        return JsonConvert.DeserializeObject<QueryResult<T>>(result, JsonConverter);
+        return JsonConvert.DeserializeObject<QueryResult<T>>(result, jsonConverter);
       } else {
-        return JsonConvert.DeserializeObject<IEnumerable<T>>(result, JsonConverter);
+        return JsonConvert.DeserializeObject<IEnumerable<T>>(result, jsonConverter);
       }
 
     }

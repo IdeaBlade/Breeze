@@ -65,7 +65,7 @@ namespace Breeze.NetClient {
     internal static IComplexObject Create(IStructuralObject parent, DataProperty parentProperty, bool initializeDefaultValues) {
       // the initializeDefaultValues flag should only be set to false, if all of the properties of this 
       // complex object are going to be set immediately after this call.
-      var co = (IComplexObject)Activator.CreateInstance(parentProperty.DataType.ClrType);
+      var co = (IComplexObject)Activator.CreateInstance(parentProperty.ClrType);
       var aspect = co.ComplexAspect;
       aspect.Parent = parent;
       aspect.ParentProperty = parentProperty;

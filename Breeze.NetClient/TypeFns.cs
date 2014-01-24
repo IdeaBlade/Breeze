@@ -10,7 +10,22 @@ using System.Threading.Tasks;
 namespace Breeze.Core {
   public static class TypeFns {
 
+    /// <summary>
+    /// Gets the default value for a specified type.
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static object GetDefaultValue(Type type) {
+      if (type == null) return null;
+      if (!type.GetTypeInfo().IsValueType) return null;
 
+      NullableInfo result;
+      if (NullableInfoMap.TryGetValue(type, out result)) {
+        return result.DefaultValue;
+      } else {
+        return Activator.CreateInstance(type);
+      }
+    }
 
     public static bool IsAssignableFrom(this Type entityType, Type otherType) {
       return entityType.GetTypeInfo().IsAssignableFrom(otherType.GetTypeInfo());
@@ -95,6 +110,9 @@ namespace Breeze.Core {
       //return null;
     }
 
+ 
+
+
     public static Type[] GetTypesImplementing(Type type, Assembly assembly) {
       if (type == null) {
         throw new ArgumentNullException("type");
@@ -158,5 +176,86 @@ namespace Breeze.Core {
     }
 
     private static List<Assembly> __invalidAssemblies = new List<Assembly>();
+
+    #region Nullable stuff
+
+    /// <summary>
+    /// Returns whether the specified type is a nullable generic type, i.e. Nullable{T}.
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns>true if the specified type is a nullable generic type; false otherwise</returns>
+    public static bool IsNullableType(Type type) {
+      return type.GetTypeInfo().IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+    }
+
+    /// <summary>
+    /// Gets the nullable type that corresponds to the given type.
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static Type GetNullableType(Type type) {
+      if (!type.GetTypeInfo().IsValueType) {
+        return type;
+      }
+      NullableInfo result;
+      if (NullableInfoMap.TryGetValue(type, out result)) {
+        return result.NullableType;
+      } else {
+        return null;
+      }
+    }
+
+    /// <summary>
+    /// Returns either the specified type or its non-nullable counterpart.
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static Type GetNonNullableType(Type type) {
+      return IsNullableType(type) ? GetGenericArgument(type) : type;
+    }
+
+    private static Dictionary<Type, NullableInfo> NullableInfoMap {
+      get {
+        lock (__nullableInfoMap) {
+          if (__nullableInfoMap.Count == 0) {
+            UpdateNullableInfoMap<Byte>();
+            UpdateNullableInfoMap<SByte>();
+            UpdateNullableInfoMap<Int16>();
+            UpdateNullableInfoMap<UInt16>();
+            UpdateNullableInfoMap<Int32>();
+            UpdateNullableInfoMap<UInt32>();
+            UpdateNullableInfoMap<Int64>();
+            UpdateNullableInfoMap<UInt64>();
+            UpdateNullableInfoMap<Single>();
+            UpdateNullableInfoMap<Double>();
+            UpdateNullableInfoMap<Decimal>();
+            UpdateNullableInfoMap<Boolean>();
+            UpdateNullableInfoMap<Char>();
+            UpdateNullableInfoMap<DateTime>();
+            UpdateNullableInfoMap<DateTimeOffset>();
+            UpdateNullableInfoMap<TimeSpan>();
+            UpdateNullableInfoMap<Guid>();
+
+          }
+          return __nullableInfoMap;
+        }
+      }
+    }
+
+    private static void UpdateNullableInfoMap<T>() where T : struct {
+      __nullableInfoMap[typeof(T)] = new NullableInfo(typeof(Nullable<T>), default(T));
+    }
+
+    private static Dictionary<Type, NullableInfo> __nullableInfoMap = new Dictionary<Type, NullableInfo>();
+
+    private class NullableInfo {
+      public NullableInfo(Type pNullableType, Object pDefaultValue) {
+        NullableType = pNullableType;
+        DefaultValue = pDefaultValue;
+      }
+      public Type NullableType;
+      public Object DefaultValue;
+    }
+    #endregion
   }
 }

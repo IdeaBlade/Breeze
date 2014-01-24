@@ -10,7 +10,7 @@ using System.Spatial;
 
 namespace Foo {
 
-  public partial class Category : JsonEntity {
+  public partial class Category : BaseEntity {
 
     public int CategoryID {
       get { return PropGet<int>(); }
@@ -40,7 +40,7 @@ namespace Foo {
   }
 
 
-  public partial class Customer : JsonEntity {
+  public partial class Customer : BaseEntity {
 
     public System.Guid CustomerID {
       get { return PropGet<System.Guid>(); }
@@ -103,7 +103,7 @@ namespace Foo {
   }
 
 
-  public partial class Employee :JsonEntity {
+  public partial class Employee :BaseEntity {
     public int EmployeeID {
       get { return PropGet<int>(); }
       set { PropSet(value); }
@@ -208,7 +208,7 @@ namespace Foo {
 
   }
 
-  public partial class EmployeeTerritory : JsonEntity {
+  public partial class EmployeeTerritory : BaseEntity {
 
     public int ID { get; set; }
     public int EmployeeID { get; set; }
@@ -218,7 +218,7 @@ namespace Foo {
     public Territory Territory { get; set; }
 
   }
-  public partial class Order : JsonEntity {
+  public partial class Order : BaseEntity {
 
     public int OrderID {
       get { return PropGet<int>(); }
@@ -296,7 +296,7 @@ namespace Foo {
 
   }
 
-  public partial class OrderDetail : JsonEntity {
+  public partial class OrderDetail : BaseEntity {
     public int OrderID {
       get { return PropGet<int>(); }
       set { PropSet(value); }
@@ -333,7 +333,7 @@ namespace Foo {
 
   }
 
-  public partial class PreviousEmployee : JsonEntity {
+  public partial class PreviousEmployee : BaseEntity {
 
 
     public int EmployeeID { get; set; }
@@ -357,7 +357,7 @@ namespace Foo {
 
   }
 
-  public partial class Product : JsonEntity {
+  public partial class Product : BaseEntity {
     public int ProductID { get; set; }
     public string ProductName { get; set; }
     public int? SupplierID { get; set; }
@@ -381,7 +381,7 @@ namespace Foo {
     public Supplier Supplier { get; set; }
   }
 
-  public partial class Region : JsonEntity {
+  public partial class Region : BaseEntity {
     public int RegionID { get; set; }
     public string RegionDescription { get; set; }
     public int RowVersion { get; set; }
@@ -389,7 +389,7 @@ namespace Foo {
 
   }
 
-  public partial class Role : JsonEntity {
+  public partial class Role : BaseEntity {
 
     public long Id { get; set; }
     public string Name { get; set; }
@@ -411,7 +411,7 @@ namespace Foo {
 
 
 
-  public partial class Supplier : JsonEntity {
+  public partial class Supplier : BaseEntity {
 
     public int SupplierID { get; set; }
     public string CompanyName { get; set; }
@@ -437,7 +437,7 @@ namespace Foo {
     public string Country { get; set; }
   }
 
-  public partial class Territory : JsonEntity {
+  public partial class Territory : BaseEntity {
     public int TerritoryID { get; set; }
     public string TerritoryDescription { get; set; }
     public int RegionID { get; set; }
@@ -448,7 +448,7 @@ namespace Foo {
     public NavigationSet<Employee> Employees { get; set; }
   }
 
-  public partial class User : JsonEntity {
+  public partial class User : BaseEntity {
 
     public long Id { get; set; }
     public string UserName { get; set; }
@@ -468,7 +468,7 @@ namespace Foo {
   }
 
 
-  public partial class UserRole : JsonEntity {
+  public partial class UserRole : BaseEntity {
 
     public long ID { get; set; }
     public long UserId { get; set; }
@@ -478,7 +478,7 @@ namespace Foo {
     public User User { get; set; }
   }
 
-  public partial class InternationalOrder : JsonEntity {
+  public partial class InternationalOrder : BaseEntity {
 
     public int OrderID { get; set; }
     public string CustomsDescription { get; set; }
@@ -488,7 +488,7 @@ namespace Foo {
 
   }
 
-  public partial class TimeLimit : JsonEntity {
+  public partial class TimeLimit : BaseEntity {
 
     public int Id { get; set; }
     public System.TimeSpan MaxTime { get; set; }
@@ -499,7 +499,7 @@ namespace Foo {
   }
 
 
-  public partial class TimeGroup : JsonEntity {
+  public partial class TimeGroup : BaseEntity {
 
     public int Id { get; set; }
     public string Comment { get; set; }
@@ -509,14 +509,14 @@ namespace Foo {
   }
 
 
-  public partial class Comment : JsonEntity {
+  public partial class Comment : BaseEntity {
     public DateTime CreatedOn { get; set; }
     public byte SeqNum { get; set; }
     public string Comment1 { get; set; }
 
   }
 
-  public partial class Geospatial : JsonEntity {
+  public partial class Geospatial : BaseEntity {
 
     public Geospatial() {
 
@@ -530,7 +530,7 @@ namespace Foo {
     public Geography Geography1 { get; set; }
   }
 
-  public partial class UnusualDate : JsonEntity {
+  public partial class UnusualDate : BaseEntity {
     public int Id { get; set; }
     public DateTimeOffset CreationDate { get; set; }
     public DateTime ModificationDate { get; set; }

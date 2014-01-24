@@ -337,7 +337,7 @@ namespace Breeze.NetClient {
         return MergeEntityAspect(entityAspect, targetEntityAspect, entityState, mergeStrategy);
       } else {
         AddEntityAspect(entityAspect);
-        entityAspect.EntityState = entityState;
+        entityAspect.SetEntityStateCore(entityState);
         return entityAspect;
       }
     }

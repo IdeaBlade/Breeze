@@ -10,37 +10,70 @@ using System.Reflection;
 
 namespace Breeze.NetClient {
 
+  
+
+
+
   public class JsonEntityConverter : JsonCreationConverter {
   
     public JsonEntityConverter(EntityManager entityManager) {
       _entityManager = entityManager;
       _metadataStore = entityManager.MetadataStore;
     }
+
+    private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
+
+    public JsonEntityConverter NewInstance() {
+      return new JsonEntityConverter(this._entityManager);
+    }
+
+    public Dictionary<String, Object> ToDictionary(JObject jObject, StructuralType structuralType) {
+      var dict = (IDictionary<String, JToken>) jObject;
+      return dict.ToDictionary(kvp => kvp.Key, kvp => {
+        var dp = structuralType.GetDataProperty(kvp.Key);
+        var dataType = (dp != null) ? dp.ClrType : typeof(Object);
+        var value = kvp.Value.ToObject(dataType);
+        return value;
+      });
+    }
     
 
     protected override Object Create(Type objectType, JObject jObject, JsonContext jsonContext) {
             
       var entityType =  _metadataStore.GetEntityType(objectType);
+      Object result; 
       if (entityType != null) {
         jsonContext.StructuralType = entityType;
-        var keyValues = entityType.KeyProperties.Select(p => jObject[p.Name].ToObject(p.DataType.ClrType));
+
+        JToken refToken = null;
+        if (jObject.TryGetValue("$ref", out refToken)) {
+          jsonContext.AlreadyPopulated = true;
+          return _refMap[refToken.Value<String>()];
+        }
+
+        var backing = ToDictionary(jObject, entityType);
+        jsonContext.Backing = backing;
+        var keyValues = entityType.KeyProperties.Select(p => backing[p.Name]);
         var entityKey = new EntityKey(entityType, keyValues, false);
-        var entity = _entityManager.FindEntityByKey(entityKey);
-        if (entity != null) {
-          return entity;
-        } else {
-          return Activator.CreateInstance(objectType);
+        result = _entityManager.FindEntityByKey(entityKey);
+        if (result == null) {
+          result = Activator.CreateInstance(objectType);
         }
       } else {
-        return Activator.CreateInstance(objectType);
+        result =  Activator.CreateInstance(objectType);
       }
-      
+      JToken idToken = null;
+      if (jObject.TryGetValue("$id", out idToken)) {
+        _refMap[idToken.Value<String>()] = result;
+      }
+      return result;
     }
 
     protected override Object Populate(Object target, JObject jObject, JsonSerializer serializer, JsonContext jsonContext) {
-      var entity = target as JsonEntity;
+      
+      var entity = target as BaseEntity;
       if (entity != null) {
-        entity.SetBacking(jObject);
+        entity.SetBacking(jsonContext.Backing);
         if (entity.EntityAspect == null) {
           entity.EntityAspect = new EntityAspect(entity, (EntityType)jsonContext.StructuralType);
           _entityManager.AttachEntity(entity, EntityState.Unchanged);
@@ -85,8 +118,9 @@ namespace Breeze.NetClient {
         var jsonContext = new JsonContext();
         // Create target object based on JObject
         var target = Create(objectType, jObject, jsonContext);
-
-        Populate(target, jObject, serializer, jsonContext);
+        if (!jsonContext.AlreadyPopulated) {
+          Populate(target, jObject, serializer, jsonContext);
+        }
 
         return target;
       } else {
@@ -97,14 +131,15 @@ namespace Breeze.NetClient {
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
       throw new NotImplementedException();
     }
+
+    
   }
 
   public class JsonContext {
     
-    public StructuralType StructuralType {
-      get;
-      set;
-    }
+    public StructuralType StructuralType { get; set; }
+    public bool AlreadyPopulated { get; set; }
+    public Dictionary<String, Object> Backing { get; set; }
   }
 }
 

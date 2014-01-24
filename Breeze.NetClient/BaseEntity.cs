@@ -9,12 +9,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
-  public abstract class JsonEntity : IEntity {
+  public abstract class BaseEntity : IEntity {
 
-    public void SetBacking(JObject backing) {
+    public void SetBacking(IDictionary<String, Object> backing) {
       _backing = backing;
     }
-    private JObject _backing;
+
+    private IDictionary<String, Object> _backing;
 
     public EntityAspect EntityAspect {
       get;
@@ -30,11 +31,11 @@ namespace Breeze.NetClient {
     }
 
     object IStructuralObject.GetValue(string propertyName) {
-      return _backing[propertyName].ToObject<Object>();
+      return _backing[propertyName];
     }
 
     void IStructuralObject.SetValue(string propertyName, object newValue) {
-      _backing[propertyName] = JToken.FromObject(newValue);
+      _backing[propertyName] = newValue;
     }
 
     void IEditableObject.BeginEdit() {
