@@ -248,7 +248,8 @@
                 var keyLc = key.toLowerCase();
                 if (keyLc === 'type') {
                     renameAttrib(prop, key, 'dataType');
-                } else if (keyLc === 'max' && (prop.dataType === undefined || prop.dataType === DT.String)) {
+                }
+                if (keyLc === 'max' && (prop.dataType === undefined || prop.dataType === DT.String)) {
                     renameAttrib(prop, key, 'maxLength');
                 } else if (keyLc.indexOf('null') > -1 && key !== 'isNullable' && typeof (prop[key]) === 'boolean') {
                     renameAttrib(prop, key, 'isNullable');
