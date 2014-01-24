@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 
 namespace Breeze.Core {
   public static class TypeFns {
+
+
 
     public static bool IsAssignableFrom(this Type entityType, Type otherType) {
       return entityType.GetTypeInfo().IsAssignableFrom(otherType.GetTypeInfo());
@@ -66,7 +69,18 @@ namespace Breeze.Core {
     /// <returns></returns>
     public static object ConvertType(object value, Type conversionType, bool throwIfError) {
       if (value == null) return null;
-      return Convert.ChangeType(value, conversionType, CultureInfo.CurrentCulture);
+      try {
+        if (conversionType == typeof(Guid)) {
+          return Guid.Parse(value.ToString());
+        } else {
+          // doesn't work for guids
+          return Convert.ChangeType(value, conversionType, CultureInfo.CurrentCulture);
+        }
+      } catch {
+        if (throwIfError) throw;
+        return null;
+      }
+      
       // wont compile on PCL
       //try {
       //  if (typeof(IConvertible).IsAssignableFrom(conversionType)) {
@@ -81,6 +95,68 @@ namespace Breeze.Core {
       //return null;
     }
 
+    public static Type[] GetTypesImplementing(Type type, Assembly assembly) {
+      if (type == null) {
+        throw new ArgumentNullException("type");
+      }
+      if (assembly == null) {
+        throw new ArgumentNullException("assembly");
+      }
 
+      var types = GetTypes(assembly)
+        .Where(t => type.IsAssignableFrom(t))
+        .ToArray();
+      return types;
+    }
+
+    /// <summary>
+    /// Returns a list of all of the types in one or more assemblies that implement a specific
+    /// interface or extend a specific class.
+    /// </summary>
+    /// <param name="type">Interface or base type</param>
+    /// <param name="assemblies"></param>
+    /// <returns></returns>
+    public static Type[] GetTypesImplementing(Type type, IEnumerable<Assembly> assemblies) {
+      if (assemblies == null) {
+        return new Type[0];
+      }
+      var validAssemblies = GetValidAssemblies(assemblies);
+      var result = validAssemblies.SelectMany(a => GetTypesImplementing(type, a)).ToArray();
+      return result;
+    }
+
+    internal static IEnumerable<Type> GetTypes(Assembly assembly) {
+      lock (__invalidAssemblies) {
+        if (__invalidAssemblies.Contains(assembly)) {
+          return new Type[] { };
+        }
+      }
+
+      try {
+        return assembly.DefinedTypes.Select(ti => ti.AsType());
+      } catch (Exception ex) {
+        string msg = string.Empty;
+        if (ex is System.Reflection.ReflectionTypeLoadException) {
+          msg = ((ReflectionTypeLoadException)ex).LoaderExceptions.ToAggregateString(". ");
+        }
+        
+        Debug.WriteLine("Error: Unable to execute Assembly.DefinedTypes for "
+          + assembly.ToString() + "." + msg);
+        lock (__invalidAssemblies) {
+          __invalidAssemblies.Add(assembly);
+        }
+        return new Type[] { };
+      }
+    }
+
+    private static List<Assembly> GetValidAssemblies(IEnumerable<Assembly> assemblies) {
+      List<Assembly> validAssemblies;
+      lock (__invalidAssemblies) {
+        validAssemblies = assemblies.Except(__invalidAssemblies).ToList();
+      }
+      return validAssemblies;
+    }
+
+    private static List<Assembly> __invalidAssemblies = new List<Assembly>();
   }
 }

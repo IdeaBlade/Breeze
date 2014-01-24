@@ -50,6 +50,8 @@ namespace Breeze.NetClient {
       Entity = entity;
       EntityType = entityType;
       IndexInEntityGroup = -1;
+      _entityState = EntityState.Detached;
+      EntityGroup = null;
     }
 
     /// <summary>
@@ -151,6 +153,7 @@ namespace Breeze.NetClient {
     #region Accept/Reject/HasChanges and IChangeTracking/IReveribleChangeTracking
 
     public void AcceptChanges() {
+      if (this.EntityState.IsDetached()) return;
       if (!FireEntityChanging(EntityAction.AcceptChanges)) return;
       if (this.EntityState.IsDeleted()) {
         this.EntityManager.DetachEntity(this.Entity);
@@ -175,6 +178,7 @@ namespace Breeze.NetClient {
     /// <seealso cref="M:IdeaBlade.EntityModel.Entity.RemoveFromManager()"/>
     /// </remarks>
     public void RejectChanges() {
+      if (this.EntityState.IsDetached()) return;
       if (!FireEntityChanging(EntityAction.RejectChanges)) return;
 
       // we do not want PropertyChange or EntityChange events to occur here
@@ -246,14 +250,9 @@ namespace Breeze.NetClient {
     /// <summary>
     /// The <see cref="T:IdeaBlade.EntityModel.EntityState"/> of this entity.
     /// </summary>
-    // [DataMember(Order = 2)]
+    
     public EntityState EntityState {
       get {
-        if (_entityState == 0 || EntityGroup.IsDetached) {
-          // this can occur after an entityManager or entityGroup clear or 
-          // during materialization because entity state hasn't yet been set.
-          _entityState = EntityState.Detached;
-        }
         return _entityState;
       }
       set {
@@ -358,15 +357,18 @@ namespace Breeze.NetClient {
     }
 
     public void SetValue(String propertyName, object newValue) {
-      var prop = EntityType.GetProperty(propertyName);
-      if (prop != null) {
-        SetValue(prop, newValue);
+      if (this.EntityGroup == null) {
+        // newly created entity not yet attached to an EntityManager.
+        Entity.SetValue(propertyName, newValue);
       } else {
-        throw new Exception("Unable to locate property: " + EntityType.Name + ":" + propertyName);
+        var prop = EntityType.GetProperty(propertyName);
+        if (prop != null) {
+          SetValue(prop, newValue);
+        } else {
+          throw new Exception("Unable to locate property: " + EntityType.Name + ":" + propertyName);
+        }
       }
     }
-
-   
 
     internal void SetValue(EntityProperty property, object newValue) {
       if (property.IsDataProperty) {
@@ -1017,6 +1019,8 @@ namespace Breeze.NetClient {
     /// </remarks>
     public EntityManager EntityManager {
       get {
+        // when an entity is detached it keeps its EntityGroup ref
+        // when an entity is created it 
         if (this.EntityState.IsDetached()) {
           return null;
         } else {
@@ -1363,7 +1367,7 @@ namespace Breeze.NetClient {
       // returns null for np's that do not have a parentKey
       var fkNames = np.ForeignKeyNames;
       if (fkNames.Count == 0) return null;
-      var fkValues = fkNames.Select(fkn => this.Entity.GetValue(fkn));
+      var fkValues = fkNames.Select(fkn => this.Entity.GetValue(fkn)).ToArray();
 
       return new EntityKey(np.EntityType, fkValues);
     }
@@ -1372,9 +1376,9 @@ namespace Breeze.NetClient {
       var entity = this.Entity;
       this.EntityType.NavigationProperties.ForEach(prop => {
         var val = this.GetValue(prop);
+        if (val == null) return;
         if (prop.IsScalar) {
           action((IEntity)val);
-
         } else {
           ((IEnumerable)val).Cast<IEntity>().ForEach(e => action(e));
         }

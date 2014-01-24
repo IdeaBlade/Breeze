@@ -18,6 +18,11 @@ namespace Breeze.NetClient {
     public StructuralType() {
       Warnings = new List<string>();
     }
+
+    public static string ClrTypeToStructuralTypeName(Type clrType) {
+      return QualifyTypeName(clrType.Name, clrType.Namespace);
+    }
+
     public static String QualifyTypeName(String shortName, String ns) {
       return shortName + ":#" + ns;
     }
@@ -30,7 +35,21 @@ namespace Breeze.NetClient {
     public String Name { 
       get { return QualifyTypeName(ShortName, Namespace); }
     }
-    public Type ClrType { get; internal set;  }
+    public Type ClrType {
+      get {
+        if (_clrType == null) {
+          _clrType = MetadataStore.GetClrTypeFor(this);
+          if (_clrType == null) {
+            throw new Exception("Unable to locate a CLR type corresponding to: " + this.Name);
+          }
+        }
+        return _clrType;
+      }
+      internal set {
+        _clrType = value;
+      }  
+    }
+    private Type _clrType;
     public String ShortName { get; internal set; }
     public String Namespace { get; internal set;}
     public dynamic Custom { get; set; }

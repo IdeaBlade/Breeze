@@ -16,8 +16,7 @@ namespace Test_NetClient {
         _serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
         _em1 = new EntityManager(_serviceName);
         await _em1.FetchMetadata();
-        _em1.MetadataStore.ClrEntityTypes.Add(typeof(Foo.Customer));
-        _em1.MetadataStore.ClrEntityTypes.Add(typeof(Foo.Order));
+        
       } else {
         _em1 = new EntityManager(_em1);
       }
@@ -73,6 +72,10 @@ namespace Test_NetClient {
 
       Assert.IsTrue(r.Count() > 0);
       Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
+      var cust = r.First();
+      var companyName = cust.CompanyName;
+      var custId = cust.CustomerID;
+      var orders = cust.Orders;
     }
 
     [TestMethod]

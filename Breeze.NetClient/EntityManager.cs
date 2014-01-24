@@ -22,18 +22,25 @@ namespace Breeze.NetClient {
     public EntityManager(String serviceName, MetadataStore metadataStore = null) {
       DefaultDataService = new DataService(serviceName);
       MetadataStore = metadataStore != null ? metadataStore : new MetadataStore();
-      JsonConverter = new JsonEntityConverter(MetadataStore);
+      EntityGroups = new EntityGroupCollection();
+      JsonConverter = new JsonEntityConverter(this);
     }
 
     public EntityManager(EntityManager em) {
-      MetadataStore = em.MetadataStore;
       DefaultDataService = em.DefaultDataService;
+      MetadataStore = em.MetadataStore;
+      EntityGroups = new EntityGroupCollection();
       JsonConverter = em.JsonConverter;
     }
 
     public DataService DefaultDataService { get; private set; }
 
     public MetadataStore MetadataStore { get; private set; }
+
+    /// <summary>
+    /// Collection of all <see cref="EntityGroup"/>s within the cache.
+    /// </summary>
+    public EntityGroupCollection EntityGroups { get; private set; }
 
     public JsonConverter JsonConverter { get; private set; }
 
@@ -203,7 +210,7 @@ namespace Breeze.NetClient {
     }
 
     private EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
-      var group = GetOrCreateEntityGroup(entityAspect.EntityType.ClrType);
+      var group = GetEntityGroup(entityAspect.EntityType.ClrType);
       var attachedEntityAspect = group.AttachEntityAspect(entityAspect, entityState, mergeStrategy);
       LinkRelatedEntities(attachedEntityAspect.Entity);
       return attachedEntityAspect;
@@ -221,6 +228,7 @@ namespace Breeze.NetClient {
     private void LinkUnattachedChildren(IEntity entity) {
       var entityKey = entity.EntityAspect.EntityKey;
       var navChildrenList = UnattachedChildrenMap.GetNavChildrenList(entityKey, false);
+      if (navChildrenList == null) return;
       navChildrenList.ForEach(nc => {
 
         NavigationProperty childToParentNp = null, parentToChildNp;
@@ -357,41 +365,34 @@ namespace Breeze.NetClient {
 
     #region EntityGroup methods
 
-
-    /// <summary>
-    /// Collection of all <see cref="EntityGroup"/>s within the cache.
-    /// </summary>
-    public EntityGroupCollection EntityGroups {
-      get;
-      private set;
-    }
-
-    public EntityGroup GetEntityGroup(Type entityType) {
-      return EntityGroups[entityType];
-    }
-
     /// <summary>
     /// Returns the EntityGroup associated with a specific Entity subtype.
     /// </summary>
-    /// <param name="entityType">An <see cref="IEntity"/> subtype</param>
+    /// <param name="clrEntityType">An <see cref="IEntity"/> subtype</param>
     /// <returns>The <see cref="EntityGroup"/> associated with the specified Entity subtype</returns>
     /// <exception cref="ArgumentException">Bad entity type</exception>
     /// <exception cref="EntityServerException"/>
-    internal EntityGroup GetOrCreateEntityGroup(Type entityType) {
+    public EntityGroup GetEntityGroup(Type clrEntityType) {
+      var eg = this.EntityGroups[clrEntityType];
+      if (eg != null) {
+        return eg;
+      }
+      
       lock (this.EntityGroups) {
-        var aEntityGroup = this.EntityGroups[entityType];
-        if (aEntityGroup != null) {
-          return aEntityGroup;
+        // check again just in case another thread got in.
+        eg = this.EntityGroups[clrEntityType];
+        if (eg != null) {
+          return eg;
         }
 
-        var newGroup = EntityGroup.Create(entityType);
-        AddEntityGroup(newGroup);
+        eg = EntityGroup.Create(clrEntityType);
+        AddEntityGroup(eg);
 
         // ensure that any entities placed into the table on initialization are 
         // marked so as not to be saved again
-        newGroup.AcceptChanges();
+        eg.AcceptChanges();
 
-        return newGroup;
+        return eg;
 
       }
     }
@@ -401,25 +402,18 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    internal EntityGroup<T> GetOrCreateEntityGroup<T>() where T : class {
-      return (EntityGroup<T>)GetOrCreateEntityGroup(typeof(T));
+    public EntityGroup<T> GetEntityGroup<T>() where T : class {
+      return (EntityGroup<T>)GetEntityGroup(typeof(T));
     }
-
 
     private void AddEntityGroup(EntityGroup entityGroup) {
-      var groups = this.EntityGroups;
-      var oldEntityGroup = groups[entityGroup.ClrType];
-      if (oldEntityGroup != null) {
-        groups.Remove(oldEntityGroup);
-      }
-      groups.Add(entityGroup);
-
+      // don't both checking if an entityGroup with the same key already exists
+      // should have been checked in calling code ( and will fail in the Add if not)
+      entityGroup.EntityType = this.MetadataStore.GetEntityType(entityGroup.ClrType);
       // insure that any added table can watch for change events
-      entityGroup.ChangeNotificationEnabled = true;
-
+      entityGroup.ChangeNotificationEnabled = true;      
+      this.EntityGroups.Add(entityGroup);
     }
-
-
 
     #endregion
 

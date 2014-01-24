@@ -30,9 +30,11 @@ namespace Breeze.NetClient {
 
     internal void RejectChangesCore() {
       var co = this.ComplexObject;
-      this.OriginalValuesMap.ForEach(kvp => {
-        co.SetValue(kvp.Key, kvp.Value);
-      });
+      if (this.OriginalValuesMap != null) {
+        this.OriginalValuesMap.ForEach(kvp => {
+          co.SetValue(kvp.Key, kvp.Value);
+        });
+      }
       this.ProcessComplexProperties(co2 => co2.ComplexAspect.RejectChangesCore());
     }
 

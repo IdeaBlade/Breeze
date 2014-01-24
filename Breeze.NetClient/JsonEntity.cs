@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -8,21 +9,20 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
-  public class Entity : IEntity {
+  public abstract class JsonEntity : IEntity {
 
     public void SetBacking(JObject backing) {
       _backing = backing;
     }
+    private JObject _backing;
 
     public EntityAspect EntityAspect {
       get;
       internal set;
     }
 
-    private JObject _backing;
-
     protected T PropGet<T>([CallerMemberName] string propertyName = "") {
-      return ((JToken)EntityAspect.GetValue(propertyName)).ToObject<T>();
+      return (T) EntityAspect.GetValue(propertyName);
     }
 
     protected void PropSet(Object value, [CallerMemberName] string propertyName = "") {
@@ -30,7 +30,7 @@ namespace Breeze.NetClient {
     }
 
     object IStructuralObject.GetValue(string propertyName) {
-      return _backing[propertyName];
+      return _backing[propertyName].ToObject<Object>();
     }
 
     void IStructuralObject.SetValue(string propertyName, object newValue) {
@@ -62,8 +62,9 @@ namespace Breeze.NetClient {
     }
 
     event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged {
-      add { ((INotifyPropertyChanged)EntityAspect).PropertyChanged += value; }
-      remove { ((INotifyPropertyChanged)EntityAspect).PropertyChanged += value; ; }
+      // EntityAspect.PropertyChanged is a different event that tracks changes to the EntityAspect itself.
+      add { EntityAspect.EntityPropertyChanged += value; }
+      remove { EntityAspect.EntityPropertyChanged += value; ; }
     }
 
     event EventHandler<DataErrorsChangedEventArgs> INotifyDataErrorInfo.ErrorsChanged {
@@ -71,7 +72,7 @@ namespace Breeze.NetClient {
       remove { INotifyDataErrorInfoImpl.ErrorsChanged -= value; }
     }
 
-    System.Collections.IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName) {
+    IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName) {
       return INotifyDataErrorInfoImpl.GetErrors(propertyName);
     }
 
