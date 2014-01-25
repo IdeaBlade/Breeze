@@ -12,7 +12,7 @@
     var camelCaseConvention = breeze.NamingConvention.camelCase;
 
     // Breeze Labs: breeze.metadata.helper.js
-    var helper = new breeze.MetadataHelper();
+    var helper = new breeze.config.MetadataHelper();
     var addDataService      = helper.addDataService.bind(helper);
     var addTypeToStore = helper.addTypeToStore.bind(helper);
     var setDefaultNamespace = helper.setDefaultNamespace.bind(helper);
