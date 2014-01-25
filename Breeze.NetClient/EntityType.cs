@@ -31,8 +31,8 @@ namespace Breeze.NetClient {
       get { return _subtypes.ReadOnlyValues; }
     }
 
-    public override IEnumerable<EntityProperty> Properties {
-      get { return _dataProperties.Cast<EntityProperty>().Concat(_navigationProperties); }
+    public override IEnumerable<StructuralProperty> Properties {
+      get { return _dataProperties.Cast<StructuralProperty>().Concat(_navigationProperties); }
     }
 
     public ICollection<NavigationProperty> NavigationProperties {
@@ -55,7 +55,7 @@ namespace Breeze.NetClient {
 
     #region Public methods
 
-    public override EntityProperty GetProperty(String propertyName) {
+    public override StructuralProperty GetProperty(String propertyName) {
       var dp = GetDataProperty(propertyName);
       if (dp != null) return dp;
       var np = GetNavigationProperty(propertyName);
@@ -63,7 +63,7 @@ namespace Breeze.NetClient {
       return null; 
     }
 
-    public EntityProperty AddProperty(EntityProperty prop) {
+    public StructuralProperty AddProperty(StructuralProperty prop) {
       // TODO: check that property is not already on this type
       // and that it isn't also on some other type.
       if (prop.IsDataProperty) {

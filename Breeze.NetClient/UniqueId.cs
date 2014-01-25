@@ -8,7 +8,7 @@ using Breeze.Core;
 
 namespace Breeze.NetClient {
   /// <summary>
-  /// Represents the combination of a specific <see cref="EntityProperty"/> and value.
+  /// Represents the combination of a specific <see cref="StructuralProperty"/> and value.
   /// <seealso cref="IIdGenerator"/>
   /// <seealso cref="UniqueIdCollection"/>
   /// </summary>

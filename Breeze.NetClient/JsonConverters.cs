@@ -75,15 +75,19 @@ namespace Breeze.NetClient {
         // causes additional deserialization.
         var backing = ToDictionary(jObject, jsonContext.StructuralType, serializer);
         // need to handle MergeStrategy here.
-        
-        entity.SetBacking(backing);
-        if (entity.EntityAspect == null) {
-          _entityManager.AttachQueriedEntity(entity, (EntityType)jsonContext.StructuralType);
-        } else if ( _mergeStrategy == MergeStrategy.OverwriteChanges || entity.EntityAspect.EntityState == EntityState.Unchanged) {
-          entity.SetBacking(backing);
+        var bs = entity as IBackingStore;
+        if (bs != null) {
+          if (entity.EntityAspect.EntityManager == null) {
+            bs.SetBacking(backing);
+            _entityManager.AttachQueriedEntity(entity, (EntityType)jsonContext.StructuralType);
+          } else if (_mergeStrategy == MergeStrategy.OverwriteChanges || entity.EntityAspect.EntityState == EntityState.Unchanged) {
+            bs.SetBacking(backing);
+          } else {
+            // preserveChanges handling
+            // do nothing; 
+          }
         } else {
-          // preserveChanges handling
-          // do nothing; 
+          throw new Exception("Need alternate mechanism if no IBackingStore");
         }
       } else {
         // Populate the object properties directly

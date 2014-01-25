@@ -12,7 +12,7 @@ namespace Breeze.NetClient {
     }
   }
 
-  public class NavigationProperty : EntityProperty {
+  public class NavigationProperty : StructuralProperty {
     public NavigationProperty() {
 
     }

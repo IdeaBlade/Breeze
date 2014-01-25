@@ -25,6 +25,7 @@ namespace Breeze.NetClient {
       MetadataStore = metadataStore != null ? metadataStore : new MetadataStore();
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
+      KeyGenerator = new DefaultKeyGenerator();
       _hasChanges = false;
     }
 
@@ -34,6 +35,7 @@ namespace Breeze.NetClient {
       MetadataStore = em.MetadataStore;
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
+      KeyGenerator = new DefaultKeyGenerator();
       _hasChanges = false;
     }
 
@@ -42,6 +44,8 @@ namespace Breeze.NetClient {
     public MetadataStore MetadataStore { get; private set; }
 
     public MergeStrategy DefaultMergeStrategy { get; private set; }
+
+    public IKeyGenerator KeyGenerator { get; set; }
 
     #region async methods
 
@@ -158,6 +162,12 @@ namespace Breeze.NetClient {
 
     #region Misc public methods
 
+
+
+    public IEntity CreateEntity(EntityType entityType) {
+      return (IEntity) Activator.CreateInstance(entityType.ClrType);
+    }
+
     public IEntity FindEntityByKey(EntityKey entityKey) {
       var subtypes = entityKey.EntityType.Subtypes;
       EntityAspect ea;
@@ -176,6 +186,20 @@ namespace Breeze.NetClient {
     #endregion
 
     #region Attach/Detach entity methods
+
+    public IEntity CreateEntity(Type entityType, EntityState entityState = EntityState.Added) {
+      var entity = (IEntity) Activator.CreateInstance(entityType);
+      if (entityState == EntityState.Detached) {
+        PrepareForAttach(entity);
+      } else {
+        AttachEntity(entity, entityState);
+      }
+      return entity;
+    }
+
+    public T CreateEntity<T>(EntityState entityState = EntityState.Added) {
+      return (T)CreateEntity(typeof(T), entityState);
+    }
 
     public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Added, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
       var aspect = PrepareForAttach(entity);
@@ -215,7 +239,9 @@ namespace Breeze.NetClient {
     }
 
     internal EntityAspect AttachQueriedEntity(IEntity entity, EntityType entityType) {
-      var aspect = new EntityAspect(entity, entityType);
+      var aspect = entity.EntityAspect;
+      aspect.EntityType = entityType;
+
       using (NewIsLoadingBlock()) {
         // don't fire EntityChanging because there is no entity to recieve the event until it is attached.
 
@@ -242,9 +268,8 @@ namespace Breeze.NetClient {
 
     private EntityAspect PrepareForAttach(IEntity entity) {
       var aspect = entity.EntityAspect;
-      if (aspect == null) {
-        aspect = new EntityAspect(entity, this.MetadataStore.GetEntityType(entity.GetType()));
-        entity.EntityAspect = aspect;
+      if (aspect.EntityType == null) {
+        aspect.EntityType = this.MetadataStore.GetEntityType(entity.GetType());
       } else if (aspect.EntityType.MetadataStore != this.MetadataStore) {
         throw new Exception("Cannot attach this entity because the EntityType (" + aspect.EntityType.Name + ") and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
       }
@@ -456,9 +481,7 @@ namespace Breeze.NetClient {
 
     #region KeyGenerator methods
 
-    public IKeyGenerator GetKeyGenerator(Type entityType) {
-      return null;
-    }
+
 
     /// <summary>
     /// Generates a temporary ID for an <see cref="IEntity"/>.  The temporary ID will be mapped to a real ID when
@@ -497,12 +520,12 @@ namespace Breeze.NetClient {
         aspect.EntityGroup = GetEntityGroup(entityType);
       }
 
-      var keyGenerator = this.GetKeyGenerator(entityType);
-      if (keyGenerator is NullKeyGenerator) {
-        throw new Exception("Unable to locate a valid KeyGenerator for: " + entityType);
+      
+      if (KeyGenerator == null) {
+        throw new Exception("Unable to locate a KeyGenerator");
       }
 
-      object nextTempId = keyGenerator.GetNextTempId(entityProperty);
+      object nextTempId = KeyGenerator.GetNextTempId(entityProperty);
       entity.SetValue(entityProperty.Name, nextTempId);
       var aUniqueId = new UniqueId(entityProperty, nextTempId);
       // don't add to tempId's collection until the entity itself is added.
@@ -518,15 +541,17 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="aspect"></param>
     internal void UpdatePkIfNeeded(EntityAspect aspect) {
+      if (KeyGenerator == null) return;
       var keyProperties = aspect.EntityType.KeyProperties;
+      
       foreach (var aProperty in keyProperties) {
 
         var val = aspect.Entity.GetValue(aProperty.Name);
         var aUniqueId = new UniqueId(aProperty, val);
-        var keyGenerator = this.GetKeyGenerator(aspect.Entity.GetType());
+        
         // determine if a temp pk is needed.
         if (aProperty.IsAutoIncrementing) {
-          if (!keyGenerator.IsTempId(aUniqueId)) {
+          if (!KeyGenerator.IsTempId(aUniqueId)) {
             // generate an id if it wasn't already generated
             aUniqueId = GenerateId(aspect.Entity, aProperty);
           }
@@ -534,11 +559,8 @@ namespace Breeze.NetClient {
         } else if (aProperty.DefaultValue == val) {
           // do not call GenerateId unless the developer is explicit or the key is autoincrementing.
         } else {
-          if (keyGenerator is NullKeyGenerator) {
-            return;
-          }
           // this occurs if GenerateId was called before Attach - it won't have been added to tempIds in this case.
-          if (keyGenerator.IsTempId(aUniqueId)) {
+          if (KeyGenerator.IsTempId(aUniqueId)) {
             AddToTempIds(aUniqueId);
           }
         }
@@ -552,8 +574,8 @@ namespace Breeze.NetClient {
         if (isMapped) {
           TempIds.Remove(aUniqueId);
         } else {
-          var keyGenerator = this.GetKeyGenerator(aspect.Entity.GetType());
-          if (keyGenerator.IsTempId(aUniqueId)) {
+          if (KeyGenerator == null) return;
+          if (KeyGenerator.IsTempId(aUniqueId)) {
             TempIds.Add(aUniqueId);
           }
         }

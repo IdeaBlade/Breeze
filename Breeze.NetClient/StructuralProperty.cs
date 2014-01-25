@@ -5,16 +5,16 @@ using System.Linq;
 
 namespace Breeze.NetClient {
 
-  public class PropertyCollection : KeyedCollection<String, EntityProperty> {
-    protected override String GetKeyForItem(EntityProperty item) {
+  public class PropertyCollection : KeyedCollection<String, StructuralProperty> {
+    protected override String GetKeyForItem(StructuralProperty item) {
       return item.Name;
     }
   }
 
-  public abstract class EntityProperty  {
-    public EntityProperty() { }
+  public abstract class StructuralProperty  {
+    public StructuralProperty() { }
 
-    public EntityProperty(EntityProperty prop) {
+    public StructuralProperty(StructuralProperty prop) {
       this.Name = prop.Name;
       this.NameOnServer = prop.NameOnServer;
       this.Custom = prop.Custom;

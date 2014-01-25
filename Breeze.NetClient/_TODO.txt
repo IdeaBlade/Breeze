@@ -1,0 +1,16 @@
+﻿ComplexType support
+Attach logic
+LocalQuery
+Saves
+NamedQueries
+NoTracking queries
+ShortName map
+
+EntityGroup/EntityManager rules for detached entities.( dislike InternalEntityManager)
+
+
+
+
+
+
+Tests

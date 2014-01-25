@@ -12,4 +12,8 @@ namespace Breeze.NetClient {
   public interface IComplexObject : IStructuralObject {
     ComplexAspect ComplexAspect { get; set; }
   }
+
+  public interface IBackingStore {
+    void SetBacking(IDictionary<String, Object> backing);
+  }
 }

@@ -50,8 +50,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="AttachTests.cs" />
     <Compile Include="QueryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestFns.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Breeze.NetClient\Breeze.NetClient.csproj">

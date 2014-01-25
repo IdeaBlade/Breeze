@@ -84,7 +84,7 @@ namespace Breeze.NetClient {
     /// <param name="entityAspect"></param>
     /// <param name="property"></param>
     /// <param name="value"></param>
-    public EntityPropertyChangingEventArgs(IEntity entity, EntityProperty property, object proposedValue)
+    public EntityPropertyChangingEventArgs(IEntity entity, StructuralProperty property, object proposedValue)
       : base(entity) {
       Property = property;
       ProposedValue = proposedValue;
@@ -99,7 +99,7 @@ namespace Breeze.NetClient {
     /// <param name="proposedValue"></param>
     /// <param name="nestedProperty"></param>
     /// <param name="nestedProposedValue"></param>
-    public EntityPropertyChangingEventArgs(IEntity entity, EntityProperty property, IComplexObject proposedValue, EntityProperty nestedProperty, object nestedProposedValue)
+    public EntityPropertyChangingEventArgs(IEntity entity, StructuralProperty property, IComplexObject proposedValue, StructuralProperty nestedProperty, object nestedProposedValue)
       : base(entity) {
       
       Property = property;
@@ -113,7 +113,7 @@ namespace Breeze.NetClient {
     /// <summary>
     /// Property that is changing.
     /// </summary>
-    public EntityProperty Property { get; private set; }
+    public StructuralProperty Property { get; private set; }
 
     /// <summary>
     /// Gets or sets the proposed value of the property that is changing. 
@@ -123,7 +123,7 @@ namespace Breeze.NetClient {
     /// <summary>
     /// The local parent property that is actually being changed. Will be different from <see cref="Property"/> when a complex object is involved.
     /// </summary>
-    public EntityProperty NestedProperty { get; private set; }
+    public StructuralProperty NestedProperty { get; private set; }
 
     /// <summary>
     /// The actual value that is being proposed - only avail if the property is on a complex object
@@ -149,13 +149,13 @@ namespace Breeze.NetClient {
     /// <param name="entityAspect"></param>
     /// <param name="property"></param>
     /// <param name="newValue"></param>
-    public EntityPropertyChangedEventArgs(IEntity entity, EntityProperty property, object newValue)
+    public EntityPropertyChangedEventArgs(IEntity entity, StructuralProperty property, object newValue)
       : base(entity) {
       Property = property;
       NewValue = newValue;
     }
 
-     public EntityPropertyChangedEventArgs(IEntity entity, EntityProperty property, IComplexObject newValue, EntityProperty nestedProperty, object nestedNewValue)
+     public EntityPropertyChangedEventArgs(IEntity entity, StructuralProperty property, IComplexObject newValue, StructuralProperty nestedProperty, object nestedNewValue)
       : base(entity) {
       
       Property = property;
@@ -167,7 +167,7 @@ namespace Breeze.NetClient {
     /// <summary>
     /// Property whose value has changed.
     /// </summary>
-    public EntityProperty Property { get; private set; }
+    public StructuralProperty Property { get; private set; }
 
     /// <summary>
     /// The value that was just set.
@@ -178,7 +178,7 @@ namespace Breeze.NetClient {
     /// <summary>
     /// For complex objects this is the local complex object property that changed. 
     /// </summary>
-    public EntityProperty NestedProperty { get; private set; }
+    public StructuralProperty NestedProperty { get; private set; }
 
     /// <summary>
     /// The nested value that was just set.

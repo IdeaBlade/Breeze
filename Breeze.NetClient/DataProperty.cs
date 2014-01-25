@@ -14,7 +14,7 @@ namespace Breeze.NetClient {
     
   }
 
-  public class DataProperty : EntityProperty {
+  public class DataProperty : StructuralProperty {
     public DataProperty() {
 
     }

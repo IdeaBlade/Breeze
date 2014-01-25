@@ -26,7 +26,7 @@ namespace Breeze.NetClient {
     /// <param name="uniqueId">ID to be analyzed</param>
     /// <returns>true if the ID is temporary; otherwise false</returns>
     /// <remarks>The <see cref="UniqueId.Value"/> contains the ID to be tested.
-    /// You can use the <see cref="EntityProperty.EntityType"/> property of the <see cref="UniqueId.Property"/>
+    /// You can use the <see cref="StructuralProperty.EntityType"/> property of the <see cref="UniqueId.Property"/>
     /// to determine the <see cref="IEntity"/> type.
     /// </remarks>
     bool IsTempId(UniqueId uniqueId);
@@ -44,67 +44,79 @@ namespace Breeze.NetClient {
     /// </remarks>
     void Reset();
 
-    ///// <summary>
-    ///// Returns a dictionary that maps temporary IDs to real IDs.
-    ///// </summary>
-    ///// <remarks>
-    ///// In the <see cref="UniqueIdMap"/> returned, the <see cref="UniqueId"/> key contains the 
-    ///// temporary ID, while the value holds the real ID.
-    ///// <para>
-    ///// <b>GetRealIdMap</b> is called by the <see cref="EntityManager"/> during <see cref="EntityManager.SaveChanges"/> processing.
-    ///// The collection of temporary IDs passed in may contain entries for multiple entity types.
-    ///// You can use the <see cref="IDataSourceKey"/> passed to manage access to the backend data source to determine real IDs.
-    ///// </para>
-    ///// <para>In an n-tier deployment, this method is called only on the "server" instance of this class.</para>
-    ///// <para>The definition of a "real" ID is user-defined.</para>
-    ///// </remarks>
-    //UniqueIdMap GetRealIdMap(UniqueIdCollection tempIds, IDataSourceKey dataSourceKey);
-
   }
 
-  public class NullKeyGenerator : IKeyGenerator {
+  public class DefaultKeyGenerator : IKeyGenerator {
 
-    /// <summary>
-    /// Initializes a new instance of the NullIdGenerator class.
-    /// </summary>
-    public NullKeyGenerator() { }
-
-    /// <summary>
-    /// See <see cref="IIdGenerator.GetNextTempId"/>.
-    /// </summary>
-    public Object GetNextTempId(DataProperty pProperty) {
-      ThrowError();
-      return null;
+    public DefaultKeyGenerator() {
+      TempIds = new UniqueIdCollection();
     }
 
-    /// <summary>
-    /// See <see cref="IIdGenerator.TempIds"/>.
-    /// </summary>
+    public virtual object GetNextTempId(DataProperty property) {
+      var nextValue = property.DataType.GetNextTempValue();
+      if (nextValue == null) {
+        throw new Exception("Unable to generate a temporary id for this property: " + property.Name);
+      }
+      TempIds.Add(new UniqueId(property, nextValue));
+      return nextValue;
+    }
+
+    public bool IsTempId(UniqueId uniqueId) {
+      return TempIds.Contains(uniqueId);
+    }
+
     public UniqueIdCollection TempIds {
-      get { return msEmptyList; }
+      get; private set; 
     }
 
-    /// <summary>
-    /// See <see cref="IIdGenerator.IsTempId"/>.
-    /// </summary>
-    public bool IsTempId(UniqueId pUniqueId) {
-      return false;
-    }
-
-    /// <summary>
-    /// See <see cref="IIdGenerator.Reset"/>.
-    /// </summary>
     public void Reset() {
-    }
-
-
-    // should be read only
-    private static readonly UniqueIdCollection msEmptyList = new UniqueIdCollection();
-
-    private static void ThrowError() {
-      String msg = "No class implementing IdeaBlade.EntityModel.IIdGenerator was found. ";
-      msg += "If you have implemented this interface, be sure to check the IsApplicable(IDataSourceKey) method in your implementation to ensure that it is filtering correctly.";
-      throw new Exception(msg);
+      TempIds.Clear();
     }
   }
+
+  //public class NullKeyGenerator : IKeyGenerator {
+
+  //  /// <summary>
+  //  /// Initializes a new instance of the NullIdGenerator class.
+  //  /// </summary>
+  //  public NullKeyGenerator() { }
+
+  //  /// <summary>
+  //  /// See <see cref="IIdGenerator.GetNextTempId"/>.
+  //  /// </summary>
+  //  public Object GetNextTempId(DataProperty pProperty) {
+  //    ThrowError();
+  //    return null;
+  //  }
+
+  //  /// <summary>
+  //  /// See <see cref="IIdGenerator.TempIds"/>.
+  //  /// </summary>
+  //  public UniqueIdCollection TempIds {
+  //    get { return msEmptyList; }
+  //  }
+
+  //  /// <summary>
+  //  /// See <see cref="IIdGenerator.IsTempId"/>.
+  //  /// </summary>
+  //  public bool IsTempId(UniqueId pUniqueId) {
+  //    return false;
+  //  }
+
+  //  /// <summary>
+  //  /// See <see cref="IIdGenerator.Reset"/>.
+  //  /// </summary>
+  //  public void Reset() {
+  //  }
+
+
+  //  // should be read only
+  //  private static readonly UniqueIdCollection msEmptyList = new UniqueIdCollection();
+
+  //  private static void ThrowError() {
+  //    String msg = "No class implementing IdeaBlade.EntityModel.IIdGenerator was found. ";
+  //    msg += "If you have implemented this interface, be sure to check the IsApplicable(IDataSourceKey) method in your implementation to ensure that it is filtering correctly.";
+  //    throw new Exception(msg);
+  //  }
+  //}
 }

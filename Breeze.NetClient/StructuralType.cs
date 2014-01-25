@@ -59,8 +59,8 @@ namespace Breeze.NetClient {
     public List<String> Warnings { get; internal set; }
     public abstract bool IsEntityType { get;  }
     
-    public virtual  IEnumerable<EntityProperty> Properties {
-      get { return _dataProperties.Cast<EntityProperty>(); }
+    public virtual  IEnumerable<StructuralProperty> Properties {
+      get { return _dataProperties.Cast<StructuralProperty>(); }
     }
 
     public ICollection<DataProperty> DataProperties {
@@ -71,7 +71,7 @@ namespace Breeze.NetClient {
       return _dataProperties[dpName];
     }
 
-    public virtual EntityProperty GetProperty(String propName) {
+    public virtual StructuralProperty GetProperty(String propName) {
       return _dataProperties[propName];
     }
 
@@ -100,7 +100,7 @@ namespace Breeze.NetClient {
       get { return _unmappedProperties.ReadOnlyValues;  }
     }
 
-    internal void UpdateClientServerName(EntityProperty property) {
+    internal void UpdateClientServerName(StructuralProperty property) {
       var nc = MetadataStore.NamingConvention;
       if (!String.IsNullOrEmpty(property.Name)) {
         property.NameOnServer = nc.Test(property.Name, true);
@@ -109,7 +109,7 @@ namespace Breeze.NetClient {
       }
     }
       
-    internal void UpdateClientServerFkNames(EntityProperty property) {
+    internal void UpdateClientServerFkNames(StructuralProperty property) {
       // TODO: add check for name roundtriping ( to see if ok)
       var nc = MetadataStore.NamingConvention;
       var navProp = property as NavigationProperty;

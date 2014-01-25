@@ -58,7 +58,7 @@ namespace Breeze.NetClient {
 
     public IEntity Entity { get; private set; }
 
-    public EntityType EntityType { get; private set; }
+    public EntityType EntityType { get; internal set; }
 
     protected override StructuralType StructuralType {
       get { return this.EntityType; }
@@ -486,7 +486,7 @@ namespace Breeze.NetClient {
       return Entity.GetValue(propertyName);
     }
 
-    public Object GetValue(EntityProperty property) {
+    public Object GetValue(StructuralProperty property) {
       return Entity.GetValue(property.Name);
     }
 
@@ -504,7 +504,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    internal void SetValue(EntityProperty property, object newValue) {
+    internal void SetValue(StructuralProperty property, object newValue) {
       if (property.IsDataProperty) {
         SetValue((DataProperty)property, newValue);
       } else {
@@ -960,7 +960,7 @@ namespace Breeze.NetClient {
     /// <summary>
     /// Retrieve the values of specified properties within this Entity.
     /// </summary>
-    /// <param name="properties">An array of <see cref="EntityProperty"/>s for which values
+    /// <param name="properties">An array of <see cref="StructuralProperty"/>s for which values
     /// are desired</param>
     /// <returns>An array of data values corresponding to the specified properties</returns>
     protected internal Object[] GetValues(IEnumerable<DataProperty> properties) {
@@ -1071,7 +1071,7 @@ namespace Breeze.NetClient {
     /// </para>
     /// <para>
     /// This method should only be needed in situations where changes to calculated fields or other properties 
-    /// not backed by an <see cref="EntityProperty"/> must be made known.
+    /// not backed by an <see cref="StructuralProperty"/> must be made known.
     /// </para>
     /// </remarks>
     public void ForcePropertyChanged(PropertyChangedEventArgs e) {
@@ -1347,11 +1347,9 @@ namespace Breeze.NetClient {
       get {
         var prop = this.EntityType.KeyProperties.First();
         var uid = new UniqueId(prop, this.Entity.GetValue(prop.Name));
-        if (EntityState == EntityState.Detached) {
-          return InternalEntityManager.GetKeyGenerator(this.EntityType.ClrType).IsTempId(uid);
-        } else {
-          return InternalEntityManager.TempIds.Contains(uid);
-        }
+        
+        return InternalEntityManager.KeyGenerator.IsTempId(uid);
+        
       }
     }
 

@@ -21,7 +21,7 @@ namespace Breeze.NetClient {
     public NumericDataType(Type clrType, String fmtSuffix, bool isInteger) : base(clrType) {
       DefaultValue = Convert.ChangeType(0, clrType);
       FmtOData = (Object source) => FmtNumber(source, clrType, fmtSuffix);
-      GetNext = () => GetNextNumber(clrType);
+      GetNextTempValue = () => GetNextNumber(clrType);
       DataTypeInfo = DataTypeInfo.IsNumeric | (isInteger ? DataTypeInfo.IsInteger : DataTypeInfo.None);
     }
   }
@@ -46,14 +46,14 @@ namespace Breeze.NetClient {
       return Convert.ChangeType(val, ClrType);
     }
     public Func<Object, String> FmtOData { get; internal set; }
-    public Func<Object> GetNext { get; internal set;}
+    public Func<Object> GetNextTempValue { get; internal set;}
     public DataTypeInfo DataTypeInfo { get; internal set; }
     public static List<DataType> All = new List<DataType>();   
     
     public static DataType String = new DataType(typeof(String)) {
         DefaultValue = "",
         FmtOData =  FmtString,
-        GetNext =  null
+        GetNextTempValue =  null
     };
 
     public static DataType Int64 = new NumericDataType(typeof(Int64), "L", true);
@@ -73,7 +73,7 @@ namespace Breeze.NetClient {
     public static DataType DateTime = new DataType(typeof(DateTime)) {
       DefaultValue = new DateTime(1900, 1, 1),
       FmtOData = FmtDateTime,
-      GetNext = () => GetNextDateTime(),
+      GetNextTempValue = () => GetNextDateTime(),
       DataTypeInfo = DataTypeInfo.IsDate
     };
 
@@ -97,7 +97,7 @@ namespace Breeze.NetClient {
     public static DataType Guid = new DataType(typeof(Guid)) {
       DefaultValue = System.Guid.Empty,
       FmtOData = FmtGuid,
-      GetNext = () => GetNextGuid()
+      GetNextTempValue = () => GetNextGuid()
     };
 
     public static DataType Binary = new DataType(typeof(Byte[])) {
