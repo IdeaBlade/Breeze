@@ -71,6 +71,10 @@ namespace Breeze.NetClient {
       return _dataProperties[dpName];
     }
 
+    public virtual EntityProperty GetProperty(String propName) {
+      return _dataProperties[propName];
+    }
+
     internal virtual DataProperty AddDataProperty(DataProperty dp) {
       UpdateClientServerName(dp);
       _dataProperties.Add(dp);

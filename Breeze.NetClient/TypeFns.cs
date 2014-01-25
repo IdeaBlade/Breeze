@@ -27,6 +27,21 @@ namespace Breeze.Core {
       }
     }
 
+    /// <summary>
+    /// Constructs a generic instance.
+    /// </summary>
+    /// <param name="genericType"></param>
+    /// <param name="argTypes"></param>
+    /// <returns></returns>
+    public static Object CreateGenericInstance(Type genericType, params Type[] argTypes) {
+      if (genericType == null) {
+        throw new ArgumentNullException("genericType");
+      }
+
+      Type finalType = genericType.MakeGenericType(argTypes);
+      return Activator.CreateInstance(finalType);
+    }
+
     public static bool IsAssignableFrom(this Type entityType, Type otherType) {
       return entityType.GetTypeInfo().IsAssignableFrom(otherType.GetTypeInfo());
     }

@@ -6,54 +6,57 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters;
+using Breeze.Core;
+using System.Runtime.Serialization;
 
 
 namespace Breeze.NetClient {
 
   
+  //public static class JsonFns {
 
-
+  //  public static JsonSerializerSettings GetSerializerSettings(EntityManager em) {
+  //    var settings = new JsonSerializerSettings() {
+  //      NullValueHandling = NullValueHandling.Include,
+  //      PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+  //      ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+  //      TypeNameHandling = TypeNameHandling.Objects,
+  //      TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
+  //    };
+  //    settings.Converters.Add(new JsonEntityConverter(em));
+  //    return settings;
+  //  }
+  //}
 
   public class JsonEntityConverter : JsonCreationConverter {
   
-    public JsonEntityConverter(EntityManager entityManager) {
+    public JsonEntityConverter(EntityManager entityManager, MergeStrategy mergeStrategy) {
       _entityManager = entityManager;
       _metadataStore = entityManager.MetadataStore;
+      _mergeStrategy = mergeStrategy;
     }
 
-    private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
 
-    public JsonEntityConverter NewInstance() {
-      return new JsonEntityConverter(this._entityManager);
-    }
-
-    public Dictionary<String, Object> ToDictionary(JObject jObject, StructuralType structuralType) {
-      var dict = (IDictionary<String, JToken>) jObject;
-      return dict.ToDictionary(kvp => kvp.Key, kvp => {
-        var dp = structuralType.GetDataProperty(kvp.Key);
-        var dataType = (dp != null) ? dp.ClrType : typeof(Object);
-        var value = kvp.Value.ToObject(dataType);
-        return value;
-      });
-    }
-    
-
-    protected override Object Create(Type objectType, JObject jObject, JsonContext jsonContext) {
-            
+    protected override Object Create(Type objectType, JObject jObject, JsonSerializer serializer, JsonContext jsonContext) {
+      
       var entityType =  _metadataStore.GetEntityType(objectType);
       Object result; 
       if (entityType != null) {
-        jsonContext.StructuralType = entityType;
+        
+        //if (jObject["$ref"] != null) {
+        //  string id = (jObject["$ref"] as JValue).Value as string;
+        //  var refValue = serializer.ReferenceResolver.ResolveReference(serializer, id);
+        //  return refValue;
+        //}
 
         JToken refToken = null;
         if (jObject.TryGetValue("$ref", out refToken)) {
           jsonContext.AlreadyPopulated = true;
           return _refMap[refToken.Value<String>()];
         }
-
-        var backing = ToDictionary(jObject, entityType);
-        jsonContext.Backing = backing;
-        var keyValues = entityType.KeyProperties.Select(p => backing[p.Name]);
+        jsonContext.StructuralType = entityType;
+        var keyValues = entityType.KeyProperties.Select(p => jObject[p].ToObject(p.ClrType));
         var entityKey = new EntityKey(entityType, keyValues, false);
         result = _entityManager.FindEntityByKey(entityKey);
         if (result == null) {
@@ -67,16 +70,25 @@ namespace Breeze.NetClient {
         _refMap[idToken.Value<String>()] = result;
       }
       return result;
+
     }
 
     protected override Object Populate(Object target, JObject jObject, JsonSerializer serializer, JsonContext jsonContext) {
       
       var entity = target as BaseEntity;
       if (entity != null) {
-        entity.SetBacking(jsonContext.Backing);
+        // causes additional deserialization.
+        var backing = ToDictionary(jObject, jsonContext.StructuralType, serializer);
+        // need to handle MergeStrategy here.
+        
+        entity.SetBacking(backing);
         if (entity.EntityAspect == null) {
-          entity.EntityAspect = new EntityAspect(entity, (EntityType)jsonContext.StructuralType);
-          _entityManager.AttachEntity(entity, EntityState.Unchanged);
+          _entityManager.AttachQueriedEntity(entity, (EntityType)jsonContext.StructuralType);
+        } else if ( _mergeStrategy == MergeStrategy.OverwriteChanges || entity.EntityAspect.EntityState == EntityState.Unchanged) {
+          entity.SetBacking(backing);
+        } else {
+          // preserveChanges handling
+          // do nothing; 
         }
       } else {
         // Populate the object properties directly
@@ -90,8 +102,44 @@ namespace Breeze.NetClient {
       return _metadataStore.IsEntityOrComplexType(objectType);
     }
 
+    public Dictionary<String, Object> ToDictionary(JObject jObject, StructuralType structuralType, JsonSerializer serializer) {
+      var dict = (IDictionary<String, JToken>)jObject;
+      return dict.ToDictionary(kvp => kvp.Key, kvp => {
+        var prop = structuralType.GetProperty(kvp.Key);
+        if (prop != null) {
+          if (prop.IsDataProperty) {
+            return kvp.Value.ToObject(prop.ClrType);
+          } else {
+            // TODO: nest serialization
+            var np = (NavigationProperty)prop;
+            if (kvp.Value.HasValues) {
+              if (np.IsScalar) {
+                var nestedOb = (JObject)kvp.Value;
+                return serializer.Deserialize(nestedOb.CreateReader(), prop.ClrType);
+              } else {
+                var nestedArray = (JArray)kvp.Value;
+                var ctype = typeof(NavigationSet<>).MakeGenericType(prop.ClrType);
+                return serializer.Deserialize(nestedArray.CreateReader(), ctype);
+              }
+            } else {
+              if (!np.IsScalar) {
+                return TypeFns.ConstructGenericInstance(typeof(NavigationSet<>), prop.ClrType);
+              } else {
+                return null;
+              }
+            }
+          }
+        } else {
+          return kvp.Value.ToObject<Object>();
+        }
+
+      });
+    }
+
     private EntityManager _entityManager;
     private MetadataStore _metadataStore;
+    private MergeStrategy _mergeStrategy;
+    private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
   }
 
   public abstract class JsonCreationConverter : JsonConverter {
@@ -101,7 +149,7 @@ namespace Breeze.NetClient {
     /// <param name="objectType">type of object expected</param>
     /// <param name="jObject">contents of JSON object that will be deserialized</param>
     /// <returns></returns>
-    protected abstract Object Create(Type objectType, JObject jObject, JsonContext jsonContext);
+    protected abstract Object Create(Type objectType, JObject jObject,JsonSerializer serializer, JsonContext jsonContext);
 
     protected virtual Object Populate(Object target, JObject jObject, JsonSerializer serializer, JsonContext jsonContext) {
       serializer.Populate(jObject.CreateReader(), target);
@@ -117,8 +165,8 @@ namespace Breeze.NetClient {
 
         var jsonContext = new JsonContext();
         // Create target object based on JObject
-        var target = Create(objectType, jObject, jsonContext);
-        if (!jsonContext.AlreadyPopulated) {
+        var target = Create(objectType, jObject, serializer, jsonContext);
+        if (target != null && !jsonContext.AlreadyPopulated) {
           Populate(target, jObject, serializer, jsonContext);
         }
 

@@ -48,12 +48,14 @@ namespace Breeze.NetClient {
     /// <param name="entity"></param>
     public EntityAspect(IEntity entity, EntityType entityType) {
       Entity = entity;
+      entity.EntityAspect = this;
       EntityType = entityType;
       IndexInEntityGroup = -1;
       _entityState = EntityState.Detached;
       EntityGroup = null;
     }
 
+    #region Public properties
     /// <summary>
     /// Returns the wrapped entity.
     /// </summary>
@@ -69,6 +71,227 @@ namespace Breeze.NetClient {
       get { return this.Entity; ; }
     }
 
+    /// <summary>
+    /// The <see cref="T:IdeaBlade.EntityModel.EntityManager"/> that manages this entity.
+    /// </summary>
+    /// <remarks>
+    /// This value will be null until an object is attached to an <b>EntityManager</b> or if it was created using an EntityManager.
+    /// </remarks>
+    public EntityManager EntityManager {
+      get {
+        // when an entity is detached it keeps its EntityGroup ref
+        // when an entity is created it 
+        if (this.EntityState.IsDetached()) {
+          return null;
+        } else {
+          return this.EntityGroup.EntityManager;
+        }
+      }
+    }
+
+    internal EntityManager InternalEntityManager {
+      get {
+        return this.EntityGroup.EntityManager;
+      }
+    }
+
+    /// <summary>
+    /// Returns whether the current instance is a null entity.
+    /// </summary>
+    /// <remarks>
+    /// The EntityManager will return a NullEntity instead of a null value when
+    /// a requested entity is not found.
+    /// </remarks>
+    /// <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="IsNullEntity"]/*' />
+    public bool IsNullEntity {
+      get;
+      internal set;
+    }
+
+    internal EntityVersion EntityVersion {
+      get {
+        if (_entityVersion == EntityVersion.Default) {
+          // this can happen during deserialization.
+          _entityVersion = EntityVersion.Current;
+        }
+        return _entityVersion;
+      }
+      set {
+        _entityVersion = value;
+        // not a public property on EntityAspect ( yet?)
+        // OnEntityAspectPropertyChanged("EntityVersion");
+      }
+    }
+
+
+    /// <summary>
+    /// The <see cref="T:IdeaBlade.EntityModel.EntityGroup"/> that this Entity belongs to.
+    /// </summary>
+    /// <remarks>
+    /// Note that the EntityGroup will never be null (it will be a prototype group 
+    /// in the event that this entity is not yet attached to a specific entity manager. 
+    /// </remarks>
+    public EntityGroup EntityGroup {
+      get;
+      internal set;
+    }
+
+    #endregion
+
+    #region Public methods
+
+    internal bool FireEntityChanging(EntityAction action) {
+      var entityArgs = new EntityChangingEventArgs(this.Entity, action);
+      this.EntityGroup.OnEntityChanging(entityArgs);
+      return !entityArgs.Cancel;
+    }
+
+    /// <summary>
+    /// Marks this Entity for deletion; the <see cref="EntityState"/> becomes "Deleted".
+    /// </summary>
+    /// <remarks>
+    /// You must call <see cref="M:IdeaBlade.EntityModel.EntityManager.SaveChanges()"/> to persist this change to the 
+    /// backend data source.  
+    /// <para>
+    /// The <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityChanging"/> and <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityChanged"/> events
+    /// will fire during a <b>Delete</b> call with an EntityAction of <see cref="EntityAction.Delete"/>.
+    /// </para>  
+    /// </remarks>
+    public void Delete() {
+      if (this.EntityState.IsDeletedOrDetached()) return;
+      if (!FireEntityChanging(EntityAction.Delete)) return;
+      var entity = this.Entity;
+      if (this.EntityState.IsAdded()) {
+        this.EntityManager.DetachEntity(entity);
+        this.EntityManager.NotifyStateChange(this, false);
+      } else {
+        this.SetEntityStateCore(EntityState.Deleted);
+        RemoveFromRelations(EntityState.Deleted);
+        this.EntityManager.NotifyStateChange(this, true);
+      }
+      this.EntityGroup.OnEntityChanged(entity, EntityAction.Delete);
+    }
+
+
+
+    private void RemoveFromRelations(EntityState entityState) {
+      // remove this entity from any collections.
+      // mark the entity deleted or detached
+
+      var isDeleted = entityState.IsDeleted();
+      if (isDeleted) {
+        RemoveFromRelationsCore(true);
+      } else {
+        using (this.EntityManager.NewIsLoadingBlock()) {
+          RemoveFromRelationsCore(false);
+        }
+      }
+    }
+
+    private void RemoveFromRelationsCore(bool isDeleted) {
+      var entity = this.Entity;
+      this.EntityType.NavigationProperties.ForEach(np => {
+        var inverseNp = np.Inverse;
+        var npValue = entity.GetValue(np.Name);
+        if (np.IsScalar) {
+          if (npValue != null) {
+            if (inverseNp != null) {
+              var npEntity = (IEntity)npValue;
+              if (inverseNp.IsScalar) {
+                npEntity.EntityAspect.ClearNp(inverseNp, isDeleted);
+              } else {
+                var collection = (IList)npEntity.GetValue(inverseNp.Name);
+                if (collection.Count > 0) {
+                  collection.Remove(entity);
+                }
+              }
+            }
+            entity.SetValue(np.Name, null);
+          }
+        } else {
+          var entityList = ((IList)npValue);
+          if (inverseNp != null) {
+
+            // npValue is a live list so we need to copy it first.
+            entityList.Cast<IEntity>().ToList().ForEach(v => {
+              if (inverseNp.IsScalar) {
+                v.EntityAspect.ClearNp(inverseNp, isDeleted);
+              } else {
+                // TODO: many to many - not yet handled.
+              }
+            });
+          }
+          // now clear it.
+          entityList.Clear();
+        }
+      });
+
+    }
+
+    private void ClearNp(NavigationProperty np, bool relatedIsDeleted) {
+      var entity = this.Entity;
+      if (relatedIsDeleted) {
+        entity.SetValue(np.Name, null);
+      } else {
+        // relatedEntity was detached.
+        // need to clear child np without clearing child fk or changing the entityState of the child
+        var em = entity.EntityAspect.EntityManager;
+
+        var fkNames = np.ForeignKeyNames;
+        List<Object> fkVals = null;
+        if (fkNames.Count > 0) {
+          fkVals = fkNames.Select(fkName => entity.GetValue(np.Name)).ToList();
+        }
+        entity.SetValue(np.Name, null);
+        if (fkVals != null) {
+          fkNames.ForEach((fkName, i) => entity.SetValue(fkName, fkVals[i]));
+        }
+
+      }
+    }
+
+    #endregion
+
+    #region Misc overrides
+
+    /// <summary>
+    /// <see cref="Object.Equals(object)"/>.
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public override bool Equals(object obj) {
+      var other = obj as EntityAspect;
+      if ((object)other == null) {
+        return (obj == null && this.IsNullEntity);
+      }
+      if (this.IsNullEntity && other.IsNullEntity) return true;
+      return base.Equals(obj);
+    }
+
+    /// <summary>
+    /// <see cref="Object.GetHashCode"/>.
+    /// </summary>
+    /// <returns></returns>
+    public override int GetHashCode() {
+      if (IsNullEntity) {
+        return this.GetType().GetHashCode();
+      } else {
+        return base.GetHashCode();
+      }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="sourceAspect"></param>
+    /// <param name="properties"></param>
+    /// <returns></returns>
+    protected virtual bool AreEqual(EntityAspect sourceAspect, IEnumerable<DataProperty> properties) {
+      bool isCurrent = properties.All(p => Object.Equals(this.Entity.GetValue(p.Name), sourceAspect.Entity.GetValue(p.Name)));
+      return isCurrent;
+    }
+
+    #endregion
 
     #region Add/Remove from manager
     /// <summary>
@@ -1006,227 +1229,6 @@ namespace Breeze.NetClient {
       if (aEntity == null) return -1;
       return this.EntityKey.CompareTo(aEntity.EntityKey);
     }
-
-    #endregion
-
-    #region Misc public properties and methods
-
-    /// <summary>
-    /// The <see cref="T:IdeaBlade.EntityModel.EntityManager"/> that manages this entity.
-    /// </summary>
-    /// <remarks>
-    /// This value will be null until an object is attached to an <b>EntityManager</b> or if it was created using an EntityManager.
-    /// </remarks>
-    public EntityManager EntityManager {
-      get {
-        // when an entity is detached it keeps its EntityGroup ref
-        // when an entity is created it 
-        if (this.EntityState.IsDetached()) {
-          return null;
-        } else {
-          return this.EntityGroup.EntityManager;
-        }
-      }
-    }
-
-    internal EntityManager InternalEntityManager {
-      get {
-        return this.EntityGroup.EntityManager;
-      }
-    }
-
-    /// <summary>
-    /// Returns whether the current instance is a null entity.
-    /// </summary>
-    /// <remarks>
-    /// The EntityManager will return a NullEntity instead of a null value when
-    /// a requested entity is not found.
-    /// </remarks>
-    /// <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="IsNullEntity"]/*' />
-    public bool IsNullEntity {
-      get;
-      internal set;
-    }
-
-    internal EntityVersion EntityVersion {
-      get {
-        if (_entityVersion == EntityVersion.Default) {
-          // this can happen during deserialization.
-          _entityVersion = EntityVersion.Current;
-        }
-        return _entityVersion;
-      }
-      set {
-        _entityVersion = value;
-        // not a public property on EntityAspect ( yet?)
-        // OnEntityAspectPropertyChanged("EntityVersion");
-      }
-    }
-
-
-    /// <summary>
-    /// The <see cref="T:IdeaBlade.EntityModel.EntityGroup"/> that this Entity belongs to.
-    /// </summary>
-    /// <remarks>
-    /// Note that the EntityGroup will never be null (it will be a prototype group 
-    /// in the event that this entity is not yet attached to a specific entity manager. 
-    /// </remarks>
-    public EntityGroup EntityGroup {
-      get;
-      internal set;
-    }
-
-    internal bool FireEntityChanging(EntityAction action) {
-      var entityArgs = new EntityChangingEventArgs(this.Entity, action);
-      this.EntityGroup.OnEntityChanging(entityArgs);
-      return !entityArgs.Cancel;
-    }
-
-    /// <summary>
-    /// Marks this Entity for deletion; the <see cref="EntityState"/> becomes "Deleted".
-    /// </summary>
-    /// <remarks>
-    /// You must call <see cref="M:IdeaBlade.EntityModel.EntityManager.SaveChanges()"/> to persist this change to the 
-    /// backend data source.  
-    /// <para>
-    /// The <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityChanging"/> and <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityChanged"/> events
-    /// will fire during a <b>Delete</b> call with an EntityAction of <see cref="EntityAction.Delete"/>.
-    /// </para>  
-    /// </remarks>
-    public void Delete() {
-      if (this.EntityState.IsDeletedOrDetached()) return;
-      if (!FireEntityChanging(EntityAction.Delete)) return;
-      var entity = this.Entity;
-      if (this.EntityState.IsAdded()) {
-        this.EntityManager.DetachEntity(entity);
-        this.EntityManager.NotifyStateChange(this, false);
-      } else {
-        this.SetEntityStateCore(EntityState.Deleted);
-        RemoveFromRelations(EntityState.Deleted);
-        this.EntityManager.NotifyStateChange(this, true);
-      }
-      this.EntityGroup.OnEntityChanged(entity, EntityAction.Delete);
-    }
-
-
-
-    private void RemoveFromRelations(EntityState entityState) {
-      // remove this entity from any collections.
-      // mark the entity deleted or detached
-
-      var isDeleted = entityState.IsDeleted();
-      if (isDeleted) {
-        RemoveFromRelationsCore(true);
-      } else {
-        using (this.EntityManager.NewIsLoadingBlock()) {
-          RemoveFromRelationsCore(false);
-        }
-      }
-    }
-
-    private void RemoveFromRelationsCore(bool isDeleted) {
-      var entity = this.Entity;
-      this.EntityType.NavigationProperties.ForEach(np => {
-        var inverseNp = np.Inverse;
-        var npValue = entity.GetValue(np.Name);
-        if (np.IsScalar) {
-          if (npValue != null) {
-            if (inverseNp != null) {
-              var npEntity = (IEntity)npValue;
-              if (inverseNp.IsScalar) {
-                npEntity.EntityAspect.ClearNp(inverseNp, isDeleted);
-              } else {
-                var collection = (IList)npEntity.GetValue(inverseNp.Name);
-                if (collection.Count > 0) {
-                  collection.Remove(entity);
-                }
-              }
-            }
-            entity.SetValue(np.Name, null);
-          }
-        } else {
-          var entityList = ((IList)npValue);
-          if (inverseNp != null) {
-
-            // npValue is a live list so we need to copy it first.
-            entityList.Cast<IEntity>().ToList().ForEach(v => {
-              if (inverseNp.IsScalar) {
-                v.EntityAspect.ClearNp(inverseNp, isDeleted);
-              } else {
-                // TODO: many to many - not yet handled.
-              }
-            });
-          }
-          // now clear it.
-          entityList.Clear();
-        }
-      });
-
-    }
-
-    private void ClearNp(NavigationProperty np, bool relatedIsDeleted) {
-      var entity = this.Entity;
-      if (relatedIsDeleted) {
-        entity.SetValue(np.Name, null);
-      } else {
-        // relatedEntity was detached.
-        // need to clear child np without clearing child fk or changing the entityState of the child
-        var em = entity.EntityAspect.EntityManager;
-
-        var fkNames = np.ForeignKeyNames;
-        List<Object> fkVals = null;
-        if (fkNames.Count > 0) {
-          fkVals = fkNames.Select(fkName => entity.GetValue(np.Name)).ToList();
-        }
-        entity.SetValue(np.Name, null);
-        if (fkVals != null) {
-          fkNames.ForEach((fkName, i) => entity.SetValue(fkName, fkVals[i]));
-        }
-
-      }
-    }
-
-
-    #region Misc overrides
-
-    /// <summary>
-    /// <see cref="Object.Equals(object)"/>.
-    /// </summary>
-    /// <param name="obj"></param>
-    /// <returns></returns>
-    public override bool Equals(object obj) {
-      var other = obj as EntityAspect;
-      if ((object)other == null) {
-        return (obj == null && this.IsNullEntity);
-      }
-      if (this.IsNullEntity && other.IsNullEntity) return true;
-      return base.Equals(obj);
-    }
-
-    /// <summary>
-    /// <see cref="Object.GetHashCode"/>.
-    /// </summary>
-    /// <returns></returns>
-    public override int GetHashCode() {
-      if (IsNullEntity) {
-        return this.GetType().GetHashCode();
-      } else {
-        return base.GetHashCode();
-      }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="sourceAspect"></param>
-    /// <param name="properties"></param>
-    /// <returns></returns>
-    protected virtual bool AreEqual(EntityAspect sourceAspect, IEnumerable<DataProperty> properties) {
-      bool isCurrent = properties.All(p => Object.Equals(this.Entity.GetValue(p.Name), sourceAspect.Entity.GetValue(p.Name)));
-      return isCurrent;
-    }
-
-    #endregion
 
     #endregion
 

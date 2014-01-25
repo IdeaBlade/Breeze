@@ -204,7 +204,7 @@ namespace Breeze.NetClient {
     /// </summary>
     public EntityManager EntityManager {
       get;
-      protected set;
+      internal set;
     }
 
     /// <summary>
@@ -329,17 +329,12 @@ namespace Breeze.NetClient {
       }
     }
 
-    // handles merging
-    internal EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
-      // entity should already have an aspect.
-      EntityAspect targetEntityAspect;
-      if (this._entityKeyMap.TryGetValue(entityAspect.EntityKey, out targetEntityAspect)) {
-        return MergeEntityAspect(entityAspect, targetEntityAspect, entityState, mergeStrategy);
-      } else {
-        AddEntityAspect(entityAspect);
-        entityAspect.SetEntityStateCore(entityState);
-        return entityAspect;
-      }
+    internal EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState) {
+      entityAspect.EntityGroup = this;
+      AddToKeyMap(entityAspect);
+      _entityAspects.Add(entityAspect);
+      entityAspect.SetEntityStateCore(entityState);
+      return entityAspect;
     }
 
     internal void DetachEntityAspect(EntityAspect aspect) {
@@ -394,12 +389,6 @@ namespace Breeze.NetClient {
       }
       return targetEntityAspect;
       
-    }
-
-    private void AddEntityAspect(EntityAspect aspect) {
-      aspect.EntityGroup = this;
-      AddToKeyMap(aspect);
-      _entityAspects.Add(aspect);
     }
 
     private void AddToKeyMap(EntityAspect aspect) {

@@ -28,7 +28,9 @@ namespace Breeze.NetClient {
     }
 
     public EntityType EntityType { get; internal set; }
-    
+    public override Type ClrType {
+      get { return EntityType.ClrType; }
+    }
     public String EntityTypeName { get; internal set; }
     public String AssociationName { get; internal set; }
     

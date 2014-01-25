@@ -55,7 +55,7 @@ namespace Breeze.NetClient {
 
     #region Public methods
 
-    public EntityProperty GetProperty(String propertyName) {
+    public override EntityProperty GetProperty(String propertyName) {
       var dp = GetDataProperty(propertyName);
       if (dp != null) return dp;
       var np = GetNavigationProperty(propertyName);

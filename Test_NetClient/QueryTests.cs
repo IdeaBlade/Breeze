@@ -144,6 +144,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SelectAnonWithScalarSelf() {
+      // Pretty sure this is an issue with OData not supporting this syntax.
       await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
@@ -158,7 +159,7 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
-    public async Task Expand() {
+    public async Task ExpandNonScalar() {
       await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
@@ -173,6 +174,23 @@ namespace Test_NetClient {
       Assert.IsTrue(ok, "every Customer should contain a collection of Orders");
       ok = r.All(r1 => r1.CompanyName.Length > 0);
       Assert.IsTrue(ok, "and should have a populated company name");
+    }
+
+    [TestMethod]
+    public async Task ExpandScalar() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Order>("Orders");
+      var q2 = q.Where(o => o.Freight > 500);
+      var q3 = q2.Expand(o => o.Customer);
+      var r = await q3.Execute(_em1);
+
+      Assert.IsTrue(r.Count() > 0);
+      var ok = r.All(r1 =>
+        r1.GetType() == typeof(Foo.Order) &&
+        r1.Customer.GetType() == typeof(Foo.Customer));
+      Assert.IsTrue(ok, "every Order should have a customer");
+      ok = r.All(r1 => r1.Freight > 500);
+      Assert.IsTrue(ok, "and should have the right freight");
     }
 
     [TestMethod]

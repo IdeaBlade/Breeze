@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
   public interface IEntity : IStructuralObject {
-    EntityAspect EntityAspect { get; }
+    EntityAspect EntityAspect { get; set; }
   }
 
   public interface IComplexObject : IStructuralObject {
-    ComplexAspect ComplexAspect { get; }
+    ComplexAspect ComplexAspect { get; set; }
   }
 }

@@ -38,7 +38,7 @@ namespace Breeze.NetClient {
     }
 
     public DataType DataType { get; internal set; }
-    public Type ClrType {
+    public override Type ClrType {
       get {
         if (_clrType == null) {
           var rawClrType = DataType.ClrType;

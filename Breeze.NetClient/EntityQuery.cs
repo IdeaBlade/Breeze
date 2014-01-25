@@ -21,11 +21,6 @@ namespace Breeze.NetClient {
         ResourceName = resourceName;
     }
 
-    public DataService DataService {
-      get;
-      set;
-    }
-
     public EntityQuery( ) : base() {
       var context = new DataServiceContext(new Uri(__placeHolderServiceName), DataServiceProtocolVersion.V3);
       _dataServiceQuery = context.CreateQuery<T>(__placeHolderResourceName);
@@ -40,6 +35,7 @@ namespace Breeze.NetClient {
       q.ResourceName = resourceName;
       return q;
     }
+
 
 
     public Task<IEnumerable<T>> Execute(EntityManager em) {
@@ -182,13 +178,10 @@ namespace Breeze.NetClient {
     public EntityQuery() {
       
     }
-    public EntityQuery(Type clrType) {
+    
 
-    }
-    public EntityQuery(EntityType entityType) {
-
-    }
-
+    public DataService DataService { get; set; }
+    public MergeStrategy? MergeStrategy {get; set; }
     public String ResourceName { get; protected set; }
     internal DataServiceQuery _dataServiceQuery;
   }

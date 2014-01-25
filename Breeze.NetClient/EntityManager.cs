@@ -21,19 +21,21 @@ namespace Breeze.NetClient {
     /// <param name="serviceName">"http://localhost:9000/"</param>
     public EntityManager(String serviceName, MetadataStore metadataStore = null) {
       DefaultDataService = new DataService(serviceName);
+      DefaultMergeStrategy = MergeStrategy.PreserveChanges;
       MetadataStore = metadataStore != null ? metadataStore : new MetadataStore();
       EntityGroups = new EntityGroupCollection();
-      JsonConverter = new JsonEntityConverter(this);
     }
 
     public EntityManager(EntityManager em) {
       DefaultDataService = em.DefaultDataService;
+      DefaultMergeStrategy = em.DefaultMergeStrategy;
       MetadataStore = em.MetadataStore;
       EntityGroups = new EntityGroupCollection();
-      JsonConverter = em.JsonConverter;
+    
     }
 
     public DataService DefaultDataService { get; private set; }
+    public MergeStrategy DefaultMergeStrategy { get; private set; }
 
     public MetadataStore MetadataStore { get; private set; }
 
@@ -41,8 +43,7 @@ namespace Breeze.NetClient {
     /// Collection of all <see cref="EntityGroup"/>s within the cache.
     /// </summary>
     public EntityGroupCollection EntityGroups { get; private set; }
-
-    public JsonConverter JsonConverter { get; private set; }
+    
 
     public async Task<String> FetchMetadata(DataService dataService = null) {
       dataService = dataService != null ? dataService : this.DefaultDataService;
@@ -57,7 +58,9 @@ namespace Breeze.NetClient {
       // HACK
       resourcePath = resourcePath.Replace("/*", "");
       var result = await dataService.GetAsync(resourcePath);
-      var jsonConverter = new JsonEntityConverter(this);
+      var mergeStrategy = query.MergeStrategy ?? this.DefaultMergeStrategy;
+      var jsonConverter = new JsonEntityConverter(this, mergeStrategy);
+      
       if (resourcePath.Contains("inlinecount")) {
         return JsonConvert.DeserializeObject<QueryResult<T>>(result, jsonConverter);
       } else {
@@ -166,54 +169,59 @@ namespace Breeze.NetClient {
     #region Attach/Detach entity methods
 
     public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Added, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
-      var aspect = entity.EntityAspect;
-      if (aspect.EntityType.MetadataStore != this.MetadataStore) {
-        throw new Exception("Cannot attach this entity because the EntityType (" + aspect.EntityType.Name + ") and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
-      }
-      var em = aspect.EntityManager;
-      // check if already attached
-      if (em == this) return entity;
-      if (em != null) {
-        throw new Exception("This entity already belongs to another EntityManager");
-      }
+      var aspect = PrepareForAttach(entity);
+      if (aspect.EntityManager != null && aspect.EntityState == entityState) return entity;
       using (NewIsLoadingBlock()) {
+        // don't fire EntityChanging because there is no entity to recieve the event until it is attached.
 
         if (entityState.IsAdded()) {
-          CheckEntityKey(aspect);
+          InitializeEntityKey(aspect);
         }
-        // attachedEntity === entity EXCEPT in the case of a merge.
-        var attachedEntityAspect = AttachEntityAspect(aspect, entityState, mergeStrategy);
-        // TODO: review this???
-        aspect.InProcess = true;
-        try {
-          // entity ( not attachedEntity) is deliberate here.
-          aspect.ProcessNavigationProperties(ent => AttachEntity(ent, entityState, mergeStrategy));
 
-        } finally {
-          aspect.InProcess = false;
-        }
+        // TODO:
+        // handle mergeStrategy here
+        
+        AttachEntityAspect(aspect, entityState);
+        
+        // if in Query do not do this already being done as part of the serialization.
+        // entity ( not attachedEntity) is deliberate here.
+        aspect.ProcessNavigationProperties(ent => AttachEntity(ent, entityState, mergeStrategy));
+
+        
         // TODO: impl validate on attach
         //    if (this.validationOptions.validateOnAttach) {
         //        attachedEntity.entityAspect.validateEntity();
         //    }
         if (!entityState.IsUnchanged()) {
-          NotifyStateChange(attachedEntityAspect, true);
+          NotifyStateChange(aspect, true);
         }
-        OnEntityChanged(attachedEntityAspect.Entity, EntityAction.Attach);
-        return attachedEntityAspect.Entity;
+        OnEntityChanged(aspect.Entity, EntityAction.Attach);
+        return aspect.Entity;
 
       }
     }
+
+  
 
     public bool DetachEntity(IEntity entity) {
       return entity.EntityAspect.RemoveFromManager();
     }
 
-    private EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
-      var group = GetEntityGroup(entityAspect.EntityType.ClrType);
-      var attachedEntityAspect = group.AttachEntityAspect(entityAspect, entityState, mergeStrategy);
-      LinkRelatedEntities(attachedEntityAspect.Entity);
-      return attachedEntityAspect;
+    internal EntityAspect AttachQueriedEntity(IEntity entity, EntityType entityType) {
+      var aspect = new EntityAspect(entity, entityType);
+      using (NewIsLoadingBlock()) {
+        // don't fire EntityChanging because there is no entity to recieve the event until it is attached.
+
+        AttachEntityAspect(aspect, EntityState.Unchanged); 
+
+        // TODO: impl validate on attach
+        //    if (this.validationOptions.validateOnAttach) {
+        //        attachedEntity.entityAspect.validateEntity();
+        //    }
+
+        OnEntityChanged(aspect.Entity, EntityAction.Attach);
+        return aspect;
+      }
     }
 
     internal void LinkRelatedEntities(IEntity entity) {
@@ -223,6 +231,32 @@ namespace Breeze.NetClient {
         LinkNavProps(entity);
         LinkFkProps(entity);
       }
+    }
+
+    private EntityAspect PrepareForAttach(IEntity entity) {
+      var aspect = entity.EntityAspect;
+      if (aspect == null) {
+        aspect = new EntityAspect(entity, this.MetadataStore.GetEntityType(entity.GetType()));
+        entity.EntityAspect = aspect;
+      } else if (aspect.EntityType.MetadataStore != this.MetadataStore) {
+        throw new Exception("Cannot attach this entity because the EntityType (" + aspect.EntityType.Name + ") and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
+      }
+
+      var em = aspect.EntityManager;
+      // check if already attached
+      if (em != null) {
+        if (em != this) {
+          throw new Exception("This entity already belongs to another EntityManager");
+        }
+      }
+      return aspect;
+    }
+
+    private EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState) {
+      var group = GetEntityGroup(entityAspect.EntityType.ClrType);
+      group.AttachEntityAspect(entityAspect, entityState);
+      LinkRelatedEntities(entityAspect.Entity);
+      return entityAspect;
     }
 
     private void LinkUnattachedChildren(IEntity entity) {
@@ -340,7 +374,7 @@ namespace Breeze.NetClient {
       });
     }
 
-    private void CheckEntityKey(EntityAspect entityAspect) {
+    private void InitializeEntityKey(EntityAspect entityAspect) {
       var ek = entityAspect.EntityKey;
       // return properties that are = to defaultValues
       var keyProps = entityAspect.EntityType.KeyProperties;
@@ -409,6 +443,7 @@ namespace Breeze.NetClient {
     private void AddEntityGroup(EntityGroup entityGroup) {
       // don't both checking if an entityGroup with the same key already exists
       // should have been checked in calling code ( and will fail in the Add if not)
+      entityGroup.EntityManager = this;
       entityGroup.EntityType = this.MetadataStore.GetEntityType(entityGroup.ClrType);
       // insure that any added table can watch for change events
       entityGroup.ChangeNotificationEnabled = true;      

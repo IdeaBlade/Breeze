@@ -24,6 +24,7 @@ namespace Breeze.NetClient {
       this.Validators = new ValidatorCollection(prop.Validators);
     }
     public StructuralType ParentType { get; internal set; }
+    public abstract Type ClrType { get; }
     public String Name { get; internal set; }
     public String NameOnServer { get; internal set; }
     public bool IsScalar { get; internal set; }

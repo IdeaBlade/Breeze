@@ -19,7 +19,7 @@ namespace Breeze.NetClient {
 
     public EntityAspect EntityAspect {
       get;
-      internal set;
+      set;
     }
 
     protected T PropGet<T>([CallerMemberName] string propertyName = "") {
