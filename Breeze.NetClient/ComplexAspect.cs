@@ -38,6 +38,13 @@ namespace Breeze.NetClient {
       this.ProcessComplexProperties(co2 => co2.ComplexAspect.RejectChangesCore());
     }
 
+    internal bool IsDetached {
+      get { return ParentEntity == null || ParentEntity.EntityAspect.IsDetached; }
+    }
+
+    internal bool IsAttached {
+      get { return ParentEntity != null && ParentEntity.EntityAspect.IsAttached; }
+    }
 
     // Note: the Parent and ParentProperty properties are assigned either when a IComplexObject is assigned to a parent
     // or when it is first created via a Get from its parent.
@@ -143,7 +150,7 @@ namespace Breeze.NetClient {
     public EntityManager EntityManager {
       get {
         if (ParentEntity == null) return null;
-        return ParentEntity.EntityAspect.InternalEntityManager;
+        return ParentEntity.EntityAspect.EntityManager;
       }
     }
 
@@ -318,7 +325,7 @@ namespace Breeze.NetClient {
       SetValueWithChangeTracking(property, newValue);
 
       if (ParentEntity != null) {
-        if (ParentEntity.EntityAspect.EntityState.IsUnchanged() && (EntityManager != null && !EntityManager.IsLoadingEntity) ) {
+        if (ParentEntity.EntityAspect.EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity)  {
           ParentEntity.EntityAspect.SetEntityStateCore(EntityState.Modified);
         }
 

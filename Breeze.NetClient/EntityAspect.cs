@@ -68,6 +68,14 @@ namespace Breeze.NetClient {
       get { return this.Entity; ; }
     }
 
+    internal bool IsDetached {
+      get { return this.EntityState == EntityState.Detached; }
+    }
+
+    internal bool IsAttached {
+      get { return this.EntityState != EntityState.Detached; }
+    }
+
     /// <summary>
     /// The <see cref="T:IdeaBlade.EntityModel.EntityManager"/> that manages this entity.
     /// </summary>
@@ -76,21 +84,10 @@ namespace Breeze.NetClient {
     /// </remarks>
     public EntityManager EntityManager {
       get {
-        // when an entity is detached it keeps its EntityGroup ref
-        // when an entity is created it 
-        if (this.EntityState.IsDetached()) {
-          return null;
-        } else {
-          return this.EntityGroup.EntityManager;
-        }
+        return (this.EntityGroup !=null) ? this.EntityGroup.EntityManager : null;
       }
     }
 
-    internal EntityManager InternalEntityManager {
-      get {
-        return this.EntityGroup.EntityManager;
-      }
-    }
 
     /// <summary>
     /// Returns whether the current instance is a null entity.
@@ -210,7 +207,7 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <remarks>The associated EntityManager will either be the EntityManager that was called to create this Entity
     /// (<see cref="IdeaBlade.EntityModel.EntityManager.CreateEntity{T}()"/>) or that was used to generate its ids ( <see cref="IdeaBlade.EntityModel.EntityManager.GenerateId"/>)
-    /// If neither of these cases apply, then the <see cref="InternalEntityManager"/>'s DefaultManager"/> will be used.
+    /// If neither of these cases apply, then the <see cref="EntityManager"/>'s DefaultManager"/> will be used.
     /// There is no difference between <b>AddToManager</b> and 
     /// <see cref="M:IdeaBlade.EntityModel.EntityManager.AddEntity(IdeaBlade.EntityModel.Entity)"/>.
     /// Use either method to add a business object created by the <see cref="M:IdeaBlade.EntityModel.EntityManager.CreateEntity(System.Type)"/> method
@@ -220,7 +217,7 @@ namespace Breeze.NetClient {
     /// </remarks>
     // <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="AddToManager"]/*' />
     public void AddToManager() {
-      var em = InternalEntityManager;
+      var em = EntityManager;
       if (em == null) {
         throw new InvalidOperationException("There is no EntityManager associated with this entity.");
       }
@@ -244,11 +241,6 @@ namespace Breeze.NetClient {
     /// <param name="entityManager"></param>
     // <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="AddToManager"]/*' />
     public void AddToManager(EntityManager entityManager) {
-      if (InternalEntityManager != null) {
-        if (!entityManager.Equals(InternalEntityManager)) {
-          throw new InvalidOperationException("This Entity is associated with another EntityManager.");
-        }
-      }
       entityManager.AttachEntity(this.Entity, EntityState.Added);
     }
 
@@ -277,7 +269,7 @@ namespace Breeze.NetClient {
 
       SetEntityStateCore(EntityState.Detached);
       EntityManager.NotifyStateChange(this, false);
-      this.InternalEntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
+      this.EntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
       return true;
     }
 
@@ -550,7 +542,7 @@ namespace Breeze.NetClient {
       }
 
 
-      if (this.EntityState.IsUnchanged() && !InternalEntityManager.IsLoadingEntity) {
+      if (this.EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity) {
         this.SetEntityStateCore(EntityState.Modified);
       }
 
@@ -580,8 +572,8 @@ namespace Breeze.NetClient {
       // manage attachment -
       if (newValue != null) {
 
-        if (EntityManager != null) {
-          if (newAspect.EntityState.IsDetached()) {
+        if (this.IsAttached) {
+          if (newAspect.IsDetached) {
             if (!EntityManager.IsLoadingEntity) {
               EntityManager.AttachEntity(newEntity, EntityState.Added);
             }
@@ -591,7 +583,7 @@ namespace Breeze.NetClient {
             }
           }
         } else {
-          if (newAspect != null && newAspect.EntityManager != null) {
+          if (newAspect.IsAttached) {
             var em = newAspect.EntityManager;
             if (!em.IsLoadingEntity) {
               em.AttachEntity(this.Entity, EntityState.Added);
@@ -632,7 +624,7 @@ namespace Breeze.NetClient {
             siblings.Add(this.Entity);
           }
         }
-      } else if (property.InvForeignKeyNames != null && EntityManager != null) { // && !EntityManager._inKeyFixup) {
+      } else if (property.InvForeignKeyNames != null && this.IsAttached) { // && !EntityManager._inKeyFixup) {
         var invForeignKeyNames = property.InvForeignKeyNames;
         if (newValue != null) {
           // Example: unidirectional navProperty: 1->1: order -> internationalOrder
@@ -667,7 +659,7 @@ namespace Breeze.NetClient {
 
       Entity.SetValue(property.Name, newValue);
 
-      if (EntityManager != null && !EntityManager.IsLoadingEntity) {
+      if (this.IsAttached && !this.EntityManager.IsLoadingEntity) {
         if (EntityState.IsUnchanged() && !property.IsUnmapped) {
           EntityState = EntityState.Modified;
         }
@@ -713,7 +705,7 @@ namespace Breeze.NetClient {
 
     private void SetDpValue(DataProperty property, object newValue, object oldValue) {
       // if we are changing the key update our internal entityGroup indexes.
-      if (property.IsPartOfKey && EntityManager != null && !EntityManager.IsLoadingEntity) {
+      if (property.IsPartOfKey && this.IsAttached && !EntityManager.IsLoadingEntity) {
 
         var values = EntityType.KeyProperties
           .Select(p => (p == property) ? newValue : GetValue(p))
@@ -735,7 +727,7 @@ namespace Breeze.NetClient {
       Entity.SetValue(property.Name, newValue);
 
       // NOTE: next few lines are the same as above but not refactored for perf reasons.
-      if (EntityManager != null && !EntityManager.IsLoadingEntity) {
+      if (this.IsAttached && !EntityManager.IsLoadingEntity) {
         if (EntityState.IsUnchanged() && !property.IsUnmapped) {
           EntityState = EntityState.Modified;
         }
@@ -771,7 +763,7 @@ namespace Breeze.NetClient {
 
 
     private void UpdateRelated(DataProperty property, object newValue, object oldValue) {
-      if (EntityManager == null) return;
+      if (IsDetached) return;
       var relatedNavProp = property.RelatedNavigationProperty;
       if (relatedNavProp != null) {
         // Example: bidirectional fkDataProperty: 1->n: order -> orderDetails
@@ -950,8 +942,8 @@ namespace Breeze.NetClient {
     private void IfTempIdThenCleanup(DataProperty property) {
       var oldValue = this.Entity.GetValue(property.Name);
       var oldUniqueId = new UniqueId(property, oldValue);
-      if (this.InternalEntityManager.TempIds.Contains(oldUniqueId)) {
-        this.InternalEntityManager.TempIds.Remove(oldUniqueId);
+      if (this.EntityManager.TempIds.Contains(oldUniqueId)) {
+        this.EntityManager.TempIds.Remove(oldUniqueId);
       }
     }
 
@@ -1089,7 +1081,7 @@ namespace Breeze.NetClient {
         OnEntityPropertyChanged(e);
       } catch {
         // eat exceptions during load
-        if (this.InternalEntityManager == null || !this.InternalEntityManager.IsLoadingEntity) throw;
+        if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
       }
     }
 
@@ -1116,8 +1108,7 @@ namespace Breeze.NetClient {
       try {
         handler(this, args);
       } catch {
-        if (InternalEntityManager == null) throw;
-        if (!this.InternalEntityManager.IsLoadingEntity) throw;
+        if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
       }
     }
 
@@ -1348,7 +1339,7 @@ namespace Breeze.NetClient {
         var prop = this.EntityType.KeyProperties.First();
         var uid = new UniqueId(prop, this.Entity.GetValue(prop.Name));
         
-        return InternalEntityManager.KeyGenerator.IsTempId(uid);
+        return EntityManager.KeyGenerator.IsTempId(uid);
         
       }
     }
@@ -1403,9 +1394,9 @@ namespace Breeze.NetClient {
 
     private void UndoMappedTempId(EntityState rowState) {
       if (this.EntityState.IsAdded()) {
-        this.InternalEntityManager.MarkTempIdAsMapped(this, true);
+        this.EntityManager.MarkTempIdAsMapped(this, true);
       } else if (this.EntityState.IsDetached()) {
-        this.InternalEntityManager.MarkTempIdAsMapped(this, false);
+        this.EntityManager.MarkTempIdAsMapped(this, false);
       }
     }
 

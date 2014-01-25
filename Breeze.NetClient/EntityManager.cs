@@ -203,7 +203,7 @@ namespace Breeze.NetClient {
 
     public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Added, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
       var aspect = PrepareForAttach(entity);
-      if (aspect.EntityManager != null && aspect.EntityState == entityState) return entity;
+      if (aspect.IsAttached && aspect.EntityState == entityState) return entity;
       using (NewIsLoadingBlock()) {
         // don't fire EntityChanging because there is no entity to recieve the event until it is attached.
 
@@ -274,10 +274,9 @@ namespace Breeze.NetClient {
         throw new Exception("Cannot attach this entity because the EntityType (" + aspect.EntityType.Name + ") and MetadataStore associated with this entity does not match this EntityManager's MetadataStore.");
       }
 
-      var em = aspect.EntityManager;
       // check if already attached
-      if (em != null) {
-        if (em != this) {
+      if (!aspect.IsDetached) {
+        if (aspect.EntityManager != this) {
           throw new Exception("This entity already belongs to another EntityManager");
         }
       }
@@ -516,10 +515,9 @@ namespace Breeze.NetClient {
       }
       // Associate this entity with this EntityManager if it previously wasn't
       // - so that it cannot later be used in another EntityManager
-      if (aspect.EntityGroup.EntityManager == null) {
+      if (aspect.EntityGroup == null) {
         aspect.EntityGroup = GetEntityGroup(entityType);
       }
-
       
       if (KeyGenerator == null) {
         throw new Exception("Unable to locate a KeyGenerator");
@@ -623,7 +621,9 @@ namespace Breeze.NetClient {
 
     // backdoor the "really" check for changes.
     private bool HasChangesCore(IEnumerable<Type> entityTypes) {
-      var entityGroups = entityTypes.Select(et => GetEntityGroup(et));
+      var entityGroups = (entityTypes == null) 
+        ? this.EntityGroups 
+        : entityTypes.Select(et => GetEntityGroup(et));
       return entityGroups.Any(eg => eg != null && eg.HasChanges());
     }
 

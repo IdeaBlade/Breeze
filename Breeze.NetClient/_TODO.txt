@@ -6,7 +6,7 @@ NamedQueries
 NoTracking queries
 ShortName map
 
-EntityGroup/EntityManager rules for detached entities.( dislike InternalEntityManager)
+EntityGroup/EntityManager rules for detached entities.( dislike EntityManager)
 
 
 

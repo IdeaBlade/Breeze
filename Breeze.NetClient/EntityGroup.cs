@@ -125,7 +125,7 @@ namespace Breeze.NetClient {
       if (ChangeNotificationEnabled) {
         TryToHandle(EntityChanging, e);
         if (!e.Cancel) {
-          if (EntityManager != null) EntityManager.OnEntityChanging(e);
+          EntityManager.OnEntityChanging(e);
         }
       } else {
 
@@ -150,7 +150,7 @@ namespace Breeze.NetClient {
     }
 
     private void QueueEvent(Action action) {
-      if (EntityManager != null && EntityManager.IsLoadingEntity) {
+      if (EntityManager.IsLoadingEntity) {
         EntityManager.QueuedEvents.Add(() => action());
       } else {
         action();
@@ -163,7 +163,7 @@ namespace Breeze.NetClient {
         e.EntityAspect.FirePropertyChanged(AllPropertiesChangedEventArgs);
       }
       TryToHandle(EntityChanged, e);
-      if (EntityManager != null) EntityManager.OnEntityChanged(e);
+      if (e.EntityAspect.IsAttached) EntityManager.OnEntityChanged(e);
     }
 
     private void TryToHandle<T>(EventHandler<T> handler, T args) where T : EventArgs {
@@ -172,7 +172,7 @@ namespace Breeze.NetClient {
         handler(this, args);
       } catch {
         // Throw handler exceptions if not loading.
-        if (EntityManager != null && !EntityManager.IsLoadingEntity) throw;
+        if (!EntityManager.IsLoadingEntity) throw;
         // Also throw if loading but action is add or attach.
         var changing = args as EntityChangingEventArgs;
         if (changing != null && (changing.Action == EntityAction.Attach)) throw;

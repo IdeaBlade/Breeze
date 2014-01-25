@@ -336,68 +336,194 @@ namespace Foo {
   public partial class PreviousEmployee : BaseEntity {
 
 
-    public int EmployeeID { get; set; }
-    public string LastName { get; set; }
-    public string FirstName { get; set; }
-    public string Title { get; set; }
-    public string TitleOfCourtesy { get; set; }
-    public DateTime? BirthDate { get; set; }
-    public DateTime? HireDate { get; set; }
-    public string Address { get; set; }
-    public string City { get; set; }
-    public string Region { get; set; }
-    public string PostalCode { get; set; }
-    public string Country { get; set; }
-    public string HomePhone { get; set; }
-    public string Extension { get; set; }
-    public byte[] Photo { get; set; }
-    public string Notes { get; set; }
-    public string PhotoPath { get; set; }
-    public int RowVersion { get; set; }
+    public int EmployeeID {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public string LastName {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string FirstName {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string Title {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string TitleOfCourtesy {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public DateTime? BirthDate {
+      get { return PropGet<DateTime?>(); }
+      set { PropSet(value); }
+    }
+    public DateTime? HireDate {
+      get { return PropGet<DateTime?>(); }
+      set { PropSet(value); }
+    }
+    public string Address {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string City {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string Region {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string PostalCode{
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string Country {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string HomePhone {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string Extension {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public byte[] Photo {
+      get { return PropGet<byte[]>(); }
+      set { PropSet(value); }
+    }
+    public string Notes {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string PhotoPath{
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public int RowVersion {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
 
   }
 
   public partial class Product : BaseEntity {
-    public int ProductID { get; set; }
-    public string ProductName { get; set; }
-    public int? SupplierID { get; set; }
-    public int? CategoryID { get; set; }
-    public string QuantityPerUnit { get; set; }
-    public Nullable<decimal> UnitPrice { get; set; }
-    public Nullable<short> UnitsInStock { get; set; }
-    public Nullable<short> UnitsOnOrder { get; set; }
-    public Nullable<short> ReorderLevel { get; set; }
-    public bool Discontinued { get; set; }
-    public DateTime? DiscontinuedDate { get; set; }
-    public int RowVersion { get; set; }
+    public int ProductID {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    } 
+    public string ProductName {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public int? SupplierID {
+      get { return PropGet<int?>(); }
+      set { PropSet(value); }
+    }
+    public int? CategoryID {
+      get { return PropGet<int?>(); }
+      set { PropSet(value); }
+    }
+    public string QuantityPerUnit {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public Nullable<decimal> UnitPrice {
+      get { return PropGet<Nullable<decimal>>(); }
+      set { PropSet(value); }
+    }
+    public Nullable<short> UnitsInStock {
+      get { return PropGet<Nullable<short>>(); }
+      set { PropSet(value); }
+    }
+    public Nullable<short> UnitsOnOrder {
+      get { return PropGet<Nullable<short>>(); }
+      set { PropSet(value); }
+    }
+    public Nullable<short> ReorderLevel {
+      get { return PropGet<short>(); }
+      set { PropSet(value); }
+    }
+    public bool Discontinued {
+      get { return PropGet<bool>(); }
+      set { PropSet(value); }
+    }
+    public DateTime? DiscontinuedDate {
+      get { return PropGet<DateTime?>(); }
+      set { PropSet(value); }
+    }
+    public int RowVersion {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
 
-    public Category Category { get; set; }
+    public Category Category {
+      get { return PropGet<Category>(); }
+      set { PropSet(value); }
+    }
 
     //public NavigationSet<OrderDetail> OrderDetails {
     //  get;
     //  set;
     //}
 
-    public Supplier Supplier { get; set; }
+    public Supplier Supplier {
+      get { return PropGet<Supplier>(); }
+      set { PropSet(value); }
+    }
   }
 
   public partial class Region : BaseEntity {
-    public int RegionID { get; set; }
-    public string RegionDescription { get; set; }
-    public int RowVersion { get; set; }
-    public NavigationSet<Territory> Territories { get; set; }
+    public int RegionID {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public string RegionDescription {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public int RowVersion {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public NavigationSet<Territory> Territories {
+      get { return PropGet<NavigationSet<Territory>>(); }
+      set { PropSet(value); }
+    }
 
   }
 
   public partial class Role : BaseEntity {
 
-    public long Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public byte[] Ts { get; set; }
-    public Nullable<RoleType> RoleType { get; set; }
+    public long Id {
+      get { return PropGet<long>(); }
+      set { PropSet(value); }
+    }
+    public string Name {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string Description {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public byte[] Ts {
+      get { return PropGet<byte[]>(); }
+      set { PropSet(value); }
+    }
+    public Nullable<RoleType> RoleType {
+      get { return PropGet<RoleType?>(); }
+      set { PropSet(value); }
+    }
 
-    public NavigationSet<UserRole> UserRoles { get; set; }
+    public NavigationSet<UserRole> UserRoles {
+      get { return PropGet<NavigationSet<UserRole>>(); }
+      set { PropSet(value); }
+    }
 
   }
 
@@ -413,17 +539,47 @@ namespace Foo {
 
   public partial class Supplier : BaseEntity {
 
-    public int SupplierID { get; set; }
-    public string CompanyName { get; set; }
-    public string ContactName { get; set; }
-    public string ContactTitle { get; set; }
-    public Location Location { get; set; }
-    public string Phone { get; set; }
-    public string Fax { get; set; }
-    public string HomePage { get; set; }
-    public int RowVersion { get; set; }
+    public int SupplierID {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public string CompanyName {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string ContactName {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string ContactTitle {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public Location Location {
+      get { return PropGet<Location>(); }
+      set { PropSet(value); }
+    }
+    public string Phone {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string Fax {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string HomePage {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public int RowVersion {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
 
-    public NavigationSet<Product> Products { get; set; }
+    public NavigationSet<Product> Products {
+      get { return PropGet<NavigationSet<Product>>(); }
+      set { PropSet(value); }
+    }
 
     
   }
@@ -438,32 +594,95 @@ namespace Foo {
   }
 
   public partial class Territory : BaseEntity {
-    public int TerritoryID { get; set; }
-    public string TerritoryDescription { get; set; }
-    public int RegionID { get; set; }
-    public int RowVersion { get; set; }
+    public int TerritoryID {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public string TerritoryDescription {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public int RegionID {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public int RowVersion {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
 
-    public NavigationSet<EmployeeTerritory> EmployeeTerritories { get; set; }
-    public Region Region { get; set; }
-    public NavigationSet<Employee> Employees { get; set; }
+    public NavigationSet<EmployeeTerritory> EmployeeTerritories {
+      get { return PropGet<NavigationSet<EmployeeTerritory>>(); }
+      set { PropSet(value); }
+    }
+    public Region Region {
+      get { return PropGet<Region>(); }
+      set { PropSet(value); }
+    }
+    public NavigationSet<Employee> Employees {
+      get { return PropGet<NavigationSet<Employee>>(); }
+      set { PropSet(value); }
+    }
   }
 
   public partial class User : BaseEntity {
 
-    public long Id { get; set; }
-    public string UserName { get; set; }
-    public string UserPassword { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Email { get; set; }
-    public decimal RowVersion { get; set; }
-    public string CreatedBy { get; set; }
-    public long CreatedByUserId { get; set; }
-    public DateTime CreatedDate { get; set; }
-    public string ModifiedBy { get; set; }
-    public long ModifiedByUserId { get; set; }
-    public DateTime ModifiedDate { get; set; }
-    public NavigationSet<UserRole> UserRoles { get; set; }
+    public long Id {
+      get { return PropGet<long>(); }
+      set { PropSet(value); }
+    }
+    public string UserName {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string UserPassword {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string FirstName {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string LastName {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string Email {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public decimal RowVersion {
+      get { return PropGet<decimal>(); }
+      set { PropSet(value); }
+    }
+    public string CreatedBy {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public long CreatedByUserId {
+      get { return PropGet<long>(); }
+      set { PropSet(value); }
+    }
+    public DateTime CreatedDate {
+      get { return PropGet<DateTime>(); }
+      set { PropSet(value); }
+    }
+    public string ModifiedBy {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public long ModifiedByUserId {
+      get { return PropGet<long>(); }
+      set { PropSet(value); }
+    }
+    public DateTime ModifiedDate {
+      get { return PropGet<DateTime>(); }
+      set { PropSet(value); }
+    }
+    public NavigationSet<UserRole> UserRoles {
+      get { return PropGet<NavigationSet<UserRole>>(); }
+      set { PropSet(value); }
+    }
 
   }
 
