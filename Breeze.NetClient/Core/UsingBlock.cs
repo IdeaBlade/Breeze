@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Breeze.NetClient {
+namespace Breeze.Core {
   /// <summary>
   ///  For use with a using (Using in Visual Basic) statement to perform pre- and post- actions. 
   /// </summary>

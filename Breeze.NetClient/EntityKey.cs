@@ -23,6 +23,15 @@ namespace Breeze.NetClient {
     }
 
     /// <summary>
+    /// Initializes a new instance of the EntityKey class.    
+    /// </summary>
+    /// <param name="entityType">The Entity type</param>
+    /// <param name="values">The values of the primary key properties</param>
+    public EntityKey(EntityType entityType, params Object[] values)
+      : this(entityType, values, true) {
+    }
+
+    /// <summary>
     /// Initializes a new instance of the EntityKey class.
     /// </summary>
     /// <param name="entityType">The Entity type</param>
@@ -48,15 +57,6 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="entityType">The Entity type</param>
     /// <param name="values">The values of the primary key properties</param>
-    public EntityKey(EntityType entityType, params Object[] values)
-      : this(entityType, values, true) {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the EntityKey class.    
-    /// </summary>
-    /// <param name="entityType">The Entity type</param>
-    /// <param name="values">The values of the primary key properties</param>
     /// <param name="convertValues"></param>
     public EntityKey(EntityType entityType, Object[] values, bool convertValues) {
       EntityType = entityType;
@@ -75,9 +75,9 @@ namespace Breeze.NetClient {
     /// represented by this key.
     /// </summary>
     /// <returns></returns>
-    public EntityQuery ToQuery(EntityManager entityManager = null) {
-      // TODO: implement later
+    public EntityQuery ToQuery() {
       return null;
+      // return new EntityQuery
       //var query = EntityQueryBuilder.BuildQuery(this);
       //query.EntityManager = entityManager;
       //return query;

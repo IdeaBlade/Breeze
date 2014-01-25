@@ -24,6 +24,8 @@ namespace Breeze.NetClient {
       DefaultMergeStrategy = MergeStrategy.PreserveChanges;
       MetadataStore = metadataStore != null ? metadataStore : new MetadataStore();
       EntityGroups = new EntityGroupCollection();
+      UnattachedChildrenMap = new UnattachedChildrenMap();
+      _hasChanges = false;
     }
 
     public EntityManager(EntityManager em) {
@@ -31,19 +33,17 @@ namespace Breeze.NetClient {
       DefaultMergeStrategy = em.DefaultMergeStrategy;
       MetadataStore = em.MetadataStore;
       EntityGroups = new EntityGroupCollection();
-    
+      UnattachedChildrenMap = new UnattachedChildrenMap();
+      _hasChanges = false;
     }
 
     public DataService DefaultDataService { get; private set; }
-    public MergeStrategy DefaultMergeStrategy { get; private set; }
 
     public MetadataStore MetadataStore { get; private set; }
 
-    /// <summary>
-    /// Collection of all <see cref="EntityGroup"/>s within the cache.
-    /// </summary>
-    public EntityGroupCollection EntityGroups { get; private set; }
-    
+    public MergeStrategy DefaultMergeStrategy { get; private set; }
+
+    #region async methods
 
     public async Task<String> FetchMetadata(DataService dataService = null) {
       dataService = dataService != null ? dataService : this.DefaultDataService;
@@ -52,6 +52,14 @@ namespace Breeze.NetClient {
     }
 
     public async Task<IEnumerable<T>> ExecuteQuery<T>(EntityQuery<T> query) {
+      var result = await ExecuteQuery((EntityQuery) query);
+      return (IEnumerable<T>)result;
+    }
+
+    public async Task<IEnumerable> ExecuteQuery(EntityQuery query) {
+      if (query.TargetType == null) {
+        throw new Exception("Cannot execute a query with a null TargetType");
+      }
       var dataService = query.DataService != null ? query.DataService : this.DefaultDataService;
       await FetchMetadata(dataService);
       var resourcePath = query.GetResourcePath();
@@ -59,18 +67,20 @@ namespace Breeze.NetClient {
       resourcePath = resourcePath.Replace("/*", "");
       var result = await dataService.GetAsync(resourcePath);
       var mergeStrategy = query.MergeStrategy ?? this.DefaultMergeStrategy;
+      // cannot reuse a jsonConverter - internal refMap is one instance/query
       var jsonConverter = new JsonEntityConverter(this, mergeStrategy);
-      
+      Type rType;
       if (resourcePath.Contains("inlinecount")) {
-        return JsonConvert.DeserializeObject<QueryResult<T>>(result, jsonConverter);
+        rType = typeof(QueryResult<>).MakeGenericType(query.TargetType);
       } else {
-        return JsonConvert.DeserializeObject<IEnumerable<T>>(result, jsonConverter);
+        rType = typeof(IEnumerable<>).MakeGenericType(query.TargetType);
       }
-
+      return (IEnumerable)JsonConvert.DeserializeObject(result, rType, jsonConverter);
     }
 
-    #region Event methods
+    #endregion
 
+    #region Event methods
 
     /// <summary>
     /// Fired whenever an entity's state is changing in any significant manner.
@@ -163,7 +173,6 @@ namespace Breeze.NetClient {
       return ea == null ? null : ea.Entity;
     }
 
-
     #endregion
 
     #region Attach/Detach entity methods
@@ -187,11 +196,11 @@ namespace Breeze.NetClient {
         // entity ( not attachedEntity) is deliberate here.
         aspect.ProcessNavigationProperties(ent => AttachEntity(ent, entityState, mergeStrategy));
 
-        
         // TODO: impl validate on attach
         //    if (this.validationOptions.validateOnAttach) {
         //        attachedEntity.entityAspect.validateEntity();
         //    }
+
         if (!entityState.IsUnchanged()) {
           NotifyStateChange(aspect, true);
         }
@@ -200,8 +209,6 @@ namespace Breeze.NetClient {
 
       }
     }
-
-  
 
     public bool DetachEntity(IEntity entity) {
       return entity.EntityAspect.RemoveFromManager();
@@ -406,7 +413,7 @@ namespace Breeze.NetClient {
     /// <returns>The <see cref="EntityGroup"/> associated with the specified Entity subtype</returns>
     /// <exception cref="ArgumentException">Bad entity type</exception>
     /// <exception cref="EntityServerException"/>
-    public EntityGroup GetEntityGroup(Type clrEntityType) {
+    internal EntityGroup GetEntityGroup(Type clrEntityType) {
       var eg = this.EntityGroups[clrEntityType];
       if (eg != null) {
         return eg;
@@ -431,12 +438,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    /// <summary>
-    /// Returns the EntityGroup associated with a specific Entity subtype.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public EntityGroup<T> GetEntityGroup<T>() where T : class {
+    internal EntityGroup<T> GetEntityGroup<T>() where T : class {
       return (EntityGroup<T>)GetEntityGroup(typeof(T));
     }
 
@@ -643,23 +645,18 @@ namespace Breeze.NetClient {
       return new BooleanUsingBlock((b) => this.IsLoadingEntity = b);
     }
 
-
-    internal bool IsLoadingEntity {
-      get;
-      set;
-    }
-
-    internal bool IsRejectingChanges {
-      get;
-      set;
-    }
-    internal UnattachedChildrenMap UnattachedChildrenMap = new UnattachedChildrenMap();
+    internal bool IsLoadingEntity { get; set;  }
+    internal bool IsRejectingChanges { get; set;  }
+    internal UnattachedChildrenMap UnattachedChildrenMap { get; private set; }
 
     #endregion
 
+    #region other private 
+
+    private EntityGroupCollection EntityGroups { get; set; }
     private List<Action> _queuedEvents = new List<Action>();
     private bool _hasChanges;
-
+    #endregion
   }
 
   // JsonObject attribute is needed so this is NOT deserialized as an Enumerable
@@ -668,6 +665,20 @@ namespace Breeze.NetClient {
     public IEnumerable<T> Results { get; set; }
     public Int64? InlineCount { get; set; }
     public IEnumerator<T> GetEnumerator() {
+      return Results.GetEnumerator();
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+      return Results.GetEnumerator();
+    }
+
+  }
+
+  [JsonObject]
+  public class QueryResult : IEnumerable, IHasInlineCount {
+    public IEnumerable Results { get; set; }
+    public Int64? InlineCount { get; set; }
+    public IEnumerator GetEnumerator() {
       return Results.GetEnumerator();
     }
 

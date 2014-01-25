@@ -36,11 +36,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AbstractProperty.cs" />
-    <Compile Include="AsyncSemaphore.cs" />
+    <Compile Include="Core\AsyncSemaphore.cs" />
     <Compile Include="ComplexAspect.cs" />
+    <Compile Include="Core\SafeList.cs" />
     <Compile Include="DataService.cs" />
     <Compile Include="DataType.cs" />
-    <Compile Include="DynamicComparer.cs" />
+    <Compile Include="Core\DynamicComparer.cs" />
     <Compile Include="BaseEntity.cs" />
     <Compile Include="EntityAspect.cs" />
     <Compile Include="EntityChangeEventArgs.cs" />
@@ -52,13 +53,13 @@
     <Compile Include="EntityQueryExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="EnumerableFns.cs" />
+    <Compile Include="Core\EnumerableFns.cs" />
     <Compile Include="IEntity.cs" />
     <Compile Include="IKeyGenerator.cs" />
     <Compile Include="INavigationSet.cs" />
-    <Compile Include="INotifyVerifierResults.cs" />
     <Compile Include="IStructuralObject.cs" />
     <Compile Include="JsonConverters.cs" />
+    <Compile Include="FetchStrategy.cs" />
     <Compile Include="MergeStrategy.cs" />
     <Compile Include="OriginalValuesMap.cs" />
     <Compile Include="StructuralAspect.cs" />
@@ -70,15 +71,15 @@
     <Compile Include="NavigationProperty.cs" />
     <Compile Include="DataProperty.cs" />
     <Compile Include="MetadataStore.cs" />
-    <Compile Include="TypeFns.cs" />
+    <Compile Include="Core\TypeFns.cs" />
     <Compile Include="UnattachedChildrenMap.cs" />
     <Compile Include="UniqueId.cs" />
-    <Compile Include="UsingBlock.cs" />
-    <Compile Include="Utils.cs" />
+    <Compile Include="Core\UsingBlock.cs" />
+    <Compile Include="Core\MapCollection.cs" />
     <Compile Include="EntityManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Validator.cs" />
-    <Compile Include="WeakRefDictionary.cs" />
+    <Compile Include="Core\WeakRefDictionary.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Data.Edm.Portable">

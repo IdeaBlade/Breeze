@@ -43,13 +43,6 @@ namespace Breeze.NetClient {
       var entityType =  _metadataStore.GetEntityType(objectType);
       Object result; 
       if (entityType != null) {
-        
-        //if (jObject["$ref"] != null) {
-        //  string id = (jObject["$ref"] as JValue).Value as string;
-        //  var refValue = serializer.ReferenceResolver.ResolveReference(serializer, id);
-        //  return refValue;
-        //}
-
         JToken refToken = null;
         if (jObject.TryGetValue("$ref", out refToken)) {
           jsonContext.AlreadyPopulated = true;
@@ -189,7 +182,7 @@ namespace Breeze.NetClient {
     
     public StructuralType StructuralType { get; set; }
     public bool AlreadyPopulated { get; set; }
-    public Dictionary<String, Object> Backing { get; set; }
+
   }
 }
 

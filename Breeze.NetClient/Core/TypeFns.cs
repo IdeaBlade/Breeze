@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Breeze.Core {
   public static class TypeFns {
@@ -27,6 +25,51 @@ namespace Breeze.Core {
       }
     }
 
+    #region Type conversion
+
+    public static bool IsAssignableFrom(this Type entityType, Type otherType) {
+      return entityType.GetTypeInfo().IsAssignableFrom(otherType.GetTypeInfo());
+    }
+
+    /// <summary>
+    /// Try and convert a value to the specified conversion type.
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="conversionType"></param>
+    /// <param name="throwIfError"></param>
+    /// <returns></returns>
+    public static object ConvertType(object value, Type conversionType, bool throwIfError) {
+      if (value == null) return null;
+      try {
+        if (conversionType == typeof(Guid)) {
+          return Guid.Parse(value.ToString());
+        } else {
+          // doesn't work for guids
+          return Convert.ChangeType(value, conversionType, CultureInfo.CurrentCulture);
+        }
+      } catch {
+        if (throwIfError) throw;
+        return null;
+      }
+
+      // wont compile on PCL
+      //try {
+      //  if (typeof(IConvertible).IsAssignableFrom(conversionType)) {
+      //    return Convert.ChangeType(value, conversionType, System.Threading.Thread.CurrentThread.CurrentCulture);
+      //  }
+      //  // Guids fail above - try this
+      //  TypeConverter typeConverter = TypeDescriptor.GetConverter(conversionType);
+      //  return typeConverter.ConvertFrom(value);
+      //} catch {
+      //  if (throwIfError) throw;
+      //}
+      //return null;
+    }
+
+    #endregion
+
+    #region Generic handling
+
     /// <summary>
     /// Constructs a generic instance.
     /// </summary>
@@ -42,10 +85,7 @@ namespace Breeze.Core {
       return Activator.CreateInstance(finalType);
     }
 
-    public static bool IsAssignableFrom(this Type entityType, Type otherType) {
-      return entityType.GetTypeInfo().IsAssignableFrom(otherType.GetTypeInfo());
-    }
-
+  
     /// <summary>
     /// Gets a single generic argument from a specified type.
     /// </summary>
@@ -90,43 +130,9 @@ namespace Breeze.Core {
       return Activator.CreateInstance(finalType, constructorParams);
     }
 
-    /// <summary>
-    /// Try and convert a value to the specified conversion type.
-    /// </summary>
-    /// <param name="value"></param>
-    /// <param name="conversionType"></param>
-    /// <param name="throwIfError"></param>
-    /// <returns></returns>
-    public static object ConvertType(object value, Type conversionType, bool throwIfError) {
-      if (value == null) return null;
-      try {
-        if (conversionType == typeof(Guid)) {
-          return Guid.Parse(value.ToString());
-        } else {
-          // doesn't work for guids
-          return Convert.ChangeType(value, conversionType, CultureInfo.CurrentCulture);
-        }
-      } catch {
-        if (throwIfError) throw;
-        return null;
-      }
-      
-      // wont compile on PCL
-      //try {
-      //  if (typeof(IConvertible).IsAssignableFrom(conversionType)) {
-      //    return Convert.ChangeType(value, conversionType, System.Threading.Thread.CurrentThread.CurrentCulture);
-      //  }
-      //  // Guids fail above - try this
-      //  TypeConverter typeConverter = TypeDescriptor.GetConverter(conversionType);
-      //  return typeConverter.ConvertFrom(value);
-      //} catch {
-      //  if (throwIfError) throw;
-      //}
-      //return null;
-    }
+    #endregion
 
- 
-
+    #region Types from Assembly
 
     public static Type[] GetTypesImplementing(Type type, Assembly assembly) {
       if (type == null) {
@@ -191,6 +197,8 @@ namespace Breeze.Core {
     }
 
     private static List<Assembly> __invalidAssemblies = new List<Assembly>();
+
+    #endregion
 
     #region Nullable stuff
 

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Breeze.NetClient {
   /// <summary>
   /// Strategy to control how Entities are merged into an EntityManager's cache.
@@ -23,17 +18,17 @@ namespace Breeze.NetClient {
     /// Preserves (does not overwrite) any existing entities that have been changed (modified, added or deleted).
     /// </summary>
     PreserveChanges,
-    /// <summary>
-    /// Preserves the persistent state of the cached entity if the entity is current. 
-    /// Overwrites an entity if it is obsolete and gives it the EntityState of the incoming entity (will be
-    /// Unchanged if the incoming entity is from the data source).
-    /// </summary>
-    PreserveChangesUnlessOriginalObsolete,
-    /// <summary>
-    /// Preserves the persistent state of the cached entity whether it is current or not.
-    /// Overwrites the <b>Original</b> version of the entity if obsolete.
-    /// </summary>
-    PreserveChangesUpdateOriginal,
+    ///// <summary>
+    ///// Preserves the persistent state of the cached entity if the entity is current. 
+    ///// Overwrites an entity if it is obsolete and gives it the EntityState of the incoming entity (will be
+    ///// Unchanged if the incoming entity is from the data source).
+    ///// </summary>
+    //PreserveChangesUnlessOriginalObsolete,
+    ///// <summary>
+    ///// Preserves the persistent state of the cached entity whether it is current or not.
+    ///// Overwrites the <b>Original</b> version of the entity if obsolete.
+    ///// </summary>
+    //PreserveChangesUpdateOriginal,
 
   }
 }

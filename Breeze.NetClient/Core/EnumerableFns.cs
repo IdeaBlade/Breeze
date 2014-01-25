@@ -14,12 +14,11 @@ namespace Breeze.Core {
   /// To use these extensions, add a using statement (Imports in Visual Basic) for this namespace
   /// to your class.  
   /// <para>
-  /// Since the methods here are DevForce extensions, you cannot use them in queries which will be sent to the data source,
-  /// as Linq to Entities will not recognize the extension method.
+  /// Since the methods here are extensions, you cannot use them in queries which will be sent to the data source,
   /// </para>
   /// <para>
   /// For more information on extension methods, see <b>Extension Methods (C# Programming Guide)</b>
-  /// or <b>Extension Methods (Visual Basic)</b> in the Visual Studio 2010 documentation.
+  /// or <b>Extension Methods (Visual Basic)</b> in the Visual Studio documentation.
   /// </para>
   /// </remarks>
   public static class EnumerableFns {

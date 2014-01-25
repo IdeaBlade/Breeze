@@ -39,6 +39,19 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
+    public async Task NonGenericQuery() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C")).Take(3);
+      var q3 = (EntityQuery)q2;
+
+      var results = await _em1.ExecuteQuery(q3);
+
+      Assert.IsTrue(results.Cast<Object>().Count() == 3);
+      
+    }
+
+    [TestMethod]
     public async Task InlineCount() {
       await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");

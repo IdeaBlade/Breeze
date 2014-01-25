@@ -8,26 +8,13 @@ using System.Threading.Tasks;
 
 namespace Breeze.Core {
 
-  public class SafeList<T> : List<T> {
-    public SafeList() : base() { 
-     _values = new ReadOnlyCollection<T>(this);
-    }
-    public SafeList(IEnumerable<T> enumerable) : base(enumerable) {
-     _values = new ReadOnlyCollection<T>(this);
-    }
-    public ReadOnlyCollection<T> ReadOnlyValues {
-      get { return _values;  }
-    }
-
-    private ReadOnlyCollection<T> _values;
-  }
-
-  public abstract class KeyedMap<T,U> : ICollection<U> {
-    public KeyedMap() {
+  // similar to the .NET KeyedCollection class ( but different ...) 
+  public abstract class MapCollection<T,U> : ICollection<U> {
+    public MapCollection() {
       
     }
 
-    public KeyedMap(IEnumerable<U> values) {
+    public MapCollection(IEnumerable<U> values) {
       values.ForEach(v => this.Add(v));
     }
 

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Breeze.NetClient {
 
-  public class NavigationPropertyCollection : KeyedMap<String, NavigationProperty> {
+  public class NavigationPropertyCollection : MapCollection<String, NavigationProperty> {
     protected override String GetKeyForItem(NavigationProperty item) {
       return item.Name;
     }

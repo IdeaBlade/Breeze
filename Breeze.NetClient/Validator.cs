@@ -14,7 +14,7 @@ namespace Breeze.NetClient {
     }
   }
 
-  public class ValidatorCollection : KeyedMap<String, Validator> {
+  public class ValidatorCollection : MapCollection<String, Validator> {
     public ValidatorCollection(IEnumerable<Validator> validators) : base(validators) { }
     
     protected override string GetKeyForItem(Validator value) {

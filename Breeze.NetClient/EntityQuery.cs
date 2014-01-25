@@ -13,8 +13,7 @@ using System.Linq.Expressions;
 namespace Breeze.NetClient {
 
   // TODO: EntityQuery is currently just additive - i.e. no way to remove clauses
-  public class EntityQuery<T> : EntityQuery, IQueryable<T>, IOrderedQueryable<T>, IQueryProvider {
-
+  public class EntityQuery<T> : EntityQuery, IQueryable<T>, IOrderedQueryable<T>, IQueryProvider, IHasDataServiceQuery {
 
     public EntityQuery(String resourceName)
       : this() {
@@ -23,7 +22,7 @@ namespace Breeze.NetClient {
 
     public EntityQuery( ) : base() {
       var context = new DataServiceContext(new Uri(__placeHolderServiceName), DataServiceProtocolVersion.V3);
-      _dataServiceQuery = context.CreateQuery<T>(__placeHolderResourceName);
+      DataServiceQuery = context.CreateQuery<T>(__placeHolderResourceName);
     }
 
     public EntityQuery(EntityQuery<T> query) : base(query) {
@@ -69,7 +68,7 @@ namespace Breeze.NetClient {
       return q;
     }
 
-    public String GetResourcePath() {
+    public override String GetResourcePath() {
       var dsq = (DataServiceQuery<T>)_dataServiceQuery;
       var requestUri = dsq.RequestUri;
       var s2 = requestUri.AbsoluteUri.Replace(__placeHolderServiceName, "");
@@ -91,11 +90,11 @@ namespace Breeze.NetClient {
     }
 
     public Type ElementType {
-      get { return _dataServiceQuery.ElementType; }
+      get { return DataServiceQuery.ElementType; }
     }
 
     public System.Linq.Expressions.Expression Expression {
-      get { return _dataServiceQuery.Expression; }
+      get { return DataServiceQuery.Expression; }
     }
 
     public IQueryProvider Provider {
@@ -107,9 +106,9 @@ namespace Breeze.NetClient {
     #region IQueryProvider Members
 
     public EntityQuery(Expression expression, IQueryable queryable) {
-      var prevEntityQuery = (EntityQuery)queryable;
-      _dataServiceQuery = (DataServiceQuery<T>) prevEntityQuery._dataServiceQuery.Provider.CreateQuery<T>(expression);
-      ResourceName = prevEntityQuery.ResourceName;
+      var oldDataServiceQuery = ((IHasDataServiceQuery)queryable).DataServiceQuery;
+      DataServiceQuery = (DataServiceQuery<T>) oldDataServiceQuery.Provider.CreateQuery<T>(expression);
+      UpdateFrom((EntityQuery)queryable);
     }
 
     /// <summary>
@@ -163,41 +162,50 @@ namespace Breeze.NetClient {
 
     #endregion 
 
-    protected DataServiceQuery<T> DataServiceQuery {
-      get {
-        return (DataServiceQuery<T>)_dataServiceQuery;
-      }
-      set {
-        _dataServiceQuery = value;
-      }
+    public override Type TargetType {
+      get { return typeof(T);}
     }
 
+    protected DataServiceQuery<T> DataServiceQuery {
+      get { return (DataServiceQuery<T>)_dataServiceQuery;  }
+      set { _dataServiceQuery = value; }
+    }
+
+    DataServiceQuery IHasDataServiceQuery.DataServiceQuery {
+      get { return _dataServiceQuery; }
+    }
+
+    private DataServiceQuery _dataServiceQuery;
     private static String __placeHolderServiceName = "http://localhost:7890/breeze/Undefined/";
     private static String __placeHolderResourceName = "__Undefined__";
 
   }
   
   public abstract class EntityQuery : IEntityQuery {
-    public EntityQuery() {
-      
+    public EntityQuery() {       
     }
 
     public EntityQuery(EntityQuery query) {
+      UpdateFrom(query);
+    }
+
+    public void UpdateFrom(EntityQuery query) {
       ResourceName = query.ResourceName;
+      TargetType = query.TargetType;
       DataService = query.DataService;
       EntityManager = query.EntityManager;
       MergeStrategy = query.MergeStrategy;
-
+      FetchStrategy = query.FetchStrategy;
     }
 
-
     public String ResourceName { get; protected internal set; }
+    public virtual Type TargetType { get; protected internal set; }
     public DataService DataService { get; protected internal set; }
     public EntityManager EntityManager { get; protected internal set; }
-    public MergeStrategy? MergeStrategy {get; protected internal set; }
+    public MergeStrategy? MergeStrategy { get; protected internal set; }
+    public FetchStrategy? FetchStrategy {get; protected internal set;}
     public abstract object Clone();
-    
-    internal DataServiceQuery _dataServiceQuery;
+    public abstract String GetResourcePath();
   }
 
   public interface IEntityQuery {
@@ -208,11 +216,7 @@ namespace Breeze.NetClient {
     Object Clone();
   }
 
-  internal interface ISettableEntityQuery {
-    DataService DataService { get; set; }
-    EntityManager EntityManager { get; set;}
-    MergeStrategy? MergeStrategy { get;  set;}
-    String ResourceName { get; set; }
-    Object Clone();
+  internal interface IHasDataServiceQuery {
+    DataServiceQuery DataServiceQuery { get; }
   }
 }

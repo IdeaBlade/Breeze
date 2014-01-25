@@ -33,7 +33,6 @@ namespace Breeze.NetClient {
     INotifyDataErrorInfo, IComparable {
     // what about IDataErrorInfo
  
-
     /// <summary>
     /// 'Magic' string that can be used to return all errors from <see cref="INotifyDataErrorInfo.GetErrors"/>.
     /// </summary>
@@ -56,9 +55,7 @@ namespace Breeze.NetClient {
     }
 
     #region Public properties
-    /// <summary>
-    /// Returns the wrapped entity.
-    /// </summary>
+
     public IEntity Entity { get; private set; }
 
     public EntityType EntityType { get; private set; }
@@ -123,18 +120,7 @@ namespace Breeze.NetClient {
       }
     }
 
-
-    /// <summary>
-    /// The <see cref="T:IdeaBlade.EntityModel.EntityGroup"/> that this Entity belongs to.
-    /// </summary>
-    /// <remarks>
-    /// Note that the EntityGroup will never be null (it will be a prototype group 
-    /// in the event that this entity is not yet attached to a specific entity manager. 
-    /// </remarks>
-    public EntityGroup EntityGroup {
-      get;
-      internal set;
-    }
+    internal EntityGroup EntityGroup { get; set; }
 
     #endregion
 
@@ -174,81 +160,6 @@ namespace Breeze.NetClient {
 
 
 
-    private void RemoveFromRelations(EntityState entityState) {
-      // remove this entity from any collections.
-      // mark the entity deleted or detached
-
-      var isDeleted = entityState.IsDeleted();
-      if (isDeleted) {
-        RemoveFromRelationsCore(true);
-      } else {
-        using (this.EntityManager.NewIsLoadingBlock()) {
-          RemoveFromRelationsCore(false);
-        }
-      }
-    }
-
-    private void RemoveFromRelationsCore(bool isDeleted) {
-      var entity = this.Entity;
-      this.EntityType.NavigationProperties.ForEach(np => {
-        var inverseNp = np.Inverse;
-        var npValue = entity.GetValue(np.Name);
-        if (np.IsScalar) {
-          if (npValue != null) {
-            if (inverseNp != null) {
-              var npEntity = (IEntity)npValue;
-              if (inverseNp.IsScalar) {
-                npEntity.EntityAspect.ClearNp(inverseNp, isDeleted);
-              } else {
-                var collection = (IList)npEntity.GetValue(inverseNp.Name);
-                if (collection.Count > 0) {
-                  collection.Remove(entity);
-                }
-              }
-            }
-            entity.SetValue(np.Name, null);
-          }
-        } else {
-          var entityList = ((IList)npValue);
-          if (inverseNp != null) {
-
-            // npValue is a live list so we need to copy it first.
-            entityList.Cast<IEntity>().ToList().ForEach(v => {
-              if (inverseNp.IsScalar) {
-                v.EntityAspect.ClearNp(inverseNp, isDeleted);
-              } else {
-                // TODO: many to many - not yet handled.
-              }
-            });
-          }
-          // now clear it.
-          entityList.Clear();
-        }
-      });
-
-    }
-
-    private void ClearNp(NavigationProperty np, bool relatedIsDeleted) {
-      var entity = this.Entity;
-      if (relatedIsDeleted) {
-        entity.SetValue(np.Name, null);
-      } else {
-        // relatedEntity was detached.
-        // need to clear child np without clearing child fk or changing the entityState of the child
-        var em = entity.EntityAspect.EntityManager;
-
-        var fkNames = np.ForeignKeyNames;
-        List<Object> fkVals = null;
-        if (fkNames.Count > 0) {
-          fkVals = fkNames.Select(fkName => entity.GetValue(np.Name)).ToList();
-        }
-        entity.SetValue(np.Name, null);
-        if (fkVals != null) {
-          fkNames.ForEach((fkName, i) => entity.SetValue(fkName, fkVals[i]));
-        }
-
-      }
-    }
 
     #endregion
 
@@ -804,7 +715,9 @@ namespace Breeze.NetClient {
       // if we are changing the key update our internal entityGroup indexes.
       if (property.IsPartOfKey && EntityManager != null && !EntityManager.IsLoadingEntity) {
 
-        var values = EntityType.KeyProperties.Select(p => (p == property) ? newValue : GetValue(p));
+        var values = EntityType.KeyProperties
+          .Select(p => (p == property) ? newValue : GetValue(p))
+          .ToArray();
         var newKey = new EntityKey(EntityType, values);
         if (EntityManager.FindEntityByKey(newKey) != null) {
           throw new Exception("An entity with this key is already in the cache: " + newKey);
@@ -1051,8 +964,7 @@ namespace Breeze.NetClient {
     /// are desired</param>
     /// <returns>An array of data values corresponding to the specified properties</returns>
     protected internal Object[] GetValues(IEnumerable<DataProperty> properties) {
-      var result = properties.Select(p => this.GetValue(p)).ToArray();
-      return result;
+      return properties.Select(p => this.GetValue(p)).ToArray();
     }
 
     #endregion
@@ -1340,6 +1252,84 @@ namespace Breeze.NetClient {
 
     #region Misc private and internal methods/properties
 
+
+    // entityState is either deleted or detached
+    private void RemoveFromRelations(EntityState entityState) {
+      // remove this entity from any collections.
+      // mark the entity deleted or detached
+
+      var isDeleted = entityState.IsDeleted();
+      if (isDeleted) {
+        RemoveFromRelationsCore(isDeleted);
+      } else {
+        using (this.EntityManager.NewIsLoadingBlock()) {
+          RemoveFromRelationsCore(isDeleted);
+        }
+      }
+    }
+
+    private void RemoveFromRelationsCore(bool isDeleted) {
+      var entity = this.Entity;
+      this.EntityType.NavigationProperties.ForEach(np => {
+        var inverseNp = np.Inverse;
+        var npValue = entity.GetValue(np.Name);
+        if (np.IsScalar) {
+          if (npValue != null) {
+            if (inverseNp != null) {
+              var npEntity = (IEntity)npValue;
+              if (inverseNp.IsScalar) {
+                npEntity.EntityAspect.ClearNp(inverseNp, isDeleted);
+              } else {
+                var collection = (IList)npEntity.GetValue(inverseNp.Name);
+                if (collection.Count > 0) {
+                  collection.Remove(entity);
+                }
+              }
+            }
+            entity.SetValue(np.Name, null);
+          }
+        } else {
+          var entityList = ((IList)npValue);
+          if (inverseNp != null) {
+
+            // npValue is a live list so we need to copy it first.
+            entityList.Cast<IEntity>().ToList().ForEach(v => {
+              if (inverseNp.IsScalar) {
+                v.EntityAspect.ClearNp(inverseNp, isDeleted);
+              } else {
+                // TODO: many to many - not yet handled.
+              }
+            });
+          }
+          // now clear it.
+          entityList.Clear();
+        }
+      });
+
+    }
+
+    private void ClearNp(NavigationProperty np, bool relatedIsDeleted) {
+      var entity = this.Entity;
+      if (relatedIsDeleted) {
+        entity.SetValue(np.Name, null);
+      } else {
+        // relatedEntity was detached.
+        // need to clear child np without clearing child fk or changing the entityState of the child
+        var em = entity.EntityAspect.EntityManager;
+
+        var fkNames = np.ForeignKeyNames;
+        List<Object> fkVals = null;
+        if (fkNames.Count > 0) {
+          fkVals = fkNames.Select(fkName => entity.GetValue(np.Name)).ToList();
+        }
+        entity.SetValue(np.Name, null);
+        if (fkVals != null) {
+          fkNames.ForEach((fkName, i) => entity.SetValue(fkName, fkVals[i]));
+        }
+
+      }
+    }
+
     
     // TODO: check if ever used
     internal bool IsCurrent(EntityAspect targetAspect, EntityAspect sourceAspect) {
@@ -1370,7 +1360,6 @@ namespace Breeze.NetClient {
       var fkNames = np.ForeignKeyNames;
       if (fkNames.Count == 0) return null;
       var fkValues = fkNames.Select(fkn => this.Entity.GetValue(fkn)).ToArray();
-
       return new EntityKey(np.EntityType, fkValues);
     }
 
@@ -1387,8 +1376,6 @@ namespace Breeze.NetClient {
       });
 
     }
-
-
 
     //internal Object[] GetCurrentValues() {
     //  var entity = this.Entity;
@@ -1416,8 +1403,6 @@ namespace Breeze.NetClient {
     //}
 
 
-
-
     private void UndoMappedTempId(EntityState rowState) {
       if (this.EntityState.IsAdded()) {
         this.InternalEntityManager.MarkTempIdAsMapped(this, true);
@@ -1426,13 +1411,8 @@ namespace Breeze.NetClient {
       }
     }
 
-
-
-    internal int IndexInEntityGroup {
-      get;
-      set;
-    }
-
+    internal int IndexInEntityGroup { get; set; }
+      
     #endregion
 
     #region Loading info

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Breeze.NetClient {
 
-  public class DataPropertyCollection : KeyedMap<String, DataProperty> {
+  public class DataPropertyCollection : MapCollection<String, DataProperty> {
     protected override String GetKeyForItem(DataProperty item) {
       return item.Name;
     }

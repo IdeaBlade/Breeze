@@ -301,15 +301,7 @@ namespace Breeze.NetClient {
     internal void Clear() {
       _entityAspects.Clear();
       _entityKeyMap.Clear();
-      
-      
     }
-
-    public virtual bool IsDetached {
-      get;
-      protected set;
-    }
-
 
     internal EntityAspect FindEntityAspect(EntityKey entityKey, bool includeDeleted) {
       EntityAspect result;
@@ -371,25 +363,25 @@ namespace Breeze.NetClient {
       }
     }
 
-    private EntityAspect MergeEntityAspect(EntityAspect entityAspect, EntityAspect targetEntityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
-      if (entityAspect == targetEntityAspect) {
-        entityAspect.EntityState = entityState;
-        return entityAspect;
-      }
+    //private EntityAspect MergeEntityAspect(EntityAspect entityAspect, EntityAspect targetEntityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
+    //  if (entityAspect == targetEntityAspect) {
+    //    entityAspect.EntityState = entityState;
+    //    return entityAspect;
+    //  }
 
-      var targetWasUnchanged = targetEntityAspect.EntityState.IsUnchanged();
-      if (mergeStrategy == MergeStrategy.Disallowed) {
-         throw new Exception("A MergeStrategy of 'Disallowed' does not allow you to attach an entity when an entity with the same key is already attached: " + entityAspect.EntityKey);
-      } else if (mergeStrategy == MergeStrategy.OverwriteChanges || (mergeStrategy == MergeStrategy.PreserveChanges && targetWasUnchanged)) {
-        // TODO: this needs to be implementated.
-         // MergeEntityAspectCore(entityAspect, targetEntityAspect);
-         this.EntityManager.CheckStateChange(targetEntityAspect, targetWasUnchanged, entityState.IsUnchanged());
-      } else {
-        // do nothing PreserveChanges and target is modified
-      }
-      return targetEntityAspect;
+    //  var targetWasUnchanged = targetEntityAspect.EntityState.IsUnchanged();
+    //  if (mergeStrategy == MergeStrategy.Disallowed) {
+    //     throw new Exception("A MergeStrategy of 'Disallowed' does not allow you to attach an entity when an entity with the same key is already attached: " + entityAspect.EntityKey);
+    //  } else if (mergeStrategy == MergeStrategy.OverwriteChanges || (mergeStrategy == MergeStrategy.PreserveChanges && targetWasUnchanged)) {
+    //    // TODO: this needs to be implementated.
+    //     // MergeEntityAspectCore(entityAspect, targetEntityAspect);
+    //     this.EntityManager.CheckStateChange(targetEntityAspect, targetWasUnchanged, entityState.IsUnchanged());
+    //  } else {
+    //    // do nothing PreserveChanges and target is modified
+    //  }
+    //  return targetEntityAspect;
       
-    }
+    //}
 
     private void AddToKeyMap(EntityAspect aspect) {
       try {
@@ -509,41 +501,13 @@ namespace Breeze.NetClient {
   }
   #endregion
 
-  //public class NullEntityGroup : EntityGroup {
+  #region EntityGroupCollection and EntityCollection
 
-  //  public NullEntityGroup(Type clrType, EntityType entityType) 
-  //    : base(clrType, entityType) {
-  //  }
-
-  //  public override bool ChangeNotificationEnabled {
-  //    get {
-  //      return false; 
-  //    }
-  //    set {
-  //      if (value == true) {
-  //        throw new Exception("ChangeNotificationEnabled cannot be set on a null EntityGroup");
-  //      }
-  //    }
-  //  }
-
-  //  public override bool IsNullGroup { get { return true;  }   }
-  //  public override bool IsDetached  {
-  //    get { return true; } 
-  //    protected set { throw new Exception("IsDetached cannot be set on a null EntityGroup");}
-  //  }
-  //  protected override IEnumerable<EntityAspect> LocalEntityAspects {
-  //    get {
-  //      return Enumerable.Empty<EntityAspect>();
-  //    }
-  //  }
-  //  public override ReadOnlyCollection<EntityGroup> SelfAndSubtypeGroups {
-  //    get { return _selfAndSubtypeGroups.ReadOnlyValues;  }
-  //  }
-
-  //  private SafeList<EntityGroup> _selfAndSubtypeGroups = new SafeList<EntityGroup>();
-  //}
-
-  #region EntityCollection and EntityGroupCollection
+  public class EntityGroupCollection : MapCollection<Type, EntityGroup> {
+    protected override Type GetKeyForItem(EntityGroup item) {
+      return item.ClrType;
+    }
+  }
 
   internal class EntityCollection : IEnumerable<EntityAspect> {
 
@@ -612,11 +576,40 @@ namespace Breeze.NetClient {
     private List<int> _emptyIndexes;
   }
 
-  public class EntityGroupCollection : KeyedMap<Type, EntityGroup> {
-    protected override Type GetKeyForItem(EntityGroup item) {
-      return item.ClrType;
-    }
 
-  }
 #endregion
+
+  //public class NullEntityGroup : EntityGroup {
+
+  //  public NullEntityGroup(Type clrType, EntityType entityType) 
+  //    : base(clrType, entityType) {
+  //  }
+
+  //  public override bool ChangeNotificationEnabled {
+  //    get {
+  //      return false; 
+  //    }
+  //    set {
+  //      if (value == true) {
+  //        throw new Exception("ChangeNotificationEnabled cannot be set on a null EntityGroup");
+  //      }
+  //    }
+  //  }
+
+  //  public override bool IsNullGroup { get { return true;  }   }
+  //  public override bool IsDetached  {
+  //    get { return true; } 
+  //    protected set { throw new Exception("IsDetached cannot be set on a null EntityGroup");}
+  //  }
+  //  protected override IEnumerable<EntityAspect> LocalEntityAspects {
+  //    get {
+  //      return Enumerable.Empty<EntityAspect>();
+  //    }
+  //  }
+  //  public override ReadOnlyCollection<EntityGroup> SelfAndSubtypeGroups {
+  //    get { return _selfAndSubtypeGroups.ReadOnlyValues;  }
+  //  }
+
+  //  private SafeList<EntityGroup> _selfAndSubtypeGroups = new SafeList<EntityGroup>();
+  //}
 }

@@ -8,7 +8,7 @@ using Breeze.Core;
 
 namespace Breeze.NetClient {
 
-  public class StructuralTypeCollection : KeyedMap<String, StructuralType> {
+  public class StructuralTypeCollection : MapCollection<String, StructuralType> {
     protected override String GetKeyForItem(StructuralType item) {
       return item.ShortName + ":#" + item.Namespace;
     }

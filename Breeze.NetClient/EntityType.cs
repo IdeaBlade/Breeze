@@ -8,7 +8,7 @@ using Breeze.Core;
 
 namespace Breeze.NetClient {
 
-  public class EntityTypeCollection : KeyedMap<String, EntityType> {
+  public class EntityTypeCollection : MapCollection<String, EntityType> {
     protected override String GetKeyForItem(EntityType item) {
       return item.ShortName + ":#" + item.Namespace;
     }
