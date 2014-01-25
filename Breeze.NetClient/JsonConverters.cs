@@ -56,7 +56,9 @@ namespace Breeze.NetClient {
           return _refMap[refToken.Value<String>()];
         }
         jsonContext.StructuralType = entityType;
-        var keyValues = entityType.KeyProperties.Select(p => jObject[p].ToObject(p.ClrType));
+        var keyValues = entityType.KeyProperties
+          .Select(p => jObject[p.Name].ToObject(p.ClrType))
+          .ToArray();
         var entityKey = new EntityKey(entityType, keyValues, false);
         result = _entityManager.FindEntityByKey(entityKey);
         if (result == null) {

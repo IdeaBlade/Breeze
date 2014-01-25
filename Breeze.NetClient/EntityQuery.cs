@@ -26,8 +26,12 @@ namespace Breeze.NetClient {
       _dataServiceQuery = context.CreateQuery<T>(__placeHolderResourceName);
     }
 
-    public EntityQuery(EntityQuery<T> query) : this(query.ResourceName) {
+    public EntityQuery(EntityQuery<T> query) : base(query) {
       DataServiceQuery = query.DataServiceQuery;
+    }
+
+    public override object  Clone() {
+      return new EntityQuery<T>(this);
     }
 
     public EntityQuery<T> From(String resourceName) {
@@ -36,9 +40,8 @@ namespace Breeze.NetClient {
       return q;
     }
 
-
-
-    public Task<IEnumerable<T>> Execute(EntityManager em) {
+    public Task<IEnumerable<T>> Execute(EntityManager em = null) {
+      em = em ?? this.EntityManager;
       return em.ExecuteQuery<T>(this);
     }
 
@@ -174,15 +177,42 @@ namespace Breeze.NetClient {
 
   }
   
-  public class EntityQuery {
+  public abstract class EntityQuery : IEntityQuery {
     public EntityQuery() {
       
     }
-    
 
-    public DataService DataService { get; set; }
-    public MergeStrategy? MergeStrategy {get; set; }
-    public String ResourceName { get; protected set; }
+    public EntityQuery(EntityQuery query) {
+      ResourceName = query.ResourceName;
+      DataService = query.DataService;
+      EntityManager = query.EntityManager;
+      MergeStrategy = query.MergeStrategy;
+
+    }
+
+
+    public String ResourceName { get; protected internal set; }
+    public DataService DataService { get; protected internal set; }
+    public EntityManager EntityManager { get; protected internal set; }
+    public MergeStrategy? MergeStrategy {get; protected internal set; }
+    public abstract object Clone();
+    
     internal DataServiceQuery _dataServiceQuery;
+  }
+
+  public interface IEntityQuery {
+    DataService DataService { get;  }
+    EntityManager EntityManager { get;  }
+    MergeStrategy? MergeStrategy { get;  }
+    String ResourceName { get;   }
+    Object Clone();
+  }
+
+  internal interface ISettableEntityQuery {
+    DataService DataService { get; set; }
+    EntityManager EntityManager { get; set;}
+    MergeStrategy? MergeStrategy { get;  set;}
+    String ResourceName { get; set; }
+    Object Clone();
   }
 }

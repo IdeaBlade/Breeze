@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading.Tasks;
 using System.Linq;
+using Breeze.Core;
 using Breeze.NetClient;
 using System.Collections.Generic;
 
@@ -44,13 +45,13 @@ namespace Test_NetClient {
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")) ;
       var q3 = q2.InlineCount();
 
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      var count = ((IHasInlineCount) r).InlineCount;
+      var count = ((IHasInlineCount) results).InlineCount;
       
-      Assert.IsTrue(r.Count() > 0);
-      Assert.IsTrue(r.Count() == count, "counts should be the same");
-      Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
+      Assert.IsTrue(results.Count() > 0);
+      Assert.IsTrue(results.Count() == count, "counts should be the same");
+      Assert.IsTrue(results.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
     }
 
     [TestMethod]
@@ -60,13 +61,13 @@ namespace Test_NetClient {
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")).Take(2);
       var q3 = q2.InlineCount();
 
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      var count = ((IHasInlineCount)r).InlineCount;
+      var count = ((IHasInlineCount)results).InlineCount;
 
-      Assert.IsTrue(r.Count() == 2);
-      Assert.IsTrue(r.Count() < count, "counts should be the same");
-      Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
+      Assert.IsTrue(results.Count() == 2);
+      Assert.IsTrue(results.Count() < count, "counts should be the same");
+      Assert.IsTrue(results.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
     }
 
     [TestMethod]
@@ -76,26 +77,57 @@ namespace Test_NetClient {
       var q2 = q.Where(c => c.CompanyName.StartsWith("C") && c.Orders.Any(o => o.Freight > 10));
       var q3 = q2.OrderBy(c => c.CompanyName).Skip(2);
 
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      Assert.IsTrue(r.Count() > 0);
-      Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
-      var cust = r.First();
+      Assert.IsTrue(results.Count() > 0);
+      Assert.IsTrue(results.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
+      var cust = results.First();
       var companyName = cust.CompanyName;
       var custId = cust.CustomerID;
       var orders = cust.Orders;
     }
 
     [TestMethod]
-    public async Task WhereOrderByTake() {
+    public async Task WithOverwriteChanges() {
       await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")) ;
       var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      Assert.IsTrue(r.Count() == 2);
-      Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
+      Assert.IsTrue(results.Count() == 2);
+      results.ForEach(r => {
+        r.City = "xxx";
+        r.CompanyName = "xxx";
+      });
+      var results2 = await q3.With(MergeStrategy.OverwriteChanges).Execute(_em1);
+      // contents of results2 should be exactly the same as results
+      Assert.IsTrue(results.Count() == 2);
+
+    }
+
+    [TestMethod]
+    public async Task WithEntityManager() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
+      var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
+      var results = await q3.With(_em1).Execute();
+
+      Assert.IsTrue(results.Count() == 2);
+      
+    }
+
+    [TestMethod]
+    public async Task WhereOrderByTake() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
+      var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
+      var results = await q3.Execute(_em1);
+
+      Assert.IsTrue(results.Count() == 2);
+      Assert.IsTrue(results.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
     }
 
     [TestMethod]
@@ -104,10 +136,10 @@ namespace Test_NetClient {
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Select(c => new { Orders = c.Orders });
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      Assert.IsTrue(r.Count() > 0);
-      var ok = r.All(r1 => ( r1.Orders.Count() > 0 ) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
+      Assert.IsTrue(results.Count() > 0);
+      var ok = results.All(r1 => ( r1.Orders.Count() > 0 ) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
       Assert.IsTrue(ok, "every item of anon should contain a collection of Orders");
     }
 
@@ -117,12 +149,12 @@ namespace Test_NetClient {
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Select(c => new { c.CompanyName, c.Orders});
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      Assert.IsTrue(r.Count() > 0);
-      var ok = r.All(r1 => (r1.Orders.Count() > 0) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
+      Assert.IsTrue(results.Count() > 0);
+      var ok = results.All(r1 => (r1.Orders.Count() > 0) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
       Assert.IsTrue(ok, "every item of anon should contain a collection of Orders");
-      ok = r.All(r1 => r1.CompanyName.Length > 0);
+      ok = results.All(r1 => r1.CompanyName.Length > 0);
       Assert.IsTrue(ok, "anon type should have a populated company name");
       
     }
@@ -133,12 +165,12 @@ namespace Test_NetClient {
       var q = new EntityQuery<Foo.Order>("Orders");
       var q2 = q.Where(c => c.Freight > 500);
       var q3 = q2.Select(c => new { c.Customer, c.Freight });
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      Assert.IsTrue(r.Count() > 0);
-      var ok = r.All(r1 => r1.Freight > 500);
+      Assert.IsTrue(results.Count() > 0);
+      var ok = results.All(r1 => r1.Freight > 500);
       Assert.IsTrue(ok, "anon type should the right freight");
-      ok = r.All(r1 => r1.Customer.GetType() == typeof(Foo.Customer));
+      ok = results.All(r1 => r1.Customer.GetType() == typeof(Foo.Customer));
       Assert.IsTrue(ok, "anon type should have a populated 'Customer'");
     }
 
@@ -149,12 +181,12 @@ namespace Test_NetClient {
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Select(c => new { c.CompanyName, Customer = c });
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      Assert.IsTrue(r.Count() > 0);
-      var ok = r.All(r1 => r1.CompanyName.Length > 0);
+      Assert.IsTrue(results.Count() > 0);
+      var ok = results.All(r1 => r1.CompanyName.Length > 0);
       Assert.IsTrue(ok, "anon type should have a populated company name");
-      ok = r.All(r1 => r1.Customer.GetType() == typeof(Foo.Customer));
+      ok = results.All(r1 => r1.Customer.GetType() == typeof(Foo.Customer));
       Assert.IsTrue(ok, "anon type should have a populated 'Customer'");
     }
 
@@ -164,15 +196,15 @@ namespace Test_NetClient {
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Expand(c => c.Orders);
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      Assert.IsTrue(r.Count() > 0);
-      var ok = r.All(r1 => 
+      Assert.IsTrue(results.Count() > 0);
+      var ok = results.All(r1 => 
         r1.GetType() == typeof(Foo.Customer) && 
         r1.Orders.Count() > 0 && 
         r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
       Assert.IsTrue(ok, "every Customer should contain a collection of Orders");
-      ok = r.All(r1 => r1.CompanyName.Length > 0);
+      ok = results.All(r1 => r1.CompanyName.Length > 0);
       Assert.IsTrue(ok, "and should have a populated company name");
     }
 
@@ -182,14 +214,14 @@ namespace Test_NetClient {
       var q = new EntityQuery<Foo.Order>("Orders");
       var q2 = q.Where(o => o.Freight > 500);
       var q3 = q2.Expand(o => o.Customer);
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      Assert.IsTrue(r.Count() > 0);
-      var ok = r.All(r1 =>
+      Assert.IsTrue(results.Count() > 0);
+      var ok = results.All(r1 =>
         r1.GetType() == typeof(Foo.Order) &&
         r1.Customer.GetType() == typeof(Foo.Customer));
       Assert.IsTrue(ok, "every Order should have a customer");
-      ok = r.All(r1 => r1.Freight > 500);
+      ok = results.All(r1 => r1.Freight > 500);
       Assert.IsTrue(ok, "and should have the right freight");
     }
 
@@ -199,15 +231,15 @@ namespace Test_NetClient {
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Select(c => new Dummy() { CompanyName = c.CompanyName, Orders = c.Orders}  );
-      var r = await q3.Execute(_em1);
+      var results = await q3.Execute(_em1);
 
-      Assert.IsTrue(r.Count() > 0);
-      var ok = r.All(r1 =>
+      Assert.IsTrue(results.Count() > 0);
+      var ok = results.All(r1 =>
         r1.GetType() == typeof(Dummy) &&
         r1.Orders.Count() > 0 &&
         r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
       Assert.IsTrue(ok, "every Dummy should contain a collection of Orders");
-      ok = r.All(r1 => r1.CompanyName.Length > 0);
+      ok = results.All(r1 => r1.CompanyName.Length > 0);
       Assert.IsTrue(ok, "and should have a populated company name");
     }
 

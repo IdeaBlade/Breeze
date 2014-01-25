@@ -6,8 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
-  public static class EntityQueryExtensions  {
-        /// <summary>
+  public static class EntityQueryExtensions {
+
+    #region Linq extensions 
+    /// <summary>
     /// Filters a sequence of values based on a predicate.
     /// </summary>
     /// <typeparam name="TSource"></typeparam>
@@ -94,5 +96,44 @@ namespace Breeze.NetClient {
       return (EntityQuery<TSource>)Queryable.Take(source, count);
     }
 
+    #endregion
+
+    #region With extensions
+
+    /// <summary>
+    /// Returns a clone of the query for the specified EntityManager.
+    /// </summary>
+    /// <typeparam name="TQuery"></typeparam>
+    /// <param name="query"></param>
+    /// <param name="em"></param>
+    /// <returns></returns>
+    /// <include file='EntityQueryExtensions.Examples.xml' path='//Class[@name="EntityQueryExtensions"]/method[@name="With1"]/*' />
+    public static TQuery With<TQuery>(this TQuery query, EntityManager em) where TQuery : EntityQuery {
+      if (query.EntityManager == em) {
+        return query;
+      }
+      TQuery newQuery = (TQuery)query.Clone();
+      newQuery.EntityManager = em;
+      return newQuery;
+    }
+
+    /// <summary>
+    /// Returns a clone of the query for the specified MergeStrategy
+    /// </summary>
+    /// <typeparam name="TQuery"></typeparam>
+    /// <param name="query"></param>
+    /// <param name="mergeStrategy"></param>
+    /// <returns></returns>
+    public static TQuery With<TQuery>(this TQuery query, MergeStrategy mergeStrategy) where TQuery : EntityQuery {
+      if (query.MergeStrategy == mergeStrategy) {
+        return query;
+      }
+      TQuery newQuery = (TQuery)query.Clone();
+      newQuery.MergeStrategy = mergeStrategy;
+      return newQuery;
+    }
+    
+
+    #endregion
   }
 }
