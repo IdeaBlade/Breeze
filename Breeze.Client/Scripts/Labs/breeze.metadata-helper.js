@@ -142,7 +142,7 @@
             var prop = dps[key];
             if (prop.isPartOfKey) { // found a key part; stop analysis 
                 return key;
-            } 
+            }
             // if type were Person, would look for 'id' or 'personid'
             if (prop.isPartOfKey == null) {
                 // isPartOfKey is null or undefined; is it a candidate?
@@ -197,6 +197,19 @@
         }
     }
 
+    function normalizeNavProp(key, prop) {
+        switch (typeof (prop)) {
+            case 'string':
+                return { entityTypeName: prop };
+            case 'object':
+                return prop;
+            default:
+                // nav prop name (key) is same as EntityName (PascalCased)
+                var ename = key.substr(0, 1).toUpperCase() + key.substr(1);
+                return { entityTypeName: ename };
+        }
+    }
+
     // Patch some defaults in the type definition object
     // Todo: consider moving some of these patches into breeze itself
     function patch(typeDef) {
@@ -224,9 +237,8 @@
                 // if complexTypeName is unqualified, suffix with the entity's own namespace
                 prop.complexTypeName += ':#' + namespace;
             }
-            if (prop.isPartOfKey) { // key always required unless explictly NOT required
-                prop.isNullable = prop.isNullable === undefined ? false : !!prop.isNullable;
-            } 
+            // key always required (not nullable) unless explictly nullable
+            if (prop.isPartOfKey) { prop.isNullable = prop.isNullable === true; }
             if (prop.validators) { this.convertValidators(typeName, key, prop); }
         };
 
@@ -261,7 +273,6 @@
                 if (fk) { prop.foreignKeyNames = [fk]; }
             }
 
-
             if (prop.associationName === undefined) {
                 var isParent = prop.isScalar === false ||
                                prop.invForeignKeyNames ||
@@ -271,7 +282,6 @@
                     (isParent ? propTypeName : typeName) + '_' +
                     (isParent ? typeName : propTypeName);
             }
-                            
 
             // coerce FK names to array
             var keyNames = prop.foreignKeyNames;
@@ -283,19 +293,6 @@
                 prop.invForeignKeyNames = [keyNames];
             }
         };
-    }
-
-    function normalizeNavProp(key, prop) {
-        switch (typeof (prop)) {
-            case 'string':
-                return { entityTypeName: prop };
-            case 'object':
-                return prop;
-            default:
-                // nav prop name (key) is same as EntityName (PascalCased)
-                var ename = key.substr(0, 1).toUpperCase() + key.substr(1);
-                return { entityTypeName: ename };
-        }
     }
 
     function pluralize(word) {
@@ -344,7 +341,7 @@
                 } else if (keyLc === 'default') {
                     renameAttrib(prop, key, 'defaultValue');
                 }
-                // Mongo subdocuments could be collections of complex types
+                    // Mongo subdocuments could be collections of complex types
                 else if (keyLc === 'isone' || keyLc === 'hasone') {
                     renameAttrib(prop, key, 'isScalar');
                 } else if (keyLc === 'ismany' || keyLc === 'hasmany') {
