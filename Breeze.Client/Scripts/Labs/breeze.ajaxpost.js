@@ -16,9 +16,13 @@ Example:
 
 
 */
-(function (ajaxAdapter) {
+breeze.ajaxpost = (function (ajaxAdapter) {
 
     divertAjaxImpl(ajaxAdapter);
+
+    return {
+        configAjaxAdapter: divertAjaxImpl
+    };
 
     // Add processSettings to ajaxAdapter
     function divertAjaxImpl(ajaxAdapter) {
@@ -45,52 +49,27 @@ Example:
 
                 var data = parameters.$data;
                 if (data) {
+                 // if $data exists, assume all of other parameters are guidance for building a POST
                     if (parameters.$encoding === 'JSON') {
                         // JSON encoding 
                         settings.processData = false; // don't let JQuery form-encode it 
                         settings.contentType = "application/json; charset=UTF-8";
 
                         if (typeof (data) === 'object') {
-                            settings.params = JSON.stringify(data); // encode parameters as JSON
+                            settings.data = JSON.stringify(data); // encode parameters as JSON
                         } else {
-                            settings.params = data;
+                            settings.data = data;
                         }
                     } else {
-                        settings.params = data;
+                        settings.data = data;
                     }
+                    // must be null or jQuery ajax adapter won't see settings.data
+                    settings.params = null; 
                 }
-                settings.url = removeParametersFromQueryString(settings.url, ['$method', '$data', '$encoding']);
             }
         }
 
         return settings;
-
-        // Remofe the given parameters so they won't be sent to the server
-        function removeParametersFromQueryString(queryString, paramsToRemove) {
-
-            if (typeof paramsToRemove === 'string') {
-                paramsToRemove = new Array(paramsToRemove);
-            }
-            var urlAndQuery = queryString.split('?');
-            if (!urlAndQuery || urlAndQuery.length != 2)
-                return queryString;
-            var queryParams = urlAndQuery[1].split('&');
-            if (paramsToRemove.indexOf) {
-                for (var i = queryParams.length - 1; i >= 0; i--) {
-                    var paramName = queryParams[i].split('=')[0];
-                    if (paramsToRemove.indexOf(paramName) != -1) {
-                        queryParams.splice(i, 1);
-                    }
-                }
-            }
-            if (queryParams.length == 0) {
-                return urlAndQuery[0];
-            }
-            else {
-                urlAndQuery[1] = queryParams.join('&');
-                return urlAndQuery.join('?');
-            }
-        }
     }
 
 })();
