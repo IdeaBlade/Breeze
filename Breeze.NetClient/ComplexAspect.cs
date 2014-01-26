@@ -18,7 +18,11 @@ namespace Breeze.NetClient {
   /// </remarks>
   public class ComplexAspect : StructuralAspect, INotifyDataErrorInfo  {
 
-    private ComplexAspect() { }
+    internal ComplexAspect(IComplexObject co)
+      : base(co) {
+        _complexObject = co;
+        co.ComplexAspect = this;
+    }
 
     protected override StructuralType StructuralType {
       get { return this.ComplexType; }
@@ -51,22 +55,6 @@ namespace Breeze.NetClient {
     // Note: the Parent and ParentProperty properties are assigned either when a IComplexObject is assigned to a parent
     // or when it is first created via a Get from its parent.
 
-    /// <summary>
-    /// Wraps the provided <see cref="IComplexObject"/>.
-    /// </summary>
-    /// <param name="co"></param>
-    /// <returns></returns>
-    public static ComplexAspect Wrap(IComplexObject co) {
-      if (co.ComplexAspect == null) {
-        return new ComplexAspect(co);
-      } else {
-        return co.ComplexAspect;
-      }
-    }
-
-    internal ComplexAspect(IComplexObject co) {
-      _complexObject = co;
-    }
 
     // Note that this method creates a child and updates its refs to the parent but does
     // NOT update the parent. This is deliberate because instances of OriginalVersions should not be stored

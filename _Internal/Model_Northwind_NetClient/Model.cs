@@ -97,7 +97,6 @@ namespace Foo {
 
     public NavigationSet<Order> Orders {
       get { return PropGet<NavigationSet<Order>>(); }
-      set { PropSet(value); }
     }
 
   }

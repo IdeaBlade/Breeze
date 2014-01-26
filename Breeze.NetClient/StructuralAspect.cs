@@ -9,16 +9,30 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 
 namespace Breeze.NetClient {
+  public interface IHasBackingStore {
+    IDictionary<String, Object> BackingStore { get; set; }
+  }
+
   public abstract class StructuralAspect {
 
-    public StructuralAspect() {
-      
-    }
+    public StructuralAspect(IStructuralObject stObj) {
+      _backingStore = (stObj is IHasBackingStore) ? null : new Dictionary<String, Object>();
+    }   
 
     protected internal IDictionary<String, Object> BackingStore {
-      get { return StructuralObject.BackingStore; }
+      get {
+        return _backingStore ?? ((IHasBackingStore) StructuralObject).BackingStore;
+      }
+      set {
+        if (_backingStore != null) {
+          _backingStore = value;
+        } else {
+          ((IHasBackingStore)StructuralObject).BackingStore = value;
+        }
+        
+      }
     }
-
+    
     protected abstract StructuralType StructuralType { get; }
 
     protected abstract IStructuralObject StructuralObject { get; }
@@ -43,11 +57,16 @@ namespace Breeze.NetClient {
     }
 
     public T GetValue<T>(StructuralProperty prop) {
-      return (T)GetRawValue(prop.Name);
+      return (T) GetRawValue(prop.Name);
     }
 
     public T GetValue<T>(String propertyName) {
-      return (T) GetRawValue(propertyName);
+      var val = (T) GetRawValue(propertyName);
+      if (val == null && typeof(T).IsAssignableFrom(typeof(INavigationSet))) {
+        val = Activator.CreateInstance<T>();
+        ((INavigationSet) val).ParentEntity = (IEntity)this.StructuralObject;
+      }
+      return val;
     }
 
     public abstract void SetValue(String propertyName, object newValue);
@@ -75,6 +94,7 @@ namespace Breeze.NetClient {
       set;
     }
 
+    private IDictionary<String, Object> _backingStore;
     protected bool _defaultValuesInitialized;
 
     

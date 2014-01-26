@@ -15,23 +15,7 @@ namespace Breeze.NetClient {
       EntityAspect = new EntityAspect(this, null);
     }
 
-    IDictionary<String, Object> IStructuralObject.BackingStore {
-      get {
-        if (_backingStore == null) {
-          _backingStore = new Dictionary<String, Object>();
-        }
-        return _backingStore;
-      }
-      set {
-        _backingStore = value;
-      }
-    }
-    private IDictionary<String, Object> _backingStore;
-
-    public EntityAspect EntityAspect {
-      get;
-      set;
-    }
+    #region syntactic sugar helper methods 
 
     protected T PropGet<T>([CallerMemberName] string propertyName = "") {
       return EntityAspect.GetValue<T>(propertyName);
@@ -41,6 +25,12 @@ namespace Breeze.NetClient {
       EntityAspect.SetValue(propertyName, value);
     }
 
+    #endregion
+
+    public EntityAspect EntityAspect {
+      get;
+      set;
+    }
 
     void IEditableObject.BeginEdit() {
       ((IEditableObject)EntityAspect).BeginEdit();

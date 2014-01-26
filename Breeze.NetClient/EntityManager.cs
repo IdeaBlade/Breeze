@@ -201,7 +201,7 @@ namespace Breeze.NetClient {
       return (T)CreateEntity(typeof(T), entityState);
     }
 
-    public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Added, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
+    public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Unchanged, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
       var aspect = PrepareForAttach(entity);
       if (aspect.IsAttached && aspect.EntityState == entityState) return entity;
       using (NewIsLoadingBlock()) {

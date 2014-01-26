@@ -13,4 +13,11 @@ EntityGroup/EntityManager rules for detached entities.( dislike EntityManager)
 
 
 
-Tests
+Extensions for later ( that we can charge for)
+
+Property interception
+Dynamic linq
+Enhanced validation
+Enhanced offline
+Linq verbs not natively supported by OData (hard)
+

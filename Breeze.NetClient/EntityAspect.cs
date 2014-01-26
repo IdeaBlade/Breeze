@@ -38,14 +38,11 @@ namespace Breeze.NetClient {
     /// </summary>
     public static String AllErrors = "*";
 
-    // For deep cloning
-    private EntityAspect() { }
-
     /// <summary>
     /// 
     /// </summary>
     /// <param name="entity"></param>
-    public EntityAspect(IEntity entity, EntityType entityType) {
+    public EntityAspect(IEntity entity, EntityType entityType = null) : base(entity) {
       Entity = entity;
       entity.EntityAspect = this;
       EntityType = entityType;
@@ -65,14 +62,14 @@ namespace Breeze.NetClient {
     }
 
     protected override IStructuralObject StructuralObject {
-      get { return this.Entity; ; }
+      get { return this.Entity; }
     }
 
-    internal bool IsDetached {
+    public bool IsDetached {
       get { return this.EntityState == EntityState.Detached; }
     }
 
-    internal bool IsAttached {
+    public bool IsAttached {
       get { return this.EntityState != EntityState.Detached; }
     }
 
@@ -219,7 +216,7 @@ namespace Breeze.NetClient {
     /// be added. 
     /// </remarks>
     // <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="AddToManager"]/*' />
-    public void Attach(EntityState entityState = EntityState.Added, EntityManager entityManager=null) {
+    public void Attach(EntityState entityState = EntityState.Unchanged, EntityManager entityManager=null) {
       var em = entityManager ?? EntityManager;
       if (em == null) {
         throw new InvalidOperationException("There is no EntityManager associated with this entity and none was passed in.");

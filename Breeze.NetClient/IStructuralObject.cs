@@ -17,7 +17,7 @@ namespace Breeze.NetClient {
   public interface IStructuralObject : IEditableObject, IChangeTracking, IRevertibleChangeTracking, INotifyPropertyChanged,
     INotifyDataErrorInfo, IComparable {
 
-    IDictionary<String, Object> BackingStore { get; set; }
+    
 
   }
 

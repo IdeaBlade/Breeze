@@ -216,7 +216,8 @@ namespace Test_NetClient {
       var ok = results.All(r1 => 
         r1.GetType() == typeof(Foo.Customer) && 
         r1.Orders.Count() > 0 && 
-        r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
+        r1.Orders.All(o => o.GetType() == typeof(Foo.Order)) &&
+        r1.Orders.All(o => o.Customer == r1));
       Assert.IsTrue(ok, "every Customer should contain a collection of Orders");
       ok = results.All(r1 => r1.CompanyName.Length > 0);
       Assert.IsTrue(ok, "and should have a populated company name");

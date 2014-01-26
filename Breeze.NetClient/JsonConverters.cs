@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.Serialization.Formatters;
 using Breeze.Core;
 using System.Runtime.Serialization;
+using System.Collections;
 
 
 namespace Breeze.NetClient {
@@ -29,7 +30,7 @@ namespace Breeze.NetClient {
   //  }
   //}
 
-  public class JsonEntityConverter : JsonCreationConverter {
+  public class JsonEntityConverter : JsonConverter {
   
     public JsonEntityConverter(EntityManager entityManager, MergeStrategy mergeStrategy) {
       _entityManager = entityManager;
@@ -37,98 +38,149 @@ namespace Breeze.NetClient {
       _mergeStrategy = mergeStrategy;
     }
 
+    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
+      if (reader.TokenType != JsonToken.Null) {
+        // Load JObject from stream
+        var jObject = JObject.Load(reader);
 
-    protected override Object Create(Type objectType, JObject jObject, JsonSerializer serializer, JsonContext jsonContext) {
-      
-      var entityType =  _metadataStore.GetEntityType(objectType);
-      Object result; 
-      if (entityType != null) {
-        JToken refToken = null;
-        if (jObject.TryGetValue("$ref", out refToken)) {
-          jsonContext.AlreadyPopulated = true;
-          return _refMap[refToken.Value<String>()];
-        }
-        jsonContext.StructuralType = entityType;
-        var keyValues = entityType.KeyProperties
-          .Select(p => jObject[p.Name].ToObject(p.ClrType))
-          .ToArray();
-        var entityKey = new EntityKey(entityType, keyValues, false);
-        result = _entityManager.FindEntityByKey(entityKey);
-        if (result == null) {
-          result = Activator.CreateInstance(objectType);
-        }
+        var jsonContext = new JsonContext { JObject = jObject, ObjectType = objectType, Serializer = serializer };
+        // Create target object based on JObject
+        var target = CreateAndPopulate( jsonContext);
+        return target;
       } else {
-        result =  Activator.CreateInstance(objectType);
+        return null;
       }
-      JToken idToken = null;
-      if (jObject.TryGetValue("$id", out idToken)) {
-        _refMap[idToken.Value<String>()] = result;
-      }
-      return result;
-
     }
 
-    protected override Object Populate(Object target, JObject jObject, JsonSerializer serializer, JsonContext jsonContext) {
-      
-      var entity = target as IEntity;
-      if (entity != null) {
-        // causes additional deserialization.
-        var backing = ToDictionary(jObject, jsonContext.StructuralType, serializer);
-        
-        if (entity.EntityAspect.EntityManager == null) {
-          entity.BackingStore = backing;
-          _entityManager.AttachQueriedEntity(entity, (EntityType)jsonContext.StructuralType);
-        } else if (_mergeStrategy == MergeStrategy.OverwriteChanges || entity.EntityAspect.EntityState == EntityState.Unchanged) {
-          entity.BackingStore = backing;
-        } else {
-          // preserveChanges handling
-          // do nothing; 
-        }
-        
-      } else {
-        // Populate the object properties directly
-        serializer.Populate(jObject.CreateReader(), target);
-      }
-
-      return target;
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
+      throw new NotImplementedException();
     }
+
 
     public override bool CanConvert(Type objectType) {
       return _metadataStore.IsEntityOrComplexType(objectType);
     }
 
-    public Dictionary<String, Object> ToDictionary(JObject jObject, StructuralType structuralType, JsonSerializer serializer) {
-      var dict = (IDictionary<String, JToken>)jObject;
-      return dict.ToDictionary(kvp => kvp.Key, kvp => {
-        var prop = structuralType.GetProperty(kvp.Key);
+
+    protected virtual Object CreateAndPopulate(JsonContext jsonContext) {
+      var jObject = jsonContext.JObject;
+
+      JToken refToken = null;
+      if (jObject.TryGetValue("$ref", out refToken)) {
+        return _refMap[refToken.Value<String>()];
+      }
+
+      var objectType = jsonContext.ObjectType;
+      var entityType =  _metadataStore.GetEntityType(objectType);
+      
+      if (entityType != null) {
+        jsonContext.StructuralType = entityType;
+        var keyValues = entityType.KeyProperties
+          .Select(p => jObject[p.Name].ToObject(p.ClrType))
+          .ToArray();
+        var entityKey = new EntityKey(entityType, keyValues, false);
+        var entity = _entityManager.FindEntityByKey(entityKey);
+        if (entity == null) {
+          entity = (IEntity) Activator.CreateInstance(objectType);
+        }
+        // must be called before populate
+        UpdateRefMap(jObject, entity);
+        return PopulateEntity(jsonContext, entity );
+      } else {
+        var target =  Activator.CreateInstance(objectType);
+        // must be called before populate
+        UpdateRefMap(jObject, target);
+        // Populate the object properties directly
+        jsonContext.Serializer.Populate(jObject.CreateReader(), target);
+        return target;
+      }
+
+    }
+
+    private void UpdateRefMap(JObject jObject, Object target) {
+      JToken idToken = null;
+      if (jObject.TryGetValue("$id", out idToken)) {
+        _refMap[idToken.Value<String>()] = target;
+      }
+    }
+
+    protected virtual Object PopulateEntity(JsonContext jsonContext, IEntity entity) {
+      
+      var aspect = entity.EntityAspect;
+      if (aspect.EntityManager == null) {
+        // new to this entityManager
+        ParseObject(jsonContext, aspect.BackingStore);
+        _entityManager.AttachQueriedEntity(entity, (EntityType) jsonContext.StructuralType);
+      } else if (_mergeStrategy == MergeStrategy.OverwriteChanges || aspect.EntityState == EntityState.Unchanged) {
+        // overwrite existing entityManager
+        ParseObject(jsonContext, aspect.BackingStore);
+      } else {
+        // preserveChanges handling - we still want to handle expands.
+        ParseObject(jsonContext, null );
+      }
+
+      return entity;
+    }
+
+    private void ParseObject(JsonContext jsonContext, IDictionary<String, Object> backingStore) {
+      // backingStore will be null if not allowed to overwrite the entity.
+      var dict = (IDictionary<String, JToken>) jsonContext.JObject;
+      var structuralType = jsonContext.StructuralType;
+      dict.ForEach(kvp => {
+        var key = kvp.Key;
+        var prop = structuralType.GetProperty(key);
         if (prop != null) {
           if (prop.IsDataProperty) {
-            return kvp.Value.ToObject(prop.ClrType);
+            if (backingStore != null) backingStore[key] = kvp.Value.ToObject(prop.ClrType);
           } else {
             // TODO: nest serialization
             var np = (NavigationProperty)prop;
+            
             if (kvp.Value.HasValues) {
+              JsonContext newContext;
               if (np.IsScalar) {
                 var nestedOb = (JObject)kvp.Value;
-                return serializer.Deserialize(nestedOb.CreateReader(), prop.ClrType);
+                newContext = new JsonContext() { JObject = nestedOb, ObjectType = prop.ClrType, Serializer = jsonContext.Serializer }; 
+                var entity = (IEntity)CreateAndPopulate(newContext);
+                if (backingStore != null) backingStore[key] = entity;
               } else {
                 var nestedArray = (JArray)kvp.Value;
-                var ctype = typeof(NavigationSet<>).MakeGenericType(prop.ClrType);
-                return serializer.Deserialize(nestedArray.CreateReader(), ctype);
+                var navSet = (INavigationSet) TypeFns.CreateGenericInstance(typeof(NavigationSet<>), prop.ClrType);
+                nestedArray.Cast<JObject>().ForEach(jo => {
+                  newContext = new JsonContext() { JObject=jo, ObjectType = prop.ClrType, Serializer = jsonContext.Serializer };
+                  var entity = (IEntity)CreateAndPopulate(newContext);
+                  navSet.Add(entity);
+                });
+                // add to existing nav set if there is one otherwise just set it. 
+                object tmp;
+                if (backingStore.TryGetValue(key, out tmp)) {
+                  var backingNavSet = (INavigationSet) tmp;
+                  navSet.Cast<IEntity>().ForEach(e => backingNavSet.Add(e));
+                } else {
+                  backingStore[key] = navSet;
+                }
               }
             } else {
-              if (!np.IsScalar) {
-                return TypeFns.ConstructGenericInstance(typeof(NavigationSet<>), prop.ClrType);
-              } else {
-                return null;
-              }
+              // do nothing
+              //if (!np.IsScalar) {
+              //  return TypeFns.ConstructGenericInstance(typeof(NavigationSet<>), prop.ClrType);
+              //} else {
+              //  return null;
+              //}
             }
           }
         } else {
-          return kvp.Value.ToObject<Object>();
+          if (backingStore != null) backingStore[key] = kvp.Value.ToObject<Object>();
         }
-
       });
+      
+    }
+
+    protected class JsonContext {
+      public JObject JObject;
+      public Type ObjectType;
+      public StructuralType StructuralType;
+      public JsonSerializer Serializer;
     }
 
     private EntityManager _entityManager;
@@ -137,52 +189,6 @@ namespace Breeze.NetClient {
     private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
   }
 
-  public abstract class JsonCreationConverter : JsonConverter {
-    /// <summary>
-    /// Create an instance of objectType, based properties in the JSON object
-    /// </summary>
-    /// <param name="objectType">type of object expected</param>
-    /// <param name="jObject">contents of JSON object that will be deserialized</param>
-    /// <returns></returns>
-    protected abstract Object Create(Type objectType, JObject jObject,JsonSerializer serializer, JsonContext jsonContext);
 
-    protected virtual Object Populate(Object target, JObject jObject, JsonSerializer serializer, JsonContext jsonContext) {
-      serializer.Populate(jObject.CreateReader(), target);
-      return target;
-    }
-
-    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
-      
-      if (reader.TokenType != JsonToken.Null) {
-
-        // Load JObject from stream
-        var jObject = JObject.Load(reader);
-
-        var jsonContext = new JsonContext();
-        // Create target object based on JObject
-        var target = Create(objectType, jObject, serializer, jsonContext);
-        if (target != null && !jsonContext.AlreadyPopulated) {
-          Populate(target, jObject, serializer, jsonContext);
-        }
-
-        return target;
-      } else {
-        return  null;
-      }
-    }
-
-    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
-      throw new NotImplementedException();
-    }
-
-    
-  }
-
-  public class JsonContext {
-    
-    public StructuralType StructuralType { get; set; }
-    public bool AlreadyPopulated { get; set; }
-
-  }
 }
 
