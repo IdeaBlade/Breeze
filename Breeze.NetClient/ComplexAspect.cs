@@ -28,11 +28,13 @@ namespace Breeze.NetClient {
       get { return this.ComplexObject; ; }
     }
 
+
+
     internal void RejectChangesCore() {
       var co = this.ComplexObject;
       if (this.OriginalValuesMap != null) {
         this.OriginalValuesMap.ForEach(kvp => {
-          co.SetValue(kvp.Key, kvp.Value);
+          SetValue(kvp.Key, kvp.Value);
         });
       }
       this.ProcessComplexProperties(co2 => co2.ComplexAspect.RejectChangesCore());
@@ -254,12 +256,12 @@ namespace Breeze.NetClient {
         if (this.ParentEntity != null && this.ParentEntity.EntityAspect.EntityVersion == EntityVersion.Proposed) {
           result = GetPreproposedValue(property);
         } else {
-          result = this.ComplexObject.GetValue(property.Name);
+          result = GetValue(property);
         }
       } else if (version == EntityVersion.Original) {
         result = GetOriginalValue(property);
       } else if (version == EntityVersion.Proposed) {
-        result = this.ComplexObject.GetValue(property.Name);
+        result = GetValue(property);
       } else {
         throw new ArgumentException("Invalid entity version");
       }
@@ -268,7 +270,7 @@ namespace Breeze.NetClient {
         var co = (IComplexObject)result;
         if (co == null) {
           co = Create(this.ComplexObject, property, true);
-          this.ComplexObject.SetValue(property.Name, co);
+          SetValue(property, co);
           return co;
         } else if (co.ComplexAspect.Parent == null || co.ComplexAspect.Parent != _complexObject) {
           co.ComplexAspect.Parent = _complexObject;
@@ -292,9 +294,9 @@ namespace Breeze.NetClient {
         try {
           
           if (dp.IsComplexProperty) {
-            this.ComplexObject.SetValue(dp.Name, ComplexAspect.Create(this.ComplexObject, dp, true));
+            SetValue(dp, ComplexAspect.Create(this.ComplexObject, dp, true));
           } else if (dp.DefaultValue != null) {
-            this.ComplexObject.SetValue(dp.Name, dp.DefaultValue);
+            SetValue(dp, dp.DefaultValue);
           }
         } catch (Exception e) {
           Debug.WriteLine("Exception caught during initialization of {0}.{1}: {2}", this.ComplexObject.GetType().Name, dp.Name, e.Message);
@@ -339,6 +341,10 @@ namespace Breeze.NetClient {
       SetValue(property, newValue);
     }
 
+    public override void SetValue(String propertyName, object newValue) {
+      SetValue(ComplexType.GetDataProperty(propertyName), newValue);
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -348,11 +354,11 @@ namespace Breeze.NetClient {
       InitializeDefaultValues();
 
       if ( property.IsComplexProperty) {
-        var thisAspect = ((IComplexObject) this.ComplexObject.GetValue(property.Name)).ComplexAspect;
+        var thisAspect = GetValue<IComplexObject>(property).ComplexAspect;
         var newAspect = ((IComplexObject)newValue).ComplexAspect;
         thisAspect.AbsorbCurrentValues(newAspect);
       } else {
-        this.ComplexObject.SetValue(property.Name, newValue);
+        SetValue(property, newValue);
       }
     }
 
@@ -362,7 +368,7 @@ namespace Breeze.NetClient {
 
       this.ComplexType.DataProperties.ForEach(p => {
         var ov = this.GetOriginalValue(p);
-        cloneAspect.ComplexObject.SetValue(p.Name, ov);
+        cloneAspect.SetValue(p, ov);
       });
       return originalClone;
     }
@@ -378,7 +384,7 @@ namespace Breeze.NetClient {
         if (OriginalValuesMap != null && OriginalValuesMap.TryGetValue(property.Name, out result)) {
           return result;
         } else {
-          return this.ComplexObject.GetValue(property.Name);
+          return GetValue(property);
         }
       }
     }
@@ -388,7 +394,7 @@ namespace Breeze.NetClient {
       if ( PreproposedValuesMap != null && PreproposedValuesMap.TryGetValue(property.Name, out result)) {
         return result;
       } else {
-        return this.ComplexObject.GetValue(property.Name);
+        return GetValue(property);
       }
     }
 
@@ -424,7 +430,7 @@ namespace Breeze.NetClient {
 
       if (OriginalValuesMap.ContainsKey(property.Name)) return;
       // reference copy of complex object is deliberate - actual original values will be stored in the co itself.
-      OriginalValuesMap.Add(property.Name, this.ComplexObject.GetValue(property.Name));
+      OriginalValuesMap.Add(property.Name, GetValue(property.Name));
     }
 
     private void BackupProposedValueIfNeeded(DataProperty property) {
@@ -433,7 +439,7 @@ namespace Breeze.NetClient {
       }
 
       if (PreproposedValuesMap.ContainsKey(property.Name)) return;
-      PreproposedValuesMap.Add(property.Name, this.ComplexObject.GetValue(property.Name));
+      PreproposedValuesMap.Add(property.Name, GetValue(property.Name));
     }
 
     #endregion
@@ -462,7 +468,7 @@ namespace Breeze.NetClient {
 
     private void ClearBackupVersionCore(EntityVersion version) {
       this.ComplexType.DataProperties.Where(dp => dp.IsComplexProperty).ForEach(dp => {
-        var co = (IComplexObject) this.ComplexObject.GetValue(dp.Name);
+        var co = GetValue<IComplexObject>(dp);
         if (co != null) {
           co.ComplexAspect.ClearBackupVersion(version);
         }
@@ -493,7 +499,7 @@ namespace Breeze.NetClient {
         if (value is IComplexObject) {
           ((IComplexObject)value).ComplexAspect.RestoreBackupVersion(version);
         }
-        this.ComplexObject.SetValue(kvp.Key, value);
+        SetValue(kvp.Key, value);
         
       });
     }
@@ -512,25 +518,25 @@ namespace Breeze.NetClient {
       }
 
       this.ComplexType.DataProperties.ForEach(p => {
-        var sourceValue = sourceAspect.ComplexObject.GetValue(p.Name);
+        var sourceValue = sourceAspect.GetValue(p);
         if (p.IsComplexProperty) {
-          var thisChildCo = (IComplexObject) this.ComplexObject.GetValue(p.Name);
+          var thisChildCo = (IComplexObject) GetValue(p);
           if (thisChildCo == null) {
             thisChildCo = ComplexAspect.Create(this.ComplexObject, p, true);
-            this.ComplexObject.SetValue(p.Name, thisChildCo);
+            SetValue(p.Name, thisChildCo);
           }
           var thisChildAspect = thisChildCo.ComplexAspect;
 
           var sourceCo = (IComplexObject)sourceValue;
           if (sourceCo == null) {
             sourceCo = ComplexAspect.Create(sourceAspect.ComplexObject, p, true);
-            sourceAspect.ComplexObject.SetValue(p.Name, sourceCo);
+            sourceAspect.SetValue(p, sourceCo);
           }
           var sourceChildAspect = sourceCo.ComplexAspect;
 
           thisChildAspect.AbsorbCurrentValues(sourceChildAspect, isCloning);
         } else {
-          this.ComplexObject.SetValue(p.Name, sourceValue);
+          SetValue(p, sourceValue);
         }
       });
     }
@@ -539,7 +545,7 @@ namespace Breeze.NetClient {
 
     internal Object[] GetCurrentValues() {
       var props = ComplexType.DataProperties;
-      var currentValues = props.Select(p => this.ComplexObject.GetValue(p.Name)).ToArray();
+      var currentValues = props.Select(p => GetValue(p)).ToArray();
       return currentValues;
     }
 

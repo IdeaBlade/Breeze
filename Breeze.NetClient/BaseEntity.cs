@@ -9,22 +9,21 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
-  public abstract class BaseEntity : IEntity, IBackingStore {
+  public abstract class BaseEntity : IEntity {
 
     protected BaseEntity() {
       EntityAspect = new EntityAspect(this, null);
     }
 
-    void IBackingStore.SetBacking(IDictionary<String, Object> backingStore) {
-      _backingStore = backingStore;
-    }
-
-    protected IDictionary<String, Object> BackingStore {
+    IDictionary<String, Object> IStructuralObject.BackingStore {
       get {
         if (_backingStore == null) {
           _backingStore = new Dictionary<String, Object>();
         }
         return _backingStore;
+      }
+      set {
+        _backingStore = value;
       }
     }
     private IDictionary<String, Object> _backingStore;
@@ -35,22 +34,13 @@ namespace Breeze.NetClient {
     }
 
     protected T PropGet<T>([CallerMemberName] string propertyName = "") {
-      return (T) EntityAspect.GetValue(propertyName);
+      return EntityAspect.GetValue<T>(propertyName);
     }
 
     protected void PropSet(Object value, [CallerMemberName] string propertyName = "") {
       EntityAspect.SetValue(propertyName, value);
     }
 
-    object IStructuralObject.GetValue(string propertyName) {
-      Object result = null;
-      BackingStore.TryGetValue(propertyName, out result);
-      return result;
-    }
-
-    void IStructuralObject.SetValue(string propertyName, object newValue) {
-      BackingStore[propertyName] = newValue;
-    }
 
     void IEditableObject.BeginEdit() {
       ((IEditableObject)EntityAspect).BeginEdit();

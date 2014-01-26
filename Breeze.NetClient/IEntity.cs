@@ -13,7 +13,5 @@ namespace Breeze.NetClient {
     ComplexAspect ComplexAspect { get; set; }
   }
 
-  public interface IBackingStore {
-    void SetBacking(IDictionary<String, Object> backing);
-  }
+
 }

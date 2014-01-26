@@ -52,6 +52,7 @@ namespace Test_NetClient {
       _em1.AttachEntity(prod1, EntityState.Unchanged);
       prod1.Discontinued = false;
       prod1.EntityAspect.RejectChanges();
+      
       Assert.IsTrue(prod1.Discontinued == true, "should have returned to initial state");
     }
 

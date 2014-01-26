@@ -35,12 +35,7 @@ namespace Breeze.NetClient {
 
     public abstract bool IsDataProperty { get;  }
     public abstract bool IsNavigationProperty { get; }
-    public Object GetValue(IStructuralObject entity) {
-      return entity.GetValue(this.Name);
-    }
-    public void SetValue(IStructuralObject entity, Object value) {
-      entity.SetValue(this.Name, value);
-    }
+
   }
 
 

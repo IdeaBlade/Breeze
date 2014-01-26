@@ -1,11 +1,11 @@
 ﻿using Breeze.Core;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -117,11 +117,10 @@ namespace Breeze.NetClient {
       }
     }
 
+    // EntityGroup is null if never attached but once its non-null it keeps its previous value.
     internal EntityGroup EntityGroup { get; set; }
 
     #endregion
-
-    #region Public methods
 
     internal bool FireEntityChanging(EntityAction action) {
       var entityArgs = new EntityChangingEventArgs(this.Entity, action);
@@ -129,6 +128,10 @@ namespace Breeze.NetClient {
       return !entityArgs.Cancel;
     }
 
+
+    #region Public methods
+
+  
     /// <summary>
     /// Marks this Entity for deletion; the <see cref="EntityState"/> becomes "Deleted".
     /// </summary>
@@ -195,7 +198,7 @@ namespace Breeze.NetClient {
     /// <param name="properties"></param>
     /// <returns></returns>
     protected virtual bool AreEqual(EntityAspect sourceAspect, IEnumerable<DataProperty> properties) {
-      bool isCurrent = properties.All(p => Object.Equals(this.Entity.GetValue(p.Name), sourceAspect.Entity.GetValue(p.Name)));
+      bool isCurrent = properties.All(p => Object.Equals(this.GetValue(p), sourceAspect.GetValue(p)));
       return isCurrent;
     }
 
@@ -216,33 +219,14 @@ namespace Breeze.NetClient {
     /// be added. 
     /// </remarks>
     // <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="AddToManager"]/*' />
-    public void AddToManager() {
-      var em = EntityManager;
+    public void Attach(EntityState entityState = EntityState.Added, EntityManager entityManager=null) {
+      var em = entityManager ?? EntityManager;
       if (em == null) {
-        throw new InvalidOperationException("There is no EntityManager associated with this entity.");
+        throw new InvalidOperationException("There is no EntityManager associated with this entity and none was passed in.");
       }
-      em.AttachEntity(this.Entity, EntityState.Added);
+      em.AttachEntity(this.Entity, entityState);
     }
 
-
-    /// <summary>
-    /// Adds a newly created entity to the specified <see cref="T:IdeaBlade.EntityModel.EntityManager"/>. 
-    /// </summary>
-    /// <remarks>If the entity is associated with an EntityManager (i.e.  the Entity Manager that was called to create this Entity
-    /// (<see cref="IdeaBlade.EntityModel.EntityManager.CreateEntity{T}()"/>) or that was used to generate its ids ( <see cref="IdeaBlade.EntityModel.EntityManager.GenerateId"/>)), 
-    /// the EntityManager passed in the parameter must be the same.
-    /// There is no difference between <b>AddToManager</b> and 
-    /// <see cref="M:IdeaBlade.EntityModel.EntityManager.AddEntity(IdeaBlade.EntityModel.Entity)"/>.
-    /// Use either method to add a business object created by the <see cref="M:IdeaBlade.EntityModel.EntityManager.CreateEntity(System.Type)"/> method
-    /// to the EntityManager cache.  The object must have a "detached" <see cref="M:IdeaBlade.EntityModel.Entity.EntityState"/>, must not
-    /// have ever been associated with another EntityManager and must have a unique EntityKey within the EntityManager to which it will
-    /// be added. 
-    /// </remarks>
-    /// <param name="entityManager"></param>
-    // <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="AddToManager"]/*' />
-    public void AddToManager(EntityManager entityManager) {
-      entityManager.AttachEntity(this.Entity, EntityState.Added);
-    }
 
     /// <summary>
     /// Removes the entity from the EntityManager cache.
@@ -253,16 +237,14 @@ namespace Breeze.NetClient {
     ///<para>This does not delete the object from the backend server.  To delete an entity,
     ///use the <see cref="M:IdeaBlade.EntityModel.Entity.Delete"/> method.</para>
     /// </remarks>
-    public bool RemoveFromManager() {
+    public bool Detach() {
 
-      var group = this.EntityGroup;
-      if (group == null) return false; // no group === already detached.
+      if (IsDetached) return false;
+      
       EntityManager.MarkTempIdAsMapped(this, true);
 
-      group.DetachEntityAspect(this);
+      this.EntityGroup.DetachEntityAspect(this);
       RemoveFromRelations(EntityState.Detached);
-
-      this.EntityGroup = null;
       this.OriginalValuesMap = null;
       this.PreproposedValuesMap = null;
       // this._validationErrors = {};
@@ -329,10 +311,10 @@ namespace Breeze.NetClient {
       this.EntityGroup.OnEntityChanged(this.Entity, EntityAction.RejectChanges);
     }
 
-    public void RejectChangesCore() {
+    private void RejectChangesCore() {
       var entity = this.Entity;
       this.OriginalValuesMap.ForEach(kvp => {
-        entity.SetValue(kvp.Key, kvp.Value);
+        SetValue(kvp.Key, kvp.Value);
       });
       this.ProcessComplexProperties(co => co.ComplexAspect.RejectChangesCore());
     }
@@ -393,7 +375,7 @@ namespace Breeze.NetClient {
         } else if (value == EntityState.Deleted) {
           this.Delete();
         } else if (value == EntityState.Detached) {
-          this.RemoveFromManager();
+          this.Detach();
         }
       }
     }
@@ -474,18 +456,12 @@ namespace Breeze.NetClient {
 
     #region GetValue(s)/SetValue methods
 
-    public Object GetValue(String propertyName) {
-      return Entity.GetValue(propertyName);
-    }
 
-    public Object GetValue(StructuralProperty property) {
-      return Entity.GetValue(property.Name);
-    }
 
-    public void SetValue(String propertyName, object newValue) {
+    public override void SetValue([CallerMemberName] String propertyName=null, object newValue = null) {
       if (this.EntityGroup == null) {
         // newly created entity not yet attached to an EntityManager.
-        Entity.SetValue(propertyName, newValue);
+        SetRawValue(propertyName, newValue);
       } else {
         var prop = EntityType.GetProperty(propertyName);
         if (prop != null) {
@@ -496,7 +472,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    internal void SetValue(StructuralProperty property, object newValue) {
+    public void SetValue(StructuralProperty property, object newValue) {
       if (property.IsDataProperty) {
         SetValue((DataProperty)property, newValue);
       } else {
@@ -510,7 +486,7 @@ namespace Breeze.NetClient {
         throw new Exception("Nonscalar data properties are readonly - items may be added or removed but the collection may not be changed.");
       }
 
-      var oldValue = Entity.GetValue(property.Name);
+      var oldValue = GetValue(property);
       if (Object.Equals(oldValue, newValue)) return;
 
       if (IsNullEntity) {
@@ -541,7 +517,6 @@ namespace Breeze.NetClient {
         SetDpValue(property, newValue, oldValue);
       }
 
-
       if (this.EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity) {
         this.SetEntityStateCore(EntityState.Modified);
       }
@@ -559,7 +534,7 @@ namespace Breeze.NetClient {
         throw new Exception("Nonscalar navigation properties are readonly - entities can be added or removed but the collection may not be changed.");
       }
 
-      var oldValue = Entity.GetValue(property.Name);
+      var oldValue = GetValue(property);
       if (Object.Equals(oldValue, newValue)) return;
 
       var newEntity = (IEntity)newValue;
@@ -615,11 +590,11 @@ namespace Breeze.NetClient {
           //    ==> (oldOrder).orderDetails.remove(orderDetail)
           //    ==> order.orderDetails.push(newOrder)
           if (oldValue != null) {
-            var oldSiblings = (INavigationSet)oldAspect.GetValue(inverseProp);
+            var oldSiblings = oldAspect.GetValue<INavigationSet>(inverseProp.Name);
             oldSiblings.Remove(this.Entity);
           }
           if (newValue != null) {
-            var siblings = (INavigationSet)newAspect.GetValue(inverseProp);
+            var siblings = newAspect.GetValue<INavigationSet>(inverseProp.Name);
             // recursion check if already in the collection is performed by the relationArray
             siblings.Add(this.Entity);
           }
@@ -657,7 +632,7 @@ namespace Breeze.NetClient {
         }
       }
 
-      Entity.SetValue(property.Name, newValue);
+      SetRawValue(property.Name, newValue);
 
       if (this.IsAttached && !this.EntityManager.IsLoadingEntity) {
         if (EntityState.IsUnchanged() && !property.IsUnmapped) {
@@ -724,7 +699,7 @@ namespace Breeze.NetClient {
       UpdateRelated(property, newValue, oldValue);
 
       // Actually set the value;
-      Entity.SetValue(property.Name, newValue);
+      SetRawValue(property.Name, newValue);
 
       // NOTE: next few lines are the same as above but not refactored for perf reasons.
       if (this.IsAttached && !EntityManager.IsLoadingEntity) {
@@ -747,9 +722,9 @@ namespace Breeze.NetClient {
 
           if (fkNames.Count == 0) return;
           var npValue = GetValue(np);
+          if (npValue == null) return;
           var fkName = fkNames[propertyIx];
           if (np.IsScalar) {
-            if (npValue == null) return;
             ((IEntity)npValue).EntityAspect.SetValue(fkName, newValue);
           } else {
             ((INavigationSet)npValue).Cast<IEntity>().ForEach(e => e.EntityAspect.SetValue(fkName, newValue));
@@ -830,7 +805,7 @@ namespace Breeze.NetClient {
             if (invNavProp.IsScalar) {
               relatedEntity.EntityAspect.SetValue(invNavProp, this.Entity);
             } else {
-              var relatedArray = (INavigationSet)relatedEntity.EntityAspect.GetValue(invNavProp);
+              var relatedArray = (INavigationSet)relatedEntity.EntityAspect.GetValue(invNavProp.Name);
               relatedArray.Add(this.Entity);
             }
           } else {
@@ -885,7 +860,7 @@ namespace Breeze.NetClient {
         var co = (IComplexObject)result;
         if (co == null) {
           co = ComplexAspect.Create(this.Entity, property, true);
-          this.Entity.SetValue(property.Name, co);
+          SetValue(property, co);
           return co;
         } else if (co.ComplexAspect.Parent == null || co.ComplexAspect.Parent != this.Entity) {
           co.ComplexAspect.Parent = this.Entity;
@@ -907,7 +882,7 @@ namespace Breeze.NetClient {
         if (OriginalValuesMap != null && OriginalValuesMap.TryGetValue(property.Name, out result)) {
           return result;
         } else {
-          return this.Entity.GetValue(property.Name);
+          return GetValue(property);
         }
       }
     }
@@ -917,7 +892,7 @@ namespace Breeze.NetClient {
       if (PreproposedValuesMap != null && PreproposedValuesMap.TryGetValue(property.Name, out result)) {
         return result;
       } else {
-        return this.Entity.GetValue(property.Name);
+        return GetValue(property);
       }
     }
 
@@ -929,9 +904,9 @@ namespace Breeze.NetClient {
       this.EntityType.DataProperties.ForEach(dp => {
         try {
           if (dp.IsComplexProperty) {
-            this.Entity.SetValue(dp.Name, ComplexAspect.Create(this.Entity, dp, true));
+            SetValue(dp, ComplexAspect.Create(this.Entity, dp, true));
           } else if (dp.DefaultValue != null) {
-            this.Entity.SetValue(dp.Name, dp.DefaultValue);
+            SetValue(dp, dp.DefaultValue);
           }
         } catch (Exception e) {
           Debug.WriteLine("Exception caught during initialization of {0}.{1}: {2}", this.EntityType.Name, dp.Name, e.Message);
@@ -940,7 +915,7 @@ namespace Breeze.NetClient {
     }
 
     private void IfTempIdThenCleanup(DataProperty property) {
-      var oldValue = this.Entity.GetValue(property.Name);
+      var oldValue = GetValue(property);
       var oldUniqueId = new UniqueId(property, oldValue);
       if (this.EntityManager.TempIds.Contains(oldUniqueId)) {
         this.EntityManager.TempIds.Remove(oldUniqueId);
@@ -1090,7 +1065,7 @@ namespace Breeze.NetClient {
     /// Normally the FirePropertyChanged method should be used in place of this.
     /// </summary>
     /// <param name="e"></param>
-    public void OnEntityPropertyChanged(PropertyChangedEventArgs e) {
+    private void OnEntityPropertyChanged(PropertyChangedEventArgs e) {
       var handler = EntityPropertyChanged;
       if (handler != null) {
         handler(this.Entity, e);
@@ -1101,7 +1076,7 @@ namespace Breeze.NetClient {
     /// Fires PropertyChanged on EntityAspect.
     /// </summary>
     /// <param name="propertyName"></param>
-    public void OnEntityAspectPropertyChanged(String propertyName) {
+    private void OnEntityAspectPropertyChanged(String propertyName) {
       var handler = PropertyChanged;
       if (handler == null) return;
       var args = new PropertyChangedEventArgs(propertyName);
@@ -1126,7 +1101,7 @@ namespace Breeze.NetClient {
     /// </remarks>
     // Dummy implementation just to insure that Entities can compare to one another
     // DO NOT implement Equals by calling this method
-    public virtual int CompareTo(Object obj) {
+    int IComparable.CompareTo(Object obj) {
       if (this == obj) return 0;
       EntityAspect aEntity = obj as EntityAspect;
       if (aEntity == null) return -1;
@@ -1158,7 +1133,7 @@ namespace Breeze.NetClient {
 
     private void ClearComplexBackupVersions(EntityVersion version) {
       this.EntityType.DataProperties.Where(dp => dp.IsComplexProperty).ForEach(dp => {
-        var co = (IComplexObject)this.Entity.GetValue(dp.Name);
+        var co = GetValue<IComplexObject>(dp);
         if (co != null) {
           co.ComplexAspect.ClearBackupVersion(version);
         }
@@ -1192,13 +1167,13 @@ namespace Breeze.NetClient {
         var dp = this.EntityType.GetDataProperty(kvp.Key);
 
         if (dp.IsForeignKey) {
-          if (this.Entity.GetValue(dp.Name) != value) {
-            this.Entity.SetValue(dp.Name, value);
+          if (GetValue(dp) != value) {
+            SetValue(dp, value);
             // TODO: review later
             // ((IScalarEntityReference)dp.RelatedNavigationProperty.GetEntityReference(this)).RefreshForFkChange();
           }
         } else {
-          this.Entity.SetValue(dp.Name, value);
+          SetValue(dp, value);
         }
       });
     }
@@ -1227,7 +1202,7 @@ namespace Breeze.NetClient {
 
       if (OriginalValuesMap.ContainsKey(property.Name)) return;
       // reference copy of complex object is deliberate - actual original values will be stored in the co itself.
-      OriginalValuesMap.Add(property.Name, this.Entity.GetValue(property.Name));
+      OriginalValuesMap.Add(property.Name, GetValue(property));
     }
 
     internal void BackupProposedValueIfNeeded(DataProperty property) {
@@ -1236,7 +1211,7 @@ namespace Breeze.NetClient {
       }
 
       if (PreproposedValuesMap.ContainsKey(property.Name)) return;
-      PreproposedValuesMap.Add(property.Name, this.Entity.GetValue(property.Name));
+      PreproposedValuesMap.Add(property.Name, GetValue(property));
     }
 
     #endregion
@@ -1261,9 +1236,10 @@ namespace Breeze.NetClient {
 
     private void RemoveFromRelationsCore(bool isDeleted) {
       var entity = this.Entity;
+      var aspect = entity.EntityAspect;
       this.EntityType.NavigationProperties.ForEach(np => {
         var inverseNp = np.Inverse;
-        var npValue = entity.GetValue(np.Name);
+        var npValue = aspect.GetValue(np);
         if (np.IsScalar) {
           if (npValue != null) {
             if (inverseNp != null) {
@@ -1271,13 +1247,13 @@ namespace Breeze.NetClient {
               if (inverseNp.IsScalar) {
                 npEntity.EntityAspect.ClearNp(inverseNp, isDeleted);
               } else {
-                var collection = (IList)npEntity.GetValue(inverseNp.Name);
+                var collection = npEntity.EntityAspect.GetValue<IList>(inverseNp.Name);
                 if (collection.Count > 0) {
                   collection.Remove(entity);
                 }
               }
             }
-            entity.SetValue(np.Name, null);
+            aspect.SetValue(np, null);
           }
         } else {
           var entityList = ((IList)npValue);
@@ -1301,8 +1277,9 @@ namespace Breeze.NetClient {
 
     private void ClearNp(NavigationProperty np, bool relatedIsDeleted) {
       var entity = this.Entity;
+      
       if (relatedIsDeleted) {
-        entity.SetValue(np.Name, null);
+        SetValue(np, null);
       } else {
         // relatedEntity was detached.
         // need to clear child np without clearing child fk or changing the entityState of the child
@@ -1311,11 +1288,11 @@ namespace Breeze.NetClient {
         var fkNames = np.ForeignKeyNames;
         List<Object> fkVals = null;
         if (fkNames.Count > 0) {
-          fkVals = fkNames.Select(fkName => entity.GetValue(np.Name)).ToList();
+          fkVals = fkNames.Select(fkName => GetValue(fkName)).ToList();
         }
-        entity.SetValue(np.Name, null);
+        SetValue(np.Name, null);
         if (fkVals != null) {
-          fkNames.ForEach((fkName, i) => entity.SetValue(fkName, fkVals[i]));
+          fkNames.ForEach((fkName, i) => SetValue(fkName, fkVals[i]));
         }
 
       }
@@ -1337,7 +1314,7 @@ namespace Breeze.NetClient {
     internal bool HasTemporaryEntityKey {
       get {
         var prop = this.EntityType.KeyProperties.First();
-        var uid = new UniqueId(prop, this.Entity.GetValue(prop.Name));
+        var uid = new UniqueId(prop, GetValue(prop));
         
         return EntityManager.KeyGenerator.IsTempId(uid);
         
@@ -1348,7 +1325,7 @@ namespace Breeze.NetClient {
       // returns null for np's that do not have a parentKey
       var fkNames = np.ForeignKeyNames;
       if (fkNames.Count == 0) return null;
-      var fkValues = fkNames.Select(fkn => this.Entity.GetValue(fkn)).ToArray();
+      var fkValues = fkNames.Select(fkn => GetValue(fkn)).ToArray();
       return new EntityKey(np.EntityType, fkValues);
     }
 

@@ -235,7 +235,7 @@ namespace Breeze.NetClient {
     }
 
     public bool DetachEntity(IEntity entity) {
-      return entity.EntityAspect.RemoveFromManager();
+      return entity.EntityAspect.Detach();
     }
 
     internal EntityAspect AttachQueriedEntity(IEntity entity, EntityType entityType) {
@@ -291,6 +291,7 @@ namespace Breeze.NetClient {
     }
 
     private void LinkUnattachedChildren(IEntity entity) {
+      var aspect = entity.EntityAspect;
       var entityKey = entity.EntityAspect.EntityKey;
       var navChildrenList = UnattachedChildrenMap.GetNavChildrenList(entityKey, false);
       if (navChildrenList == null) return;
@@ -306,16 +307,16 @@ namespace Breeze.NetClient {
           // bidirectional
           childToParentNp = np;
           parentToChildNp = np.Inverse;
-
+          
           if (parentToChildNp.IsScalar) {
             var onlyChild = unattachedChildren[0];
-            entity.SetValue(parentToChildNp.Name, onlyChild);
-            onlyChild.SetValue(childToParentNp.Name, entity);
+            aspect.SetValue(parentToChildNp, onlyChild);
+            onlyChild.EntityAspect.SetValue(childToParentNp, entity);
           } else {
-            var currentChildren = (INavigationSet)entity.GetValue(parentToChildNp.Name);
+            var currentChildren = aspect.GetValue<INavigationSet>(parentToChildNp);
             unattachedChildren.ForEach(child => {
               currentChildren.Add(child);
-              child.SetValue(childToParentNp.Name, entity);
+              child.EntityAspect.SetValue(childToParentNp, entity);
             });
           }
         } else {
@@ -325,10 +326,10 @@ namespace Breeze.NetClient {
             parentToChildNp = np;
             if (parentToChildNp.IsScalar) {
               // 1 -> 1 eg parent: Order child: InternationalOrder
-              entity.SetValue(parentToChildNp.Name, unattachedChildren[0]);
+              aspect.SetValue(parentToChildNp, unattachedChildren[0]);
             } else {
               // 1 -> n  eg: parent: Region child: Terr
-              var currentChildren = (INavigationSet)entity.GetValue(parentToChildNp.Name);
+              var currentChildren = aspect.GetValue<INavigationSet>(parentToChildNp);
               unattachedChildren.ForEach(child => {
                 // we know it can't already be there.
                 currentChildren.Add(child);
@@ -338,7 +339,7 @@ namespace Breeze.NetClient {
             // n -> 1  eg: parent: child: OrderDetail parent: Product
             childToParentNp = np;
             unattachedChildren.ForEach(child => {
-              child.SetValue(childToParentNp.Name, entity);
+              child.EntityAspect.SetValue(childToParentNp, entity);
             });
 
           }
@@ -353,18 +354,19 @@ namespace Breeze.NetClient {
 
     private void LinkFkProps(IEntity entity) {
       // handle unidirectional 1-x where we set x.fk
-      entity.EntityAspect.EntityType.ForeignKeyProperties.ForEach(fkProp => {
+      var aspect = entity.EntityAspect;
+      aspect.EntityType.ForeignKeyProperties.ForEach(fkProp => {
         var invNp = fkProp.InverseNavigationProperty;
         if (invNp == null) return;
         // unidirectional fk props only
-        var fkValue = entity.GetValue(fkProp.Name);
+        var fkValue = aspect.GetValue(fkProp);
         var parentKey = new EntityKey((EntityType)invNp.ParentType, fkValue);
         var parent = FindEntityByKey(parentKey);
         if (parent != null) {
           if (invNp.IsScalar) {
-            parent.SetValue(invNp.Name, entity);
+            parent.EntityAspect.SetValue(invNp, entity);
           } else {
-            var navSet = (INavigationSet)parent.GetValue(invNp.Name);
+            var navSet = parent.EntityAspect.GetValue<INavigationSet>(invNp);
             navSet.Add(entity);
           }
         } else {
@@ -377,9 +379,10 @@ namespace Breeze.NetClient {
 
     private void LinkNavProps(IEntity entity) {
       // now add to unattachedMap if needed.
-      entity.EntityAspect.EntityType.NavigationProperties.ForEach(np => {
+      var aspect = entity.EntityAspect;
+      aspect.EntityType.NavigationProperties.ForEach(np => {
         if (np.IsScalar) {
-          var value = entity.GetValue(np.Name);
+          var value = aspect.GetValue(np.Name);
           // property is already linked up
           if (value != null) return;
         }
@@ -396,7 +399,7 @@ namespace Breeze.NetClient {
           var parent = FindEntityByKey(parentKey);
           if (parent != null) {
             // if found hook it up
-            entity.SetValue(np.Name, parent);
+            aspect.SetValue(np.Name, parent);
           } else {
             // else add parent to unresolvedParentMap;
             UnattachedChildrenMap.AddChild(parentKey, np, entity);
@@ -524,7 +527,7 @@ namespace Breeze.NetClient {
       }
 
       object nextTempId = KeyGenerator.GetNextTempId(entityProperty);
-      entity.SetValue(entityProperty.Name, nextTempId);
+      aspect.SetValue(entityProperty, nextTempId);
       var aUniqueId = new UniqueId(entityProperty, nextTempId);
       // don't add to tempId's collection until the entity itself is added.
       if (aspect.EntityState != EntityState.Detached) {
@@ -544,7 +547,7 @@ namespace Breeze.NetClient {
       
       foreach (var aProperty in keyProperties) {
 
-        var val = aspect.Entity.GetValue(aProperty.Name);
+        var val = aspect.GetValue(aProperty.Name);
         var aUniqueId = new UniqueId(aProperty, val);
         
         // determine if a temp pk is needed.
@@ -568,7 +571,7 @@ namespace Breeze.NetClient {
     internal void MarkTempIdAsMapped(EntityAspect aspect, bool isMapped) {
       var keyProperties = aspect.EntityType.KeyProperties;
       foreach (var aProperty in keyProperties) {
-        UniqueId aUniqueId = new UniqueId(aProperty, aspect.Entity.GetValue(aProperty.Name));
+        UniqueId aUniqueId = new UniqueId(aProperty, aspect.GetValue(aProperty.Name));
         if (isMapped) {
           TempIds.Remove(aUniqueId);
         } else {
