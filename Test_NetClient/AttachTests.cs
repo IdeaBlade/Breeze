@@ -122,21 +122,31 @@ namespace Test_NetClient {
         
     //});
 
-    //test("can attach a detached entity to a different manager via attach/detach", 2, function () {
-    //    var em = newEm();
-    //    var customerType = em.metadataStore.getEntityType("Customer");
-    //    var customer = customerType.createEntity();
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var order = orderType.createEntity();
-    //    em.attachEntity(customer);
-    //    var orders = customer.getProperty("orders");
-    //    ok(orders.length === 0);
-    //    orders.push(order);
-    //    var em2 = newEm();
-    //    em.detachEntity(customer);
-    //    em2.attachEntity(customer);
-    //    ok(customer.entityAspect.entityManager === em2);
-    //});
+     // can attach a detached entity to a different manager via attach/detach
+    [TestMethod]
+    public async Task AttachToDifferentManager() {
+
+      await _emTask;
+
+      var cust = _em1.CreateEntity<Customer>(EntityState.Unchanged);
+      var order = _em1.CreateEntity<Order>(EntityState.Unchanged);
+      cust.Orders.Add(order);
+      Assert.IsTrue(cust.Orders.Count == 1);
+      var em2 = new EntityManager(_em1);
+      try {
+        em2.AttachEntity(cust);
+        Assert.Fail("should not get here");
+      } catch {
+        // expected
+      }
+
+      _em1.DetachEntity(cust);
+      Assert.IsTrue(order.Customer == null);
+      Assert.IsTrue(cust.Orders.Count == 0);
+      em2.AttachEntity(cust);
+      Assert.IsTrue(cust.EntityAspect.EntityManager == em2);
+
+    }
     
     //test("can attach a detached entity to a different manager via clear", 1, function () {
     //    var em1 = newEm();
