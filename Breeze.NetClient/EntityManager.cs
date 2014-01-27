@@ -223,7 +223,10 @@ namespace Breeze.NetClient {
         
         // if in Query do not do this already being done as part of the serialization.
         // entity ( not attachedEntity) is deliberate here.
-        aspect.ProcessNavigationProperties(ent => AttachEntity(ent, entityState, mergeStrategy));
+        aspect.EntityType.NavigationProperties.ForEach(np => {
+          aspect.ProcessNpValue(np, e => AttachEntity(e, entityState, mergeStrategy));
+        });
+        
 
         // TODO: impl validate on attach
         //    if (this.validationOptions.validateOnAttach) {

@@ -725,16 +725,9 @@ namespace Breeze.NetClient {
         EntityType.NavigationProperties.ForEach(np => {
           var inverseNp = np.Inverse;
           var fkNames = inverseNp != null ? inverseNp.ForeignKeyNames : np.InvForeignKeyNames;
-
           if (fkNames.Count == 0) return;
-          var npValue = GetValue(np);
-          if (npValue == null) return;
           var fkName = fkNames[propertyIx];
-          if (np.IsScalar) {
-            ((IEntity)npValue).EntityAspect.SetValue(fkName, newValue);
-          } else {
-            ((INavigationSet)npValue).Cast<IEntity>().ForEach(e => e.EntityAspect.SetValue(fkName, newValue));
-          }
+          ProcessNpValue(np, e => e.EntityAspect.SetValue(fkName, newValue));         
         });
         // insure that cached key is updated.
         EntityKey = null;
@@ -924,13 +917,13 @@ namespace Breeze.NetClient {
         // one wierd case here: if entity has a value set to something that is not a navSet before 
         // this runs that value will be overwritten.  Probably not a big issue because all nonscalar nav properties must
         // ( as part of the 'breeze' contract) return some instance that implements an INavSet.
-        var val = (INavigationSet) GetValue(np);
-        if (val == null) {
-          val  = (INavigationSet)TypeFns.CreateGenericInstance(typeof(NavigationSet<>), np.ClrType);
-          SetRawValue(np.Name, val);
+        var navSet = GetValue<INavigationSet>(np);
+        if (navSet == null) {
+          navSet  = (INavigationSet)TypeFns.CreateGenericInstance(typeof(NavigationSet<>), np.ClrType);
+          SetRawValue(np.Name, navSet);
         }
-        val.ParentEntity = this.Entity;
-        val.NavigationProperty = np;
+        navSet.ParentEntity = this.Entity;
+        navSet.NavigationProperty = np;
       });
     }
 
@@ -1259,15 +1252,15 @@ namespace Breeze.NetClient {
       var aspect = entity.EntityAspect;
       this.EntityType.NavigationProperties.ForEach(np => {
         var inverseNp = np.Inverse;
-        var npValue = aspect.GetValue(np);
+        
         if (np.IsScalar) {
-          if (npValue != null) {
+          var npEntity = aspect.GetValue<IEntity>(np);
+          if (npEntity != null) {
             if (inverseNp != null) {
-              var npEntity = (IEntity)npValue;
               if (inverseNp.IsScalar) {
                 npEntity.EntityAspect.ClearNp(inverseNp, isDeleted);
               } else {
-                var collection = npEntity.EntityAspect.GetValue<IList>(inverseNp.Name);
+                var collection = npEntity.EntityAspect.GetValue<INavigationSet>(inverseNp.Name);
                 if (collection.Count > 0) {
                   collection.Remove(entity);
                 }
@@ -1276,11 +1269,10 @@ namespace Breeze.NetClient {
             aspect.SetValue(np, null);
           }
         } else {
-          var navSet = ((INavigationSet)npValue);
+          var npEntities = aspect.GetValue<INavigationSet>(np);
           if (inverseNp != null) {
-
             // npValue is a live list so we need to copy it first.
-            navSet.Cast<IEntity>().ToList().ForEach(v => {
+            npEntities.Cast<IEntity>().ToList().ForEach(v => {
               if (inverseNp.IsScalar) {
                 v.EntityAspect.ClearNp(inverseNp, isDeleted);
               } else {
@@ -1289,7 +1281,7 @@ namespace Breeze.NetClient {
             });
           }
           // now clear it.
-          navSet.Clear();
+          npEntities.Clear();
         }
       });
 
@@ -1349,18 +1341,18 @@ namespace Breeze.NetClient {
       return new EntityKey(np.EntityType, fkValues);
     }
 
-    internal void ProcessNavigationProperties(Action<IEntity> action) {
-      var entity = this.Entity;
-      this.EntityType.NavigationProperties.ForEach(prop => {
-        var val = this.GetValue(prop);
-        if (val == null) return;
-        if (prop.IsScalar) {
-          action((IEntity)val);
-        } else {
-          ((IEnumerable)val).Cast<IEntity>().ForEach(e => action(e));
+    internal void ProcessNpValue(NavigationProperty np, Action<IEntity> action) {
+      if (np.IsScalar) {
+        var toEntity = this.GetValue<IEntity>(np);
+        if (toEntity != null) {
+          action(toEntity);
         }
-      });
-
+      } else {
+        var toEntities = this.GetValue<INavigationSet>(np);
+        if (toEntities.Count > 0) {
+          toEntities.Cast<IEntity>().ForEach(action);
+        }
+      }
     }
 
     //internal Object[] GetCurrentValues() {

@@ -15,6 +15,7 @@ namespace Breeze.NetClient {
     NavigationProperty NavigationProperty { get; set; }
     void Add(IEntity entity);
     void Remove(IEntity entity);
+    int Count { get; }
     void Clear();
   }
 
@@ -80,7 +81,7 @@ namespace Breeze.NetClient {
     }
 
     public bool IsReadOnly {
-      get { throw new NotImplementedException(); }
+      get { return false; }
     }
 
     public bool Remove(T item) {
@@ -102,18 +103,18 @@ namespace Breeze.NetClient {
     
     private void AddCore(IEntity entity) {
       if (_inProcess || _hashSet.Contains( (T) entity)) return;
+      if (ParentEntity == null 
+        || ParentEntity.EntityAspect.IsDetached 
+        || ParentEntity.EntityAspect.EntityManager.IsLoadingEntity) {
+          _hashSet.Add((T)entity);
+          return;
+      }
       using (new BooleanUsingBlock(b => _inProcess = b)) {
-        var parentAspect = ParentEntity.EntityAspect;
-        var entityManager = parentAspect.EntityManager;
-        if (entityManager.IsLoadingEntity || parentAspect.IsDetached) {
-          _hashSet.Add((T)entity);
-        } else {
-          if (entity.EntityAspect.IsDetached) {
-            entity.EntityAspect.Attach(EntityState.Added, entityManager);
-          }
-          _hashSet.Add((T)entity);
-          ProcessRelated(entity);
+        if (entity.EntityAspect.IsDetached) {
+          entity.EntityAspect.Attach(EntityState.Added, ParentEntity.EntityAspect.EntityManager);
         }
+        _hashSet.Add((T)entity);
+        ProcessRelated(entity);
       }
     }
     private bool _inProcess = false;

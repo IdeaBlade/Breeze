@@ -109,11 +109,11 @@ namespace Breeze.NetClient {
       var aspect = entity.EntityAspect;
       if (aspect.EntityManager == null) {
         // new to this entityManager
-        ParseObject(jsonContext, aspect.BackingStore);
+        ParseObject(jsonContext, aspect);
         _entityManager.AttachQueriedEntity(entity, (EntityType) jsonContext.StructuralType);
       } else if (_mergeStrategy == MergeStrategy.OverwriteChanges || aspect.EntityState == EntityState.Unchanged) {
         // overwrite existing entityManager
-        ParseObject(jsonContext, aspect.BackingStore);
+        ParseObject(jsonContext, aspect);
       } else {
         // preserveChanges handling - we still want to handle expands.
         ParseObject(jsonContext, null );
@@ -122,8 +122,9 @@ namespace Breeze.NetClient {
       return entity;
     }
 
-    private void ParseObject(JsonContext jsonContext, IDictionary<String, Object> backingStore) {
+    private void ParseObject(JsonContext jsonContext, EntityAspect targetAspect) {
       // backingStore will be null if not allowed to overwrite the entity.
+      var backingStore = (targetAspect == null) ? null : targetAspect.BackingStore;
       var dict = (IDictionary<String, JToken>) jsonContext.JObject;
       var structuralType = jsonContext.StructuralType;
       dict.ForEach(kvp => {
@@ -146,6 +147,7 @@ namespace Breeze.NetClient {
               } else {
                 var nestedArray = (JArray)kvp.Value;
                 var navSet = (INavigationSet) TypeFns.CreateGenericInstance(typeof(NavigationSet<>), prop.ClrType);
+                
                 nestedArray.Cast<JObject>().ForEach(jo => {
                   newContext = new JsonContext() { JObject=jo, ObjectType = prop.ClrType, Serializer = jsonContext.Serializer };
                   var entity = (IEntity)CreateAndPopulate(newContext);
@@ -157,6 +159,8 @@ namespace Breeze.NetClient {
                   var backingNavSet = (INavigationSet) tmp;
                   navSet.Cast<IEntity>().ForEach(e => backingNavSet.Add(e));
                 } else {
+                  navSet.NavigationProperty = np;
+                  navSet.ParentEntity = targetAspect.Entity;
                   backingStore[key] = navSet;
                 }
               }
