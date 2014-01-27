@@ -316,7 +316,7 @@ namespace Breeze.NetClient {
         EntityManager.NotifyStateChange(this, false);
       } else {
         if (EntityState.IsDeleted()) {
-          EntityManager.LinkRelatedEntities(Entity);
+          EntityManager.LinkRelatedEntities(this);
         }
         SetUnchanged();
       }
@@ -711,6 +711,7 @@ namespace Breeze.NetClient {
         SetRawValue(property.Name, newValue);
         // insure that cached key is updated.
         EntityKey = null;
+        EntityManager.LinkRelatedEntities(this);
       } else {
         // Actually set the value;
         SetRawValue(property.Name, newValue);

@@ -208,9 +208,10 @@ namespace Test_NetClient {
       od2.ProductID = -88;
       _em1.AttachEntity(od2);
       _em1.AttachEntity(prod2);
-      Assert.IsTrue(od1.Product == null, "Product should be null - again");
+      Assert.IsTrue(od2.Product == null, "Product should be null - again");
       // same as above but different order
       od2.ProductID = 3;
+      // should now have an unresolved parent.
       prod2.ProductID = 3;
       
       Assert.IsTrue(od2.Product == prod2, "should now point to product - again");
