@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Breeze.Core;
 
 namespace Breeze.NetClient {
+
   #region EntityGroup
   /// <summary>
   /// Abstract base class for the <see cref="EntityGroup{T}"/> class.
@@ -31,7 +32,7 @@ namespace Breeze.NetClient {
   /// using <see cref="M:IdeaBlade.EntityModel.EntityManager.GetEntityGroup(Type)"/>.
   /// </para>
   /// </remarks>
-  public abstract class EntityGroup : IGrouping<Type, EntityAspect> {
+  internal abstract class EntityGroup : IGrouping<Type, EntityAspect> {
 
     #region ctors
 
@@ -67,7 +68,7 @@ namespace Breeze.NetClient {
     private void Initialize() {
       _entityAspects = new EntityCollection();
       _entityKeyMap = new Dictionary<EntityKey, EntityAspect>();
-      _pendingEvents = new List<Action>();
+      // _pendingEvents = new List<Action>();
       ChangeNotificationEnabled = false;
     }
 
@@ -235,16 +236,26 @@ namespace Breeze.NetClient {
     public virtual ReadOnlyCollection<EntityGroup> SelfAndSubtypeGroups {
       get {
         if (_selfAndSubtypeGroups == null) {
-          var list = EntityType.Subtypes.Select(et => EntityManager.GetEntityGroup(et.ClrType)).ToList();
-          _selfAndSubtypeGroups = new ReadOnlyCollection<EntityGroup>(list);
+          _selfAndSubtypeGroups = EntityType.Subtypes
+            .Select(et => EntityManager.GetEntityGroup(et.ClrType))
+            .ToSafeList();
         }
-        return _selfAndSubtypeGroups;
+        return _selfAndSubtypeGroups.ReadOnlyValues;
       }
     }
 
     #endregion
 
     #region Misc public methods
+
+    internal void Clear() {
+      // do not call detach on each entityAspect - very slow and not needed 
+      // all we really need to do is set each _entityaspect.EntityState to detached
+      _entityAspects.ForEach(ea => ea.DetachOnClear());
+      if (_selfAndSubtypeGroups != null) _selfAndSubtypeGroups.Clear();
+      _entityAspects.Clear();
+      _entityKeyMap.Clear();
+    }
 
     /// <summary>
     /// Returns the EntityGroup name corresponding to any <see cref="IEntity"/> subtype.
@@ -298,10 +309,7 @@ namespace Breeze.NetClient {
 
     #region Internal props/methods 
 
-    internal void Clear() {
-      _entityAspects.Clear();
-      _entityKeyMap.Clear();
-    }
+
 
     internal EntityAspect FindEntityAspect(EntityKey entityKey, bool includeDeleted) {
       EntityAspect result;
@@ -422,8 +430,8 @@ namespace Breeze.NetClient {
     // it should always be null on persistent client side entity sets
     private EntityCollection _entityAspects;
     private Dictionary<EntityKey, EntityAspect> _entityKeyMap;
-    private ReadOnlyCollection<EntityGroup> _selfAndSubtypeGroups;
-    private List<Action> _pendingEvents;
+    private SafeList<EntityGroup> _selfAndSubtypeGroups;
+    // private List<Action> _pendingEvents;
 
     // DataForm blows unless we use String.Empty - see B1112 - we're keeping 
     // old non-SL behavior because this change was made at last minute and couldn't
@@ -453,7 +461,7 @@ namespace Breeze.NetClient {
   /// to hold entities of each type.  The <see cref="T:IdeaBlade.EntityModel.EntityManager"/> 
   /// manages all EntityGroups in its cache. 
   /// </remarks>
-  public class EntityGroup<TEntity> : EntityGroup where TEntity : class {
+  internal class EntityGroup<TEntity> : EntityGroup where TEntity : class {
 
     #region ctors
 
@@ -503,7 +511,7 @@ namespace Breeze.NetClient {
 
   #region EntityGroupCollection and EntityCollection
 
-  public class EntityGroupCollection : MapCollection<Type, EntityGroup> {
+  internal class EntityGroupCollection : MapCollection<Type, EntityGroup> {
     protected override Type GetKeyForItem(EntityGroup item) {
       return item.ClrType;
     }
@@ -610,6 +618,6 @@ namespace Breeze.NetClient {
   //    get { return _selfAndSubtypeGroups.ReadOnlyValues;  }
   //  }
 
-  //  private SafeList<EntityGroup> _selfAndSubtypeGroups = new SafeList<EntityGroup>();
+  
   //}
 }

@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 namespace Breeze.Core {
 
   // List<T> with a ReadOnlyValues property
+  // should be used for internal list variable whose contents will need to be exposed 
+  // as a ReadOnlyCollection<T>
   public class SafeList<T> : List<T> {
     public SafeList() : base() { 
      _values = new ReadOnlyCollection<T>(this);

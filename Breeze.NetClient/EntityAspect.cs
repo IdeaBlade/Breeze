@@ -250,8 +250,11 @@ namespace Breeze.NetClient {
 
       this.EntityGroup.DetachEntityAspect(this);
       RemoveFromRelations(EntityState.Detached);
-      this.OriginalValuesMap = null;
-      this.PreproposedValuesMap = null;
+      // TODO: determine if this is needed.
+      // this.OriginalValuesMap = null;
+      // this.PreproposedValuesMap = null;
+
+      // TODO: add later
       // this._validationErrors = {};
 
       SetEntityStateCore(EntityState.Detached);
@@ -260,6 +263,11 @@ namespace Breeze.NetClient {
       return true;
     }
 
+    internal void DetachOnClear() {
+      // this.OriginalValuesMap = null;
+      // this.PreproposedValuesMap = null;
+      _entityState = EntityState.Detached;
+    }
 
     #endregion
 
@@ -463,7 +471,7 @@ namespace Breeze.NetClient {
 
 
 
-    public override void SetValue([CallerMemberName] String propertyName=null, object newValue = null) {
+    public override void SetValue(String propertyName, object newValue) {
       if (this.EntityGroup == null) {
         // newly created entity not yet attached to an EntityManager.
         SetRawValue(propertyName, newValue);
@@ -698,14 +706,18 @@ namespace Breeze.NetClient {
         var oldKey = EntityKey;
         var eg = EntityManager.GetEntityGroup(EntityType.ClrType);
         eg.ReplaceKey(this, oldKey, newKey);
+
+        // Actually set the value;
+        SetRawValue(property.Name, newValue);
+        // insure that cached key is updated.
+        EntityKey = null;
+      } else {
+        // Actually set the value;
+        SetRawValue(property.Name, newValue);
       }
 
-      TrackChange(property);
-
+      TrackChange(property, oldValue);
       UpdateRelated(property, newValue, oldValue);
-
-      // Actually set the value;
-      SetRawValue(property.Name, newValue);
 
       // NOTE: next few lines are the same as above but not refactored for perf reasons.
       if (this.IsAttached && !EntityManager.IsLoadingEntity) {
@@ -729,8 +741,6 @@ namespace Breeze.NetClient {
           var fkName = fkNames[propertyIx];
           ProcessNpValue(np, e => e.EntityAspect.SetValue(fkName, newValue));         
         });
-        // insure that cached key is updated.
-        EntityKey = null;
       }
 
     }
@@ -934,8 +944,6 @@ namespace Breeze.NetClient {
         this.EntityManager.TempIds.Remove(oldUniqueId);
       }
     }
-
-
 
     /// <summary>
     /// Retrieve the values of specified properties within this Entity.
@@ -1192,39 +1200,43 @@ namespace Breeze.NetClient {
     }
 
     internal void TrackChange(DataProperty property) {
+      TrackChange(property, GetValue(property));
+    }
+
+    internal void TrackChange(DataProperty property, Object oldValue) {
       // We actually do want to track Proposed changes when Detached ( or Added) but we do not track an Original for either
       if (this.EntityState.IsAdded() || this.EntityState.IsDetached()) {
         if (this.EntityVersion == EntityVersion.Proposed) {
-          BackupProposedValueIfNeeded(property);
+          BackupProposedValueIfNeeded(property, oldValue);
         }
       } else {
         if (this.EntityVersion == EntityVersion.Current) {
-          BackupOriginalValueIfNeeded(property);
+          BackupOriginalValueIfNeeded(property, oldValue);
         } else if (this.EntityVersion == EntityVersion.Proposed) {
           // need to do both
-          BackupOriginalValueIfNeeded(property);
-          BackupProposedValueIfNeeded(property);
+          BackupOriginalValueIfNeeded(property, oldValue);
+          BackupProposedValueIfNeeded(property, oldValue);
         }
       }
     }
 
-    internal void BackupOriginalValueIfNeeded(DataProperty property) {
+    internal void BackupOriginalValueIfNeeded(DataProperty property, Object oldValue) {
       if (OriginalValuesMap == null) {
         OriginalValuesMap = new OriginalValuesMap();
       }
 
       if (OriginalValuesMap.ContainsKey(property.Name)) return;
       // reference copy of complex object is deliberate - actual original values will be stored in the co itself.
-      OriginalValuesMap.Add(property.Name, GetValue(property));
+      OriginalValuesMap.Add(property.Name, oldValue);
     }
 
-    internal void BackupProposedValueIfNeeded(DataProperty property) {
+    internal void BackupProposedValueIfNeeded(DataProperty property, Object oldValue) {
       if (PreproposedValuesMap == null) {
         PreproposedValuesMap = new BackupValuesMap();
       }
 
       if (PreproposedValuesMap.ContainsKey(property.Name)) return;
-      PreproposedValuesMap.Add(property.Name, GetValue(property));
+      PreproposedValuesMap.Add(property.Name, oldValue);
     }
 
     #endregion

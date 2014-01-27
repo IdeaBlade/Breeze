@@ -21,10 +21,10 @@ namespace Breeze.NetClient {
       : base(np) {
       this.EntityTypeName = np.EntityTypeName;
       this.AssociationName = np.AssociationName;
-      this._foreignKeyNames = np._foreignKeyNames.ToList();
-      this._foreignKeyNamesOnServer = np._foreignKeyNamesOnServer.ToList();
-      this._invForeignKeyNames = np._invForeignKeyNames.ToList();
-      this._invForeignKeyNamesOnServer = np._invForeignKeyNamesOnServer.ToList();
+      this._foreignKeyNames = np._foreignKeyNames;
+      this._foreignKeyNamesOnServer = np._foreignKeyNamesOnServer;
+      this._invForeignKeyNames = np._invForeignKeyNames;
+      this._invForeignKeyNamesOnServer = np._invForeignKeyNamesOnServer;
     }
 
     public EntityType EntityType { get; internal set; }
@@ -38,31 +38,31 @@ namespace Breeze.NetClient {
 
     // AsReadOnly doesn't seem to exist in the PCL
     public ReadOnlyCollection<DataProperty> RelatedDataProperties {
-      get { return new ReadOnlyCollection<DataProperty>(_relatedDataProperties); }
+      get { return _relatedDataProperties.ReadOnlyValues; }
     }
     
     public ReadOnlyCollection<String> ForeignKeyNames {
-      get { return new ReadOnlyCollection<string>(_foreignKeyNames);  }
+      get { return _foreignKeyNames.ReadOnlyValues;  }
     }
     public ReadOnlyCollection<String> ForeignKeyNamesOnServer {
-      get { return new ReadOnlyCollection<string>(_foreignKeyNamesOnServer); } 
+      get { return _foreignKeyNamesOnServer.ReadOnlyValues; } 
     }
     public ReadOnlyCollection<String> InvForeignKeyNames {
-      get { return new ReadOnlyCollection<string>(_invForeignKeyNames); }
+      get { return _invForeignKeyNames.ReadOnlyValues; }
     }
     public ReadOnlyCollection<String> InvForeignKeyNamesOnServer {
-      get { return new ReadOnlyCollection<string>(_invForeignKeyNamesOnServer); }
+      get { return _invForeignKeyNamesOnServer.ReadOnlyValues; }
     }
 
     public override bool IsDataProperty { get { return false; } }
     public override bool IsNavigationProperty { get { return true; } }
 
-    internal List<DataProperty> _relatedDataProperties = new List<DataProperty>();
+    internal SafeList<DataProperty> _relatedDataProperties = new SafeList<DataProperty>();
 
-    internal List<String> _foreignKeyNames = new List<string>();
-    internal List<String> _foreignKeyNamesOnServer = new List<string>();
-    internal List<String> _invForeignKeyNames = new List<string>();
-    internal List<String> _invForeignKeyNamesOnServer = new List<string>();
+    internal SafeList<String> _foreignKeyNames = new SafeList<string>();
+    internal SafeList<String> _foreignKeyNamesOnServer = new SafeList<string>();
+    internal SafeList<String> _invForeignKeyNames = new SafeList<string>();
+    internal SafeList<String> _invForeignKeyNamesOnServer = new SafeList<string>();
 
   }
 

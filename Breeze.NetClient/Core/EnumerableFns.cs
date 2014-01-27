@@ -311,7 +311,9 @@ namespace Breeze.Core {
       return first.Except(second, new DynamicComparer<TSource, TResult>(selector));
     }
 
-
+    internal static SafeList<T> ToSafeList<T>(this IEnumerable<T> items) {
+      return new SafeList<T>(items);
+    }
 
   }
 }

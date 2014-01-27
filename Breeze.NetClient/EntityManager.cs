@@ -15,6 +15,8 @@ using System.Collections;
 namespace Breeze.NetClient {
   public class EntityManager {
 
+    #region Ctor 
+
     /// <summary>
     /// 
     /// </summary>
@@ -23,24 +25,28 @@ namespace Breeze.NetClient {
       DefaultDataService = new DataService(serviceName);
       DefaultMergeStrategy = MergeStrategy.PreserveChanges;
       MetadataStore = metadataStore != null ? metadataStore : new MetadataStore();
-      EntityGroups = new EntityGroupCollection();
-      UnattachedChildrenMap = new UnattachedChildrenMap();
       KeyGenerator = new DefaultKeyGenerator();
-      TempIds = new HashSet<UniqueId>();
-      _hasChanges = false;
+      Initialize();
     }
 
     public EntityManager(EntityManager em) {
       DefaultDataService = em.DefaultDataService;
       DefaultMergeStrategy = em.DefaultMergeStrategy;
       MetadataStore = em.MetadataStore;
+      KeyGenerator = em.KeyGenerator; // TODO: review whether we should clone instead.
+      Initialize();
+    }
 
+    private void Initialize() {
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
-      KeyGenerator = new DefaultKeyGenerator();
       TempIds = new HashSet<UniqueId>();
       _hasChanges = false;
     }
+
+    #endregion
+
+    #region Public props
 
     public DataService DefaultDataService { get; private set; }
 
@@ -49,6 +55,8 @@ namespace Breeze.NetClient {
     public MergeStrategy DefaultMergeStrategy { get; private set; }
 
     public IKeyGenerator KeyGenerator { get; set; }
+
+    #endregion
 
     #region async methods
 
@@ -167,7 +175,10 @@ namespace Breeze.NetClient {
 
     #region Misc public methods
 
-
+    public void Clear() {
+      EntityGroups.ForEach(eg => eg.Clear());
+      Initialize();
+    }
 
     public IEntity CreateEntity(EntityType entityType) {
       return (IEntity) Activator.CreateInstance(entityType.ClrType);

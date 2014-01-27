@@ -125,7 +125,6 @@ namespace Test_NetClient {
      // can attach a detached entity to a different manager via attach/detach
     [TestMethod]
     public async Task AttachToDifferentManager() {
-
       await _emTask;
 
       var cust = _em1.CreateEntity<Customer>(EntityState.Unchanged);
@@ -148,70 +147,74 @@ namespace Test_NetClient {
 
     }
     
-    //test("can attach a detached entity to a different manager via clear", 1, function () {
-    //    var em1 = newEm();
-    //    var cust = em1.metadataStore.getEntityType("Customer").createEntity();
-    //    cust.setProperty(testFns.customerKeyName, core.getUuid());
+    // can attach a detached entity to a different manager via clear
+    [TestMethod]
+    public async Task AttachEmViaDetach() {
+      await _emTask;
 
-    //    em1.attachEntity(cust);
+        var cust = new Customer();
+        cust.EntityAspect.SetValue(TestFns.CustomerKeyName, Guid.NewGuid());
+        Assert.IsTrue(cust.EntityAspect.IsDetached, "should be detached");
+        _em1.AttachEntity(cust);
+        Assert.IsTrue(cust.EntityAspect.IsAttached, "should be attached");
+        _em1.Clear(); // will detach cust
 
-    //    em1.clear(); // should detach cust
-    //    ok(cust.entityAspect.entityState.isDetached,
-    //        "cust should be detached");
-
-    //    // therefore this should be ok
-    //    var em2 = newEm();
-    //    em2.attachEntity(cust); // D#2206 throws exception
-    //});
+        Assert.IsTrue(cust.EntityAspect.IsDetached, "should be detached - again");
+        Assert.IsTrue(cust.EntityAspect.EntityManager == _em1, "should still be associated with em1");
+        // therefore this should be ok
+        var em2 = new EntityManager(_em1);
+        em2.AttachEntity(cust);
+        Assert.IsTrue(cust.EntityAspect.EntityManager == em2, "should be on em2");
+    }
 
     
-    //test("setting child's parent entity null removes it from old parent", 2, function () {
-    //    // D2183
-    //    var em = newEm();
-    //    var customerType = em.metadataStore.getEntityType("Customer");
-    //    var customer = customerType.createEntity();
-    //    em.attachEntity(customer);
+    // setting child's parent entity null removes it from old parent
+    [TestMethod]
+    public async Task SetParentEntityToNull() {
+      await _emTask;
 
-    //    //var orderType = em.metadataStore.getEntityType("Order");
-    //    //var newOrder = orderType.createEntity();
-    //    //em.addEntity(newOrder);
-    //    // newOrder.setProperty("customer", customer); // assign order to customer1
-    //    var newOrder = em.createEntity("Order", { customer: customer });
+      var cust = _em1.CreateEntity<Customer>(EntityState.Unchanged);
+      var order = _em1.CreateEntity<Order>();
+      order.Customer = cust;
+      Assert.IsTrue(order.Customer == cust, "should be set");
+      Assert.IsTrue(cust.Orders.First() == order, "should be part of collection" );
+      order.Customer = null;
+      Assert.IsTrue(order.Customer == null, "should not be set");
+      Assert.IsTrue(cust.Orders.Count == 0, "should not be part of collection" );
 
-    //    var orders = customer.getProperty("orders");
-    //    ok(orders.indexOf(newOrder) >= 0,
-    //        "newOrder is among the customer's orders");
+    }
 
-    //    newOrder.setProperty("customer", null); // set null to decouple the order from a customer
+    // unidirectional attach - n->1
+    [TestMethod]
+    public async Task UnidirectionalAttachFk() {
+      await _emTask;
+      if (TestFns.DEBUG_MONGO) {
+        Assert.Inconclusive("NA for Mongo - Order/OrderDetail");
+        return;
+      }
 
-    //    orders = customer.getProperty("orders" );
-    //    ok(orders.indexOf(newOrder) === -1,
-    //        "newOrder is no longer among the customer's orders");
+      var od1 = new OrderDetail();
+      var prod1 = new Product();
+      od1.ProductID = -99;
+      _em1.AttachEntity(od1);
+      _em1.AttachEntity(prod1);
+      Assert.IsTrue(od1.Product == null, "Product should be null");
+      prod1.ProductID = 2;
+      od1.ProductID = 2;
+      Assert.IsTrue(od1.Product == prod1, "should now point to product");
 
-    //});
-
-    //test("unidirectional attach - n->1", function () {
-    //    if (testFns.DEBUG_MONGO) {
-    //        ok(true, "NA for Mongo - OrderDetail");
-    //        return;
-    //    }
-
-    //    var em = newEm();
-    //    var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
-    //    var orderDetail = orderDetailType.createEntity();
-    //    var productType = em.metadataStore.getEntityType("Product");
-    //    var product = productType.createEntity();
-    //    orderDetail.setProperty("productID", -99);
-    //    em.attachEntity(orderDetail);
-    //    em.attachEntity(product);
-    //    var nullProduct = orderDetail.getProperty("product");
-    //    ok(nullProduct === null);
-    //    product.setProperty("productID", 7);
-    //    orderDetail.setProperty("productID", 7);
-    //    var sameProduct = orderDetail.getProperty("product");
-    //    ok(product === sameProduct);
-       
-    //});
+      var od2 = new OrderDetail();
+      var prod2 = new Product();
+      od2.ProductID = -88;
+      _em1.AttachEntity(od2);
+      _em1.AttachEntity(prod2);
+      Assert.IsTrue(od1.Product == null, "Product should be null - again");
+      // same as above but different order
+      od2.ProductID = 3;
+      prod2.ProductID = 3;
+      
+      Assert.IsTrue(od2.Product == prod2, "should now point to product - again");
+    }
 
 
     //test("unidirectional attach - 1->n", function () {

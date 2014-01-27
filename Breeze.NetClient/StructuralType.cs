@@ -115,15 +115,15 @@ namespace Breeze.NetClient {
       var navProp = property as NavigationProperty;
       if (navProp != null) {
         if (navProp._foreignKeyNames.Count > 0) {
-          navProp._foreignKeyNamesOnServer = navProp._foreignKeyNames.Select(fkn => nc.Test(fkn, true)).ToList();
+          navProp._foreignKeyNamesOnServer = navProp._foreignKeyNames.Select(fkn => nc.Test(fkn, true)).ToSafeList();
         } else {
-          navProp._foreignKeyNames = navProp._foreignKeyNamesOnServer.Select(fkn => nc.Test(fkn, false)).ToList();
+          navProp._foreignKeyNames = navProp._foreignKeyNamesOnServer.Select(fkn => nc.Test(fkn, false)).ToSafeList();
         }
 
         if (navProp._invForeignKeyNames.Count > 0) {
-          navProp._invForeignKeyNamesOnServer = navProp._invForeignKeyNames.Select(fkn => nc.Test(fkn, true)).ToList();
+          navProp._invForeignKeyNamesOnServer = navProp._invForeignKeyNames.Select(fkn => nc.Test(fkn, true)).ToSafeList();
         } else {
-          navProp._invForeignKeyNames = navProp._invForeignKeyNamesOnServer.Select(fkn => nc.Test(fkn, false)).ToList();
+          navProp._invForeignKeyNames = navProp._invForeignKeyNamesOnServer.Select(fkn => nc.Test(fkn, false)).ToSafeList();
         }
       }
     }

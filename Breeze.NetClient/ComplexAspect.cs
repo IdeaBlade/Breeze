@@ -395,6 +395,7 @@ namespace Breeze.NetClient {
 
     #region TrackChanges methods
 
+    // TODO: may want to changes these to match EntityAspect version more closely (oldValue ??)
     internal void TrackChange(DataProperty property) {
       if (ParentEntity == null) return;
       // need to tell parent about this but the parent is not actually
@@ -409,6 +410,7 @@ namespace Breeze.NetClient {
       }
     }
 
+    
     private void BackupOriginalValueIfNeeded(DataProperty property) {
       if (ParentEntity.EntityAspect.EntityState.IsAdded()) return;
       if (ParentEntity.EntityAspect.EntityState.IsDetached()) return;

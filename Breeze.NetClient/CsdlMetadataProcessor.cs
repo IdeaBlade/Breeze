@@ -235,7 +235,7 @@ namespace Breeze.NetClient {
       var dependent = constraintVal["dependent"];
 
       var propRefs = ToEnumerable(dependent["propertyRef"]);
-      var fkNames = propRefs.Select(pr => (String)pr["name"]).ToList();
+      var fkNames = propRefs.Select(pr => (String)pr["name"]).ToSafeList();
       if (fromRoleVal == (String)principal["role"]) {
         np._invForeignKeyNamesOnServer = fkNames;
       } else {

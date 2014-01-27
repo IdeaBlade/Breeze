@@ -688,49 +688,112 @@ namespace Foo {
 
   public partial class UserRole : BaseEntity {
 
-    public long ID { get; set; }
-    public long UserId { get; set; }
-    public long RoleId { get; set; }
+    public long ID {
+      get { return PropGet<long>(); }
+      set { PropSet(value); }
+    }
+    public long UserId {
+      get { return PropGet<long>(); }
+      set { PropSet(value); }
+    }
+    public long RoleId {
+      get { return PropGet<long>(); }
+      set { PropSet(value); }
+    }
 
-    public Role Role { get; set; }
-    public User User { get; set; }
+    public Role Role {
+      get { return PropGet<Role>(); }
+      set { PropSet(value); }
+    }
+    public User User {
+      get { return PropGet<User>(); }
+      set { PropSet(value); }
+    }
   }
 
   public partial class InternationalOrder : BaseEntity {
 
-    public int OrderID { get; set; }
-    public string CustomsDescription { get; set; }
-    public decimal ExciseTax { get; set; }
-    public int RowVersion { get; set; }
-    public Order Order { get; set; }
+    public int OrderID {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public string CustomsDescription {
+      get { return PropGet<String>(); }
+      set { PropSet(value); }
+    }
+    public decimal ExciseTax {
+      get { return PropGet<decimal>(); }
+      set { PropSet(value); }
+    }
+    public int RowVersion {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public Order Order {
+      get { return PropGet<Order>(); }
+      set { PropSet(value); }
+    }
 
   }
 
   public partial class TimeLimit : BaseEntity {
 
-    public int Id { get; set; }
-    public System.TimeSpan MaxTime { get; set; }
-    public Nullable<System.TimeSpan> MinTime { get; set; }
-    public int? TimeGroupId { get; set; }
+    public int Id {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public System.TimeSpan MaxTime {
+      get { return PropGet<TimeSpan>(); }
+      set { PropSet(value); }
+    }
+    public Nullable<System.TimeSpan> MinTime {
+      get { return PropGet<TimeSpan?>(); }
+      set { PropSet(value); }
+    }
+    public int? TimeGroupId {
+      get { return PropGet<int?>(); }
+      set { PropSet(value); }
+    }
 
-    public TimeGroup TimeGroup { get; set; }
+    public TimeGroup TimeGroup {
+      get { return PropGet<TimeGroup>(); }
+      set { PropSet(value); }
+    }
   }
 
 
   public partial class TimeGroup : BaseEntity {
 
-    public int Id { get; set; }
-    public string Comment { get; set; }
+    public int Id {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public string Comment {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
 
-    public NavigationSet<TimeLimit> TimeLimits { get; set; }
+    public NavigationSet<TimeLimit> TimeLimits {
+      get { return PropGet<NavigationSet<TimeLimit>>(); }
+      set { PropSet(value); }
+    }
     
   }
 
 
   public partial class Comment : BaseEntity {
-    public DateTime CreatedOn { get; set; }
-    public byte SeqNum { get; set; }
-    public string Comment1 { get; set; }
+    public DateTime CreatedOn {
+      get { return PropGet<DateTime>(); }
+      set { PropSet(value); }
+    }
+    public byte SeqNum {
+      get { return PropGet<byte>(); }
+      set { PropSet(value); }
+    }
+    public string Comment1 {
+      get { return PropGet<String>(); }
+      set { PropSet(value); }
+    }
 
   }
 
@@ -743,17 +806,41 @@ namespace Foo {
       // this.Geometry1 = DbGeometry.FromText("GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10)");
 
     }
-    public int Id { get; set; }
-    public Geometry Geometry1 { get; set; }
-    public Geography Geography1 { get; set; }
+    public int Id {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public Geometry Geometry1 {
+      get { return PropGet<Geometry>(); }
+      set { PropSet(value); }
+    }
+    public Geography Geography1 {
+      get { return PropGet<Geography>(); }
+      set { PropSet(value); }
+    }
   }
 
   public partial class UnusualDate : BaseEntity {
-    public int Id { get; set; }
-    public DateTimeOffset CreationDate { get; set; }
-    public DateTime ModificationDate { get; set; }
-    public Nullable<DateTimeOffset> CreationDate2 { get; set; }
-    public DateTime? ModificationDate2 { get; set; }
+    public int Id {
+      get { return PropGet<int>(); }
+      set { PropSet(value); }
+    }
+    public DateTimeOffset CreationDate {
+      get { return PropGet<DateTimeOffset>(); }
+      set { PropSet(value); }
+    }
+    public DateTime ModificationDate {
+      get { return PropGet<DateTime>(); }
+      set { PropSet(value); }
+    }
+    public Nullable<DateTimeOffset> CreationDate2 {
+      get { return PropGet<DateTimeOffset?>(); }
+      set { PropSet(value); }
+    }
+    public DateTime? ModificationDate2 {
+      get { return PropGet<DateTime?>(); }
+      set { PropSet(value); }
+    }
   }
 
 
