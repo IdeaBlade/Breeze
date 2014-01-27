@@ -5,13 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Breeze.Core;
+
 namespace Breeze.NetClient {
 
 
   public interface INavigationSet : IEnumerable {
     IEntity ParentEntity { get; set; }
+    NavigationProperty NavigationProperty { get; set; }
     void Add(IEntity entity);
     void Remove(IEntity entity);
+    void Clear();
   }
 
   public class NavigationSet<T> : HashSet<T>, INavigationSet where T:IEntity {
@@ -20,7 +24,7 @@ namespace Breeze.NetClient {
 
     }
 
-    public NavigationSet(IEntity parentEntity) {
+    public NavigationSet(IEntity parentEntity, NavigationProperty navigationProperty) {
       ((INavigationSet) this).ParentEntity = parentEntity;
     }
 
@@ -32,38 +36,43 @@ namespace Breeze.NetClient {
       Remove((T)entity);
     }
 
-    IEntity INavigationSet.ParentEntity {
+    public IEntity ParentEntity {
       get; 
       set;
     }
 
-    private void AddCore(IEntity entity) {
-
+    public NavigationProperty NavigationProperty {
+      get;
+      set;
     }
 
-    //    var parentEntity = relationArray.parentEntity;
-    //    var entityManager = parentEntity.entityAspect.entityManager;
-    //    // we do not want to attach an entity during loading
-    //    // because these will all be 'attached' at a later step.
-    //    if (entityManager && !entityManager.isLoading) {
-    //        goodAdds.forEach(function (add) {
-    //            if (add.entityAspect.entityState.isDetached()) {
-    //                relationArray._inProgress = true;
-    //                try {
-    //                    entityManager.attachEntity(add, EntityState.Added);
-    //                } finally {
-    //                    relationArray._inProgress = false;
-    //                }
-    //            }
-    //        });
-    //    }
-    //    return goodAdds;
-    //}
+    internal bool InProcess { get; set; }
 
-    //function processAdds(relationArray, adds) {
-    //    var parentEntity = relationArray.parentEntity;
-    //    var np = relationArray.navigationProperty;
-    //    var addsInProcess = relationArray._addsInProcess;
+    private void AddCore(IEntity entity) {
+      // Notes: if being loaded from query it will already be attached by the time it gets here.
+      if (InProcess) return;
+      var parentAspect = ParentEntity.EntityAspect;
+      var entityManager = parentAspect.EntityManager;
+      if (parentAspect.IsDetached || !entityManager.IsLoadingEntity) {
+        
+        Add((T)entity);
+      } else {
+        // relationArray.inProgress may make sense here
+        if (entity.EntityAspect.IsDetached) {
+          using (new BooleanUsingBlock((b) => this.InProcess = b)) {
+            entity.EntityAspect.Attach(EntityState.Added, entityManager);
+          }
+        }
+        Add((T)entity);
+      }
+      ProcessRelated(entity);
+    
+    }
+
+    private void ProcessRelated(IEntity entity) {
+
+      var np = this.NavigationProperty;
+      var invNp = np.Inverse;
 
     //    var invNp = np.inverse;
     //    var startIx = addsInProcess.length;
@@ -85,7 +94,7 @@ namespace Breeze.NetClient {
     //        addsInProcess.splice(startIx, adds.length);
     //    }
 
-    //}
+    }
     
   }
 }

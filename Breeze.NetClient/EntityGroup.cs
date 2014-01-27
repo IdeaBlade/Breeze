@@ -196,7 +196,7 @@ namespace Breeze.NetClient {
     /// </summary>
     public EntityType EntityType {
       get;
-      internal set;
+      internal set; 
     }
 
     /// <summary>

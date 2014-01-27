@@ -156,8 +156,11 @@ namespace Breeze.NetClient {
           }
         }
       }
-      // TODO: nit - don't set maxLength if null;
 
+      var defaultValue = csdlProperty["defaultValue"] ?? (isNullable ? null : dataType.DefaultValue);
+ 
+
+      // TODO: nit - don't set maxLength if null;
       var maxLength = (maxLengthVal == null || maxLengthVal == "Max") ? (Int64?)null : Int64.Parse(maxLengthVal);
       var concurrencyMode = concurrencyModeVal == "fixed" ? ConcurrencyMode.Fixed : ConcurrencyMode.None;
       var dp = new DataProperty() {
@@ -167,7 +170,7 @@ namespace Breeze.NetClient {
         IsNullable = isNullable,
         IsPartOfKey = isPartOfKey,
         MaxLength = maxLength,
-        DefaultValue = csdlProperty["defaultValue"],
+        DefaultValue = defaultValue,
         // fixedLength: fixedLength,
         ConcurrencyMode = concurrencyMode,
         IsScalar = true ,

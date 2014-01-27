@@ -48,14 +48,23 @@ namespace Breeze.NetClient {
       EntityType = entityType;
       IndexInEntityGroup = -1;
       _entityState = EntityState.Detached;
-      EntityGroup = null;
     }
 
     #region Public properties
 
     public IEntity Entity { get; private set; }
 
-    public EntityType EntityType { get; internal set; }
+    public EntityType EntityType {
+      get {
+        return _entityType;
+      }
+      internal set {
+        _entityType = value;
+        if (_entityType != null) {
+          InitializeDefaultValues();
+        }
+      }
+    }
 
     protected override StructuralType StructuralType {
       get { return this.EntityType; }
@@ -115,7 +124,10 @@ namespace Breeze.NetClient {
     }
 
     // EntityGroup is null if never attached but once its non-null it keeps its previous value.
-    internal EntityGroup EntityGroup { get; set; }
+    internal EntityGroup EntityGroup { 
+      get { return _entityGroup; }
+      set { _entityGroup = value; }
+    }
 
     #endregion
 
@@ -124,7 +136,6 @@ namespace Breeze.NetClient {
       this.EntityGroup.OnEntityChanging(entityArgs);
       return !entityArgs.Cancel;
     }
-
 
     #region Public methods
 
@@ -154,9 +165,6 @@ namespace Breeze.NetClient {
       }
       this.EntityGroup.OnEntityChanged(entity, EntityAction.Delete);
     }
-
-
-
 
     #endregion
 
@@ -536,14 +544,15 @@ namespace Breeze.NetClient {
 
       var newEntity = (IEntity)newValue;
       var oldEntity = (IEntity)oldValue;
-      var newAspect = newEntity.EntityAspect;
-      var oldAspect = oldEntity.EntityAspect;
+
+      EntityAspect newAspect = (newEntity == null) ? null : newEntity.EntityAspect;
+      EntityAspect oldAspect = (oldEntity == null) ? null : oldEntity.EntityAspect;
 
       var inverseProp = property.Inverse;
 
       // manage attachment -
       if (newValue != null) {
-
+        
         if (this.IsAttached) {
           if (newAspect.IsDetached) {
             if (!EntityManager.IsLoadingEntity) {
@@ -832,7 +841,6 @@ namespace Breeze.NetClient {
     /// Note that this operation bypasses all custom interception methods.
     /// </remarks>
     public Object GetValue(DataProperty property, EntityVersion version) {
-      InitializeDefaultValues();
 
       if (version == EntityVersion.Default) {
         version = EntityVersion;
@@ -893,21 +901,36 @@ namespace Breeze.NetClient {
       }
     }
 
+    // only ever called once for each EntityAspect when the EntityType is first set
     internal void InitializeDefaultValues() {
-
-      if (_defaultValuesInitialized) return;
-      _defaultValuesInitialized = true;
-
+      // TODO: if a string is nonnullable
+      // what is the correct nonnullable default value.
       this.EntityType.DataProperties.ForEach(dp => {
         try {
+          if (dp.IsNullable) return;
+          if (GetValue(dp) != null) return;
           if (dp.IsComplexProperty) {
-            SetValue(dp, ComplexAspect.Create(this.Entity, dp, true));
-          } else if (dp.DefaultValue != null) {
-            SetValue(dp, dp.DefaultValue);
+            SetRawValue(dp.Name, ComplexAspect.Create(this.Entity, dp, true));
+          } else {
+            if (dp.DefaultValue == null) return; // wierd case mentioned above
+            SetRawValue(dp.Name, dp.DefaultValue);
           }
         } catch (Exception e) {
           Debug.WriteLine("Exception caught during initialization of {0}.{1}: {2}", this.EntityType.Name, dp.Name, e.Message);
         }
+      });
+      this.EntityType.NavigationProperties.ForEach(np => {
+        if (np.IsScalar) return;
+        // one wierd case here: if entity has a value set to something that is not a navSet before 
+        // this runs that value will be overwritten.  Probably not a big issue because all nonscalar nav properties must
+        // ( as part of the 'breeze' contract) return some instance that implements an INavSet.
+        var val = (INavigationSet) GetValue(np);
+        if (val == null) {
+          val  = (INavigationSet)TypeFns.CreateGenericInstance(typeof(NavigationSet<>), np.ClrType);
+          SetRawValue(np.Name, val);
+        }
+        val.ParentEntity = this.Entity;
+        val.NavigationProperty = np;
       });
     }
 
@@ -1253,11 +1276,11 @@ namespace Breeze.NetClient {
             aspect.SetValue(np, null);
           }
         } else {
-          var entityList = ((IList)npValue);
+          var navSet = ((INavigationSet)npValue);
           if (inverseNp != null) {
 
             // npValue is a live list so we need to copy it first.
-            entityList.Cast<IEntity>().ToList().ForEach(v => {
+            navSet.Cast<IEntity>().ToList().ForEach(v => {
               if (inverseNp.IsScalar) {
                 v.EntityAspect.ClearNp(inverseNp, isDeleted);
               } else {
@@ -1266,7 +1289,7 @@ namespace Breeze.NetClient {
             });
           }
           // now clear it.
-          entityList.Clear();
+          navSet.Clear();
         }
       });
 
@@ -1510,6 +1533,8 @@ namespace Breeze.NetClient {
 #endif
 
     private EntityKey _entityKey;
+    private EntityType _entityType;
+    private EntityGroup _entityGroup;
     private EntityState _entityState = EntityState.Detached;
 
     // should only ever be set to either current or proposed ( never original)

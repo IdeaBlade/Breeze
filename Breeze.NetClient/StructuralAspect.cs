@@ -61,12 +61,7 @@ namespace Breeze.NetClient {
     }
 
     public T GetValue<T>(String propertyName) {
-      var val = (T) GetRawValue(propertyName);
-      if (val == null && typeof(T).IsAssignableFrom(typeof(INavigationSet))) {
-        val = Activator.CreateInstance<T>();
-        ((INavigationSet) val).ParentEntity = (IEntity)this.StructuralObject;
-      }
-      return val;
+      return (T) GetRawValue(propertyName);
     }
 
     public abstract void SetValue(String propertyName, object newValue);

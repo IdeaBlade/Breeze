@@ -9,61 +9,68 @@ using Breeze.NetClient;
 using System.Reflection;
 
 namespace Breeze.NetClient {
-  
+
+  // This class is ThreadSafe
+  // and every object returned by it is immutable after being associated with this class.
 
   public class MetadataStore {
     public MetadataStore() {
-      NamingConvention = NamingConvention.Default;
-      
-      _dataServiceMap = new Dictionary<String, string>();
-      
-    }
-    
-
-    public IEnumerable<EntityType> EntityTypes {
-      get { return _structuralTypes.OfType<EntityType>(); }
     }
 
-  
-
-    
-
-
-    public HashSet<Type> ClrTypes {
-      get;
-      private set;
+    public List<EntityType> EntityTypes {
+      get {
+        lock (_structuralTypes) {
+          return _structuralTypes.OfType<EntityType>().ToList();
+        }
+      }
     }
 
-    public IEnumerable<ComplexType> ComplexTypes {
-      get { return _structuralTypes.OfType<ComplexType>(); }
+    public List<ComplexType> ComplexTypes {
+      get {
+        lock (_structuralTypes) {
+          return _structuralTypes.OfType<ComplexType>().ToList();
+        }
+      }
     }
 
-    public NamingConvention NamingConvention { get; set; }
-
-    private readonly AsyncSemaphore _asyncSemaphore = new AsyncSemaphore(1);
+    public NamingConvention NamingConvention {
+      get { 
+        lock( _lock) {
+          return _namingConvention;
+        }
+      }
+      set {
+        lock (_lock) {
+          _namingConvention = value;
+        }
+      } 
+    }
 
     public async Task<String> FetchMetadata(DataService dataService) {
+      String serviceName;
 
-      var serviceName = dataService.ServiceName;
-      if (_dataServiceMap.ContainsKey(serviceName)) {
-        return _dataServiceMap[serviceName];
-      }
+      serviceName = dataService.ServiceName;
+      var metadata = GetDataService(serviceName);
+      if (metadata != null) return metadata;
+        
 
       await _asyncSemaphore.WaitAsync();
-      try {
-        if (_dataServiceMap.ContainsKey(serviceName)) {
-          return _dataServiceMap[serviceName];
-        }
-      
-        var metadata = await dataService.GetAsync("Metadata");
 
-        _dataServiceMap[serviceName] = metadata;
+      try {
+        metadata = GetDataService(serviceName);
+        if (metadata != null) return metadata;
+
+        metadata = await dataService.GetAsync("Metadata");
+
+        lock (_dataServiceMap) {
+          _dataServiceMap[serviceName] = metadata;
+        }
         var metadataProcessor = new CsdlMetadataProcessor(this, metadata);
 
         return metadata;
 
       } finally {
-        _asyncSemaphore.Release(); 
+        _asyncSemaphore.Release();
       }
 
 
@@ -85,21 +92,6 @@ namespace Breeze.NetClient {
       return GetStructuralType<ComplexType>(ctName, okIfNotFound);
     }
 
-    public T GetStructuralType<T>(String typeName, bool okIfNotFound = false) where T : class {
-      var t = _structuralTypes[typeName];
-      if (t != null) {
-        var result = t as T;
-        if (result == null) {
-          throw new Exception("A type by this name exists but is not a " + typeof(T).Name);
-        }
-        return result;
-      } else if (okIfNotFound) {
-        return (T)null;
-      } else {
-        throw new Exception("Unable to locate Type: " + typeName);
-      }
-    }
-
     public T GetStructuralType<T>(Type clrType, bool okIfNotFound = false) where T : class {
       var stype = GetStructuralType(clrType, okIfNotFound);
       var ttype = stype as T;
@@ -111,25 +103,42 @@ namespace Breeze.NetClient {
       }
     }
 
-    public StructuralType GetStructuralType(Type clrType, bool okIfNotFound = false) {
-      if (IsEntityOrComplexType(clrType)) {
-        var stType = _clrTypeMap.GetStructuralType(clrType);
-        if (stType != null) return stType;
-
-        // Not sure if this is needed.
-        //if (ProbeAssemblies(new Assembly[] { clrType.GetTypeInfo().Assembly })) {
-        //  stType = _clrTypeMap.GetStructuralType(clrType);
-        //  if (stType != null) return stType;
-        //}
+    public T GetStructuralType<T>(String typeName, bool okIfNotFound = false) where T : class {
+      lock (_structuralTypes) {
+        var t = _structuralTypes[typeName];
+        if (t != null) {
+          var result = t as T;
+          if (result == null) {
+            throw new Exception("A type by this name exists but is not a " + typeof(T).Name);
+          }
+          return result;
+        } else if (okIfNotFound) {
+          return (T)null;
+        } else {
+          throw new Exception("Unable to locate Type: " + typeName);
+        }
       }
-            
-      if (okIfNotFound) return null;
-      throw new Exception("Unable to find a matching EntityType or ComplexType for " + clrType.Name);
     }
-    
+
+    public StructuralType GetStructuralType(Type clrType, bool okIfNotFound = false) {
+      lock (_structuralTypes) {
+        if (IsEntityOrComplexType(clrType)) {
+          var stType = _clrTypeMap.GetStructuralType(clrType);
+          if (stType != null) return stType;
+
+          // Not sure if this is needed.
+          //if (ProbeAssemblies(new Assembly[] { clrType.GetTypeInfo().Assembly })) {
+          //  stType = _clrTypeMap.GetStructuralType(clrType);
+          //  if (stType != null) return stType;
+          //}
+        }
+
+        if (okIfNotFound) return null;
+        throw new Exception("Unable to find a matching EntityType or ComplexType for " + clrType.Name);
+      }
+    }
 
     public EntityType AddEntityType(EntityType entityType) {
-
       if (entityType.KeyProperties.Count() == 0 && !entityType.IsAbstract) {
         throw new Exception("Unable to add " + entityType.Name +
             " to this MetadataStore.  An EntityType must have at least one property designated as a key property - See the 'DataProperty.isPartOfKey' property.");
@@ -138,6 +147,7 @@ namespace Breeze.NetClient {
       AddStructuralType(entityType);
 
       return entityType;
+
     }
 
     public ComplexType AddComplexType(ComplexType complexType) {
@@ -146,29 +156,47 @@ namespace Breeze.NetClient {
     }
 
     public String GetEntityTypeNameForResourceName(String resourceName) {
-      String entityTypeName;
-      _resourceNameEntityTypeMap.TryGetValue(resourceName, out entityTypeName);
-      return entityTypeName;
+      lock (_resourceNameEntityTypeMap) {
+        String entityTypeName;
+        _resourceNameEntityTypeMap.TryGetValue(resourceName, out entityTypeName);
+        return entityTypeName;
+      }
     }
 
     public void SetEntityTypeForResourceName(String resourceName, String entityTypeName) {
-      _resourceNameEntityTypeMap[resourceName] = entityTypeName;
+      lock (_resourceNameEntityTypeMap) {
+        _resourceNameEntityTypeMap[resourceName] = entityTypeName;
+        // TODO: complete next line
+        // _entityTypeResourceNameMap[???] = resourceName;
+      }
     }
 
     public String GetResourceNameForEntityTypeName(String entityTypeName) {
-      String resourceName = null;
-      _entityTypeResourceNameMap.TryGetValue(entityTypeName, out resourceName);
-      return resourceName;
+      lock (_resourceNameEntityTypeMap) {
+        String resourceName = null;
+        _entityTypeResourceNameMap.TryGetValue(entityTypeName, out resourceName);
+        return resourceName;
+      }
     }
-
-   
 
     public static String ANONTYPE_PREFIX = "_IB_";
 
     // Private and Internal --------------
 
-    internal Type GetClrTypeFor(StructuralType stType) {  
-      return _clrTypeMap.GetClrType(stType);
+    internal String GetDataService(String serviceName) {
+      lock (_dataServiceMap) {
+        if (_dataServiceMap.ContainsKey(serviceName)) {
+          return _dataServiceMap[serviceName];
+        } else {
+          return null;
+        }
+      }
+    }
+
+    internal Type GetClrTypeFor(StructuralType stType) {
+      lock (_structuralTypes) {
+        return _clrTypeMap.GetClrType(stType);
+      }
     }
 
     private void AddStructuralType(StructuralType stType) {
@@ -247,14 +275,14 @@ namespace Breeze.NetClient {
         // unidirectional 1-n relationship
         np.InvForeignKeyNames.ForEach(invFkName => {
           var fkProp = entityType.GetDataProperty(invFkName);
-          
+
           fkProp.IsForeignKey = true;
           var invEntityType = (EntityType)np.ParentType;
           fkProp.InverseNavigationProperty = invEntityType.NavigationProperties.FirstOrDefault(np2 => {
             return np2.InvForeignKeyNames != null && np2.InvForeignKeyNames.IndexOf(fkProp.Name) >= 0 && np2.EntityType == fkProp.ParentType;
           });
 
-          
+
         });
       }
 
@@ -346,8 +374,8 @@ namespace Breeze.NetClient {
     }
 
     // inner class
-    public class ClrTypeMap {
-      public ClrTypeMap() {    }
+    internal class ClrTypeMap {
+      public ClrTypeMap() { }
 
       public StructuralType GetStructuralType(Type clrType) {
         var stName = StructuralType.ClrTypeToStructuralTypeName(clrType);
@@ -397,16 +425,27 @@ namespace Breeze.NetClient {
       }
     }
 
+
+    private readonly AsyncSemaphore _asyncSemaphore = new AsyncSemaphore(1);
+    private Object _lock = new Object();
+
+    // lock using _dataServiceMap
+    private Dictionary<String, String> _dataServiceMap = new Dictionary<String, string>();
+    private NamingConvention _namingConvention = NamingConvention.Default;
+    // locked using _structuralTypes
     private ClrTypeMap _clrTypeMap = new ClrTypeMap();
     private StructuralTypeCollection _structuralTypes = new StructuralTypeCollection();
     private Dictionary<String, String> _shortNameMap = new Dictionary<string, string>();
-    private Dictionary<String, String> _entityTypeResourceNameMap = new Dictionary<string, string>();
-    private Dictionary<String, String> _resourceNameEntityTypeMap = new Dictionary<string, string>();
     private Dictionary<String, List<NavigationProperty>> _incompleteTypeMap = new Dictionary<String, List<NavigationProperty>>(); // key is typeName
     private Dictionary<String, List<DataProperty>> _incompleteComplexTypeMap = new Dictionary<String, List<DataProperty>>();   // key is typeName
-    
-    private Dictionary<String, String> _dataServiceMap;
-    
+
+    // locked using _resourceNameEntityTypeMap
+    private Dictionary<String, String> _entityTypeResourceNameMap = new Dictionary<string, string>();
+    private Dictionary<String, String> _resourceNameEntityTypeMap = new Dictionary<string, string>();
+
+
+
+
 
   }
 

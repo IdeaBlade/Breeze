@@ -31,9 +31,8 @@ namespace Sample_WPF.EF6 {
       var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
       var em = new EntityManager(serviceName);
 
-      // HACK until we probe for ClrEntityTypes.
-      em.MetadataStore.ClrTypes.Add(typeof(Foo.Customer));
-      em.MetadataStore.ClrTypes.Add(typeof(Foo.Order));
+      
+      
 
       var query = "Employees";
       

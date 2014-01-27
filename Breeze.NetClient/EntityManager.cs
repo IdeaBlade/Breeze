@@ -26,6 +26,7 @@ namespace Breeze.NetClient {
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
       KeyGenerator = new DefaultKeyGenerator();
+      TempIds = new HashSet<UniqueId>();
       _hasChanges = false;
     }
 
@@ -33,9 +34,11 @@ namespace Breeze.NetClient {
       DefaultDataService = em.DefaultDataService;
       DefaultMergeStrategy = em.DefaultMergeStrategy;
       MetadataStore = em.MetadataStore;
+
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
       KeyGenerator = new DefaultKeyGenerator();
+      TempIds = new HashSet<UniqueId>();
       _hasChanges = false;
     }
 
@@ -79,7 +82,9 @@ namespace Breeze.NetClient {
       } else {
         rType = typeof(IEnumerable<>).MakeGenericType(query.TargetType);
       }
-      return (IEnumerable)JsonConvert.DeserializeObject(result, rType, jsonConverter);
+      using (NewIsLoadingBlock()) {
+        return (IEnumerable)JsonConvert.DeserializeObject(result, rType, jsonConverter);
+      }
     }
 
     #endregion
