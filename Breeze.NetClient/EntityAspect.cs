@@ -248,7 +248,7 @@ namespace Breeze.NetClient {
       
       EntityManager.MarkTempIdAsMapped(this, true);
 
-      this.EntityGroup.DetachEntityAspect(this);
+      EntityGroup.DetachEntityAspect(this);
       RemoveFromRelations(EntityState.Detached);
       // TODO: determine if this is needed.
       // this.OriginalValuesMap = null;
@@ -259,7 +259,7 @@ namespace Breeze.NetClient {
 
       SetEntityStateCore(EntityState.Detached);
       EntityManager.NotifyStateChange(this, false);
-      this.EntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
+      EntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
       return true;
     }
 
@@ -316,7 +316,7 @@ namespace Breeze.NetClient {
         EntityManager.NotifyStateChange(this, false);
       } else {
         if (EntityState.IsDeleted()) {
-          EntityManager.LinkRelatedEntities(this);
+          LinkRelatedEntities();
         }
         SetUnchanged();
       }
@@ -711,7 +711,7 @@ namespace Breeze.NetClient {
         SetRawValue(property.Name, newValue);
         // insure that cached key is updated.
         EntityKey = null;
-        EntityManager.LinkRelatedEntities(this);
+        LinkRelatedEntities();
       } else {
         // Actually set the value;
         SetRawValue(property.Name, newValue);
@@ -744,6 +744,132 @@ namespace Breeze.NetClient {
         });
       }
 
+    }
+
+    internal void LinkRelatedEntities() {
+      //// we do not want entityState to change as a result of linkage.
+      using (EntityManager.NewIsLoadingBlock()) {
+        LinkUnattachedChildren();
+        LinkNavProps();
+        LinkFkProps();
+      }
+    }
+
+    private void LinkUnattachedChildren() {
+      
+      var navChildrenList = EntityManager.UnattachedChildrenMap.GetNavChildrenList(EntityKey, false);
+      if (navChildrenList == null) return;
+      navChildrenList.ForEach(nc => {
+
+        NavigationProperty childToParentNp = null, parentToChildNp;
+
+        //// np is usually childToParentNp 
+        //// except with unidirectional 1-n where it is parentToChildNp;
+        var np = nc.NavigationProperty;
+        var unattachedChildren = nc.Children;
+        if (np.Inverse != null) {
+          // bidirectional
+          childToParentNp = np;
+          parentToChildNp = np.Inverse;
+
+          if (parentToChildNp.IsScalar) {
+            var onlyChild = unattachedChildren[0];
+            SetValue(parentToChildNp, onlyChild);
+            onlyChild.EntityAspect.SetValue(childToParentNp, Entity);
+          } else {
+            var currentChildren = GetValue<INavigationSet>(parentToChildNp);
+            unattachedChildren.ForEach(child => {
+              currentChildren.Add(child);
+              child.EntityAspect.SetValue(childToParentNp, Entity);
+            });
+          }
+        } else {
+          // unidirectional
+          if (np.ParentType == EntityType) {
+
+            parentToChildNp = np;
+            if (parentToChildNp.IsScalar) {
+              // 1 -> 1 eg parent: Order child: InternationalOrder
+              SetValue(parentToChildNp, unattachedChildren[0]);
+            } else {
+              // 1 -> n  eg: parent: Region child: Terr
+              var currentChildren = GetValue<INavigationSet>(parentToChildNp);
+              unattachedChildren.ForEach(child => {
+                // we know it can't already be there.
+                currentChildren.Add(child);
+              });
+            }
+          } else {
+            // n -> 1  eg: parent: child: OrderDetail parent: Product
+            childToParentNp = np;
+            unattachedChildren.ForEach(child => {
+              child.EntityAspect.SetValue(childToParentNp, Entity);
+            });
+
+          }
+          if (childToParentNp != null) {
+            EntityManager.UnattachedChildrenMap.RemoveChildren(EntityKey, childToParentNp);
+          }
+
+        }
+
+      });
+    }
+
+    private void LinkFkProps() {
+      // handle unidirectional 1-x where we set x.fk
+      
+      EntityType.ForeignKeyProperties.ForEach(fkProp => {
+        var invNp = fkProp.InverseNavigationProperty;
+        if (invNp == null) return;
+        // unidirectional fk props only
+        var fkValue = GetValue(fkProp);
+        var parentKey = new EntityKey((EntityType)invNp.ParentType, fkValue);
+        var parent = EntityManager.FindEntityByKey(parentKey);
+        if (parent != null) {
+          if (invNp.IsScalar) {
+            parent.EntityAspect.SetValue(invNp, Entity);
+          } else {
+            var navSet = parent.EntityAspect.GetValue<INavigationSet>(invNp);
+            navSet.Add(Entity);
+          }
+        } else {
+          // else add parent to unresolvedParentMap;
+          EntityManager.UnattachedChildrenMap.AddChild(parentKey, invNp, Entity);
+        }
+
+      });
+    }
+
+    private void LinkNavProps() {
+      // now add to unattachedMap if needed.
+
+      EntityType.NavigationProperties.ForEach(np => {
+        if (np.IsScalar) {
+          var value = GetValue(np.Name);
+          // property is already linked up
+          if (value != null) return;
+        }
+
+        // first determine if np contains a parent or child
+        // having a parentKey means that this is a child
+        // if a parent then no need for more work because children will attach to it.
+        var parentKey = GetParentKey(np);
+        if (parentKey != null) {
+          // check for empty keys - meaning that parent id's are not yet set.
+
+          if (parentKey.IsEmpty()) return;
+          // if a child - look for parent in the em cache
+          var parent = EntityManager.FindEntityByKey(parentKey);
+          if (parent != null) {
+            // if found hook it up
+            SetValue(np.Name, parent);
+          } else {
+            // else add parent to unresolvedParentMap;
+            EntityManager.UnattachedChildrenMap.AddChild(parentKey, np, Entity);
+          }
+        }
+      });
     }
 
 
