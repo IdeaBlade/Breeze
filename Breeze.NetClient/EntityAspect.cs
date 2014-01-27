@@ -393,8 +393,6 @@ namespace Breeze.NetClient {
       }
     }
 
-
-
     internal void SetEntityStateCore(EntityState value) {
 
       if (!this.EntityGroup.ChangeNotificationEnabled) {
@@ -468,8 +466,6 @@ namespace Breeze.NetClient {
     #endregion
 
     #region GetValue(s)/SetValue methods
-
-
 
     public override void SetValue(String propertyName, object newValue) {
       if (this.EntityGroup == null) {
@@ -746,230 +742,6 @@ namespace Breeze.NetClient {
 
     }
 
-    internal void LinkRelatedEntities() {
-      //// we do not want entityState to change as a result of linkage.
-      using (EntityManager.NewIsLoadingBlock()) {
-        LinkUnattachedChildren();
-        LinkNavProps();
-        LinkFkProps();
-      }
-    }
-
-    private void LinkUnattachedChildren() {
-      
-      var navChildrenList = EntityManager.UnattachedChildrenMap.GetNavChildrenList(EntityKey, false);
-      if (navChildrenList == null) return;
-      navChildrenList.ForEach(nc => {
-
-        NavigationProperty childToParentNp = null, parentToChildNp;
-
-        //// np is usually childToParentNp 
-        //// except with unidirectional 1-n where it is parentToChildNp;
-        var np = nc.NavigationProperty;
-        var unattachedChildren = nc.Children;
-        if (np.Inverse != null) {
-          // bidirectional
-          childToParentNp = np;
-          parentToChildNp = np.Inverse;
-
-          if (parentToChildNp.IsScalar) {
-            var onlyChild = unattachedChildren[0];
-            SetValue(parentToChildNp, onlyChild);
-            onlyChild.EntityAspect.SetValue(childToParentNp, Entity);
-          } else {
-            var currentChildren = GetValue<INavigationSet>(parentToChildNp);
-            unattachedChildren.ForEach(child => {
-              currentChildren.Add(child);
-              child.EntityAspect.SetValue(childToParentNp, Entity);
-            });
-          }
-        } else {
-          // unidirectional
-          if (np.ParentType == EntityType) {
-
-            parentToChildNp = np;
-            if (parentToChildNp.IsScalar) {
-              // 1 -> 1 eg parent: Order child: InternationalOrder
-              SetValue(parentToChildNp, unattachedChildren[0]);
-            } else {
-              // 1 -> n  eg: parent: Region child: Terr
-              var currentChildren = GetValue<INavigationSet>(parentToChildNp);
-              unattachedChildren.ForEach(child => {
-                // we know it can't already be there.
-                currentChildren.Add(child);
-              });
-            }
-          } else {
-            // n -> 1  eg: parent: child: OrderDetail parent: Product
-            childToParentNp = np;
-            unattachedChildren.ForEach(child => {
-              child.EntityAspect.SetValue(childToParentNp, Entity);
-            });
-
-          }
-          if (childToParentNp != null) {
-            EntityManager.UnattachedChildrenMap.RemoveChildren(EntityKey, childToParentNp);
-          }
-
-        }
-
-      });
-    }
-
-    private void LinkFkProps() {
-      // handle unidirectional 1-x where we set x.fk
-      
-      EntityType.ForeignKeyProperties.ForEach(fkProp => {
-        var invNp = fkProp.InverseNavigationProperty;
-        if (invNp == null) return;
-        // unidirectional fk props only
-        var fkValue = GetValue(fkProp);
-        var parentKey = new EntityKey((EntityType)invNp.ParentType, fkValue);
-        var parent = EntityManager.FindEntityByKey(parentKey);
-        if (parent != null) {
-          if (invNp.IsScalar) {
-            parent.EntityAspect.SetValue(invNp, Entity);
-          } else {
-            var navSet = parent.EntityAspect.GetValue<INavigationSet>(invNp);
-            navSet.Add(Entity);
-          }
-        } else {
-          // else add parent to unresolvedParentMap;
-          EntityManager.UnattachedChildrenMap.AddChild(parentKey, invNp, Entity);
-        }
-
-      });
-    }
-
-    private void LinkNavProps() {
-      // now add to unattachedMap if needed.
-
-      EntityType.NavigationProperties.ForEach(np => {
-        if (np.IsScalar) {
-          var value = GetValue(np.Name);
-          // property is already linked up
-          if (value != null) return;
-        }
-
-        // first determine if np contains a parent or child
-        // having a parentKey means that this is a child
-        // if a parent then no need for more work because children will attach to it.
-        var parentKey = GetParentKey(np);
-        if (parentKey != null) {
-          // check for empty keys - meaning that parent id's are not yet set.
-
-          if (parentKey.IsEmpty()) return;
-          // if a child - look for parent in the em cache
-          var parent = EntityManager.FindEntityByKey(parentKey);
-          if (parent != null) {
-            // if found hook it up
-            SetValue(np.Name, parent);
-          } else {
-            // else add parent to unresolvedParentMap;
-            EntityManager.UnattachedChildrenMap.AddChild(parentKey, np, Entity);
-          }
-        }
-      });
-    }
-
-
-    private void UpdateRelated(DataProperty property, object newValue, object oldValue) {
-      if (IsDetached) return;
-      var relatedNavProp = property.RelatedNavigationProperty;
-      if (relatedNavProp != null) {
-        // Example: bidirectional fkDataProperty: 1->n: order -> orderDetails
-        // orderDetail.orderId <- newOrderId || null
-        //    ==> orderDetail.order = lookupOrder(newOrderId)
-        //    ==> (see set navProp above)
-        //       and
-        // Example: bidirectional fkDataProperty: 1->1: order -> internationalOrder
-        // internationalOrder.orderId <- newOrderId || null
-        //    ==> internationalOrder.order = lookupOrder(newOrderId)
-        //    ==> (see set navProp above)
-
-        if (newValue != null) {
-          var key = new EntityKey(relatedNavProp.EntityType, newValue);
-          var relatedEntity = EntityManager.FindEntityByKey(key);
-
-          if (relatedEntity != null) {
-            this.SetValue(relatedNavProp, relatedEntity);
-          } else {
-            // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
-            EntityManager.UnattachedChildrenMap.AddChild(key, relatedNavProp, this.Entity);
-          }
-        } else {
-          this.SetValue(relatedNavProp, null);
-        }
-      } else if (property.InverseNavigationProperty != null) { //  && !EntityManager._inKeyFixup) 
-        // Example: unidirectional fkDataProperty: 1->n: region -> territories
-        // territory.regionId <- newRegionId
-        //    ==> lookupRegion(newRegionId).territories.push(territory)
-        //                and
-        // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
-        // internationalOrder.orderId <- newOrderId
-        //    ==> lookupOrder(newOrderId).internationalOrder = internationalOrder
-        //                and
-        // Example: unidirectional fkDataProperty: 1->n: region -> territories
-        // territory.regionId <- null
-        //    ==> lookupRegion(territory.oldRegionId).territories.remove(oldTerritory);
-        //                and
-        // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
-        // internationalOrder.orderId <- null
-        //    ==> lookupOrder(internationalOrder.oldOrderId).internationalOrder = null;
-
-        var invNavProp = property.InverseNavigationProperty;
-
-        if (oldValue != null) {
-          var key = new EntityKey((EntityType)invNavProp.ParentType, oldValue);
-          var relatedEntity = EntityManager.FindEntityByKey(key);
-          if (relatedEntity != null) {
-            if (invNavProp.IsScalar) {
-              relatedEntity.EntityAspect.SetValue(invNavProp, null);
-            } else {
-              // remove 'this' from old related nav prop
-              var relatedArray = (INavigationSet)relatedEntity.EntityAspect.GetValue(invNavProp);
-              relatedArray.Remove(this.Entity);
-            }
-          }
-        }
-
-        if (newValue != null) {
-          var key = new EntityKey((EntityType)invNavProp.ParentType, newValue);
-          var relatedEntity = EntityManager.FindEntityByKey(key);
-
-          if (relatedEntity != null) {
-            if (invNavProp.IsScalar) {
-              relatedEntity.EntityAspect.SetValue(invNavProp, this.Entity);
-            } else {
-              var relatedArray = (INavigationSet)relatedEntity.EntityAspect.GetValue(invNavProp.Name);
-              relatedArray.Add(this.Entity);
-            }
-          } else {
-            // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
-            EntityManager.UnattachedChildrenMap.AddChild(key, invNavProp, this.Entity);
-          }
-        }
-
-      }
-    }
-
-
-
-    private void SetComplexValue(DataProperty property, object newValue) {
-
-    }
-
-
-    /// <summary>
-    /// Low-level access to get a property value without going through
-    /// the standard property 'get' accessor. 
-    /// </summary>
-    /// <param name="property"></param>
-    /// <param name="version"></param>
-    /// <returns></returns>
-    /// <remarks>
-    /// Note that this operation bypasses all custom interception methods.
-    /// </remarks>
     public Object GetValue(DataProperty property, EntityVersion version) {
 
       if (version == EntityVersion.Default) {
@@ -1006,7 +778,6 @@ namespace Breeze.NetClient {
         return result;
       }
     }
-
 
     private Object GetOriginalValue(DataProperty property) {
       object result;
@@ -1064,23 +835,38 @@ namespace Breeze.NetClient {
       });
     }
 
-    private void IfTempIdThenCleanup(DataProperty property) {
-      var oldValue = GetValue(property);
-      var oldUniqueId = new UniqueId(property, oldValue);
-      if (this.EntityManager.TempIds.Contains(oldUniqueId)) {
-        this.EntityManager.TempIds.Remove(oldUniqueId);
-      }
-    }
+    // TODO: check why not called
+    //private void IfTempIdThenCleanup(DataProperty property) {
+    //  var oldValue = GetValue(property);
+    //  var oldUniqueId = new UniqueId(property, oldValue);
+    //  if (this.EntityManager.TempIds.Contains(oldUniqueId)) {
+    //    this.EntityManager.TempIds.Remove(oldUniqueId);
+    //  }
+    //}
 
-    /// <summary>
-    /// Retrieve the values of specified properties within this Entity.
-    /// </summary>
-    /// <param name="properties">An array of <see cref="StructuralProperty"/>s for which values
-    /// are desired</param>
-    /// <returns>An array of data values corresponding to the specified properties</returns>
+
     protected internal Object[] GetValues(IEnumerable<DataProperty> properties) {
       return properties.Select(p => this.GetValue(p)).ToArray();
     }
+
+
+    // This is the "current" value of the EntityVersion.Default ( not EntityVersion.Current) although
+    // these will be the same except when the current version or the object is proposed.
+    //internal Object[] CurrentValues {
+    //  get {
+    //    if (_currentValues == null) {
+    //      var metadata = this.EntityGroup.EntityMetadata;
+    //      _currentValues = metadata.DefaultValues.Select((v, i) => v is IComplexObject
+    //        ? ComplexAspect.Create(this.Entity, metadata.DataProperties[i])
+    //        : v)
+    //        .ToArray();
+    //    }
+    //    return _currentValues;
+    //  }
+    //  set {
+    //    _currentValues = value;
+    //  }
+    //}
 
     #endregion
 
@@ -1370,6 +1156,211 @@ namespace Breeze.NetClient {
 
     #region Misc private and internal methods/properties
 
+    internal void LinkRelatedEntities() {
+      //// we do not want entityState to change as a result of linkage.
+      using (EntityManager.NewIsLoadingBlock()) {
+        LinkUnattachedChildren();
+        LinkNavProps();
+        LinkFkProps();
+      }
+    }
+
+    private void LinkUnattachedChildren() {
+
+      var navChildrenList = EntityManager.UnattachedChildrenMap.GetNavChildrenList(EntityKey, false);
+      if (navChildrenList == null) return;
+      navChildrenList.ForEach(nc => {
+
+        NavigationProperty childToParentNp = null, parentToChildNp;
+
+        //// np is usually childToParentNp 
+        //// except with unidirectional 1-n where it is parentToChildNp;
+        var np = nc.NavigationProperty;
+        var unattachedChildren = nc.Children;
+        if (np.Inverse != null) {
+          // bidirectional
+          childToParentNp = np;
+          parentToChildNp = np.Inverse;
+
+          if (parentToChildNp.IsScalar) {
+            var onlyChild = unattachedChildren[0];
+            SetValue(parentToChildNp, onlyChild);
+            onlyChild.EntityAspect.SetValue(childToParentNp, Entity);
+          } else {
+            var currentChildren = GetValue<INavigationSet>(parentToChildNp);
+            unattachedChildren.ForEach(child => {
+              currentChildren.Add(child);
+              child.EntityAspect.SetValue(childToParentNp, Entity);
+            });
+          }
+        } else {
+          // unidirectional
+          if (np.ParentType == EntityType) {
+
+            parentToChildNp = np;
+            if (parentToChildNp.IsScalar) {
+              // 1 -> 1 eg parent: Order child: InternationalOrder
+              SetValue(parentToChildNp, unattachedChildren[0]);
+            } else {
+              // 1 -> n  eg: parent: Region child: Terr
+              var currentChildren = GetValue<INavigationSet>(parentToChildNp);
+              unattachedChildren.ForEach(child => {
+                // we know it can't already be there.
+                currentChildren.Add(child);
+              });
+            }
+          } else {
+            // n -> 1  eg: parent: child: OrderDetail parent: Product
+            childToParentNp = np;
+            unattachedChildren.ForEach(child => {
+              child.EntityAspect.SetValue(childToParentNp, Entity);
+            });
+
+          }
+          if (childToParentNp != null) {
+            EntityManager.UnattachedChildrenMap.RemoveChildren(EntityKey, childToParentNp);
+          }
+
+        }
+
+      });
+    }
+
+    private void LinkFkProps() {
+      // handle unidirectional 1-x where we set x.fk
+
+      EntityType.ForeignKeyProperties.ForEach(fkProp => {
+        var invNp = fkProp.InverseNavigationProperty;
+        if (invNp == null) return;
+        // unidirectional fk props only
+        var fkValue = GetValue(fkProp);
+        var parentKey = new EntityKey((EntityType)invNp.ParentType, fkValue);
+        var parent = EntityManager.FindEntityByKey(parentKey);
+        if (parent != null) {
+          if (invNp.IsScalar) {
+            parent.EntityAspect.SetValue(invNp, Entity);
+          } else {
+            var navSet = parent.EntityAspect.GetValue<INavigationSet>(invNp);
+            navSet.Add(Entity);
+          }
+        } else {
+          // else add parent to unresolvedParentMap;
+          EntityManager.UnattachedChildrenMap.AddChild(parentKey, invNp, Entity);
+        }
+
+      });
+    }
+
+    private void LinkNavProps() {
+      // now add to unattachedMap if needed.
+
+      EntityType.NavigationProperties.ForEach(np => {
+        if (np.IsScalar) {
+          var value = GetValue(np.Name);
+          // property is already linked up
+          if (value != null) return;
+        }
+
+        // first determine if np contains a parent or child
+        // having a parentKey means that this is a child
+        // if a parent then no need for more work because children will attach to it.
+        var parentKey = GetParentKey(np);
+        if (parentKey != null) {
+          // check for empty keys - meaning that parent id's are not yet set.
+
+          if (parentKey.IsEmpty()) return;
+          // if a child - look for parent in the em cache
+          var parent = EntityManager.FindEntityByKey(parentKey);
+          if (parent != null) {
+            // if found hook it up
+            SetValue(np.Name, parent);
+          } else {
+            // else add parent to unresolvedParentMap;
+            EntityManager.UnattachedChildrenMap.AddChild(parentKey, np, Entity);
+          }
+        }
+      });
+    }
+
+    private void UpdateRelated(DataProperty property, object newValue, object oldValue) {
+      if (IsDetached) return;
+      var relatedNavProp = property.RelatedNavigationProperty;
+      if (relatedNavProp != null) {
+        // Example: bidirectional fkDataProperty: 1->n: order -> orderDetails
+        // orderDetail.orderId <- newOrderId || null
+        //    ==> orderDetail.order = lookupOrder(newOrderId)
+        //    ==> (see set navProp above)
+        //       and
+        // Example: bidirectional fkDataProperty: 1->1: order -> internationalOrder
+        // internationalOrder.orderId <- newOrderId || null
+        //    ==> internationalOrder.order = lookupOrder(newOrderId)
+        //    ==> (see set navProp above)
+
+        if (newValue != null) {
+          var key = new EntityKey(relatedNavProp.EntityType, newValue);
+          var relatedEntity = EntityManager.FindEntityByKey(key);
+
+          if (relatedEntity != null) {
+            this.SetValue(relatedNavProp, relatedEntity);
+          } else {
+            // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+            EntityManager.UnattachedChildrenMap.AddChild(key, relatedNavProp, this.Entity);
+          }
+        } else {
+          this.SetValue(relatedNavProp, null);
+        }
+      } else if (property.InverseNavigationProperty != null) { //  && !EntityManager._inKeyFixup) 
+        // Example: unidirectional fkDataProperty: 1->n: region -> territories
+        // territory.regionId <- newRegionId
+        //    ==> lookupRegion(newRegionId).territories.push(territory)
+        //                and
+        // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+        // internationalOrder.orderId <- newOrderId
+        //    ==> lookupOrder(newOrderId).internationalOrder = internationalOrder
+        //                and
+        // Example: unidirectional fkDataProperty: 1->n: region -> territories
+        // territory.regionId <- null
+        //    ==> lookupRegion(territory.oldRegionId).territories.remove(oldTerritory);
+        //                and
+        // Example: unidirectional fkDataProperty: 1->1: order -> internationalOrder
+        // internationalOrder.orderId <- null
+        //    ==> lookupOrder(internationalOrder.oldOrderId).internationalOrder = null;
+
+        var invNavProp = property.InverseNavigationProperty;
+
+        if (oldValue != null) {
+          var key = new EntityKey((EntityType)invNavProp.ParentType, oldValue);
+          var relatedEntity = EntityManager.FindEntityByKey(key);
+          if (relatedEntity != null) {
+            if (invNavProp.IsScalar) {
+              relatedEntity.EntityAspect.SetValue(invNavProp, null);
+            } else {
+              // remove 'this' from old related nav prop
+              var relatedArray = (INavigationSet)relatedEntity.EntityAspect.GetValue(invNavProp);
+              relatedArray.Remove(this.Entity);
+            }
+          }
+        }
+
+        if (newValue != null) {
+          var key = new EntityKey((EntityType)invNavProp.ParentType, newValue);
+          var relatedEntity = EntityManager.FindEntityByKey(key);
+
+          if (relatedEntity != null) {
+            if (invNavProp.IsScalar) {
+              relatedEntity.EntityAspect.SetValue(invNavProp, this.Entity);
+            } else {
+              var relatedArray = (INavigationSet)relatedEntity.EntityAspect.GetValue(invNavProp.Name);
+              relatedArray.Add(this.Entity);
+            }
+          } else {
+            // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
+            EntityManager.UnattachedChildrenMap.AddChild(key, invNavProp, this.Entity);
+          }
+        }
+
+      }
+    }
 
     // entityState is either deleted or detached
     private void RemoveFromRelations(EntityState entityState) {
@@ -1449,17 +1440,11 @@ namespace Breeze.NetClient {
       }
     }
 
-    
     // TODO: check if ever used
     internal bool IsCurrent(EntityAspect targetAspect, EntityAspect sourceAspect) {
       var targetVersion = (targetAspect.EntityState == EntityState.Deleted) ? EntityVersion.Original : EntityVersion.Current;
       bool isCurrent = EntityType.ConcurrencyProperties.All(c => (Object.Equals(targetAspect.GetValue(c, targetVersion), sourceAspect.GetValue(c, EntityVersion.Current))));
       return isCurrent;
-    }
-
-    internal bool InProcess {
-      get;
-      set;
     }
 
     internal bool HasTemporaryEntityKey {
@@ -1494,30 +1479,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    //internal Object[] GetCurrentValues() {
-    //  var entity = this.Entity;
-    //  var props = EntityMetadata.DataProperties;
-    //  var currentValues = props.Select(p => p.GetValue(entity)).ToArray();
-    //  return currentValues;
-    //}
 
-    // This is the "current" value of the EntityVersion.Default ( not EntityVersion.Current) although
-    // these will be the same except when the current version or the object is proposed.
-    //internal Object[] CurrentValues {
-    //  get {
-    //    if (_currentValues == null) {
-    //      var metadata = this.EntityGroup.EntityMetadata;
-    //      _currentValues = metadata.DefaultValues.Select((v, i) => v is IComplexObject
-    //        ? ComplexAspect.Create(this.Entity, metadata.DataProperties[i])
-    //        : v)
-    //        .ToArray();
-    //    }
-    //    return _currentValues;
-    //  }
-    //  set {
-    //    _currentValues = value;
-    //  }
-    //}
 
 
     private void UndoMappedTempId(EntityState rowState) {
