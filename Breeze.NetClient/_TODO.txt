@@ -1,4 +1,6 @@
-﻿ComplexType support
+﻿ToDo
+---------------------------
+ComplexType support
 Attach logic
 LocalQuery
 Saves
@@ -9,12 +11,20 @@ ShortName map
 EntityGroup/EntityManager rules for detached entities.( dislike EntityManager)
 
 
-locking MetadataStore
 
+
+Notes: 
+	- EntityAspect EntityManager & EntityGroup properties are set if an entity was ever attached. 
+	This is not cleared when an entity is detached.  This assumption removes a lot of special purpose logic
+	- Only the MetadataStore and immutable types are ThreadSafe.  Any property returned by the MetadataStore 
+	must therefore also be either immutable of thread safe itself. (all StructuralTypes are effictively immutable)
+
+Think about
+Enum for flags like InProcess, IsLoading etc ( probably not a good idea for booleans that have a concept of inheritance)
 
 
 Extensions for later ( that we can charge for)
-
+--------------------------------------------
 Property interception
 Dynamic linq
 Enhanced validation
