@@ -199,6 +199,13 @@ namespace Breeze.NetClient {
       return ea == null ? null : ea.Entity;
     }
 
+    public T FindEntityByKey<T>(params Object[] values) {
+      var eg = GetEntityGroup(typeof(T));
+      if (eg == null) return null;
+      var ek = new EntityKey(eg.EntityType, values);
+      return (T)FindEntityByKey(ek);
+    }
+
     #endregion
 
     #region Attach/Detach entity methods

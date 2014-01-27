@@ -22,6 +22,10 @@ namespace Breeze.NetClient {
       : this(entityType, aValue, true) {
     }
 
+    //public EntityKey(Type clrType, Object aValue) {
+
+    //}
+
     /// <summary>
     /// Initializes a new instance of the EntityKey class.    
     /// </summary>
@@ -67,7 +71,7 @@ namespace Breeze.NetClient {
     }
 
     public bool IsEmpty() {
-      return (Values == null) || Values.Length == 0;
+      return Values == null || Values.Length == 0 || Values.Any(v => v==null) ;
     }
 
     /// <summary>

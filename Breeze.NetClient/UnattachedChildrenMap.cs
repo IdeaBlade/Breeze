@@ -5,20 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Breeze.Core;
+
 namespace Breeze.NetClient {
 
-  public class UnattachedChildrenMap {
+  internal class UnattachedChildrenMap {
 
     public UnattachedChildrenMap() {
       _map = new Dictionary<EntityKey, List<NavChildren>>();
     }
 
-    public class NavChildren {
+    internal class NavChildren {
       public NavigationProperty NavigationProperty;
-      public List<IEntity> Children;
+      public HashSet<IEntity> Children;
     }
-
-    Dictionary<EntityKey, List<NavChildren>> _map;
 
     public List<NavChildren> GetNavChildrenList(EntityKey entityKey, bool createIfNotFound) {
       List<NavChildren> navChildrenList = null;
@@ -34,18 +33,19 @@ namespace Breeze.NetClient {
       return navChildrenList;
     }
 
-    public List<IEntity> GetNavChildren(EntityKey entityKey, NavigationProperty navProp, bool createIfNotFound) {
+    public HashSet<IEntity> GetNavChildren(EntityKey entityKey, NavigationProperty navProp, bool createIfNotFound) {
       List<NavChildren> navChildrenList = GetNavChildrenList(entityKey, createIfNotFound);
       if (navChildrenList == null) return null;
       
       var navChildren = navChildrenList.FirstOrDefault(uc => uc.NavigationProperty == navProp);
       if (navChildren == null && createIfNotFound) {
-        navChildren = new NavChildren() {NavigationProperty = navProp, Children = new List<IEntity>() };
+        navChildren = new NavChildren() {NavigationProperty = navProp, Children = new HashSet<IEntity>() };
         navChildrenList.Add(navChildren);
       }
 
       var children = navChildren.Children;
-      children.RemoveAll( entity => entity.EntityAspect.EntityState.IsDetached());
+      children.RemoveWhere( entity => entity.EntityAspect.EntityState.IsDetached());
+
       return children;
     }
 
@@ -61,10 +61,13 @@ namespace Breeze.NetClient {
       var navChildrenList = GetNavChildrenList(parentEntityKey, false);
       if (navChildrenList == null) return;
       var ix = navChildrenList.IndexOf(nc => nc.NavigationProperty == navProp);
-      if (ix == -1) return;
+      if (ix != -1) return;
       navChildrenList.RemoveAt(ix);
+      if (navChildrenList.Count == 0) {
+        _map.Remove(parentEntityKey);
+      }
     }
 
-
+    private Dictionary<EntityKey, List<NavChildren>> _map;
   }
 }

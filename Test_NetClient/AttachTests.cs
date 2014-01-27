@@ -218,65 +218,64 @@ namespace Test_NetClient {
     }
 
 
-    //test("unidirectional attach - 1->n", function () {
-    //    if (testFns.DEBUG_ODATA) {
-    //        ok(true, "NA for OData - TimeList and Timegroup not yet added");
-    //        return;
-    //    }
+    // unidirectional attach - 1->n
+    [TestMethod]
+    public async Task UnidirectionalAttach1ToN() {
+      await _emTask;
 
-    //    if (testFns.DEBUG_MONGO) {
-    //        ok(true, "NA for Mongo - TimeList and Timegroup not yet added");
-    //        return;
-    //    }
-    //    var em = newEm();
+      if (TestFns.DEBUG_MONGO || TestFns.DEBUG_ODATA) {
+        Assert.Inconclusive( "NA for Mongo or OData - TimeList and Timegroup not yet added");
+      }
+      
+      var tl1 = _em1.CreateEntity<TimeLimit>();
+      var tl2 = _em1.CreateEntity<TimeLimit>();
+      var tg1 = _em1.CreateEntity<TimeGroup>();
+      var id1 = tg1.Id;
+      tl1.TimeGroupId = id1;
+      Assert.IsTrue(tg1.TimeLimits.Count == 1 
+        && tg1.TimeLimits.Contains(tl1), "should be connected");
+      tl2.TimeGroupId = id1;
+      Assert.IsTrue(tg1.TimeLimits.Count == 2 
+        && tg1.TimeLimits.Contains(tl2), "another should be connected");
 
-    //    var tl1 = em.createEntity("TimeLimit");
-    //    var tl2 = em.createEntity("TimeLimit");
-    //    var tg1 = em.createEntity("TimeGroup");
-    //    var id = tg1.getProperty("id");
-    //    tl1.setProperty("timeGroupId", id);
-    //    var timeLimits = tg1.getProperty("timeLimits");
-    //    ok(timeLimits.length === 1, "should be 1 timelimit");
-    //    tl2.setProperty("timeGroupId", id);
-    //    ok(timeLimits.length === 2, "should be 2 timelimit2");
+    
+    }
 
-    //});
+    // unidirectional attach - 1->n
+    [TestMethod]
+    public async Task UnidirectionalAttach1ToN_v2() {
+      await _emTask;
 
-    //test("unidirectional attach - 1->n - part 2", function () {
-    //    if (testFns.DEBUG_MONGO) {
-    //        ok(true, "NA for Mongo - TimeList and Timegroup not yet added");
-    //        return;
-    //    }
+      if (TestFns.DEBUG_MONGO || TestFns.DEBUG_ODATA) {
+        Assert.Inconclusive( "NA for Mongo or OData - TimeList and Timegroup not yet added");
+      }
+      
+      var tl1 = _em1.CreateEntity<TimeLimit>();
+      var tl2 = _em1.CreateEntity<TimeLimit>();
+      var tg1 = _em1.CreateEntity<TimeGroup>();
+      Assert.IsTrue(tg1.TimeLimits.Count == 0, "should be no Timelimits");
+      tg1.TimeLimits.Add(tl1);
+      Assert.IsTrue(tg1.TimeLimits.Count == 1 
+        && tg1.TimeLimits.Contains(tl1), "should be connected");
+      tg1.TimeLimits.Add(tl2);
+      Assert.IsTrue(tg1.TimeLimits.Count == 2 
+        && tg1.TimeLimits.Contains(tl2), "another should be connected");
 
-    //    if (testFns.DEBUG_ODATA) {
-    //        ok(true, "NA for OData - TimeList and Timegroup not yet added");
-    //        return;
-    //    }
+      // add 1 that is already there
+      tg1.TimeLimits.Add(tl1);
+      Assert.IsTrue(tg1.TimeLimits.Count == 2 
+        && tg1.TimeLimits.Contains(tl1), "length should not change when adding a dup");
+    }
 
-    //    var em = newEm();
+    // primary key fixup
+    [TestMethod]
+    public async Task PrimaryKeyFixup() {
+      await _emTask;
 
-    //    var tl1 = em.createEntity("TimeLimit");
-    //    var tl2 = em.createEntity("TimeLimit");
-    //    var tg1 = em.createEntity("TimeGroup");
-    //    var timeLimits = tg1.getProperty("timeLimits");
-    //    ok(timeLimits.length === 0, "should be 1 timelimit");
-    //    timeLimits.push(tl1);
-    //    ok(timeLimits.length === 1, "should be 1 timelimit");
-    //    timeLimits.push(tl2);
-    //    ok(timeLimits.length === 2, "should be 2 timelimit2");
-    //    var timeLimits2 = tg1.getProperty("timeLimits");
-    //    ok(timeLimits === timeLimits2);
-    //    // add one that is already there
-    //    timeLimits.push(tl1);
-    //    ok(timeLimits.length === 2, "length should not change when adding a dup");
-
-    //});
-
-    //test("primary key fixup", function () {
-    //    var em = newEm();
-    //    var productType = em.metadataStore.getEntityType("Product");
-    //    var product = productType.createEntity();
-    //    em.attachEntity(product);
+      var prod = new Product();
+      _em1.AttachEntity(prod);
+      var origProdId = prod.ProductID;
+      var ek = prod.EntityAspect.EntityKey;
     //    var origProductId = product.getProperty(testFns.productKeyName);
     //    var entityKey = new EntityKey(productType, [origProductId]);
     //    var sameProduct = em.findEntityByKey(entityKey);

@@ -131,12 +131,6 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    internal bool FireEntityChanging(EntityAction action) {
-      var entityArgs = new EntityChangingEventArgs(this.Entity, action);
-      this.EntityGroup.OnEntityChanging(entityArgs);
-      return !entityArgs.Cancel;
-    }
-
     #region Public methods
 
   
@@ -982,6 +976,12 @@ namespace Breeze.NetClient {
       FirePropertyChanged(e);
     }
 
+    internal bool FireEntityChanging(EntityAction action) {
+      var entityArgs = new EntityChangingEventArgs(this.Entity, action);
+      this.EntityGroup.OnEntityChanging(entityArgs);
+      return !entityArgs.Cancel;
+    }
+
     /// <summary>
     /// Raises the <see cref="PropertyChanged"/> event.
     /// </summary>
@@ -1169,7 +1169,8 @@ namespace Breeze.NetClient {
 
       var navChildrenList = EntityManager.UnattachedChildrenMap.GetNavChildrenList(EntityKey, false);
       if (navChildrenList == null) return;
-      navChildrenList.ForEach(nc => {
+      // need to copy before iterating because we may be removing from the list.
+      navChildrenList.ToList().ForEach(nc => {
 
         NavigationProperty childToParentNp = null, parentToChildNp;
 
@@ -1183,7 +1184,7 @@ namespace Breeze.NetClient {
           parentToChildNp = np.Inverse;
 
           if (parentToChildNp.IsScalar) {
-            var onlyChild = unattachedChildren[0];
+            var onlyChild = unattachedChildren.First();
             SetValue(parentToChildNp, onlyChild);
             onlyChild.EntityAspect.SetValue(childToParentNp, Entity);
           } else {
@@ -1200,7 +1201,7 @@ namespace Breeze.NetClient {
             parentToChildNp = np;
             if (parentToChildNp.IsScalar) {
               // 1 -> 1 eg parent: Order child: InternationalOrder
-              SetValue(parentToChildNp, unattachedChildren[0]);
+              SetValue(parentToChildNp, unattachedChildren.First());
             } else {
               // 1 -> n  eg: parent: Region child: Terr
               var currentChildren = GetValue<INavigationSet>(parentToChildNp);
