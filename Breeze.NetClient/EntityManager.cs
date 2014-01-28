@@ -185,6 +185,11 @@ namespace Breeze.NetClient {
     }
 
     public IEntity FindEntityByKey(EntityKey entityKey) {
+      if (entityKey.EntityType == null) {
+        var eg = GetEntityGroup(entityKey.ClrType);
+        if (eg == null) return null;
+        entityKey.Coerce(eg.EntityType);
+      }
       var subtypes = entityKey.EntityType.Subtypes;
       EntityAspect ea;
       if (subtypes.Count > 0) {
@@ -193,16 +198,16 @@ namespace Breeze.NetClient {
           return (eg == null) ? null : eg.FindEntityAspect(entityKey, true);
         }).FirstOrDefault(a => a != null);
       } else {
-        var eg = this.GetEntityGroup(entityKey.EntityType.ClrType);
+        var eg = this.GetEntityGroup(entityKey.ClrType);
         ea = (eg == null) ? null : eg.FindEntityAspect(entityKey, true);
       }
       return ea == null ? null : ea.Entity;
     }
 
-    public T FindEntityByKey<T>(params Object[] values) {
-      var eg = GetEntityGroup(typeof(T));
-      if (eg == null) return null;
-      var ek = new EntityKey(eg.EntityType, values);
+    
+
+    public T FindEntityByKey<T>(params Object[] values) where T:IEntity {
+      var ek = new EntityKey(typeof(T), values);
       return (T)FindEntityByKey(ek);
     }
 

@@ -78,7 +78,7 @@ namespace Breeze.NetClient {
         var keyValues = entityType.KeyProperties
           .Select(p => jObject[p.Name].ToObject(p.ClrType))
           .ToArray();
-        var entityKey = new EntityKey(entityType, keyValues, false);
+        var entityKey = new EntityKey(entityType, keyValues);
         var entity = _entityManager.FindEntityByKey(entityKey);
         if (entity == null) {
           entity = (IEntity) Activator.CreateInstance(objectType);

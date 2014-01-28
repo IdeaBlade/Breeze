@@ -276,89 +276,39 @@ namespace Test_NetClient {
       _em1.AttachEntity(prod);
       var origProdId = prod.ProductID;
       var ek = prod.EntityAspect.EntityKey;
-    //    var origProductId = product.getProperty(testFns.productKeyName);
-    //    var entityKey = new EntityKey(productType, [origProductId]);
-    //    var sameProduct = em.findEntityByKey(entityKey);
-    //    var sameProduct2 = em.getEntityByKey("Product", origProductId);
-    //    ok(product === sameProduct);
-    //    ok(product === sameProduct2);
-    //    product.setProperty(testFns.productKeyName, 7);
-    //    sameProduct = em.getEntityByKey(entityKey);
-    //    ok(sameProduct === null);
-    //    entityKey = new EntityKey(productType, [7]);
-    //    sameProduct = em.findEntityByKey(entityKey);
-    //    ok(product === sameProduct);
-    //});
-
-    //test("post create init 1", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Product = testFns.models.Product();
-    //    var productType = em.metadataStore.getEntityType("Product");
-    //    em.metadataStore.registerEntityTypeCtor("Product", Product, function(entity) {
-    //        ok(entity.entityType === productType, "entity's productType should be 'Product'");
-    //        ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
-    //        entity.setProperty("isObsolete", true);
-    //    });
-
-    //    var product = productType.createEntity();
-    //    ok(product.getProperty("isObsolete") === true);
-
-    //    product.setProperty("isObsolete", false);
-    //    ok(product.getProperty("isObsolete") === false);
-    //});
+      var sameProd = _em1.FindEntityByKey(ek);
+      Assert.IsTrue(prod == sameProd, "should be the same product");
+      var sameProd2 = _em1.FindEntityByKey<Product>(origProdId);
+      Assert.IsTrue(prod == sameProd2, "should be the same product-again");
+      prod.ProductID = 7;
+      var notSameProd = _em1.FindEntityByKey(ek);
+      Assert.IsTrue(notSameProd == null);
+      var sameProd3 = _em1.FindEntityByKey(prod.EntityAspect.EntityKey);
+      Assert.IsTrue(prod == sameProd2, "should be the same product-again 2");
+    }
     
-    //test("post create init 2", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Product = testFns.models.Product();
-        
-    //    var productType = em.metadataStore.getEntityType("Product");
-    //    em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
+    // changing FK to null removes it from old parent
+    [TestMethod]
+    public async Task FkSetToNull() {
+      await _emTask;
 
-    //    var product = productType.createEntity();
-    //    ok(product.getProperty("isObsolete") === true);
-    //});
+      var cust = _em1.CreateEntity<Customer>(EntityState.Unchanged);
+      var order1 = _em1.CreateEntity<Order>();
+      order1.Customer = cust;
+      Assert.IsTrue(order1.Customer == cust, "should be customer");
+      Assert.IsTrue(cust.Orders.Contains(order1), "should contain order1");
 
-    //test("post create init 3", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Product = testFns.models.Product();
-    //    var productType = em.metadataStore.getEntityType("Product");
-    //    em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
+      var order2 = new Order();
+      order2.Customer = cust;
+      Assert.IsTrue(order2.EntityAspect.IsAttached && order2.EntityAspect.EntityState.IsAdded());
+      Assert.IsTrue(order2.Customer == cust, "should be customer - again");
+      Assert.IsTrue(cust.Orders.Contains(order2), "should contain order2");
 
-    //    var product = productType.createEntity();
-    //    ok(product.getProperty("isObsolete") === true);
-    //});
-    
-    //test("post create init after new and attach", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Product = testFns.models.Product();
-    //    var product = new Product();
-    //    var productType = em.metadataStore.getEntityType("Product");
-    //    em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
-    //    em.attachEntity(product);
-        
-    //    ok(product.getProperty("isObsolete") === true);
-    //});
+      order1.CustomerID = null;
+      Assert.IsTrue(order1.Customer == null, "should be null");
+      Assert.IsTrue(!cust.Orders.Contains(order1), "should not contain order1");
 
-    //test("changing FK to null removes it from old parent", 2, function () {
-    //    // D2183
-    //    var em = newEm();
-    //    var customerType = em.metadataStore.getEntityType("Customer");
-    //    var customer = customerType.createEntity();
-    //    em.attachEntity(customer);
-
-    //    //var orderType = em.metadataStore.getEntityType("Order");
-    //    //var newOrder = orderType.createEntity();
-    //    //em.addEntity(newOrder);
-    //    // newOrder.setProperty("customer", customer); // assign order to customer1
-    //    var newOrder = em.createEntity("Order", { customer: customer });
-        
-    //    ok(customer.getProperty("orders").indexOf(newOrder) >= 0,
-    //        "newOrder is among customer's orders");
-
-    //    newOrder.setProperty("customerID", null); 
-    //    ok(customer.getProperty("orders").indexOf(newOrder) === -1,
-    //        "newOrder is no longer among customer's orders");
-    //});
+    }
 
     
     //test("add, detach and readd",  function () {
