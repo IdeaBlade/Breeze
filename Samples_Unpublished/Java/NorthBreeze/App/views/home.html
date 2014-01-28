@@ -1,14 +1,14 @@
-﻿<div>
+<div>
     <h3>Welcome to NorthBreeze</h3>
-    <div class="container-fluid">
+    <div class="container">
         <p>
             This is a sample application using the NorthwindIB database, a modified version of the Northwind sample database
             that comes with Microsoft SQL Server.  
         </p>
         <p>
             This application uses <a href="http://www.breezejs.com/">Breeze</a>, <a href="http://angularjs.org/">Angular</a> , 
-            and <a href="http://getbootstrap.com/2.3.2/index.html">Twitter Bootstrap</a>  on the client, 
-            and ASP.NET <a href="http://www.asp.net/web-api">Web API</a> and <a href="http://nhforge.org/">NHibernate</a> on the server.
+            and <a href="http://getbootstrap.com/">Twitter Bootstrap</a>  on the client, 
+            and <a href="https://jersey.java.net">Jersey</a> and <a href="http://hibernate.org/orm/">Hibernate</a> on the server.
         </p>
         <p>
             This app demonstrates how to use Breeze with <a href="http://angular-ui.github.io/ng-grid/">ng-grid</a> 
@@ -19,7 +19,7 @@
 
     <h3>Changed Entities</h3>
     <div>
-        <div class="container-fluid">
+        <div class="container">
         <p>
             The table below shows all the entities in the EntityManager that have changes.  
             Entities added, deleted, or modified will appear in this table.  The "Save" button on this page will cause all the entities
@@ -69,8 +69,8 @@
                 </tr>
             </tbody>
         </table>
-                    <button class="btn" ng-click="reset()">Reset All</button>
-                    <button class="btn" ng-click="update()">Save All</button>
+                    <button class="btn btn-default" ng-click="reset()">Reset All</button>
+                    <button class="btn btn-default" ng-click="update()">Save All</button>
     </div>
 
     <!-- Using bootstrap grid system instead of table

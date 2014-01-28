@@ -1,10 +1,10 @@
 <div >
     <h2>Customers</h2>
-    <div class="row-fluid">
-        <div class="span6">
+    <div class="row">
+        <div class="col-md-6">
             <div class="gridStyle" style="width: 500px; height: 378px;" ng-grid="customerGrid"></div>
         </div>
-        <div class="span6">
+        <div class="col-md-6">
         <form class="form-horizontal">
                 <!-- We do field-level validation based on the validation rules in the metadata,
                     and twitter bootstrap styles to show invalid fields.  See the breezeinput directive in directives.js -->
@@ -19,10 +19,15 @@
                 <breezeinput label="Phone" ng-model="customer.phone"></breezeinput>
                 <breezeinput label="Fax" ng-model="customer.fax"></breezeinput>
                 <div style="text-align: center">
-                    <button class="btn" ng-click="reset(customer)">Reset Customer</button>
-                    <button class="btn" ng-click="update(customer)">Save Customer</button>
+                    <button class="btn btn-default" ng-click="reset(customer)">Reset Customer</button>
+                    <button class="btn btn-default" ng-click="update(customer)">Save Customer</button>
                 </div>
         </form>
+        </div>
+    </div>
+    <div class="row">
+         <div class="col-md-6">
+	        <button class="btn btn-default" ng-click="popup()">Edit Customer</button>
         </div>
     </div>
 </div>

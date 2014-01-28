@@ -1,7 +1,7 @@
 ﻿'use strict';
 
-// Declare app level module which depends ngGrid
-var app = angular.module('NorthBreeze', ['ngGrid']);
+// Declare app level module which depends on other services
+var app = angular.module('NorthBreeze', ['ngRoute', 'ngGrid', 'ui.bootstrap', 'breeze.directives']);
 
 // Define route objects, which are used by the routeProvider (for loading ng-view) and by the RouteCtrl (for displaying navigation bar)
 app.routes = [
@@ -19,4 +19,15 @@ app.config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when(rt.path, rt);
     }
     $routeProvider.otherwise({ redirectTo: '/' });
+}]);
+
+// Configure the zDirectivesConfigProvider, which displays validation error messages
+app.config(['zDirectivesConfigProvider', function(cfg) {
+	
+// Custom template because we are using existing elements
+cfg.zValidateTemplate = '%error%';
+
+// we are using existing elements to display validation messages
+cfg.zValidateExistingTemplate = true;
+
 }]);
