@@ -277,6 +277,10 @@ namespace Breeze.NetClient {
       return (T)CreateEntity(typeof(T), entityState);
     }
 
+    public IEntity AddEntity(IEntity entity) {
+      return AttachEntity(entity, EntityState.Added);
+    }
+
     public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Unchanged, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
       var aspect = PrepareForAttach(entity);
       if (aspect.IsAttached && aspect.EntityState == entityState) return entity;
@@ -292,8 +296,6 @@ namespace Breeze.NetClient {
         
         AttachEntityAspect(aspect, entityState);
         
-        // if in Query do not do this already being done as part of the serialization.
-        // entity ( not attachedEntity) is deliberate here.
         aspect.EntityType.NavigationProperties.ForEach(np => {
           aspect.ProcessNpValue(np, e => AttachEntity(e, entityState, mergeStrategy));
         });

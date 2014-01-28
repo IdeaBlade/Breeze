@@ -63,31 +63,44 @@ namespace Breeze.NetClient {
     #region Overrides
 
     protected override void InsertItem(int index, T entity) {
-    
+      // contains in next line is needed
       if (_inProcess || this.Contains(entity)) return;
-      if (ParentEntity == null
-        || ParentEntity.EntityAspect.IsDetached
-        || ParentEntity.EntityAspect.EntityManager.IsLoadingEntity) {
+      
+      var parentAspect = ParentEntity == null ? null : ParentEntity.EntityAspect;
+      if (parentAspect == null
+        || parentAspect.IsDetached
+        || parentAspect.EntityManager.IsLoadingEntity) {
         base.InsertItem(index, entity);
         return;
       }
       using (new BooleanUsingBlock(b => _inProcess = b)) {
         if (entity.EntityAspect.IsDetached) {
-          entity.EntityAspect.Attach(EntityState.Added, ParentEntity.EntityAspect.EntityManager);
+          entity.EntityAspect.Attach(EntityState.Added, parentAspect.EntityManager);
         }
         base.InsertItem(index, entity);
-        ProcessRelated(entity);
+        ConnectRelated(entity);
       }
 
     }
 
     protected override void RemoveItem(int index) {
-      // TODO: need to resolve this.
-      base.RemoveItem(index);
+      if (_inProcess) return;
+      var parentAspect = ParentEntity == null ? null : ParentEntity.EntityAspect;
+      if (parentAspect == null
+        || parentAspect.IsDetached
+        || parentAspect.EntityManager.IsLoadingEntity) {
+          base.RemoveItem(index);
+        return;
+      }
+      using (new BooleanUsingBlock(b => _inProcess = b)) {
+        var entity = Items[index];
+        base.RemoveItem(index);
+        DisconnectRelated(entity);
+      }
     }
 
     protected override void ClearItems() {
-      // TODO: need to resolve this.
+      // TODO: need to resolve this. - when is it called
       base.ClearItems();
     }
 
@@ -98,7 +111,7 @@ namespace Breeze.NetClient {
 
     private bool _inProcess = false;
 
-    private void ProcessRelated(IEntity entity) {
+    private void ConnectRelated(IEntity entity) {
 
       var aspect = entity.EntityAspect;
       var parentAspect = ParentEntity.EntityAspect;
@@ -110,8 +123,29 @@ namespace Breeze.NetClient {
         // This occurs with a unidirectional 1-n navigation - in this case
         // we need to update the fks instead of the navProp
         var pks = parentAspect.EntityType.KeyProperties;
-        np.InvForeignKeyNames.ForEach((fk, i) => {
-          entity.EntityAspect.SetValue(fk, parentAspect.GetValue(pks[i]));
+        np.InvForeignKeyProperties.ForEach((fkp, i) => {
+          entity.EntityAspect.SetValue(fkp, parentAspect.GetValue(pks[i]));
+        });
+      }
+    }
+
+    private void DisconnectRelated(T entity) {
+      var aspect = entity.EntityAspect;
+      var parentAspect = ParentEntity.EntityAspect;
+      var invNp = NavigationProperty.Inverse;
+      if (invNp != null) {
+        if (invNp.IsScalar) {
+          entity.EntityAspect.SetValue(invNp, null);
+        } else {
+          throw new Exception("Many-many relations not yet supported");
+        }
+      } else {
+        // This occurs with a unidirectional 1-n navigation - in this case
+        // we need to update the fks instead of the navProp
+        var pks = parentAspect.EntityType.KeyProperties;
+        this.NavigationProperty.InvForeignKeyProperties.ForEach((fkp, i) => {
+          // TODO: write a test to see what happens if this fails
+          aspect.SetValue(fkp, fkp.DefaultValue);
         });
       }
     }

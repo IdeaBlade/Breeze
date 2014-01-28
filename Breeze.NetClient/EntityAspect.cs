@@ -619,8 +619,9 @@ namespace Breeze.NetClient {
             siblings.Add(this.Entity);
           }
         }
-      } else if (property.InvForeignKeyNames != null && this.IsAttached) { // && !EntityManager._inKeyFixup) {
-        var invForeignKeyNames = property.InvForeignKeyNames;
+      } else if (property.InvForeignKeyProperties.Count > 0 && this.IsAttached) { // && !EntityManager._inKeyFixup) {
+        // var invForeignKeyNames = property.InvForeignKeyNames;
+        var invForeignKeyProps = property._invForeignKeyProperties;
         if (newValue != null) {
           // Example: unidirectional navProperty: 1->1: order -> internationalOrder
           // order.InternationalOrder <- internationalOrder
@@ -630,8 +631,8 @@ namespace Breeze.NetClient {
           // orderDetail.order <-xxx newOrder
           //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
           var pkValues = this.EntityKey.Values;
-          invForeignKeyNames.ForEach((fkName, i) => newAspect.SetValue(fkName, pkValues[i]));
-
+          // invForeignKeyNames.ForEach((fkName, i) => newAspect.SetValue(fkName, pkValues[i]));
+          invForeignKeyProps.ForEach((fkProp, i) => newAspect.SetValue(fkProp, pkValues[i]));
         } else {
           // Example: unidirectional navProperty: 1->1: order -> internationalOrder
           // order.internationalOrder <- null
@@ -641,13 +642,19 @@ namespace Breeze.NetClient {
           // orderDetail.order <-xxx newOrder
           //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
           if (oldValue != null) {
-            invForeignKeyNames.ForEach(fkName => {
-              var fkProp = oldAspect.EntityType.GetDataProperty(fkName);
+            invForeignKeyProps.ForEach(fkProp => {
               if (!fkProp.IsPartOfKey) {
                 // don't update with null if fk is part of the key
                 oldAspect.SetValue(fkProp, null);
               }
             });
+            //invForeignKeyNames.ForEach(fkName => {
+            //  var fkProp = oldAspect.EntityType.GetDataProperty(fkName);
+            //  if (!fkProp.IsPartOfKey) {
+            //    // don't update with null if fk is part of the key
+            //    oldAspect.SetValue(fkProp, null);
+            //  }
+            //});
           }
         }
       }
