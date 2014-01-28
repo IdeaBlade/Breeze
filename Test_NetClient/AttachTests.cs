@@ -311,71 +311,69 @@ namespace Test_NetClient {
     }
 
     
-    //test("add, detach and readd",  function () {
-    //    // D2182
-    //    var em = newEm();
-    //    //var orderType = em.metadataStore.getEntityType("Order");
-    //    //var newOrder = orderType.createEntity();
-    //    //em.addEntity(newOrder);
-    //    var newOrder = em.createEntity("Order");
-        
-    //    em.detachEntity(newOrder); 
-    //    em.addEntity(newOrder);// Exception thrown: "this key is already attached"
-    //    ok(true);
-    //});
+    // add, detach and readd
+    [TestMethod]
+    public async Task AddDetachReadd() {
+      await _emTask;
 
+      var order = _em1.CreateEntity<Order>();
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsAdded());
+      _em1.DetachEntity(order);
+      Assert.IsTrue(order.EntityAspect.IsDetached);
+      _em1.AttachEntity(order, EntityState.Added);
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsAdded());
+    }
 
-    //test("attach, detach, reattach",  function () {
-    //    // D2182
-    //    var em = newEm();
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var order = orderType.createEntity();
-    //    em.attachEntity(order);
+    // attach, detach and reattach
+    [TestMethod]
+    public async Task AttachDetachReattach() {
+      await _emTask;
 
-    //    em.detachEntity(order);
-    //    em.attachEntity(order);// Exception thrown: "this key is already attached"
-    //    ok(true);
-    //});
-
+      var order = _em1.CreateEntity<Order>(EntityState.Unchanged);
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsUnchanged());
+      _em1.DetachEntity(order);
+      Assert.IsTrue(order.EntityAspect.IsDetached);
+      _em1.AttachEntity(order);
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsUnchanged());
+    }
     
-    //test("exception if set nav to entity with different manager", function  () {
-    //    var em1 = newEm();
-    //    var orderType = em1.metadataStore.getEntityType("Order");
-    //    var o1 = orderType.createEntity();
-    //    em1.attachEntity(o1);
-
-    //    var em2 = newEm();
-    //    var customerType = em2.metadataStore.getEntityType("Customer");
-    //    var c1 = customerType.createEntity();
-    //    em2.attachEntity(c1);
-
-    //    ok(c1.entityAspect.entityManager !== o1.entityAspect.entityManager,
-    //        "existingCustomer and existingOrder have different managers"); 
-
-    //    try {
-    //        o1.setProperty("customer", c1);
-    //        ok(false, "shouldn't get here");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("EntityManager") >= 0);
-    //    }
-
-    //});
-
-
+    // exception if set nav to entity with different manager
+    [TestMethod]
+    public async Task ErrorOnNavAttach() {
+      await _emTask;
     
-    //test("attach across entityManagers", function() {
-    //    var em1 = newEm();
-    //    var custType = em1.metadataStore.getEntityType("Customer");
-    //    var cust = custType.createEntity();
-    //    em1.attachEntity(cust);
-    //    var em2 = newEm();
-    //    try {
-    //        em2.attachEntity(cust);
-    //        ok("fail", "should not be able to attach an entity to more than one entityManager");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("EntityManager"));
-    //    }
-    //});
+      var order = _em1.CreateEntity<Order>(EntityState.Unchanged);
+    
+      var em2 = new EntityManager(_em1);
+      var cust = em2.CreateEntity<Customer>(EntityState.Unchanged);
+      Assert.IsTrue(order.EntityAspect.EntityManager != cust.EntityAspect.EntityManager, "should not be the same manager");
+      try {
+        order.Customer = cust;
+        Assert.Fail("should not get here");
+      } catch (Exception e) {
+        Assert.IsTrue(e.Message.Contains("EntityManager"), "message should mention 'EntityManager'");
+      }
+      cust.EntityAspect.Detach();
+      order.Customer = cust;
+      Assert.IsTrue(order.EntityAspect.EntityManager == cust.EntityAspect.EntityManager, "should be the same manager");
+      Assert.IsTrue(cust.Orders.Contains(order) && order.Customer == cust, "should be properly connected");
+    }
+
+    // exception if set nav to entity with different manager
+    [TestMethod]
+    public async Task ErrorOnAttachMultiple() {
+      await _emTask;
+    
+      var order = _em1.CreateEntity<Order>(EntityState.Unchanged);
+      var em2 = new EntityManager(_em1);
+      try {
+        em2.AttachEntity(order);
+        Assert.Fail("should not get here");
+      } catch (Exception e) {
+        Assert.IsTrue(e.Message.Contains("EntityManager"), "message should mention 'EntityManager'");
+      }
+    }
+      
        
     //test("rejectChanges on added entity", function () {
     //    var em = newEm();

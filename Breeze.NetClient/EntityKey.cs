@@ -86,19 +86,15 @@ namespace Breeze.NetClient {
         if (EntityType == null) {
           throw new Exception("No EntityType to coerce into");
         }
-        return CoerceCore(EntityType);
       } else {
         if (EntityType != null && EntityType != entityType) {
           throw new Exception("Cannot coerce entityKey: " + this + " to : " + entityType);
         }
-        return CoerceCore(entityType);
+        EntityType = entityType;
       }
-    }
-
-    private EntityKey CoerceCore(EntityType entityType) {
     
       for (int i = 0; i < Values.Length; i++) {
-        var  clrType = entityType.KeyProperties[i].ClrType;
+        var  clrType = EntityType.KeyProperties[i].ClrType;
         var val = Values[i];
         if (val == null) continue;
         if (clrType != val.GetType()) {
