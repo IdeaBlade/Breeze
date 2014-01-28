@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Breeze.Core;
 using System.ComponentModel;
 using System.Collections.Specialized;
+using System.Collections.ObjectModel;
 
 namespace Breeze.NetClient {
 
@@ -17,16 +18,16 @@ namespace Breeze.NetClient {
     NavigationProperty NavigationProperty { get; set; }
     void Add(IEntity entity);
     void Remove(IEntity entity);
-    int Count { get; }
     void Clear();
+    int Count { get; }
   }
 
-  public class NavigationSet<T> : ICollection<T>, INavigationSet where T:IEntity {
+  public class NavigationSet<T> : NotifiableCollection<T>, INavigationSet where T:IEntity {
 
     public NavigationSet() {
-      _hashSet = new HashSet<T>();
+      
     }
-    private HashSet<T> _hashSet;
+    
 
     public NavigationSet(IEntity parentEntity, NavigationProperty navigationProperty) {
       ((INavigationSet) this).ParentEntity = parentEntity;
@@ -49,7 +50,7 @@ namespace Breeze.NetClient {
     #region INavigationSet imp
 
     void INavigationSet.Add(IEntity entity) {
-      AddCore(entity);
+      Add((T) entity);
     }
 
 
@@ -59,75 +60,46 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region ICollection<T> implementation
+    #region Overrides
 
-    public void Add(T item) {
-      AddCore(item);
-    }
-
-
-    public void Clear() {
-      _hashSet.Clear();
-    }
-
-    public bool Contains(T item) {
-      return _hashSet.Contains(item);
-    }
-
-    public void CopyTo(T[] array, int arrayIndex) {
-      _hashSet.CopyTo(array, arrayIndex);
-    }
-
-    public int Count {
-      get { return _hashSet.Count; }
-    }
-
-    public bool IsReadOnly {
-      get { return false; }
-    }
-
-    public bool Remove(T item) {
-      return _hashSet.Remove(item);
-    }
-
-    public IEnumerator<T> GetEnumerator() {
-      return _hashSet.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() {
-      return _hashSet.GetEnumerator();
-    }
-
-    #endregion
-
-    #region Internal and Private
-
+    protected override void InsertItem(int index, T entity) {
     
-    private void AddCore(IEntity entity) {
-      if (_inProcess || _hashSet.Contains( (T) entity)) return;
-      if (ParentEntity == null 
-        || ParentEntity.EntityAspect.IsDetached 
+      if (_inProcess || this.Contains(entity)) return;
+      if (ParentEntity == null
+        || ParentEntity.EntityAspect.IsDetached
         || ParentEntity.EntityAspect.EntityManager.IsLoadingEntity) {
-          _hashSet.Add((T)entity);
-          return;
+        base.InsertItem(index, entity);
+        return;
       }
       using (new BooleanUsingBlock(b => _inProcess = b)) {
         if (entity.EntityAspect.IsDetached) {
           entity.EntityAspect.Attach(EntityState.Added, ParentEntity.EntityAspect.EntityManager);
         }
-        _hashSet.Add((T)entity);
+        base.InsertItem(index, entity);
         ProcessRelated(entity);
       }
-      if (ParentEntity.EntityAspect.EntityGroup.ChangeNotificationEnabled) {
-        OnPropertyChanged("Count");
-        OnPropertyChanged("Items[]");
-        OnNotifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
-      }
+
     }
+
+    protected override void RemoveItem(int index) {
+      // TODO: need to resolve this.
+      base.RemoveItem(index);
+    }
+
+    protected override void ClearItems() {
+      // TODO: need to resolve this.
+      base.ClearItems();
+    }
+
+    protected override void SetItem(int index, T item) {
+      // TODO: need to resolve this.
+      base.SetItem(index, item);
+    }
+
     private bool _inProcess = false;
 
     private void ProcessRelated(IEntity entity) {
-      
+
       var aspect = entity.EntityAspect;
       var parentAspect = ParentEntity.EntityAspect;
       var np = this.NavigationProperty;
@@ -144,49 +116,11 @@ namespace Breeze.NetClient {
       }
     }
 
-    #endregion
-
-    #region INotifyPropertyChanged and INotifyCollectionChanged Members
-
-    /// <summary>
-    /// <see cref="INotifyPropertyChanged"/>
-    /// </summary>
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    private void OnPropertyChanged(String propertyName) {
-      if (PropertyChanged == null) return;
-      try {
-        _isBusy = true;
-        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-      } finally {
-        _isBusy = false;
-      }
-    }
-
-
-    /// <summary>
-    /// <see cref="INotifyCollectionChanged"/>.
-    /// </summary>
-    public event NotifyCollectionChangedEventHandler CollectionChanged;
-
-    private void OnNotifyCollectionChanged(NotifyCollectionChangedEventArgs args) {
-      if (CollectionChanged == null) return;
-      try {
-        _isBusy = true;
-        CollectionChanged(this, args);
-      } finally {
-        _isBusy = false;
-      }
-    }
-
-    private void CheckReentrancy() {
-      if (_isBusy) {
-        throw new InvalidOperationException("RelatedEntityList's are not reentrant");
-      }
-    }
-    private bool _isBusy;
 
     #endregion
+
+
+    
   }
 }
 

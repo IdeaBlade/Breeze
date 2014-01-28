@@ -438,35 +438,35 @@ namespace Test_NetClient {
 
     // add child
     [TestMethod]
-    public async Task AddEntityNoOrPartialKey() {
+    public async Task AddChild() {
       await _emTask;
 
       var cust1 = new Customer();
       var order1 = new Order();
       _em1.AttachEntity(cust1, EntityState.Added);
-      Assert.IsTrue(cust1.EntityAspect.HasTemporaryKey, "should have a temp key"  );
+      Assert.IsTrue(cust1.EntityAspect.HasTemporaryKey, "should have a temp key");
       var orders = cust1.Orders;
-      
-    
-    //    ok(cust1.entityAspect.hasTempKey === true, "hasTempKey should be true");
-    //    var orders = cust1.getProperty("orders");
 
-    //    var changeArgs = null;
-    //    orders.arrayChanged.subscribe(function (args) {
-    //        changeArgs = args;
-    //    });
-    //    orders.push(order1);
-    //    ok(cust1.entityAspect.entityState === EntityState.Added, "cust entityState should be added");
-    //    ok(order1.entityAspect.entityState === EntityState.Added, " order entityState should be added");
-    //    ok(orders.parentEntity == cust1);
-    //    var navProperty = cust1.entityType.getProperty("orders");
-    //    ok(orders.navigationProperty == navProperty);
-    //    ok(changeArgs.added, "changeArgs not set");
-    //    ok(changeArgs.added[0] === order1, "changeArgs added property not set correctly");
-    //    var sameCust = order1.getProperty("customer");
-    //    ok(sameCust === cust1, "inverse relationship not setPropertiesd");
-        
-    //});
+
+      //    ok(cust1.entityAspect.hasTempKey === true, "hasTempKey should be true");
+      //    var orders = cust1.getProperty("orders");
+
+      //    var changeArgs = null;
+      //    orders.arrayChanged.subscribe(function (args) {
+      //        changeArgs = args;
+      //    });
+      //    orders.push(order1);
+      //    ok(cust1.entityAspect.entityState === EntityState.Added, "cust entityState should be added");
+      //    ok(order1.entityAspect.entityState === EntityState.Added, " order entityState should be added");
+      //    ok(orders.parentEntity == cust1);
+      //    var navProperty = cust1.entityType.getProperty("orders");
+      //    ok(orders.navigationProperty == navProperty);
+      //    ok(changeArgs.added, "changeArgs not set");
+      //    ok(changeArgs.added[0] === order1, "changeArgs added property not set correctly");
+      //    var sameCust = order1.getProperty("customer");
+      //    ok(sameCust === cust1, "inverse relationship not setPropertiesd");
+
+    }
 
     //test("detach child", function () {
     //    var em = newEm();
