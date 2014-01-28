@@ -457,6 +457,8 @@ namespace Breeze.NetClient {
     /// <exception cref="ArgumentException">Incorrect entity type/property</exception>
     /// <exception cref="IdeaBladeException">IdGenerator not found</exception>
     public UniqueId GenerateId(IEntity entity, DataProperty entityProperty) {
+      var x = new NavigationSet<IEntity>();
+
       var aspect = entity.EntityAspect;
       var entityType = entity.GetType();
 

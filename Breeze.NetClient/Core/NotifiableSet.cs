@@ -9,16 +9,13 @@ using System.Threading.Tasks;
 
 namespace Breeze.Core {
 
-
-
   /// <summary>
-  /// Represents an observable set of values.
+  /// Represents an observable set of unique values.
   /// </summary>
   /// <typeparam name="T">The type of elements in the hash set.</typeparam>    
   public class NotifiableCollection<T> : KeyedCollection<T, T>, INotifyCollectionChanged, INotifyPropertyChanged, IDisposable {
 
-    private SimpleMonitor monitor = new SimpleMonitor();
-    
+    #region Ctors 
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ObservableHashSet&lt;T&gt;"/> class.
@@ -52,20 +49,13 @@ namespace Breeze.Core {
       collection.ForEach(item => this.Add(item));
     }
 
-    protected override T GetKeyForItem(T item) {
-      return item;
-    }
-
-
-    public void Dispose() {
-      if (this.monitor != null) {
-        this.monitor.Dispose();
-        this.monitor = null;
-      }
-    }
+    #endregion
 
     #region overriden Methods
 
+    protected override T GetKeyForItem(T item) {
+      return item;
+    }
     
     protected override void InsertItem(int index, T item) {
       this.CheckReentrancy();
@@ -73,7 +63,7 @@ namespace Breeze.Core {
       base.InsertItem(index, item);
         
       this.RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
-      this.RaisePropertyChanged(PropertyNames.Count);
+      this.RaisePropertyChanged("Count");
     }
 
     protected override void ClearItems() {
@@ -82,7 +72,7 @@ namespace Breeze.Core {
       base.ClearItems();
 
       this.RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-      this.RaisePropertyChanged(PropertyNames.Count);
+      this.RaisePropertyChanged("Count");
     }
 
     protected override void RemoveItem(int index) {
@@ -92,7 +82,7 @@ namespace Breeze.Core {
       base.RemoveItem(index);
 
       this.RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItem, index));
-      this.RaisePropertyChanged(PropertyNames.Count);
+      this.RaisePropertyChanged("Count");
 
     }
 
@@ -103,7 +93,7 @@ namespace Breeze.Core {
       base.SetItem(index, item);
 
       this.RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, originalItem, item, index));
-      this.RaisePropertyChanged(PropertyNames.Count);
+      this.RaisePropertyChanged("Count");
     }
 
     #endregion
@@ -138,13 +128,20 @@ namespace Breeze.Core {
 
     #region Reentrancy Methods
 
+    void IDisposable.Dispose() {
+      if (this._monitor != null) {
+        this._monitor.Dispose();
+        this._monitor = null;
+      }
+    }
+
     private IDisposable BlockReentrancy() {
-      this.monitor.Enter();
-      return this.monitor;
+      this._monitor.Enter();
+      return this._monitor;
     }
 
     private void CheckReentrancy() {
-      if ((this.monitor.Busy && (this.CollectionChanged != null)) && (this.CollectionChanged.GetInvocationList().Length > 1)) {
+      if ((this._monitor.Busy && (this.CollectionChanged != null)) && (this.CollectionChanged.GetInvocationList().Length > 1)) {
         throw new InvalidOperationException("There are additional attempts to change this hash set during a CollectionChanged event.");
       }
     }
@@ -174,12 +171,7 @@ namespace Breeze.Core {
 
     #endregion
 
+    private SimpleMonitor _monitor = new SimpleMonitor();
 
-    /// <summary>
-    /// The property names used with INotifyPropertyChanged.
-    /// </summary>
-    public static class PropertyNames {
-      public const string Count = "Count";
-    }
   }
 }

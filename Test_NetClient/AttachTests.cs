@@ -8,6 +8,7 @@ using Breeze.NetClient;
 using Breeze.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Foo;
+using System.Collections.Specialized;
 
 namespace Test_NetClient {
 
@@ -446,27 +447,23 @@ namespace Test_NetClient {
       _em1.AttachEntity(cust1, EntityState.Added);
       Assert.IsTrue(cust1.EntityAspect.HasTemporaryKey, "should have a temp key");
       var orders = cust1.Orders;
+      Assert.IsTrue(orders.ParentEntity == cust1, "ParentEntity should be set");
+      Assert.IsTrue(orders.NavigationProperty == cust1.EntityAspect.EntityType.GetNavigationProperty("Orders"), "NavProperty should be set");
 
-
-      //    ok(cust1.entityAspect.hasTempKey === true, "hasTempKey should be true");
-      //    var orders = cust1.getProperty("orders");
-
-      //    var changeArgs = null;
-      //    orders.arrayChanged.subscribe(function (args) {
-      //        changeArgs = args;
-      //    });
-      //    orders.push(order1);
-      //    ok(cust1.entityAspect.entityState === EntityState.Added, "cust entityState should be added");
-      //    ok(order1.entityAspect.entityState === EntityState.Added, " order entityState should be added");
-      //    ok(orders.parentEntity == cust1);
-      //    var navProperty = cust1.entityType.getProperty("orders");
-      //    ok(orders.navigationProperty == navProperty);
-      //    ok(changeArgs.added, "changeArgs not set");
-      //    ok(changeArgs.added[0] === order1, "changeArgs added property not set correctly");
-      //    var sameCust = order1.getProperty("customer");
-      //    ok(sameCust === cust1, "inverse relationship not setPropertiesd");
+      NotifyCollectionChangedEventArgs changeArgs = null;
+      orders.CollectionChanged += (s, e) => {
+        changeArgs = e;
+      };
+      orders.Add(order1);
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsAdded(), "should be added");
+      Assert.IsTrue(orders.Contains(order1), "should contain order");
+      Assert.IsTrue(order1.Customer == cust1, "should be connected");
+      Assert.IsTrue(changeArgs != null, "changeArgs should not be null");
+      Assert.IsTrue(changeArgs.Action == NotifyCollectionChangedAction.Add);
+      Assert.IsTrue(changeArgs.NewItems.Contains(order1), "change should mention order1");
 
     }
+
 
     //test("detach child", function () {
     //    var em = newEm();
