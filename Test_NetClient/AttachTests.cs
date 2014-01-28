@@ -375,111 +375,79 @@ namespace Test_NetClient {
     }
       
        
-    //test("rejectChanges on added entity", function () {
-    //    var em = newEm();
-    //    //var typeInfo = em.metadataStore.getEntityType("Order");
-    //    //var newEntity = typeInfo.createEntity();
-    //    //em.addEntity(newEntity);
-    //    var newEntity = em.createEntity("Order");
+    // rejectChanges on added entity
+    [TestMethod]
+    public async Task RejectChangesOnAdd() {
+      await _emTask;
+      var order = _em1.CreateEntity<Order>();
+      Assert.IsTrue(order.EntityAspect.EntityState.IsAdded(), "should be in Added state");
+      Assert.IsTrue(_em1.HasChanges(), "should have some changes");
+      var ents = _em1.GetEntities();
+      Assert.IsTrue(ents.Count() == 1);
+      order.EntityAspect.RejectChanges();
+      Assert.IsTrue(order.EntityAspect.IsDetached);
+      Assert.IsTrue(!_em1.HasChanges(), "should not have any changes");
+      ents = _em1.GetEntities();
+      Assert.IsTrue(ents.Count() == 0);
 
-    //    var entityState = newEntity.entityAspect.entityState;
-    //    ok(entityState.isAdded(),
-    //        "newEntity should be in Added state; is "+entityState);
-
-    //    newEntity.entityAspect.rejectChanges();
-     
-    //    entityState = newEntity.entityAspect.entityState;
-    //    ok(entityState.isDetached(),
-    //        "newEntity should be Detached after rejectChanges; is "+entityState);
-
-    //    ok(!em.hasChanges(), "should not have changes");
-
-    //    var inCache = em.getEntities(), count = inCache.length;
-    //    ok(count == 0, "should have no entities in cache; have " + count);
-
-    //});
+    }
     
-    //test("delete added entity", 3, function () {
-    //    var em = newEm();
-    //    var typeInfo = em.metadataStore.getEntityType("Order");
-    //    //var newEntity = typeInfo.createEntity();
-    //    //em.addEntity(newEntity);
-    //    var newEntity = em.createEntity(typeInfo);
+    // delete added entity
+    [TestMethod]
+    public async Task DeleteAdded() {
+      await _emTask;
+      var order = _em1.CreateEntity<Order>();
+      Assert.IsTrue(order.EntityAspect.EntityState.IsAdded(), "should be in Added state");
+      Assert.IsTrue(_em1.HasChanges(), "should have some changes");
+      order.EntityAspect.Delete();
+      Assert.IsTrue(order.EntityAspect.IsDetached);
+      Assert.IsTrue(!_em1.HasChanges(), "should not have any changes");
+      var ents = _em1.GetEntities();
+      Assert.IsTrue(ents.Count() == 0);
+    }
 
-    //    ok(newEntity.entityAspect.entityState.isAdded(),
-    //        "new Todo added to cache is in 'added' state");
+    // add entity - no key
+    [TestMethod]
+    public async Task AddEntityNoOrPartialKey() {
+      await _emTask;
 
-    //    newEntity.entityAspect.setDeleted();
+      if (TestFns.DEBUG_MONGO) {
+        Assert.Inconclusive("NA for Mongo - OrderDetail");
+        return;
+      }
+      var od = new OrderDetail();
+      try {
+        _em1.AttachEntity(od, EntityState.Added);
+        Assert.Fail("should not get here");
+      } catch (Exception e) {
+        Assert.IsTrue(e.Message.Contains("key"), "error message should contain 'key'");
+      }
 
-    //    ok(newEntity.entityAspect.entityState.isDetached(),  // FAIL
-    //        "new Todo added to cache is 'detached'");  
-        
-    //    // get the first (and only) entity in cache
-    //    equal(em.getEntities().length, 0, "no entities in cache"); //FAIL
+      // only need to set part of the key
+      od.OrderID = 999;
+      _em1.AttachEntity(od, EntityState.Added);
+      Assert.IsTrue(od.EntityAspect.EntityState.IsAdded());
 
-    //});
+      try {
+        var od2 =_em1.CreateEntity<OrderDetail>(EntityState.Added);
+        Assert.Fail("should not get here");
+      } catch (Exception e) {
+        Assert.IsTrue(e.Message.Contains("key"), "error message should contain 'key'");
+      }
+    }
 
+    // add child
+    [TestMethod]
+    public async Task AddEntityNoOrPartialKey() {
+      await _emTask;
 
-    //test("add entity - no key", function () {
-    //    if (testFns.DEBUG_MONGO) {
-    //        ok(true, "NA for Mongo - OrderDetail");
-    //        return;
-    //    }
-    //    var em = newEm();
-    //    var odType = em.metadataStore.getEntityType("OrderDetail");
-    //    var od = odType.createEntity();
-    //    try {
-    //        em.addEntity(od);
-    //        ok(false, "should not be able to attach an entity without setting its key");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("key") >= 0, "error message should contain 'key'");
-    //    }
-    //    try {
-    //        var cId = em.generateTempKeyValue(od);
-    //        ok(false, "should not be able to generate a temp multipart key");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("multipart keys") >= 0, "error message should contain 'multipart keys'");
-    //    }
-    //    // only need to set part of the key
-    //    od.setProperty("orderID", 999);
-    //    em.addEntity(od);
-    //});
-
-    //test("add entity - no key 2", function () {
-    //    if (testFns.DEBUG_MONGO) {
-    //        ok(true, "NA for Mongo - OrderDetail");
-    //        return;
-    //    }
-    //    var em = newEm();
-    //    var od;
-    //    try {
-    //        od = em.createEntity("OrderDetail");
-    //        ok(false, "should not be able to attach an entity without setting its key");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("key") >= 0, "error message should contain 'key'");
-    //    }
-    //    try {
-    //        od = em.createEntity("OrderDetail", null, EntityState.Detached);
-    //        var cId = em.generateTempKeyValue(od);
-    //        ok(false, "should not be able to generate a temp multipart key");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("multipart keys") >= 0, "error message should contain 'multipart keys'");
-    //    }
-    //    // only need to set part of the key
-    //    od.setProperty("orderID", 999);
-    //    em.addEntity(od);
-    //});
-
-
-    //test("add child", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
-        
-    //    em.addEntity(cust1);
-    //    ok(cust1.entityAspect.entityState === EntityState.Added, "cust entityState should be added");
+      var cust1 = new Customer();
+      var order1 = new Order();
+      _em1.AttachEntity(cust1, EntityState.Added);
+      Assert.IsTrue(cust1.EntityAspect.HasTemporaryKey, "should have a temp key"  );
+      var orders = cust1.Orders;
+      
+    
     //    ok(cust1.entityAspect.hasTempKey === true, "hasTempKey should be true");
     //    var orders = cust1.getProperty("orders");
 

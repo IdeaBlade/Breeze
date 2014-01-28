@@ -6,11 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Breeze.Core;
+using System.ComponentModel;
+using System.Collections.Specialized;
 
 namespace Breeze.NetClient {
 
 
-  public interface INavigationSet : IEnumerable {
+  public interface INavigationSet : IEnumerable, INotifyPropertyChanged, INotifyCollectionChanged {
     IEntity ParentEntity { get; set; }
     NavigationProperty NavigationProperty { get; set; }
     void Add(IEntity entity);
@@ -116,6 +118,11 @@ namespace Breeze.NetClient {
         _hashSet.Add((T)entity);
         ProcessRelated(entity);
       }
+      if (ParentEntity.EntityAspect.EntityGroup.ChangeNotificationEnabled) {
+        OnPropertyChanged("Count");
+        OnPropertyChanged("Items[]");
+        OnNotifyCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
+      }
     }
     private bool _inProcess = false;
 
@@ -139,6 +146,47 @@ namespace Breeze.NetClient {
 
     #endregion
 
+    #region INotifyPropertyChanged and INotifyCollectionChanged Members
+
+    /// <summary>
+    /// <see cref="INotifyPropertyChanged"/>
+    /// </summary>
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    private void OnPropertyChanged(String propertyName) {
+      if (PropertyChanged == null) return;
+      try {
+        _isBusy = true;
+        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+      } finally {
+        _isBusy = false;
+      }
+    }
+
+
+    /// <summary>
+    /// <see cref="INotifyCollectionChanged"/>.
+    /// </summary>
+    public event NotifyCollectionChangedEventHandler CollectionChanged;
+
+    private void OnNotifyCollectionChanged(NotifyCollectionChangedEventArgs args) {
+      if (CollectionChanged == null) return;
+      try {
+        _isBusy = true;
+        CollectionChanged(this, args);
+      } finally {
+        _isBusy = false;
+      }
+    }
+
+    private void CheckReentrancy() {
+      if (_isBusy) {
+        throw new InvalidOperationException("RelatedEntityList's are not reentrant");
+      }
+    }
+    private bool _isBusy;
+
+    #endregion
   }
 }
 

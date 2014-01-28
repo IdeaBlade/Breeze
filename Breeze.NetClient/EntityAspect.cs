@@ -5,9 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
 
@@ -124,9 +121,17 @@ namespace Breeze.NetClient {
     }
 
     // EntityGroup is null if never attached but once its non-null it keeps its previous value.
-    internal EntityGroup EntityGroup { 
+    internal EntityGroup EntityGroup {
       get { return _entityGroup; }
       set { _entityGroup = value; }
+    }
+
+    public bool HasTemporaryKey {
+      get {
+        var dp = this.EntityType.KeyProperties.First();
+        var uid = new UniqueId(dp, GetValue(dp));
+        return EntityManager.KeyGenerator.IsTempId(uid);
+      }
     }
 
     #endregion
@@ -302,7 +307,6 @@ namespace Breeze.NetClient {
         RejectChangesCore();
       };
 
-
       if (EntityState.IsAdded()) {
         // next line is needed because the following line will cause this.entityManager -> null;
         EntityManager.DetachEntity(Entity);
@@ -319,7 +323,7 @@ namespace Breeze.NetClient {
     }
 
     private void RejectChangesCore() {
-      var entity = this.Entity;
+      if (this.OriginalValuesMap == null) return;
       this.OriginalValuesMap.ForEach(kvp => {
         SetValue(kvp.Key, kvp.Value);
       });
@@ -1460,15 +1464,7 @@ namespace Breeze.NetClient {
       return isCurrent;
     }
 
-    internal bool HasTemporaryEntityKey {
-      get {
-        var prop = this.EntityType.KeyProperties.First();
-        var uid = new UniqueId(prop, GetValue(prop));
-        
-        return EntityManager.KeyGenerator.IsTempId(uid);
-        
-      }
-    }
+    
 
     internal EntityKey GetParentKey(NavigationProperty np) {
       // returns null for np's that do not have a parentKey

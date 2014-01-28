@@ -1,14 +1,11 @@
-﻿using System;
+﻿using Breeze.Core;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-
-using System.Threading.Tasks;
-
-using Breeze.Core;
-
 using System.Data.Services.Client;
 using System.Data.Services.Common;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
 

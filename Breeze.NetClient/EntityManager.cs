@@ -1,16 +1,11 @@
-﻿
+﻿using Breeze.Core;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
-
-using Breeze.Core;
-using System.Collections;
 
 namespace Breeze.NetClient {
   public class EntityManager {
@@ -182,6 +177,59 @@ namespace Breeze.NetClient {
 
     public IEntity CreateEntity(EntityType entityType) {
       return (IEntity) Activator.CreateInstance(entityType.ClrType);
+    }
+
+    /// <summary>
+    /// Find all entities in cache having the specified entity state(s).
+    /// </summary>
+    /// <param name="entityState">EntityState(s) of entities to return</param>
+    /// <returns></returns>
+    /// <remarks>
+    /// As the <see cref="EntityState"/> is a flags enumeration, you can supply multiple 
+    /// OR'ed values to search for multiple entity states.
+    /// </remarks>
+    public IEnumerable<IEntity> GetEntities(EntityState entityState = EntityState.AllButDetached) {
+      return GetEntities(typeof(IEntity), entityState);
+    }
+
+    /// <summary>
+    /// Retrieves all entities of a specified type with the specified entity state(s) from cache.
+    /// </summary>
+    /// <typeparam name="T">The type of Entity to retrieve</typeparam>
+    /// <param name="entityState">EntityState(s) of entities to return</param>
+    /// <returns>A collection of Entities</returns>
+    /// <remarks>
+    /// As the <see cref="EntityState"/> is a flags enumeration, you can supply multiple 
+    /// OR'ed values to search for multiple entity states.
+    /// </remarks>
+    public IEnumerable<T> GetEntities<T>(EntityState entityState = EntityState.AllButDetached) where T : class {
+      return GetEntities(typeof(T), entityState).Cast<T>();
+    }
+
+    /// <summary>
+    /// Retrieves all entities of a specified type with the specified entity state(s) from cache.
+    /// </summary>
+    /// <param name="type">The type of Entity to retrieve</param>
+    /// <param name="entityState">EntityState(s) of entities to return</param>
+    /// <returns>A collection of Entities</returns>
+    /// <remarks>
+    /// As the <see cref="EntityState"/> is a flags enumeration, you can supply multiple 
+    /// OR'ed values to search for multiple entity states.
+    /// </remarks>
+    public IEnumerable<IEntity> GetEntities(Type type, EntityState entityState = EntityState.AllButDetached) {
+      if (type.GetTypeInfo().IsAbstract) {
+        var groups = type == typeof(IEntity) 
+          ? this.EntityGroups
+          : this.EntityGroups.Where(eg => type.IsAssignableFrom(eg.ClrType));
+        return groups.SelectMany(f => f.LocalEntityAspects)
+          .Where(ea => ((ea.EntityState & entityState) > 0))
+          .Select(ea => ea.Entity);
+      } else {
+        var group = GetEntityGroup(type);
+        return group.EntityAspects
+          .Where(ea => ((ea.EntityState & entityState) > 0))
+          .Select(ea => ea.Entity);
+      }
     }
 
     public IEntity FindEntityByKey(EntityKey entityKey) {
@@ -371,7 +419,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    internal EntityGroup<T> GetEntityGroup<T>() where T : class {
+    internal EntityGroup<T> GetEntityGroup<T>() where T : IEntity {
       return (EntityGroup<T>)GetEntityGroup(typeof(T));
     }
 
