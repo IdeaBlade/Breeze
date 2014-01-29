@@ -105,7 +105,7 @@ namespace Breeze.NetClient {
       internal set;
     }
 
-    internal EntityVersion EntityVersion {
+    public override EntityVersion EntityVersion {
       get {
         if (_entityVersion == EntityVersion.Default) {
           // this can happen during deserialization.
@@ -113,7 +113,7 @@ namespace Breeze.NetClient {
         }
         return _entityVersion;
       }
-      set {
+      internal set {
         _entityVersion = value;
         // not a public property on EntityAspect ( yet?)
         // OnEntityAspectPropertyChanged("EntityVersion");
@@ -370,7 +370,7 @@ namespace Breeze.NetClient {
     /// The <see cref="T:IdeaBlade.EntityModel.EntityState"/> of this entity.
     /// </summary>
     
-    public EntityState EntityState {
+    public override EntityState EntityState {
       get {
         return _entityState;
       }
@@ -474,7 +474,7 @@ namespace Breeze.NetClient {
           if (np == null) {
             throw new Exception("Unable to locate property: " + propertyName + " on EntityType: " + EntityType.Name);
           }
-          SetValue(np, newValue);
+          SetNpValue(np, newValue);
         }
       } else {
         var prop = EntityType.GetProperty(propertyName);
@@ -488,13 +488,13 @@ namespace Breeze.NetClient {
 
     public void SetValue(StructuralProperty property, object newValue) {
       if (property.IsDataProperty) {
-        SetValue((DataProperty)property, newValue);
+        SetDpValue((DataProperty)property, newValue);
       } else {
-        SetValue((NavigationProperty)property, newValue);
+        SetNpValue((NavigationProperty)property, newValue);
       }
     }
 
-    internal void SetValue(DataProperty property, object newValue) {
+    protected internal override void SetDpValue(DataProperty property, object newValue) {
       if (this.IsDetached) {
         SetRawValue(property.Name, newValue);
         return;
@@ -530,9 +530,9 @@ namespace Breeze.NetClient {
       }
 
       if (property.IsComplexProperty) {
-        SetCpValue(property, newValue, oldValue);
+        SetDpComplexValue(property, newValue, oldValue);
       } else {
-        SetDpValue(property, newValue, oldValue);
+        SetDpSimpleValue(property, newValue, oldValue);
       }
 
       if (this.EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity) {
@@ -545,7 +545,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    internal void SetValue(NavigationProperty property, object newValue) {
+    internal void SetNpValue(NavigationProperty property, object newValue) {
       // property is a NavigationProperty
 
       if (!property.IsScalar) {
@@ -598,10 +598,10 @@ namespace Breeze.NetClient {
           //    ==> internationalOrder.order = order
           if (oldValue != null) {
             // TODO: null -> NullEntity later
-            oldAspect.SetValue(inverseProp, null);
+            oldAspect.SetNpValue(inverseProp, null);
           }
           if (newValue != null) {
-            newAspect.SetValue(inverseProp, this);
+            newAspect.SetNpValue(inverseProp, this);
           }
         } else {
           // Example: bidirectional navProperty: 1->n: order -> orderDetails
@@ -681,23 +681,7 @@ namespace Breeze.NetClient {
 
     }
 
-    private void SetCpValue(DataProperty property, object newValue, object oldValue) {
-      if (property.IsScalar) {
-        if (newValue == null) {
-          throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
-        }
-        var oldCo = (IComplexObject)oldValue;
-        var newCo = (IComplexObject)newValue;
-        oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
-      } else {
-        throw new Exception(String.Format("You cannot set the non-scalar complex property: '{0}' on the type: '{1}'." +
-            "Instead get the property and use collection functions like 'Add' and 'Remove' to change its contents.",
-            property.Name, property.ParentType.Name));
-      }
-
-    }
-
-    private void SetDpValue(DataProperty property, object newValue, object oldValue) {
+    private void SetDpSimpleValue(DataProperty property, object newValue, object oldValue) {
       // if we are changing the key update our internal entityGroup indexes.
       if (property.IsPartOfKey && this.IsAttached && !EntityManager.IsLoadingEntity) {
 
@@ -745,8 +729,24 @@ namespace Breeze.NetClient {
           var fkProps = inverseNp != null ? inverseNp.ForeignKeyProperties : np.InvForeignKeyProperties;
           if (fkProps.Count == 0) return;
           var fkProp = fkProps[propertyIx];
-          ProcessNpValue(np, e => e.EntityAspect.SetValue(fkProp, newValue));         
+          ProcessNpValue(np, e => e.EntityAspect.SetValue(fkProp, newValue));
         });
+      }
+
+    }
+
+    private void SetDpComplexValue(DataProperty property, object newValue, object oldValue) {
+      if (property.IsScalar) {
+        if (newValue == null) {
+          throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
+        }
+        var oldCo = (IComplexObject)oldValue;
+        var newCo = (IComplexObject)newValue;
+        oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
+      } else {
+        throw new Exception(String.Format("You cannot set the non-scalar complex property: '{0}' on the type: '{1}'." +
+            "Instead get the property and use collection functions like 'Add' and 'Remove' to change its contents.",
+            property.Name, property.ParentType.Name));
       }
 
     }
@@ -1055,115 +1055,14 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region Backup version members
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="version"></param>
-    protected internal virtual void ClearBackupVersion(EntityVersion version) {
-
-      if (version == EntityVersion.Original) {
-        if (OriginalValuesMap != null) {
-          ClearComplexBackupVersions(version);
-          OriginalValuesMap = null;
-        }
-      } else if (version == EntityVersion.Proposed) {
-        if (PreproposedValuesMap != null) {
-          ClearComplexBackupVersions(version);
-          PreproposedValuesMap = null;
-        }
-      }
-    }
-
-    private void ClearComplexBackupVersions(EntityVersion version) {
-      this.EntityType.DataProperties.Where(dp => dp.IsComplexProperty).ForEach(dp => {
-        var co = GetValue<IComplexObject>(dp);
-        co.ComplexAspect.ClearBackupVersion(version);
-      });
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="version"></param>
-    protected virtual void RestoreBackupVersion(EntityVersion version) {
-      if (version == EntityVersion.Original) {
-        if (OriginalValuesMap != null) {
-          RestoreOriginalValues(OriginalValuesMap, version);
-          OriginalValuesMap = null;
-        }
-      } else if (version == EntityVersion.Proposed) {
-        if (PreproposedValuesMap != null) {
-          RestoreOriginalValues(PreproposedValuesMap, version);
-          PreproposedValuesMap = null;
-        }
-      }
-    }
-
-    private void RestoreOriginalValues(BackupValuesMap backupMap, EntityVersion version) {
-      backupMap.ForEach(kvp => {
-        var value = kvp.Value;
-        if (value is IComplexObject) {
-          ((IComplexObject)value).ComplexAspect.RestoreBackupVersion(version);
-        }
-        var dp = this.EntityType.GetDataProperty(kvp.Key);
-
-        if (dp.IsForeignKey) {
-          if (GetValue(dp) != value) {
-            SetValue(dp, value);
-            // TODO: review later
-            // ((IScalarEntityReference)dp.RelatedNavigationProperty.GetEntityReference(this)).RefreshForFkChange();
-          }
-        } else {
-          SetValue(dp, value);
-        }
-      });
-    }
-
-    internal void TrackChange(DataProperty property) {
-      TrackChange(property, GetValue(property));
-    }
-
-    internal void TrackChange(DataProperty property, Object oldValue) {
-      // We actually do want to track Proposed changes when Detached ( or Added) but we do not track an Original for either
-      if (this.EntityState.IsAdded() || this.EntityState.IsDetached()) {
-        if (this.EntityVersion == EntityVersion.Proposed) {
-          BackupProposedValueIfNeeded(property, oldValue);
-        }
-      } else {
-        if (this.EntityVersion == EntityVersion.Current) {
-          BackupOriginalValueIfNeeded(property, oldValue);
-        } else if (this.EntityVersion == EntityVersion.Proposed) {
-          // need to do both
-          BackupOriginalValueIfNeeded(property, oldValue);
-          BackupProposedValueIfNeeded(property, oldValue);
-        }
-      }
-    }
-
-    internal void BackupOriginalValueIfNeeded(DataProperty property, Object oldValue) {
-      if (OriginalValuesMap == null) {
-        OriginalValuesMap = new OriginalValuesMap();
-      }
-
-      if (OriginalValuesMap.ContainsKey(property.Name)) return;
-      // reference copy of complex object is deliberate - actual original values will be stored in the co itself.
-      OriginalValuesMap.Add(property.Name, oldValue);
-    }
-
-    internal void BackupProposedValueIfNeeded(DataProperty property, Object oldValue) {
-      if (PreproposedValuesMap == null) {
-        PreproposedValuesMap = new BackupValuesMap();
-      }
-
-      if (PreproposedValuesMap.ContainsKey(property.Name)) return;
-      PreproposedValuesMap.Add(property.Name, oldValue);
-    }
-
-    #endregion
-
     #region Misc private and internal methods/properties
+
+    internal override void OnDataPropertyRestore(DataProperty dp) {
+      if (dp.IsForeignKey) {
+        // TODO: review later
+        // ((IScalarEntityReference)dp.RelatedNavigationProperty.GetEntityReference(this)).RefreshForFkChange();
+      }
+    }
 
     internal void LinkRelatedEntities() {
       //// we do not want entityState to change as a result of linkage.
@@ -1194,13 +1093,13 @@ namespace Breeze.NetClient {
 
           if (parentToChildNp.IsScalar) {
             var onlyChild = unattachedChildren.First();
-            SetValue(parentToChildNp, onlyChild);
-            onlyChild.EntityAspect.SetValue(childToParentNp, Entity);
+            SetNpValue(parentToChildNp, onlyChild);
+            onlyChild.EntityAspect.SetNpValue(childToParentNp, Entity);
           } else {
             var currentChildren = GetValue<INavigationSet>(parentToChildNp);
             unattachedChildren.ForEach(child => {
               currentChildren.Add(child);
-              child.EntityAspect.SetValue(childToParentNp, Entity);
+              child.EntityAspect.SetNpValue(childToParentNp, Entity);
             });
           }
         } else {
@@ -1210,7 +1109,7 @@ namespace Breeze.NetClient {
             parentToChildNp = np;
             if (parentToChildNp.IsScalar) {
               // 1 -> 1 eg parent: Order child: InternationalOrder
-              SetValue(parentToChildNp, unattachedChildren.First());
+              SetNpValue(parentToChildNp, unattachedChildren.First());
             } else {
               // 1 -> n  eg: parent: Region child: Terr
               var currentChildren = GetValue<INavigationSet>(parentToChildNp);
@@ -1223,7 +1122,7 @@ namespace Breeze.NetClient {
             // n -> 1  eg: parent: child: OrderDetail parent: Product
             childToParentNp = np;
             unattachedChildren.ForEach(child => {
-              child.EntityAspect.SetValue(childToParentNp, Entity);
+              child.EntityAspect.SetNpValue(childToParentNp, Entity);
             });
 
           }
@@ -1308,7 +1207,7 @@ namespace Breeze.NetClient {
         var parent = EntityManager.FindEntityByKey(parentKey);
         if (parent != null) {
           if (invNp.IsScalar) {
-            parent.EntityAspect.SetValue(invNp, Entity);
+            parent.EntityAspect.SetNpValue(invNp, Entity);
           } else {
             var navSet = parent.EntityAspect.GetValue<INavigationSet>(invNp);
             navSet.Add(Entity);
@@ -1340,13 +1239,13 @@ namespace Breeze.NetClient {
           var relatedEntity = EntityManager.FindEntityByKey(key);
 
           if (relatedEntity != null) {
-            this.SetValue(relatedNavProp, relatedEntity);
+            this.SetNpValue(relatedNavProp, relatedEntity);
           } else {
             // it may not have been fetched yet in which case we want to add it as an unattachedChild.    
             EntityManager.UnattachedChildrenMap.AddChild(key, relatedNavProp, this.Entity);
           }
         } else {
-          this.SetValue(relatedNavProp, null);
+          this.SetNpValue(relatedNavProp, null);
         }
       } else if (property.InverseNavigationProperty != null) { //  && !EntityManager._inKeyFixup) 
         // Example: unidirectional fkDataProperty: 1->n: region -> territories
@@ -1372,7 +1271,7 @@ namespace Breeze.NetClient {
           var relatedEntity = EntityManager.FindEntityByKey(key);
           if (relatedEntity != null) {
             if (invNavProp.IsScalar) {
-              relatedEntity.EntityAspect.SetValue(invNavProp, null);
+              relatedEntity.EntityAspect.SetNpValue(invNavProp, null);
             } else {
               // remove 'this' from old related nav prop
               var relatedArray = (INavigationSet)relatedEntity.EntityAspect.GetValue(invNavProp);
@@ -1387,7 +1286,7 @@ namespace Breeze.NetClient {
 
           if (relatedEntity != null) {
             if (invNavProp.IsScalar) {
-              relatedEntity.EntityAspect.SetValue(invNavProp, this.Entity);
+              relatedEntity.EntityAspect.SetNpValue(invNavProp, this.Entity);
             } else {
               var relatedArray = (INavigationSet)relatedEntity.EntityAspect.GetValue(invNavProp.Name);
               relatedArray.Add(this.Entity);
@@ -1435,7 +1334,7 @@ namespace Breeze.NetClient {
                 }
               }
             }
-            aspect.SetValue(np, null);
+            aspect.SetNpValue(np, null);
           }
         } else {
           var npEntities = aspect.GetValue<INavigationSet>(np);
@@ -1460,7 +1359,7 @@ namespace Breeze.NetClient {
       var entity = this.Entity;
       
       if (relatedIsDeleted) {
-        SetValue(np, null);
+        SetNpValue(np, null);
       } else {
         // relatedEntity was detached.
         // need to clear child np without clearing child fk or changing the entityState of the child
@@ -1471,7 +1370,7 @@ namespace Breeze.NetClient {
         if (fkProps.Count > 0) {
           fkVals = fkProps.Select(fkp => GetValue(fkp)).ToList();
         }
-        SetValue(np, null);
+        SetNpValue(np, null);
         if (fkVals != null) {
           fkProps.ForEach((fkp, i) => SetValue(fkp, fkVals[i]));
         }

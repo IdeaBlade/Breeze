@@ -125,7 +125,7 @@ namespace Breeze.NetClient {
       var np = this.NavigationProperty;
       var invNp = np.Inverse;
       if (invNp != null) {
-        aspect.SetValue(invNp, ParentEntity);
+        aspect.SetNpValue(invNp, ParentEntity);
       } else {
         // This occurs with a unidirectional 1-n navigation - in this case
         // we need to update the fks instead of the navProp
@@ -142,7 +142,7 @@ namespace Breeze.NetClient {
       var invNp = NavigationProperty.Inverse;
       if (invNp != null) {
         if (invNp.IsScalar) {
-          entity.EntityAspect.SetValue(invNp, null);
+          entity.EntityAspect.SetNpValue(invNp, null);
         } else {
           throw new Exception("Many-many relations not yet supported");
         }

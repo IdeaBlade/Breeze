@@ -46,7 +46,7 @@ namespace Test_NetClient {
 
     // create entity with complexType property
     [TestMethod]
-    public async Task CreateEntityWithComplexProperty() {
+    public async Task CheckDefaultValues() {
       await _emTask;
 
       var supplier = _em1.CreateEntity<Supplier>();
@@ -58,36 +58,52 @@ namespace Test_NetClient {
     
     }
 
-    //test("create entity with complexType property 2", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-
-    //    var supplier = em.createEntity("Supplier", { companyName: "XXX" });
-    //    supplier.getProperty("location").setProperty("city","San Francisco");
-    //    supplier.getProperty("location").setProperty("postalCode", "91333");
-    //    ok(supplier.getProperty("location").getProperty("city") === "San Francisco");
-
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    supplier.setProperty("location", locationType.createInstance({ city: "Boston", postalCode: "12345" }));
-    //    ok(supplier.getProperty("location").getProperty("city") === "Boston");
-    //});
-
-    //test("initializer on complexType for createInstance", function () {
-
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Supplier = testFns.models.Supplier();
-
-    //    var locationInitializer = function (location) {
-    //        location.setProperty("city", "FOO");
-    //    };
-    //    em.metadataStore.registerEntityTypeCtor("Location", null, locationInitializer);
 
 
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    var newLocation = locationType.createInstance();
-    //    var city = newLocation.getProperty("city");
-    //    ok(city === "FOO", "city should === 'FOO'");
+    [TestMethod]
+    public async Task SetSimple() {
+      await _emTask;
 
-    //});
+      var supplier = _em1.CreateEntity<Supplier>();
+      
+      supplier.Location.City = "San Francisco";
+      var location = supplier.Location;
+      location.PostalCode = "91333";
+
+      Assert.IsTrue(supplier.Location == location, "ref should be the same");
+      Assert.IsTrue(supplier.Location.City == "San Francisco", "city should be set");
+      Assert.IsTrue(supplier.Location.PostalCode == "91333", "postal code should be set");
+    }
+
+    [TestMethod]
+    public async Task AssignComplexObject() {
+      await _emTask;
+
+      var supplier = _em1.CreateEntity<Supplier>();
+      var initLocation = supplier.Location;
+      supplier.Location.City = "San Francisco";
+      Assert.IsTrue(supplier.Location.City == "San Francisco", "city should be set");
+      var newLocation = new Location();
+      newLocation.City = "Seatle";
+      supplier.Location = newLocation;
+      Assert.IsTrue(supplier.Location == initLocation, "location ref should not have changed");
+      Assert.IsTrue(supplier.Location.City == "Seatle", "city should have changed");
+    }
+
+    [TestMethod]
+    public async Task AssignComplexObjectWithInitializer() {
+      await _emTask;
+
+      var supplier = _em1.CreateEntity<Supplier>();
+      var initLocation = supplier.Location;
+      supplier.Location.City = "San Francisco";
+      Assert.IsTrue(supplier.Location.City == "San Francisco", "city should be set");
+      var newLocation = new Location() { City = "Seatle", PostalCode = "11111" };
+      supplier.Location = newLocation;
+      Assert.IsTrue(supplier.Location == initLocation, "location ref should not have changed");
+      Assert.IsTrue(supplier.Location.City == "Seatle", "city should have changed");
+    }
+
 
     //test("initializer on complexType during query",  function () {
     //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));

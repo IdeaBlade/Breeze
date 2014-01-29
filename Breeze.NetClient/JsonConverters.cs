@@ -107,11 +107,23 @@ namespace Breeze.NetClient {
       dict.ForEach(kvp => {
         var key = kvp.Key;
         var prop = structuralType.GetProperty(key);
-        if (prop != null) {
+        if (prop != null) {         
           if (prop.IsDataProperty) {
-            if (backingStore != null) backingStore[key] = kvp.Value.ToObject(prop.ClrType);
+            if (backingStore != null) {
+              var dp = (DataProperty)prop;
+              if (dp.IsComplexProperty) {
+                var newCo = (IComplexObject) kvp.Value.ToObject(dp.ClrType);
+                var co = (IComplexObject)backingStore[key];
+                var coBacking = co.ComplexAspect.BackingStore;
+                newCo.ComplexAspect.BackingStore.ForEach(kvp2 => {
+                  coBacking[kvp2.Key] = kvp2.Value;
+                });
+              } else {
+                backingStore[key] = kvp.Value.ToObject(dp.ClrType);
+              }
+            }
           } else {
-            // TODO: nest serialization
+            
             var np = (NavigationProperty)prop;
             
             if (kvp.Value.HasValues) {
