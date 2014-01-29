@@ -322,13 +322,7 @@ namespace Breeze.NetClient {
       this.EntityGroup.OnEntityChanged(this.Entity, EntityAction.RejectChanges);
     }
 
-    private void RejectChangesCore() {
-      if (this.OriginalValuesMap == null) return;
-      this.OriginalValuesMap.ForEach(kvp => {
-        SetValue(kvp.Key, kvp.Value);
-      });
-      this.ProcessComplexProperties(co => co.ComplexAspect.RejectChangesCore());
-    }
+  
 
 
 

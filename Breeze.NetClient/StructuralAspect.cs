@@ -19,13 +19,17 @@ namespace Breeze.NetClient {
       _backingStore = (stObj is IHasBackingStore) ? null : new Dictionary<String, Object>();
     }
 
-
     public abstract EntityState EntityState { get; set; }
+
     public abstract EntityVersion EntityVersion { get; internal set;  }
-  
+     
+    protected abstract StructuralType StructuralType { get; }
+
+    protected abstract IStructuralObject StructuralObject { get; }
+
     protected internal IDictionary<String, Object> BackingStore {
       get {
-        return _backingStore ?? ((IHasBackingStore) StructuralObject).BackingStore;
+        return _backingStore ?? ((IHasBackingStore)StructuralObject).BackingStore;
       }
       set {
         if (_backingStore != null) {
@@ -33,13 +37,11 @@ namespace Breeze.NetClient {
         } else {
           ((IHasBackingStore)StructuralObject).BackingStore = value;
         }
-        
+
       }
     }
-    
-    protected abstract StructuralType StructuralType { get; }
 
-    protected abstract IStructuralObject StructuralObject { get; }
+    #region Get/Set value
 
     protected internal Object GetRawValue(String propertyName) {
       Object val = null;
@@ -104,6 +106,14 @@ namespace Breeze.NetClient {
     public abstract void SetValue(String propertyName, object newValue);
     protected internal abstract void SetDpValue(DataProperty dp, object newValue);
 
+    protected void RejectChangesCore() {
+      if (this.OriginalValuesMap == null) return;
+      this.OriginalValuesMap.ForEach(kvp => {
+        SetValue(kvp.Key, kvp.Value);
+      });
+      this.ProcessComplexProperties(co => co.ComplexAspect.RejectChangesCore());
+    }
+
     protected void ProcessComplexProperties( Action<IComplexObject> action) {
       this.StructuralType.ComplexProperties.ForEach(cp => {
         var cos = this.GetValue(cp.Name);
@@ -121,7 +131,30 @@ namespace Breeze.NetClient {
       return properties.Select(p => this.GetValue(p)).ToArray();
     }
 
+    #endregion
+
     #region Backup version members
+
+    protected void TrackChange(DataProperty property) {
+      TrackChange(property, GetValue(property));
+    }
+
+    protected void TrackChange(DataProperty property, Object oldValue) {
+      // We actually do want to track Proposed changes when Detached ( or Added) but we do not track an Original for either
+      if (this.EntityState.IsAdded() || this.EntityState.IsDetached()) {
+        if (this.EntityVersion == EntityVersion.Proposed) {
+          BackupProposedValueIfNeeded(property, oldValue);
+        }
+      } else {
+        if (this.EntityVersion == EntityVersion.Current) {
+          BackupOriginalValueIfNeeded(property, oldValue);
+        } else if (this.EntityVersion == EntityVersion.Proposed) {
+          // need to do both
+          BackupOriginalValueIfNeeded(property, oldValue);
+          BackupProposedValueIfNeeded(property, oldValue);
+        }
+      }
+    }
 
     protected Object GetOriginalValue(DataProperty property) {
       object result;
@@ -201,26 +234,7 @@ namespace Breeze.NetClient {
       // deliberate noop here;
     }
 
-    protected void TrackChange(DataProperty property) {
-      TrackChange(property, GetValue(property));
-    }
 
-    protected void TrackChange(DataProperty property, Object oldValue) {
-      // We actually do want to track Proposed changes when Detached ( or Added) but we do not track an Original for either
-      if (this.EntityState.IsAdded() || this.EntityState.IsDetached()) {
-        if (this.EntityVersion == EntityVersion.Proposed) {
-          BackupProposedValueIfNeeded(property, oldValue);
-        }
-      } else {
-        if (this.EntityVersion == EntityVersion.Current) {
-          BackupOriginalValueIfNeeded(property, oldValue);
-        } else if (this.EntityVersion == EntityVersion.Proposed) {
-          // need to do both
-          BackupOriginalValueIfNeeded(property, oldValue);
-          BackupProposedValueIfNeeded(property, oldValue);
-        }
-      }
-    }
 
     private void BackupOriginalValueIfNeeded(DataProperty property, Object oldValue) {
       if (OriginalValuesMap == null) {
@@ -254,11 +268,11 @@ namespace Breeze.NetClient {
 
     #endregion
 
-
+    #region Private 
 
     private IDictionary<String, Object> _backingStore;
     protected bool _defaultValuesInitialized;
 
-    
+    #endregion
   }
 }

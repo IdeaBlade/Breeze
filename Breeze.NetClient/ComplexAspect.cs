@@ -163,16 +163,6 @@ namespace Breeze.NetClient {
 
     #region internal and protected 
 
-    internal void RejectChangesCore() {
-      var co = this.ComplexObject;
-      if (this.OriginalValuesMap != null) {
-        this.OriginalValuesMap.ForEach(kvp => {
-          SetValue(kvp.Key, kvp.Value);
-        });
-      }
-      this.ProcessComplexProperties(co2 => co2.ComplexAspect.RejectChangesCore());
-    }
-
     internal bool IsDetached {
       get { return ParentEntity == null || ParentEntity.EntityAspect.IsDetached; }
     }
@@ -212,12 +202,6 @@ namespace Breeze.NetClient {
       });
     }
 
-    internal Object[] GetCurrentValues() {
-      var props = ComplexType.DataProperties;
-      var currentValues = props.Select(p => GetValue(p)).ToArray();
-      return currentValues;
-    }
-
     protected override StructuralType StructuralType {
       get { return this.ComplexType; }
     }
@@ -229,7 +213,6 @@ namespace Breeze.NetClient {
     #endregion
 
     #region Get/Set Value
-
 
     internal void InitializeDefaultValues() {
 
@@ -353,11 +336,11 @@ namespace Breeze.NetClient {
     }
 
 
-    private DateTime ConvertToSqlDateTime(DateTime dt) {
-      var ticks = ((long)1E5) * (dt.Ticks / (long)1E5);
-      var newDt = new DateTime(ticks);
-      return newDt;
-    }
+    //private DateTime ConvertToSqlDateTime(DateTime dt) {
+    //  var ticks = ((long)1E5) * (dt.Ticks / (long)1E5);
+    //  var newDt = new DateTime(ticks);
+    //  return newDt;
+    //}
 
     #endregion
 
@@ -466,7 +449,9 @@ namespace Breeze.NetClient {
     public bool StructuralEquals(object obj) {
       var aspect = obj as ComplexAspect;
       if (aspect == null) return false;
-      var areEqual = this.GetCurrentValues().Zip(aspect.GetCurrentValues(), (o1, o2) => {
+      var theseValues = GetValues(this.StructuralType.DataProperties);
+      var otherValues = GetValues(aspect.StructuralType.DataProperties);
+      var areEqual = theseValues.Zip(otherValues, (o1, o2) => {
         if (o1 is IComplexObject) {
           return (((IComplexObject)o1).ComplexAspect).StructuralEquals(((IComplexObject)o2).ComplexAspect);
         } else {
