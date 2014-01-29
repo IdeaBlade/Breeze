@@ -1,15 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using Breeze.Core;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Reflection;
-using System.Runtime.Serialization.Formatters;
-using Breeze.Core;
-using System.Runtime.Serialization;
-using System.Collections;
 
 
 namespace Breeze.NetClient {
@@ -78,7 +72,7 @@ namespace Breeze.NetClient {
         var keyValues = entityType.KeyProperties
           .Select(p => jObject[p.Name].ToObject(p.ClrType))
           .ToArray();
-        var entityKey = new EntityKey(entityType, keyValues, false);
+        var entityKey = new EntityKey(entityType, keyValues);
         var entity = _entityManager.FindEntityByKey(entityKey);
         if (entity == null) {
           entity = (IEntity) Activator.CreateInstance(objectType);

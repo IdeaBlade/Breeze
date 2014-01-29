@@ -6,25 +6,28 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Breeze.Core;
+using System.ComponentModel;
+using System.Collections.Specialized;
+using System.Collections.ObjectModel;
 
 namespace Breeze.NetClient {
 
 
-  public interface INavigationSet : IEnumerable {
+  public interface INavigationSet : IEnumerable, INotifyPropertyChanged, INotifyCollectionChanged {
     IEntity ParentEntity { get; set; }
     NavigationProperty NavigationProperty { get; set; }
     void Add(IEntity entity);
     void Remove(IEntity entity);
-    int Count { get; }
     void Clear();
+    int Count { get; }
   }
 
-  public class NavigationSet<T> : ICollection<T>, INavigationSet where T:IEntity {
+  public class NavigationSet<T> : NotifiableCollection<T>, INavigationSet where T:IEntity {
 
     public NavigationSet() {
-      _hashSet = new HashSet<T>();
+      
     }
-    private HashSet<T> _hashSet;
+    
 
     public NavigationSet(IEntity parentEntity, NavigationProperty navigationProperty) {
       ((INavigationSet) this).ParentEntity = parentEntity;
@@ -47,7 +50,7 @@ namespace Breeze.NetClient {
     #region INavigationSet imp
 
     void INavigationSet.Add(IEntity entity) {
-      AddCore(entity);
+      Add((T) entity);
     }
 
 
@@ -57,70 +60,59 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region ICollection<T> implementation
+    #region Overrides
 
-    public void Add(T item) {
-      AddCore(item);
-    }
-
-
-    public void Clear() {
-      _hashSet.Clear();
-    }
-
-    public bool Contains(T item) {
-      return _hashSet.Contains(item);
-    }
-
-    public void CopyTo(T[] array, int arrayIndex) {
-      _hashSet.CopyTo(array, arrayIndex);
-    }
-
-    public int Count {
-      get { return _hashSet.Count; }
-    }
-
-    public bool IsReadOnly {
-      get { return false; }
-    }
-
-    public bool Remove(T item) {
-      return _hashSet.Remove(item);
-    }
-
-    public IEnumerator<T> GetEnumerator() {
-      return _hashSet.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() {
-      return _hashSet.GetEnumerator();
-    }
-
-    #endregion
-
-    #region Internal and Private
-
-    
-    private void AddCore(IEntity entity) {
-      if (_inProcess || _hashSet.Contains( (T) entity)) return;
-      if (ParentEntity == null 
-        || ParentEntity.EntityAspect.IsDetached 
-        || ParentEntity.EntityAspect.EntityManager.IsLoadingEntity) {
-          _hashSet.Add((T)entity);
-          return;
+    protected override void InsertItem(int index, T entity) {
+      // contains in next line is needed
+      if (_inProcess || this.Contains(entity)) return;
+      
+      var parentAspect = ParentEntity == null ? null : ParentEntity.EntityAspect;
+      if (parentAspect == null
+        || parentAspect.IsDetached
+        || parentAspect.EntityManager.IsLoadingEntity) {
+        base.InsertItem(index, entity);
+        return;
       }
       using (new BooleanUsingBlock(b => _inProcess = b)) {
         if (entity.EntityAspect.IsDetached) {
-          entity.EntityAspect.Attach(EntityState.Added, ParentEntity.EntityAspect.EntityManager);
+          entity.EntityAspect.Attach(EntityState.Added, parentAspect.EntityManager);
         }
-        _hashSet.Add((T)entity);
-        ProcessRelated(entity);
+        base.InsertItem(index, entity);
+        ConnectRelated(entity);
+      }
+
+    }
+
+    protected override void RemoveItem(int index) {
+      if (_inProcess) return;
+      var parentAspect = ParentEntity == null ? null : ParentEntity.EntityAspect;
+      if (parentAspect == null
+        || parentAspect.IsDetached
+        || parentAspect.EntityManager.IsLoadingEntity) {
+          base.RemoveItem(index);
+        return;
+      }
+      using (new BooleanUsingBlock(b => _inProcess = b)) {
+        var entity = Items[index];
+        base.RemoveItem(index);
+        DisconnectRelated(entity);
       }
     }
+
+    protected override void ClearItems() {
+      // TODO: need to resolve this. - when is it called
+      base.ClearItems();
+    }
+
+    protected override void SetItem(int index, T item) {
+      // TODO: need to resolve this.
+      base.SetItem(index, item);
+    }
+
     private bool _inProcess = false;
 
-    private void ProcessRelated(IEntity entity) {
-      
+    private void ConnectRelated(IEntity entity) {
+
       var aspect = entity.EntityAspect;
       var parentAspect = ParentEntity.EntityAspect;
       var np = this.NavigationProperty;
@@ -131,14 +123,38 @@ namespace Breeze.NetClient {
         // This occurs with a unidirectional 1-n navigation - in this case
         // we need to update the fks instead of the navProp
         var pks = parentAspect.EntityType.KeyProperties;
-        np.InvForeignKeyNames.ForEach((fk, i) => {
-          entity.EntityAspect.SetValue(fk, parentAspect.GetValue(pks[i]));
+        np.InvForeignKeyProperties.ForEach((fkp, i) => {
+          entity.EntityAspect.SetValue(fkp, parentAspect.GetValue(pks[i]));
         });
       }
     }
 
+    private void DisconnectRelated(T entity) {
+      var aspect = entity.EntityAspect;
+      var parentAspect = ParentEntity.EntityAspect;
+      var invNp = NavigationProperty.Inverse;
+      if (invNp != null) {
+        if (invNp.IsScalar) {
+          entity.EntityAspect.SetValue(invNp, null);
+        } else {
+          throw new Exception("Many-many relations not yet supported");
+        }
+      } else {
+        // This occurs with a unidirectional 1-n navigation - in this case
+        // we need to update the fks instead of the navProp
+        var pks = parentAspect.EntityType.KeyProperties;
+        this.NavigationProperty.InvForeignKeyProperties.ForEach((fkp, i) => {
+          // TODO: write a test to see what happens if this fails
+          aspect.SetValue(fkp, fkp.DefaultValue);
+        });
+      }
+    }
+
+
     #endregion
 
+
+    
   }
 }
 

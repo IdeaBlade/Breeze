@@ -8,6 +8,8 @@ using Breeze.NetClient;
 using Breeze.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Foo;
+using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace Test_NetClient {
 
@@ -276,428 +278,398 @@ namespace Test_NetClient {
       _em1.AttachEntity(prod);
       var origProdId = prod.ProductID;
       var ek = prod.EntityAspect.EntityKey;
-    //    var origProductId = product.getProperty(testFns.productKeyName);
-    //    var entityKey = new EntityKey(productType, [origProductId]);
-    //    var sameProduct = em.findEntityByKey(entityKey);
-    //    var sameProduct2 = em.getEntityByKey("Product", origProductId);
-    //    ok(product === sameProduct);
-    //    ok(product === sameProduct2);
-    //    product.setProperty(testFns.productKeyName, 7);
-    //    sameProduct = em.getEntityByKey(entityKey);
-    //    ok(sameProduct === null);
-    //    entityKey = new EntityKey(productType, [7]);
-    //    sameProduct = em.findEntityByKey(entityKey);
-    //    ok(product === sameProduct);
-    //});
-
-    //test("post create init 1", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Product = testFns.models.Product();
-    //    var productType = em.metadataStore.getEntityType("Product");
-    //    em.metadataStore.registerEntityTypeCtor("Product", Product, function(entity) {
-    //        ok(entity.entityType === productType, "entity's productType should be 'Product'");
-    //        ok(entity.getProperty("isObsolete") === false, "should not be obsolete");
-    //        entity.setProperty("isObsolete", true);
-    //    });
-
-    //    var product = productType.createEntity();
-    //    ok(product.getProperty("isObsolete") === true);
-
-    //    product.setProperty("isObsolete", false);
-    //    ok(product.getProperty("isObsolete") === false);
-    //});
+      var sameProd = _em1.FindEntityByKey(ek);
+      Assert.IsTrue(prod == sameProd, "should be the same product");
+      var sameProd2 = _em1.FindEntityByKey<Product>(origProdId);
+      Assert.IsTrue(prod == sameProd2, "should be the same product-again");
+      prod.ProductID = 7;
+      var notSameProd = _em1.FindEntityByKey(ek);
+      Assert.IsTrue(notSameProd == null);
+      var sameProd3 = _em1.FindEntityByKey(prod.EntityAspect.EntityKey);
+      Assert.IsTrue(prod == sameProd2, "should be the same product-again 2");
+    }
     
-    //test("post create init 2", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Product = testFns.models.Product();
-        
-    //    var productType = em.metadataStore.getEntityType("Product");
-    //    em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
+    // changing FK to null removes it from old parent
+    [TestMethod]
+    public async Task FkSetToNull() {
+      await _emTask;
 
-    //    var product = productType.createEntity();
-    //    ok(product.getProperty("isObsolete") === true);
-    //});
+      var cust = _em1.CreateEntity<Customer>(EntityState.Unchanged);
+      var order1 = _em1.CreateEntity<Order>();
+      order1.Customer = cust;
+      Assert.IsTrue(order1.Customer == cust, "should be customer");
+      Assert.IsTrue(cust.Orders.Contains(order1), "should contain order1");
 
-    //test("post create init 3", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Product = testFns.models.Product();
-    //    var productType = em.metadataStore.getEntityType("Product");
-    //    em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
+      var order2 = new Order();
+      order2.Customer = cust;
+      Assert.IsTrue(order2.EntityAspect.IsAttached && order2.EntityAspect.EntityState.IsAdded());
+      Assert.IsTrue(order2.Customer == cust, "should be customer - again");
+      Assert.IsTrue(cust.Orders.Contains(order2), "should contain order2");
 
-    //    var product = productType.createEntity();
-    //    ok(product.getProperty("isObsolete") === true);
-    //});
-    
-    //test("post create init after new and attach", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Product = testFns.models.Product();
-    //    var product = new Product();
-    //    var productType = em.metadataStore.getEntityType("Product");
-    //    em.metadataStore.registerEntityTypeCtor("Product", Product, "init");
-    //    em.attachEntity(product);
-        
-    //    ok(product.getProperty("isObsolete") === true);
-    //});
+      order1.CustomerID = null;
+      Assert.IsTrue(order1.Customer == null, "should be null");
+      Assert.IsTrue(!cust.Orders.Contains(order1), "should not contain order1");
 
-    //test("changing FK to null removes it from old parent", 2, function () {
-    //    // D2183
-    //    var em = newEm();
-    //    var customerType = em.metadataStore.getEntityType("Customer");
-    //    var customer = customerType.createEntity();
-    //    em.attachEntity(customer);
-
-    //    //var orderType = em.metadataStore.getEntityType("Order");
-    //    //var newOrder = orderType.createEntity();
-    //    //em.addEntity(newOrder);
-    //    // newOrder.setProperty("customer", customer); // assign order to customer1
-    //    var newOrder = em.createEntity("Order", { customer: customer });
-        
-    //    ok(customer.getProperty("orders").indexOf(newOrder) >= 0,
-    //        "newOrder is among customer's orders");
-
-    //    newOrder.setProperty("customerID", null); 
-    //    ok(customer.getProperty("orders").indexOf(newOrder) === -1,
-    //        "newOrder is no longer among customer's orders");
-    //});
+    }
 
     
-    //test("add, detach and readd",  function () {
-    //    // D2182
-    //    var em = newEm();
-    //    //var orderType = em.metadataStore.getEntityType("Order");
-    //    //var newOrder = orderType.createEntity();
-    //    //em.addEntity(newOrder);
-    //    var newOrder = em.createEntity("Order");
-        
-    //    em.detachEntity(newOrder); 
-    //    em.addEntity(newOrder);// Exception thrown: "this key is already attached"
-    //    ok(true);
-    //});
+    // add, detach and readd
+    [TestMethod]
+    public async Task AddDetachReadd() {
+      await _emTask;
 
+      var order = _em1.CreateEntity<Order>();
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsAdded());
+      _em1.DetachEntity(order);
+      Assert.IsTrue(order.EntityAspect.IsDetached);
+      _em1.AttachEntity(order, EntityState.Added);
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsAdded());
+    }
 
-    //test("attach, detach, reattach",  function () {
-    //    // D2182
-    //    var em = newEm();
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var order = orderType.createEntity();
-    //    em.attachEntity(order);
+    // attach, detach and reattach
+    [TestMethod]
+    public async Task AttachDetachReattach() {
+      await _emTask;
 
-    //    em.detachEntity(order);
-    //    em.attachEntity(order);// Exception thrown: "this key is already attached"
-    //    ok(true);
-    //});
-
+      var order = _em1.CreateEntity<Order>(EntityState.Unchanged);
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsUnchanged());
+      _em1.DetachEntity(order);
+      Assert.IsTrue(order.EntityAspect.IsDetached);
+      _em1.AttachEntity(order);
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsUnchanged());
+    }
     
-    //test("exception if set nav to entity with different manager", function  () {
-    //    var em1 = newEm();
-    //    var orderType = em1.metadataStore.getEntityType("Order");
-    //    var o1 = orderType.createEntity();
-    //    em1.attachEntity(o1);
-
-    //    var em2 = newEm();
-    //    var customerType = em2.metadataStore.getEntityType("Customer");
-    //    var c1 = customerType.createEntity();
-    //    em2.attachEntity(c1);
-
-    //    ok(c1.entityAspect.entityManager !== o1.entityAspect.entityManager,
-    //        "existingCustomer and existingOrder have different managers"); 
-
-    //    try {
-    //        o1.setProperty("customer", c1);
-    //        ok(false, "shouldn't get here");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("EntityManager") >= 0);
-    //    }
-
-    //});
-
-
+    // exception if set nav to entity with different manager
+    [TestMethod]
+    public async Task ErrorOnNavAttach() {
+      await _emTask;
     
-    //test("attach across entityManagers", function() {
-    //    var em1 = newEm();
-    //    var custType = em1.metadataStore.getEntityType("Customer");
-    //    var cust = custType.createEntity();
-    //    em1.attachEntity(cust);
-    //    var em2 = newEm();
-    //    try {
-    //        em2.attachEntity(cust);
-    //        ok("fail", "should not be able to attach an entity to more than one entityManager");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("EntityManager"));
-    //    }
-    //});
+      var order = _em1.CreateEntity<Order>(EntityState.Unchanged);
+    
+      var em2 = new EntityManager(_em1);
+      var cust = em2.CreateEntity<Customer>(EntityState.Unchanged);
+      Assert.IsTrue(order.EntityAspect.EntityManager != cust.EntityAspect.EntityManager, "should not be the same manager");
+      try {
+        order.Customer = cust;
+        Assert.Fail("should not get here");
+      } catch (Exception e) {
+        Assert.IsTrue(e.Message.Contains("EntityManager"), "message should mention 'EntityManager'");
+      }
+      cust.EntityAspect.Detach();
+      order.Customer = cust;
+      Assert.IsTrue(order.EntityAspect.EntityManager == cust.EntityAspect.EntityManager, "should be the same manager");
+      Assert.IsTrue(cust.Orders.Contains(order) && order.Customer == cust, "should be properly connected");
+    }
+
+    // exception if set nav to entity with different manager
+    [TestMethod]
+    public async Task ErrorOnAttachMultiple() {
+      await _emTask;
+    
+      var order = _em1.CreateEntity<Order>(EntityState.Unchanged);
+      var em2 = new EntityManager(_em1);
+      try {
+        em2.AttachEntity(order);
+        Assert.Fail("should not get here");
+      } catch (Exception e) {
+        Assert.IsTrue(e.Message.Contains("EntityManager"), "message should mention 'EntityManager'");
+      }
+    }
+      
        
-    //test("rejectChanges on added entity", function () {
-    //    var em = newEm();
-    //    //var typeInfo = em.metadataStore.getEntityType("Order");
-    //    //var newEntity = typeInfo.createEntity();
-    //    //em.addEntity(newEntity);
-    //    var newEntity = em.createEntity("Order");
+    // rejectChanges on added entity
+    [TestMethod]
+    public async Task RejectChangesOnAdd() {
+      await _emTask;
+      var order = _em1.CreateEntity<Order>();
+      Assert.IsTrue(order.EntityAspect.EntityState.IsAdded(), "should be in Added state");
+      Assert.IsTrue(_em1.HasChanges(), "should have some changes");
+      var ents = _em1.GetEntities();
+      Assert.IsTrue(ents.Count() == 1);
+      order.EntityAspect.RejectChanges();
+      Assert.IsTrue(order.EntityAspect.IsDetached);
+      Assert.IsTrue(!_em1.HasChanges(), "should not have any changes");
+      ents = _em1.GetEntities();
+      Assert.IsTrue(ents.Count() == 0);
 
-    //    var entityState = newEntity.entityAspect.entityState;
-    //    ok(entityState.isAdded(),
-    //        "newEntity should be in Added state; is "+entityState);
-
-    //    newEntity.entityAspect.rejectChanges();
-     
-    //    entityState = newEntity.entityAspect.entityState;
-    //    ok(entityState.isDetached(),
-    //        "newEntity should be Detached after rejectChanges; is "+entityState);
-
-    //    ok(!em.hasChanges(), "should not have changes");
-
-    //    var inCache = em.getEntities(), count = inCache.length;
-    //    ok(count == 0, "should have no entities in cache; have " + count);
-
-    //});
+    }
     
-    //test("delete added entity", 3, function () {
-    //    var em = newEm();
-    //    var typeInfo = em.metadataStore.getEntityType("Order");
-    //    //var newEntity = typeInfo.createEntity();
-    //    //em.addEntity(newEntity);
-    //    var newEntity = em.createEntity(typeInfo);
+    // delete added entity
+    [TestMethod]
+    public async Task DeleteAdded() {
+      await _emTask;
+      var order = _em1.CreateEntity<Order>();
+      Assert.IsTrue(order.EntityAspect.EntityState.IsAdded(), "should be in Added state");
+      Assert.IsTrue(_em1.HasChanges(), "should have some changes");
+      order.EntityAspect.Delete();
+      Assert.IsTrue(order.EntityAspect.IsDetached);
+      Assert.IsTrue(!_em1.HasChanges(), "should not have any changes");
+      var ents = _em1.GetEntities();
+      Assert.IsTrue(ents.Count() == 0);
+    }
 
-    //    ok(newEntity.entityAspect.entityState.isAdded(),
-    //        "new Todo added to cache is in 'added' state");
+    // add entity - no key
+    [TestMethod]
+    public async Task AddEntityNoOrPartialKey() {
+      await _emTask;
 
-    //    newEntity.entityAspect.setDeleted();
+      if (TestFns.DEBUG_MONGO) {
+        Assert.Inconclusive("NA for Mongo - OrderDetail");
+        return;
+      }
+      var od = new OrderDetail();
+      try {
+        _em1.AttachEntity(od, EntityState.Added);
+        Assert.Fail("should not get here");
+      } catch (Exception e) {
+        Assert.IsTrue(e.Message.Contains("key"), "error message should contain 'key'");
+      }
 
-    //    ok(newEntity.entityAspect.entityState.isDetached(),  // FAIL
-    //        "new Todo added to cache is 'detached'");  
-        
-    //    // get the first (and only) entity in cache
-    //    equal(em.getEntities().length, 0, "no entities in cache"); //FAIL
+      // only need to set part of the key
+      od.OrderID = 999;
+      _em1.AttachEntity(od, EntityState.Added);
+      Assert.IsTrue(od.EntityAspect.EntityState.IsAdded());
 
-    //});
+      try {
+        var od2 =_em1.CreateEntity<OrderDetail>(EntityState.Added);
+        Assert.Fail("should not get here");
+      } catch (Exception e) {
+        Assert.IsTrue(e.Message.Contains("key"), "error message should contain 'key'");
+      }
+    }
 
+    // add child
+    [TestMethod]
+    public async Task AddToNavCollection() {
+      await _emTask;
 
-    //test("add entity - no key", function () {
-    //    if (testFns.DEBUG_MONGO) {
-    //        ok(true, "NA for Mongo - OrderDetail");
-    //        return;
-    //    }
-    //    var em = newEm();
-    //    var odType = em.metadataStore.getEntityType("OrderDetail");
-    //    var od = odType.createEntity();
-    //    try {
-    //        em.addEntity(od);
-    //        ok(false, "should not be able to attach an entity without setting its key");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("key") >= 0, "error message should contain 'key'");
-    //    }
-    //    try {
-    //        var cId = em.generateTempKeyValue(od);
-    //        ok(false, "should not be able to generate a temp multipart key");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("multipart keys") >= 0, "error message should contain 'multipart keys'");
-    //    }
-    //    // only need to set part of the key
-    //    od.setProperty("orderID", 999);
-    //    em.addEntity(od);
-    //});
+      var cust1 = new Customer();
+      var order1 = new Order();
+      _em1.AttachEntity(cust1, EntityState.Added);
+      Assert.IsTrue(cust1.EntityAspect.HasTemporaryKey, "should have a temp key");
+      var orders = cust1.Orders;
+      Assert.IsTrue(orders.ParentEntity == cust1, "ParentEntity should be set");
+      Assert.IsTrue(orders.NavigationProperty == cust1.EntityAspect.EntityType.GetNavigationProperty("Orders"), "NavProperty should be set");
 
-    //test("add entity - no key 2", function () {
-    //    if (testFns.DEBUG_MONGO) {
-    //        ok(true, "NA for Mongo - OrderDetail");
-    //        return;
-    //    }
-    //    var em = newEm();
-    //    var od;
-    //    try {
-    //        od = em.createEntity("OrderDetail");
-    //        ok(false, "should not be able to attach an entity without setting its key");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("key") >= 0, "error message should contain 'key'");
-    //    }
-    //    try {
-    //        od = em.createEntity("OrderDetail", null, EntityState.Detached);
-    //        var cId = em.generateTempKeyValue(od);
-    //        ok(false, "should not be able to generate a temp multipart key");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("multipart keys") >= 0, "error message should contain 'multipart keys'");
-    //    }
-    //    // only need to set part of the key
-    //    od.setProperty("orderID", 999);
-    //    em.addEntity(od);
-    //});
+      NotifyCollectionChangedEventArgs changeArgs = null;
+      orders.CollectionChanged += (s, e) => {
+        changeArgs = e;
+      };
+      orders.Add(order1);
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsAdded(), "should be added");
+      Assert.IsTrue(orders.Contains(order1), "should contain order");
+      Assert.IsTrue(order1.Customer == cust1, "should be connected");
+      Assert.IsTrue(changeArgs != null, "changeArgs should not be null");
+      Assert.IsTrue(changeArgs.Action == NotifyCollectionChangedAction.Add);
+      Assert.IsTrue(changeArgs.NewItems.Contains(order1), "change should mention order1");
 
-
-    //test("add child", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
-        
-    //    em.addEntity(cust1);
-    //    ok(cust1.entityAspect.entityState === EntityState.Added, "cust entityState should be added");
-    //    ok(cust1.entityAspect.hasTempKey === true, "hasTempKey should be true");
-    //    var orders = cust1.getProperty("orders");
-
-    //    var changeArgs = null;
-    //    orders.arrayChanged.subscribe(function (args) {
-    //        changeArgs = args;
-    //    });
-    //    orders.push(order1);
-    //    ok(cust1.entityAspect.entityState === EntityState.Added, "cust entityState should be added");
-    //    ok(order1.entityAspect.entityState === EntityState.Added, " order entityState should be added");
-    //    ok(orders.parentEntity == cust1);
-    //    var navProperty = cust1.entityType.getProperty("orders");
-    //    ok(orders.navigationProperty == navProperty);
-    //    ok(changeArgs.added, "changeArgs not set");
-    //    ok(changeArgs.added[0] === order1, "changeArgs added property not set correctly");
-    //    var sameCust = order1.getProperty("customer");
-    //    ok(sameCust === cust1, "inverse relationship not setPropertiesd");
-        
-    //});
-
-    //test("detach child", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
-    //    var order2 = orderType.createEntity();
-
-    //    em.addEntity(cust1);
-    //    ok(cust1.entityAspect.entityState === EntityState.Added, "cust entityState should be added");
-    //    var orders = cust1.getProperty("orders");
-    //    orders.push(order1);
-    //    orders.push(order2);
-    //    var arrayChangeCount = 0;
-    //    orders.arrayChanged.subscribe(function (args) {
-    //        arrayChangeCount += 1;
-    //        if (args.removed[0] !== order2) {
-    //            ok(false, "should not have gotten here");
-    //        }
-    //    });
-    //    var order2ChangeCount = 0;
-    //    order2.entityAspect.propertyChanged.subscribe(function (args2) {
-    //        ok(args2.entity === order2, "args2.entity === order2");
-    //        if (args2.propertyName === "customer") {
-    //            order2ChangeCount += 1;
-    //        } else if (args2.propertyName === "customerID") {
-    //            order2ChangeCount += 1;
-    //        } else {
-    //            ok(false, "should not have gotten here");
-    //        }
-    //    });
-    //    var orders2 = cust1.getProperty("orders");
-    //    ok(orders === orders2,"orders should === orders2");
-    //    var ix = orders.indexOf(order2);
-    //    orders.splice(ix, 1);
-    //    ok(orders.length === 1, "should only be 1 order");
-    //    ok(arrayChangeCount === 1, "arrayChangeCount should be 1");
-    //    ok(order2ChangeCount === 2, "order2ChangeCount should be 2");
-
-    //    var sameCust = order2.getProperty("customer");
-    //    ok(sameCust === null, "order2.Customer should now be null");
-    //});
-
-    //test("add parent", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
+    }
 
 
-    //    em.addEntity(order1);
-    //    ok(order1.entityAspect.entityState.isAdded(), "order entityState should be added");
-    //    var emptyCust = order1.getProperty("customer");
-    //    ok(!emptyCust);
-    //    var changeArgs = null;
-    //    order1.entityAspect.propertyChanged.subscribe(function (args) {
-    //        changeArgs = args;
-    //    });
-    //    order1.setProperty("customer", cust1);
-    //    ok(order1.entityAspect.entityState.isAdded(), "order entityState should be added");
-    //    ok(cust1.entityAspect.entityState.isAdded(), "customer entityState should be added");
-    //    ok(changeArgs, "no property notification occured");
-    //    ok(changeArgs.propertyName === "customer");
-    //    ok(changeArgs.newValue === cust1, "changeArgs.newValue not set correctly");
-    //    ok(changeArgs.oldValue === null, "changeArgs.oldValue not set correctly");
-    //    var orders = cust1.getProperty("orders");
-    //    ok(orders[0] == order1, "inverse relationship not setPropertiesd");
+    // detach child
+    [TestMethod]
+    public async Task RemoveFromNavCollection() {
+      await _emTask;
 
-    //});
+      var cust1 = new Customer();
+      var order1 = new Order();
+      var order2 = new Order();
+      _em1.AddEntity(cust1);
+      var orders = cust1.Orders;
+      orders.Add(order1);
+      orders.Add(order2);
+      
+      var collectionChangedList = new List<NotifyCollectionChangedEventArgs>();
+      orders.CollectionChanged += (s, e) => {
+        collectionChangedList.Add(e);
+      };
+      var propChangedList = new List<PropertyChangedEventArgs>();
+      ((INotifyPropertyChanged)order1).PropertyChanged += (s, e) => {
+        propChangedList.Add(e);
+      };
+      orders.Remove(order1);
+      Assert.IsTrue(collectionChangedList.Last().Action == NotifyCollectionChangedAction.Remove);
+      Assert.IsTrue(collectionChangedList.Last().OldItems.Contains(order1), "change event should contain order1");
+      // TODO: this is not yet happening but it should
+      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
+      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
 
-    //test("change parent (1-n)", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var cust2 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
+      Assert.IsTrue(!orders.Contains(order1), "order1 should have been removed");
+      Assert.IsTrue(order1.Customer == null, "Customer should be null");
+      Assert.IsTrue(order1.CustomerID == null, "CustomerID should be null"); // null because not required.
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsAdded());
+      Assert.IsTrue(orders.Count == 1, "count should be 1");
 
-    //    em.attachEntity(order1);
-    //    ok(order1.entityAspect.entityState.isUnchanged(), "order1 should be 'unchanged'");
-    //    order1.setProperty("customer", cust1);
-    //    ok(cust1.entityAspect.entityState.isAdded(), "cust1 should be 'added'");
-    //    var cust1Orders = cust1.getProperty("orders");
-    //    ok(cust1Orders.length === 1, "There should be exactly one order in cust1Orders");
-    //    ok(cust1Orders.indexOf(order1) >= 0, "order1 should be in cust1.Orders");
+      collectionChangedList.Clear();
+      propChangedList.Clear();
+      order1.Customer = cust1;
+      Assert.IsTrue(collectionChangedList.Last().Action == NotifyCollectionChangedAction.Add);
+      Assert.IsTrue(collectionChangedList.Last().NewItems.Contains(order1), "change event should contain order1");
+      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
+      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
 
-    //    // now change
-    //    order1.setProperty("customer", cust2);
-    //    ok(cust2.entityAspect.entityState.isAdded(), "cust2 should be added");
-    //    var cust2Orders = cust2.getProperty("orders");
-    //    ok(cust2Orders.length === 1, "There should be exactly one order in cust1Orders");
-    //    ok(cust2Orders.indexOf(order1) >= 0, "order1 should be in cust2.Orders");
-    //    ok(cust1Orders === cust1.getProperty("orders"), "cust1.Orders should be the same collection object as that returned earlier")
-    //    ok(cust1Orders.indexOf(order1) == -1, "order1 should no longer be in cust1.Orders");
-    //    ok(order1.getProperty("customer") == cust2, "order1.Customer should now be cust2");
+      Assert.IsTrue(orders.Contains(order1), "order1 should be back");
+      Assert.IsTrue(order1.Customer == cust1, "Customer should be back");
+      Assert.IsTrue(order1.CustomerID == cust1.CustomerID, "CustomerID should be back"); // null because not required.
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsAdded());
+      Assert.IsTrue(orders.Count == 2, "count should be 2");
 
-    //});
+    }
 
-    //test("change child (1-n)", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var cid1 = em.generateTempKeyValue(cust1);
-    //    var cust2 = custType.createEntity();
-    //    var cid2 = em.generateTempKeyValue(cust2);
-    //    var order1 = orderType.createEntity();
+    [TestMethod]
+    public async Task DetachFromNavCollection() {
+      await _emTask;
 
-    //    em.attachEntity(cust1);
+      var cust1 = new Customer();
+      var order1 = new Order();
+      var order2 = new Order();
+      _em1.AddEntity(cust1);
+      var orders = cust1.Orders;
+      orders.Add(order1);
+      orders.Add(order2);
 
-    //    ok(cust1.entityAspect.entityState.isUnchanged(), "cust1 should be 'unchanged'");
-    //    var cust1Orders = cust1.getProperty("orders");
-    //    cust1Orders.push(order1);
-    //    ok(cust1Orders.length === 1, "There should be exactly one order in cust1Orders");
+      var collectionChangedList = new List<NotifyCollectionChangedEventArgs>();
+      orders.CollectionChanged += (s, e) => {
+        collectionChangedList.Add(e);
+      };
+      var propChangedList = new List<PropertyChangedEventArgs>();
+      ((INotifyPropertyChanged)order1).PropertyChanged += (s, e) => {
+        propChangedList.Add(e);
+      };
+      order1.EntityAspect.Detach();
+      Assert.IsTrue(collectionChangedList.Last().Action == NotifyCollectionChangedAction.Remove);
+      Assert.IsTrue(collectionChangedList.Last().OldItems.Contains(order1), "change event should contain order1");
+      
+      
+      Assert.IsTrue(propChangedList.Count == 0, "Detaching an entity will not create a propertyChange event");
 
-    //    ok(order1.entityAspect.entityState.isAdded(), "order1 should be 'added'");
-    //    ok(cust1Orders.indexOf(order1) >= 0, "order1 should be in cust1.Orders");
-    //    // now change
-    //    var cust2Orders = cust2.getProperty("orders");
-    //    cust2Orders.push(order1);
-    //    ok(cust2Orders.length === 1, "There should be exactly one order in cust2Orders");
-    //    ok(cust1Orders.length === 0, "There should be no orders in cust1Orders")
-    //    ok(cust2.entityAspect.entityState.isAdded(), "cust2 should be 'added'");
-    //    ok(cust2Orders.indexOf(order1) >= 0, "order1 should be in cust2.Orders");
-    //    ok(cust1Orders === cust1.getProperty("orders"), "cust1.Orders should be the same collection object as that returned earlier");
-    //    ok(cust1Orders.indexOf(order1) == -1, "order1 should no longer be in cust1.Orders");
-    //    ok(order1.getProperty("customer") == cust2, "order1.Customer should now be cust2");
+      Assert.IsTrue(!orders.Contains(order1), "order1 should have been removed");
+      Assert.IsTrue(order1.Customer == null, "Customer should be null");
+      Assert.IsTrue(order1.CustomerID == null); // null because not required.
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsDetached());
+      Assert.IsTrue(orders.Count == 1, "count should be 1");
 
-    //});
+      collectionChangedList.Clear();
+      propChangedList.Clear();
+      order1.Customer = cust1;
+      Assert.IsTrue(collectionChangedList.Last().Action == NotifyCollectionChangedAction.Add);
+      Assert.IsTrue(collectionChangedList.Last().NewItems.Contains(order1), "change event should contain order1");
+      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
+      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
 
-    //test("graph attach (1-n) - setProperties child, attach child", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
+      Assert.IsTrue(orders.Contains(order1), "order1 should be back");
+      Assert.IsTrue(order1.Customer == cust1, "Customer should be back");
+      Assert.IsTrue(order1.CustomerID == cust1.CustomerID, "CustomerID should be back"); // null because not required.
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsAdded());
+      Assert.IsTrue(orders.Count == 2, "count should be 2");
 
-    //    order1.setProperty("customer", cust1);
-    //    em.attachEntity(order1);
-    //    ok(order1.entityAspect.entityState === EntityState.Unchanged, "order entityState should be unchanged");
-    //    ok(cust1.entityAspect.entityState === EntityState.Unchanged, "customer entityState should be unchanged");
-    //    var orders = cust1.getProperty("orders");
-    //    ok(orders[0] == order1, "inverse relationship not set");
-    //    ok(orders[0].getProperty("customer") === cust1, "order.Customer not set");
-    //});
+    }
+
+    [TestMethod]
+    public async Task ChangeParent1ToN() {
+      await _emTask;
+
+      var cust1 = new Customer();
+      var cust2 = new Customer();
+      
+      var order1 = new Order();
+      var order2 = new Order();
+      _em1.AddEntity(cust1);
+      _em1.AddEntity(cust2);
+      
+      cust1.Orders.Add(order1);
+      cust1.Orders.Add(order2);
+
+      var cust1CollChangedList = new List<NotifyCollectionChangedEventArgs>();
+      cust1.Orders.CollectionChanged += (s, e) => {
+        cust1CollChangedList.Add(e);
+      };
+      var cust2CollChangedList = new List<NotifyCollectionChangedEventArgs>();
+      cust2.Orders.CollectionChanged += (s, e) => {
+        cust2CollChangedList.Add(e);
+      };
+
+      var propChangedList = new List<PropertyChangedEventArgs>();
+      ((INotifyPropertyChanged)order1).PropertyChanged += (s, e) => {
+        propChangedList.Add(e);
+      };
+      // move order
+      cust2.Orders.Add(order1);
+
+      Assert.IsTrue(cust1CollChangedList.Last().Action == NotifyCollectionChangedAction.Remove);
+      Assert.IsTrue(cust1CollChangedList.Last().OldItems.Contains(order1), "change event should contain order1");
+
+      Assert.IsTrue(cust2CollChangedList.Last().Action == NotifyCollectionChangedAction.Add);
+      Assert.IsTrue(cust2CollChangedList.Last().NewItems.Contains(order1), "change event should contain order1");
+      // TODO: this is not yet happening but it should
+      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
+      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
+
+      Assert.IsTrue(!cust1.Orders.Contains(order1), "order1 should have been removed");
+      Assert.IsTrue(cust2.Orders.Contains(order1), "order1 should have been removed");
+      Assert.IsTrue(order1.Customer == cust2, "Customer should be cust2");
+      Assert.IsTrue(order1.CustomerID == cust2.CustomerID, "CustomerID should be cust2's id");
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsAdded());
+      Assert.IsTrue(cust1.Orders.Count == cust2.Orders.Count, "count should be 1");
+
+      cust1CollChangedList.Clear();
+      cust2CollChangedList.Clear();
+      propChangedList.Clear();
+      order1.Customer = cust1;
+      Assert.IsTrue(cust1CollChangedList.Last().Action == NotifyCollectionChangedAction.Add);
+      Assert.IsTrue(cust1CollChangedList.Last().NewItems.Contains(order1), "change event should contain order1");
+      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
+      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
+      
+      Assert.IsTrue(cust1.Orders.Count == 2, "count should be 2");
+
+    }
+
+
+    // graph attach (1-n) - setProperties child, attach child
+    [TestMethod]
+    public async Task GraphAttachChild() {
+      await _emTask;
+
+      var cust1 = new Customer();
+      cust1.CustomerID = new Guid();
+      var order1 = new Order();
+      order1.Customer = cust1;
+      
+      _em1.AddEntity(order1);
+
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsAdded());
+      
+      Assert.IsTrue(cust1.EntityAspect.EntityState.IsAdded());
+      var orders = cust1.Orders;
+      Assert.IsTrue(orders.Contains(order1) , "should contain order1");
+      Assert.IsTrue(order1.Customer == cust1, "Customer should be cust2");
+      Assert.IsTrue(order1.CustomerID == cust1.CustomerID, "CustomerID should be cust2's id");
+      
+
+    }
+
+    // graph attach (1-n) - setProperties child, attach child
+    [TestMethod]
+    public async Task GraphAttachParent() {
+      await _emTask;
+
+      var cust1 = new Customer();
+      var order1 = new Order();
+      cust1.EntityAspect.SetValue("Orders", new NavigationSet<Order>());
+      cust1.Orders.Add(order1);
+
+      _em1.AddEntity(cust1);
+
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsAdded());
+      Assert.IsTrue(cust1.EntityAspect.EntityState.IsAdded());
+      var orders = cust1.Orders;
+      Assert.IsTrue(orders.Contains(order1), "should contain both orders");
+      Assert.IsTrue(order1.Customer == cust1, "Customer should be cust2");
+      Assert.IsTrue(order1.CustomerID == cust1.CustomerID, "CustomerID should be cust2's id");
+
+
+    }
 
     //test("graph attach (1-n)- setProperties child, attach parent", function () {
     //    var em = newEm();

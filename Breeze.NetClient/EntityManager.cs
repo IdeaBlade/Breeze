@@ -1,16 +1,11 @@
-﻿
+﻿using Breeze.Core;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
-
-using Breeze.Core;
-using System.Collections;
 
 namespace Breeze.NetClient {
   public class EntityManager {
@@ -184,7 +179,65 @@ namespace Breeze.NetClient {
       return (IEntity) Activator.CreateInstance(entityType.ClrType);
     }
 
+    /// <summary>
+    /// Find all entities in cache having the specified entity state(s).
+    /// </summary>
+    /// <param name="entityState">EntityState(s) of entities to return</param>
+    /// <returns></returns>
+    /// <remarks>
+    /// As the <see cref="EntityState"/> is a flags enumeration, you can supply multiple 
+    /// OR'ed values to search for multiple entity states.
+    /// </remarks>
+    public IEnumerable<IEntity> GetEntities(EntityState entityState = EntityState.AllButDetached) {
+      return GetEntities(typeof(IEntity), entityState);
+    }
+
+    /// <summary>
+    /// Retrieves all entities of a specified type with the specified entity state(s) from cache.
+    /// </summary>
+    /// <typeparam name="T">The type of Entity to retrieve</typeparam>
+    /// <param name="entityState">EntityState(s) of entities to return</param>
+    /// <returns>A collection of Entities</returns>
+    /// <remarks>
+    /// As the <see cref="EntityState"/> is a flags enumeration, you can supply multiple 
+    /// OR'ed values to search for multiple entity states.
+    /// </remarks>
+    public IEnumerable<T> GetEntities<T>(EntityState entityState = EntityState.AllButDetached) where T : class {
+      return GetEntities(typeof(T), entityState).Cast<T>();
+    }
+
+    /// <summary>
+    /// Retrieves all entities of a specified type with the specified entity state(s) from cache.
+    /// </summary>
+    /// <param name="type">The type of Entity to retrieve</param>
+    /// <param name="entityState">EntityState(s) of entities to return</param>
+    /// <returns>A collection of Entities</returns>
+    /// <remarks>
+    /// As the <see cref="EntityState"/> is a flags enumeration, you can supply multiple 
+    /// OR'ed values to search for multiple entity states.
+    /// </remarks>
+    public IEnumerable<IEntity> GetEntities(Type type, EntityState entityState = EntityState.AllButDetached) {
+      if (type.GetTypeInfo().IsAbstract) {
+        var groups = type == typeof(IEntity) 
+          ? this.EntityGroups
+          : this.EntityGroups.Where(eg => type.IsAssignableFrom(eg.ClrType));
+        return groups.SelectMany(f => f.LocalEntityAspects)
+          .Where(ea => ((ea.EntityState & entityState) > 0))
+          .Select(ea => ea.Entity);
+      } else {
+        var group = GetEntityGroup(type);
+        return group.EntityAspects
+          .Where(ea => ((ea.EntityState & entityState) > 0))
+          .Select(ea => ea.Entity);
+      }
+    }
+
     public IEntity FindEntityByKey(EntityKey entityKey) {
+      if (entityKey.EntityType == null) {
+        var eg = GetEntityGroup(entityKey.ClrType);
+        if (eg == null) return null;
+        entityKey.Coerce(eg.EntityType);
+      }
       var subtypes = entityKey.EntityType.Subtypes;
       EntityAspect ea;
       if (subtypes.Count > 0) {
@@ -193,16 +246,16 @@ namespace Breeze.NetClient {
           return (eg == null) ? null : eg.FindEntityAspect(entityKey, true);
         }).FirstOrDefault(a => a != null);
       } else {
-        var eg = this.GetEntityGroup(entityKey.EntityType.ClrType);
+        var eg = this.GetEntityGroup(entityKey.ClrType);
         ea = (eg == null) ? null : eg.FindEntityAspect(entityKey, true);
       }
       return ea == null ? null : ea.Entity;
     }
 
-    public T FindEntityByKey<T>(params Object[] values) {
-      var eg = GetEntityGroup(typeof(T));
-      if (eg == null) return null;
-      var ek = new EntityKey(eg.EntityType, values);
+    
+
+    public T FindEntityByKey<T>(params Object[] values) where T:IEntity {
+      var ek = new EntityKey(typeof(T), values);
       return (T)FindEntityByKey(ek);
     }
 
@@ -224,6 +277,10 @@ namespace Breeze.NetClient {
       return (T)CreateEntity(typeof(T), entityState);
     }
 
+    public IEntity AddEntity(IEntity entity) {
+      return AttachEntity(entity, EntityState.Added);
+    }
+
     public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Unchanged, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
       var aspect = PrepareForAttach(entity);
       if (aspect.IsAttached && aspect.EntityState == entityState) return entity;
@@ -239,8 +296,6 @@ namespace Breeze.NetClient {
         
         AttachEntityAspect(aspect, entityState);
         
-        // if in Query do not do this already being done as part of the serialization.
-        // entity ( not attachedEntity) is deliberate here.
         aspect.EntityType.NavigationProperties.ForEach(np => {
           aspect.ProcessNpValue(np, e => AttachEntity(e, entityState, mergeStrategy));
         });
@@ -366,7 +421,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    internal EntityGroup<T> GetEntityGroup<T>() where T : class {
+    internal EntityGroup<T> GetEntityGroup<T>() where T : IEntity {
       return (EntityGroup<T>)GetEntityGroup(typeof(T));
     }
 
@@ -404,6 +459,8 @@ namespace Breeze.NetClient {
     /// <exception cref="ArgumentException">Incorrect entity type/property</exception>
     /// <exception cref="IdeaBladeException">IdGenerator not found</exception>
     public UniqueId GenerateId(IEntity entity, DataProperty entityProperty) {
+      var x = new NavigationSet<IEntity>();
+
       var aspect = entity.EntityAspect;
       var entityType = entity.GetType();
 

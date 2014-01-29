@@ -1,12 +1,9 @@
-﻿using System;
+﻿using Breeze.Core;
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Breeze.Core;
-using Breeze.NetClient;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
 
@@ -273,13 +270,13 @@ namespace Breeze.NetClient {
       np.Inverse = invNp;
       if (invNp == null) {
         // unidirectional 1-n relationship
-        np.InvForeignKeyNames.ForEach(invFkName => {
-          var fkProp = entityType.GetDataProperty(invFkName);
-
-          fkProp.IsForeignKey = true;
+        np.InvForeignKeyProperties.ForEach(invFkProp => {
+          
+          invFkProp.IsForeignKey = true;
           var invEntityType = (EntityType)np.ParentType;
-          fkProp.InverseNavigationProperty = invEntityType.NavigationProperties.FirstOrDefault(np2 => {
-            return np2.InvForeignKeyNames != null && np2.InvForeignKeyNames.IndexOf(fkProp.Name) >= 0 && np2.EntityType == fkProp.ParentType;
+          
+          invFkProp.InverseNavigationProperty = invEntityType.NavigationProperties.FirstOrDefault(np2 => {
+            return np2.InvForeignKeyNames.IndexOf(invFkProp.Name) >= 0 && np2.EntityType == invFkProp.ParentType;
           });
 
 

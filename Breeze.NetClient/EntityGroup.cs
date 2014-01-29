@@ -225,7 +225,7 @@ namespace Breeze.NetClient {
     /// <summary>
     /// Used to suppress change events during the modification of entities within this group.
     /// </summary>
-    public virtual bool ChangeNotificationEnabled {
+    public bool ChangeNotificationEnabled {
       get;
       set;
     }
@@ -233,7 +233,7 @@ namespace Breeze.NetClient {
     /// <summary>
     /// Returns a list of groups for this entity type and all sub-types.
     /// </summary>
-    public virtual ReadOnlyCollection<EntityGroup> SelfAndSubtypeGroups {
+    public ReadOnlyCollection<EntityGroup> SelfAndSubtypeGroups {
       get {
         if (_selfAndSubtypeGroups == null) {
           _selfAndSubtypeGroups = EntityType.Subtypes
@@ -242,6 +242,18 @@ namespace Breeze.NetClient {
         }
         return _selfAndSubtypeGroups.ReadOnlyValues;
       }
+    }
+
+    internal IEnumerable<EntityAspect> EntityAspects {
+      get {
+        return SelfAndSubtypeGroups
+            .SelectMany(f => f.LocalEntityAspects);
+      }
+    }
+
+
+    internal IEnumerable<EntityAspect> LocalEntityAspects {
+      get { return _entityAspects; }
     }
 
     #endregion
@@ -352,25 +364,6 @@ namespace Breeze.NetClient {
 
     #region private and protected
 
-    /// <summary>
-    /// Returns a collection of entities of given entity type
-    /// </summary>
-    protected virtual  IEnumerable<EntityAspect> LocalEntityAspects {
-      get {
-        return _entityAspects;
-      }
-    }
-
-    /// <summary>
-    /// Returns a collection of entities of given entity type and its sub-types.
-    /// </summary>
-    protected IEnumerable<EntityAspect> EntityAspects {
-      get {
-        return SelfAndSubtypeGroups
-            .SelectMany(f => f.LocalEntityAspects);
-      }
-    }
-
     //private EntityAspect MergeEntityAspect(EntityAspect entityAspect, EntityAspect targetEntityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
     //  if (entityAspect == targetEntityAspect) {
     //    entityAspect.EntityState = entityState;
@@ -461,7 +454,7 @@ namespace Breeze.NetClient {
   /// to hold entities of each type.  The <see cref="T:IdeaBlade.EntityModel.EntityManager"/> 
   /// manages all EntityGroups in its cache. 
   /// </remarks>
-  internal class EntityGroup<TEntity> : EntityGroup where TEntity : class {
+  internal class EntityGroup<TEntity> : EntityGroup where TEntity : IEntity {
 
     #region ctors
 

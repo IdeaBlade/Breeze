@@ -5,9 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
 
@@ -124,9 +121,17 @@ namespace Breeze.NetClient {
     }
 
     // EntityGroup is null if never attached but once its non-null it keeps its previous value.
-    internal EntityGroup EntityGroup { 
+    internal EntityGroup EntityGroup {
       get { return _entityGroup; }
       set { _entityGroup = value; }
+    }
+
+    public bool HasTemporaryKey {
+      get {
+        var dp = this.EntityType.KeyProperties.First();
+        var uid = new UniqueId(dp, GetValue(dp));
+        return EntityManager.KeyGenerator.IsTempId(uid);
+      }
     }
 
     #endregion
@@ -302,7 +307,6 @@ namespace Breeze.NetClient {
         RejectChangesCore();
       };
 
-
       if (EntityState.IsAdded()) {
         // next line is needed because the following line will cause this.entityManager -> null;
         EntityManager.DetachEntity(Entity);
@@ -319,7 +323,7 @@ namespace Breeze.NetClient {
     }
 
     private void RejectChangesCore() {
-      var entity = this.Entity;
+      if (this.OriginalValuesMap == null) return;
       this.OriginalValuesMap.ForEach(kvp => {
         SetValue(kvp.Key, kvp.Value);
       });
@@ -463,8 +467,20 @@ namespace Breeze.NetClient {
 
     public override void SetValue(String propertyName, object newValue) {
       if (this.EntityGroup == null) {
-        // newly created entity not yet attached to an EntityManager.
-        SetRawValue(propertyName, newValue);
+        // setting a value on a newly created entity not yet attached to an EntityManager.
+        var newEntity = newValue as IEntity;
+        if (newEntity == null || newEntity.EntityAspect.IsDetached) {
+          SetRawValue(propertyName, newValue);
+        } else {
+          var newAspect = newEntity.EntityAspect;
+          var ms = newAspect.EntityType.MetadataStore;
+          this.EntityType =  ms.GetEntityType(this.Entity.GetType());
+          var np = EntityType.GetNavigationProperty(propertyName);
+          if (np == null) {
+            throw new Exception("Unable to locate property: " + propertyName + " on EntityType: " + EntityType.Name);
+          }
+          SetValue(np, newValue);
+        }
       } else {
         var prop = EntityType.GetProperty(propertyName);
         if (prop != null) {
@@ -603,8 +619,9 @@ namespace Breeze.NetClient {
             siblings.Add(this.Entity);
           }
         }
-      } else if (property.InvForeignKeyNames != null && this.IsAttached) { // && !EntityManager._inKeyFixup) {
-        var invForeignKeyNames = property.InvForeignKeyNames;
+      } else if (property.InvForeignKeyProperties.Count > 0 && this.IsAttached) { // && !EntityManager._inKeyFixup) {
+        // var invForeignKeyNames = property.InvForeignKeyNames;
+        var invForeignKeyProps = property._invForeignKeyProperties;
         if (newValue != null) {
           // Example: unidirectional navProperty: 1->1: order -> internationalOrder
           // order.InternationalOrder <- internationalOrder
@@ -614,8 +631,8 @@ namespace Breeze.NetClient {
           // orderDetail.order <-xxx newOrder
           //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
           var pkValues = this.EntityKey.Values;
-          invForeignKeyNames.ForEach((fkName, i) => newAspect.SetValue(fkName, pkValues[i]));
-
+          // invForeignKeyNames.ForEach((fkName, i) => newAspect.SetValue(fkName, pkValues[i]));
+          invForeignKeyProps.ForEach((fkProp, i) => newAspect.SetValue(fkProp, pkValues[i]));
         } else {
           // Example: unidirectional navProperty: 1->1: order -> internationalOrder
           // order.internationalOrder <- null
@@ -625,13 +642,19 @@ namespace Breeze.NetClient {
           // orderDetail.order <-xxx newOrder
           //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
           if (oldValue != null) {
-            invForeignKeyNames.ForEach(fkName => {
-              var fkProp = oldAspect.EntityType.GetDataProperty(fkName);
+            invForeignKeyProps.ForEach(fkProp => {
               if (!fkProp.IsPartOfKey) {
                 // don't update with null if fk is part of the key
                 oldAspect.SetValue(fkProp, null);
               }
             });
+            //invForeignKeyNames.ForEach(fkName => {
+            //  var fkProp = oldAspect.EntityType.GetDataProperty(fkName);
+            //  if (!fkProp.IsPartOfKey) {
+            //    // don't update with null if fk is part of the key
+            //    oldAspect.SetValue(fkProp, null);
+            //  }
+            //});
           }
         }
       }
@@ -689,7 +712,7 @@ namespace Breeze.NetClient {
         var values = EntityType.KeyProperties
           .Select(p => (p == property) ? newValue : GetValue(p))
           .ToArray();
-        var newKey = new EntityKey(EntityType, values);
+        var newKey = new EntityKey(EntityType, values).Coerce();
         if (EntityManager.FindEntityByKey(newKey) != null) {
           throw new Exception("An entity with this key is already in the cache: " + newKey);
         }
@@ -914,7 +937,7 @@ namespace Breeze.NetClient {
         // need to insure 
         if (_entityKey == null) {
           Object[] values = GetValues(this.EntityType.KeyProperties);
-          var key = new EntityKey(this.EntityType, values, false);
+          var key = new EntityKey(this.EntityType, values);
           // do not cache _entityKey values that have not yet
           // gone thru a save
           if (this.EntityState.IsAdded() | this.EntityState.IsDetached()) {
@@ -1227,39 +1250,14 @@ namespace Breeze.NetClient {
       });
     }
 
-    private void LinkFkProps() {
-      // handle unidirectional 1-x where we set x.fk
-
-      EntityType.ForeignKeyProperties.ForEach(fkProp => {
-        var invNp = fkProp.InverseNavigationProperty;
-        if (invNp == null) return;
-        // unidirectional fk props only
-        var fkValue = GetValue(fkProp);
-        var parentKey = new EntityKey((EntityType)invNp.ParentType, fkValue);
-        var parent = EntityManager.FindEntityByKey(parentKey);
-        if (parent != null) {
-          if (invNp.IsScalar) {
-            parent.EntityAspect.SetValue(invNp, Entity);
-          } else {
-            var navSet = parent.EntityAspect.GetValue<INavigationSet>(invNp);
-            navSet.Add(Entity);
-          }
-        } else {
-          // else add parent to unresolvedParentMap;
-          EntityManager.UnattachedChildrenMap.AddChild(parentKey, invNp, Entity);
-        }
-
-      });
-    }
-
     private void LinkNavProps() {
       // now add to unattachedMap if needed.
 
       EntityType.NavigationProperties.ForEach(np => {
         if (np.IsScalar) {
-          var value = GetValue(np.Name);
+          var invEntity = GetValue<IEntity>(np.Name);
           // property is already linked up
-          if (value != null) return;
+          if (invEntity != null) return;
         }
 
         // first determine if np contains a parent or child
@@ -1280,6 +1278,31 @@ namespace Breeze.NetClient {
             EntityManager.UnattachedChildrenMap.AddChild(parentKey, np, Entity);
           }
         }
+      });
+    }
+
+    private void LinkFkProps() {
+      // handle unidirectional 1-x where we set x.fk
+
+      EntityType.ForeignKeyProperties.ForEach(fkProp => {
+        var invNp = fkProp.InverseNavigationProperty;
+        if (invNp == null) return;
+        // unidirectional fk props only
+        var fkValue = GetValue(fkProp);
+        var parentKey = new EntityKey((EntityType) invNp.ParentType, fkValue);
+        var parent = EntityManager.FindEntityByKey(parentKey);
+        if (parent != null) {
+          if (invNp.IsScalar) {
+            parent.EntityAspect.SetValue(invNp, Entity);
+          } else {
+            var navSet = parent.EntityAspect.GetValue<INavigationSet>(invNp);
+            navSet.Add(Entity);
+          }
+        } else {
+          // else add parent to unresolvedParentMap;
+          EntityManager.UnattachedChildrenMap.AddChild(parentKey, invNp, Entity);
+        }
+
       });
     }
 
@@ -1448,15 +1471,7 @@ namespace Breeze.NetClient {
       return isCurrent;
     }
 
-    internal bool HasTemporaryEntityKey {
-      get {
-        var prop = this.EntityType.KeyProperties.First();
-        var uid = new UniqueId(prop, GetValue(prop));
-        
-        return EntityManager.KeyGenerator.IsTempId(uid);
-        
-      }
-    }
+    
 
     internal EntityKey GetParentKey(NavigationProperty np) {
       // returns null for np's that do not have a parentKey
