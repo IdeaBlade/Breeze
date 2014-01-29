@@ -74,49 +74,5 @@ namespace Breeze.NetClient {
     }
   }
 
-  //public class NullKeyGenerator : IKeyGenerator {
 
-  //  /// <summary>
-  //  /// Initializes a new instance of the NullIdGenerator class.
-  //  /// </summary>
-  //  public NullKeyGenerator() { }
-
-  //  /// <summary>
-  //  /// See <see cref="IIdGenerator.GetNextTempId"/>.
-  //  /// </summary>
-  //  public Object GetNextTempId(DataProperty pProperty) {
-  //    ThrowError();
-  //    return null;
-  //  }
-
-  //  /// <summary>
-  //  /// See <see cref="IIdGenerator.TempIds"/>.
-  //  /// </summary>
-  //  public UniqueIdCollection TempIds {
-  //    get { return msEmptyList; }
-  //  }
-
-  //  /// <summary>
-  //  /// See <see cref="IIdGenerator.IsTempId"/>.
-  //  /// </summary>
-  //  public bool IsTempId(UniqueId pUniqueId) {
-  //    return false;
-  //  }
-
-  //  /// <summary>
-  //  /// See <see cref="IIdGenerator.Reset"/>.
-  //  /// </summary>
-  //  public void Reset() {
-  //  }
-
-
-  //  // should be read only
-  //  private static readonly UniqueIdCollection msEmptyList = new UniqueIdCollection();
-
-  //  private static void ThrowError() {
-  //    String msg = "No class implementing IdeaBlade.EntityModel.IIdGenerator was found. ";
-  //    msg += "If you have implemented this interface, be sure to check the IsApplicable(IDataSourceKey) method in your implementation to ensure that it is filtering correctly.";
-  //    throw new Exception(msg);
-  //  }
-  //}
 }

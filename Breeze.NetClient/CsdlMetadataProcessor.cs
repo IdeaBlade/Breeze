@@ -1,13 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using Breeze.Core;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-using Breeze.Core;
-
 namespace Breeze.NetClient {
+
   class CsdlMetadataProcessor {
 
     public CsdlMetadataProcessor(MetadataStore metadataStore, String jsonMetadata) {
@@ -26,10 +26,15 @@ namespace Breeze.NetClient {
         .Select(ParseCsdlEntityType).ToList();
       var complexTypes = ToEnumerable(_schema["complexType"]).Cast<JObject>()
         .Select(ParseCsdlComplexType).ToList();
-
+      entityTypes.ForEach(et => ResolveComplexTypeRefs(et));
     }
 
-    public EntityType ParseCsdlEntityType(JObject csdlEntityType) {
+    private void ResolveComplexTypeRefs(EntityType et) {
+      et.ComplexProperties.Where(cp => cp.ComplexType == null)
+        .ForEach(cp => cp.ComplexType = _metadataStore.GetComplexType(cp.ComplexTypeName));
+    }
+
+    private EntityType ParseCsdlEntityType(JObject csdlEntityType) {
       var abstractVal = (String)csdlEntityType["abstract"];
       var baseTypeVal = (String)csdlEntityType["baseType"];
       var nameVal = (String)csdlEntityType["name"];
@@ -275,7 +280,7 @@ namespace Breeze.NetClient {
       return complexType;
     }
 
-    public TypeNameInfo ParseTypeName(String clrTypeName) {
+    private TypeNameInfo ParseTypeName(String clrTypeName) {
       if (String.IsNullOrEmpty(clrTypeName)) return null;
       if (clrTypeName.StartsWith(MetadataStore.ANONTYPE_PREFIX)) {
         return new TypeNameInfo() {
@@ -307,13 +312,6 @@ namespace Breeze.NetClient {
       }
     }
 
-    internal class TypeNameInfo {
-      public String ShortTypeName { get; set; }
-      public String Namespace { get; set; }
-      public String TypeName { get; set; }
-      public Boolean IsAnonymous { get; set; }
-    }
-
     private String GetNamespaceFor(String shortName) {
 
       if (_cSpaceOSpaceMap != null) {
@@ -326,7 +324,6 @@ namespace Breeze.NetClient {
       }
       return _namespace;
     }
-
 
     private bool IsIdentityProperty(JObject csdlProperty) {
 
@@ -344,7 +341,6 @@ namespace Breeze.NetClient {
         return identityExtn != null;
       }
     }
-
 
     private void AddValidators(DataProperty dp) {
       if (!dp.IsNullable) {
@@ -390,10 +386,6 @@ namespace Breeze.NetClient {
       return typeParts;
     }
 
-
-
-
-
     private IEnumerable<T> ToEnumerable<T>(T d) {
       if (d == null) {
         return Enumerable.Empty<T>();
@@ -404,7 +396,12 @@ namespace Breeze.NetClient {
       }
     }
 
-    
+    internal class TypeNameInfo {
+      public String ShortTypeName { get; set; }
+      public String Namespace { get; set; }
+      public String TypeName { get; set; }
+      public Boolean IsAnonymous { get; set; }
+    }
 
     private class DeferredTypeInfo {
       public EntityType EntityType { get; set; }

@@ -26,9 +26,7 @@ namespace Breeze.NetClient {
   public class NavigationSet<T> : NotifiableCollection<T>, INavigationSet where T:IEntity {
 
     public NavigationSet() {
-      
-    }
-    
+    }   
 
     public NavigationSet(IEntity parentEntity, NavigationProperty navigationProperty) {
       ((INavigationSet) this).ParentEntity = parentEntity;
@@ -113,6 +111,10 @@ namespace Breeze.NetClient {
       // TODO: need to resolve this.
       base.SetItem(index, item);
     }
+
+    #endregion
+
+    #region Other private
 
     private bool _inProcess = false;
 

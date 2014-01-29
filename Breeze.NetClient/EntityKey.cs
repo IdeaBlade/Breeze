@@ -33,9 +33,7 @@ namespace Breeze.NetClient {
       } else {
         Values = values;
       }
-      
     }
-
 
     public Type ClrType {
       get;

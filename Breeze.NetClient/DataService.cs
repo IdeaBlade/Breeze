@@ -30,18 +30,15 @@ namespace Breeze.NetClient {
 
         var result = await response.Content.ReadAsStringAsync();
         return result;
-      } catch (Newtonsoft.Json.JsonException jEx) {
-        // This exception indicates a problem deserializing the request body.
-        throw;
       } catch (HttpRequestException ex) {
+        throw;
+      } catch (Exception e) {
         throw;
       } finally {
 
       }
     }
 
-    
-
-    HttpClient _client;
+    private HttpClient _client;
   }
 }

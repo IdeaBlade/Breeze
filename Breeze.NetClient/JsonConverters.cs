@@ -5,24 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-
 namespace Breeze.NetClient {
-
-  
-  //public static class JsonFns {
-
-  //  public static JsonSerializerSettings GetSerializerSettings(EntityManager em) {
-  //    var settings = new JsonSerializerSettings() {
-  //      NullValueHandling = NullValueHandling.Include,
-  //      PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-  //      ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
-  //      TypeNameHandling = TypeNameHandling.Objects,
-  //      TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
-  //    };
-  //    settings.Converters.Add(new JsonEntityConverter(em));
-  //    return settings;
-  //  }
-  //}
 
   public class JsonEntityConverter : JsonConverter {
   
@@ -187,6 +170,20 @@ namespace Breeze.NetClient {
     private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
   }
 
+  //public static class JsonFns {
+
+  //  public static JsonSerializerSettings GetSerializerSettings(EntityManager em) {
+  //    var settings = new JsonSerializerSettings() {
+  //      NullValueHandling = NullValueHandling.Include,
+  //      PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+  //      ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+  //      TypeNameHandling = TypeNameHandling.Objects,
+  //      TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
+  //    };
+  //    settings.Converters.Add(new JsonEntityConverter(em));
+  //    return settings;
+  //  }
+  //}
 
 }
 

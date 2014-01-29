@@ -41,12 +41,15 @@ namespace Breeze.NetClient {
     public override Type ClrType {
       get {
         if (_clrType == null) {
-          var rawClrType = DataType.ClrType;
-          _clrType = IsNullable ? TypeFns.GetNullableType(rawClrType) : rawClrType;
+          if (IsComplexProperty) {
+            _clrType = ComplexType.ClrType;
+          } else {
+            var rawClrType = DataType.ClrType;
+            _clrType = IsNullable ? TypeFns.GetNullableType(rawClrType) : rawClrType;
+          }
         }
         return _clrType;
       }
-    
     }
     private Type _clrType;
     

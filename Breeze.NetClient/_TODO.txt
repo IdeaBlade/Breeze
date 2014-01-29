@@ -22,6 +22,8 @@ Notes:
 Think about
 Enum for flags like InProcess, IsLoading etc ( probably not a good idea for booleans that have a concept of inheritance)
 EntityKey ctor that uses ClrType instead of EntityType ( makes it easier to use)
+Test the incoming Metadata to insure that it matches the Clr descriptions.
+MetadataStore as singleton.
 
 
 Extensions for later ( that we can charge for)

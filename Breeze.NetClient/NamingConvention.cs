@@ -6,16 +6,21 @@ using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
   public class NamingConvention {
+
     public NamingConvention(String name) {
       Name = name;
     }
+
     public String Name { get; protected set; }
+
     public virtual String ServerPropertyNameToClient(String clientName) {
       return clientName;
     }
+
     public virtual String ClientPropertyNameToServer(String serverName) {
       return serverName;
     }
+
     public static NamingConvention Default = new NamingConvention("Default");
     public static NamingConvention CamelCase = new CamelCaseNamingConvention();
 
@@ -41,7 +46,6 @@ namespace Breeze.NetClient {
   public class CamelCaseNamingConvention : NamingConvention  {
     public CamelCaseNamingConvention()
       : base("CamelCase") {
-
     }
     
     public override String ServerPropertyNameToClient(String serverName) {
