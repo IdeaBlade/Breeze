@@ -51,6 +51,19 @@ namespace Breeze.NetClient {
       get { return _invForeignKeyNames.ReadOnlyValues; }
     }
 
+    public ReadOnlyCollection<DataProperty> ForeignKeyProperties {
+      get {
+        if (_foreignKeyProperties == null) {
+          if (_foreignKeyNames.Count == 0) {
+            _foreignKeyProperties = new SafeList<DataProperty>();
+          } else {
+            _foreignKeyProperties = new SafeList<DataProperty>(_foreignKeyNames.Select(fkName => ParentType.GetDataProperty(fkName)));
+          }
+        }
+        return _foreignKeyProperties.ReadOnlyValues;
+      }
+    }
+
     public ReadOnlyCollection<DataProperty> InvForeignKeyProperties {
       get {
         if (_invForeignKeyProperties == null) {
@@ -76,7 +89,8 @@ namespace Breeze.NetClient {
     internal SafeList<String> _foreignKeyNames = new SafeList<string>();
     internal SafeList<String> _foreignKeyNamesOnServer = new SafeList<string>();
     internal SafeList<String> _invForeignKeyNames = new SafeList<string>();
-    internal SafeList<DataProperty> _invForeignKeyProperties = new SafeList<DataProperty>();
+    internal SafeList<DataProperty> _foreignKeyProperties = null;
+    internal SafeList<DataProperty> _invForeignKeyProperties = null;
     internal SafeList<String> _invForeignKeyNamesOnServer = new SafeList<string>();
 
   }

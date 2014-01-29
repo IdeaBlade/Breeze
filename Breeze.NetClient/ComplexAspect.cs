@@ -16,40 +16,15 @@ namespace Breeze.NetClient {
   /// <remarks>
   /// The <b>ComplexAspect</b> provides verification and change tracking capaibilities to the ComplexObject.
   /// </remarks>
-  public class ComplexAspect : StructuralAspect, INotifyDataErrorInfo  {
+  public class ComplexAspect : StructuralAspect, INotifyDataErrorInfo {
 
-    internal ComplexAspect(IComplexObject co)
+    #region Ctors
+
+    internal ComplexAspect(IComplexObject co, ComplexType complexType = null) 
       : base(co) {
-        _complexObject = co;
-        co.ComplexAspect = this;
-    }
-
-    protected override StructuralType StructuralType {
-      get { return this.ComplexType; }
-    }
-
-    protected override IStructuralObject StructuralObject {
-      get { return this.ComplexObject; ; }
-    }
-
-
-
-    internal void RejectChangesCore() {
-      var co = this.ComplexObject;
-      if (this.OriginalValuesMap != null) {
-        this.OriginalValuesMap.ForEach(kvp => {
-          SetValue(kvp.Key, kvp.Value);
-        });
-      }
-      this.ProcessComplexProperties(co2 => co2.ComplexAspect.RejectChangesCore());
-    }
-
-    internal bool IsDetached {
-      get { return ParentEntity == null || ParentEntity.EntityAspect.IsDetached; }
-    }
-
-    internal bool IsAttached {
-      get { return ParentEntity != null && ParentEntity.EntityAspect.IsAttached; }
+      ComplexObject = co;
+      co.ComplexAspect = this;
+      ComplexType = complexType;
     }
 
     // Note: the Parent and ParentProperty properties are assigned either when a IComplexObject is assigned to a parent
@@ -74,10 +49,25 @@ namespace Breeze.NetClient {
         aspect._defaultValuesInitialized = true;
       }
       return co;
+
     }
+
+    #endregion
 
     #region Public properties
 
+    public ComplexType ComplexType {
+      get {
+        return _complexType;
+      }
+      internal set {
+        _complexType = value;
+        if (_complexType != null) {
+          InitializeDefaultValues();
+        }
+      }
+    }
+    
 
     /// <summary>
     /// Returns the wrapped IComplexObject.
@@ -133,7 +123,6 @@ namespace Breeze.NetClient {
       }
     }
 
-
     /// <summary>
     /// The <see cref="T:IdeaBlade.EntityModel.EntityManager"/> that manages the <see cref="ParentEntity"/>.
     /// </summary>
@@ -142,96 +131,83 @@ namespace Breeze.NetClient {
         if (ParentEntity == null) return null;
         return ParentEntity.EntityAspect.EntityManager;
       }
-    }
 
-    public ComplexType ComplexType {
-      get;
-      private set;
     }
 
     #endregion
 
+    #region internal and protected 
 
-    #region INotifyDataErrorInfo
-
-    /// <summary>
-    /// True if there are any validation errors.
-    /// </summary>
-    bool INotifyDataErrorInfo.HasErrors {
-      get {
-        return false;
-        
+    internal void RejectChangesCore() {
+      var co = this.ComplexObject;
+      if (this.OriginalValuesMap != null) {
+        this.OriginalValuesMap.ForEach(kvp => {
+          SetValue(kvp.Key, kvp.Value);
+        });
       }
+      this.ProcessComplexProperties(co2 => co2.ComplexAspect.RejectChangesCore());
     }
 
-    /// <summary>
-    /// Raised when validation errors have changed for a property or the object.
-    /// </summary>
-    event EventHandler<DataErrorsChangedEventArgs> INotifyDataErrorInfo.ErrorsChanged {
-      add {
-        _errorsChangedHandler += value;
-      }
-      remove {
-        _errorsChangedHandler -= value;
-      }
+    internal bool IsDetached {
+      get { return ParentEntity == null || ParentEntity.EntityAspect.IsDetached; }
     }
 
-    IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName) {
-
-      return null;
+    internal bool IsAttached {
+      get { return ParentEntity != null && ParentEntity.EntityAspect.IsAttached; }
     }
 
-    internal String PropertyPathPrefix {
-      get {
-        if (_propertyPathPrefix == null) {
-          _propertyPathPrefix = GetPropertyPathPrefix();
+    internal void AbsorbCurrentValues(ComplexAspect sourceAspect, bool isCloning = false) {
+      if (isCloning) {
+        if (sourceAspect.OriginalValuesMap != null) {
+          this.OriginalValuesMap = new OriginalValuesMap(sourceAspect.OriginalValuesMap);
         }
-        return _propertyPathPrefix;
       }
-    }
 
-  
+      this.ComplexType.DataProperties.ForEach(p => {
+        var sourceValue = sourceAspect.GetValue(p);
+        if (p.IsComplexProperty) {
+          var thisChildCo = (IComplexObject)GetValue(p);
+          if (thisChildCo == null) {
+            thisChildCo = ComplexAspect.Create(this.ComplexObject, p, true);
+            SetValue(p.Name, thisChildCo);
+          }
+          var thisChildAspect = thisChildCo.ComplexAspect;
 
- 
+          var sourceCo = (IComplexObject)sourceValue;
+          if (sourceCo == null) {
+            sourceCo = ComplexAspect.Create(sourceAspect.ComplexObject, p, true);
+            sourceAspect.SetValue(p, sourceCo);
+          }
+          var sourceChildAspect = sourceCo.ComplexAspect;
 
-    /// <summary>
-    /// Raises the ErrorsChanged event.
-    /// </summary>
-    /// <param name="propertyName"></param>
-    private void OnErrorsChanged(String propertyName) {
-      // _inErrorsChanged is needed because SL tries to reinvoke validation every time in the ErrorsChanged event fires.
-      if (_inErrorsChanged) return;
-      _inErrorsChanged = true;
-      try {
-        var handler = _errorsChangedHandler;
-        if (handler != null) {
-          handler(this, new DataErrorsChangedEventArgs(propertyName));
+          thisChildAspect.AbsorbCurrentValues(sourceChildAspect, isCloning);
+        } else {
+          SetValue(p, sourceValue);
         }
-      } finally {
-        _inErrorsChanged = false;
-      }
+      });
     }
 
- 
-    private String GetPropertyPathPrefix() {
-      var name = this.ParentProperty.Name;
-      var parent = this.Parent as IComplexObject;
-      if (parent == null) {
-        return name + ".";
-      } else {
-        return parent.ComplexAspect.PropertyPathPrefix + name + ".";
-      }
+    internal Object[] GetCurrentValues() {
+      var props = ComplexType.DataProperties;
+      var currentValues = props.Select(p => GetValue(p)).ToArray();
+      return currentValues;
     }
-
-
-
-    private String _propertyPathPrefix;
-    private bool _inErrorsChanged = false;
-    private event EventHandler<DataErrorsChangedEventArgs> _errorsChangedHandler;
 
     #endregion
 
+    #region Protected
 
+    protected override StructuralType StructuralType {
+      get { return this.ComplexType; }
+    }
+
+    protected override IStructuralObject StructuralObject {
+      get { return this.ComplexObject; ; }
+    }
+
+    #endregion
+
+    #region Get/Set Value
 
     internal object GetValue(DataProperty property, EntityVersion version) {
       InitializeDefaultValues();
@@ -292,6 +268,27 @@ namespace Breeze.NetClient {
       });
     }
 
+    public override void SetValue(String propertyName, object newValue) {
+      SetValue(ComplexType.GetDataProperty(propertyName), newValue);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="property"></param>
+    /// <param name="newValue"></param>
+    internal void SetValue(DataProperty property, object newValue) {
+      InitializeDefaultValues();
+
+      if (property.IsComplexProperty) {
+        var thisAspect = GetValue<IComplexObject>(property).ComplexAspect;
+        var newAspect = ((IComplexObject)newValue).ComplexAspect;
+        thisAspect.AbsorbCurrentValues(newAspect);
+      } else {
+        SetValue(property, newValue);
+      }
+    }
+
 
     internal void SetValueWithChangeNotification(DataProperty property, object newValue) {
       var oldValue = GetValue(property, EntityVersion.Default);
@@ -312,7 +309,8 @@ namespace Breeze.NetClient {
         if (propArgs.Cancel) return;
       }
 
-      SetValueWithChangeTracking(property, newValue);
+      TrackChange(property);
+      SetValue(property, newValue);
 
       if (ParentEntity != null) {
         if (ParentEntity.EntityAspect.EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity)  {
@@ -324,31 +322,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    internal void SetValueWithChangeTracking(DataProperty property, Object newValue) {
-      TrackChange(property);
-      SetValue(property, newValue);
-    }
 
-    public override void SetValue(String propertyName, object newValue) {
-      SetValue(ComplexType.GetDataProperty(propertyName), newValue);
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="property"></param>
-    /// <param name="newValue"></param>
-    internal void SetValue(DataProperty property, object newValue) {
-      InitializeDefaultValues();
-
-      if ( property.IsComplexProperty) {
-        var thisAspect = GetValue<IComplexObject>(property).ComplexAspect;
-        var newAspect = ((IComplexObject)newValue).ComplexAspect;
-        thisAspect.AbsorbCurrentValues(newAspect);
-      } else {
-        SetValue(property, newValue);
-      }
-    }
 
     internal IComplexObject GetOriginalVersion() {
       var originalClone = Create(this.Parent, this.ParentProperty, false);
@@ -392,6 +366,7 @@ namespace Breeze.NetClient {
       return newDt;
     }
 
+    #endregion
 
     #region TrackChanges methods
 
@@ -497,47 +472,78 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region Misc private and internal methods/properties
+    #region INotifyDataErrorInfo
 
+    /// <summary>
+    /// True if there are any validation errors.
+    /// </summary>
+    bool INotifyDataErrorInfo.HasErrors {
+      get {
+        return false;
 
-    internal void AbsorbCurrentValues(ComplexAspect sourceAspect, bool isCloning = false) {
-      if (isCloning) {
-        if (sourceAspect.OriginalValuesMap != null) {
-          this.OriginalValuesMap = new OriginalValuesMap(sourceAspect.OriginalValuesMap);
-        }
       }
+    }
 
-      this.ComplexType.DataProperties.ForEach(p => {
-        var sourceValue = sourceAspect.GetValue(p);
-        if (p.IsComplexProperty) {
-          var thisChildCo = (IComplexObject) GetValue(p);
-          if (thisChildCo == null) {
-            thisChildCo = ComplexAspect.Create(this.ComplexObject, p, true);
-            SetValue(p.Name, thisChildCo);
-          }
-          var thisChildAspect = thisChildCo.ComplexAspect;
+    /// <summary>
+    /// Raised when validation errors have changed for a property or the object.
+    /// </summary>
+    event EventHandler<DataErrorsChangedEventArgs> INotifyDataErrorInfo.ErrorsChanged {
+      add {
+        _errorsChangedHandler += value;
+      }
+      remove {
+        _errorsChangedHandler -= value;
+      }
+    }
 
-          var sourceCo = (IComplexObject)sourceValue;
-          if (sourceCo == null) {
-            sourceCo = ComplexAspect.Create(sourceAspect.ComplexObject, p, true);
-            sourceAspect.SetValue(p, sourceCo);
-          }
-          var sourceChildAspect = sourceCo.ComplexAspect;
+    IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName) {
 
-          thisChildAspect.AbsorbCurrentValues(sourceChildAspect, isCloning);
-        } else {
-          SetValue(p, sourceValue);
+      return null;
+    }
+
+    internal String PropertyPathPrefix {
+      get {
+        if (_propertyPathPrefix == null) {
+          _propertyPathPrefix = GetPropertyPathPrefix();
         }
-      });
+        return _propertyPathPrefix;
+      }
     }
 
-    
-
-    internal Object[] GetCurrentValues() {
-      var props = ComplexType.DataProperties;
-      var currentValues = props.Select(p => GetValue(p)).ToArray();
-      return currentValues;
+    /// <summary>
+    /// Raises the ErrorsChanged event.
+    /// </summary>
+    /// <param name="propertyName"></param>
+    private void OnErrorsChanged(String propertyName) {
+      // _inErrorsChanged is needed because SL tries to reinvoke validation every time in the ErrorsChanged event fires.
+      if (_inErrorsChanged) return;
+      _inErrorsChanged = true;
+      try {
+        var handler = _errorsChangedHandler;
+        if (handler != null) {
+          handler(this, new DataErrorsChangedEventArgs(propertyName));
+        }
+      } finally {
+        _inErrorsChanged = false;
+      }
     }
+
+
+    private String GetPropertyPathPrefix() {
+      var name = this.ParentProperty.Name;
+      var parent = this.Parent as IComplexObject;
+      if (parent == null) {
+        return name + ".";
+      } else {
+        return parent.ComplexAspect.PropertyPathPrefix + name + ".";
+      }
+    }
+
+
+
+    private String _propertyPathPrefix;
+    private bool _inErrorsChanged = false;
+    private event EventHandler<DataErrorsChangedEventArgs> _errorsChangedHandler;
 
     #endregion
 
@@ -583,19 +589,10 @@ namespace Breeze.NetClient {
 
     #endregion
 
-
-
-
     #region Fields
-    
-    
-    private IComplexObject _complexObject;
-    
-    // private Object[] _currentValues;
-    // Required on Server in order to determine what props have changed.
-    
 
-    // do not need to be serialized
+    private ComplexType _complexType;
+    private IComplexObject _complexObject;
     private IStructuralObject _parent;
     private DataProperty _parentProperty;
     

@@ -777,31 +777,26 @@ namespace Test_NetClient {
 
     
 
-    //test("recursive navigation fixup", function () {
-    //    var em = newEm();
-    //    var empType = em.metadataStore.getEntityType("Employee");
-    //    var emp1 = em.createEntity("Employee", null, EntityState.Detached);
-    //    var emp2 = em.createEntity("Employee", null, EntityState.Detached);
-    //    var emp3 = em.createEntity("Employee", null, EntityState.Detached);
-        
-        
-    //    ok(emp1.entityAspect.entityState.isDetached(), "emp1 should be detached");
-    //    ok(emp2.entityAspect.entityState.isDetached(), "emp2 should be detached");
-    //    ok(emp3.entityAspect.entityState.isDetached(), "emp3 should be detached");
-    //    emp2.setProperty("manager", emp1);
-    //    emp2.getProperty("directReports").push(emp3);
-    //    em.addEntity(emp3);
-    //    ok(emp1.entityAspect.entityState.isAdded(), "emp1 should be unchanged");
-    //    ok(emp2.entityAspect.entityState.isAdded(), "emp2 should be unchanged");
-    //    ok(emp3.entityAspect.entityState.isAdded(), "emp3 should be unchanged");
-    //    var emp1Id = emp1.getProperty(testFns.employeeKeyName);
-    //    var emp2Id = emp2.getProperty(testFns.employeeKeyName);
-    //    var emp3Id = emp3.getProperty(testFns.employeeKeyName);
-    //    ok(emp2.getProperty("reportsToEmployeeID") === emp1Id, "emp2.ReportsTo... not set properly");
-    //    ok(emp3.getProperty("reportsToEmployeeID") === emp2Id, "emp2.ReportsTo... not set properly");
-    //    ok(emp2.getProperty("directReports")[0] === emp3, "emp2.DirectReports not set properly");
-    //    ok(emp1.getProperty("directReports")[0] === emp2, "emp1.DirectReports not set properly");
+    // recursive navigation fixup
+    [TestMethod]
+    public async Task AttachRecursive() {
+      await _emTask;
 
-    //});
+      var emp1 = new Employee();
+      var emp2 = new Employee();
+      var emp3 = new Employee();
+
+      emp2.Manager = emp1;
+      emp3.Manager = emp2;
+      _em1.AttachEntity(emp3);
+      Assert.IsTrue(emp3.EntityAspect.IsAttached);
+      Assert.IsTrue(emp2.EntityAspect.IsAttached);
+      Assert.IsTrue(emp1.EntityAspect.IsAttached);
+      Assert.IsTrue(emp1.DirectReports.Contains(emp2), "emp1 manages emp2");
+      Assert.IsTrue(emp2.DirectReports.Contains(emp3), "emp2 manages emp3");
+      Assert.IsTrue(emp2.Manager == emp1, "emp2 manager is emp1");
+      Assert.IsTrue(emp3.Manager == emp2, "emp3 mamager is emp2");
+
+    }
   }
 }

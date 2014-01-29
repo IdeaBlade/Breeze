@@ -631,7 +631,7 @@ namespace Breeze.NetClient {
           // orderDetail.order <-xxx newOrder
           //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
           var pkValues = this.EntityKey.Values;
-          // invForeignKeyNames.ForEach((fkName, i) => newAspect.SetValue(fkName, pkValues[i]));
+          
           invForeignKeyProps.ForEach((fkProp, i) => newAspect.SetValue(fkProp, pkValues[i]));
         } else {
           // Example: unidirectional navProperty: 1->1: order -> internationalOrder
@@ -648,13 +648,6 @@ namespace Breeze.NetClient {
                 oldAspect.SetValue(fkProp, null);
               }
             });
-            //invForeignKeyNames.ForEach(fkName => {
-            //  var fkProp = oldAspect.EntityType.GetDataProperty(fkName);
-            //  if (!fkProp.IsPartOfKey) {
-            //    // don't update with null if fk is part of the key
-            //    oldAspect.SetValue(fkProp, null);
-            //  }
-            //});
           }
         }
       }
@@ -1504,9 +1497,9 @@ namespace Breeze.NetClient {
 
     internal EntityKey GetParentKey(NavigationProperty np) {
       // returns null for np's that do not have a parentKey
-      var fkNames = np.ForeignKeyNames;
-      if (fkNames.Count == 0) return null;
-      var fkValues = fkNames.Select(fkn => GetValue(fkn)).ToArray();
+      var fkProps = np.ForeignKeyProperties;
+      if (fkProps.Count == 0) return null;
+      var fkValues = fkProps.Select(fkp => GetValue(fkp)).ToArray();
       return new EntityKey(np.EntityType, fkValues);
     }
 
