@@ -51,13 +51,13 @@ namespace Breeze.NetClient {
       BackingStore[propertyName] = value;
     }
 
-    public Object GetValue(StructuralProperty prop) {
-      return GetValue(prop.Name);
-    }
-
     public Object GetValue(String propertyName) {
       // TODO: will be different when we add property interception.
       return GetRawValue(propertyName);
+    }
+
+    public Object GetValue(StructuralProperty prop) {
+      return GetValue(prop.Name);
     }
 
     public T GetValue<T>(StructuralProperty prop) {
@@ -66,6 +66,39 @@ namespace Breeze.NetClient {
 
     public T GetValue<T>(String propertyName) {
       return (T) GetRawValue(propertyName);
+    }
+
+    public Object GetValue(DataProperty property, EntityVersion version) {
+
+      if (version == EntityVersion.Default) {
+        version = EntityVersion;
+      }
+
+      Object result;
+      if (version == EntityVersion.Current) {
+        if (this.EntityVersion == EntityVersion.Proposed) {
+          result = GetPreproposedValue(property);
+        } else {
+          result = GetValue(property);
+        }
+      } else if (version == EntityVersion.Original) {
+        result = GetOriginalValue(property);
+      } else if (version == EntityVersion.Proposed) {
+        result = GetValue(property);
+      } else {
+        throw new ArgumentException("Invalid entity version");
+      }
+
+      if (property.IsComplexProperty) {
+        var co = (IComplexObject)result;
+        if (co.ComplexAspect.Parent == null || co.ComplexAspect.Parent != this.StructuralObject) {
+          co.ComplexAspect.Parent = this.StructuralObject;
+          co.ComplexAspect.ParentProperty = property;
+        }
+        return co;
+      } else {
+        return result;
+      }
     }
 
     public abstract void SetValue(String propertyName, object newValue);
@@ -84,7 +117,34 @@ namespace Breeze.NetClient {
 
     }
 
+    protected internal Object[] GetValues(IEnumerable<DataProperty> properties) {
+      return properties.Select(p => this.GetValue(p)).ToArray();
+    }
+
     #region Backup version members
+
+    protected Object GetOriginalValue(DataProperty property) {
+      object result;
+      if (property.IsComplexProperty) {
+        var co = (IComplexObject)GetValue(property, EntityVersion.Current);
+        return co.ComplexAspect.GetOriginalVersion();
+      } else {
+        if (OriginalValuesMap != null && OriginalValuesMap.TryGetValue(property.Name, out result)) {
+          return result;
+        } else {
+          return GetValue(property);
+        }
+      }
+    }
+
+    protected Object GetPreproposedValue(DataProperty property) {
+      object result;
+      if (PreproposedValuesMap != null && PreproposedValuesMap.TryGetValue(property.Name, out result)) {
+        return result;
+      } else {
+        return GetValue(property);
+      }
+    }
 
     protected internal virtual void ClearBackupVersion(EntityVersion version) {
 
@@ -138,7 +198,7 @@ namespace Breeze.NetClient {
     }
     
     internal virtual void OnDataPropertyRestore(DataProperty dp) {
-
+      // deliberate noop here;
     }
 
     protected void TrackChange(DataProperty property) {

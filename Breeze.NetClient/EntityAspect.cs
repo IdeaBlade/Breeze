@@ -530,9 +530,9 @@ namespace Breeze.NetClient {
       }
 
       if (property.IsComplexProperty) {
-        SetDpComplexValue(property, newValue, oldValue);
+        SetDpValueComplex(property, newValue, oldValue);
       } else {
-        SetDpSimpleValue(property, newValue, oldValue);
+        SetDpValueSimple(property, newValue, oldValue);
       }
 
       if (this.EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity) {
@@ -681,7 +681,7 @@ namespace Breeze.NetClient {
 
     }
 
-    private void SetDpSimpleValue(DataProperty property, object newValue, object oldValue) {
+    private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
       // if we are changing the key update our internal entityGroup indexes.
       if (property.IsPartOfKey && this.IsAttached && !EntityManager.IsLoadingEntity) {
 
@@ -735,7 +735,7 @@ namespace Breeze.NetClient {
 
     }
 
-    private void SetDpComplexValue(DataProperty property, object newValue, object oldValue) {
+    private void SetDpValueComplex(DataProperty property, object newValue, object oldValue) {
       if (property.IsScalar) {
         if (newValue == null) {
           throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
@@ -749,62 +749,6 @@ namespace Breeze.NetClient {
             property.Name, property.ParentType.Name));
       }
 
-    }
-
-    public Object GetValue(DataProperty property, EntityVersion version) {
-
-      if (version == EntityVersion.Default) {
-        version = EntityVersion;
-      }
-
-      Object result;
-      if (version == EntityVersion.Current) {
-        if (this.EntityVersion == EntityVersion.Proposed) {
-          result = GetPreproposedValue(property);
-        } else {
-          result = GetValue(property);
-        }
-      } else if (version == EntityVersion.Original) {
-        result = GetOriginalValue(property);
-      } else if (version == EntityVersion.Proposed) {
-        result = GetValue(property);
-      } else {
-        throw new ArgumentException("Invalid entity version");
-      }
-
-      if (property.IsComplexProperty) {
-        var co = (IComplexObject)result;
-        if (co.ComplexAspect.Parent == null || co.ComplexAspect.Parent != this.Entity) {
-          co.ComplexAspect.Parent = this.Entity;
-          co.ComplexAspect.ParentProperty = property;
-        }
-        return co;
-      } else {
-        return result;
-      }
-    }
-
-    private Object GetOriginalValue(DataProperty property) {
-      object result;
-      if (property.IsComplexProperty) {
-        var co = (IComplexObject)GetValue(property, EntityVersion.Current);
-        return co.ComplexAspect.GetOriginalVersion();
-      } else {
-        if (OriginalValuesMap != null && OriginalValuesMap.TryGetValue(property.Name, out result)) {
-          return result;
-        } else {
-          return GetValue(property);
-        }
-      }
-    }
-
-    private Object GetPreproposedValue(DataProperty property) {
-      object result;
-      if (PreproposedValuesMap != null && PreproposedValuesMap.TryGetValue(property.Name, out result)) {
-        return result;
-      } else {
-        return GetValue(property);
-      }
     }
 
     // only ever called once for each EntityAspect when the EntityType is first set
@@ -848,12 +792,6 @@ namespace Breeze.NetClient {
     //    this.EntityManager.TempIds.Remove(oldUniqueId);
     //  }
     //}
-
-
-    protected internal Object[] GetValues(IEnumerable<DataProperty> properties) {
-      return properties.Select(p => this.GetValue(p)).ToArray();
-    }
-
 
     // This is the "current" value of the EntityVersion.Default ( not EntityVersion.Current) although
     // these will be the same except when the current version or the object is proposed.

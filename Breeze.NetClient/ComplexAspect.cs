@@ -218,10 +218,6 @@ namespace Breeze.NetClient {
       return currentValues;
     }
 
-    #endregion
-
-    #region Protected
-
     protected override StructuralType StructuralType {
       get { return this.ComplexType; }
     }
@@ -234,42 +230,6 @@ namespace Breeze.NetClient {
 
     #region Get/Set Value
 
-    internal object GetValue(DataProperty property, EntityVersion version) {
-      InitializeDefaultValues();
-
-      if (version == EntityVersion.Default) {
-        version = ParentEntity == null ? EntityVersion.Current : EntityVersion;
-      }
-      Object result;
-      if (version == EntityVersion.Current) {
-        if (EntityVersion == EntityVersion.Proposed) {
-          result = GetPreproposedValue(property);
-        } else {
-          result = GetValue(property);
-        }
-      } else if (version == EntityVersion.Original) {
-        result = GetOriginalValue(property);
-      } else if (version == EntityVersion.Proposed) {
-        result = GetValue(property);
-      } else {
-        throw new ArgumentException("Invalid entity version");
-      }
-
-      if (property.IsComplexProperty) {
-        var co = (IComplexObject)result;
-        if (co == null) {
-          co = Create(this.ComplexObject, property, true);
-          SetDpValue(property, co);
-          return co;
-        } else if (co.ComplexAspect.Parent == null || co.ComplexAspect.Parent != _complexObject) {
-          co.ComplexAspect.Parent = _complexObject;
-          co.ComplexAspect.ParentProperty = property;
-        }
-        return co;
-      } else {
-        return result;
-      }
-    }
 
     internal void InitializeDefaultValues() {
 
@@ -328,9 +288,9 @@ namespace Breeze.NetClient {
       }
 
       if (property.IsComplexProperty) {
-        SetDpComplexValue(property, newValue, oldValue);
+        SetDpValueComplex(property, newValue, oldValue);
       } else {
-        SetDpSimpleValue(property, newValue, oldValue);
+        SetDpValueSimple(property, newValue, oldValue);
       }
 
       if (ParentEntity != null) {
@@ -345,9 +305,7 @@ namespace Breeze.NetClient {
 
     }
 
-
-
-    private void SetDpSimpleValue(DataProperty property, object newValue, object oldValue) {
+    private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
       
       
       // Actually set the value;
@@ -367,7 +325,7 @@ namespace Breeze.NetClient {
 
     }
 
-    private void SetDpComplexValue(DataProperty property, object newValue, object oldValue) {
+    private void SetDpValueComplex(DataProperty property, object newValue, object oldValue) {
       if (property.IsScalar) {
         if (newValue == null) {
           throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
@@ -394,30 +352,6 @@ namespace Breeze.NetClient {
       return originalClone;
     }
 
-
-
-    private Object GetOriginalValue(DataProperty property) {
-      object result;
-      if (property.IsComplexProperty) {
-        var co = (IComplexObject)GetValue(property, EntityVersion.Current);
-        return co.ComplexAspect.GetOriginalVersion();
-      } else {
-        if (OriginalValuesMap != null && OriginalValuesMap.TryGetValue(property.Name, out result)) {
-          return result;
-        } else {
-          return GetValue(property);
-        }
-      }
-    }
-
-    private Object GetPreproposedValue(DataProperty property) {
-      object result;
-      if ( PreproposedValuesMap != null && PreproposedValuesMap.TryGetValue(property.Name, out result)) {
-        return result;
-      } else {
-        return GetValue(property);
-      }
-    }
 
     private DateTime ConvertToSqlDateTime(DateTime dt) {
       var ticks = ((long)1E5) * (dt.Ticks / (long)1E5);
