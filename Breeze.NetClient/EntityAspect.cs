@@ -1251,23 +1251,10 @@ namespace Breeze.NetClient {
     }
 
     private void LinkNavProps() {
-      // now add to unattachedMap if needed.
 
       EntityType.NavigationProperties.ForEach(np => {
-        if (np.IsScalar) {
-          var invEntity = GetValue<IEntity>(np.Name);
-          // property is already linked up
-          if (invEntity != null) {
-            if (invEntity.EntityAspect.IsDetached) {
-              // need to insure that fk props match
-              var fkNames = np.ForeignKeyNames;
-              invEntity.EntityAspect.EntityType = np.EntityType;
-              invEntity.EntityAspect.EntityKey.Values.ForEach( (v,i) => SetValue(fkNames[i], v));
-            }
-            return;
-          }
-        }
-
+        if (!FixupFksOnUnattached(np)) return;
+        
         // first determine if np contains a parent or child
         // having a parentKey means that this is a child
         // if a parent then no need for more work because children will attach to it.
@@ -1287,6 +1274,40 @@ namespace Breeze.NetClient {
           }
         }
       });
+    }
+
+    // returns whether the navProperty needs additional processing
+    private bool FixupFksOnUnattached(NavigationProperty np) {
+      if (np.IsScalar) {
+        var npEntity = GetValue<IEntity>(np);
+        // property is already linked up
+        if (npEntity != null) {
+          if (npEntity.EntityAspect.IsDetached) {
+            // need to insure that fk props match
+            var fkNames = np.ForeignKeyNames;
+            npEntity.EntityAspect.EntityType = np.EntityType;
+            // Set this Entity's fk to match np EntityKey
+            // Order.CustomerID = aCustomer.CustomerID
+            npEntity.EntityAspect.EntityKey.Values.ForEach((v, i) => SetValue(fkNames[i], v));
+          }
+          return false;
+        }
+      } else {
+        var invNp = np.Inverse;
+        if (invNp != null) {
+          var npEntities = GetValue<INavigationSet>(np);
+          npEntities.Cast<IEntity>().Where(e => e.EntityAspect.IsDetached)
+            .ForEach(npEntity => {
+              var fkNames = invNp.ForeignKeyNames;
+              var npAspect = npEntity.EntityAspect;
+              npAspect.EntityType = np.EntityType;
+              // Set each entity in collections fk to match this Entity's EntityKey
+              // Order.CustomerID = aCustomer.CustomerID
+              Entity.EntityAspect.EntityKey.Values.ForEach((v, i) => npAspect.SetValue(fkNames[i], v));
+            });
+        }
+      }
+      return true;
     }
 
     private void LinkFkProps() {

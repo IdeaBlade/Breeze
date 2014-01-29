@@ -93,7 +93,6 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task AddToNavSet() {
-      
         await _emTask;
         
         var customer = new Customer();
@@ -673,265 +672,110 @@ namespace Test_NetClient {
 
     }
 
-    //test("graph attach (1-n)- setProperties child, attach parent", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
+    
+    [TestMethod]
+    public async Task GraphAttachMultipartKey() {
+      await _emTask;
 
-    //    order1.setProperty("customer", cust1);
-    //    em.attachEntity(cust1);
-    //    ok(order1.entityAspect.entityState === EntityState.Unchanged, "order entityState should be unchanged");
-    //    ok(cust1.entityAspect.entityState === EntityState.Unchanged, "customer entityState should be unchanged");
-    //    var orders = cust1.getProperty("orders");
-    //    ok(orders[0] == order1, "inverse relationship not setProperties");
-    //});
+      if (TestFns.DEBUG_MONGO) {
+        Assert.Inconclusive("NA for Mongo - OrderDetail");
+        return;
+      }
 
-    //test("graph attach (1-n) - setProperties parent, attach parent", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
+      var order = new Order();
+      order.OrderID = 999;
+      order.EntityAspect.SetValue("OrderDetails", new NavigationSet<OrderDetail>());
+      for (int i = 0; i < 3; i++) {
+        var od = new OrderDetail();
+        od.ProductID = i;
+        order.OrderDetails.Add(od);
+      }
+      _em1.AttachEntity(order);
+      Assert.IsTrue(order.EntityAspect.EntityState.IsUnchanged(), "order should be unchanged");
+      Assert.IsTrue(order.OrderDetails.All(od => od.EntityAspect.EntityState.IsUnchanged()), "ods should all be unchanged");
+      Assert.IsTrue(order.OrderDetails.Count == 3, "should be 3 ods");
+      Assert.IsTrue(order.OrderDetails.All(od => od.Order == order), "should all point to order");
+      Assert.IsTrue(order.OrderDetails.All(od => od.OrderID == 999), "should all have correct orderId");
+      
+    }
 
-    //    var cust1Orders = cust1.getProperty("orders");
-    //    cust1Orders.push(order1);
-    //    ok(cust1Orders.length === 1, "There should be exactly one order in cust1Orders");
-    //    em.attachEntity(cust1);
-    //    ok(order1.entityAspect.entityState === EntityState.Unchanged, "order entityState should be unchanged");
-    //    ok(cust1.entityAspect.entityState === EntityState.Unchanged, "customer entityState should be unchanged");
-    //    ok(order1.getProperty("customer") === cust1, "inverse relationship not setPropertiesd");
-    //});
+    [TestMethod]
+    public async Task UnattachedChildrenMultipartkey() {
+      await _emTask;
 
-    //test("graph attach (1-n) - setProperties parent, attach child", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
+      if (TestFns.DEBUG_MONGO) {
+        Assert.Inconclusive("NA for Mongo - OrderDetail");
+        return;
+      }
 
-    //    var cust1Orders = cust1.getProperty("orders");
-    //    cust1Orders.push(order1);
-    //    ok(cust1Orders.length === 1, "There should be exactly one order in cust1Orders");
-    //    em.attachEntity(order1);
-    //    ok(order1.entityAspect.entityState === EntityState.Unchanged, "order entityState should be unchanged");
-    //    ok(cust1.entityAspect.entityState === EntityState.Unchanged, "customer entityState should be unchanged");
-    //    ok(order1.getProperty("customer") === cust1, "inverse relationship not setPropertiesd");
-    //});
+      var order = new Order();
+      order.OrderID = 999;
+      order.EntityAspect.SetValue("OrderDetails", new NavigationSet<OrderDetail>());
+      for (int i = 0; i < 3; i++) {
+        var od = new OrderDetail();
+        od.ProductID = i;
+        od.OrderID = order.OrderID;
+        _em1.AttachEntity(od);
+      }
+      _em1.AttachEntity(order);
+      Assert.IsTrue(order.EntityAspect.EntityState.IsUnchanged(), "order should be unchanged");
+      Assert.IsTrue(order.OrderDetails.All(od => od.EntityAspect.EntityState.IsUnchanged()), "ods should all be unchanged");
+      Assert.IsTrue(order.OrderDetails.Count == 3, "should be 3 ods");
+      Assert.IsTrue(order.OrderDetails.All(od => od.Order == order), "should all point to order");
+      Assert.IsTrue(order.OrderDetails.All(od => od.OrderID == order.OrderID), "should all have correct orderId");
 
-    //test("graph attach (1-n) - parent detach", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
+    }
+    
+    [TestMethod]
+    public async Task DuplicateKeysError() {
+      await _emTask;
 
-    //    var cust1Orders = cust1.getProperty("orders");
-    //    cust1Orders.push(order1);
-    //    ok(cust1Orders.length === 1, "There should be exactly one order in cust1Orders");
-    //    em.attachEntity(order1);
-    //    ok(order1.entityAspect.entityState === EntityState.Unchanged, "order entityState should be unchanged");
-    //    ok(cust1.entityAspect.entityState === EntityState.Unchanged, "customer entityState should be unchanged");
-    //    ok(order1.getProperty("customer") === cust1, "inverse relationship not setProperties");
-    //    var orderCustId =  order1.getProperty(testFns.customerKeyName);
-    //    em.detachEntity(cust1);
-    //    ok(cust1.entityAspect.entityState.isDetached(), "should be detached");
-    //    ok(order1.entityAspect.entityState.isUnchanged(), "should be unchanged");
-    //    var orderCustId2 = order1.getProperty(testFns.customerKeyName);
-    //    ok(orderCustId === orderCustId2, "custId should not have changed");
+      var cust1 = new Customer();
+      var cust2 = new Customer();
+      _em1.AttachEntity(cust1);
+      try {
+        cust2.CustomerID = cust1.CustomerID;
+        _em1.AttachEntity(cust2);
+        Assert.Fail("should not get here");
+      } catch (Exception e) {
+        Assert.IsTrue(e.Message.Contains("key"), "message should mention 'key'");
+      }
+    }
+    
+    // fk fixup - fk to nav - attached"
+    [TestMethod]
+    public async Task FkFixup() {
+      await _emTask;
 
+      var cust1 = _em1.CreateEntity<Customer>(EntityState.Unchanged);
+      var order1 = _em1.CreateEntity<Order>(EntityState.Unchanged);
+      order1.CustomerID = cust1.CustomerID;
+      Assert.IsTrue(cust1.Orders.Contains(order1), "should contain order1");
+      Assert.IsTrue(order1.Customer == cust1, "customer should be attached");
+    }
 
-    //});
+    // fk fixup - unattached children
+    [TestMethod]
+    public async Task UnattachedChildren() {
+      await _emTask;
 
-    //test("graph attach (1-n) - piecewise", function () {
-    //    if (testFns.DEBUG_MONGO) {
-    //        ok(true, "NA for Mongo - OrderDetail");
-    //        return;
-    //    }
-    //    var em = newEm();
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
+      var cust1 = new Customer();
+      var cust2 = new Customer();
+      var order1 = new Order();
+      cust1.CustomerID = Guid.NewGuid();
+      _em1.AttachEntity(order1);
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsUnchanged());
+      order1.CustomerID = cust1.CustomerID;
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsModified());
+      Assert.IsTrue(order1.Customer == null, "customer should be null");
+      order1.EntityAspect.AcceptChanges();
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsUnchanged());
+      _em1.AttachEntity(cust1);
+      Assert.IsTrue(order1.Customer == cust1, "customer should now be set");
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsUnchanged(), "fixup should not change entityState");
+    }
 
-    //    var order = orderType.createEntity();
-    //    ok(order.entityAspect.entityState.isDetached(), "order should be 'detached");
-
-    //    order.setProperty("orderID", 888);
-
-    //    em.attachEntity(order);
-    //    var orderId = order.getProperty("orderID");
-    //    ok(orderId);
-    //    ok(order.entityAspect.entityState.isUnchanged(), "order should be 'unchanged'");
-    //    for (var i = 0; i < 3; i++) {
-    //        var od = orderDetailType.createEntity();
-    //        od.setProperty("productID", i + 1); // part of pk && not the default value
-    //        order.getProperty("orderDetails").push(od);
-    //        ok(od.entityAspect.entityState.isAdded(), "orderDetail should be 'added");
-    //        ok(od.getProperty("order") === order, "orderDetail.order not set");
-    //        ok(od.getProperty("orderID") === orderId, "orderDetail.orderId not set");
-    //    }
-    //});
-
-    //// TODO: will not yet work if both order and orderDetail keys are autogenerated.
-    //test("graph attach (1-n)- all together", function () {
-    //    if (testFns.DEBUG_MONGO) {
-    //        ok(true, "NA for Mongo - OrderDetail");
-    //        return;
-    //    }
-    //    var em = newEm();
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
-        
-    //    var order = orderType.createEntity();
-    //    ok(order.entityAspect.entityState.isDetached(), "order should be 'detached");
-    //    order.setProperty("orderID", 999);
-
-    //    for (var i = 0; i < 3; i++) {
-    //        var od = orderDetailType.createEntity();
-    //        od.setProperty("productID", i + 1); // part of pk and not the default value
-    //        order.getProperty("orderDetails").push(od);
-    //        ok(od.entityAspect.entityState.isDetached(), "orderDetail should be 'detached");
-    //    }
-    //    em.attachEntity(order);
-    //    var orderId = order.getProperty("orderID");
-    //    ok(orderId);
-    //    ok(order.entityAspect.entityState.isUnchanged(), "order should be 'unchanged'");
-    //    order.getProperty("orderDetails").forEach(function (od) {
-    //        ok(od.getProperty("order") === order, "orderDetail.order not set");
-    //        ok(od.getProperty("orderID") === orderId, "orderDetail.orderId not set");
-    //        ok(od.entityAspect.entityState.isUnchanged(), "orderDetail should be 'unchanged");
-    //    });
-    //});
-
-    //test("graph attach (1-n) - all together - autogenerated", function () {
-    //    if (testFns.DEBUG_MONGO) {
-    //        ok(true, "NA for Mongo - OrderDetail");
-    //        return;
-    //    }
-    //    var em = newEm();
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var orderDetailType = em.metadataStore.getEntityType("OrderDetail");
-
-    //    var order = orderType.createEntity();
-    //    ok(order.entityAspect.entityState.isDetached(), "order should be 'detached");
-    //    order.setProperty("orderID", 999);
-
-    //    for (var i = 0; i < 3; i++) {
-    //        var od = orderDetailType.createEntity();
-    //        od.setProperty("productID", i); // part of pk
-    //        order.getProperty("orderDetails").push(od);
-    //        ok(od.entityAspect.entityState.isDetached(), "orderDetail should be 'detached");
-    //    }
-    //    em.attachEntity(order);
-    //    ok(order.entityAspect.entityState.isUnchanged(), "order should be 'unchanged'");
-    //    var orderId = order.getProperty("orderID");
-    //    ok(orderId);
-    //    order.getProperty("orderDetails").forEach(function (od) {
-    //        ok(od.getProperty("order") === order, "orderDetail.order not set");
-    //        ok(od.getProperty("orderID") === orderId, "orderDetail.orderId not set");
-    //        ok(od.entityAspect.entityState.isUnchanged(), "orderDetail should be 'unchanged");
-    //    });
-    //});
-
-
-    //test("duplicate entity keys", function () {
-    //    var em = newEm();
-
-    //    var cust1 = em.createEntity("Customer", null, EntityState.Detached);
-    //    var cust2 = em.createEntity("Customer", null, EntityState.Detached);
-
-    //    em.attachEntity(cust1);
-    //    try {
-    //        var cust1Id = cust1.getProperty(testFns.customerKeyName);
-    //        cust2.setProperty(testFns.customerKeyName, cust1Id);
-    //        em.attachEntity(cust2);
-    //        ok(false, "should not be able to attach 2 entities with the same key");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("key") >= 0);
-    //    }
-
-    //});
-
-    //test("fk fixup - fk to nav - attached", function () {
-    //    var em = newEm();
-        
-    //    var cust1 = em.createEntity("Customer", null, EntityState.Detached);
-    //    var cust2 = em.createEntity("Customer", null, EntityState.Detached);
-    //    var order1 = em.createEntity("Order", null, EntityState.Detached);
-
-    //    em.attachEntity(order1);
-    //    em.attachEntity(cust1);
-    //    var custIdValue = cust1.getProperty(testFns.customerKeyName);
-    //    order1.setProperty("customerID", custIdValue);
-    //    var orderCustomer = order1.getProperty("customer");
-    //    ok(orderCustomer === cust1, "nav property fixup did not occur");
-
-    //});
-
-    //test("fk fixup - nav to fk - attached", function () {
-    //    var em = newEm();
-    //    var cust1 = em.createEntity("Customer", null, EntityState.Detached);
-    //    var cust2 = em.createEntity("Customer", null, EntityState.Detached);
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var order1 = em.createEntity(orderType, null, EntityState.Detached);
-
-    //    em.attachEntity(order1);
-    //    em.attachEntity(cust1);
-
-    //    order1.setProperty("customer", cust1);
-    //    var orderCustId = order1.getProperty("customerID");
-    //    var custId = cust1.getProperty(testFns.customerKeyName);
-    //    ok(orderCustId === custId, "fk property fixup did not occur");
-
-    //});
-
-    //test("fk fixup - unattached children", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var c1Id = em.generateTempKeyValue(cust1);
-    //    var cust2 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
-    //    em.attachEntity(order1);
-    //    ok(order1.entityAspect.entityState.isUnchanged(), "order1 entityState should be 'unchanged'");
-    //    // assign an fk where the parent doesn't yet exist on  this em.
-    //    order1.setProperty("customerID", c1Id);
-    //    ok(order1.entityAspect.entityState.isModified(), "order1 entityState should be 'modfied'");
-    //    order1.entityAspect.acceptChanges();
-    //    ok(order1.entityAspect.entityState.isUnchanged(), "order1 entityState should be 'unchanged'");
-    //    var order1Cust = order1.getProperty("customer");
-    //    ok(order1Cust == null, "order1.Customer should be null at this point.");
-    //    em.attachEntity(cust1);
-    //    order1Cust = order1.getProperty("customer");
-    //    ok(order1Cust !== null, "order1.Customer should have been fixed up");
-    //    ok(order1.entityAspect.entityState.isUnchanged(), "fixup should not change the entity state");
-    //});
-
-    //test("fk fixup - unattached parent pushes attached child", function () {
-    //    var em = newEm();
-    //    var custType = em.metadataStore.getEntityType("Customer");
-    //    var orderType = em.metadataStore.getEntityType("Order");
-    //    var cust1 = custType.createEntity();
-    //    var c1Id = em.generateTempKeyValue(cust1);
-    //    var cust2 = custType.createEntity();
-    //    var order1 = orderType.createEntity();
-    //    em.attachEntity(order1);
-    //    ok(order1.entityAspect.entityState.isUnchanged(), "order1 entityState should be 'unchanged'");
-    //    ok(cust1.entityAspect.entityState.isDetached(), "cust1 entityState should be 'detached'");
-    //    var order1Cust = order1.getProperty("customer");
-    //    ok(order1Cust == null, "order1.Customer should be null at this point.");
-    //    var cust1Orders = cust1.getProperty("orders");
-    //    cust1Orders.push(order1);
-    //    ok(order1.entityAspect.entityState.isModified(), "order1 entityState should be 'modified'");
-    //    ok(cust1.entityAspect.entityState.isAdded(), "order1 entityState should be 'added'");
-    //    order1Cust = order1.getProperty("customer");
-    //    ok(order1Cust !== null, "order1.Customer should have been fixed up");
-    //    var order1CustId = order1.getProperty("customerID");
-    //    var custId = cust1.getProperty(testFns.customerKeyName);
-    //    ok(order1CustId === custId, "fk property fixup did not occur");
-
-    //});
+    
 
     //test("recursive navigation fixup", function () {
     //    var em = newEm();
