@@ -60,7 +60,7 @@ app.controller('CustomerCtrl', ['$scope', '$modal', function ($scope, $modal) {
     	
     	modalInstance.result.then(function(customer) {
     		//nothing
-    	}, function(reason) {
+    	}, function(customer) {
     		customer.entityAspect.rejectChanges();
     	})
     }

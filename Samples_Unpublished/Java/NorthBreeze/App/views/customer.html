@@ -1,11 +1,11 @@
 <div class="container">
 	
 <form class="form-horizontal" style="margin:20px">
-	<div class="form-group" ng-repeat="f in customer.entityType.dataProperties">
+	<div class="form-group" ng-repeat="f in customer.entityType.dataProperties" data-z-validate="customer[f.name]" ng-class="{'has-error': z_invalid}">
 		<label class="col-sm-3 control-label" for="{{f.name}}">{{f.name}}</label>
 		<div class="col-sm-3 input-group">
 			<input class="form-control" style="margin-right: 50" id="{{f.name}}" data-ng-model="customer[f.name]" 
-				data-z-validate placeholder="{{f.name}}" autofocus ng-focus="z_focused=true" ng-blur="z_focused=false">
+				 placeholder="{{f.name}}" autofocus ng-focus="z_focused=true" ng-blur="z_focused=false" >
 			<span class="input-group-addon z-required" title="Required" ng-show="z_required">*</span>
 		</div>
 		<span class="z-decorator">
@@ -17,7 +17,7 @@
 		<div class="col-sm-3"></div>
 		<div class="col-sm-3">
 		    <button class="btn btn-default" ng-click="$close(customer)">Ok</button>
-		    <button class="btn btn-default" ng-click="$dismiss('canceled')">Cancel</button>
+		    <button class="btn btn-default" ng-click="$dismiss(customer)">Cancel</button>
 		</div>
 	</div>
 </form>
