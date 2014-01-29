@@ -500,6 +500,10 @@ namespace Breeze.NetClient {
     }
 
     internal void SetValue(DataProperty property, object newValue) {
+      if (this.IsDetached) {
+        SetRawValue(property.Name, newValue);
+        return;
+      }
 
       if (!property.IsScalar) {
         throw new Exception("Nonscalar data properties are readonly - items may be added or removed but the collection may not be changed.");
@@ -743,10 +747,10 @@ namespace Breeze.NetClient {
         var propertyIx = EntityType.KeyProperties.IndexOf(property);
         EntityType.NavigationProperties.ForEach(np => {
           var inverseNp = np.Inverse;
-          var fkNames = inverseNp != null ? inverseNp.ForeignKeyNames : np.InvForeignKeyNames;
-          if (fkNames.Count == 0) return;
-          var fkName = fkNames[propertyIx];
-          ProcessNpValue(np, e => e.EntityAspect.SetValue(fkName, newValue));         
+          var fkProps = inverseNp != null ? inverseNp.ForeignKeyProperties : np.InvForeignKeyProperties;
+          if (fkProps.Count == 0) return;
+          var fkProp = fkProps[propertyIx];
+          ProcessNpValue(np, e => e.EntityAspect.SetValue(fkProp, newValue));         
         });
       }
 
@@ -1277,11 +1281,11 @@ namespace Breeze.NetClient {
         if (npEntity != null) {
           if (npEntity.EntityAspect.IsDetached) {
             // need to insure that fk props match
-            var fkNames = np.ForeignKeyNames;
+            var fkProps = np.ForeignKeyProperties;
             npEntity.EntityAspect.EntityType = np.EntityType;
             // Set this Entity's fk to match np EntityKey
             // Order.CustomerID = aCustomer.CustomerID
-            npEntity.EntityAspect.EntityKey.Values.ForEach((v, i) => SetValue(fkNames[i], v));
+            npEntity.EntityAspect.EntityKey.Values.ForEach((v, i) => SetValue(fkProps[i], v));
           }
           return false;
         }
@@ -1291,12 +1295,12 @@ namespace Breeze.NetClient {
           var npEntities = GetValue<INavigationSet>(np);
           npEntities.Cast<IEntity>().Where(e => e.EntityAspect.IsDetached)
             .ForEach(npEntity => {
-              var fkNames = invNp.ForeignKeyNames;
+              var fkProps = invNp.ForeignKeyProperties;
               var npAspect = npEntity.EntityAspect;
               npAspect.EntityType = np.EntityType;
               // Set each entity in collections fk to match this Entity's EntityKey
               // Order.CustomerID = aCustomer.CustomerID
-              Entity.EntityAspect.EntityKey.Values.ForEach((v, i) => npAspect.SetValue(fkNames[i], v));
+              Entity.EntityAspect.EntityKey.Values.ForEach((v, i) => npAspect.SetValue(fkProps[i], v));
             });
         }
       }
@@ -1473,14 +1477,14 @@ namespace Breeze.NetClient {
         // need to clear child np without clearing child fk or changing the entityState of the child
         var em = entity.EntityAspect.EntityManager;
 
-        var fkNames = np.ForeignKeyNames;
+        var fkProps = np.ForeignKeyProperties;
         List<Object> fkVals = null;
-        if (fkNames.Count > 0) {
-          fkVals = fkNames.Select(fkName => GetValue(fkName)).ToList();
+        if (fkProps.Count > 0) {
+          fkVals = fkProps.Select(fkp => GetValue(fkp)).ToList();
         }
-        SetValue(np.Name, null);
+        SetValue(np, null);
         if (fkVals != null) {
-          fkNames.ForEach((fkName, i) => SetValue(fkName, fkVals[i]));
+          fkProps.ForEach((fkp, i) => SetValue(fkp, fkVals[i]));
         }
 
       }
