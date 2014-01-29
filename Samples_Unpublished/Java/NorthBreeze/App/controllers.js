@@ -26,7 +26,7 @@ app.controller('HomeCtrl', ['$scope', function ($scope) {
 }]);
 
 // CustomerCtrl - load the customers and configure the grid to display them
-app.controller('CustomerCtrl', ['$scope', function ($scope) {
+app.controller('CustomerCtrl', ['$scope', '$modal', function ($scope, $modal) {
 
     // we should *not* have to use _backingStore, but grid isn't displaying data without it.
     var columnDefs = [{ field: '_backingStore.companyName', displayName: 'Company Name', width: '50%' },
@@ -49,6 +49,20 @@ app.controller('CustomerCtrl', ['$scope', function ($scope) {
 
     $scope.afterSelectionChange = function (rowitem, event) {
         $scope.customer = rowitem.entity;
+    }
+    
+    $scope.popup = function() {
+    	var modalInstance = $modal.open({
+    		templateUrl: 'App/views/customer.html',
+    		scope: $scope,
+    		backdrop: 'static'
+    	})
+    	
+    	modalInstance.result.then(function(customer) {
+    		//nothing
+    	}, function(customer) {
+    		customer.entityAspect.rejectChanges();
+    	})
     }
 
     $scope.reset = function (customer) {

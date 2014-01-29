@@ -37,11 +37,11 @@ app.directive('breezeinput', function () {
             var id = attrs.formid || 'bz-' + attrs.ngModel + uid++;
 
             var required = attrs.hasOwnProperty('required') ? "required='required'" : "";
-            var htmlText = '<div class="control-group">' +
-                '<label class="control-label" for="' + id + '">' + attrs.label + '</label>' +
-                    '<div class="controls">' +
-                    '<input type="' + type + '" id="' + id + '" name="' + id + '" ' + required + ' ng-model="' + ngModel + '">' +
-                    '<span class="help-inline">{{' + errorPath + '}}</span>' +
+            var htmlText = '<div class="form-group">' +
+                '<label class="col-sm-3 control-label" for="' + id + '">' + attrs.label + '</label>' +
+                    '<div class="col-sm-4">' +
+                    '<input class="form-control" type="' + type + '" id="' + id + '" name="' + id + '" ' + required + ' ng-model="' + ngModel + '">' +
+                    '<span class="help-block">{{' + errorPath + '}}</span>' +
                     '</div>' +
                 '</div>';
             element.replaceWith(htmlText);
@@ -55,11 +55,11 @@ app.directive('breezeinput', function () {
                     var aspect = entity.entityAspect; 
                     var errors = aspect.getValidationErrors(propName);
                     if (errors.length) {
-                        element.addClass('error');
+                        element.addClass('has-error');
                         var messages = errors.map(function (el) { return el.errorMessage; }).join("; ");  // convert to string
                         aspect[errorProp] = messages;
                     } else {
-                        element.removeClass('error');
+                        element.removeClass('has-error');
                         aspect[errorProp] = null;
                     }
                 });
