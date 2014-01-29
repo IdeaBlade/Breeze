@@ -18,6 +18,7 @@ namespace Breeze.NetClient {
     NavigationProperty NavigationProperty { get; set; }
     void Add(IEntity entity);
     void Remove(IEntity entity);
+    bool Contains(IEntity entity);
     void Clear();
     int Count { get; }
   }
@@ -56,6 +57,10 @@ namespace Breeze.NetClient {
 
     void INavigationSet.Remove(IEntity entity) {
       Remove((T)entity);
+    }
+
+    bool INavigationSet.Contains(IEntity entity) {
+      return Contains((T)entity);
     }
 
     #endregion

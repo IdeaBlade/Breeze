@@ -1257,7 +1257,15 @@ namespace Breeze.NetClient {
         if (np.IsScalar) {
           var invEntity = GetValue<IEntity>(np.Name);
           // property is already linked up
-          if (invEntity != null) return;
+          if (invEntity != null) {
+            if (invEntity.EntityAspect.IsDetached) {
+              // need to insure that fk props match
+              var fkNames = np.ForeignKeyNames;
+              invEntity.EntityAspect.EntityType = np.EntityType;
+              invEntity.EntityAspect.EntityKey.Values.ForEach( (v,i) => SetValue(fkNames[i], v));
+            }
+            return;
+          }
         }
 
         // first determine if np contains a parent or child

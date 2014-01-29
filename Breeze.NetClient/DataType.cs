@@ -141,7 +141,7 @@ namespace Breeze.NetClient {
 
     protected static Object GetNextNumber(Type clrType) {
       var result = Convert.ChangeType(NextNumber, clrType);
-      NextNumber++;
+      NextNumber += NextNumberIncrement;
       return result;
     }
 

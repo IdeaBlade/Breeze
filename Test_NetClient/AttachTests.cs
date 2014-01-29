@@ -74,6 +74,7 @@ namespace Test_NetClient {
     public async Task AttachEntityDefaultValues() {
       // Default values when entity is first created.
       await _emTask;
+
       var employeeType = _em1.MetadataStore.GetEntityType(typeof(Employee));
       var empIdProp = employeeType.GetDataProperty(TestFns.EmployeeKeyName);
 
@@ -632,7 +633,8 @@ namespace Test_NetClient {
       await _emTask;
 
       var cust1 = new Customer();
-      cust1.CustomerID = new Guid();
+      // this test will fail if we don't give the customer a new Guid 
+      cust1.CustomerID = Guid.NewGuid();
       var order1 = new Order();
       order1.Customer = cust1;
       
