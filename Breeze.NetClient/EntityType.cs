@@ -56,7 +56,9 @@ namespace Breeze.NetClient {
     #region Public methods
 
     public IEntity CreateEntity() {
-      return (IEntity) Activator.CreateInstance(this.ClrType);
+      var entity = (IEntity) Activator.CreateInstance(this.ClrType);
+      entity.EntityAspect.EntityType = this;
+      return entity;
     }
 
     public override StructuralProperty GetProperty(String propertyName) {

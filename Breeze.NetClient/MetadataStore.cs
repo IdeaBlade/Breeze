@@ -77,49 +77,21 @@ namespace Breeze.NetClient {
       return GetStructuralType<EntityType>(clrEntityType, okIfNotFound);
     }
 
-    public ComplexType GetComplexType(Type clrComplexType, bool okIfNotFound = false) {
-      return GetStructuralType<ComplexType>(clrComplexType, okIfNotFound);
-    }
-
     public EntityType GetEntityType(String etName, bool okIfNotFound = false) {
       return GetStructuralType<EntityType>(etName, okIfNotFound);
+    }
+
+    public ComplexType GetComplexType(Type clrComplexType, bool okIfNotFound = false) {
+      return GetStructuralType<ComplexType>(clrComplexType, okIfNotFound);
     }
 
     public ComplexType GetComplexType(String ctName, bool okIfNotFound = false) {
       return GetStructuralType<ComplexType>(ctName, okIfNotFound);
     }
 
-    public T GetStructuralType<T>(Type clrType, bool okIfNotFound = false) where T : class {
-      var stype = GetStructuralType(clrType, okIfNotFound);
-      var ttype = stype as T;
-      if (ttype != null) {
-        return ttype;
-      } else {
-        if (okIfNotFound) return null;
-        throw new Exception("Unable to find a matching " + typeof(T).Name + " for " + clrType.Name);
-      }
-    }
-
-    public T GetStructuralType<T>(String typeName, bool okIfNotFound = false) where T : class {
-      lock (_structuralTypes) {
-        var t = _structuralTypes[typeName];
-        if (t != null) {
-          var result = t as T;
-          if (result == null) {
-            throw new Exception("A type by this name exists but is not a " + typeof(T).Name);
-          }
-          return result;
-        } else if (okIfNotFound) {
-          return (T)null;
-        } else {
-          throw new Exception("Unable to locate Type: " + typeName);
-        }
-      }
-    }
-
     public StructuralType GetStructuralType(Type clrType, bool okIfNotFound = false) {
       lock (_structuralTypes) {
-        if (IsEntityOrComplexType(clrType)) {
+        if (IsStructuralType(clrType)) {
           var stType = _clrTypeMap.GetStructuralType(clrType);
           if (stType != null) return stType;
 
@@ -176,23 +148,57 @@ namespace Breeze.NetClient {
       }
     }
 
+    public static bool IsStructuralType(Type clrType) {
+      return typeof(IStructuralObject).IsAssignableFrom(clrType);
+    }
+
     public static String ANONTYPE_PREFIX = "_IB_";
 
     // Private and Internal --------------
 
-    internal String GetDataService(String serviceName) {
+    internal Type GetClrTypeFor(StructuralType stType) {
+      lock (_structuralTypes) {
+        return _clrTypeMap.GetClrType(stType);
+      }
+    }
+
+    // T is either <ComplexType> or <EntityType>
+    private T GetStructuralType<T>(Type clrType, bool okIfNotFound = false) where T : class {
+      var stype = GetStructuralType(clrType, okIfNotFound);
+      var ttype = stype as T;
+      if (ttype != null) {
+        return ttype;
+      } else {
+        if (okIfNotFound) return null;
+        throw new Exception("Unable to find a matching " + typeof(T).Name + " for " + clrType.Name);
+      }
+    }
+
+    // T is either <ComplexType> or <EntityType>
+    private T GetStructuralType<T>(String typeName, bool okIfNotFound = false) where T : class {
+      lock (_structuralTypes) {
+        var t = _structuralTypes[typeName];
+        if (t != null) {
+          var result = t as T;
+          if (result == null) {
+            throw new Exception("A type by this name exists but is not a " + typeof(T).Name);
+          }
+          return result;
+        } else if (okIfNotFound) {
+          return (T)null;
+        } else {
+          throw new Exception("Unable to locate Type: " + typeName);
+        }
+      }
+    }
+
+    private String GetDataService(String serviceName) {
       lock (_dataServiceMap) {
         if (_dataServiceMap.ContainsKey(serviceName)) {
           return _dataServiceMap[serviceName];
         } else {
           return null;
         }
-      }
-    }
-
-    internal Type GetClrTypeFor(StructuralType stType) {
-      lock (_structuralTypes) {
-        return _clrTypeMap.GetClrType(stType);
       }
     }
 
@@ -243,7 +249,7 @@ namespace Breeze.NetClient {
     //  return (clrType.Name == stType.ShortName && clrType.Namespace == stType.Namespace);
     //}
 
-    internal void UpdateNavigationProperties(EntityType entityType) {
+    private void UpdateNavigationProperties(EntityType entityType) {
       entityType.NavigationProperties.ForEach(np => {
         if (np.EntityType != null) return;
         if (!ResolveNp(np)) {
@@ -290,11 +296,7 @@ namespace Breeze.NetClient {
     // sets navigation property: relatedDataProperties and dataProperty: relatedNavigationProperty
     private void ResolveRelated(NavigationProperty np) {
 
-      var fkNames = np.ForeignKeyNames;
-      if (fkNames.Count == 0) return;
-
-      var parentEntityType = (EntityType)np.ParentType;
-      var fkProps = fkNames.Select(fkName => parentEntityType.GetDataProperty(fkName));
+      var fkProps = np.ForeignKeyProperties;
 
       fkProps.ForEach(dp => {
         dp.RelatedNavigationProperty = np;
@@ -303,28 +305,24 @@ namespace Breeze.NetClient {
       });
     }
 
-    internal void UpdateComplexProperties(StructuralType structuralType) {
+    private void UpdateComplexProperties(StructuralType structuralType) {
 
       structuralType.ComplexProperties.ForEach(cp => {
         if (cp.ComplexType != null) return;
-        if (!ResolveCp(cp)) {
-          AddIncompleteComplexProperty(cp.ComplexTypeName, cp);
+          cp.DataType = null;
+          cp.DefaultValue = null;
+          var complexType = GetComplexType(cp.ComplexTypeName, true);
+          if (complexType == null) {
+            AddIncompleteComplexProperty(cp.ComplexTypeName, cp);
+          } else {
+            cp.ComplexType = complexType;
         }
       });
 
       if (!structuralType.IsEntityType) {
         var incompleteProps = GetIncompleteComplexProperties(structuralType.Name);
-        incompleteProps.ForEach(cp => ResolveCp(cp));
+        incompleteProps.ForEach(cp => cp.ComplexType = GetComplexType(cp.ComplexTypeName));
       }
-    }
-
-    private bool ResolveCp(DataProperty cp) {
-      var complexType = GetComplexType(cp.ComplexTypeName, true);
-      if (complexType == null) return false;
-      cp.DataType = null;
-      cp.ComplexType = complexType;
-      cp.DefaultValue = null;
-      return true;
     }
 
     private IEnumerable<NavigationProperty> GetIncompleteNavigationProperties(EntityType entityType) {
@@ -335,7 +333,6 @@ namespace Breeze.NetClient {
         return Enumerable.Empty<NavigationProperty>();
       }
     }
-
 
     private IEnumerable<DataProperty> GetIncompleteComplexProperties(String structuralTypeName) {
       // destructive get routine - deliberately
@@ -366,9 +363,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    internal bool IsEntityOrComplexType(Type clrType) {
-      return typeof(IEntity).IsAssignableFrom(clrType) || typeof(IComplexObject).IsAssignableFrom(clrType);
-    }
+
 
     // inner class
     internal class ClrTypeMap {

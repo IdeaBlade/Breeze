@@ -34,20 +34,17 @@ namespace Breeze.NetClient {
     // Note that this method creates a child and updates its refs to the parent but does
     // NOT update the parent. This is deliberate because instances of OriginalVersions should not be stored
     // in the parent objects refs whereas CurrentVersions should.
-    internal static IComplexObject Create(IStructuralObject parent, DataProperty parentProperty, bool initializeDefaultValues) {
+    internal static IComplexObject Create(IStructuralObject parent, DataProperty parentProperty, bool initializeDefaultValues = true) {
       // the initializeDefaultValues flag should only be set to false, if all of the properties of this 
       // complex object are going to be set immediately after this call.
       var co = (IComplexObject)Activator.CreateInstance(parentProperty.ClrType);
+      
       var aspect = co.ComplexAspect;
+      // will call initializeDefaultValues();
+      aspect.ComplexType = parentProperty.ComplexType;
       aspect.Parent = parent;
       aspect.ParentProperty = parentProperty;
-      if (initializeDefaultValues) {
-        aspect.InitializeDefaultValues();
-      } else {
-        // since we are bypassing defaultValueInitialization insure that we don't trigger
-        // defaultValue creation later. 
-        aspect._defaultValuesInitialized = true;
-      }
+      
       return co;
 
     }

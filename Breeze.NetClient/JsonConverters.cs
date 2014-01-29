@@ -52,7 +52,7 @@ namespace Breeze.NetClient {
 
 
     public override bool CanConvert(Type objectType) {
-      return _metadataStore.IsEntityOrComplexType(objectType);
+      return MetadataStore.IsStructuralType(objectType);
     }
 
 

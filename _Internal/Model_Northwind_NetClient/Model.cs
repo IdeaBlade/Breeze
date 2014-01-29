@@ -579,17 +579,29 @@ namespace Foo {
       get { return PropGet<NavigationSet<Product>>(); }
       set { PropSet(value); }
     }
-
-    
   }
-
   
-  public partial class Location {
-    public string Address { get; set; }
-    public string City { get; set; }
-    public string Region { get; set; }
-    public string PostalCode { get; set; }
-    public string Country { get; set; }
+  public partial class Location : BaseComplexObject {
+    public string Address {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string City {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string Region {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string PostalCode {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
+    public string Country {
+      get { return PropGet<string>(); }
+      set { PropSet(value); }
+    }
   }
 
   public partial class Territory : BaseEntity {

@@ -35,6 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="BaseComplexObject.cs" />
     <Compile Include="Core\NotifiableSet.cs" />
     <Compile Include="StructuralProperty.cs" />
     <Compile Include="Core\AsyncSemaphore.cs" />
@@ -55,7 +56,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\EnumerableFns.cs" />
-    <Compile Include="IEntity.cs" />
     <Compile Include="IKeyGenerator.cs" />
     <Compile Include="INavigationSet.cs" />
     <Compile Include="IStructuralObject.cs" />

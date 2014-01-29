@@ -414,7 +414,7 @@ namespace Breeze.NetClient {
 
     private void SetUnchanged() {
       if (this.EntityState == EntityState.Unchanged) return;
-      ClearOriginalValues();
+      ClearBackupVersion(EntityVersion.Original);
       //    delete this.hasTempKey;
       SetEntityStateCore(EntityState.Unchanged);
       this.EntityManager.NotifyStateChange(this, false);
@@ -453,11 +453,6 @@ namespace Breeze.NetClient {
       if (!FireEntityChanging(EntityAction.EntityStateChange)) return;
       SetEntityStateCore(EntityState.Modified);
       EntityManager.NotifyStateChange(this, true);
-    }
-
-    private void ClearOriginalValues() {
-      OriginalValuesMap.Clear();
-      this.ProcessComplexProperties(co => co.AcceptChanges());
     }
 
 
@@ -779,11 +774,7 @@ namespace Breeze.NetClient {
 
       if (property.IsComplexProperty) {
         var co = (IComplexObject)result;
-        if (co == null) {
-          co = ComplexAspect.Create(this.Entity, property, true);
-          SetValue(property, co);
-          return co;
-        } else if (co.ComplexAspect.Parent == null || co.ComplexAspect.Parent != this.Entity) {
+        if (co.ComplexAspect.Parent == null || co.ComplexAspect.Parent != this.Entity) {
           co.ComplexAspect.Parent = this.Entity;
           co.ComplexAspect.ParentProperty = property;
         }
@@ -825,7 +816,7 @@ namespace Breeze.NetClient {
           if (dp.IsNullable) return;
           if (GetValue(dp) != null) return;
           if (dp.IsComplexProperty) {
-            SetRawValue(dp.Name, ComplexAspect.Create(this.Entity, dp, true));
+            SetRawValue(dp.Name, ComplexAspect.Create(this.Entity, dp));
           } else {
             if (dp.DefaultValue == null) return; // wierd case mentioned above
             SetRawValue(dp.Name, dp.DefaultValue);
@@ -1088,9 +1079,7 @@ namespace Breeze.NetClient {
     private void ClearComplexBackupVersions(EntityVersion version) {
       this.EntityType.DataProperties.Where(dp => dp.IsComplexProperty).ForEach(dp => {
         var co = GetValue<IComplexObject>(dp);
-        if (co != null) {
-          co.ComplexAspect.ClearBackupVersion(version);
-        }
+        co.ComplexAspect.ClearBackupVersion(version);
       });
     }
 
