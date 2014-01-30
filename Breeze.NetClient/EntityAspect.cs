@@ -18,22 +18,11 @@ namespace Breeze.NetClient {
   /// <remarks>
   /// The <b>EntityAspect</b> implements interfaces to support editing, change tracking and change notification.
   /// One instance of the EntityAspect class is associated with each persistable entity within a domain model.
-  /// The <see cref="PocoEntityAspect"/> also extends the EntityAspect
-  /// <para>
-  /// An EntityAspect can be used to <see cref="Wrap"/> an object and provide it with entity-related
-  /// services. 
-  /// </para>
   /// </remarks>
-
   [DebuggerDisplay("{EntityKey} - {EntityState}")]
   public class EntityAspect : StructuralAspect, IEditableObject, IChangeTracking, IRevertibleChangeTracking, INotifyPropertyChanged,
     INotifyDataErrorInfo, IComparable {
     // what about IDataErrorInfo
- 
-    /// <summary>
-    /// 'Magic' string that can be used to return all errors from <see cref="INotifyDataErrorInfo.GetErrors"/>.
-    /// </summary>
-    public static String AllErrors = "*";
 
     /// <summary>
     /// 
@@ -42,7 +31,8 @@ namespace Breeze.NetClient {
     public EntityAspect(IEntity entity, EntityType entityType = null) : base(entity) {
       Entity = entity;
       entity.EntityAspect = this;
-      EntityType = entityType;
+      EntityType = entityType ?? MetadataStore.Instance.GetEntityType(entity.GetType());
+      InitializeDefaultValues();
       IndexInEntityGroup = -1;
       _entityState = EntityState.Detached;
     }
@@ -57,18 +47,7 @@ namespace Breeze.NetClient {
       }
       internal set {
         _entityType = value;
-        if (_entityType != null) {
-          InitializeDefaultValues();
-        }
       }
-    }
-
-    protected override StructuralType StructuralType {
-      get { return this.EntityType; }
-    }
-
-    protected override IStructuralObject StructuralObject {
-      get { return this.Entity; }
     }
 
     public bool IsDetached {
@@ -91,18 +70,47 @@ namespace Breeze.NetClient {
       }
     }
 
+    public EntityKey EntityKey {
+      get {
+        // need to insure 
+        if (_entityKey == null) {
+          Object[] values = GetValues(this.EntityType.KeyProperties);
+          var key = new EntityKey(this.EntityType, values);
+          // do not cache _entityKey values that have not yet
+          // gone thru a save
+          if (this.EntityState.IsAdded() | this.EntityState.IsDetached()) {
+            return key;
+          }
+          _entityKey = key;
+        }
+        return _entityKey;
+      }
+      protected set {
+        // set it to null to force recalc
+        _entityKey = value;
+        OnEntityAspectPropertyChanged("EntityKey");
+      }
+    }
 
-    /// <summary>
-    /// Returns whether the current instance is a null entity.
-    /// </summary>
-    /// <remarks>
-    /// The EntityManager will return a NullEntity instead of a null value when
-    /// a requested entity is not found.
-    /// </remarks>
-    /// <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="IsNullEntity"]/*' />
-    public bool IsNullEntity {
-      get;
-      internal set;
+    public override EntityState EntityState {
+      get {
+        return _entityState;
+      }
+      set {
+        if (!this.EntityGroup.ChangeNotificationEnabled) {
+          _entityState = value;
+        } else if (value == EntityState.Added) {
+          SetAdded();
+        } else if (value == EntityState.Modified) {
+          SetModified();
+        } else if (value == EntityState.Unchanged) {
+          AcceptChanges();
+        } else if (value == EntityState.Deleted) {
+          this.Delete();
+        } else if (value == EntityState.Detached) {
+          this.Detach();
+        }
+      }
     }
 
     public override EntityVersion EntityVersion {
@@ -120,10 +128,17 @@ namespace Breeze.NetClient {
       }
     }
 
-    // EntityGroup is null if never attached but once its non-null it keeps its previous value.
-    internal EntityGroup EntityGroup {
-      get { return _entityGroup; }
-      set { _entityGroup = value; }
+    /// <summary>
+    /// Returns whether the current instance is a null entity.
+    /// </summary>
+    /// <remarks>
+    /// The EntityManager will return a NullEntity instead of a null value when
+    /// a requested entity is not found.
+    /// </remarks>
+    /// <include file='Entity.Examples.xml' path='//Class[@name="Entity"]/method[@name="IsNullEntity"]/*' />
+    public bool IsNullEntity {
+      get;
+      internal set;
     }
 
     public bool HasTemporaryKey {
@@ -132,6 +147,24 @@ namespace Breeze.NetClient {
         var uid = new UniqueId(dp, GetValue(dp));
         return EntityManager.KeyGenerator.IsTempId(uid);
       }
+    }
+
+    #endregion
+
+    #region Protected/Internal properties
+
+    // EntityGroup is null if never attached but once its non-null it keeps its previous value.
+    internal EntityGroup EntityGroup {
+      get { return _entityGroup; }
+      set { _entityGroup = value; }
+    }
+
+    protected override StructuralType StructuralType {
+      get { return this.EntityType; }
+    }
+
+    protected override IStructuralObject StructuralObject {
+      get { return this.Entity; }
     }
 
     #endregion
@@ -195,16 +228,16 @@ namespace Breeze.NetClient {
       }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="sourceAspect"></param>
-    /// <param name="properties"></param>
-    /// <returns></returns>
-    protected virtual bool AreEqual(EntityAspect sourceAspect, IEnumerable<DataProperty> properties) {
-      bool isCurrent = properties.All(p => Object.Equals(this.GetValue(p), sourceAspect.GetValue(p)));
-      return isCurrent;
-    }
+    ///// <summary>
+    ///// 
+    ///// </summary>
+    ///// <param name="sourceAspect"></param>
+    ///// <param name="properties"></param>
+    ///// <returns></returns>
+    //protected virtual bool AreEqual(EntityAspect sourceAspect, IEnumerable<DataProperty> properties) {
+    //  bool isCurrent = properties.All(p => Object.Equals(this.GetValue(p), sourceAspect.GetValue(p)));
+    //  return isCurrent;
+    //}
 
     #endregion
 
@@ -322,14 +355,9 @@ namespace Breeze.NetClient {
       this.EntityGroup.OnEntityChanged(this.Entity, EntityAction.RejectChanges);
     }
 
-  
-
-
-
     void IChangeTracking.AcceptChanges() {
       AcceptChanges();
     }
-
 
     void IRevertibleChangeTracking.RejectChanges() {
       RejectChanges();
@@ -360,31 +388,6 @@ namespace Breeze.NetClient {
 
     #region EntityState change methods
 
-    /// <summary>
-    /// The <see cref="T:IdeaBlade.EntityModel.EntityState"/> of this entity.
-    /// </summary>
-    
-    public override EntityState EntityState {
-      get {
-        return _entityState;
-      }
-      set {
-        if (!this.EntityGroup.ChangeNotificationEnabled) {
-          _entityState = value;
-        } else if (value == EntityState.Added) {
-          SetAdded();
-        } else if (value == EntityState.Modified) {
-          SetModified();
-        } else if (value == EntityState.Unchanged) {
-          AcceptChanges();
-        } else if (value == EntityState.Deleted) {
-          this.Delete();
-        } else if (value == EntityState.Detached) {
-          this.Detach();
-        }
-      }
-    }
-
     internal void SetEntityStateCore(EntityState value) {
 
       if (!this.EntityGroup.ChangeNotificationEnabled) {
@@ -402,7 +405,6 @@ namespace Breeze.NetClient {
         }
       }
     }
-
 
     // Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}
 
@@ -449,34 +451,16 @@ namespace Breeze.NetClient {
       EntityManager.NotifyStateChange(this, true);
     }
 
-
     #endregion
 
     #region GetValue(s)/SetValue methods
 
     public override void SetValue(String propertyName, object newValue) {
-      if (this.EntityGroup == null) {
-        // setting a value on a newly created entity not yet attached to an EntityManager.
-        var newEntity = newValue as IEntity;
-        if (newEntity == null || newEntity.EntityAspect.IsDetached) {
-          SetRawValue(propertyName, newValue);
-        } else {
-          var newAspect = newEntity.EntityAspect;
-          var ms = newAspect.EntityType.MetadataStore;
-          this.EntityType =  ms.GetEntityType(this.Entity.GetType());
-          var np = EntityType.GetNavigationProperty(propertyName);
-          if (np == null) {
-            throw new Exception("Unable to locate property: " + propertyName + " on EntityType: " + EntityType.Name);
-          }
-          SetNpValue(np, newValue);
-        }
+      var prop = EntityType.GetProperty(propertyName);
+      if (prop != null) {
+        SetValue(prop, newValue);
       } else {
-        var prop = EntityType.GetProperty(propertyName);
-        if (prop != null) {
-          SetValue(prop, newValue);
-        } else {
-          throw new Exception("Unable to locate property: " + EntityType.Name + ":" + propertyName);
-        }
+        throw new Exception("Unable to locate property: " + EntityType.Name + ":" + propertyName);
       }
     }
 
@@ -787,204 +771,6 @@ namespace Breeze.NetClient {
     //  }
     //}
 
-    // This is the "current" value of the EntityVersion.Default ( not EntityVersion.Current) although
-    // these will be the same except when the current version or the object is proposed.
-    //internal Object[] CurrentValues {
-    //  get {
-    //    if (_currentValues == null) {
-    //      var metadata = this.EntityGroup.EntityMetadata;
-    //      _currentValues = metadata.DefaultValues.Select((v, i) => v is IComplexObject
-    //        ? ComplexAspect.Create(this.Entity, metadata.DataProperties[i])
-    //        : v)
-    //        .ToArray();
-    //    }
-    //    return _currentValues;
-    //  }
-    //  set {
-    //    _currentValues = value;
-    //  }
-    //}
-
-    #endregion
-
-    #region IEditableObject Members
-
-
-    /// <summary>
-    /// Provided to allow IEditableObject interface to be overriden in derived classes.
-    /// </summary>
-    void IEditableObject.BeginEdit() {
-      if (EntityVersion == EntityVersion.Proposed) return;
-      if (this.IsNullEntity) return;
-      _altEntityState = this.EntityState;
-      //ValidationErrors.Backup();
-      ClearBackupVersion(EntityVersion.Proposed);
-      EntityVersion = EntityVersion.Proposed;
-    }
-
-
-    /// <summary>
-    /// Provided to allow IEditableObject interface to be overriden in derived classes.
-    /// </summary>
-    void IEditableObject.CancelEdit() {
-      if (EntityVersion != EntityVersion.Proposed) return;
-      RestoreBackupVersion(EntityVersion.Proposed);
-      EntityVersion = EntityVersion.Current;
-      this.SetEntityStateCore(_altEntityState);
-      //ValidationErrors.Restore();
-      ForcePropertyChanged(null);
-    }
-
-    /// <summary>
-    /// Provided to allow IEditableObject interface to be overriden in derived classes.
-    /// </summary>
-    void IEditableObject.EndEdit() {
-      if (EntityVersion != EntityVersion.Proposed) return;
-      EntityVersion = EntityVersion.Current;
-      //ValidationErrors.ClearBackup();
-    }
-
-    private EntityState _altEntityState;
-
-    #endregion
-
-    #region EntityKey methods
-    /// <summary>
-    /// The <see cref="T:IdeaBlade.EntityModel.EntityKey"/> for this entity. 
-    /// </summary>
-    public EntityKey EntityKey {
-      get {
-        // need to insure 
-        if (_entityKey == null) {
-          Object[] values = GetValues(this.EntityType.KeyProperties);
-          var key = new EntityKey(this.EntityType, values);
-          // do not cache _entityKey values that have not yet
-          // gone thru a save
-          if (this.EntityState.IsAdded() | this.EntityState.IsDetached()) {
-            return key;
-          }
-          _entityKey = key;
-        }
-        return _entityKey;
-      }
-      protected set {
-        // set it to null to force recalc
-        _entityKey = value;
-        OnEntityAspectPropertyChanged("EntityKey");
-      }
-    }
-
-    #endregion
-
-    #region INotifyPropertyChanged Members
-
-    // TODO: think about PropertyChanging event
-    // Also think about PropertyChanged events that pass propertyDescriptors
-    // Subclass PropertyChangedEventArgs and add PropertyDescriptor
-
-    /// <summary>
-    /// Fired whenever a property value on this Entity changes.
-    /// </summary>
-    public event PropertyChangedEventHandler EntityPropertyChanged;
-
-    /// <summary>
-    /// Properties on the EntityAspect that are subject to changed
-    /// and therefore available via the PropertyChanged notification are
-    /// EntityState, EntityKey, IsChanged, HasErrors, and SavingErrorMessage
-    /// </summary>
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    /// <summary>
-    /// Forces a PropertyChanged event to be fired. 
-    /// </summary>
-    /// <param name="e">A <see cref="System.ComponentModel.PropertyChangedEventArgs"/> or null</param>
-    /// <remarks>
-    /// An Empty value or a null reference (<c>Nothing</c> in Visual Basic) for the propertyName parameter of 
-    /// PropertyChangedEventArgs indicates that all of the properties have changed, causing 
-    /// the .NET framework to also fire a ListChangedEventArgs.ListChangedType of "Reset" if the event
-    /// propagates to a list that supports the ListChanged event.
-    /// <para>
-    /// Passing a null value to this method will
-    /// insure that a valid (dynamically created) property name is passed on to any listeners.
-    /// </para>
-    /// <para>
-    /// This method should only be needed in situations where changes to calculated fields or other properties 
-    /// not backed by an <see cref="StructuralProperty"/> must be made known.
-    /// </para>
-    /// </remarks>
-    public void ForcePropertyChanged(PropertyChangedEventArgs e) {
-      if (e == null) {
-        e = EntityGroup.AllPropertiesChangedEventArgs;
-      }
-      FirePropertyChanged(e);
-    }
-
-    internal bool FireEntityChanging(EntityAction action) {
-      var entityArgs = new EntityChangingEventArgs(this.Entity, action);
-      this.EntityGroup.OnEntityChanging(entityArgs);
-      return !entityArgs.Cancel;
-    }
-
-    /// <summary>
-    /// Raises the <see cref="PropertyChanged"/> event.
-    /// </summary>
-    internal void FirePropertyChanged(PropertyChangedEventArgs e) {
-      try {
-        OnEntityPropertyChanged(e);
-      } catch {
-        // eat exceptions during load
-        if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
-      }
-    }
-
-    /// <summary>
-    /// Fires PropertyChanged on the Entity associated with this EntityAspect without invoking any IPropertyChangedInterceptor. 
-    /// Normally the FirePropertyChanged method should be used in place of this.
-    /// </summary>
-    /// <param name="e"></param>
-    private void OnEntityPropertyChanged(PropertyChangedEventArgs e) {
-      var handler = EntityPropertyChanged;
-      if (handler != null) {
-        handler(this.Entity, e);
-      }
-    }
-
-    /// <summary>
-    /// Fires PropertyChanged on EntityAspect.
-    /// </summary>
-    /// <param name="propertyName"></param>
-    private void OnEntityAspectPropertyChanged(String propertyName) {
-      var handler = PropertyChanged;
-      if (handler == null) return;
-      var args = new PropertyChangedEventArgs(propertyName);
-      try {
-        handler(this, args);
-      } catch {
-        if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
-      }
-    }
-
-    #endregion
-
-    #region IComparable
-
-    /// <summary>
-    /// Base implementation of <see cref="IComparable.CompareTo"/>.
-    /// </summary>
-    /// <param name="obj">Object to compare with this instance</param>
-    /// <returns></returns>
-    /// <remarks>This will compare Entities by <see cref="EntityKey"/>.  Derived classes
-    /// can override this implementation as needed to modify the default sort order of objects of this type.
-    /// </remarks>
-    // Dummy implementation just to insure that Entities can compare to one another
-    // DO NOT implement Equals by calling this method
-    int IComparable.CompareTo(Object obj) {
-      if (this == obj) return 0;
-      EntityAspect aEntity = obj as EntityAspect;
-      if (aEntity == null) return -1;
-      return this.EntityKey.CompareTo(aEntity.EntityKey);
-    }
-
     #endregion
 
     #region Misc private and internal methods/properties
@@ -1061,9 +847,7 @@ namespace Breeze.NetClient {
           if (childToParentNp != null) {
             EntityManager.UnattachedChildrenMap.RemoveChildren(EntityKey, childToParentNp);
           }
-
         }
-
       });
     }
 
@@ -1117,7 +901,9 @@ namespace Breeze.NetClient {
             .ForEach(npEntity => {
               var fkProps = invNp.ForeignKeyProperties;
               var npAspect = npEntity.EntityAspect;
-              npAspect.EntityType = np.EntityType;
+              // No longer needed
+              // npAspect.EntityType = np.EntityType;
+
               // Set each entity in collections fk to match this Entity's EntityKey
               // Order.CustomerID = aCustomer.CustomerID
               Entity.EntityAspect.EntityKey.Values.ForEach((v, i) => npAspect.SetValue(fkProps[i], v));
@@ -1317,8 +1103,6 @@ namespace Breeze.NetClient {
       return isCurrent;
     }
 
-    
-
     internal EntityKey GetParentKey(NavigationProperty np) {
       // returns null for np's that do not have a parentKey
       var fkProps = np.ForeignKeyProperties;
@@ -1341,9 +1125,6 @@ namespace Breeze.NetClient {
       }
     }
 
-
-
-
     private void UndoMappedTempId(EntityState rowState) {
       if (this.EntityState.IsAdded()) {
         this.EntityManager.MarkTempIdAsMapped(this, true);
@@ -1356,8 +1137,7 @@ namespace Breeze.NetClient {
       
     #endregion
 
-    #region Loading info
-
+    #region NavProperty loading info
 
     internal List<String> LoadedNavigationPropertyNames {
       get;
@@ -1376,12 +1156,166 @@ namespace Breeze.NetClient {
       }
     }
 
+    #endregion
+
+    #region IEditableObject Members
 
 
+    /// <summary>
+    /// Provided to allow IEditableObject interface to be overriden in derived classes.
+    /// </summary>
+    void IEditableObject.BeginEdit() {
+      if (EntityVersion == EntityVersion.Proposed) return;
+      if (this.IsNullEntity) return;
+      _altEntityState = this.EntityState;
+      //ValidationErrors.Backup();
+      ClearBackupVersion(EntityVersion.Proposed);
+      EntityVersion = EntityVersion.Proposed;
+    }
+
+
+    /// <summary>
+    /// Provided to allow IEditableObject interface to be overriden in derived classes.
+    /// </summary>
+    void IEditableObject.CancelEdit() {
+      if (EntityVersion != EntityVersion.Proposed) return;
+      RestoreBackupVersion(EntityVersion.Proposed);
+      EntityVersion = EntityVersion.Current;
+      this.SetEntityStateCore(_altEntityState);
+      //ValidationErrors.Restore();
+      ForcePropertyChanged(null);
+    }
+
+    /// <summary>
+    /// Provided to allow IEditableObject interface to be overriden in derived classes.
+    /// </summary>
+    void IEditableObject.EndEdit() {
+      if (EntityVersion != EntityVersion.Proposed) return;
+      EntityVersion = EntityVersion.Current;
+      //ValidationErrors.ClearBackup();
+    }
+
+    private EntityState _altEntityState;
+
+    #endregion
+
+    #region INotifyPropertyChanged Members
+
+    // TODO: think about PropertyChanging event
+    // Also think about PropertyChanged events that pass propertyDescriptors
+    // Subclass PropertyChangedEventArgs and add PropertyDescriptor
+
+    /// <summary>
+    /// Fired whenever a property value on this Entity changes.
+    /// </summary>
+    public event PropertyChangedEventHandler EntityPropertyChanged;
+
+    /// <summary>
+    /// Properties on the EntityAspect that are subject to changed
+    /// and therefore available via the PropertyChanged notification are
+    /// EntityState, EntityKey, IsChanged, HasErrors, and SavingErrorMessage
+    /// </summary>
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    /// <summary>
+    /// Forces a PropertyChanged event to be fired. 
+    /// </summary>
+    /// <param name="e">A <see cref="System.ComponentModel.PropertyChangedEventArgs"/> or null</param>
+    /// <remarks>
+    /// An Empty value or a null reference (<c>Nothing</c> in Visual Basic) for the propertyName parameter of 
+    /// PropertyChangedEventArgs indicates that all of the properties have changed, causing 
+    /// the .NET framework to also fire a ListChangedEventArgs.ListChangedType of "Reset" if the event
+    /// propagates to a list that supports the ListChanged event.
+    /// <para>
+    /// Passing a null value to this method will
+    /// insure that a valid (dynamically created) property name is passed on to any listeners.
+    /// </para>
+    /// <para>
+    /// This method should only be needed in situations where changes to calculated fields or other properties 
+    /// not backed by an <see cref="StructuralProperty"/> must be made known.
+    /// </para>
+    /// </remarks>
+    public void ForcePropertyChanged(PropertyChangedEventArgs e) {
+      if (e == null) {
+        e = EntityGroup.AllPropertiesChangedEventArgs;
+      }
+      FirePropertyChanged(e);
+    }
+
+    internal bool FireEntityChanging(EntityAction action) {
+      var entityArgs = new EntityChangingEventArgs(this.Entity, action);
+      this.EntityGroup.OnEntityChanging(entityArgs);
+      return !entityArgs.Cancel;
+    }
+
+    /// <summary>
+    /// Raises the <see cref="PropertyChanged"/> event.
+    /// </summary>
+    internal void FirePropertyChanged(PropertyChangedEventArgs e) {
+      try {
+        OnEntityPropertyChanged(e);
+      } catch {
+        // eat exceptions during load
+        if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
+      }
+    }
+
+    /// <summary>
+    /// Fires PropertyChanged on the Entity associated with this EntityAspect without invoking any IPropertyChangedInterceptor. 
+    /// Normally the FirePropertyChanged method should be used in place of this.
+    /// </summary>
+    /// <param name="e"></param>
+    private void OnEntityPropertyChanged(PropertyChangedEventArgs e) {
+      var handler = EntityPropertyChanged;
+      if (handler != null) {
+        handler(this.Entity, e);
+      }
+    }
+
+    /// <summary>
+    /// Fires PropertyChanged on EntityAspect.
+    /// </summary>
+    /// <param name="propertyName"></param>
+    private void OnEntityAspectPropertyChanged(String propertyName) {
+      var handler = PropertyChanged;
+      if (handler == null) return;
+      var args = new PropertyChangedEventArgs(propertyName);
+      try {
+        handler(this, args);
+      } catch {
+        if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
+      }
+    }
+
+    #endregion
+
+    #region IComparable
+
+    /// <summary>
+    /// Base implementation of <see cref="IComparable.CompareTo"/>.
+    /// </summary>
+    /// <param name="obj">Object to compare with this instance</param>
+    /// <returns></returns>
+    /// <remarks>This will compare Entities by <see cref="EntityKey"/>.  Derived classes
+    /// can override this implementation as needed to modify the default sort order of objects of this type.
+    /// </remarks>
+    // Dummy implementation just to insure that Entities can compare to one another
+    // DO NOT implement Equals by calling this method
+    int IComparable.CompareTo(Object obj) {
+      if (this == obj) return 0;
+      EntityAspect aEntity = obj as EntityAspect;
+      if (aEntity == null) return -1;
+      return this.EntityKey.CompareTo(aEntity.EntityKey);
+    }
 
     #endregion
 
     #region INotifyDataErrorInfo
+
+    /// <summary>
+    /// 'Magic' string that can be used to return all errors from <see cref="INotifyDataErrorInfo.GetErrors"/>.
+    /// </summary>
+    public static String AllErrors = "*";
 
     /// <summary>
     /// True if there are any validation errors.
@@ -1425,7 +1359,6 @@ namespace Breeze.NetClient {
         _inErrorsChanged = false;
       }
     }
-
 
     private bool _inErrorsChanged = false;
 

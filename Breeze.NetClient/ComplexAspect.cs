@@ -24,7 +24,8 @@ namespace Breeze.NetClient {
       : base(co) {
       ComplexObject = co;
       co.ComplexAspect = this;
-      ComplexType = complexType;
+      ComplexType = complexType ?? MetadataStore.Instance.GetComplexType(co.GetType());
+      InitializeDefaultValues();
     }
 
     // Note: the Parent and ParentProperty properties are assigned either when a IComplexObject is assigned to a parent
@@ -59,9 +60,6 @@ namespace Breeze.NetClient {
       }
       internal set {
         _complexType = value;
-        if (_complexType != null) {
-          InitializeDefaultValues();
-        }
       }
     }
     
@@ -184,7 +182,7 @@ namespace Breeze.NetClient {
           var thisChildCo = (IComplexObject)GetValue(p);
           if (thisChildCo == null) {
             thisChildCo = ComplexAspect.Create(this.ComplexObject, p, true);
-            SetValue(p.Name, thisChildCo);
+            SetDpValue(p, thisChildCo);
           }
           var thisChildAspect = thisChildCo.ComplexAspect;
 
@@ -237,7 +235,12 @@ namespace Breeze.NetClient {
     }
 
     public override void SetValue(String propertyName, object newValue) {
-      SetDpValue(ComplexType.GetDataProperty(propertyName), newValue);
+      var prop = ComplexType.GetDataProperty(propertyName);
+      if (prop != null) {
+        SetDpValue(prop, newValue);
+      } else {
+        throw new Exception("Unable to locate property: " + ComplexType.Name + ":" + propertyName);
+      }
     }
 
     protected internal override void SetDpValue(DataProperty property, object newValue) {

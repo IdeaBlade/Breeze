@@ -19,7 +19,7 @@ namespace Breeze.NetClient {
     public EntityManager(String serviceName, MetadataStore metadataStore = null) {
       DefaultDataService = new DataService(serviceName);
       DefaultMergeStrategy = MergeStrategy.PreserveChanges;
-      MetadataStore = metadataStore != null ? metadataStore : new MetadataStore();
+      
       KeyGenerator = new DefaultKeyGenerator();
       Initialize();
     }
@@ -27,7 +27,7 @@ namespace Breeze.NetClient {
     public EntityManager(EntityManager em) {
       DefaultDataService = em.DefaultDataService;
       DefaultMergeStrategy = em.DefaultMergeStrategy;
-      MetadataStore = em.MetadataStore;
+      
       KeyGenerator = em.KeyGenerator; // TODO: review whether we should clone instead.
       Initialize();
     }
@@ -45,7 +45,9 @@ namespace Breeze.NetClient {
 
     public DataService DefaultDataService { get; private set; }
 
-    public MetadataStore MetadataStore { get; private set; }
+    public MetadataStore MetadataStore {
+      get { return MetadataStore.Instance; }
+    }
 
     public MergeStrategy DefaultMergeStrategy { get; private set; }
 

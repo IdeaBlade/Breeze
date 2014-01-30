@@ -657,7 +657,7 @@ namespace Test_NetClient {
 
       var cust1 = new Customer();
       var order1 = new Order();
-      cust1.EntityAspect.SetValue("Orders", new NavigationSet<Order>());
+      // cust1.EntityAspect.SetValue("Orders", new NavigationSet<Order>());
       cust1.Orders.Add(order1);
 
       _em1.AddEntity(cust1);
@@ -684,7 +684,7 @@ namespace Test_NetClient {
 
       var order = new Order();
       order.OrderID = 999;
-      order.EntityAspect.SetValue("OrderDetails", new NavigationSet<OrderDetail>());
+      // order.EntityAspect.SetValue("OrderDetails", new NavigationSet<OrderDetail>());
       for (int i = 0; i < 3; i++) {
         var od = new OrderDetail();
         od.ProductID = i;
@@ -710,7 +710,7 @@ namespace Test_NetClient {
 
       var order = new Order();
       order.OrderID = 999;
-      order.EntityAspect.SetValue("OrderDetails", new NavigationSet<OrderDetail>());
+      // order.EntityAspect.SetValue("OrderDetails", new NavigationSet<OrderDetail>());
       for (int i = 0; i < 3; i++) {
         var od = new OrderDetail();
         od.ProductID = i;

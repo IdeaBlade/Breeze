@@ -19,6 +19,8 @@ namespace Breeze.NetClient {
       _backingStore = (stObj is IHasBackingStore) ? null : new Dictionary<String, Object>();
     }
 
+    #region Public/protected properties 
+
     public abstract EntityState EntityState { get; set; }
 
     public abstract EntityVersion EntityVersion { get; internal set;  }
@@ -40,6 +42,8 @@ namespace Breeze.NetClient {
 
       }
     }
+
+    #endregion
 
     #region Get/Set value
 
@@ -104,7 +108,16 @@ namespace Breeze.NetClient {
     }
 
     public abstract void SetValue(String propertyName, object newValue);
+
     protected internal abstract void SetDpValue(DataProperty dp, object newValue);
+
+    protected internal Object[] GetValues(IEnumerable<DataProperty> properties) {
+      return properties.Select(p => this.GetValue(p)).ToArray();
+    }
+
+    #endregion
+
+    #region other misc
 
     protected void RejectChangesCore() {
       if (this.OriginalValuesMap == null) return;
@@ -114,7 +127,7 @@ namespace Breeze.NetClient {
       this.ProcessComplexProperties(co => co.ComplexAspect.RejectChangesCore());
     }
 
-    protected void ProcessComplexProperties( Action<IComplexObject> action) {
+    protected void ProcessComplexProperties(Action<IComplexObject> action) {
       this.StructuralType.ComplexProperties.ForEach(cp => {
         var cos = this.GetValue(cp.Name);
         if (cp.IsScalar) {
@@ -125,10 +138,6 @@ namespace Breeze.NetClient {
         }
       });
 
-    }
-
-    protected internal Object[] GetValues(IEnumerable<DataProperty> properties) {
-      return properties.Select(p => this.GetValue(p)).ToArray();
     }
 
     #endregion

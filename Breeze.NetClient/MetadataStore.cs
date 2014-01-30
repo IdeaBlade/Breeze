@@ -11,8 +11,23 @@ namespace Breeze.NetClient {
   // and every object returned by it is immutable after being associated with this class.
 
   public class MetadataStore {
-    public MetadataStore() {
+
+    #region Ctor related 
+
+    internal MetadataStore() { }
+     // Explicit static constructor to tell C# compiler
+    // not to mark type as beforefieldinit
+    static MetadataStore() {     }
+
+    public static MetadataStore Instance {
+      get {
+        return _instance;
+      }
     }
+
+    private static readonly MetadataStore _instance = new MetadataStore();
+
+    #endregion
 
     public List<EntityType> EntityTypes {
       get {
