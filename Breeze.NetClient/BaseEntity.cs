@@ -13,11 +13,11 @@ namespace Breeze.NetClient {
 
     #region syntactic sugar helper methods 
 
-    protected T PropGet<T>([CallerMemberName] string propertyName = "") {
+    protected T GetValue<T>([CallerMemberName] string propertyName = "") {
       return EntityAspect.GetValue<T>(propertyName);
     }
 
-    protected void PropSet(Object value, [CallerMemberName] string propertyName = "") {
+    protected void SetValue(Object value, [CallerMemberName] string propertyName = "") {
       EntityAspect.SetValue(propertyName, value);
     }
 

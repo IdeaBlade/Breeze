@@ -12,14 +12,14 @@ namespace Breeze.NetClient {
   // TODO: EntityQuery is currently just additive - i.e. no way to remove clauses
   public class EntityQuery<T> : EntityQuery, IQueryable<T>, IOrderedQueryable<T>, IQueryProvider, IHasDataServiceQuery {
 
-    public EntityQuery(String resourceName)
-      : this() {
-        ResourceName = resourceName;
-    }
-
     public EntityQuery( ) : base() {
       var context = new DataServiceContext(new Uri(__placeHolderServiceName), DataServiceProtocolVersion.V3);
       DataServiceQuery = context.CreateQuery<T>(__placeHolderResourceName);
+    }
+
+    public EntityQuery(String resourceName)
+      : this() {
+      if (resourceName != null) ResourceName = resourceName;
     }
 
     public EntityQuery(EntityQuery<T> query) : base(query) {
@@ -69,10 +69,15 @@ namespace Breeze.NetClient {
       var dsq = (DataServiceQuery<T>)_dataServiceQuery;
       var requestUri = dsq.RequestUri;
       var s2 = requestUri.AbsoluteUri.Replace(__placeHolderServiceName, "");
+      
+      var resourceName = (String.IsNullOrEmpty(ResourceName)) 
+        ? MetadataStore.Instance.GetDefaultResourceName(typeof(T))
+        : ResourceName;
+      
       // if any filter conditions
-      var queryResource = s2.Replace(__placeHolderResourceName + "()", ResourceName);
+      var queryResource = s2.Replace(__placeHolderResourceName + "()", resourceName);
       // if no filter conditions
-      queryResource = queryResource.Replace(__placeHolderResourceName, ResourceName);
+      queryResource = queryResource.Replace(__placeHolderResourceName, resourceName);
       return queryResource;
     }
 
@@ -180,6 +185,10 @@ namespace Breeze.NetClient {
   
   public abstract class EntityQuery : IEntityQuery {
     public EntityQuery() {       
+    }
+
+    public static EntityQuery<T> From<T>(string resourceName) {
+      return new EntityQuery<T>(resourceName); 
     }
 
     public EntityQuery(EntityQuery query) {

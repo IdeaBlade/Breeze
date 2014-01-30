@@ -60,7 +60,7 @@ namespace Breeze.NetClient {
 
     public async Task<String> FetchMetadata(DataService dataService) {
       String serviceName;
-
+      
       serviceName = dataService.ServiceName;
       var metadata = GetDataService(serviceName);
       if (metadata != null) return metadata;
@@ -139,26 +139,28 @@ namespace Breeze.NetClient {
       return complexType;
     }
 
-    public String GetEntityTypeNameForResourceName(String resourceName) {
-      lock (_resourceNameEntityTypeMap) {
-        String entityTypeName;
-        _resourceNameEntityTypeMap.TryGetValue(resourceName, out entityTypeName);
-        return entityTypeName;
+    public void SetDefaultResourceName(Type clrType, String resourceName) {
+      var entityType = GetEntityType(clrType);
+      SetDefaultResourceName(entityType, resourceName);
+    }
+
+    internal void SetDefaultResourceName(EntityType entityType, String resourceName) {
+      lock (_entityTypeResourceNameMap) {
+        _entityTypeResourceNameMap[entityType] = resourceName;
       }
     }
 
-    public void SetEntityTypeForResourceName(String resourceName, String entityTypeName) {
-      lock (_resourceNameEntityTypeMap) {
-        _resourceNameEntityTypeMap[resourceName] = entityTypeName;
-        // TODO: complete next line
-        // _entityTypeResourceNameMap[???] = resourceName;
-      }
-    }
-
-    public String GetResourceNameForEntityTypeName(String entityTypeName) {
-      lock (_resourceNameEntityTypeMap) {
+    public String GetDefaultResourceName(Type clrType) {
+      var entityType = GetEntityType(clrType);
+      lock (_entityTypeResourceNameMap) {
         String resourceName = null;
-        _entityTypeResourceNameMap.TryGetValue(entityTypeName, out resourceName);
+        // give the type it's base's resource name if it doesn't have its own.
+        if (!_entityTypeResourceNameMap.TryGetValue(entityType, out resourceName)) {
+          var baseType = clrType.GetTypeInfo().BaseType;
+          if (baseType != null && baseType != typeof(Object)) {
+            return GetDefaultResourceName(clrType);
+          }
+        }
         return resourceName;
       }
     }
@@ -239,17 +241,6 @@ namespace Breeze.NetClient {
         if (entityType != null) {
 
           UpdateNavigationProperties(entityType);
-          // give the type it's base's resource name if it doesn't have its own.
-
-          var defResourceName = entityType.DefaultResourceName;
-          if (String.IsNullOrEmpty(defResourceName) && entityType.BaseEntityType != null) {
-            defResourceName = entityType.BaseEntityType.DefaultResourceName;
-          }
-          entityType.DefaultResourceName = defResourceName;
-
-          if (defResourceName != null && GetEntityTypeNameForResourceName(defResourceName) == null) {
-            SetEntityTypeForResourceName(defResourceName, entityType.Name);
-          }
 
           // check if this structural type's name, short version or qualified version has a registered ctor.
           //  structuralType.getEntityCtor();
@@ -382,7 +373,9 @@ namespace Breeze.NetClient {
 
     // inner class
     internal class ClrTypeMap {
-      public ClrTypeMap() { }
+      public ClrTypeMap() {
+        
+      }
 
       public StructuralType GetStructuralType(Type clrType) {
         var stName = StructuralType.ClrTypeToStructuralTypeName(clrType);
@@ -447,7 +440,7 @@ namespace Breeze.NetClient {
     private Dictionary<String, List<DataProperty>> _incompleteComplexTypeMap = new Dictionary<String, List<DataProperty>>();   // key is typeName
 
     // locked using _resourceNameEntityTypeMap
-    private Dictionary<String, String> _entityTypeResourceNameMap = new Dictionary<string, string>();
+    private Dictionary<EntityType, String> _entityTypeResourceNameMap = new Dictionary<EntityType, string>();
     private Dictionary<String, String> _resourceNameEntityTypeMap = new Dictionary<string, string>();
 
 

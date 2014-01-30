@@ -80,6 +80,8 @@ namespace Test_NetClient {
       await _emTask;
 
       var supplier = _em1.CreateEntity<Supplier>();
+      // set in ctor.
+      Assert.IsTrue(supplier.Location.Country == "USA", "Country should be set");
       var initLocation = supplier.Location;
       supplier.Location.City = "San Francisco";
       Assert.IsTrue(supplier.Location.City == "San Francisco", "city should be set");
@@ -104,126 +106,61 @@ namespace Test_NetClient {
       Assert.IsTrue(supplier.Location.City == "Seatle", "city should have changed");
     }
 
+    [TestMethod]
+    public async Task QueryEntityWithComplexObject() {
+      await _emTask;
 
-    //test("initializer on complexType during query",  function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Supplier = testFns.models.Supplier();
+      var q = new EntityQuery<Supplier>().Where(s => s.CompanyName.StartsWith("P"));
+      var suppliers = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(suppliers.Count() > 0, "should be some suppliers");
+      Assert.IsTrue(suppliers.All(s => s.Location != null));
+    }
 
-    //    var locationInitializer = function (location) {
-    //        var city = location.getProperty("city");
-    //        ok(city, "city name should not be null");
-    //        location.setProperty("city", "Z" + city);
-    //    };
+    [TestMethod]
+    public async Task SetComplexSubProp() {
+      await _emTask;
 
-    //    em.metadataStore.registerEntityTypeCtor("Location", null, locationInitializer);
+      var q = new EntityQuery<Supplier>().Where(s => s.CompanyName.StartsWith("P"));
+      var suppliers = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(suppliers.Count() > 0, "should be some suppliers");
+      
 
-    //    var q = EntityQuery.from("Suppliers")
-    //      .where("companyName", "startsWith", "P");
+      suppliers.ForEach(s => s.Location.Region = "Foo");
+      Assert.IsTrue(suppliers.All(s => s.EntityAspect.EntityState.IsModified()), "should have been modified");
+      suppliers.All(s => s.Location.Region == "Foo");
+    }
 
-        
-    //    stop();
-    //    em.executeQuery(q).then(function (data) {
-            
-    //        var r = data.results;
-    //        ok(r.length > 0);
-    //        var supplier0 = r[0];
-    //        var location = supplier0.getProperty("location");
-    //        ok(location, "location should exist");
-    //        var city = location.getProperty("city");
-    //        ok(city.indexOf("Z") === 0, "city should start with 'Z'");
-        
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
+    [TestMethod]
+    public async Task SetComplexPropWithNewInstance() {
+      await _emTask;
 
+      var q = new EntityQuery<Supplier>().Where(s => s.CompanyName.StartsWith("P"));
+      var suppliers = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(suppliers.Count() > 0, "should be some suppliers");
 
-    //test("query complex", function () {
-    //    var em = newEm();
-    //    var q = EntityQuery.from("Suppliers")
-    //        .where("companyName", "startsWith", "P");
-        
-    //    stop();
-    //    em.executeQuery(q).then(function (data) {
-            
-    //        var r = data.results;
-    //        ok(r.length > 0);
-    //        var supplier0 = r[0];
-    //        var location = supplier0.getProperty("location");
-    //        ok(location, "location should exist");
-    //        var city = location.getProperty("city");
-    //        ok(city.length > 0, "city should exist");
-    //        ok(location.complexAspect != null, "location.complexAspect should exist");
-    //        ok(location.complexAspect.getEntityAspect() === supplier0.entityAspect, "location.complexAspect should exist");
+      var newLocation = new Location() { City = "Phoenix", PostalCode = "11111" };
+      suppliers.ForEach(s => s.Location = newLocation);
+      Assert.IsTrue(suppliers.All(s => s.Location != newLocation), "refs should NOT be the same");
+      Assert.IsTrue(suppliers.All(s => s.EntityAspect.EntityState.IsModified()), "should have been modified");
+      suppliers.All(s => s.Location.City == "Phoenix");
+    }
 
-    //        var supplierType = em.metadataStore.getEntityType("Supplier");
-    //        ok(supplierType instanceof EntityType, "locationType should be instanceof ComplexType");
-    //        var locationType = em.metadataStore.getEntityType("Location");
-    //        ok(locationType instanceof ComplexType, "locationType should be instanceof ComplexType");
-    //        ok(location.complexType === locationType);
+    [TestMethod]
+    public async Task ErrorOnSetComplexPropWithNull() {
+      await _emTask;
 
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
+      var q = new EntityQuery<Supplier>().Where(s => s.CompanyName.StartsWith("P")).Take(2);
+      var suppliers = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(suppliers.Count() > 0, "should be some suppliers");
+      // var newLocation = new Location() { City = "Phoenix", PostalCode = "11111" };
+      try {
+        suppliers.ForEach(s => s.Location = null);
+        Assert.Fail("shouldn't get here");
+      } catch (Exception e) {
+        Assert.IsTrue(e.Message.ToLower().Contains("complextype"), "message should mention complextype");
+      }
+    }
 
-    //test("modify complex property", function () {
-    //    var em = newEm();
-    //    var q = EntityQuery.from("Suppliers")
-    //        .where("companyName", "startsWith", "P");
-
-    //    stop();
-    //    em.executeQuery(q).then(function (data) {
-    //        var r = data.results;
-    //        ok(r.length > 0);
-    //        var supplier0 = r[0];
-    //        var location = supplier0.getProperty("location");
-    //        location.setProperty("city", "foo");
-    //        ok(supplier0.entityAspect.entityState.isModified(), "supplier should be modified");
-
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
-
-    //test("assign complex property", function () {
-    //    var em = newEm();
-    //    var q = EntityQuery.from("Suppliers")
-    //        .where("companyName", "startsWith", "P");
-
-    //    stop();
-    //    em.executeQuery(q).then(function (data) {
-    //        var r = data.results;
-    //        ok(r.length > 0);
-    //        var supplier0 = r[0];
-    //        var supplier1 = r[1];
-    //        var location0 = supplier0.getProperty("location");
-    //        supplier1.setProperty("location", location0);
-    //        ok(supplier1.entityAspect.entityState.isModified(), "supplier1 should be modified");
-    //        var location1 = supplier1.getProperty("location");
-    //        ok(location1 != location0, location1 != location0);
-    //        location0.setProperty("city", "foo");
-    //        ok(supplier0.entityAspect.entityState.isModified(), "supplier0 should be modified");
-    //        ok(location1.getProperty("city") !== "foo", "location1.city should not == 'foo'");
-
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
-    
-    //test("assign complex property with null", function () {
-    //    var em = newEm();
-    //    var q = EntityQuery.from("Suppliers")
-    //        .where("companyName", "startsWith", "P");
-
-    //    stop();
-    //    em.executeQuery(q).then(function (data) {
-    //        var r = data.results;
-    //        ok(r.length > 0);
-    //        var supplier0 = r[0];
-    //        var location0 = supplier0.getProperty("location");
-    //        try {
-    //            supplier0.setProperty("location", null);
-    //            ok(false, "shouldn't get here");
-    //        } catch(e) {
-    //            ok(e.message.toLowerCase().indexOf("complextype") >= 0, "message should mention complexType");
-    //        }
-
-
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
     
     //test("create an instance and assign it", function () {
     //    var em = newEm();

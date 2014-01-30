@@ -22,11 +22,32 @@ namespace Breeze.NetClient {
         _cSpaceOSpaceMap = tmp.ToDictionary(v => (String)v[0], v => (String)v[1]);
       }
 
+      //if (schema.entityContainer) {
+      //       __toArray(schema.entityContainer).forEach(function (container) {
+      //           __toArray(container.entitySet).forEach(function (entitySet) {
+      //               var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
+      //               metadataStore.setEntityTypeForResourceName(entitySet.name, entityTypeName);
+      //               metadataStore._entityTypeResourceMap[entityTypeName] = entitySet.name;
+      //           });
+      //       });
+      //   }
       var entityTypes = ToEnumerable(_schema["entityType"]).Cast<JObject>()
         .Select(ParseCsdlEntityType).ToList();
       var complexTypes = ToEnumerable(_schema["complexType"]).Cast<JObject>()
         .Select(ParseCsdlComplexType).ToList();
       entityTypes.ForEach(et => ResolveComplexTypeRefs(et));
+
+      var entityContainer = _schema["entityContainer"];
+      if (entityContainer != null) {
+        var entitySets = ToEnumerable(entityContainer["entitySet"]).Cast<JObject>().ToList();
+        entitySets.ForEach(es => {
+          var entityTypeInfo = ParseTypeName((String) es["entityType"]);
+          var entityType = _metadataStore.GetEntityType(entityTypeInfo.TypeName);
+          var resourceName = (String) es["name"];
+          _metadataStore.SetDefaultResourceName(entityType, resourceName);
+        });
+      }
+
     }
 
     private void ResolveComplexTypeRefs(EntityType et) {
@@ -101,7 +122,7 @@ namespace Breeze.NetClient {
       });
 
       _metadataStore.AddEntityType(entityType);
-      entityType.DefaultResourceName = _metadataStore.GetResourceNameForEntityTypeName(entityType.Name);
+      
 
       List<DeferredTypeInfo> deferrals;
       if (_deferredTypeMap.TryGetValue(entityType.Name, out deferrals)) {
