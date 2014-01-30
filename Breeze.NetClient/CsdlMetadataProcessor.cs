@@ -22,15 +22,6 @@ namespace Breeze.NetClient {
         _cSpaceOSpaceMap = tmp.ToDictionary(v => (String)v[0], v => (String)v[1]);
       }
 
-      //if (schema.entityContainer) {
-      //       __toArray(schema.entityContainer).forEach(function (container) {
-      //           __toArray(container.entitySet).forEach(function (entitySet) {
-      //               var entityTypeName = parseTypeName(entitySet.entityType, schema).typeName;
-      //               metadataStore.setEntityTypeForResourceName(entitySet.name, entityTypeName);
-      //               metadataStore._entityTypeResourceMap[entityTypeName] = entitySet.name;
-      //           });
-      //       });
-      //   }
       var entityTypes = ToEnumerable(_schema["entityType"]).Cast<JObject>()
         .Select(ParseCsdlEntityType).ToList();
       var complexTypes = ToEnumerable(_schema["complexType"]).Cast<JObject>()
@@ -47,7 +38,6 @@ namespace Breeze.NetClient {
           _metadataStore.SetDefaultResourceName(entityType, resourceName);
         });
       }
-
     }
 
     private void ResolveComplexTypeRefs(EntityType et) {

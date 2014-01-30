@@ -228,16 +228,6 @@ namespace Breeze.NetClient {
       }
     }
 
-    ///// <summary>
-    ///// 
-    ///// </summary>
-    ///// <param name="sourceAspect"></param>
-    ///// <param name="properties"></param>
-    ///// <returns></returns>
-    //protected virtual bool AreEqual(EntityAspect sourceAspect, IEnumerable<DataProperty> properties) {
-    //  bool isCurrent = properties.All(p => Object.Equals(this.GetValue(p), sourceAspect.GetValue(p)));
-    //  return isCurrent;
-    //}
 
     #endregion
 
