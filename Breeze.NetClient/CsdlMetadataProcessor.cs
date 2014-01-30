@@ -199,6 +199,7 @@ namespace Breeze.NetClient {
         NameOnServer = (String)csdlProperty["name"],
         ComplexTypeName = complexTypeName,
         IsNullable = false,
+        IsScalar = true,
         ConcurrencyMode = ConcurrencyMode.None,
         
       };
