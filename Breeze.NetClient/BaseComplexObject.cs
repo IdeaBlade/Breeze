@@ -21,6 +21,10 @@ namespace Breeze.NetClient {
       ComplexAspect.SetValue(propertyName, value);
     }
 
+    public bool StructuralEquals(BaseComplexObject other) {
+      return this.ComplexAspect.StructuralEquals(other.ComplexAspect);
+    }
+
     #endregion
 
     public ComplexAspect ComplexAspect {

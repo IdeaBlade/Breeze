@@ -100,10 +100,10 @@ namespace Test_NetClient {
       var initLocation = supplier.Location;
       supplier.Location.City = "San Francisco";
       Assert.IsTrue(supplier.Location.City == "San Francisco", "city should be set");
-      var newLocation = new Location() { City = "Seatle", PostalCode = "11111" };
+      var newLocation = new Location() { City = "Seattle", PostalCode = "11111" };
       supplier.Location = newLocation;
       Assert.IsTrue(supplier.Location == initLocation, "location ref should not have changed");
-      Assert.IsTrue(supplier.Location.City == "Seatle", "city should have changed");
+      Assert.IsTrue(supplier.Location.City == "Seattle", "city should have changed");
     }
 
     [TestMethod]
@@ -141,8 +141,10 @@ namespace Test_NetClient {
       var newLocation = new Location() { City = "Phoenix", PostalCode = "11111" };
       suppliers.ForEach(s => s.Location = newLocation);
       Assert.IsTrue(suppliers.All(s => s.Location != newLocation), "refs should NOT be the same");
+      Assert.IsTrue(suppliers.All(s => s.Location.StructuralEquals(newLocation)), "but values should be the same");
       Assert.IsTrue(suppliers.All(s => s.EntityAspect.EntityState.IsModified()), "should have been modified");
       suppliers.All(s => s.Location.City == "Phoenix");
+
     }
 
     [TestMethod]
@@ -161,29 +163,21 @@ namespace Test_NetClient {
       }
     }
 
+    public async Task SetComplexPropWithAnotherComplexProp() {
+      await _emTask;
+
+      var q = new EntityQuery<Supplier>().Where(s => s.CompanyName.StartsWith("P")).Take(2);
+      var suppliers = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(suppliers.Count() > 0, "should be some suppliers");
+      var supplierList = suppliers.ToList();
+      var s0 = supplierList[0];
+      var s1 = supplierList[1];
+      Assert.IsTrue(!s0.Location.StructuralEquals(s1.Location), "should not be equal");
+      s0.Location = s1.Location;
+      Assert.IsTrue(s0.Location.StructuralEquals(s1.Location), "should be equal");
+      
+    }
     
-    //test("create an instance and assign it", function () {
-    //    var em = newEm();
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    var newLocation = locationType.createInstance();
-    //    newLocation.setProperty("city", "bar");
-        
-    //    var q = EntityQuery.from("Suppliers")
-    //        .where("companyName", "startsWith", "P");
-
-    //    stop();
-    //    em.executeQuery(q).then(function (data) {
-    //        var r = data.results;
-    //        ok(r.length > 0);
-    //        var supplier0 = r[0];
-    //        var location0 = supplier0.getProperty("location");
-    //        supplier0.setProperty("location", newLocation);
-    //        ok(location0.getProperty("city") === "bar", "city should have value 'bar'");
-    //        ok(location0 != newLocation, "locations should not be the same object");
-            
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
-
     //test("create an instance with custom ctor and unmapped prop", function () {
     //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
     //    var Location = testFns.models.Location();
@@ -212,24 +206,7 @@ namespace Test_NetClient {
     //    }).fail(testFns.handleFail).fin(start);
     //});
 
-    //test("create an entity instance with a populated complex type", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Location = testFns.models.Location();
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    em.metadataStore.registerEntityTypeCtor("Location", Location, "init");
 
-    //    var newLocation = locationType.createInstance();
-    //    newLocation.setProperty("extraName", "newValue");
-    //    newLocation.setProperty("city", "bar");
-    //    var supplier = em.createEntity("Supplier", { location: newLocation });     
-
-    //    var location0 = supplier.getProperty("location");
-    //    ok(location0.getProperty("city") === "bar", "city should have value 'bar'");
-    //    ok(location0.getProperty("extraName") === "newValue", "extraName should have value 'newValue'");
-    //    ok(location0 != newLocation, "locations should not be the same object");
-
-        
-    //});
 
     //// TODO: right now this will fail because we don't yet support attaching an entity created with new that has populated complexTypes.
     //// change needs to be made to each of the modelLibraries. 

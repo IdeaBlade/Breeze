@@ -109,20 +109,6 @@ namespace Test_NetClient {
         Assert.IsTrue(order.Customer == customer, "order.Customer should = customer");
     }
     
-    //test("cannot attach an entity created by a different metadataStore", 1, function () {
-    //    var em = newEm();
-    //    var customerType = em.metadataStore.getEntityType("Customer");
-    //    var customer = customerType.createEntity();
-    //    var newMs = MetadataStore.importMetadata(em.metadataStore.exportMetadata());
-    //    var em2 = newEm(newMs);
-    //    try {
-    //        em2.attachEntity(customer);
-    //        ok(false, "should not get here");
-    //    } catch (e) {
-    //        ok(e.message.indexOf("MetadataStore"));
-    //    }
-        
-    //});
 
      // can attach a detached entity to a different manager via attach/detach
     [TestMethod]
@@ -657,7 +643,6 @@ namespace Test_NetClient {
 
       var cust1 = new Customer();
       var order1 = new Order();
-      // cust1.EntityAspect.SetValue("Orders", new NavigationSet<Order>());
       cust1.Orders.Add(order1);
 
       _em1.AddEntity(cust1);
@@ -684,7 +669,6 @@ namespace Test_NetClient {
 
       var order = new Order();
       order.OrderID = 999;
-      // order.EntityAspect.SetValue("OrderDetails", new NavigationSet<OrderDetail>());
       for (int i = 0; i < 3; i++) {
         var od = new OrderDetail();
         od.ProductID = i;
@@ -710,7 +694,6 @@ namespace Test_NetClient {
 
       var order = new Order();
       order.OrderID = 999;
-      // order.EntityAspect.SetValue("OrderDetails", new NavigationSet<OrderDetail>());
       for (int i = 0; i < 3; i++) {
         var od = new OrderDetail();
         od.ProductID = i;

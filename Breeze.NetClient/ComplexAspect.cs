@@ -28,20 +28,17 @@ namespace Breeze.NetClient {
       InitializeDefaultValues();
     }
 
-    // Note: the Parent and ParentProperty properties are assigned either when a IComplexObject is assigned to a parent
-    // or when it is first created via a Get from its parent.
-
+    // Note: the Parent and ParentProperty properties are assigned (if assigned) when it is first created within the context of a parentEntity
+    // A complexAspect without these properties will be absorbed by a complexAspect with these properties during any assignment.
 
     // Note that this method creates a child and updates its refs to the parent but does
     // NOT update the parent. This is deliberate because instances of OriginalVersions should not be stored
     // in the parent objects refs whereas CurrentVersions should.
-    internal static IComplexObject Create(IStructuralObject parent, DataProperty parentProperty, bool initializeDefaultValues = true) {
-      // the initializeDefaultValues flag should only be set to false, if all of the properties of this 
-      // complex object are going to be set immediately after this call.
+    internal static IComplexObject Create(IStructuralObject parent, DataProperty parentProperty) {
       var co = (IComplexObject)Activator.CreateInstance(parentProperty.ClrType);
       
       var aspect = co.ComplexAspect;
-      // will call initializeDefaultValues();
+      
       aspect.ComplexType = parentProperty.ComplexType;
       aspect.Parent = parent;
       aspect.ParentProperty = parentProperty;
@@ -169,31 +166,15 @@ namespace Breeze.NetClient {
       get { return ParentEntity != null && ParentEntity.EntityAspect.IsAttached; }
     }
 
-    internal void AbsorbCurrentValues(ComplexAspect sourceAspect, bool isCloning = false) {
-      if (isCloning) {
-        if (sourceAspect.OriginalValuesMap != null) {
-          this.OriginalValuesMap = new OriginalValuesMap(sourceAspect.OriginalValuesMap);
-        }
-      }
+    internal void AbsorbCurrentValues(ComplexAspect sourceAspect) {
 
       this.ComplexType.DataProperties.ForEach(p => {
         var sourceValue = sourceAspect.GetValue(p);
         if (p.IsComplexProperty) {
-          var thisChildCo = (IComplexObject)GetValue(p);
-          if (thisChildCo == null) {
-            thisChildCo = ComplexAspect.Create(this.ComplexObject, p, true);
-            SetDpValue(p, thisChildCo);
-          }
-          var thisChildAspect = thisChildCo.ComplexAspect;
-
-          var sourceCo = (IComplexObject)sourceValue;
-          if (sourceCo == null) {
-            sourceCo = ComplexAspect.Create(sourceAspect.ComplexObject, p, true);
-            sourceAspect.SetDpValue(p, sourceCo);
-          }
-          var sourceChildAspect = sourceCo.ComplexAspect;
-
-          thisChildAspect.AbsorbCurrentValues(sourceChildAspect, isCloning);
+          var targetChildCo = GetValue<IComplexObject>(p);
+          var targetChildAspect = targetChildCo.ComplexAspect;
+          var sourceChildAspect = ((IComplexObject) sourceValue).ComplexAspect;
+          targetChildAspect.AbsorbCurrentValues(sourceChildAspect);
         } else {
           SetDpValue(p, sourceValue);
         }
@@ -214,17 +195,10 @@ namespace Breeze.NetClient {
 
     internal void InitializeDefaultValues() {
 
-      if (_defaultValuesInitialized) return;
-
-      IEnumerable<DataProperty> properties = ComplexType.DataProperties;
-
-      _defaultValuesInitialized = true;
-
-      properties.ForEach(dp => {
-        try {
-          
+      ComplexType.DataProperties.ForEach(dp => {
+        try {         
           if (dp.IsComplexProperty) {
-            SetDpValue(dp, ComplexAspect.Create(this.ComplexObject, dp, true));
+            SetDpValue(dp, ComplexAspect.Create(this.ComplexObject, dp));
           } else if (dp.DefaultValue != null) {
             SetDpValue(dp, dp.DefaultValue);
           }
@@ -293,14 +267,11 @@ namespace Breeze.NetClient {
 
     private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
       
-      
       // Actually set the value;
       SetRawValue(property.Name, newValue);
 
       TrackChange(property, oldValue);
-      
 
-      // NOTE: next few lines are the same as above but not refactored for perf reasons.
       if (this.IsAttached && !EntityManager.IsLoadingEntity) {
 
         //if (entityManager.validationOptions.validateOnPropertyChange) {
@@ -328,7 +299,7 @@ namespace Breeze.NetClient {
     }
 
     internal IComplexObject GetOriginalVersion() {
-      var originalClone = Create(this.Parent, this.ParentProperty, false);
+      var originalClone = Create(this.Parent, this.ParentProperty);
       var cloneAspect = originalClone.ComplexAspect;
 
       this.ComplexType.DataProperties.ForEach(p => {
@@ -354,6 +325,7 @@ namespace Breeze.NetClient {
     /// </summary>
     bool INotifyDataErrorInfo.HasErrors {
       get {
+        // TODO: implement this
         return false;
 
       }
@@ -372,14 +344,19 @@ namespace Breeze.NetClient {
     }
 
     IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName) {
-
       return null;
     }
 
     internal String PropertyPathPrefix {
       get {
         if (_propertyPathPrefix == null) {
-          _propertyPathPrefix = GetPropertyPathPrefix();
+          var name = this.ParentProperty.Name;
+          var parent = this.Parent as IComplexObject;
+          if (parent == null) {
+            _propertyPathPrefix = name + ".";
+          } else {
+            _propertyPathPrefix = parent.ComplexAspect.PropertyPathPrefix + name + ".";
+          }
         }
         return _propertyPathPrefix;
       }
@@ -403,46 +380,9 @@ namespace Breeze.NetClient {
       }
     }
 
-
-    private String GetPropertyPathPrefix() {
-      var name = this.ParentProperty.Name;
-      var parent = this.Parent as IComplexObject;
-      if (parent == null) {
-        return name + ".";
-      } else {
-        return parent.ComplexAspect.PropertyPathPrefix + name + ".";
-      }
-    }
-
-
-
-    private String _propertyPathPrefix;
-    private bool _inErrorsChanged = false;
-    private event EventHandler<DataErrorsChangedEventArgs> _errorsChangedHandler;
-
     #endregion
 
-    #region Equals and HashCode
-
-    /// <summary>
-    /// Equality comparison .  No two independent Complex objects are ever equal - Reference equality is used.
-    /// </summary>
-    /// <param name="obj"></param>
-    /// <returns></returns>
-    /// <remarks>Do NOT override this implementation because it can cause Entity Framework saves to fail.  The 
-    /// Entity framework assumes reference equality for Complex types.</remarks>
-    public override bool Equals(object obj) {
-      return Object.ReferenceEquals(this, obj);
-    }
-
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    public override int GetHashCode() {
-      return base.GetHashCode();
-    }
+    #region StructuralEquals
 
     /// <summary>
     /// Performs an equality comparison of complex objects determined by their constituent values.
@@ -452,8 +392,8 @@ namespace Breeze.NetClient {
     public bool StructuralEquals(object obj) {
       var aspect = obj as ComplexAspect;
       if (aspect == null) return false;
-      var theseValues = GetValues(this.StructuralType.DataProperties);
-      var otherValues = GetValues(aspect.StructuralType.DataProperties);
+      var theseValues = GetValues();
+      var otherValues = GetValues();
       var areEqual = theseValues.Zip(otherValues, (o1, o2) => {
         if (o1 is IComplexObject) {
           return (((IComplexObject)o1).ComplexAspect).StructuralEquals(((IComplexObject)o2).ComplexAspect);
@@ -472,6 +412,10 @@ namespace Breeze.NetClient {
     private IComplexObject _complexObject;
     private IStructuralObject _parent;
     private DataProperty _parentProperty;
+
+    private String _propertyPathPrefix;
+    private bool _inErrorsChanged = false;
+    private event EventHandler<DataErrorsChangedEventArgs> _errorsChangedHandler;
     
     #endregion
 

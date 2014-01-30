@@ -1,15 +1,16 @@
 ﻿ToDo
 ---------------------------
-ComplexType support
-Attach logic
 LocalQuery
+Validation and INotifyDataErrorInfo
 Saves
 NamedQueries
 NoTracking queries
 ShortName map
-
-EntityGroup/EntityManager rules for detached entities.( dislike EntityManager)
-
+IEditableObject
+UntrackedProperties added directly to Clr type defs.
+CodeGeneration - 
+Metadata by hand 
+Export/Import
 
 
 
@@ -17,20 +18,31 @@ Notes:
 	- EntityAspect EntityManager & EntityGroup properties are set if an entity was ever attached. 
 	This is not cleared when an entity is detached.  This assumption removes a lot of special purpose logic
 	- Only the MetadataStore and immutable types are ThreadSafe.  Any property returned by the MetadataStore 
-	must therefore also be either immutable of thread safe itself. (all StructuralTypes are effictively immutable)
+	must therefore also be either immutable or thread safe itself. (all StructuralTypes are effectively immutable)
 
 Think about
+-------------
 Enum for flags like InProcess, IsLoading etc ( probably not a good idea for booleans that have a concept of inheritance)
-EntityKey ctor that uses ClrType instead of EntityType ( makes it easier to use)
 Test the incoming Metadata to insure that it matches the Clr descriptions.
-MetadataStore as singleton.
+
 
 
 Extensions for later ( that we can charge for)
 --------------------------------------------
 Property interception
+PostSharp (or other static IL weaver support)
+Query filters (like devforce - registered on the EntityManager and applied to queries before execution)
+GetEntityGraph
+EntityQueryPager
+Logging/Tracing
 Dynamic linq
+DesignTime functionality ???
+Silverlight 5 ( ??? )
 Enhanced validation
 Enhanced offline
 Linq verbs not natively supported by OData (hard)
+MEF???
+
+
+
 

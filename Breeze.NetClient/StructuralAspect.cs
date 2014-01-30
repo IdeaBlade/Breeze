@@ -111,7 +111,10 @@ namespace Breeze.NetClient {
 
     protected internal abstract void SetDpValue(DataProperty dp, object newValue);
 
-    protected internal Object[] GetValues(IEnumerable<DataProperty> properties) {
+    protected internal Object[] GetValues(IEnumerable<DataProperty> properties = null) {
+      if (properties == null) {
+        properties = this.StructuralType.DataProperties;
+      }
       return properties.Select(p => this.GetValue(p)).ToArray();
     }
 
@@ -280,7 +283,6 @@ namespace Breeze.NetClient {
     #region Private 
 
     private IDictionary<String, Object> _backingStore;
-    protected bool _defaultValuesInitialized;
 
     #endregion
   }
