@@ -478,30 +478,14 @@ namespace Breeze.NetClient {
         throw new Exception("Nonscalar data properties are readonly - items may be added or removed but the collection may not be changed.");
       }
 
-      oldValue = GetValue(property);
-      if (Object.Equals(oldValue, newValue)) return;
-
       if (IsNullEntity) {
         throw new Exception("Null entities cannot be modified");
       }
 
-      // TODO: may need to do this:::
-      // Note that we need to handle multiple properties in process, not just one in order to avoid recursion. 
-      // ( except in the case of null propagation with fks where null -> 0 in some cases.)
-      // (this may not be needed because of the newValue === oldValue test above)
+      WrapChangeNotification(property, newValue, SetDpValueCore);
+    }
 
-
-      // var changeNotificationEnabled = EntityState != EntityState.Detached && this.EntityGroup.ChangeNotificationEnabled;
-      var changeNotificationEnabled = this.EntityGroup.ChangeNotificationEnabled;
-
-      if (changeNotificationEnabled) {
-        if (!FireEntityChanging(EntityAction.PropertyChange)) return;
-
-        var propArgs = new EntityPropertyChangingEventArgs(this.Entity, property, newValue);
-        this.EntityGroup.OnEntityPropertyChanging(propArgs);
-        if (propArgs.Cancel) return;
-      }
-
+    private void SetDpValueCore(DataProperty property, object newValue, Object oldValue) {
       if (property.IsComplexProperty) {
         SetDpValueComplex(property, newValue, oldValue);
       } else if (property.IsPartOfKey) {
@@ -521,11 +505,6 @@ namespace Breeze.NetClient {
       if (this.EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity) {
         this.SetEntityStateCore(EntityState.Modified);
       }
-
-      if (changeNotificationEnabled) {
-        this.EntityGroup.OnEntityPropertyChanged(new EntityPropertyChangedEventArgs(this.Entity, property, newValue));
-        this.EntityGroup.OnEntityChanged(this.Entity, EntityAction.PropertyChange);
-      }
     }
 
     internal void SetNpValue(NavigationProperty property, object newValue) {
@@ -535,16 +514,15 @@ namespace Breeze.NetClient {
         throw new Exception("Nonscalar navigation properties are readonly - entities can be added or removed but the collection may not be changed.");
       }
 
-      var oldValue = GetValue(property);
-      if (Object.Equals(oldValue, newValue)) return;
+      WrapChangeNotification(property, newValue, SetNpValueCore);
+    }
 
+    private void SetNpValueCore(NavigationProperty property, object newValue, object oldValue) {
       var newEntity = (IEntity)newValue;
       var oldEntity = (IEntity)oldValue;
 
       EntityAspect newAspect = (newEntity == null) ? null : newEntity.EntityAspect;
       EntityAspect oldAspect = (oldEntity == null) ? null : oldEntity.EntityAspect;
-
-
 
       // manage attachment -
       if (newEntity != null) {
@@ -594,7 +572,7 @@ namespace Breeze.NetClient {
           // orderDetail.order <-xxx newOrder
           //    ==> CAN'T HAPPEN because if unidirectional because orderDetail will not have an order prop
           var pkValues = this.EntityKey.Values;
-          
+
           invForeignKeyProps.ForEach((fkProp, i) => newAspect.SetValue(fkProp, pkValues[i]));
         } else {
           // Example: unidirectional navProperty: 1->1: order -> internationalOrder
@@ -642,7 +620,6 @@ namespace Breeze.NetClient {
           });
         }
       }
-
     }
 
     private void ManageAttachment(IEntity newEntity) {
@@ -725,6 +702,28 @@ namespace Breeze.NetClient {
             property.Name, property.ParentType.Name));
       }
 
+    }
+
+    private void WrapChangeNotification<T>(T property, object newValue, Action<T, Object, Object> action) where T : StructuralProperty {
+      var oldValue = GetValue(property);
+      if (Object.Equals(oldValue, newValue)) return;
+
+      var changeNotificationEnabled = this.IsAttached && this.EntityGroup.ChangeNotificationEnabled;
+
+      if (changeNotificationEnabled) {
+        if (!FireEntityChanging(EntityAction.PropertyChange)) return;
+
+        var propArgs = new EntityPropertyChangingEventArgs(this.Entity, property, newValue);
+        this.EntityGroup.OnEntityPropertyChanging(propArgs);
+        if (propArgs.Cancel) return;
+      }
+
+      action(property, newValue, oldValue);
+
+      if (changeNotificationEnabled) {
+        this.EntityGroup.OnEntityPropertyChanged(new EntityPropertyChangedEventArgs(this.Entity, property, newValue));
+        this.EntityGroup.OnEntityChanged(this.Entity, EntityAction.PropertyChange);
+      }
     }
 
     // only ever called once for each EntityAspect when the EntityType is first set
