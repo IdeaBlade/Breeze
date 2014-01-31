@@ -463,26 +463,18 @@ namespace Breeze.NetClient {
     }
 
     protected internal override void SetDpValue(DataProperty property, object newValue) {
-      Object oldValue;
-      if (this.IsDetached) {
-        if (property.IsComplexProperty) {
-          oldValue = this.GetRawValue(property.Name);
-          SetDpValueComplex(property, newValue, oldValue);
-        } else {
-          SetRawValue(property.Name, newValue);
-        }
-        return;
-      }
+      //Object oldValue;
+      //if (this.IsDetached) {
+      //  if (property.IsComplexProperty) {
+      //    oldValue = this.GetRawValue(property.Name);
+      //    SetDpValueComplex(property, newValue, oldValue);
+      //  } else {
+      //    SetRawValue(property.Name, newValue);
+      //  }
+      //  return;
+      //}
 
-      if (!property.IsScalar) {
-        throw new Exception("Nonscalar data properties are readonly - items may be added or removed but the collection may not be changed.");
-      }
-
-      if (IsNullEntity) {
-        throw new Exception("Null entities cannot be modified");
-      }
-
-      WrapChangeNotification(property, newValue, SetDpValueCore);
+      WrapSetValue(property, newValue, SetDpValueCore);
     }
 
     private void SetDpValueCore(DataProperty property, object newValue, Object oldValue) {
@@ -493,17 +485,11 @@ namespace Breeze.NetClient {
       } else {
         SetDpValueSimple(property, newValue, oldValue);
       }
-
     }
 
     internal void SetNpValue(NavigationProperty property, object newValue) {
       // property is a NavigationProperty
-
-      if (!property.IsScalar) {
-        throw new Exception("Nonscalar navigation properties are readonly - entities can be added or removed but the collection may not be changed.");
-      }
-
-      WrapChangeNotification(property, newValue, SetNpValueCore);
+      WrapSetValue(property, newValue, SetNpValueCore);
     }
 
     private void SetNpValueCore(NavigationProperty property, object newValue, object oldValue) {
@@ -603,6 +589,7 @@ namespace Breeze.NetClient {
 
     private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
       SetRawValue(property.Name, newValue);
+      
       UpdateBackupVersion(property, oldValue);
       UpdateRelated(property, newValue, oldValue);
     }
@@ -681,7 +668,15 @@ namespace Breeze.NetClient {
       }
     }
 
-    private void WrapChangeNotification<T>(T property, object newValue, Action<T, Object, Object> action) where T : StructuralProperty {
+    private void WrapSetValue<T>(T property, object newValue, Action<T, Object, Object> action) where T : StructuralProperty {
+      if (IsNullEntity) {
+        throw new Exception("Null entities cannot be modified");
+      }
+
+      if (!property.IsScalar) {
+        throw new Exception("Nonscalar properties are readonly - items may be added or removed but the collection itself may not be set");
+      }
+
       var oldValue = GetValue(property);
       if (Object.Equals(oldValue, newValue)) return;
 
@@ -704,6 +699,7 @@ namespace Breeze.NetClient {
           }
         }
       
+        // TODO: implement this.
         //if (entityManager.validationOptions.validateOnPropertyChange) {
         //    entityAspect._validateProperty(newValue,
         //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
