@@ -147,11 +147,7 @@ namespace Breeze.NetClient {
 
     #region Backup version members
 
-    protected void TrackChange(DataProperty property) {
-      TrackChange(property, GetValue(property));
-    }
-
-    protected void TrackChange(DataProperty property, Object oldValue) {
+    protected void UpdateBackupVersion(DataProperty property, Object oldValue) {
       // We actually do want to track Proposed changes when Detached ( or Added) but we do not track an Original for either
       if (this.EntityState.IsAdded() || this.EntityState.IsDetached()) {
         if (this.EntityVersion == EntityVersion.Proposed) {

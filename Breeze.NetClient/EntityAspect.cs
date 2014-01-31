@@ -463,8 +463,14 @@ namespace Breeze.NetClient {
     }
 
     protected internal override void SetDpValue(DataProperty property, object newValue) {
+      Object oldValue;
       if (this.IsDetached) {
-        SetRawValue(property.Name, newValue);
+        if (property.IsComplexProperty) {
+          oldValue = this.GetRawValue(property.Name);
+          SetDpValueComplex(property, newValue, oldValue);
+        } else {
+          SetRawValue(property.Name, newValue);
+        }
         return;
       }
 
@@ -472,7 +478,7 @@ namespace Breeze.NetClient {
         throw new Exception("Nonscalar data properties are readonly - items may be added or removed but the collection may not be changed.");
       }
 
-      var oldValue = GetValue(property);
+      oldValue = GetValue(property);
       if (Object.Equals(oldValue, newValue)) return;
 
       if (IsNullEntity) {
@@ -494,13 +500,22 @@ namespace Breeze.NetClient {
         var propArgs = new EntityPropertyChangingEventArgs(this.Entity, property, newValue);
         this.EntityGroup.OnEntityPropertyChanging(propArgs);
         if (propArgs.Cancel) return;
-
       }
 
       if (property.IsComplexProperty) {
         SetDpValueComplex(property, newValue, oldValue);
+      } else if (property.IsPartOfKey) {
+        SetDpValueKey(property, newValue, oldValue);
       } else {
         SetDpValueSimple(property, newValue, oldValue);
+      }
+
+      // NOTE: next few lines are the same as above but not refactored for perf reasons.
+      if (this.IsAttached && !EntityManager.IsLoadingEntity) {
+        //if (entityManager.validationOptions.validateOnPropertyChange) {
+        //    entityAspect._validateProperty(newValue,
+        //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
+        //}
       }
 
       if (this.EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity) {
@@ -529,36 +544,17 @@ namespace Breeze.NetClient {
       EntityAspect newAspect = (newEntity == null) ? null : newEntity.EntityAspect;
       EntityAspect oldAspect = (oldEntity == null) ? null : oldEntity.EntityAspect;
 
-      var inverseProp = property.Inverse;
+
 
       // manage attachment -
-      if (newValue != null) {
-        
-        if (this.IsAttached) {
-          if (newAspect.IsDetached) {
-            if (!EntityManager.IsLoadingEntity) {
-              EntityManager.AttachEntity(newEntity, EntityState.Added);
-            }
-          } else {
-            if (newAspect.EntityManager != EntityManager) {
-              throw new Exception("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
-            }
-          }
-        } else {
-          if (newAspect.IsAttached) {
-            var em = newAspect.EntityManager;
-            if (!em.IsLoadingEntity) {
-              em.AttachEntity(this.Entity, EntityState.Added);
-            }
-          }
-        }
+      if (newEntity != null) {
+        ManageAttachment(newEntity);
       }
 
       // process related updates ( the inverse relationship) first so that collection dups check works properly.
       // update inverse relationship
+      var inverseProp = property.Inverse;
       if (inverseProp != null) {
-
-        ///
         if (inverseProp.IsScalar) {
           // Example: bidirectional navProperty: 1->1: order -> internationalOrder
           // order.internationalOrder <- internationalOrder || null
@@ -649,10 +645,36 @@ namespace Breeze.NetClient {
 
     }
 
-    private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
-      // if we are changing the key update our internal entityGroup indexes.
-      if (property.IsPartOfKey && this.IsAttached && !EntityManager.IsLoadingEntity) {
+    private void ManageAttachment(IEntity newEntity) {
+      var newAspect = newEntity.EntityAspect;
+      if (this.IsAttached) {
+        if (newAspect.IsDetached) {
+          if (!EntityManager.IsLoadingEntity) {
+            EntityManager.AttachEntity(newEntity, EntityState.Added);
+          }
+        } else {
+          if (newAspect.EntityManager != EntityManager) {
+            throw new Exception("An Entity cannot be attached to an entity in another EntityManager. One of the two entities must be detached first.");
+          }
+        }
+      } else {
+        if (newAspect.IsAttached) {
+          var em = newAspect.EntityManager;
+          if (!em.IsLoadingEntity) {
+            em.AttachEntity(this.Entity, EntityState.Added);
+          }
+        }
+      }
+    }
 
+    private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
+      SetRawValue(property.Name, newValue);
+      UpdateBackupVersion(property, oldValue);
+      UpdateRelated(property, newValue, oldValue);
+    }
+
+    private void SetDpValueKey(DataProperty property, object newValue, object oldValue) {
+      if (this.IsAttached && !EntityManager.IsLoadingEntity) {
         var values = EntityType.KeyProperties
           .Select(p => (p == property) ? newValue : GetValue(p))
           .ToArray();
@@ -670,36 +692,22 @@ namespace Breeze.NetClient {
         EntityKey = null;
         LinkRelatedEntities();
       } else {
-        // Actually set the value;
         SetRawValue(property.Name, newValue);
       }
 
-      TrackChange(property, oldValue);
+      UpdateBackupVersion(property, oldValue);
       UpdateRelated(property, newValue, oldValue);
 
-      // NOTE: next few lines are the same as above but not refactored for perf reasons.
-      if (this.IsAttached && !EntityManager.IsLoadingEntity) {
-        if (EntityState.IsUnchanged() && !property.IsUnmapped) {
-          EntityState = EntityState.Modified;
-        }
-        //if (entityManager.validationOptions.validateOnPropertyChange) {
-        //    entityAspect._validateProperty(newValue,
-        //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
-        //}
-      }
-
-      if (property.IsPartOfKey) {
-        // propogate pk change to all related entities;
-
-        var propertyIx = EntityType.KeyProperties.IndexOf(property);
-        EntityType.NavigationProperties.ForEach(np => {
-          var inverseNp = np.Inverse;
-          var fkProps = inverseNp != null ? inverseNp.ForeignKeyProperties : np.InvForeignKeyProperties;
-          if (fkProps.Count == 0) return;
-          var fkProp = fkProps[propertyIx];
-          ProcessNpValue(np, e => e.EntityAspect.SetValue(fkProp, newValue));
-        });
-      }
+      // propogate pk change to all related entities;
+      var propertyIx = EntityType.KeyProperties.IndexOf(property);
+      EntityType.NavigationProperties.ForEach(np => {
+        var inverseNp = np.Inverse;
+        var fkProps = inverseNp != null ? inverseNp.ForeignKeyProperties : np.InvForeignKeyProperties;
+        if (fkProps.Count == 0) return;
+        var fkProp = fkProps[propertyIx];
+        ProcessNpValue(np, e => e.EntityAspect.SetValue(fkProp, newValue));
+      });
+      
 
     }
 

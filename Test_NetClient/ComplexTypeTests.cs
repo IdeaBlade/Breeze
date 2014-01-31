@@ -58,6 +58,21 @@ namespace Test_NetClient {
     
     }
 
+    
+    [TestMethod]
+    public async Task AttachEntityWithComplexPropsSet() {
+      await _emTask;
+
+      var supplier = new Supplier();
+      supplier.CompanyName = "Test1";
+      supplier.Location = new Location() { City = "Seattle", PostalCode = "11111" };
+      _em1.AttachEntity(supplier);
+      Assert.IsTrue(supplier.EntityAspect.IsAttached);
+      Assert.IsTrue(supplier.CompanyName == "Test1" && supplier.Location.City == "Seattle" && supplier.Location.PostalCode == "11111");
+      Assert.IsTrue(supplier.Location.ComplexAspect.Parent == supplier, "parent should be set");
+      Assert.IsTrue(supplier.Location.ComplexAspect.ParentEntityProperty.Name == "Location", "parentEntityProperty should be set");
+    }
+
 
 
     [TestMethod]
@@ -73,6 +88,8 @@ namespace Test_NetClient {
       Assert.IsTrue(supplier.Location == location, "ref should be the same");
       Assert.IsTrue(supplier.Location.City == "San Francisco", "city should be set");
       Assert.IsTrue(supplier.Location.PostalCode == "91333", "postal code should be set");
+      Assert.IsTrue(supplier.Location.ComplexAspect.Parent == supplier, "parent should be set");
+      Assert.IsTrue(supplier.Location.ComplexAspect.ParentEntityProperty.Name == "Location", "parentEntityProperty should be set");
     }
 
     [TestMethod]
@@ -90,6 +107,8 @@ namespace Test_NetClient {
       supplier.Location = newLocation;
       Assert.IsTrue(supplier.Location == initLocation, "location ref should not have changed");
       Assert.IsTrue(supplier.Location.City == "Seatle", "city should have changed");
+      Assert.IsTrue(supplier.Location.ComplexAspect.Parent == supplier, "parent should be set");
+      Assert.IsTrue(supplier.Location.ComplexAspect.ParentEntityProperty.Name == "Location", "parentEntityProperty should be set");
     }
 
     [TestMethod]
@@ -104,16 +123,21 @@ namespace Test_NetClient {
       supplier.Location = newLocation;
       Assert.IsTrue(supplier.Location == initLocation, "location ref should not have changed");
       Assert.IsTrue(supplier.Location.City == "Seattle", "city should have changed");
+      Assert.IsTrue(supplier.Location.ComplexAspect.Parent == supplier, "parent should be set");
+      Assert.IsTrue(supplier.Location.ComplexAspect.ParentEntityProperty.Name == "Location", "parentEntityProperty should be set");
     }
 
     [TestMethod]
-    public async Task QueryEntityWithComplexObject() {
+    public async Task QueryEntityWithComplexProp() {
       await _emTask;
 
       var q = new EntityQuery<Supplier>().Where(s => s.CompanyName.StartsWith("P"));
       var suppliers = await _em1.ExecuteQuery(q);
       Assert.IsTrue(suppliers.Count() > 0, "should be some suppliers");
       Assert.IsTrue(suppliers.All(s => s.Location != null));
+      var supplier = suppliers.First();
+      Assert.IsTrue(supplier.Location.ComplexAspect.Parent == supplier, "parent should be set");
+      Assert.IsTrue(supplier.Location.ComplexAspect.ParentEntityProperty.Name == "Location", "parentEntityProperty should be set");
     }
 
     [TestMethod]
@@ -128,6 +152,9 @@ namespace Test_NetClient {
       suppliers.ForEach(s => s.Location.Region = "Foo");
       Assert.IsTrue(suppliers.All(s => s.EntityAspect.EntityState.IsModified()), "should have been modified");
       suppliers.All(s => s.Location.Region == "Foo");
+      var supplier = suppliers.First();
+      Assert.IsTrue(supplier.Location.ComplexAspect.Parent == supplier, "parent should be set");
+      Assert.IsTrue(supplier.Location.ComplexAspect.ParentEntityProperty.Name == "Location", "parentEntityProperty should be set");
     }
 
     [TestMethod]
@@ -144,7 +171,9 @@ namespace Test_NetClient {
       Assert.IsTrue(suppliers.All(s => s.Location.StructuralEquals(newLocation)), "but values should be the same");
       Assert.IsTrue(suppliers.All(s => s.EntityAspect.EntityState.IsModified()), "should have been modified");
       suppliers.All(s => s.Location.City == "Phoenix");
-
+      var supplier = suppliers.First();
+      Assert.IsTrue(supplier.Location.ComplexAspect.Parent == supplier, "parent should be set");
+      Assert.IsTrue(supplier.Location.ComplexAspect.ParentEntityProperty.Name == "Location", "parentEntityProperty should be set");
     }
 
     [TestMethod]
@@ -163,6 +192,7 @@ namespace Test_NetClient {
       }
     }
 
+    [TestMethod]
     public async Task SetComplexPropWithAnotherComplexProp() {
       await _emTask;
 
@@ -172,153 +202,89 @@ namespace Test_NetClient {
       var supplierList = suppliers.ToList();
       var s0 = supplierList[0];
       var s1 = supplierList[1];
+      s0.Location.City = "asdfasdf";
       Assert.IsTrue(!s0.Location.StructuralEquals(s1.Location), "should not be equal");
       s0.Location = s1.Location;
       Assert.IsTrue(s0.Location.StructuralEquals(s1.Location), "should be equal");
       
     }
-    
-    //test("create an instance with custom ctor and unmapped prop", function () {
-    //    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    //    var Location = testFns.models.Location();
 
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    em.metadataStore.registerEntityTypeCtor("Location", Location, "init");
+    [TestMethod]
+    public async Task RejectChanges() {
+      await _emTask;
 
-    //    var newLocation = locationType.createInstance();
-    //    newLocation.setProperty("extraName", "newValue");
-    //    newLocation.setProperty("city", "bar");
+      var q = new EntityQuery<Supplier>().Where(s => s.CompanyName.StartsWith("P")).Take(2);
+      var suppliers = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(suppliers.Count() > 0, "should be some suppliers");
+      var s0 = suppliers.First();
+      var s1 = suppliers.ElementAt(1);
+      var origCity = s0.Location.City;
+      s0.Location.City = "bar";
+      s0.Location.Country = "Foo";
+      Assert.IsTrue(s0.EntityAspect.EntityState.IsModified(), "should be modified");
+      Assert.IsTrue(s0.Location.City == "bar", "should have changed value");
+      s0.EntityAspect.RejectChanges();
+      Assert.IsTrue(s0.EntityAspect.EntityState.IsUnchanged(), "should be unchanged");
+      Assert.IsTrue(s0.Location.City != origCity, "should be back to original value");
 
-    //    var q = EntityQuery.from("Suppliers")
-    //        .where("companyName", "startsWith", "P");
-
-    //    stop();
-    //    em.executeQuery(q).then(function (data) {
-    //        var r = data.results;
-    //        ok(r.length > 0);
-    //        var supplier0 = r[0];
-    //        var location0 = supplier0.getProperty("location");
-    //        supplier0.setProperty("location", newLocation);
-    //        ok(location0.getProperty("city") === "bar", "city should have value 'bar'");
-    //        ok(location0.getProperty("extraName") === "newValue", "extraName should have value 'newValue'");
-    //        ok(location0 != newLocation, "locations should not be the same object");
-
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
+    }
 
 
+    [TestMethod]
+    public async Task QueryByComplexProp() {
+      await _emTask;
 
-    //// TODO: right now this will fail because we don't yet support attaching an entity created with new that has populated complexTypes.
-    //// change needs to be made to each of the modelLibraries. 
-    ////test("new an entity instance with a populated complex type", function () {
-    ////    var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
-    ////    var Supplier = testFns.models.Supplier();
-        
+      var q = new EntityQuery<Supplier>().Where(c => c.Location.City.StartsWith("P") && c.CompanyName != null);
+      // var q = new EntityQuery<Supplier>().Where(c => c.CompanyName.StartsWith("P") && c.Location.City != null && c.Location.Address != null);
 
-    ////    em.metadataStore.registerEntityTypeCtor("Supplier", Supplier);
+      var x = q.GetResourcePath();
+      var suppliers = await _em1.ExecuteQuery(q);
 
-    ////    var Location = testFns.models.Location();
-    ////    var locationType = em.metadataStore.getEntityType("Location");
-    ////    em.metadataStore.registerEntityTypeCtor("Location", Location, "init");
-        
-    ////    var supplier = new Supplier();
-    ////    supplier.companyName = "Foo";
-    ////    var location = { extraName: "newValue", city: "bar" };
-    ////    supplier.location = location;
-    ////    em.addEntity(supplier);
+      Assert.IsTrue(suppliers.Count() > 0, "should have returned some suppliers");
+      // Assert.IsTrue(suppliers.All(s => s.Location.City != null && s.Location.Address != null));
+      Assert.IsTrue(suppliers.All(s => s.Location.City.StartsWith("P") && s.CompanyName != null), "should match query");
+    }
 
-    ////    companyName0 = supplier.getProperty("companyName");
-    ////    ok(companyName0 === "Foo", "companyName should be Foo");
-    ////    var location0 = supplier.getProperty("location");
-    ////    ok(location0.getProperty("city") === "bar", "city should have value 'bar'");
-    ////    ok(location0.getProperty("extraName") === "newValue", "extraName should have value 'newValue'");
-    ////    ok(location0 != location, "locations should not be the same object");
+    [TestMethod]
+    public async Task EntityAndPropertyChangedEvents() {
+      await _emTask;
 
+      var newLocation = new Location() { City = "Bar", Country = "Foo" };
+      var q = new EntityQuery<Supplier>().Where(s => s.CompanyName.StartsWith("P")).Take(2);
 
-    ////});
+      var suppliers = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(suppliers.Count() > 0, "should have returned some suppliers");
 
-    
-    //test("rejectChanges", function () {
-    //    var em = newEm();
-    //    var q = EntityQuery.from("Suppliers")
-    //        .where("companyName", "startsWith", "P");
+      var supp0 = suppliers.First();
+      List<EntityChangedEventArgs> entityChangedList = new List<EntityChangedEventArgs>();
+      List<PropertyChangedEventArgs> propChangedList = new List<PropertyChangedEventArgs>();
+      List<PropertyChangedEventArgs> aspectPropChangedList = new List<PropertyChangedEventArgs>();
+      _em1.EntityChanged += (s, e) => {
+        entityChangedList.Add(e);
+      };
+      ((INotifyPropertyChanged)supp0).PropertyChanged += (s, e) => {
+        propChangedList.Add(e);
+      };
+      supp0.EntityAspect.PropertyChanged += (s, e) => {
+        aspectPropChangedList.Add(e);
+      };
 
-    //    stop();
-    //    em.executeQuery(q).then(function (data) {
-    //        var r = data.results;
-    //        ok(r.length > 0);
-    //        var supplier0 = r[0];
-    //        var location0 = supplier0.getProperty("location");
-    //        var origCity = location0.getProperty("city");
-    //        location0.setProperty("city", "aargh");
-    //        supplier0.entityAspect.rejectChanges();
-    //        var sameCity = location0.getProperty("city");
-    //        ok(origCity === sameCity, 'cities should be the same');
+      supp0.CompanyName = "xxx";
+      var lastEc = entityChangedList.Last();
+      Assert.IsTrue(lastEc.EntityAspect == supp0.EntityAspect, "ec should have been fired");
+      Assert.IsTrue(entityChangedList[0].Action == EntityAction.EntityStateChange && entityChangedList[1].Entity == supp0);
+      Assert.IsTrue(entityChangedList[1].Action == EntityAction.PropertyChange && entityChangedList[0].Entity == supp0);
+      
+      Assert.IsTrue(aspectPropChangedList.Count == 2, "2 aspects should have changed"); // isChanged and EntityState.
 
+      Assert.IsTrue(propChangedList[0].PropertyName == "CompanyName");
 
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
+      supp0.Location.City = "city-1";
+      supp0.Location.Address = "address-1";
+      Assert.IsTrue(entityChangedList.Count == 6, "should be 6 entity changed events");
+      Assert.IsTrue(propChangedList.Count == 3, "should be 3 propChanged events");
+    }
 
-
-    //test("property change event tracking", function() {
-    //    var em = newEm();
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    var newLocation = locationType.createInstance();
-    //    newLocation.setProperty("city", "bar");
-    //    var pred = Predicate.create("companyName", "startsWith", "P")
-    //        .and("location.address", "!=", null)
-    //        .and("location.city", "!=", null)
-            
-    //    var q = EntityQuery.from("Suppliers").where(pred);
-            
-
-    //    stop();
-    //    var lastEcArgs;
-    //    var entityChangedArgs = [];
-        
-    //    var lastPcArgs;
-    //    var propertyChangedArgs = [];
-    //    em.executeQuery(q).then(function(data) {
-    //        var r = data.results;
-    //        ok(r.length > 0);
-    //        var supplier0 = r[0];
-    //        em.entityChanged.subscribe(function(args) {
-    //            lastEcArgs = args;
-    //            entityChangedArgs.push(args);
-    //        });
-    //        supplier0.entityAspect.propertyChanged.subscribe(function(args) {
-    //            lastPcArgs = args;
-    //            propertyChangedArgs.push(args);
-    //        });
-    //        var location0 = supplier0.getProperty("location");
-    //        var nonnullCount = (location0.getProperty("address") ? 1 : 0) +
-    //            (location0.getProperty("city") ? 1 : 0) +
-    //            (location0.getProperty("region") ? 1 : 0) +
-    //            (location0.getProperty("postalCode") ? 1 : 0) +
-    //            (location0.getProperty("country") ? 1 : 0);
-            
-    //        supplier0.setProperty("location", newLocation);
-    //        // 6 = 5 properties + 1 for parent
-            
-    //        ok(propertyChangedArgs.length === (nonnullCount + 1), "should have been " + (nonnullCount+1) + " pchange events");
-    //        ok(lastPcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
-    //        ok(lastPcArgs.property.name === "location");
-    //        // 7 = 6 + 1 entityState change
-    //        ok(entityChangedArgs.length === (nonnullCount + 2), "should have been  " + (nonnullCount + 2) + " echange events");
-    //        ok(lastEcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
-    //        ok(lastEcArgs.args.property.name === "location");
-            
-    //        location0.setProperty("city", "newCity");
-    //        // + 1 (pchange and echange)
-    //        ok(propertyChangedArgs.length === nonnullCount + 2, "should have been  " + (nonnullCount + 2) + " pchange events");
-    //        ok(lastPcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
-    //        ok(lastPcArgs.property.name === "city");
-    //        ok(lastPcArgs.propertyName === "location.city");
-    //        ok(entityChangedArgs.length === nonnullCount + 3, "should have been  " + (nonnullCount + 3) + " echange events");
-    //        ok(lastEcArgs.entity === supplier0, "lastPcArgs.entity === supplier0");
-    //        ok(lastEcArgs.args.propertyName === "location.city");
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
     
     //test("save changes - modified - only cp", function() {
     //    var em = newEm();

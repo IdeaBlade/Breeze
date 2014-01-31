@@ -270,7 +270,7 @@ namespace Breeze.NetClient {
       // Actually set the value;
       SetRawValue(property.Name, newValue);
 
-      TrackChange(property, oldValue);
+      UpdateBackupVersion(property, oldValue);
 
       if (this.IsAttached && !EntityManager.IsLoadingEntity) {
 
@@ -389,11 +389,11 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="obj"></param>
     /// <returns></returns>
-    public bool StructuralEquals(object obj) {
-      var aspect = obj as ComplexAspect;
-      if (aspect == null) return false;
+    public bool StructuralEquals(Object obj) {
+      var otherAspect = obj as ComplexAspect;
+      if (otherAspect == null) return false;
       var theseValues = GetValues();
-      var otherValues = GetValues();
+      var otherValues = otherAspect.GetValues();
       var areEqual = theseValues.Zip(otherValues, (o1, o2) => {
         if (o1 is IComplexObject) {
           return (((IComplexObject)o1).ComplexAspect).StructuralEquals(((IComplexObject)o2).ComplexAspect);
