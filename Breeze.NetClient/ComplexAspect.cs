@@ -240,9 +240,6 @@ namespace Breeze.NetClient {
         if (changeNotificationEnabled) {
           if (! EntityAspect.FireEntityChanging(EntityAction.PropertyChange)) return;
           var propArgs = new EntityPropertyChangingEventArgs(this.ParentEntity, this.ParentEntityProperty, this.ComplexObject, property, newValue);
-
-          entityGroup.OnEntityPropertyChanging(propArgs);
-          if (propArgs.Cancel) return;
         }
       }
 
@@ -258,7 +255,7 @@ namespace Breeze.NetClient {
         }
 
         entityGroup.OnEntityPropertyChanged(new EntityPropertyChangedEventArgs(ParentEntity, this.ParentEntityProperty, this.ComplexObject, property, newValue));
-        entityGroup.OnEntityChanged(new EntityChangedEventArgs(ParentEntity, EntityAction.PropertyChange));
+        entityGroup.OnEntityChanged(ParentEntity, EntityAction.PropertyChange);
       }
 
 

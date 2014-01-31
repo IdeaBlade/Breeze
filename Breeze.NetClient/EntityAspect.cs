@@ -671,10 +671,6 @@ namespace Breeze.NetClient {
 
       if (changeNotificationEnabled) {
         if (!FireEntityChanging(EntityAction.PropertyChange)) return;
-
-        var propArgs = new EntityPropertyChangingEventArgs(this.Entity, property, newValue);
-        this.EntityGroup.OnEntityPropertyChanging(propArgs);
-        if (propArgs.Cancel) return;
       }
 
       action(property, newValue, oldValue);

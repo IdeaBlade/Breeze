@@ -87,28 +87,7 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region events
-    /// <summary>
-    /// Fired whenever a property value on an entity is changing.
-    /// </summary>
-    public event EventHandler<EntityPropertyChangingEventArgs> EntityPropertyChanging;
-    /// <summary>
-    /// Fired whenever a property value on an entity has changed.
-    /// </summary>
-    public event EventHandler<EntityPropertyChangedEventArgs> EntityPropertyChanged;
-    /// <summary>
-    /// Fired whenever an entity's state is changing in any significant manner.
-    /// </summary>
-    public event EventHandler<EntityChangingEventArgs> EntityChanging;
-    /// <summary>
-    /// Fired whenever an entity's state has changed in any significant manner.
-    /// </summary>
-    public event EventHandler<EntityChangedEventArgs> EntityChanged;
-
-    internal virtual void OnEntityPropertyChanging(EntityPropertyChangingEventArgs e) {
-      if (!ChangeNotificationEnabled) return;
-      TryToHandle(EntityPropertyChanging, e);
-    }
+    #region Event handling
 
     // Fires both entity.PropertyChanged and EntityGroup.EntityPropertyChanged
     internal virtual void OnEntityPropertyChanged(EntityPropertyChangedEventArgs e) {
@@ -118,19 +97,12 @@ namespace Breeze.NetClient {
 
     private void OnEntityPropertyChangedCore(EntityPropertyChangedEventArgs e) {
       e.EntityAspect.OnPropertyChanged(new PropertyChangedEventArgs(e.Property.Name));
-      TryToHandle(EntityPropertyChanged, e);
     }
 
     // Needs to be called regardless of the ChangeNotification flag
     internal virtual void OnEntityChanging(EntityChangingEventArgs e) {
-      if (ChangeNotificationEnabled) {
-        TryToHandle(EntityChanging, e);
-        if (!e.Cancel) {
-          EntityManager.OnEntityChanging(e);
-        }
-      } else {
-
-      }
+      if (!ChangeNotificationEnabled) return;
+      EntityManager.OnEntityChanging(e);
     }
 
     protected internal void OnEntityChanged(IEntity entity, EntityAction entityAction) {
@@ -145,9 +117,17 @@ namespace Breeze.NetClient {
     // which causes EntityState to be stale in the PropertyChanged event
     // Needs to be called regardless of the ChangeNotification flag
     protected internal void OnEntityChanged(EntityChangedEventArgs e) {
-      if (ChangeNotificationEnabled) {
-        QueueEvent(() => OnEntityChangedCore(e));
+      if (!ChangeNotificationEnabled) return;
+      QueueEvent(() => OnEntityChangedCore(e));
+    }
+
+
+    private void OnEntityChangedCore(EntityChangedEventArgs e) {
+      // change actions will fire property change inside of OnPropertyChanged 
+      if (e.Action != EntityAction.PropertyChange) {
+        e.EntityAspect.OnPropertyChanged(AllPropertiesChangedEventArgs);
       }
+      if (e.EntityAspect.IsAttached) EntityManager.OnEntityChanged(e);
     }
 
     private void QueueEvent(Action action) {
@@ -158,14 +138,6 @@ namespace Breeze.NetClient {
       }
     }
 
-    private void OnEntityChangedCore(EntityChangedEventArgs e) {
-      // change actions will fire property change inside of OnPropertyChanged 
-      if (e.Action != EntityAction.PropertyChange) {
-        e.EntityAspect.OnPropertyChanged(AllPropertiesChangedEventArgs);
-      }
-      TryToHandle(EntityChanged, e);
-      if (e.EntityAspect.IsAttached) EntityManager.OnEntityChanged(e);
-    }
 
     private void TryToHandle<T>(EventHandler<T> handler, T args) where T : EventArgs {
       if (handler == null) return;
