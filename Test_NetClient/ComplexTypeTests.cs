@@ -272,8 +272,9 @@ namespace Test_NetClient {
       supp0.CompanyName = "xxx";
       var lastEc = entityChangedList.Last();
       Assert.IsTrue(lastEc.EntityAspect == supp0.EntityAspect, "ec should have been fired");
-      Assert.IsTrue(entityChangedList[0].Action == EntityAction.EntityStateChange && entityChangedList[1].Entity == supp0);
-      Assert.IsTrue(entityChangedList[1].Action == EntityAction.PropertyChange && entityChangedList[0].Entity == supp0);
+      Assert.IsTrue(entityChangedList[0].Action == EntityAction.PropertyChange && entityChangedList[0].Entity == supp0);
+      Assert.IsTrue(entityChangedList[1].Action == EntityAction.EntityStateChange && entityChangedList[1].Entity == supp0);
+      
       
       Assert.IsTrue(aspectPropChangedList.Count == 2, "2 aspects should have changed"); // isChanged and EntityState.
 

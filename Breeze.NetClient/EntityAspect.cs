@@ -189,11 +189,11 @@ namespace Breeze.NetClient {
       var entity = this.Entity;
       if (this.EntityState.IsAdded()) {
         this.EntityManager.DetachEntity(entity);
-        this.EntityManager.NotifyStateChange(this, false);
+        // this.EntityManager.NotifyStateChange(this, false);
       } else {
         this.SetEntityStateCore(EntityState.Deleted);
         RemoveFromRelations(EntityState.Deleted);
-        this.EntityManager.NotifyStateChange(this, true);
+        // this.EntityManager.NotifyStateChange(this, true);
       }
       this.EntityGroup.OnEntityChanged(entity, EntityAction.Delete);
     }
@@ -1164,7 +1164,9 @@ namespace Breeze.NetClient {
       if (EntityVersion != EntityVersion.Proposed) return;
       RestoreBackupVersion(EntityVersion.Proposed);
       EntityVersion = EntityVersion.Current;
+      var wasUnchanged = this.EntityState.IsUnchanged();
       this.SetEntityStateCore(_altEntityState);
+      EntityManager.CheckStateChange(this, wasUnchanged, _altEntityState.IsUnchanged());
       //ValidationErrors.Restore();
       ForcePropertyChanged(null);
     }
