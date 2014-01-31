@@ -668,18 +668,11 @@ namespace Breeze.NetClient {
       var oldValue = GetValue(property);
       if (Object.Equals(oldValue, newValue)) return;
 
-      var changeNotificationEnabled = this.IsAttached && this.EntityGroup.ChangeNotificationEnabled;
-
-      if (changeNotificationEnabled) {
-        if (!FireEntityChanging(EntityAction.PropertyChange)) return;
-      }
+      if (!FireEntityChanging(EntityAction.PropertyChange)) return;
 
       action(property, newValue, oldValue);
 
-      if (changeNotificationEnabled) {
-        OnEntityPropertyChanged(property, newValue);
-        OnEntityChanged(EntityAction.PropertyChange);
-      }
+      OnPropertyChanged(property, newValue);
 
       if (this.IsAttached) {
         if (!EntityManager.IsLoadingEntity) {
@@ -1183,38 +1176,21 @@ namespace Breeze.NetClient {
     /// </summary>
     public event PropertyChangedEventHandler PropertyChanged;
 
-    internal bool FireEntityChanging(EntityAction action) {
-      if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return true;
-      var args = new EntityChangingEventArgs(this.Entity, action);
-      EntityManager.OnEntityChanging(args);
-      return !args.Cancel;
-    }
-
-    protected internal void OnEntityChanged(EntityAction entityAction) {
-      if (!EntityGroup.ChangeNotificationEnabled) return;
-      var args = new EntityChangedEventArgs(Entity, entityAction);
-      QueueEvent(() => OnEntityChangedCore(args));
-    }
-
-    private void OnEntityChangedCore(EntityChangedEventArgs e) {
-      // change actions will fire property change inside of OnPropertyChanged 
-      if (e.Action != EntityAction.PropertyChange) {
-        OnEntityPropertyChanged(AllPropertiesChangedEventArgs);
-      }
-      if (IsAttached) EntityManager.OnEntityChanged(e);
-    }
-
-    internal virtual void OnEntityPropertyChanged(StructuralProperty property, object newValue) {
+    // also raises Entitychanged with an Action of PropertyChanged.
+    internal virtual void OnPropertyChanged(StructuralProperty property, object newValue) {
       var args = new PropertyChangedEventArgs(property.Name);
-      OnEntityPropertyChanged(args);
+      OnPropertyChanged(args);
     }
 
-    private void OnEntityPropertyChanged(PropertyChangedEventArgs args) {
+    private void OnPropertyChanged(PropertyChangedEventArgs args) {
       if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return;
-      QueueEvent(() => OnEntityPropertyChangedCore(args));
+      QueueEvent(() => {
+        OnPropertyChangedCore(args);
+        OnEntityChangedCore(new EntityChangedEventArgs(Entity, EntityAction.PropertyChange));
+      });
     }
 
-    private void OnEntityPropertyChangedCore(PropertyChangedEventArgs e) {
+    private void OnPropertyChangedCore(PropertyChangedEventArgs e) {
       var handler = EntityPropertyChanged;
       if (handler == null) return;
       try {
@@ -1223,6 +1199,27 @@ namespace Breeze.NetClient {
         // eat exceptions during load
         if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
       }
+    }
+
+    internal bool FireEntityChanging(EntityAction action) {
+      if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return true;
+      var args = new EntityChangingEventArgs(this.Entity, action);
+      EntityManager.OnEntityChanging(args);
+      return !args.Cancel;
+    }
+
+    protected internal void OnEntityChanged(EntityAction entityAction) {
+      if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return;
+      var args = new EntityChangedEventArgs(Entity, entityAction);
+      QueueEvent(() => OnEntityChangedCore(args));
+    }
+
+    private void OnEntityChangedCore(EntityChangedEventArgs e) {
+      // change actions will fire property change inside of OnPropertyChanged 
+      if (e.Action != EntityAction.PropertyChange) {
+        OnPropertyChanged(AllPropertiesChangedEventArgs);
+      }
+      EntityManager.OnEntityChanged(e);
     }
 
     private void OnEntityAspectPropertyChanged(String propertyName) {
@@ -1258,9 +1255,10 @@ namespace Breeze.NetClient {
       if (e == null) {
         e = EntityGroup.AllPropertiesChangedEventArgs;
       }
-      OnEntityPropertyChanged(e);
+      OnPropertyChanged(e);
     }
 
+    // TODO: make sure we clear this
     private void QueueEvent(Action action) {
       if (EntityManager.IsLoadingEntity) {
         EntityManager.QueuedEvents.Add(() => action());

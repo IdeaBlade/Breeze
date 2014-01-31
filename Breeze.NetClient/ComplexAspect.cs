@@ -234,12 +234,12 @@ namespace Breeze.NetClient {
       if (ParentEntity != null) {
         entityGroup = EntityAspect.EntityGroup;
 
-        // var changeNotificationEnabled = EntityState != EntityState.Detached && this.EntityGroup.ChangeNotificationEnabled;
         var changeNotificationEnabled = entityGroup.ChangeNotificationEnabled;
 
         if (changeNotificationEnabled) {
-          if (! EntityAspect.FireEntityChanging(EntityAction.PropertyChange)) return;
           //var propArgs = new EntityPropertyChangingEventArgs(this.ParentEntity, this.ParentEntityProperty, this.ComplexObject, property, newValue);
+          if (! EntityAspect.FireEntityChanging(EntityAction.PropertyChange)) return;
+          
         }
       }
 
