@@ -278,7 +278,7 @@ namespace Test_NetClient {
       Assert.IsTrue(aspectPropChangedList.Count == 2, "2 aspects should have changed"); // isChanged and EntityState.
 
       Assert.IsTrue(propChangedList.Count == 1);
-      Assert.IsTrue(propChangedList[0].PropertyName == "Location.City");
+      Assert.IsTrue(propChangedList[0].PropertyName == "Location");
       entityChangedList.Clear();
       propChangedList.Clear();
       aspectPropChangedList.Clear();
