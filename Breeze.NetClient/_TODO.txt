@@ -2,6 +2,7 @@
 ---------------------------
 LocalQuery
 Validation and INotifyDataErrorInfo
+Inheritance
 Saves
 NamedQueries
 NoTracking queries

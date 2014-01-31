@@ -51,6 +51,7 @@ namespace Breeze.NetClient {
       var entityType =  _metadataStore.GetEntityType(objectType);
       
       if (entityType != null) {
+        // an entity type
         jsonContext.StructuralType = entityType;
         var keyValues = entityType.KeyProperties
           .Select(p => jObject[p.Name].ToObject(p.ClrType))
@@ -64,6 +65,7 @@ namespace Breeze.NetClient {
         UpdateRefMap(jObject, entity);
         return PopulateEntity(jsonContext, entity );
       } else {
+        // anonymous type
         var target =  Activator.CreateInstance(objectType);
         // must be called before populate
         UpdateRefMap(jObject, target);
@@ -123,7 +125,7 @@ namespace Breeze.NetClient {
               }
             }
           } else {
-            
+            // prop is a ComplexObject
             var np = (NavigationProperty)prop;
             
             if (kvp.Value.HasValues) {
