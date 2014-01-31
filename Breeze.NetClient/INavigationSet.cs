@@ -131,7 +131,7 @@ namespace Breeze.NetClient {
         // we need to update the fks instead of the navProp
         var pks = parentAspect.EntityType.KeyProperties;
         np.InvForeignKeyProperties.ForEach((fkp, i) => {
-          entity.EntityAspect.SetValue(fkp, parentAspect.GetValue(pks[i]));
+          entity.EntityAspect.SetDpValue(fkp, parentAspect.GetValue(pks[i]));
         });
       }
     }
@@ -152,7 +152,7 @@ namespace Breeze.NetClient {
         var pks = parentAspect.EntityType.KeyProperties;
         this.NavigationProperty.InvForeignKeyProperties.ForEach((fkp, i) => {
           // TODO: write a test to see what happens if this fails
-          aspect.SetValue(fkp, fkp.DefaultValue);
+          aspect.SetDpValue(fkp, fkp.DefaultValue);
         });
       }
     }

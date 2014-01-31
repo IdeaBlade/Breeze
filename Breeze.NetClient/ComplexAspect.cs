@@ -20,7 +20,7 @@ namespace Breeze.NetClient {
 
     #region Ctors
 
-    internal ComplexAspect(IComplexObject co, ComplexType complexType = null) 
+    internal ComplexAspect(IComplexObject co, ComplexType complexType = null)
       : base(co) {
       ComplexObject = co;
       co.ComplexAspect = this;
@@ -36,13 +36,13 @@ namespace Breeze.NetClient {
     // in the parent objects refs whereas CurrentVersions should.
     internal static IComplexObject Create(IStructuralObject parent, DataProperty parentProperty) {
       var co = (IComplexObject)Activator.CreateInstance(parentProperty.ClrType);
-      
+
       var aspect = co.ComplexAspect;
-      
+
       aspect.ComplexType = parentProperty.ComplexType;
       aspect.Parent = parent;
       aspect.ParentProperty = parentProperty;
-      
+
       return co;
 
     }
@@ -59,7 +59,7 @@ namespace Breeze.NetClient {
         _complexType = value;
       }
     }
-    
+
 
     /// <summary>
     /// Returns the wrapped IComplexObject.
@@ -156,7 +156,7 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region internal and protected 
+    #region internal and protected
 
     internal bool IsDetached {
       get { return ParentEntity == null || ParentEntity.EntityAspect.IsDetached; }
@@ -173,7 +173,7 @@ namespace Breeze.NetClient {
         if (p.IsComplexProperty) {
           var targetChildCo = GetValue<IComplexObject>(p);
           var targetChildAspect = targetChildCo.ComplexAspect;
-          var sourceChildAspect = ((IComplexObject) sourceValue).ComplexAspect;
+          var sourceChildAspect = ((IComplexObject)sourceValue).ComplexAspect;
           targetChildAspect.AbsorbCurrentValues(sourceChildAspect);
         } else {
           SetDpValue(p, sourceValue);
@@ -196,7 +196,7 @@ namespace Breeze.NetClient {
     internal void InitializeDefaultValues() {
 
       ComplexType.DataProperties.ForEach(dp => {
-        try {         
+        try {
           if (dp.IsComplexProperty) {
             SetDpValue(dp, ComplexAspect.Create(this.ComplexObject, dp));
           } else if (dp.DefaultValue != null) {
@@ -209,87 +209,86 @@ namespace Breeze.NetClient {
     }
 
     public override void SetValue(String propertyName, object newValue) {
-      var prop = ComplexType.GetDataProperty(propertyName);
-      if (prop != null) {
-        SetDpValue(prop, newValue);
-      } else {
+      var dp = ComplexType.GetDataProperty(propertyName);
+
+      if (dp == null) {
         throw new Exception("Unable to locate property: " + ComplexType.Name + ":" + propertyName);
+      }
+
+      if (!dp.IsScalar) {
+        throw new Exception(String.Format("You cannot set the non-scalar complex property: '{0}' on the type: '{1}'." +
+          "Instead get the property and use collection functions like 'Add' and 'Remove' to change its contents.",
+          dp.Name, dp.ParentType.Name));
+      }
+
+      SetDpValue(dp, newValue);
+      
+    }
+
+
+    protected internal override void SetDpValue(DataProperty property, object newValue) {
+      if (EntityAspect == null) {
+        var oldValue = GetValue(property);
+        if (Object.Equals(oldValue, newValue)) return;
+        SetDpValueCore(property, newValue, oldValue);
+      } else {
+        SetValueWithEvents(property, newValue, SetDpValueCore);
       }
     }
 
-    protected internal override void SetDpValue(DataProperty property, object newValue) {
-      if (this.IsDetached) {
-        SetRawValue(property.Name, newValue);
-        return;
-      }
-
-      if (!property.IsScalar) {
-        throw new Exception("Nonscalar data properties are readonly - items may be added or removed but the collection may not be changed.");
-      }
-
-      var oldValue = GetValue(property);
-      if (Object.Equals(oldValue, newValue)) return;
-      EntityGroup entityGroup = null;
-
-      if (ParentEntity != null) {
-        entityGroup = EntityAspect.EntityGroup;
-
-        var changeNotificationEnabled = entityGroup.ChangeNotificationEnabled;
-
-        if (changeNotificationEnabled) {
-          //var propArgs = new EntityPropertyChangingEventArgs(this.ParentEntity, this.ParentEntityProperty, this.ComplexObject, property, newValue);
-          if (! EntityAspect.FireEntityChanging(EntityAction.PropertyChange)) return;
-          
-        }
-      }
-
+    private void SetDpValueCore(DataProperty property, object newValue, object oldValue) {
       if (property.IsComplexProperty) {
         SetDpValueComplex(property, newValue, oldValue);
       } else {
         SetDpValueSimple(property, newValue, oldValue);
       }
-
-      if (ParentEntity != null) {
-        if (EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity) {
-          EntityAspect.SetModified();
-        }
-
-        //entityGroup.OnEntityPropertyChanged(new EntityPropertyChangedEventArgs(ParentEntity, this.ParentEntityProperty, this.ComplexObject, property, newValue));
-        EntityAspect.OnEntityChanged(EntityAction.PropertyChange);
-      }
-
-
     }
 
     private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
-      
       // Actually set the value;
       SetRawValue(property.Name, newValue);
 
       UpdateBackupVersion(property, oldValue);
 
       if (this.IsAttached && !EntityManager.IsLoadingEntity) {
-
         //if (entityManager.validationOptions.validateOnPropertyChange) {
         //    entityAspect._validateProperty(newValue,
         //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
         //}
       }
-
     }
 
     private void SetDpValueComplex(DataProperty property, object newValue, object oldValue) {
-      if (property.IsScalar) {
-        if (newValue == null) {
-          throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
+
+      var oldCo = (IComplexObject)oldValue;
+      var newCo = (IComplexObject)newValue;
+      oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
+
+    }
+
+    private void SetValueWithEvents<T>(T property, object newValue, Action<T, Object, Object> action) where T : StructuralProperty {
+
+      var oldValue = GetValue(property);
+      if (Object.Equals(oldValue, newValue)) return;
+
+      if (!EntityAspect.FireEntityChanging(EntityAction.PropertyChange)) return;
+
+      action(property, newValue, oldValue);
+
+      EntityAspect.OnPropertyChanged(this.ParentEntityProperty);
+
+      if (this.IsAttached) {
+        if (!EntityManager.IsLoadingEntity) {
+          if (this.EntityState == EntityState.Unchanged) {
+            EntityAspect.SetModified();
+          }
         }
-        var oldCo = (IComplexObject)oldValue;
-        var newCo = (IComplexObject)newValue;
-        oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
-      } else {
-        throw new Exception(String.Format("You cannot set the non-scalar complex property: '{0}' on the type: '{1}'." +
-            "Instead get the property and use collection functions like 'Add' and 'Remove' to change its contents.",
-            property.Name, property.ParentType.Name));
+
+        // TODO: implement this.
+        //if (entityManager.validationOptions.validateOnPropertyChange) {
+        //    entityAspect._validateProperty(newValue,
+        //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
+        //}
       }
 
     }
@@ -412,7 +411,7 @@ namespace Breeze.NetClient {
     private String _propertyPathPrefix;
     private bool _inErrorsChanged = false;
     private event EventHandler<DataErrorsChangedEventArgs> _errorsChangedHandler;
-    
+
     #endregion
 
   }

@@ -488,7 +488,7 @@ namespace Breeze.NetClient {
       }
 
       object nextTempId = KeyGenerator.GetNextTempId(entityProperty);
-      aspect.SetValue(entityProperty, nextTempId);
+      aspect.SetDpValue(entityProperty, nextTempId);
       var aUniqueId = new UniqueId(entityProperty, nextTempId);
       // don't add to tempId's collection until the entity itself is added.
       if (aspect.EntityState != EntityState.Detached) {
