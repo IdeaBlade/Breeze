@@ -120,6 +120,10 @@ namespace Breeze.NetClient {
 
     #endregion
 
+    #region event handling
+
+    #endregion
+
     #region other misc
 
     protected void RejectChangesCore() {

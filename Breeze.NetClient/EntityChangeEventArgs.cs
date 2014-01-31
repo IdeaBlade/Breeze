@@ -38,9 +38,6 @@ namespace Breeze.NetClient {
       private set;
     }
 
-
-   
-
   }
 
   /// <summary>
@@ -66,128 +63,128 @@ namespace Breeze.NetClient {
 
   #endregion
 
-  #region EntityPropertyChangingEventArgs
-  /// <summary>
-  /// Provides information to the <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityPropertyChanging"/> event.
-  /// </summary>
-  /// <remarks>
-  /// The <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityPropertyChanging"/> event fires whenever a property
-  /// setter is called on an entity in your model before the new value is set.
-  /// You can set the <see cref="P:IdeaBlade.EntityModel.EntityPropertyChangingEventArgs.Cancel"/> property to true in your handler to stop further 
-  /// processing of the change.  
-  /// </remarks>
-  public class EntityPropertyChangingEventArgs : EntityChangeCancelEventArgs {
+  //#region EntityPropertyChangingEventArgs
+  ///// <summary>
+  ///// Provides information to the <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityPropertyChanging"/> event.
+  ///// </summary>
+  ///// <remarks>
+  ///// The <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityPropertyChanging"/> event fires whenever a property
+  ///// setter is called on an entity in your model before the new value is set.
+  ///// You can set the <see cref="P:IdeaBlade.EntityModel.EntityPropertyChangingEventArgs.Cancel"/> property to true in your handler to stop further 
+  ///// processing of the change.  
+  ///// </remarks>
+  //public class EntityPropertyChangingEventArgs : EntityChangeCancelEventArgs {
 
-    /// <summary>
-    /// Ctor.
-    /// </summary>
-    /// <param name="entityAspect"></param>
-    /// <param name="property"></param>
-    /// <param name="value"></param>
-    public EntityPropertyChangingEventArgs(IEntity entity, StructuralProperty property, object proposedValue)
-      : base(entity) {
-      Property = property;
-      ProposedValue = proposedValue;
-      Cancel = false;
-    }
+  //  /// <summary>
+  //  /// Ctor.
+  //  /// </summary>
+  //  /// <param name="entityAspect"></param>
+  //  /// <param name="property"></param>
+  //  /// <param name="value"></param>
+  //  public EntityPropertyChangingEventArgs(IEntity entity, StructuralProperty property, object proposedValue)
+  //    : base(entity) {
+  //    Property = property;
+  //    ProposedValue = proposedValue;
+  //    Cancel = false;
+  //  }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="entity"></param>
-    /// <param name="property"></param>
-    /// <param name="proposedValue"></param>
-    /// <param name="nestedProperty"></param>
-    /// <param name="nestedProposedValue"></param>
-    public EntityPropertyChangingEventArgs(IEntity entity, StructuralProperty property, IComplexObject proposedValue, StructuralProperty nestedProperty, object nestedProposedValue)
-      : base(entity) {
+  //  /// <summary>
+  //  /// 
+  //  /// </summary>
+  //  /// <param name="entity"></param>
+  //  /// <param name="property"></param>
+  //  /// <param name="proposedValue"></param>
+  //  /// <param name="nestedProperty"></param>
+  //  /// <param name="nestedProposedValue"></param>
+  //  public EntityPropertyChangingEventArgs(IEntity entity, StructuralProperty property, IComplexObject proposedValue, StructuralProperty nestedProperty, object nestedProposedValue)
+  //    : base(entity) {
       
-      Property = property;
-      ProposedValue = proposedValue;
-      NestedProperty = nestedProperty;
-      NestedProposedValue = nestedProposedValue;
-      Cancel = false;
-    }
+  //    Property = property;
+  //    ProposedValue = proposedValue;
+  //    NestedProperty = nestedProperty;
+  //    NestedProposedValue = nestedProposedValue;
+  //    Cancel = false;
+  //  }
 
 
-    /// <summary>
-    /// Property that is changing.
-    /// </summary>
-    public StructuralProperty Property { get; private set; }
+  //  /// <summary>
+  //  /// Property that is changing.
+  //  /// </summary>
+  //  public StructuralProperty Property { get; private set; }
 
-    /// <summary>
-    /// Gets or sets the proposed value of the property that is changing. 
-    /// </summary>
-    public object ProposedValue { get; set; }
+  //  /// <summary>
+  //  /// Gets or sets the proposed value of the property that is changing. 
+  //  /// </summary>
+  //  public object ProposedValue { get; set; }
 
-    /// <summary>
-    /// The local parent property that is actually being changed. Will be different from <see cref="Property"/> when a complex object is involved.
-    /// </summary>
-    public StructuralProperty NestedProperty { get; private set; }
+  //  /// <summary>
+  //  /// The local parent property that is actually being changed. Will be different from <see cref="Property"/> when a complex object is involved.
+  //  /// </summary>
+  //  public StructuralProperty NestedProperty { get; private set; }
 
-    /// <summary>
-    /// The actual value that is being proposed - only avail if the property is on a complex object
-    /// </summary>
-    public Object NestedProposedValue { get; private set; }
+  //  /// <summary>
+  //  /// The actual value that is being proposed - only avail if the property is on a complex object
+  //  /// </summary>
+  //  public Object NestedProposedValue { get; private set; }
 
 
-  }
-  #endregion
+  //}
+  //#endregion
 
-  #region EntityPropertyChangedEventArgs
-  /// <summary>
-  /// Provides information to the <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityPropertyChanged"/> event.
-  /// </summary>
-  /// <remarks>
-  /// The <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityPropertyChanged"/> event fires whenever a property
-  /// setter is called on an entity in your model after the new value is set.
-  /// </remarks>
-  public class EntityPropertyChangedEventArgs : EntityChangeEventArgs {
-    /// <summary>
-    /// Public ctor.
-    /// </summary>
-    /// <param name="entityAspect"></param>
-    /// <param name="property"></param>
-    /// <param name="newValue"></param>
-    public EntityPropertyChangedEventArgs(IEntity entity, StructuralProperty property, object newValue)
-      : base(entity) {
-      Property = property;
-      NewValue = newValue;
-    }
+  //#region EntityPropertyChangedEventArgs
+  ///// <summary>
+  ///// Provides information to the <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityPropertyChanged"/> event.
+  ///// </summary>
+  ///// <remarks>
+  ///// The <see cref="E:IdeaBlade.EntityModel.EntityGroup.EntityPropertyChanged"/> event fires whenever a property
+  ///// setter is called on an entity in your model after the new value is set.
+  ///// </remarks>
+  //public class EntityPropertyChangedEventArgs : EntityChangeEventArgs {
+  //  /// <summary>
+  //  /// Public ctor.
+  //  /// </summary>
+  //  /// <param name="entityAspect"></param>
+  //  /// <param name="property"></param>
+  //  /// <param name="newValue"></param>
+  //  public EntityPropertyChangedEventArgs(IEntity entity, StructuralProperty property, object newValue)
+  //    : base(entity) {
+  //    Property = property;
+  //    NewValue = newValue;
+  //  }
 
-     public EntityPropertyChangedEventArgs(IEntity entity, StructuralProperty property, IComplexObject newValue, StructuralProperty nestedProperty, object nestedNewValue)
-      : base(entity) {
+  //   public EntityPropertyChangedEventArgs(IEntity entity, StructuralProperty property, IComplexObject newValue, StructuralProperty nestedProperty, object nestedNewValue)
+  //    : base(entity) {
       
-      Property = property;
-      NewValue = newValue;
-      NestedProperty = nestedProperty;
-      NestedNewValue = nestedNewValue;
-    }
+  //    Property = property;
+  //    NewValue = newValue;
+  //    NestedProperty = nestedProperty;
+  //    NestedNewValue = nestedNewValue;
+  //  }
 
-    /// <summary>
-    /// Property whose value has changed.
-    /// </summary>
-    public StructuralProperty Property { get; private set; }
+  //  /// <summary>
+  //  /// Property whose value has changed.
+  //  /// </summary>
+  //  public StructuralProperty Property { get; private set; }
 
-    /// <summary>
-    /// The value that was just set.
-    /// </summary>
-    public object NewValue { get; set; }
-
-
-    /// <summary>
-    /// For complex objects this is the local complex object property that changed. 
-    /// </summary>
-    public StructuralProperty NestedProperty { get; private set; }
-
-    /// <summary>
-    /// The nested value that was just set.
-    /// </summary>
-    public object NestedNewValue { get; set; }
+  //  /// <summary>
+  //  /// The value that was just set.
+  //  /// </summary>
+  //  public object NewValue { get; set; }
 
 
-  }
-  #endregion
+  //  /// <summary>
+  //  /// For complex objects this is the local complex object property that changed. 
+  //  /// </summary>
+  //  public StructuralProperty NestedProperty { get; private set; }
+
+  //  /// <summary>
+  //  /// The nested value that was just set.
+  //  /// </summary>
+  //  public object NestedNewValue { get; set; }
+
+
+  //}
+  //#endregion
 
   #region EntityChangingEventArgs
   /// <summary>

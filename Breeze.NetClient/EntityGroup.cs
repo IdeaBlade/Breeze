@@ -87,75 +87,9 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region Event handling
+    
 
-    // Fires both entity.PropertyChanged and EntityGroup.EntityPropertyChanged
-    internal virtual void OnEntityPropertyChanged(EntityPropertyChangedEventArgs e) {
-      if (!ChangeNotificationEnabled) return;
-      QueueEvent(() => OnEntityPropertyChangedCore(e));
-    }
-
-    private void OnEntityPropertyChangedCore(EntityPropertyChangedEventArgs e) {
-      e.EntityAspect.OnPropertyChanged(new PropertyChangedEventArgs(e.Property.Name));
-    }
-
-    // Needs to be called regardless of the ChangeNotification flag
-    internal virtual void OnEntityChanging(EntityChangingEventArgs e) {
-      if (!ChangeNotificationEnabled) return;
-      EntityManager.OnEntityChanging(e);
-    }
-
-    protected internal void OnEntityChanged(IEntity entity, EntityAction entityAction) {
-      OnEntityChanged(new EntityChangedEventArgs(entity, entityAction));
-    }
-
-    /// <summary>
-    /// Raises the <see cref="EntityGroup.EntityChanged"/> event if <see cref="ChangeNotificationEnabled"/> is set.
-    /// </summary>
-    /// <param name="e"></param>
-    // need this because EntityState changes after the PropertyChanged event fires
-    // which causes EntityState to be stale in the PropertyChanged event
-    // Needs to be called regardless of the ChangeNotification flag
-    protected internal void OnEntityChanged(EntityChangedEventArgs e) {
-      if (!ChangeNotificationEnabled) return;
-      QueueEvent(() => OnEntityChangedCore(e));
-    }
-
-
-    private void OnEntityChangedCore(EntityChangedEventArgs e) {
-      // change actions will fire property change inside of OnPropertyChanged 
-      if (e.Action != EntityAction.PropertyChange) {
-        e.EntityAspect.OnPropertyChanged(AllPropertiesChangedEventArgs);
-      }
-      if (e.EntityAspect.IsAttached) EntityManager.OnEntityChanged(e);
-    }
-
-    private void QueueEvent(Action action) {
-      if (EntityManager.IsLoadingEntity) {
-        EntityManager.QueuedEvents.Add(() => action());
-      } else {
-        action();
-      }
-    }
-
-
-    private void TryToHandle<T>(EventHandler<T> handler, T args) where T : EventArgs {
-      if (handler == null) return;
-      try {
-        handler(this, args);
-      } catch {
-        // Throw handler exceptions if not loading.
-        if (!EntityManager.IsLoadingEntity) throw;
-        // Also throw if loading but action is add or attach.
-        var changing = args as EntityChangingEventArgs;
-        if (changing != null && (changing.Action == EntityAction.Attach)) throw;
-        var changed = args as EntityChangedEventArgs;
-        if (changed != null && (changed.Action == EntityAction.Attach)) throw;
-        // Other load exceptions are eaten.  Yummy!
-      }
-    }
-
-    #endregion
+    
 
     #region Public properties
 
