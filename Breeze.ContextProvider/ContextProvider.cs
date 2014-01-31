@@ -175,11 +175,11 @@ namespace Breeze.ContextProvider {
 
     /// <summary>
     /// The method is called for each entity to be saved before the save occurs.  If this method returns 'false'
-    /// then the entity will be excluded from the save. There is no need to call the base implementation of this
-    /// method when overriding it. 
+    /// then the entity will be excluded from the save.  The base implementation returns the result of BeforeSaveEntityDelegate,
+    /// or 'true' if BeforeSaveEntityDelegate is null.
     /// </summary>
     /// <param name="entityInfo"></param>
-    /// <returns></returns>
+    /// <returns>true to include the entity in the save, false to exclude</returns>
     protected internal virtual bool BeforeSaveEntity(EntityInfo entityInfo) {
       if (BeforeSaveEntityDelegate != null) {
         return BeforeSaveEntityDelegate(entityInfo);
@@ -188,6 +188,14 @@ namespace Breeze.ContextProvider {
       }
     }
 
+    /// <summary>
+    /// Called after BeforeSaveEntity, and before saving the entities to the persistence layer.
+    /// Allows adding, changing, and removing entities prior to save.
+    /// The base implementation returns the result of BeforeSaveEntitiesDelegate, or the unchanged
+    /// saveMap if BeforeSaveEntitiesDelegate is null.
+    /// </summary>
+    /// <param name="saveMap">A List of EntityInfo for each Type</param>
+    /// <returns>The EntityInfo for each entity that should be saved</returns>
     protected internal virtual Dictionary<Type, List<EntityInfo>> BeforeSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap) {
       if (BeforeSaveEntitiesDelegate != null) {
         return BeforeSaveEntitiesDelegate(saveMap);
@@ -196,6 +204,12 @@ namespace Breeze.ContextProvider {
       }
     }
 
+    /// <summary>
+    /// Called after the entities have been saved, and all the temporary keys have been replaced by real keys.
+    /// The base implementation calls AfterSaveEntitiesDelegate, or does nothing if AfterSaveEntitiesDelegate is null.
+    /// </summary>
+    /// <param name="saveMap">The same saveMap that was returned from BeforeSaveEntities</param>
+    /// <param name="keyMappings">The mapping of temporary keys to real keys</param>
     protected internal virtual void AfterSaveEntities(Dictionary<Type, List<EntityInfo>> saveMap, List<KeyMapping> keyMappings) {
       if (AfterSaveEntitiesDelegate != null) {
         AfterSaveEntitiesDelegate(saveMap, keyMappings);
