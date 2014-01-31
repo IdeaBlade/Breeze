@@ -389,10 +389,10 @@ namespace Breeze.WebApi.NH
         /// <returns>The entity, or null if not found</returns>
         private EntityInfo FindInSaveMap(Type entityType, object entityId)
         {
-            var entityIdString = entityId.ToString();
-            List<EntityInfo> entityInfoList;
-            if (saveMap.TryGetValue(entityType, out entityInfoList))
+            List<EntityInfo> entityInfoList = saveMap.Where(p => entityType.IsAssignableFrom(p.Key)).SelectMany(p => p.Value).ToList();
+            if (entityInfoList != null && entityInfoList.Count != 0)
             {
+                var entityIdString = entityId.ToString();
                 var meta = session.SessionFactory.GetClassMetadata(entityType);
                 foreach (var entityInfo in entityInfoList)
                 {
