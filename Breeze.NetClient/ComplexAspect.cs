@@ -255,7 +255,8 @@ namespace Breeze.NetClient {
 
       if (ParentEntity != null) {
         if (EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity) {
-          EntityAspect.SetEntityStateCore(EntityState.Modified);
+          // EntityAspect.SetEntityStateCore(EntityState.Modified);
+          EntityAspect.SetModified();
         }
 
         entityGroup.OnEntityPropertyChanged(new EntityPropertyChangedEventArgs(ParentEntity, this.ParentEntityProperty, this.ComplexObject, property, newValue));

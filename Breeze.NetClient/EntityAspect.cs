@@ -193,7 +193,7 @@ namespace Breeze.NetClient {
       } else {
         this.SetEntityStateCore(EntityState.Deleted);
         RemoveFromRelations(EntityState.Deleted);
-        // this.EntityManager.NotifyStateChange(this, true);
+        this.EntityManager.NotifyStateChange(this, true);
       }
       this.EntityGroup.OnEntityChanged(entity, EntityAction.Delete);
     }
@@ -431,12 +431,11 @@ namespace Breeze.NetClient {
     /// You will usually have no reason to call this method from application code.  The EntityState
     /// is automatically set to Modified by the framework when any EntityProperty of the entity is changed.
     /// </remarks>
-    private void SetModified() {
+    internal void SetModified() {
       if (this.EntityState == EntityState.Modified) return;
       if (this.EntityState == EntityState.Detached) {
         throw new InvalidOperationException("Detached objects must be attached before calling SetModified");
       }
-      if (!FireEntityChanging(EntityAction.EntityStateChange)) return;
       SetEntityStateCore(EntityState.Modified);
       EntityManager.NotifyStateChange(this, true);
     }
@@ -463,17 +462,6 @@ namespace Breeze.NetClient {
     }
 
     protected internal override void SetDpValue(DataProperty property, object newValue) {
-      //Object oldValue;
-      //if (this.IsDetached) {
-      //  if (property.IsComplexProperty) {
-      //    oldValue = this.GetRawValue(property.Name);
-      //    SetDpValueComplex(property, newValue, oldValue);
-      //  } else {
-      //    SetRawValue(property.Name, newValue);
-      //  }
-      //  return;
-      //}
-
       WrapSetValue(property, newValue, SetDpValueCore);
     }
 
@@ -695,7 +683,8 @@ namespace Breeze.NetClient {
       if (this.IsAttached) { 
         if (!EntityManager.IsLoadingEntity) {
           if (this.EntityState == EntityState.Unchanged) {
-            this.SetEntityStateCore(EntityState.Modified);
+            // this.SetEntityStateCore(EntityState.Modified);
+            SetModified();
           }
         }
       
