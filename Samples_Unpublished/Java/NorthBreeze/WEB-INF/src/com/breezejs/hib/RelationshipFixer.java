@@ -352,7 +352,7 @@ public class RelationshipFixer {
         Object entity = entityInfo.entity;
         Object id = null;
         if (foreignKeyName == meta.getIdentifierPropertyName())
-            id = meta.getIdentifier(entity);
+            id = meta.getIdentifier(entity, null);
         else if (Arrays.asList(meta.getPropertyNames()).contains(foreignKeyName))
             id = meta.getPropertyValue(entity, foreignKeyName);
         else if (meta.getIdentifierType().isComponentType())
@@ -362,7 +362,7 @@ public class RelationshipFixer {
         	int index = Arrays.asList(compType.getPropertyNames()).indexOf(foreignKeyName);
             if (index >= 0)
             {
-                Object idComp = meta.getIdentifier(entity);
+                Object idComp = meta.getIdentifier(entity, null);
                 id = compType.getPropertyValue(idComp, index, EntityMode.POJO);
             }
         }
@@ -384,7 +384,7 @@ public class RelationshipFixer {
     private Object getPropertyValue(ClassMetadata meta, Object entity, String propName)
     {
         if (propName == null || propName == meta.getIdentifierPropertyName())
-            return meta.getIdentifier(entity);
+            return meta.getIdentifier(entity, null);
         else
             return meta.getPropertyValue(entity, propName);
     }
@@ -398,14 +398,19 @@ public class RelationshipFixer {
     private EntityInfo findInSaveMap(Class entityType, Object entityId)
     {
         String entityIdString = entityId.toString();
-        List<EntityInfo> entityInfoList = saveMap.get(entityType);
-        if (entityInfoList != null)
+        ArrayList<EntityInfo> entityInfoList = new ArrayList<EntityInfo>();
+        for (Class c : saveMap.keySet()) {
+        	if (entityType.isAssignableFrom(c)) {
+        		entityInfoList.addAll(saveMap.get(c));
+        	}
+        }
+        if (entityInfoList != null && entityInfoList.size() != 0)
         {
             ClassMetadata meta = sessionFactory.getClassMetadata(entityType);
             for (EntityInfo entityInfo : entityInfoList)
             {
                 Object entity = entityInfo.entity;
-                Object id = meta.getIdentifier(entity);
+                Object id = meta.getIdentifier(entity, null);
                 if (id != null && entityIdString.equals(id.toString())) return entityInfo;
             }
         }
