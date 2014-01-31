@@ -53,8 +53,9 @@
 
         function link(scope, element, attrs) {
             // Use only features defined in Angular's jqLite
-            var nodeType = element.nodeType;
-            var isInput = nodeType == 'INPUT' || nodeType == 'SELECT' || nodeType == 'TEXTAREA';
+            var domEl = element[0];
+            var nodeName = domEl.nodeName;
+            var isInput = nodeName == 'INPUT' || nodeName == 'SELECT' || nodeName == 'TEXTAREA';
 
             // get validation info for bound element and entity property
             var info = getInfo(scope, attrs);
@@ -70,7 +71,6 @@
                 element.after(decorator);
 
                 // unwrap bound elements
-                var domEl = element[0];
                 decorator = decorator[0];
 
                 scope.$watch(info.getValErrs, valErrsChanged);
