@@ -21,13 +21,13 @@ app.config(['$routeProvider', function ($routeProvider) {
     $routeProvider.otherwise({ redirectTo: '/' });
 }]);
 
-// Configure the zDirectivesConfigProvider, which displays validation error messages
-app.config(['zDirectivesConfigProvider', function(cfg) {
-	
-// Custom template because we are using existing elements
-cfg.zValidateTemplate = '%error%';
-
-// we are using existing elements to display validation messages
-cfg.zValidateExistingTemplate = true;
-
-}]);
+//// Configure the zDirectivesConfigProvider, which displays validation error messages
+//app.config(['zDirectivesConfigProvider', function(cfg) {
+//	
+//// Custom template because we are using existing elements
+//cfg.zValidateTemplate = '%error%';
+//
+//// we are using existing elements to display validation messages
+//cfg.zValidateExistingTemplate = true;
+//
+//}]);
