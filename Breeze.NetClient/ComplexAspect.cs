@@ -239,7 +239,6 @@ namespace Breeze.NetClient {
 
         if (changeNotificationEnabled) {
           if (! EntityAspect.FireEntityChanging(EntityAction.PropertyChange)) return;
-
           var propArgs = new EntityPropertyChangingEventArgs(this.ParentEntity, this.ParentEntityProperty, this.ComplexObject, property, newValue);
 
           entityGroup.OnEntityPropertyChanging(propArgs);
@@ -255,7 +254,6 @@ namespace Breeze.NetClient {
 
       if (ParentEntity != null) {
         if (EntityState.IsUnchanged() && !EntityManager.IsLoadingEntity) {
-          // EntityAspect.SetEntityStateCore(EntityState.Modified);
           EntityAspect.SetModified();
         }
 

@@ -451,6 +451,48 @@ namespace Test_NetClient {
 
     }
 
+    [TestMethod]
+    public async Task EntityAndPropertyChangedEvents() {
+      await _emTask;
+
+      var q = new EntityQuery<Supplier>().Where(s => s.CompanyName.StartsWith("P")).Take(2);
+
+      var suppliers = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(suppliers.Count() > 0, "should have returned some suppliers");
+
+      var supp0 = suppliers.First();
+      List<EntityChangedEventArgs> entityChangedList = new List<EntityChangedEventArgs>();
+      List<PropertyChangedEventArgs> propChangedList = new List<PropertyChangedEventArgs>();
+      List<PropertyChangedEventArgs> aspectPropChangedList = new List<PropertyChangedEventArgs>();
+      _em1.EntityChanged += (s, e) => {
+        entityChangedList.Add(e);
+      };
+      ((INotifyPropertyChanged)supp0).PropertyChanged += (s, e) => {
+        propChangedList.Add(e);
+      };
+      supp0.EntityAspect.PropertyChanged += (s, e) => {
+        aspectPropChangedList.Add(e);
+      };
+
+      supp0.CompanyName = "xxx";
+      var lastEc = entityChangedList.Last();
+      Assert.IsTrue(lastEc.EntityAspect == supp0.EntityAspect, "ec should have been fired");
+      Assert.IsTrue(entityChangedList[0].Action == EntityAction.PropertyChange && entityChangedList[0].Entity == supp0);
+      Assert.IsTrue(entityChangedList[1].Action == EntityAction.EntityStateChange && entityChangedList[1].Entity == supp0);
+      
+      Assert.IsTrue(aspectPropChangedList.Count == 2, "2 aspects should have changed"); // isChanged and EntityState.
+
+      Assert.IsTrue(propChangedList[0].PropertyName == "CompanyName");
+      entityChangedList.Clear();
+      propChangedList.Clear();
+      aspectPropChangedList.Clear();
+      supp0.HomePage = "xxxxx";
+      supp0.Phone = "eeeeee";
+      Assert.IsTrue(entityChangedList.Count == 2, "should be 2 entity changed events");
+      Assert.IsTrue(propChangedList.Count == 2, "should be 2 propChanged events");
+      Assert.IsTrue(aspectPropChangedList.Count == 0, "no more EntityAspect changes");
+    }
+
 
     // detach child
     [TestMethod]

@@ -152,6 +152,7 @@ namespace Breeze.NetClient {
       }
     }
 
+    // TODO: not currently called.
     internal void FireQueuedEvents() {
       // IsLoadingEntity will still be true when this occurs.
       if (!QueuedEvents.Any()) return;

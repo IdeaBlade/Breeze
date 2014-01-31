@@ -269,21 +269,24 @@ namespace Test_NetClient {
         aspectPropChangedList.Add(e);
       };
 
-      supp0.CompanyName = "xxx";
+      supp0.Location.City = "xxxxx";
       var lastEc = entityChangedList.Last();
       Assert.IsTrue(lastEc.EntityAspect == supp0.EntityAspect, "ec should have been fired");
       Assert.IsTrue(entityChangedList[0].Action == EntityAction.PropertyChange && entityChangedList[0].Entity == supp0);
       Assert.IsTrue(entityChangedList[1].Action == EntityAction.EntityStateChange && entityChangedList[1].Entity == supp0);
-      
-      
+
       Assert.IsTrue(aspectPropChangedList.Count == 2, "2 aspects should have changed"); // isChanged and EntityState.
 
-      Assert.IsTrue(propChangedList[0].PropertyName == "CompanyName");
-
+      Assert.IsTrue(propChangedList.Count == 1);
+      Assert.IsTrue(propChangedList[0].PropertyName == "Location.City");
+      entityChangedList.Clear();
+      propChangedList.Clear();
+      aspectPropChangedList.Clear();
       supp0.Location.City = "city-1";
       supp0.Location.Address = "address-1";
-      Assert.IsTrue(entityChangedList.Count == 6, "should be 6 entity changed events");
-      Assert.IsTrue(propChangedList.Count == 3, "should be 3 propChanged events");
+      Assert.IsTrue(entityChangedList.Count == 2, "should be 2 entity changed events");
+      Assert.IsTrue(propChangedList.Count == 2, "should be 2 propChanged events");
+      Assert.IsTrue(aspectPropChangedList.Count == 0, "no more EntityAspect changes");
     }
 
     

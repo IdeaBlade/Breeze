@@ -117,11 +117,11 @@ namespace Breeze.NetClient {
     }
 
     private void OnEntityPropertyChangedCore(EntityPropertyChangedEventArgs e) {
-      e.EntityAspect.FirePropertyChanged(new PropertyChangedEventArgs(e.Property.Name));
+      e.EntityAspect.OnPropertyChanged(new PropertyChangedEventArgs(e.Property.Name));
       TryToHandle(EntityPropertyChanged, e);
     }
 
-    // Needs to be call regardless of the ChangeNotification flag
+    // Needs to be called regardless of the ChangeNotification flag
     internal virtual void OnEntityChanging(EntityChangingEventArgs e) {
       if (ChangeNotificationEnabled) {
         TryToHandle(EntityChanging, e);
@@ -161,7 +161,7 @@ namespace Breeze.NetClient {
     private void OnEntityChangedCore(EntityChangedEventArgs e) {
       // change actions will fire property change inside of OnPropertyChanged 
       if (e.Action != EntityAction.PropertyChange) {
-        e.EntityAspect.FirePropertyChanged(AllPropertiesChangedEventArgs);
+        e.EntityAspect.OnPropertyChanged(AllPropertiesChangedEventArgs);
       }
       TryToHandle(EntityChanged, e);
       if (e.EntityAspect.IsAttached) EntityManager.OnEntityChanged(e);
