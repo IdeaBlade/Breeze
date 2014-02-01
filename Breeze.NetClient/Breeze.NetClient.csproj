@@ -37,6 +37,8 @@
   <ItemGroup>
     <Compile Include="BaseComplexObject.cs" />
     <Compile Include="Core\NotifiableSet.cs" />
+    <Compile Include="DataServiceAdapter.cs" />
+    <Compile Include="JsonResultsAdapter.cs" />
     <Compile Include="StructuralProperty.cs" />
     <Compile Include="Core\AsyncSemaphore.cs" />
     <Compile Include="ComplexAspect.cs" />

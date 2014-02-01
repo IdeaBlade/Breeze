@@ -1,4 +1,6 @@
 ﻿using Breeze.Core;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +31,10 @@ namespace Breeze.NetClient {
 
     #endregion
 
+    #region Public properties
+
+    public static String MetadataVersion = "1.0.3";
+
     public List<EntityType> EntityTypes {
       get {
         lock (_structuralTypes) {
@@ -58,33 +64,35 @@ namespace Breeze.NetClient {
       } 
     }
 
-    public async Task<String> FetchMetadata(DataService dataService) {
+    #endregion
+
+    #region Public methods
+
+    public async Task<DataService> FetchMetadata(DataService dataService) {
       String serviceName;
       
       serviceName = dataService.ServiceName;
-      var metadata = GetDataService(serviceName);
-      if (metadata != null) return metadata;
-        
+      var ds = GetDataService(serviceName);
+      if (ds != null) return dataService;
 
       await _asyncSemaphore.WaitAsync();
 
       try {
-        metadata = GetDataService(serviceName);
-        if (metadata != null) return metadata;
+        ds = GetDataService(serviceName);
+        if (ds != null) return dataService;
 
-        metadata = await dataService.GetAsync("Metadata");
-
+        var metadata = await dataService.GetAsync("Metadata");
+        dataService.ServerMetadata = metadata;
         lock (_dataServiceMap) {
-          _dataServiceMap[serviceName] = metadata;
+          _dataServiceMap[serviceName] = dataService;
         }
         var metadataProcessor = new CsdlMetadataProcessor(this, metadata);
 
-        return metadata;
+        return dataService;
 
       } finally {
         _asyncSemaphore.Release();
       }
-
 
     }
 
@@ -152,13 +160,17 @@ namespace Breeze.NetClient {
 
     public String GetDefaultResourceName(Type clrType) {
       var entityType = GetEntityType(clrType);
+      return GetDefaultResourceName(entityType);
+    }
+
+    public  string GetDefaultResourceName(EntityType entityType) {
       lock (_entityTypeResourceNameMap) {
         String resourceName = null;
         // give the type it's base's resource name if it doesn't have its own.
         if (!_entityTypeResourceNameMap.TryGetValue(entityType, out resourceName)) {
-          var baseType = clrType.GetTypeInfo().BaseType;
-          if (baseType != null && baseType != typeof(Object)) {
-            return GetDefaultResourceName(clrType);
+          var baseEntityType = entityType.BaseEntityType;
+          if (baseEntityType != null) {
+            return GetDefaultResourceName(baseEntityType);
           }
         }
         return resourceName;
@@ -169,9 +181,28 @@ namespace Breeze.NetClient {
       return typeof(IStructuralObject).IsAssignableFrom(clrType);
     }
 
+    public String ExportMetadata() {
+      return ToJObject().ToString(Formatting.Indented);
+    }
+
+    public JObject ToJObject() {
+      var jo =  new JObject(); 
+      jo.AddProperty("metadataVersion", MetadataVersion);
+      // jo.AddProperty("name", this.Name);
+      jo.AddProperty("namingConvention", this.NamingConvention.Name);
+      // jo.AddProperty("localQueryComparisonOptions", this.LocalQueryComparisonOptions);
+      jo.AddArrayProperty("dataServices", this._dataServiceMap.Values);
+      jo.AddArrayProperty("structuralTypes", this._structuralTypes);
+      jo.AddMapProperty("resourceEntityTypeMap", this._resourceNameEntityTypeMap);
+      return jo;
+    }
+       
+
+    #endregion
+
     public static String ANONTYPE_PREFIX = "_IB_";
 
-    // Private and Internal --------------
+    #region Internal and Private methods
 
     internal Type GetClrTypeFor(StructuralType stType) {
       lock (_structuralTypes) {
@@ -209,7 +240,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    private String GetDataService(String serviceName) {
+    private DataService GetDataService(String serviceName) {
       lock (_dataServiceMap) {
         if (_dataServiceMap.ContainsKey(serviceName)) {
           return _dataServiceMap[serviceName];
@@ -369,7 +400,9 @@ namespace Breeze.NetClient {
       }
     }
 
+    #endregion
 
+    #region Inner classes 
 
     // inner class
     internal class ClrTypeMap {
@@ -425,12 +458,15 @@ namespace Breeze.NetClient {
       }
     }
 
+    #endregion
+
+    #region Private vars 
 
     private readonly AsyncSemaphore _asyncSemaphore = new AsyncSemaphore(1);
     private Object _lock = new Object();
 
     // lock using _dataServiceMap
-    private Dictionary<String, String> _dataServiceMap = new Dictionary<String, string>();
+    private Dictionary<String, DataService> _dataServiceMap = new Dictionary<String, DataService>();
     private NamingConvention _namingConvention = NamingConvention.Default;
     // locked using _structuralTypes
     private ClrTypeMap _clrTypeMap = new ClrTypeMap();
@@ -443,6 +479,7 @@ namespace Breeze.NetClient {
     private Dictionary<EntityType, String> _entityTypeResourceNameMap = new Dictionary<EntityType, string>();
     private Dictionary<String, String> _resourceNameEntityTypeMap = new Dictionary<string, string>();
 
+    #endregion
 
 
 

@@ -1,4 +1,5 @@
 ﻿using Breeze.Core;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,7 +15,7 @@ namespace Breeze.NetClient {
     
   }
 
-  public class DataProperty : StructuralProperty {
+  public class DataProperty : StructuralProperty, IJsonSerializable {
     public DataProperty() {
 
     }
@@ -35,6 +36,27 @@ namespace Breeze.NetClient {
       this.MaxLength = dp.MaxLength;
       this.EnumTypeName = dp.EnumTypeName;
       this.RawTypeName = dp.RawTypeName;
+    }
+
+    JObject IJsonSerializable.ToJObject() {
+      var jo = new JObject();
+      jo.AddProperty("name", this.Name);
+      jo.AddProperty("dataType", (this.DataType != null && this.ComplexType == null) ? this.DataType.Name : null); // do not serialize complexTypename here
+      jo.AddProperty("isNullable", this.IsNullable, true);
+      jo.AddProperty("defaultValue", this.DefaultValue );
+      jo.AddProperty("isPartOfKey", this.IsPartOfKey, false);
+      jo.AddProperty("isUnmapped", this.IsUnmapped, false);
+      jo.AddProperty("concurrencyMode", this.ConcurrencyMode == ConcurrencyMode.None ? null : this.ConcurrencyMode.ToString());
+      jo.AddProperty("maxLength", this.MaxLength);
+      // jo.AddArrayProperty("validators", this.Validators);
+      jo.AddProperty("enumType", this.EnumTypeName);
+      jo.AddProperty("isScalar", this.IsScalar, true);
+      // jo.AddProperty("custom", this.Custom.ToJObject)
+      return jo;
+    }
+
+    object IJsonSerializable.FromJObject(JObject jObject) {
+      throw new NotImplementedException();
     }
 
     public DataType DataType { get; internal set; }

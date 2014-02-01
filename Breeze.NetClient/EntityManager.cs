@@ -57,10 +57,9 @@ namespace Breeze.NetClient {
 
     #region async methods
 
-    public async Task<String> FetchMetadata(DataService dataService = null) {
+    public async Task<DataService> FetchMetadata(DataService dataService = null) {
       dataService = dataService != null ? dataService : this.DefaultDataService;
-      var metadata = await MetadataStore.FetchMetadata(dataService);
-      return metadata;
+      return await MetadataStore.FetchMetadata(dataService);
     }
 
     public async Task<IEnumerable<T>> ExecuteQuery<T>(EntityQuery<T> query) {

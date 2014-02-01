@@ -2,10 +2,47 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Breeze.NetClient {
+
+  public interface IJsonSerializable {
+    JObject ToJObject();
+    Object FromJObject(JObject jObject);
+  }
+
+  public static class Json {
+    
+    public static void AddProperty(this JObject jObject, String propName, Object value, Object defaultValue = null) {
+      if (value == defaultValue) return;
+      if (value != null && value.Equals(defaultValue)) return;
+      jObject.Add(new JProperty(propName, CvtValue(value)));
+    }
+
+    public static void AddArrayProperty(this JObject jObject, String propName, IEnumerable items) {
+      var objs = items.Cast<Object>();
+      if (!objs.Any()) return;
+      var ja = new JArray();
+      objs.ForEach(v => ja.Add(CvtValue(v)));
+
+      jObject.Add(new JProperty(propName, ja));
+    }
+
+    public static void AddMapProperty<T>(this JObject jObject, String propName, IDictionary<String, T> map) {
+      if (!map.Any()) return;
+      var jo = new JObject();
+      map.ForEach(kvp => jo.AddProperty(kvp.Key, CvtValue(kvp.Value)));
+
+      jObject.Add(new JProperty(propName, jo));
+    }
+
+    private static Object CvtValue(Object value) {
+      var js = value as IJsonSerializable;
+      return (js == null) ? value : (Object) js.ToJObject();
+    }
+  }
 
   public class JsonEntityConverter : JsonConverter {
   

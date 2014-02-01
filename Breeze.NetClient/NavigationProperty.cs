@@ -1,4 +1,5 @@
 ﻿using Breeze.Core;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,7 +13,7 @@ namespace Breeze.NetClient {
     }
   }
 
-  public class NavigationProperty : StructuralProperty {
+  public class NavigationProperty : StructuralProperty, IJsonSerializable {
     public NavigationProperty() {
 
     }
@@ -25,6 +26,23 @@ namespace Breeze.NetClient {
       this._foreignKeyNamesOnServer = np._foreignKeyNamesOnServer;
       this._invForeignKeyNames = np._invForeignKeyNames;
       this._invForeignKeyNamesOnServer = np._invForeignKeyNamesOnServer;
+    }
+
+    JObject IJsonSerializable.ToJObject() {
+      var jo = new JObject();
+      jo.AddProperty("name", this.Name);
+      jo.AddProperty("entityTypeName", this.EntityTypeName);
+      jo.AddProperty("isScalar", this.IsScalar);
+      jo.AddProperty("associationName", this.AssociationName);
+      // jo.AddArrayProperty("validators", this.Validators);
+      jo.AddArrayProperty("foreignKeyNames", this.ForeignKeyNames);
+      jo.AddArrayProperty("invForeignKeyNames", this.InvForeignKeyNames);
+      // jo.AddProperty("custom", this.Custom.ToJObject)
+      return jo;
+    }
+
+    object IJsonSerializable.FromJObject(JObject jObject) {
+      throw new NotImplementedException();
     }
 
     public EntityType EntityType { get; internal set; }
