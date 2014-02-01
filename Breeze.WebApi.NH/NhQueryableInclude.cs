@@ -21,7 +21,7 @@ namespace Breeze.WebApi.NH
         /// </summary>
         /// <param name="si"></param>
         public NhQueryableInclude(ISessionImplementor si)
-            : base(new DefaultQueryProvider(si), Expression.Constant(new NhQueryable<T>(si)))
+            : base(new DefaultQueryProvider(si), Expression.Constant(new NhQueryable<T>(si).Cacheable<T>()))
         {}
 
         public NhQueryableInclude(IQueryProvider provider, Expression expr) : base(provider, expr)
