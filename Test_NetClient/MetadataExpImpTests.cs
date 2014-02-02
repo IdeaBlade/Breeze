@@ -53,8 +53,11 @@ namespace Test_NetClient {
 
       var metadata = MetadataStore.Instance.ExportMetadata();
 
-      var newMs = new MetadataStore();
-      newMs.ImportMetadata(metadata);
+      var ms = MetadataStore.Instance;
+
+      MetadataStore.Clear();
+      Assert.IsTrue(ms != MetadataStore.Instance);
+      MetadataStore.Instance.ImportMetadata(metadata);
     
     }
 

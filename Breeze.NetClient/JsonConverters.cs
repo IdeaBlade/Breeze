@@ -103,10 +103,10 @@ namespace Breeze.NetClient {
 
     public void AddMap<T>(String propName, IDictionary<String, T> map) {
       if (!map.Any()) return;
-      var jo = new JObject();
-      map.ForEach(kvp => Add(kvp.Key, CvtValue(kvp.Value)));
+      var jn = new JNode();
+      map.ForEach(kvp => jn.Add(kvp.Key, CvtValue(kvp.Value)));
 
-      _jo.Add(new JProperty(propName, jo));
+      _jo.Add(new JProperty(propName, jn._jo));
     }
 
     public String ToJson() {

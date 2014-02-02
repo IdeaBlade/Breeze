@@ -17,6 +17,7 @@ namespace Breeze.NetClient {
   public abstract class StructuralType {
     public StructuralType() {
       Warnings = new List<string>();
+      MetadataStore = MetadataStore.Instance;
     }
 
     public static string ClrTypeToStructuralTypeName(Type clrType) {

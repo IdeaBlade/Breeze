@@ -16,10 +16,10 @@ namespace Breeze.NetClient {
     /// 
     /// </summary>
     /// <param name="serviceName">"http://localhost:9000/"</param>
-    public EntityManager(String serviceName, MetadataStore metadataStore = null) {
+    public EntityManager(String serviceName) {
       DefaultDataService = new DataService(serviceName);
       DefaultMergeStrategy = MergeStrategy.PreserveChanges;
-      
+      MetadataStore = MetadataStore.Instance;
       KeyGenerator = new DefaultKeyGenerator();
       Initialize();
     }
@@ -46,7 +46,8 @@ namespace Breeze.NetClient {
     public DataService DefaultDataService { get; private set; }
 
     public MetadataStore MetadataStore {
-      get { return MetadataStore.Instance; }
+      get;
+      private set;
     }
 
     public MergeStrategy DefaultMergeStrategy { get; private set; }

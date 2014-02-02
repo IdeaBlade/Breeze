@@ -14,18 +14,20 @@ namespace Breeze.NetClient {
 
     #region Ctor related 
 
-    public MetadataStore() { }
+    internal MetadataStore() { }
      // Explicit static constructor to tell C# compiler
     // not to mark type as beforefieldinit
     static MetadataStore() {     }
 
     public static MetadataStore Instance {
       get {
-        return _instance;
+        return __instance;
       }
     }
 
-    private static readonly MetadataStore _instance = new MetadataStore();
+
+    private static MetadataStore __instance = new MetadataStore();
+    private static readonly Object __lock = new Object();
 
     #endregion
 
@@ -65,6 +67,12 @@ namespace Breeze.NetClient {
     #endregion
 
     #region Public methods
+
+    public static void Clear() {
+      lock (__lock) {
+        __instance = new MetadataStore();
+      }
+    }
 
     public async Task<DataService> FetchMetadata(DataService dataService) {
       String serviceName;
@@ -145,14 +153,18 @@ namespace Breeze.NetClient {
       return complexType;
     }
 
-    public void SetDefaultResourceName(Type clrType, String resourceName) {
+    // TODO: think about name
+    public void AddResourceName(String resourceName, Type clrType, bool isDefault = false) {
       var entityType = GetEntityType(clrType);
-      SetDefaultResourceName(entityType, resourceName);
+      AddResourceName(resourceName, entityType);
     }
 
-    internal void SetDefaultResourceName(EntityType entityType, String resourceName) {
-      lock (_entityTypeResourceNameMap) {
-        _entityTypeResourceNameMap[entityType] = resourceName;
+    internal void AddResourceName(String resourceName, EntityType entityType, bool isDefault = false) {
+      lock (_defaultResourceNameMap) {
+        _resourceNameEntityTypeMap[resourceName] = entityType;
+        if (isDefault) {
+          _defaultResourceNameMap[entityType] = resourceName;
+        }
       }
     }
 
@@ -162,10 +174,10 @@ namespace Breeze.NetClient {
     }
 
     public  string GetDefaultResourceName(EntityType entityType) {
-      lock (_entityTypeResourceNameMap) {
+      lock (_defaultResourceNameMap) {
         String resourceName = null;
         // give the type it's base's resource name if it doesn't have its own.
-        if (!_entityTypeResourceNameMap.TryGetValue(entityType, out resourceName)) {
+        if (!_defaultResourceNameMap.TryGetValue(entityType, out resourceName)) {
           var baseEntityType = entityType.BaseEntityType;
           if (baseEntityType != null) {
             return GetDefaultResourceName(baseEntityType);
@@ -196,7 +208,7 @@ namespace Breeze.NetClient {
       // jo.AddProperty("localQueryComparisonOptions", this.LocalQueryComparisonOptions);
       jo.AddArray("dataServices", this._dataServiceMap.Values);
       jo.AddArray("structuralTypes", this._structuralTypes);
-      jo.AddMap("resourceEntityTypeMap", this._resourceNameEntityTypeMap);
+      jo.AddMap("resourceEntityTypeMap", this._resourceNameEntityTypeMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Name));
       return jo;
     }
 
@@ -211,7 +223,10 @@ namespace Breeze.NetClient {
       var stypes = jNode.GetObjectArray<StructuralType>("structuralTypes", 
         jn => jn.Get<bool>("isComplexType", false) ? (StructuralType) new ComplexType() : (StructuralType) new EntityType());
       stypes.ForEach(st => _structuralTypes.Add(st));
-      jNode.GetMap<String>("resourceEntityTypeMap").ForEach(kvp => _resourceNameEntityTypeMap.Add(kvp.Key, kvp.Value));
+      jNode.GetMap<String>("resourceEntityTypeMap").ForEach(kvp => {
+        var et = GetEntityType(kvp.Value);
+        AddResourceName(kvp.Key, et);
+      });
     }
        
 
@@ -269,7 +284,6 @@ namespace Breeze.NetClient {
 
     private void AddStructuralType(StructuralType stType) {
       lock (_structuralTypes) {
-        stType.MetadataStore = this;
         _clrTypeMap.GetClrType(stType);
         //// don't register anon types
         if (!stType.IsAnonymous) {
@@ -493,8 +507,8 @@ namespace Breeze.NetClient {
     private Dictionary<String, List<DataProperty>> _incompleteComplexTypeMap = new Dictionary<String, List<DataProperty>>();   // key is typeName
 
     // locked using _resourceNameEntityTypeMap
-    private Dictionary<EntityType, String> _entityTypeResourceNameMap = new Dictionary<EntityType, string>();
-    private Dictionary<String, String> _resourceNameEntityTypeMap = new Dictionary<string, string>();
+    private Dictionary<EntityType, String> _defaultResourceNameMap = new Dictionary<EntityType, string>();
+    private Dictionary<String, EntityType> _resourceNameEntityTypeMap = new Dictionary<string, EntityType>();
 
     #endregion
 

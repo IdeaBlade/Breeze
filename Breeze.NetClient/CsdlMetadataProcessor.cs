@@ -35,7 +35,7 @@ namespace Breeze.NetClient {
           var entityTypeInfo = ParseTypeName((String) es["entityType"]);
           var entityType = _metadataStore.GetEntityType(entityTypeInfo.TypeName);
           var resourceName = (String) es["name"];
-          _metadataStore.SetDefaultResourceName(entityType, resourceName);
+          _metadataStore.AddResourceName(resourceName, entityType, true);
         });
       }
     }
@@ -54,7 +54,6 @@ namespace Breeze.NetClient {
       var entityType = new EntityType {
         ShortName = nameVal,
         Namespace = GetNamespaceFor(nameVal),
-        MetadataStore = _metadataStore
       };
       if (baseTypeVal != null) {
         var baseTypeInfo = ParseTypeName(baseTypeVal);
@@ -282,7 +281,6 @@ namespace Breeze.NetClient {
       var complexType = new ComplexType {
         ShortName = nameVal,
         Namespace = ns,
-        MetadataStore = _metadataStore,
       };
 
       ToEnumerable(csdlComplexType["property"])
