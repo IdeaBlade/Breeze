@@ -198,6 +198,12 @@ namespace Breeze.NetClient {
     public void ImportMetadata(String metadata) {
       var jNode = new JNode(metadata);
       ((IJsonSerializable)this).FromJNode(jNode);
+      EntityTypes.ForEach(et => ResolveComplexTypeRefs(et));
+    }
+
+    private void ResolveComplexTypeRefs(EntityType et) {
+      et.ComplexProperties.Where(cp => cp.ComplexType == null)
+        .ForEach(cp => cp.ComplexType = GetComplexType(cp.ComplexTypeName));
     }
 
     JNode IJsonSerializable.ToJNode() {

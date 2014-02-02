@@ -27,16 +27,21 @@ namespace Breeze.NetClient {
     }
 
     public T Get<T>(String propName, T defaultValue = default(T)) {
-      var val = _jo.Value<T>(propName);
-      if (val == null || val.Equals(default(T))) {
-        return defaultValue;
-      } else {
-        return val;
-      }
+      var prop = _jo.Property(propName);
+      if (prop == null) return defaultValue;
+      return prop.Value.ToObject<T>();
+
+    }
+
+    private T GetToken<T>(String propName ) where T: JToken {
+      var prop = _jo.Property(propName);
+      if (prop == null) return null;
+      return (T)prop.Value;
+
     }
 
     public TEnum GetEnum<TEnum>(String propName, TEnum defaultValue = default(TEnum)) {
-      var val = _jo.Value<String>(propName);
+      var val = Get<String>(propName);
       if (val == null) {
         return defaultValue;
       } else {
@@ -46,7 +51,7 @@ namespace Breeze.NetClient {
 
     // for non newable types like String, Int etc..
     public IEnumerable<T> GetSimpleArray<T>(String propName)  {
-      var items = Get<JArray>(propName);
+      var items = GetToken<JArray>(propName);
       if (items == null) {
         return Enumerable.Empty<T>();
       } else {
@@ -61,7 +66,7 @@ namespace Breeze.NetClient {
     }
 
     public IEnumerable<T> GetObjectArray<T>(String propName, Func<JNode, T> ctorFn) {
-      var items = Get<JArray>(propName);
+      var items = GetToken<JArray>(propName);
       if (items == null) {
         return Enumerable.Empty<T>();
       } else {
@@ -78,7 +83,7 @@ namespace Breeze.NetClient {
 
     public IDictionary<String, T> GetMap<T>(String propName) {
       var rmap = new Dictionary<String, T>();
-      var map = (JObject) Get<JObject>(propName);
+      var map = (JObject) GetToken<JObject>(propName);
       // map.ForEach(kvp => rmap.Add(kvp.Key.Value<T1>(), kvp.K ))
       foreach (var kvp in map) {
         rmap.Add(kvp.Key, kvp.Value.Value<T>());

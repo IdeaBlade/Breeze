@@ -16,7 +16,8 @@ namespace Breeze.NetClient {
 
     }
 
-    public DataProperty(DataProperty dp) : base(dp) {
+    public DataProperty(DataProperty dp)
+      : base(dp) {
 
       this.DataType = dp.DataType;
       this.DefaultValue = dp.DefaultValue;
@@ -34,10 +35,13 @@ namespace Breeze.NetClient {
       this.RawTypeName = dp.RawTypeName;
     }
 
+
+
     JNode IJsonSerializable.ToJNode() {
       var jo = new JNode();
       jo.Add("name", this.Name);
-      jo.Add("dataType", (this.DataType != null && this.ComplexType == null) ? this.DataType.Name : null); // do not serialize complexTypename here
+      jo.Add("dataType", this.DataType != null ? this.DataType.Name : null); 
+      jo.Add("complexTypeName", this.ComplexType != null ? this.ComplexType.Name : null );
       jo.Add("isNullable", this.IsNullable, true);
       jo.Add("defaultValue", this.DefaultValue );
       jo.Add("isPartOfKey", this.IsPartOfKey, false);
@@ -53,7 +57,10 @@ namespace Breeze.NetClient {
 
     void IJsonSerializable.FromJNode(JNode jNode) {
       Name = jNode.Get<String>("name");
-      DataType = DataType.FromName(jNode.Get<String>("dataType"));
+      ComplexTypeName = jNode.Get<String>("complexTypeName");
+      if (ComplexTypeName == null) {
+        DataType = DataType.FromName(jNode.Get<String>("dataType"));
+      }
       IsNullable = jNode.Get<bool>("isNullable", true);
       DefaultValue = jNode.Get<Object>("defaultValue");
       IsPartOfKey = jNode.Get<bool>("isPartOfKey", false);

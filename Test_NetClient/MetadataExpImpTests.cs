@@ -58,7 +58,8 @@ namespace Test_NetClient {
       MetadataStore.Clear();
       Assert.IsTrue(ms != MetadataStore.Instance);
       MetadataStore.Instance.ImportMetadata(metadata);
-    
+      var metadata2 = MetadataStore.Instance.ExportMetadata();
+      Assert.IsTrue(metadata == metadata2);
     }
 
     
