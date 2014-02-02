@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Foo;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.IO;
 
 namespace Test_NetClient {
 
@@ -52,6 +53,7 @@ namespace Test_NetClient {
       await MetadataStore.Instance.FetchMetadata(dataService);
 
       var metadata = MetadataStore.Instance.ExportMetadata();
+      File.WriteAllText("c:/temp/metadata.txt", metadata);
 
       var ms = MetadataStore.Instance;
 
@@ -59,6 +61,9 @@ namespace Test_NetClient {
       Assert.IsTrue(ms != MetadataStore.Instance);
       MetadataStore.Instance.ImportMetadata(metadata);
       var metadata2 = MetadataStore.Instance.ExportMetadata();
+      
+      
+      File.WriteAllText("c:/temp/metadata2.txt", metadata2);
       Assert.IsTrue(metadata == metadata2);
     }
 

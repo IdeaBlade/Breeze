@@ -62,7 +62,9 @@ namespace Breeze.NetClient {
         DataType = DataType.FromName(jNode.Get<String>("dataType"));
       }
       IsNullable = jNode.Get<bool>("isNullable", true);
-      DefaultValue = jNode.Get<Object>("defaultValue");
+      if (DataType != null) {
+        DefaultValue = jNode.Get("defaultValue", DataType.ClrType);
+      }
       IsPartOfKey = jNode.Get<bool>("isPartOfKey", false);
       IsUnmapped = jNode.Get<bool>("isUnmapped", false);
       ConcurrencyMode = (ConcurrencyMode) Enum.Parse(typeof(ConcurrencyMode), jNode.Get<String>("conncurrencyMode", ConcurrencyMode.None.ToString()));

@@ -1,9 +1,11 @@
 ﻿using Breeze.Core;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Breeze.NetClient {
@@ -22,15 +24,39 @@ namespace Breeze.NetClient {
       _jo = jo;
     }
 
-    public JNode(String text) {
-      _jo = JObject.Parse(text);
+    public JNode(String json) {
+      // _jo = JObject.Parse(text);
+      _jo = Parse(json);
+    }
+    
+    // needed because we need to set the DateParseHandling to work with DataTimeOffsets
+    public static new JObject Parse(string json)     {
+      var reader = (JsonReader)new JsonTextReader(new StringReader(json));
+      reader.DateParseHandling = DateParseHandling.DateTimeOffset;
+      var jobject = JObject.Load(reader);
+      if (reader.Read() && reader.TokenType != JsonToken.Comment)
+          JObject.Parse(json);
+      return jobject;
+    }
+
+    public Object Get(String propName, Type objectType) {
+      var prop = _jo.Property(propName);
+      if (prop == null) return null;
+      var val = prop.Value.ToObject(objectType);
+      if (val is DateTimeOffset) {
+        var test = val;
+      }
+      return val;
     }
 
     public T Get<T>(String propName, T defaultValue = default(T)) {
       var prop = _jo.Property(propName);
       if (prop == null) return defaultValue;
-      return prop.Value.ToObject<T>();
-
+      var val = prop.Value.ToObject<T>();
+      if (val is DateTimeOffset) {
+        var test = val;
+      }
+      return val;
     }
 
     private T GetToken<T>(String propName ) where T: JToken {
@@ -91,10 +117,15 @@ namespace Breeze.NetClient {
       return rmap;
     }
 
-    public void Add(String propName, Object value, Object defaultValue = null) {
-      if (value == defaultValue) return;
+    public void Add(String propName, Object value, Object defaultValue=null) {
+      if (value == null) return;
       if (value != null && value.Equals(defaultValue)) return;
-      _jo.Add(new JProperty(propName, CvtValue(value)));
+      Object val;
+      if (value is DateTimeOffset) {
+        var dummy = value;        
+      }
+      _jo.Add(propName, new JValue(value));
+      
     }
 
     public void AddArray(String propName, IEnumerable items) {
@@ -305,20 +336,24 @@ namespace Breeze.NetClient {
     private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
   }
 
-  //public static class JsonFns {
+  public static class JsonFns {
 
-  //  public static JsonSerializerSettings GetSerializerSettings(EntityManager em) {
-  //    var settings = new JsonSerializerSettings() {
-  //      NullValueHandling = NullValueHandling.Include,
-  //      PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-  //      ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
-  //      TypeNameHandling = TypeNameHandling.Objects,
-  //      TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
-  //    };
-  //    settings.Converters.Add(new JsonEntityConverter(em));
-  //    return settings;
-  //  }
-  //}
+    public static JsonSerializerSettings SerializerSettings {
+      get {
+        var settings = new JsonSerializerSettings() {
+
+          //NullValueHandling = NullValueHandling.Include,
+          //PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+          //ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+          //TypeNameHandling = TypeNameHandling.Objects,
+          //TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
+        };
+        settings.Converters.Add(new IsoDateTimeConverter());
+        // settings.Converters.Add(new JsonEntityConverter(em));
+        return settings;
+      }
+    }
+  }
 
 }
 

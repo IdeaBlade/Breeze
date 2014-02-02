@@ -294,8 +294,7 @@ namespace Breeze.NetClient {
           InitializeEntityKey(aspect);
         }
 
-        // TODO:
-        // handle mergeStrategy here
+        // TODO: handle mergeStrategy here
         
         AttachEntityAspect(aspect, entityState);
         
