@@ -1,6 +1,4 @@
 ﻿using Breeze.Core;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +10,11 @@ namespace Breeze.NetClient {
   // This class is ThreadSafe
   // and every object returned by it is immutable after being associated with this class.
 
-  public class MetadataStore {
+  public class MetadataStore : IJsonSerializable {
 
     #region Ctor related 
 
-    internal MetadataStore() { }
+    public MetadataStore() { }
      // Explicit static constructor to tell C# compiler
     // not to mark type as beforefieldinit
     static MetadataStore() {     }
@@ -182,19 +180,38 @@ namespace Breeze.NetClient {
     }
 
     public String ExportMetadata() {
-      return ToJObject().ToString(Formatting.Indented);
+      return ((IJsonSerializable) this).ToJNode().ToJson();
     }
 
-    public JObject ToJObject() {
-      var jo =  new JObject(); 
-      jo.AddProperty("metadataVersion", MetadataVersion);
-      // jo.AddProperty("name", this.Name);
-      jo.AddProperty("namingConvention", this.NamingConvention.Name);
+    public void ImportMetadata(String metadata) {
+      var jNode = new JNode(metadata);
+      ((IJsonSerializable)this).FromJNode(jNode);
+    }
+
+    JNode IJsonSerializable.ToJNode() {
+      var jo =  new JNode(); 
+      jo.Add("metadataVersion", MetadataVersion);
+      // jo.Add("name", this.Name);
+      jo.Add("namingConvention", this.NamingConvention.Name);
       // jo.AddProperty("localQueryComparisonOptions", this.LocalQueryComparisonOptions);
-      jo.AddArrayProperty("dataServices", this._dataServiceMap.Values);
-      jo.AddArrayProperty("structuralTypes", this._structuralTypes);
-      jo.AddMapProperty("resourceEntityTypeMap", this._resourceNameEntityTypeMap);
+      jo.AddArray("dataServices", this._dataServiceMap.Values);
+      jo.AddArray("structuralTypes", this._structuralTypes);
+      jo.AddMap("resourceEntityTypeMap", this._resourceNameEntityTypeMap);
       return jo;
+    }
+
+    void IJsonSerializable.FromJNode(JNode jNode) {
+      MetadataVersion = jNode.Get<String>("metadataVersion");
+      // Name
+      NamingConvention = NamingConvention.FromName(jNode.Get<String>("namingConvention"));
+      // localQueryComparisonOptions
+      jNode.GetObjectArray<DataService>("dataServices").ForEach(ds => {
+        _dataServiceMap.Add(ds.ServiceName, ds);
+      });
+      var stypes = jNode.GetObjectArray<StructuralType>("structuralTypes", 
+        jn => jn.Get<bool>("isComplexType", false) ? (StructuralType) new ComplexType() : (StructuralType) new EntityType());
+      stypes.ForEach(st => _structuralTypes.Add(st));
+      jNode.GetMap<String>("resourceEntityTypeMap").ForEach(kvp => _resourceNameEntityTypeMap.Add(kvp.Key, kvp.Value));
     }
        
 

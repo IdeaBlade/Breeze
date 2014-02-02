@@ -1,9 +1,5 @@
 ﻿using Breeze.Core;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace Breeze.NetClient {
 
@@ -38,25 +34,34 @@ namespace Breeze.NetClient {
       this.RawTypeName = dp.RawTypeName;
     }
 
-    JObject IJsonSerializable.ToJObject() {
-      var jo = new JObject();
-      jo.AddProperty("name", this.Name);
-      jo.AddProperty("dataType", (this.DataType != null && this.ComplexType == null) ? this.DataType.Name : null); // do not serialize complexTypename here
-      jo.AddProperty("isNullable", this.IsNullable, true);
-      jo.AddProperty("defaultValue", this.DefaultValue );
-      jo.AddProperty("isPartOfKey", this.IsPartOfKey, false);
-      jo.AddProperty("isUnmapped", this.IsUnmapped, false);
-      jo.AddProperty("concurrencyMode", this.ConcurrencyMode == ConcurrencyMode.None ? null : this.ConcurrencyMode.ToString());
-      jo.AddProperty("maxLength", this.MaxLength);
+    JNode IJsonSerializable.ToJNode() {
+      var jo = new JNode();
+      jo.Add("name", this.Name);
+      jo.Add("dataType", (this.DataType != null && this.ComplexType == null) ? this.DataType.Name : null); // do not serialize complexTypename here
+      jo.Add("isNullable", this.IsNullable, true);
+      jo.Add("defaultValue", this.DefaultValue );
+      jo.Add("isPartOfKey", this.IsPartOfKey, false);
+      jo.Add("isUnmapped", this.IsUnmapped, false);
+      jo.Add("concurrencyMode", this.ConcurrencyMode == ConcurrencyMode.None ? null : this.ConcurrencyMode.ToString());
+      jo.Add("maxLength", this.MaxLength);
       // jo.AddArrayProperty("validators", this.Validators);
-      jo.AddProperty("enumType", this.EnumTypeName);
-      jo.AddProperty("isScalar", this.IsScalar, true);
+      jo.Add("enumType", this.EnumTypeName);
+      jo.Add("isScalar", this.IsScalar, true);
       // jo.AddProperty("custom", this.Custom.ToJObject)
       return jo;
     }
 
-    object IJsonSerializable.FromJObject(JObject jObject) {
-      throw new NotImplementedException();
+    void IJsonSerializable.FromJNode(JNode jNode) {
+      Name = jNode.Get<String>("name");
+      DataType = DataType.FromName(jNode.Get<String>("dataType"));
+      IsNullable = jNode.Get<bool>("isNullable", true);
+      DefaultValue = jNode.Get<Object>("defaultValue");
+      IsPartOfKey = jNode.Get<bool>("isPartOfKey", false);
+      IsUnmapped = jNode.Get<bool>("isUnmapped", false);
+      ConcurrencyMode = (ConcurrencyMode) Enum.Parse(typeof(ConcurrencyMode), jNode.Get<String>("conncurrencyMode", ConcurrencyMode.None.ToString()));
+      MaxLength = jNode.Get<int?>("maxLength");
+      EnumTypeName = jNode.Get<String>("enumType");
+      IsScalar = jNode.Get<bool>("isScalar", true);
     }
 
     public DataType DataType { get; internal set; }

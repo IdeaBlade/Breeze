@@ -1,7 +1,5 @@
 ﻿using Breeze.Core;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -28,21 +26,28 @@ namespace Breeze.NetClient {
       this._invForeignKeyNamesOnServer = np._invForeignKeyNamesOnServer;
     }
 
-    JObject IJsonSerializable.ToJObject() {
-      var jo = new JObject();
-      jo.AddProperty("name", this.Name);
-      jo.AddProperty("entityTypeName", this.EntityTypeName);
-      jo.AddProperty("isScalar", this.IsScalar);
-      jo.AddProperty("associationName", this.AssociationName);
-      // jo.AddArrayProperty("validators", this.Validators);
-      jo.AddArrayProperty("foreignKeyNames", this.ForeignKeyNames);
-      jo.AddArrayProperty("invForeignKeyNames", this.InvForeignKeyNames);
-      // jo.AddProperty("custom", this.Custom.ToJObject)
+    JNode IJsonSerializable.ToJNode() {
+      var jo = new JNode();
+      jo.Add("name", this.Name);
+      jo.Add("entityTypeName", this.EntityTypeName);
+      jo.Add("isScalar", this.IsScalar);
+      jo.Add("associationName", this.AssociationName);
+      // jo.AddArray("validators", this.Validators);
+      jo.AddArray("foreignKeyNames", this.ForeignKeyNames);
+      jo.AddArray("invForeignKeyNames", this.InvForeignKeyNames);
+      // jo.Add("custom", this.Custom.ToJObject)
       return jo;
     }
 
-    object IJsonSerializable.FromJObject(JObject jObject) {
-      throw new NotImplementedException();
+    void IJsonSerializable. FromJNode(JNode jNode) {
+      Name = jNode.Get<String>("name");
+      EntityTypeName = jNode.Get<String>("entityTypeName");
+      IsScalar = jNode.Get<bool>("isScalar", true);
+      AssociationName = jNode.Get<String>("associationName");
+      // _validators.AddRange()
+      _foreignKeyNames.AddRange(jNode.GetSimpleArray<String>("foreignKeyNames"));
+      _invForeignKeyNames.AddRange(jNode.GetSimpleArray<String>("invForeignKeyNames"));
+      // custom
     }
 
     public EntityType EntityType { get; internal set; }

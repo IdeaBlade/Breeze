@@ -9,39 +9,118 @@ using System.Linq;
 namespace Breeze.NetClient {
 
   public interface IJsonSerializable {
-    JObject ToJObject();
-    Object FromJObject(JObject jObject);
+    JNode ToJNode();
+    void FromJNode(JNode jNode);
   }
 
-  public static class Json {
-    
-    public static void AddProperty(this JObject jObject, String propName, Object value, Object defaultValue = null) {
-      if (value == defaultValue) return;
-      if (value != null && value.Equals(defaultValue)) return;
-      jObject.Add(new JProperty(propName, CvtValue(value)));
+  public class JNode {
+    public JNode() {
+      _jo = new JObject();
     }
 
-    public static void AddArrayProperty(this JObject jObject, String propName, IEnumerable items) {
+    public JNode(JObject jo) {
+      _jo = jo;
+    }
+
+    public JNode(String text) {
+      _jo = JObject.Parse(text);
+    }
+
+    public T Get<T>(String propName, T defaultValue = default(T)) {
+      var val = _jo.Value<T>(propName);
+      if (val == null || val.Equals(default(T))) {
+        return defaultValue;
+      } else {
+        return val;
+      }
+    }
+
+    public TEnum GetEnum<TEnum>(String propName, TEnum defaultValue = default(TEnum)) {
+      var val = _jo.Value<String>(propName);
+      if (val == null) {
+        return defaultValue;
+      } else {
+        return (TEnum)Enum.Parse(typeof(TEnum), val);
+      }
+    }
+
+    // for non newable types like String, Int etc..
+    public IEnumerable<T> GetSimpleArray<T>(String propName)  {
+      var items = Get<JArray>(propName);
+      if (items == null) {
+        return Enumerable.Empty<T>();
+      } else {
+        return items.Select(item => {
+          return item.Value<T>();
+        });
+      }
+    }
+
+    public IEnumerable<T> GetObjectArray<T>(String propName) where T : new() {
+      return GetObjectArray<T>(propName, (jn) => new T());
+    }
+
+    public IEnumerable<T> GetObjectArray<T>(String propName, Func<JNode, T> ctorFn) {
+      var items = Get<JArray>(propName);
+      if (items == null) {
+        return Enumerable.Empty<T>();
+      } else {
+        return items.Select(item => {
+          T t;
+          var jNode = new JNode((JObject)item);
+          t = ctorFn(jNode);
+
+          ((IJsonSerializable)t).FromJNode(jNode);
+          return t;
+        });
+      }
+    }
+
+    public IDictionary<String, T> GetMap<T>(String propName) {
+      var rmap = new Dictionary<String, T>();
+      var map = (JObject) Get<JObject>(propName);
+      // map.ForEach(kvp => rmap.Add(kvp.Key.Value<T1>(), kvp.K ))
+      foreach (var kvp in map) {
+        rmap.Add(kvp.Key, kvp.Value.Value<T>());
+      }
+      return rmap;
+    }
+
+    public void Add(String propName, Object value, Object defaultValue = null) {
+      if (value == defaultValue) return;
+      if (value != null && value.Equals(defaultValue)) return;
+      _jo.Add(new JProperty(propName, CvtValue(value)));
+    }
+
+    public void AddArray(String propName, IEnumerable items) {
       var objs = items.Cast<Object>();
       if (!objs.Any()) return;
       var ja = new JArray();
       objs.ForEach(v => ja.Add(CvtValue(v)));
 
-      jObject.Add(new JProperty(propName, ja));
+      _jo.Add(new JProperty(propName, ja));
     }
 
-    public static void AddMapProperty<T>(this JObject jObject, String propName, IDictionary<String, T> map) {
+    public void AddMap<T>(String propName, IDictionary<String, T> map) {
       if (!map.Any()) return;
       var jo = new JObject();
-      map.ForEach(kvp => jo.AddProperty(kvp.Key, CvtValue(kvp.Value)));
+      map.ForEach(kvp => Add(kvp.Key, CvtValue(kvp.Value)));
 
-      jObject.Add(new JProperty(propName, jo));
+      _jo.Add(new JProperty(propName, jo));
     }
 
+    public String ToJson() {
+      // TODO: change to Formatting.None in production
+      return _jo.ToString(Formatting.Indented);
+    }
+
+    // returns either a simple value or a JObject
     private static Object CvtValue(Object value) {
       var js = value as IJsonSerializable;
-      return (js == null) ? value : (Object) js.ToJObject();
+      return (js == null) ? value : (Object) js.ToJNode()._jo;
     }
+
+    private JObject _jo;
   }
 
   public class JsonEntityConverter : JsonConverter {

@@ -22,22 +22,22 @@ namespace Test_NetClient {
 
     [TestInitialize]
     public void TestInitializeMethod() {
-      _emTask = SetUpAsync();
+      // _emTask = SetUpAsync();
     }
 
-    public async Task<EntityManager> SetUpAsync() {
-      ////var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-      
-      ////if (__metadataStore == null) {
-      ////  _em1 = new EntityManager(serviceName);
-      ////  await _em1.FetchMetadata();
-      ////  __metadataStore = _em1.MetadataStore;
-      ////} else {
-      ////  _em1 = new EntityManager(serviceName, __metadataStore);
-      ////}
-      ////return _em1;
-      return null;
-    }
+    //public async Task<EntityManager> SetUpAsync() {
+    //  var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
+
+    //  if (__metadataStore == null) {
+    //    _em1 = new EntityManager(serviceName);
+    //    await _em1.FetchMetadata();
+    //    __metadataStore = _em1.MetadataStore;
+    //  } else {
+    //    _em1 = new EntityManager(serviceName, __metadataStore);
+    //  }
+    //  return _em1;
+    //  return null;
+    //}
 
     [TestCleanup]
     public void TearDown() {
@@ -52,7 +52,9 @@ namespace Test_NetClient {
       await MetadataStore.Instance.FetchMetadata(dataService);
 
       var metadata = MetadataStore.Instance.ExportMetadata();
-      
+
+      var newMs = new MetadataStore();
+      newMs.ImportMetadata(metadata);
     
     }
 

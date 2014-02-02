@@ -1,14 +1,15 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
   public class DataService : IJsonSerializable {
+
+    public DataService() {
+
+    }
 
     public DataService(String serviceName) {
       ServiceName = serviceName;
@@ -44,26 +45,32 @@ namespace Breeze.NetClient {
         var result = await response.Content.ReadAsStringAsync();
         return result;
       } catch (HttpRequestException ex) {
+        Debug.WriteLine(ex.Message);
         throw;
       } catch (Exception e) {
+        Debug.WriteLine(e.Message);
         throw;
       } finally {
 
       }
     }
 
-    JObject IJsonSerializable.ToJObject() {
-      var jo = new JObject();
-      jo.AddProperty("serviceName", this.ServiceName);
-      jo.AddProperty("adapterName", this.Adapter == null ? null : this.Adapter.Name);
-      jo.AddProperty("hasServerMetadata", this.HasServerMetadata);
-      jo.AddProperty("jsonResultsAdapter", this.JsonResultsAdapter == null ? null : this.JsonResultsAdapter.Name);
-      jo.AddProperty("useJsonp", this.UseJsonP);
+    JNode IJsonSerializable.ToJNode() {
+      var jo = new JNode();
+      jo.Add("serviceName", this.ServiceName);
+      jo.Add("adapterName", this.Adapter == null ? null : this.Adapter.Name);
+      jo.Add("hasServerMetadata", this.HasServerMetadata);
+      jo.Add("jsonResultsAdapter", this.JsonResultsAdapter == null ? null : this.JsonResultsAdapter.Name);
+      jo.Add("useJsonp", this.UseJsonP);
       return jo;
     }
 
-    object IJsonSerializable.FromJObject(JObject jObject) {
-      throw new NotImplementedException();
+    void IJsonSerializable.FromJNode(JNode jNode) {
+      ServiceName = jNode.Get<String>("serviceName");
+      // Adapter = null;
+      HasServerMetadata = jNode.Get<bool>("hasServerMetadata");
+      // JsonResultsAdapter
+      UseJsonP = jNode.Get<bool>("useJsonp");
     }
 
     private HttpClient _client;
