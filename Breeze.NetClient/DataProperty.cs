@@ -1,8 +1,5 @@
 ﻿using Breeze.Core;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace Breeze.NetClient {
 
@@ -14,12 +11,13 @@ namespace Breeze.NetClient {
     
   }
 
-  public class DataProperty : StructuralProperty {
+  public class DataProperty : StructuralProperty, IJsonSerializable {
     public DataProperty() {
 
     }
 
-    public DataProperty(DataProperty dp) : base(dp) {
+    public DataProperty(DataProperty dp)
+      : base(dp) {
 
       this.DataType = dp.DataType;
       this.DefaultValue = dp.DefaultValue;
@@ -35,6 +33,44 @@ namespace Breeze.NetClient {
       this.MaxLength = dp.MaxLength;
       this.EnumTypeName = dp.EnumTypeName;
       this.RawTypeName = dp.RawTypeName;
+    }
+
+
+
+    JNode IJsonSerializable.ToJNode() {
+      var jo = new JNode();
+      jo.Add("name", this.Name);
+      jo.Add("dataType", this.DataType != null ? this.DataType.Name : null); 
+      jo.Add("complexTypeName", this.ComplexType != null ? this.ComplexType.Name : null );
+      jo.Add("isNullable", this.IsNullable, true);
+      jo.Add("defaultValue", this.DefaultValue );
+      jo.Add("isPartOfKey", this.IsPartOfKey, false);
+      jo.Add("isUnmapped", this.IsUnmapped, false);
+      jo.Add("concurrencyMode", this.ConcurrencyMode == ConcurrencyMode.None ? null : this.ConcurrencyMode.ToString());
+      jo.Add("maxLength", this.MaxLength);
+      // jo.AddArrayProperty("validators", this.Validators);
+      jo.Add("enumType", this.EnumTypeName);
+      jo.Add("isScalar", this.IsScalar, true);
+      // jo.AddProperty("custom", this.Custom.ToJObject)
+      return jo;
+    }
+
+    void IJsonSerializable.FromJNode(JNode jNode) {
+      Name = jNode.Get<String>("name");
+      ComplexTypeName = jNode.Get<String>("complexTypeName");
+      if (ComplexTypeName == null) {
+        DataType = DataType.FromName(jNode.Get<String>("dataType"));
+      }
+      IsNullable = jNode.Get<bool>("isNullable", true);
+      if (DataType != null) {
+        DefaultValue = jNode.Get("defaultValue", DataType.ClrType);
+      }
+      IsPartOfKey = jNode.Get<bool>("isPartOfKey", false);
+      IsUnmapped = jNode.Get<bool>("isUnmapped", false);
+      ConcurrencyMode = (ConcurrencyMode) Enum.Parse(typeof(ConcurrencyMode), jNode.Get<String>("conncurrencyMode", ConcurrencyMode.None.ToString()));
+      MaxLength = jNode.Get<int?>("maxLength");
+      EnumTypeName = jNode.Get<String>("enumType");
+      IsScalar = jNode.Get<bool>("isScalar", true);
     }
 
     public DataType DataType { get; internal set; }

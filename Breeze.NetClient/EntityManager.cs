@@ -16,10 +16,10 @@ namespace Breeze.NetClient {
     /// 
     /// </summary>
     /// <param name="serviceName">"http://localhost:9000/"</param>
-    public EntityManager(String serviceName, MetadataStore metadataStore = null) {
+    public EntityManager(String serviceName) {
       DefaultDataService = new DataService(serviceName);
       DefaultMergeStrategy = MergeStrategy.PreserveChanges;
-      
+      MetadataStore = MetadataStore.Instance;
       KeyGenerator = new DefaultKeyGenerator();
       Initialize();
     }
@@ -46,7 +46,8 @@ namespace Breeze.NetClient {
     public DataService DefaultDataService { get; private set; }
 
     public MetadataStore MetadataStore {
-      get { return MetadataStore.Instance; }
+      get;
+      private set;
     }
 
     public MergeStrategy DefaultMergeStrategy { get; private set; }
@@ -57,10 +58,9 @@ namespace Breeze.NetClient {
 
     #region async methods
 
-    public async Task<String> FetchMetadata(DataService dataService = null) {
+    public async Task<DataService> FetchMetadata(DataService dataService = null) {
       dataService = dataService != null ? dataService : this.DefaultDataService;
-      var metadata = await MetadataStore.FetchMetadata(dataService);
-      return metadata;
+      return await MetadataStore.FetchMetadata(dataService);
     }
 
     public async Task<IEnumerable<T>> ExecuteQuery<T>(EntityQuery<T> query) {
@@ -294,8 +294,7 @@ namespace Breeze.NetClient {
           InitializeEntityKey(aspect);
         }
 
-        // TODO:
-        // handle mergeStrategy here
+        // TODO: handle mergeStrategy here
         
         AttachEntityAspect(aspect, entityState);
         

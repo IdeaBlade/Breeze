@@ -7,8 +7,13 @@ using System.Threading.Tasks;
 namespace Breeze.NetClient {
   public class NamingConvention {
 
+    public static List<NamingConvention> __namingConventions = new List<NamingConvention>();
+
     public NamingConvention(String name) {
       Name = name;
+      lock (__namingConventions) {
+        __namingConventions.Add(this);
+      }
     }
 
     public String Name { get; protected set; }
@@ -23,6 +28,12 @@ namespace Breeze.NetClient {
 
     public static NamingConvention Default = new NamingConvention("Default");
     public static NamingConvention CamelCase = new CamelCaseNamingConvention();
+
+    public static NamingConvention FromName(String name) {
+      lock (__namingConventions) {
+        return __namingConventions.FirstOrDefault(nc => nc.Name == name);
+      }
+    }
 
     public String Test(String testVal, bool toServer) {
       Func<String, String> fn1;

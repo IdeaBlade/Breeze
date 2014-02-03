@@ -1,6 +1,5 @@
 ﻿using Breeze.Core;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -12,7 +11,7 @@ namespace Breeze.NetClient {
     }
   }
 
-  public class NavigationProperty : StructuralProperty {
+  public class NavigationProperty : StructuralProperty, IJsonSerializable {
     public NavigationProperty() {
 
     }
@@ -25,6 +24,30 @@ namespace Breeze.NetClient {
       this._foreignKeyNamesOnServer = np._foreignKeyNamesOnServer;
       this._invForeignKeyNames = np._invForeignKeyNames;
       this._invForeignKeyNamesOnServer = np._invForeignKeyNamesOnServer;
+    }
+
+    JNode IJsonSerializable.ToJNode() {
+      var jo = new JNode();
+      jo.Add("name", this.Name);
+      jo.Add("entityTypeName", this.EntityTypeName);
+      jo.Add("isScalar", this.IsScalar);
+      jo.Add("associationName", this.AssociationName);
+      // jo.AddArray("validators", this.Validators);
+      jo.AddArray("foreignKeyNames", this.ForeignKeyNames);
+      jo.AddArray("invForeignKeyNames", this.InvForeignKeyNames);
+      // jo.Add("custom", this.Custom.ToJObject)
+      return jo;
+    }
+
+    void IJsonSerializable. FromJNode(JNode jNode) {
+      Name = jNode.Get<String>("name");
+      EntityTypeName = jNode.Get<String>("entityTypeName");
+      IsScalar = jNode.Get<bool>("isScalar", true);
+      AssociationName = jNode.Get<String>("associationName");
+      // _validators.AddRange()
+      _foreignKeyNames.AddRange(jNode.GetSimpleArray<String>("foreignKeyNames"));
+      _invForeignKeyNames.AddRange(jNode.GetSimpleArray<String>("invForeignKeyNames"));
+      // custom
     }
 
     public EntityType EntityType { get; internal set; }

@@ -1,12 +1,37 @@
-﻿using System;
+﻿using Breeze.Core;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Breeze.NetClient {
 
-  public class ComplexType: StructuralType {
+  public class ComplexType: StructuralType, IJsonSerializable {
     
     public override bool IsEntityType {
       get { return false; }
+    }
+
+    JNode IJsonSerializable.ToJNode() {
+      var jo = new JNode();
+      jo.Add("shortName", this.ShortName);
+      jo.Add("namespace", this.Namespace);
+      jo.Add("isComplexType", true);
+      // jo.AddProperty("baseTypeName", this.BaseTypeName);
+      // jo.AddProperty("isAbstract", this.IsAbstract, false);
+      jo.AddArray("dataProperties", this.DataProperties.Where(dp => dp.IsInherited == false));
+      // jo.AddArrayProperty("validators", this.Validators);
+      // jo.AddProperty("custom", this.Custom.ToJObject)
+      return jo;
+    }
+
+    void IJsonSerializable.FromJNode(JNode jNode) {
+      ShortName = jNode.Get<String>("shortName");
+      Namespace = jNode.Get<String>("namespace");
+      // BaseTypeName = jnode.Get<String>("baseTypeName");
+      // IsAbstract = jnode.Get<bool>("isAbstract");
+      jNode.GetObjectArray<DataProperty>("dataProperties").ForEach(dp => AddDataProperty(dp));
+      // validators
+      // custom
     }
    
   }

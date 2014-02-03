@@ -25,6 +25,7 @@ Think about
 -------------
 Enum for flags like InProcess, IsLoading etc ( probably not a good idea for booleans that have a concept of inheritance)
 Test the incoming Metadata to insure that it matches the Clr descriptions.
+If moving MetadataInfo from .NET to JS and back NamingConventions are likely not compatible - so what do we do ???
 
 
 

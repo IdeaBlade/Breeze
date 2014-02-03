@@ -1,11 +1,163 @@
 ﻿using Breeze.Core;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Breeze.NetClient {
+
+  public interface IJsonSerializable {
+    JNode ToJNode();
+    void FromJNode(JNode jNode);
+  }
+
+  public class JNode {
+    public JNode() {
+      _jo = new JObject();
+    }
+
+    public JNode(JObject jo) {
+      _jo = jo;
+    }
+
+    public JNode(String json) {
+      // _jo = JObject.Parse(text);
+      _jo = Parse(json);
+    }
+    
+    // needed because we need to set the DateParseHandling to work with DataTimeOffsets
+    public static new JObject Parse(string json)     {
+      var reader = (JsonReader)new JsonTextReader(new StringReader(json));
+      reader.DateParseHandling = DateParseHandling.DateTimeOffset;
+      var jobject = JObject.Load(reader);
+      if (reader.Read() && reader.TokenType != JsonToken.Comment)
+          JObject.Parse(json);
+      return jobject;
+    }
+
+    public Object Get(String propName, Type objectType) {
+      var prop = _jo.Property(propName);
+      if (prop == null) return null;
+      var val = prop.Value.ToObject(objectType);
+      if (val is DateTimeOffset) {
+        var test = val;
+      }
+      return val;
+    }
+
+    public T Get<T>(String propName, T defaultValue = default(T)) {
+      var prop = _jo.Property(propName);
+      if (prop == null) return defaultValue;
+      var val = prop.Value.ToObject<T>();
+      if (val is DateTimeOffset) {
+        var test = val;
+      }
+      return val;
+    }
+
+    private T GetToken<T>(String propName ) where T: JToken {
+      var prop = _jo.Property(propName);
+      if (prop == null) return null;
+      return (T)prop.Value;
+
+    }
+
+    public TEnum GetEnum<TEnum>(String propName, TEnum defaultValue = default(TEnum)) {
+      var val = Get<String>(propName);
+      if (val == null) {
+        return defaultValue;
+      } else {
+        return (TEnum)Enum.Parse(typeof(TEnum), val);
+      }
+    }
+
+    // for non newable types like String, Int etc..
+    public IEnumerable<T> GetSimpleArray<T>(String propName)  {
+      var items = GetToken<JArray>(propName);
+      if (items == null) {
+        return Enumerable.Empty<T>();
+      } else {
+        return items.Select(item => {
+          return item.Value<T>();
+        });
+      }
+    }
+
+    public IEnumerable<T> GetObjectArray<T>(String propName) where T : new() {
+      return GetObjectArray<T>(propName, (jn) => new T());
+    }
+
+    public IEnumerable<T> GetObjectArray<T>(String propName, Func<JNode, T> ctorFn) {
+      var items = GetToken<JArray>(propName);
+      if (items == null) {
+        return Enumerable.Empty<T>();
+      } else {
+        return items.Select(item => {
+          T t;
+          var jNode = new JNode((JObject)item);
+          t = ctorFn(jNode);
+
+          ((IJsonSerializable)t).FromJNode(jNode);
+          return t;
+        });
+      }
+    }
+
+    public IDictionary<String, T> GetMap<T>(String propName) {
+      var rmap = new Dictionary<String, T>();
+      var map = (JObject) GetToken<JObject>(propName);
+      // map.ForEach(kvp => rmap.Add(kvp.Key.Value<T1>(), kvp.K ))
+      foreach (var kvp in map) {
+        rmap.Add(kvp.Key, kvp.Value.Value<T>());
+      }
+      return rmap;
+    }
+
+    public void Add(String propName, Object value, Object defaultValue=null) {
+      if (value == null) return;
+      if (value != null && value.Equals(defaultValue)) return;
+      Object val;
+      if (value is DateTimeOffset) {
+        var dummy = value;        
+      }
+      _jo.Add(propName, new JValue(value));
+      
+    }
+
+    public void AddArray(String propName, IEnumerable items) {
+      var objs = items.Cast<Object>();
+      if (!objs.Any()) return;
+      var ja = new JArray();
+      objs.ForEach(v => ja.Add(CvtValue(v)));
+
+      _jo.Add(new JProperty(propName, ja));
+    }
+
+    public void AddMap<T>(String propName, IDictionary<String, T> map) {
+      if (!map.Any()) return;
+      var jn = new JNode();
+      map.ForEach(kvp => jn.Add(kvp.Key, CvtValue(kvp.Value)));
+
+      _jo.Add(new JProperty(propName, jn._jo));
+    }
+
+    public String ToJson() {
+      // TODO: change to Formatting.None in production
+      return _jo.ToString(Formatting.Indented);
+    }
+
+    // returns either a simple value or a JObject
+    private static Object CvtValue(Object value) {
+      var js = value as IJsonSerializable;
+      return (js == null) ? value : (Object) js.ToJNode()._jo;
+    }
+
+    private JObject _jo;
+  }
 
   public class JsonEntityConverter : JsonConverter {
   
@@ -184,20 +336,24 @@ namespace Breeze.NetClient {
     private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
   }
 
-  //public static class JsonFns {
+  public static class JsonFns {
 
-  //  public static JsonSerializerSettings GetSerializerSettings(EntityManager em) {
-  //    var settings = new JsonSerializerSettings() {
-  //      NullValueHandling = NullValueHandling.Include,
-  //      PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-  //      ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
-  //      TypeNameHandling = TypeNameHandling.Objects,
-  //      TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
-  //    };
-  //    settings.Converters.Add(new JsonEntityConverter(em));
-  //    return settings;
-  //  }
-  //}
+    public static JsonSerializerSettings SerializerSettings {
+      get {
+        var settings = new JsonSerializerSettings() {
+
+          //NullValueHandling = NullValueHandling.Include,
+          //PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+          //ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+          //TypeNameHandling = TypeNameHandling.Objects,
+          //TypeNameAssemblyFormat = FormatterAssemblyStyle.Simple,
+        };
+        settings.Converters.Add(new IsoDateTimeConverter());
+        // settings.Converters.Add(new JsonEntityConverter(em));
+        return settings;
+      }
+    }
+  }
 
 }
 

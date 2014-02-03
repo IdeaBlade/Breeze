@@ -28,7 +28,7 @@ namespace Test_NetClient {
         await _em1.FetchMetadata();
         __metadataStore = _em1.MetadataStore;
       } else {
-        _em1 = new EntityManager(serviceName, __metadataStore);
+        _em1 = new EntityManager(serviceName);
       }
       return _em1;
       

@@ -10,7 +10,7 @@ namespace Breeze.NetClient {
   // This class is ThreadSafe
   // and every object returned by it is immutable after being associated with this class.
 
-  public class MetadataStore {
+  public class MetadataStore : IJsonSerializable {
 
     #region Ctor related 
 
@@ -21,13 +21,19 @@ namespace Breeze.NetClient {
 
     public static MetadataStore Instance {
       get {
-        return _instance;
+        return __instance;
       }
     }
 
-    private static readonly MetadataStore _instance = new MetadataStore();
+
+    private static MetadataStore __instance = new MetadataStore();
+    private static readonly Object __lock = new Object();
 
     #endregion
+
+    #region Public properties
+
+    public static String MetadataVersion = "1.0.3";
 
     public List<EntityType> EntityTypes {
       get {
@@ -58,33 +64,41 @@ namespace Breeze.NetClient {
       } 
     }
 
-    public async Task<String> FetchMetadata(DataService dataService) {
+    #endregion
+
+    #region Public methods
+
+    public static void Clear() {
+      lock (__lock) {
+        __instance = new MetadataStore();
+      }
+    }
+
+    public async Task<DataService> FetchMetadata(DataService dataService) {
       String serviceName;
       
       serviceName = dataService.ServiceName;
-      var metadata = GetDataService(serviceName);
-      if (metadata != null) return metadata;
-        
+      var ds = GetDataService(serviceName);
+      if (ds != null) return dataService;
 
       await _asyncSemaphore.WaitAsync();
 
       try {
-        metadata = GetDataService(serviceName);
-        if (metadata != null) return metadata;
+        ds = GetDataService(serviceName);
+        if (ds != null) return dataService;
 
-        metadata = await dataService.GetAsync("Metadata");
-
+        var metadata = await dataService.GetAsync("Metadata");
+        dataService.ServerMetadata = metadata;
         lock (_dataServiceMap) {
-          _dataServiceMap[serviceName] = metadata;
+          _dataServiceMap[serviceName] = dataService;
         }
         var metadataProcessor = new CsdlMetadataProcessor(this, metadata);
 
-        return metadata;
+        return dataService;
 
       } finally {
         _asyncSemaphore.Release();
       }
-
 
     }
 
@@ -139,26 +153,34 @@ namespace Breeze.NetClient {
       return complexType;
     }
 
-    public void SetDefaultResourceName(Type clrType, String resourceName) {
+    // TODO: think about name
+    public void AddResourceName(String resourceName, Type clrType, bool isDefault = false) {
       var entityType = GetEntityType(clrType);
-      SetDefaultResourceName(entityType, resourceName);
+      AddResourceName(resourceName, entityType);
     }
 
-    internal void SetDefaultResourceName(EntityType entityType, String resourceName) {
-      lock (_entityTypeResourceNameMap) {
-        _entityTypeResourceNameMap[entityType] = resourceName;
+    internal void AddResourceName(String resourceName, EntityType entityType, bool isDefault = false) {
+      lock (_defaultResourceNameMap) {
+        _resourceNameEntityTypeMap[resourceName] = entityType;
+        if (isDefault) {
+          _defaultResourceNameMap[entityType] = resourceName;
+        }
       }
     }
 
     public String GetDefaultResourceName(Type clrType) {
       var entityType = GetEntityType(clrType);
-      lock (_entityTypeResourceNameMap) {
+      return GetDefaultResourceName(entityType);
+    }
+
+    public  string GetDefaultResourceName(EntityType entityType) {
+      lock (_defaultResourceNameMap) {
         String resourceName = null;
         // give the type it's base's resource name if it doesn't have its own.
-        if (!_entityTypeResourceNameMap.TryGetValue(entityType, out resourceName)) {
-          var baseType = clrType.GetTypeInfo().BaseType;
-          if (baseType != null && baseType != typeof(Object)) {
-            return GetDefaultResourceName(clrType);
+        if (!_defaultResourceNameMap.TryGetValue(entityType, out resourceName)) {
+          var baseEntityType = entityType.BaseEntityType;
+          if (baseEntityType != null) {
+            return GetDefaultResourceName(baseEntityType);
           }
         }
         return resourceName;
@@ -169,9 +191,56 @@ namespace Breeze.NetClient {
       return typeof(IStructuralObject).IsAssignableFrom(clrType);
     }
 
+    public String ExportMetadata() {
+      return ((IJsonSerializable) this).ToJNode().ToJson();
+    }
+
+    public void ImportMetadata(String metadata) {
+      var jNode = new JNode(metadata);
+      ((IJsonSerializable)this).FromJNode(jNode);
+      EntityTypes.ForEach(et => ResolveComplexTypeRefs(et));
+    }
+
+    private void ResolveComplexTypeRefs(EntityType et) {
+      et.ComplexProperties.Where(cp => cp.ComplexType == null)
+        .ForEach(cp => cp.ComplexType = GetComplexType(cp.ComplexTypeName));
+    }
+
+    JNode IJsonSerializable.ToJNode() {
+      var jo =  new JNode(); 
+      jo.Add("metadataVersion", MetadataVersion);
+      // jo.Add("name", this.Name);
+      jo.Add("namingConvention", this.NamingConvention.Name);
+      // jo.AddProperty("localQueryComparisonOptions", this.LocalQueryComparisonOptions);
+      jo.AddArray("dataServices", this._dataServiceMap.Values);
+      jo.AddArray("structuralTypes", this._structuralTypes);
+      jo.AddMap("resourceEntityTypeMap", this._resourceNameEntityTypeMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Name));
+      return jo;
+    }
+
+    void IJsonSerializable.FromJNode(JNode jNode) {
+      MetadataVersion = jNode.Get<String>("metadataVersion");
+      // Name
+      NamingConvention = NamingConvention.FromName(jNode.Get<String>("namingConvention"));
+      // localQueryComparisonOptions
+      jNode.GetObjectArray<DataService>("dataServices").ForEach(ds => {
+        _dataServiceMap.Add(ds.ServiceName, ds);
+      });
+      var stypes = jNode.GetObjectArray<StructuralType>("structuralTypes", 
+        jn => jn.Get<bool>("isComplexType", false) ? (StructuralType) new ComplexType() : (StructuralType) new EntityType());
+      stypes.ForEach(st => _structuralTypes.Add(st));
+      jNode.GetMap<String>("resourceEntityTypeMap").ForEach(kvp => {
+        var et = GetEntityType(kvp.Value);
+        AddResourceName(kvp.Key, et);
+      });
+    }
+       
+
+    #endregion
+
     public static String ANONTYPE_PREFIX = "_IB_";
 
-    // Private and Internal --------------
+    #region Internal and Private methods
 
     internal Type GetClrTypeFor(StructuralType stType) {
       lock (_structuralTypes) {
@@ -209,7 +278,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    private String GetDataService(String serviceName) {
+    private DataService GetDataService(String serviceName) {
       lock (_dataServiceMap) {
         if (_dataServiceMap.ContainsKey(serviceName)) {
           return _dataServiceMap[serviceName];
@@ -221,7 +290,6 @@ namespace Breeze.NetClient {
 
     private void AddStructuralType(StructuralType stType) {
       lock (_structuralTypes) {
-        stType.MetadataStore = this;
         _clrTypeMap.GetClrType(stType);
         //// don't register anon types
         if (!stType.IsAnonymous) {
@@ -369,7 +437,9 @@ namespace Breeze.NetClient {
       }
     }
 
+    #endregion
 
+    #region Inner classes 
 
     // inner class
     internal class ClrTypeMap {
@@ -425,12 +495,15 @@ namespace Breeze.NetClient {
       }
     }
 
+    #endregion
+
+    #region Private vars 
 
     private readonly AsyncSemaphore _asyncSemaphore = new AsyncSemaphore(1);
     private Object _lock = new Object();
 
     // lock using _dataServiceMap
-    private Dictionary<String, String> _dataServiceMap = new Dictionary<String, string>();
+    private Dictionary<String, DataService> _dataServiceMap = new Dictionary<String, DataService>();
     private NamingConvention _namingConvention = NamingConvention.Default;
     // locked using _structuralTypes
     private ClrTypeMap _clrTypeMap = new ClrTypeMap();
@@ -440,9 +513,10 @@ namespace Breeze.NetClient {
     private Dictionary<String, List<DataProperty>> _incompleteComplexTypeMap = new Dictionary<String, List<DataProperty>>();   // key is typeName
 
     // locked using _resourceNameEntityTypeMap
-    private Dictionary<EntityType, String> _entityTypeResourceNameMap = new Dictionary<EntityType, string>();
-    private Dictionary<String, String> _resourceNameEntityTypeMap = new Dictionary<string, string>();
+    private Dictionary<EntityType, String> _defaultResourceNameMap = new Dictionary<EntityType, string>();
+    private Dictionary<String, EntityType> _resourceNameEntityTypeMap = new Dictionary<string, EntityType>();
 
+    #endregion
 
 
 
