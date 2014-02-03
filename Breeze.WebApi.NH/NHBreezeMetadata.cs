@@ -4,6 +4,7 @@ using NHibernate.Engine;
 using NHibernate.Id;
 using NHibernate.Mapping;
 using NHibernate.Metadata;
+using NHibernate.Persister.Collection;
 using NHibernate.Persister.Entity;
 using NHibernate.Type;
 using System;
@@ -389,15 +390,32 @@ namespace Breeze.WebApi.NH
             // the associationName must be the same at both ends of the association.
             nmap.Add("associationName", GetAssociationName(containingType.Name, relatedEntityType.Name, (propType is OneToOneType)));
 
-            // The foreign key columns usually applies for many-to-one and one-to-one associations
+            // look up the related foreign key name using the column name
+            Dictionary<string, object> relatedDataProperty = null;
+            string fkName = null;
+            if (relatedDataPropertyMap.TryGetValue(columnNames, out relatedDataProperty))
+            {
+                fkName = (string)relatedDataProperty["nameOnServer"];
+                if (propType.ForeignKeyDirection == ForeignKeyDirection.ForeignKeyFromParent)
+                {
+                    nmap.Add("foreignKeyNamesOnServer", new string[] { fkName });
+                }
+                else
+                {
+                    // inverse foreign key
+                    // many-to-many relationships do not have a direct connection on the client or in metadata
+                    var joinable = propType.GetAssociatedJoinable((ISessionFactoryImplementor)this._sessionFactory) as AbstractCollectionPersister;
+                    if (joinable == null || !joinable.IsManyToMany)
+                        nmap.Add("invForeignKeyNamesOnServer", new string[] { fkName });
+                }
+            }
+
+            // For many-to-one and one-to-one associations, save the relationship in _fkMap for re-establishing relationships during save
             if (!propType.IsCollectionType)
             {
                 var entityRelationship = pClass.EntityName + '.' + propName;
-                Dictionary<string, object> relatedDataProperty;
-                if (relatedDataPropertyMap.TryGetValue(columnNames, out relatedDataProperty))
+                if (relatedDataProperty != null)
                 {
-                    var fkName = (string) relatedDataProperty["nameOnServer"];
-                    nmap.Add("foreignKeyNamesOnServer", new string[] { fkName });
                     _fkMap.Add(entityRelationship, fkName);
                     if (isKey)
                     {
