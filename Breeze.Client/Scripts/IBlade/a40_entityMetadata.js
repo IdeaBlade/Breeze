@@ -751,7 +751,7 @@ var CsdlMetadataParser = (function () {
         __toArray(schemas).forEach(function (schema) {
             if (schema.cSpaceOSpaceMapping) {
                 // Web api only - not avail in OData.
-                var mappings = JSON.parse(schema.cSpaceOSpaceMapping);
+                var mappings = (typeof (schema.cSpaceOSpaceMapping) === "string") ? JSON.parse(schema.cSpaceOSpaceMapping) : schema.cSpaceOSpaceMapping;
                 var newMap = {};
                 mappings.forEach(function (mapping) {
                     newMap[mapping[0]] = mapping[1];
