@@ -18,8 +18,10 @@ import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.IdentityGenerator;
 import org.hibernate.mapping.*;
 import org.hibernate.metadata.*;
+import org.hibernate.persister.collection.AbstractCollectionPersister;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.persister.entity.Joinable;
 import org.hibernate.type.*;
 
 /**
@@ -435,15 +437,29 @@ public class MetadataBuilder {
         // the associationName must be the same at both ends of the association.
         nmap.put("associationName", getAssociationName(containingType.getSimpleName(), relatedEntityType.getSimpleName(), (propType instanceof OneToOneType)));
 
+        // look up the related foreign key using the column name
+        String fkName = null;
+        Map<String, Object> relatedDataProperty = relatedDataPropertyMap.get(columnNames);
+        if (relatedDataProperty != null) {
+        	fkName = (String) relatedDataProperty.get("nameOnServer");
+        	if (propType.getForeignKeyDirection() == ForeignKeyDirection.FOREIGN_KEY_FROM_PARENT) {
+                nmap.put("foreignKeyNamesOnServer", new String[] { fkName });
+        	} else {
+                // inverse foreign key
+                // many-to-many relationships do not have a direct connection on the client or in metadata
+        		Joinable joinable = propType.getAssociatedJoinable((SessionFactoryImplementor) _sessionFactory);
+        		if (!(joinable instanceof AbstractCollectionPersister && ((AbstractCollectionPersister)joinable).isManyToMany())) {
+                    nmap.put("invForeignKeyNamesOnServer", new String[] { fkName });
+        		}
+        	}
+        }
+        
         // The foreign key columns usually applies for many-to-one and one-to-one associations
         if (!propType.isCollectionType())
         {
             String entityRelationship = pClass.getEntityName() + '.' + propName;
-            HashMap<String, Object> relatedDataProperty = relatedDataPropertyMap.get(columnNames);
             if (relatedDataProperty != null)
             {
-                String fkName = (String) relatedDataProperty.get("nameOnServer");
-                nmap.put("foreignKeyNamesOnServer", new String[] { fkName });
                 _fkMap.put(entityRelationship, fkName);
                 if (isKey)
                 {
