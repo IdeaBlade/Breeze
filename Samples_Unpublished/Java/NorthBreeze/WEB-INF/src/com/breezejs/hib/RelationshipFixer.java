@@ -15,7 +15,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
-import org.hibernate.type.AssociationType;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.ForeignKeyDirection;
@@ -299,8 +298,9 @@ public class RelationshipFixer {
 
             if (relatedEntityInfo == null) {
             	EntityState state = entityInfo.entityState;
-            	if (state == EntityState.Added || state == EntityState.Modified || (state == EntityState.Deleted 
-            			&& propType.getForeignKeyDirection() != ForeignKeyDirection.FOREIGN_KEY_TO_PARENT)) {
+//            	if (state == EntityState.Added || state == EntityState.Modified || (state == EntityState.Deleted 
+//            			&& propType.getForeignKeyDirection() != ForeignKeyDirection.FOREIGN_KEY_TO_PARENT)) {
+            	if (state != EntityState.Deleted || propType.getForeignKeyDirection() != ForeignKeyDirection.FOREIGN_KEY_TO_PARENT) {
                 	String relatedEntityName = propType.getName();
                     relatedEntity = session.load(relatedEntityName, (Serializable) id, LockOptions.NONE);
             	}
