@@ -2,9 +2,9 @@
  * CSS to accompany the breeze.directives
  * such as breeze.directives.validation.js
  *
- * v.1.1
+ * v.1.3
  *
- * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
+ * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.  
  * Licensed under the MIT License
  * http://opensource.org/licenses/mit-license.php
  * Author: Ward Bell
@@ -48,7 +48,7 @@ select:invalid {
     border: red solid 1px !important;
     border-left: 5px solid red !important;
 }
-
+span.z-decorator span.invalid,
     input:invalid + .z-decorator > .invalid,
     select:invalid + .z-decorator > .invalid {
         visibility: visible;
@@ -66,6 +66,7 @@ select:invalid {
         color: #ffffff;
         -ms-opacity: 0.8;
         opacity: 0.8;
+        z-index: 20;
     }
 
     select:invalid + .z-decorator > .invalid {
