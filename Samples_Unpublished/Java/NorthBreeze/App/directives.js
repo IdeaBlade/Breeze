@@ -17,58 +17,60 @@
 //    </div>
 // </div>
 
-app.directive('breezeinput', function () {
-    var uid = 0;
-    return {
-        restrict: 'E',
-        compile: function (element, attrs) {
+(function() {
+	angular.module('app').directive('breezeinput', function () {
+	    var uid = 0;
+	    return {
+	        restrict: 'E',
+	        compile: function (element, attrs) {
 
-            var ngModel = attrs.ngModel;
-            if (!ngModel) return; // ngModel is required
-            var arr = ngModel.split('.');
-            var propName = arr.pop();
-            var entityPath = arr.join('.');
+	            var ngModel = attrs.ngModel;
+	            if (!ngModel) return; // ngModel is required
+	            var arr = ngModel.split('.');
+	            var propName = arr.pop();
+	            var entityPath = arr.join('.');
 
-            // we store the error messages in a new property on the entityAspect, e.g. customer.entityAspect.CompanyNameErrors
-            var errorProp = propName + 'Errors';
-            var errorPath = entityPath + '.entityAspect.' + errorProp;
+	            // we store the error messages in a new property on the entityAspect, e.g. customer.entityAspect.CompanyNameErrors
+	            var errorProp = propName + 'Errors';
+	            var errorPath = entityPath + '.entityAspect.' + errorProp;
 
-            var type = attrs.type || 'text';
-            var id = attrs.formid || 'bz-' + attrs.ngModel + uid++;
+	            var type = attrs.type || 'text';
+	            var id = attrs.formid || 'bz-' + attrs.ngModel + uid++;
 
-            var required = attrs.hasOwnProperty('required') ? "required='required'" : "";
-            var htmlText = '<div class="form-group">' +
-                '<label class="col-sm-3 control-label" for="' + id + '">' + attrs.label + '</label>' +
-                    '<div class="col-sm-4">' +
-                    '<input class="form-control" type="' + type + '" id="' + id + '" name="' + id + '" ' + required + ' ng-model="' + ngModel + '">' +
-                    '<span class="help-block">{{' + errorPath + '}}</span>' +
-                    '</div>' +
-                '</div>';
-            element.replaceWith(htmlText);
+	            var required = attrs.hasOwnProperty('required') ? "required='required'" : "";
+	            var htmlText = '<div class="form-group">' +
+	                '<label class="col-sm-3 control-label" for="' + id + '">' + attrs.label + '</label>' +
+	                    '<div class="col-sm-4">' +
+	                    '<input class="form-control" type="' + type + '" id="' + id + '" name="' + id + '" ' + required + ' ng-model="' + ngModel + '">' +
+	                    '<span class="help-block">{{' + errorPath + '}}</span>' +
+	                    '</div>' +
+	                '</div>';
+	            element.replaceWith(htmlText);
 
-            var linker = function (scope, element, attrs, controller) {
+	            var linker = function (scope, element, attrs, controller) {
 
-                // watch the expression, and update the UI on change.
-                scope.$watch(ngModel, function (value) {
-                    var entity = scope.$eval(entityPath);
-                    if (!entity) return;
-                    var aspect = entity.entityAspect; 
-                    var errors = aspect.getValidationErrors(propName);
-                    if (errors.length) {
-                        element.addClass('has-error');
-                        var messages = errors.map(function (el) { return el.errorMessage; }).join("; ");  // convert to string
-                        aspect[errorProp] = messages;
-                    } else {
-                        element.removeClass('has-error');
-                        aspect[errorProp] = null;
-                    }
-                });
+	                // watch the expression, and update the UI on change.
+	                scope.$watch(ngModel, function (value) {
+	                    var entity = scope.$eval(entityPath);
+	                    if (!entity) return;
+	                    var aspect = entity.entityAspect; 
+	                    var errors = aspect.getValidationErrors(propName);
+	                    if (errors.length) {
+	                        element.addClass('has-error');
+	                        var messages = errors.map(function (el) { return el.errorMessage; }).join("; ");  // convert to string
+	                        aspect[errorProp] = messages;
+	                    } else {
+	                        element.removeClass('has-error');
+	                        aspect[errorProp] = null;
+	                    }
+	                });
 
-            };
-            return linker;
-        },
+	            };
+	            return linker;
+	        },
 
-    }
-});
-
+	    }
+	});
+	
+})();
 

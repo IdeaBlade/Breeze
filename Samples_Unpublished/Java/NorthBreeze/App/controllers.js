@@ -1,157 +1,163 @@
-﻿'use strict';
+'use strict';
 
-// RouteCtrl - expose app.routes and the current route for the navbar
-app.controller('RouteCtrl', function ($scope, $route) {
-        $scope.$route = $route;
-        $scope.links = app.routes;
-});
+(function(){
+	var app = angular.module('app');
 
-// HomeCtrl - expose the changed entities in the EntityManager
-app.controller('HomeCtrl', ['$scope', function ($scope) {
+	// RouteCtrl - expose app.routes and the current route for the navbar
+	app.controller('RouteCtrl', function ($scope, $route) {
+	        $scope.$route = $route;
+	        $scope.links = app.routes;
+	});
 
-    $scope.reset = function () {
-        app.dataservice.rejectChanges();
-    }
+	// HomeCtrl - expose the changed entities in the EntityManager
+	app.controller('HomeCtrl', ['$scope', 'dataservice', 'logger', function ($scope, dataservice, logger) {
 
-    $scope.update = function () {
-        app.dataservice.saveChanges();
-    }
+	    $scope.reset = function () {
+	        dataservice.rejectChanges();
+	    }
 
-    // expose all the changed entities from the entityManager
-    $scope.changedEntities = app.dataservice.getChanges();
-    app.dataservice.subscribeChanges(function (changeargs) {
-        $scope.changedEntities = app.dataservice.getChanges();
-    });
+	    $scope.update = function () {
+	        dataservice.saveChanges();
+	    }
 
-}]);
+	    // expose all the changed entities from the entityManager
+	    $scope.changedEntities = dataservice.getChanges();
+	    dataservice.subscribeChanges(function (changeargs) {
+	        $scope.changedEntities = dataservice.getChanges();
+	    });
 
-// CustomerCtrl - load the customers and configure the grid to display them
-app.controller('CustomerCtrl', ['$scope', '$modal', function ($scope, $modal) {
+	}]);
 
-    // we should *not* have to use _backingStore, but grid isn't displaying data without it.
-    var columnDefs = [{ field: '_backingStore.companyName', displayName: 'Company Name', width: '50%' },
-                 { field: 'contactName', displayName: 'Contact Name', width: '30%' },
-                 { field: 'country', displayName: 'Country', width: '20%' }]
+	// CustomerCtrl - load the customers and configure the grid to display them
+	app.controller('CustomerCtrl', ['$scope', '$modal', 'dataservice', 'logger', function ($scope, $modal, dataservice, logger) {
 
-    $scope.customers = $scope.customers || [];
+	    var columnDefs = [{ field: 'companyName', displayName: 'Company Name', width: '50%' },
+	                 { field: 'contactName', displayName: 'Contact Name', width: '30%' },
+	                 { field: 'country', displayName: 'Country', width: '20%' }]
 
-    $scope.filterOptions = {
-        filterText: "",
-        useExternalFilter: true
-    };
-
-    $scope.pagingOptions = {
-        pageSizes: [10, 20, 50],
-        pageSize: 10,
-        totalServerItems: 0,
-        currentPage: 1
-    };
-
-    $scope.afterSelectionChange = function (rowitem, event) {
-        $scope.customer = rowitem.entity;
-    }
-    
-    $scope.popup = function() {
-    	var modalInstance = $modal.open({
-    		templateUrl: 'App/views/customer.html',
-    		scope: $scope,
-    		backdrop: 'static'
-    	})
-    	
-    	modalInstance.result.then(function(customer) {
-    		//nothing
-    	}, function(customer) {
-    		customer.entityAspect.rejectChanges();
-    	})
-    }
-
-    $scope.reset = function (customer) {
-        customer.entityAspect.rejectChanges();
-    }
-
-    $scope.update = function (customer) {
-        app.dataservice.saveChanges([customer]);
-    }
-
-    // Configure the grid.  See http://angular-ui.github.io/ng-grid/
-    $scope.customerGrid = {
-        data: 'customers',
-        columnDefs: columnDefs,
-        enablePaging: true,
-        showFooter: true,
-        footerRowHeight: 45,
-        useExternalSorting: true,
-        multiSelect: false,
-        totalServerItems: 'totalServerItems',
-        pagingOptions: $scope.pagingOptions,
-        filterOptions: $scope.filterOptions,
-        afterSelectionChange: $scope.afterSelectionChange
-    };
-
-    $scope.getPagedDataAsync = function (pageSize, page, searchText) {
-        var skip = (page - 1) * pageSize;
-        var take = pageSize * 1;
-        app.dataservice.getCustomerPage(skip, take, searchText)
-            .then(customersQuerySucceeded)
-            .fail(queryFailed);
-    };
-
-    $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage);
-
-    $scope.$watch('pagingOptions', function (newVal, oldVal) {
-        if (newVal !== oldVal) {
-            if (newVal.pageSize !== oldVal.pageSize) {
-                $scope.pagingOptions.currentPage = 1;
-                $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
-            } else {
-                if (newVal.currentPage !== oldVal.currentPage) {
-                    $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
-                }
-            }
-        }
-    }, true);
-
-    $scope.$watch('filterOptions', function (newVal, oldVal) {
-        if (newVal !== oldVal) {
-            $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
-        }
-    }, true);
+	    $scope.customers = $scope.customers || [];
 
 
-    //#region private functions
-    function customersQuerySucceeded(data) {
-        $scope.customers = data.results;
-        if (data.inlineCount) {
-            $scope.totalServerItems = data.inlineCount;
-        }
-        $scope.$apply();
-        app.logger.info("Fetched " + data.results.length + " Customers ");
-    }
+	    $scope.popup = function() {
+	    	var modalInstance = $modal.open({
+	    		templateUrl: 'App/views/customer.html',
+	    		scope: $scope,
+	    		backdrop: 'static'
+	    	})
 
-    function queryFailed(error) {
-        app.logger.error(error.message, "Query failed");
-    }
+	    	modalInstance.result.then(function(customer) {
+	    		//nothing
+	    	}, function(customer) {
+	    		customer.entityAspect.rejectChanges();
+	    	})
+	    }
 
-}]);
+	    $scope.reset = function (customer) {
+	        customer.entityAspect.rejectChanges();
+	    }
 
-app.controller('OrderCtrl', function ($scope) {
+	    $scope.update = function (customer) {
+	        dataservice.saveChanges([customer]);
+	    }
 
-    $scope.orders = $scope.orders || [];
-    
-    app.dataservice.getOrders()
-        .then(querySucceeded)
-        .fail(queryFailed);
+	    // Grid stuff
+	    var filterOptions = {
+	        filterText: "",
+	        useExternalFilter: true
+	    };
 
-    //#region private functions
-    function querySucceeded(data) {
-        $scope.orders = data.results;
-        $scope.$apply();
-        app.logger.info("Fetched " + data.results.length + " Orders ");
-    }
+	    var pagingOptions = {
+	        pageSizes: [10, 20, 50],
+	        pageSize: 10,
+	        totalServerItems: 0,
+	        currentPage: 1
+	    };
 
-    function queryFailed(error) {
-        logger.error(error.message, "Query failed");
-    }
+	    var afterSelectionChange = function (rowitem, event) {
+	        $scope.customer = rowitem.entity;
+	    }
+	    
+	    // Configure the grid.  See http://angular-ui.github.io/ng-grid/
+	    $scope.customerGrid = {
+	        data: 'customers',
+	        columnDefs: columnDefs,
+	        enablePaging: true,
+	        showFooter: true,
+	        footerRowHeight: 45,
+	        useExternalSorting: true,
+	        multiSelect: false,
+	        totalServerItems: 'totalServerItems',
+	        pagingOptions: pagingOptions,
+	        filterOptions: filterOptions,
+	        afterSelectionChange: afterSelectionChange
+	    };
+
+	    var getPagedDataAsync = function (pageSize, page, searchText) {
+	        var skip = (page - 1) * pageSize;
+	        var take = pageSize * 1;
+	        dataservice.getCustomerPage(skip, take, searchText)
+	            .then(customersQuerySucceeded)
+	            .fail(queryFailed);
+	    };
+
+	    getPagedDataAsync(pagingOptions.pageSize, pagingOptions.currentPage);
+
+	    $scope.$watch('customerGrid.pagingOptions', function (newVal, oldVal) {
+	        if (newVal !== oldVal) {
+	            if (newVal.pageSize !== oldVal.pageSize) {
+	                pagingOptions.currentPage = 1;
+	                getPagedDataAsync(pagingOptions.pageSize, pagingOptions.currentPage, filterOptions.filterText);
+	            } else {
+	                if (newVal.currentPage !== oldVal.currentPage) {
+	                    getPagedDataAsync(pagingOptions.pageSize, pagingOptions.currentPage, filterOptions.filterText);
+	                }
+	            }
+	        }
+	    }, true);
+
+	    $scope.$watch('customerGrid.filterOptions', function (newVal, oldVal) {
+	        if (newVal !== oldVal) {
+	            getPagedDataAsync(pagingOptions.pageSize, pagingOptions.currentPage, filterOptions.filterText);
+	        }
+	    }, true);
 
 
-});
+	    //#region private functions
+	    function customersQuerySucceeded(data) {
+	        $scope.customers = data.results;
+	        if (data.inlineCount) {
+	            $scope.totalServerItems = data.inlineCount;
+	        }
+	        $scope.$apply();
+	        logger.info("Fetched " + data.results.length + " Customers ");
+	    }
+
+	    function queryFailed(error) {
+	        logger.error(error.message, "Query failed");
+	    }
+
+	}]);
+
+	app.controller('OrderCtrl', ['$scope', 'dataservice', 'logger', function ($scope, dataservice, logger) {
+
+	    $scope.orders = $scope.orders || [];
+
+	    dataservice.getOrders()
+	        .then(querySucceeded)
+	        .fail(queryFailed);
+
+	    //#region private functions
+	    function querySucceeded(data) {
+	        $scope.orders = data.results;
+	        $scope.$apply();
+	        logger.info("Fetched " + data.results.length + " Orders ");
+	    }
+
+	    function queryFailed(error) {
+	        logger.error(error.message, "Query failed");
+	    }
+
+
+	}]);
+
+})();
