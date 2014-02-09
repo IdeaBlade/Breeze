@@ -32,6 +32,80 @@
 
     module("validationTests", moduleOptions);
 
+    /*********************************************************
+    * validates a mapped property
+    *********************************************************/
+    test("validates a mapped property", 3, function () {
+        var em = newEm();
+        var meta = em.metadataStore;
+
+        // add "maxLength" validator to mapped FirstName property
+        var empType = em.metadataStore.getEntityType("Employee");
+        var fnProp = empType.getProperty("FirstName");
+        fnProp.validators.push(breeze.Validator.maxLength({ maxLength: 5 }));
+
+        var emp = em.createEntity(empType, {FirstName:"Basil"});
+
+        // create a maxLength error for the 'FirstName' property
+        emp.FirstName('Jeremiah');
+
+        // get the first (and presumably only) 'FirstName' property error.
+        var fnErr = emp.entityAspect.getValidationErrors('FirstName')[0];
+        var emsg = fnErr && fnErr.errorMessage;
+
+        ok(!!fnErr, "should have a 'FirstName' error after setting a 'too long' name"
+        + (emsg ? " and its message is " + emsg : ""));
+
+        var fnErrValidator = fnErr.validator;
+        equal(fnErrValidator.name, 'maxLength', "FirstName error Validator should be 'maxLength'");
+
+        // give it an acceptable value
+        emp.FirstName('Sue');
+        fnErr = emp.entityAspect.getValidationErrors('FirstName');
+        equal(fnErr.length, 0,
+            "should have no 'FirstName' errors after setting a name of acceptable length");
+    });
+
+    /*********************************************************
+    * validates an unmapped property
+    *********************************************************/
+    test("validates an unmapped property", 4, function () {
+        var em = newEm();
+        var meta = em.metadataStore;
+
+        // add unmapped property
+        var employeeCtor = function () { this.foo = ko.observable(42); };
+        meta.registerEntityTypeCtor("Employee", employeeCtor);
+
+        var empType = em.metadataStore.getEntityType("Employee");
+        var fooProp = empType.getProperty("foo");
+        ok(fooProp.isUnmapped, "Employee.foo should be an unmapped property");
+
+        // add "number" validator to unmapped Foo
+        fooProp.validators.push(breeze.Validator.number());
+
+        var emp = em.createEntity(empType);
+
+        // create a DataType error for the 'foo' property
+        emp.foo('this is a string');
+
+        // get the first (and presumably only) 'foo' property error.
+        var fooErr = emp.entityAspect.getValidationErrors('foo')[0];
+        var emsg = fooErr && fooErr.errorMessage;
+
+        ok(!!fooErr, "should have a 'foo' error after setting foo to a string"
+        + (emsg ? " and its message is "+emsg : ""));
+
+        var fooErrValidator = fooErr.validator;
+        equal(fooErrValidator.name, 'number', "foo error Validator should be 'number'");
+
+        // give it an acceptable value
+        emp.foo(42);
+        fooErr = emp.entityAspect.getValidationErrors('foo');
+        equal(fooErr.length, 0,
+            "should have no 'foo' errors after setting it to a number");
+
+    });
 
     /*********************************************************
     * validates on attach by default (validateOnAttach == true)
