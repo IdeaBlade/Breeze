@@ -29,7 +29,7 @@ package com.sun.json;
  */
 public interface JSONConstants {
     public static final String ID = "$id";
-    public static final String IDREF = "$idref";
+    public static final String IDREF = "$ref";  //"$idref";
     public static final String CLASS = "$type"; //"$class"; 
     public static final String HREF = "$href";
     public static final String ARRAYDATA = "$";

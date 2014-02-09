@@ -4,7 +4,7 @@
 
 	<!-- example using z-validate applied to form-group div element -->
 	<div class="form-group" ng-repeat="f in customer.entityType.dataProperties" data-z-validate="customer[f.name]" ng-class="{'has-error': z_invalid}">
-		<label class="col-sm-3 control-label" for="{{f.name}}">{{f.name}}</label>
+		<label class="col-sm-3 control-label" for="{{f.name}}">{{f.name | labelize}}</label>
 		<div class="col-sm-3 input-group">
 			<input class="form-control" style="margin-right: 50" id="{{f.name}}" data-ng-model="customer[f.name]" 
 				 placeholder="{{f.name}}" autofocus ng-focus="z_focused=true" ng-blur="z_focused=false" />
@@ -14,7 +14,7 @@
 			<span class="invalid" ng-show="z_invalid && z_focused">{{z_error}}</span>
 		</span>
 	</div>
-	
+ 
 	<!-- example using z-validate applied to input element -->
 	<div class="form-group">
 		<label class="col-sm-3 control-label" for="companyName_dom">Company Name</label>
