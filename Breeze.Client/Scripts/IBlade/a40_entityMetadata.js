@@ -2366,7 +2366,7 @@ var DataProperty = (function () {
                 } else {
                     this.defaultValue = this.dataType.defaultValue;
                     if (this.defaultValue == null) {
-                        throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + this.name);
+                        throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + (this.name || this.nameOnServer);
                     }
                 }
             }
