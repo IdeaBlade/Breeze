@@ -13,6 +13,7 @@
 	    return {
 	        getAllCustomers: getAllCustomers,
 	        getCustomerPage: getCustomerPage,
+	        getOrderPage: getOrderPage,
 	        getOrders: getOrders,
 	        createCustomer: createCustomer,
 	        getChanges: getChanges,
@@ -45,6 +46,14 @@
 	        return manager.executeQuery(query);
 	    }
 
+	    function getOrderPage(skip, take) {
+	        var query = breeze.EntityQuery
+	                .from("Orders")
+	                .skip(skip).take(take)
+	                .inlineCount(true);
+	        return manager.executeQuery(query);
+	    }
+	    
 	    function getOrders(customer) {
 	        if (customer) {
 	            return customer.entityAspect.loadNavigationProperty("orders");
@@ -52,7 +61,8 @@
 	        else {
 	            var query = breeze.EntityQuery
 	                    .from("Orders")
-	                    .take(50);
+	                    .take(2).inlineCount(true);
+	            
 
 	            return manager.executeQuery(query);
 	        }
@@ -91,7 +101,9 @@
 	            logger.info("Nothing to save");
 	        };
 	    }
-
+	    
+	    
+	    // Private Functions
 	    function saveSucceeded(saveResult) {
 	        logger.success("# of entities saved = " + saveResult.entities.length);
 	        logger.log(saveResult);

@@ -1,37 +1,9 @@
 <div>
     <h3>Orders</h3>
-    <table class="table-striped table-bordered table-condensed table-small">
-        <thead>
-            <th>Order ID</th>
-            <th>Customer ID</th>
-            <th>Emp ID</th>
-            <th>Freight</th>
-            <th>Order Date</th>
-            <th>Required Date</th>
-            <th>Shipped Date</th>
-            <th>Name</th>
-            <th>Address</th>
-            <th>City</th>
-            <th>Region</th>
-            <th>PostCode</th>
-            <th>Country</th>
-            <th>Row Version</th>
-        </thead>
-        <tr ng-repeat="o in orders">
-            <td>{{o.orderID}}</td>
-            <td>{{o.customerID}}</td>
-            <td>{{o.employeeID}}</td>
-            <td>{{o.freight | currency}}</td>
-            <td>{{o.orderDate | date:'shortDate'}}</td>
-            <td>{{o.requiredDate | date:'shortDate'}}</td>
-            <td>{{o.shippedDate | date:'shortDate'}}</td>
-            <td>{{o.shipName}}</td>
-            <td>{{o.shipAddress}}</td>
-            <td>{{o.shipCity}}</td>
-            <td>{{o.shipRegion}}</td>
-            <td>{{o.shipPostalCode}}</td>
-            <td>{{o.shipCountry}}</td>
-            <td>{{o.rowVersion}}</td>
-        </tr>
-    </table>
+    <div class="row">
+        <div class="col-md-12">
+            <div style="width: 100%; height: 378px;" ng-grid="entityGrid"></div>
+        </div>
+    </div>
+    
 </div>

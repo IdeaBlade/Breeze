@@ -38,51 +38,54 @@
 	    		templateUrl: 'App/views/customer.html',
 	    		scope: $scope,
 	    		backdrop: 'static'
-	    	})
+	    	});
 
 	    	modalInstance.result.then(function(customer) {
 	    		//nothing
 	    	}, function(customer) {
 	    		customer.entityAspect.rejectChanges();
-	    	})
-	    }
+	    	});
+	    };
 
 	    $scope.reset = function (customer) {
 	        customer.entityAspect.rejectChanges();
-	    }
+	    };
 
 	    $scope.update = function (customer) {
 	        dataservice.saveChanges([customer]);
-	    }
+	    };
 
 	    // Grid stuff
 	    var columnDefs = [{ field: 'companyName', displayName: 'Company Name', width: '50%' },
 	 	                 { field: 'contactName', displayName: 'Contact Name', width: '30%' },
-	 	                 { field: 'country', displayName: 'Country', width: '20%' }]
+	 	                 { field: 'country', displayName: 'Country', width: '20%' }];
 
-	    gridservice.getPagedGrid($scope, 'customerGrid', 'customers', columnDefs, dataservice.getCustomerPage);
+	    var selectionFunction = function (rowitem, event) {
+	        $scope.customer = rowitem.entity;
+	    };
+	    
+	    var gridConfig = {
+	    		gridName: 'customerGrid',
+	    		dataName: 'customers',
+	    		columnDefs: columnDefs,
+	    		queryFunction: dataservice.getCustomerPage,
+	    		selectionFunction: selectionFunction
+	    };
+	    
+	    gridservice.buildPagedGrid($scope, gridConfig);
 
 	}]);
 
-	app.controller('OrderCtrl', ['$scope', 'dataservice', 'logger', function ($scope, dataservice, logger) {
+	app.controller('OrderCtrl', ['$scope', 'dataservice', 'gridservice', 'logger', 
+	    function ($scope, dataservice, gridservice, logger) {
 
 	    $scope.orders = $scope.orders || [];
-
-	    dataservice.getOrders()
-	        .then(querySucceeded)
-	        .fail(queryFailed);
-
-	    //#region private functions
-	    function querySucceeded(data) {
-	        $scope.orders = data.results;
-	        $scope.$apply();
-	        logger.info("Fetched " + data.results.length + " Orders ");
-	    }
-
-	    function queryFailed(error) {
-	        logger.error(error.message, "Query failed");
-	    }
-
+	    
+	    var gridConfig = {
+	    		queryFunction: dataservice.getOrderPage
+	    };
+	    
+	    gridservice.buildPagedGrid($scope, gridConfig);
 
 	}]);
 
