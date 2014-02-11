@@ -33,20 +33,6 @@
 
 	    $scope.customers = $scope.customers || [];
 
-	    $scope.popup = function() {
-	    	var modalInstance = $modal.open({
-	    		templateUrl: 'App/views/customer.html',
-	    		scope: $scope,
-	    		backdrop: 'static'
-	    	});
-
-	    	modalInstance.result.then(function(customer) {
-	    		//nothing
-	    	}, function(customer) {
-	    		customer.entityAspect.rejectChanges();
-	    	});
-	    };
-
 	    $scope.reset = function (customer) {
 	        customer.entityAspect.rejectChanges();
 	    };
@@ -76,17 +62,44 @@
 
 	}]);
 
-	app.controller('OrderCtrl', ['$scope', 'dataservice', 'gridservice', 'logger', 
-	    function ($scope, dataservice, gridservice, logger) {
+	app.controller('OrderCtrl', ['$scope', '$modal', 'dataservice', 'gridservice', 'logger', 
+	    function ($scope, $modal, dataservice, gridservice, logger) {
 
-	    $scope.orders = $scope.orders || [];
+	    var columnDefs = [{ field: 'customer.companyName', displayName: 'Customer', width: '12%' },
+	                      { field: 'employee.fullName', displayName: 'Employee', width: '12%' },
+	                      { field: 'orderDate', displayName: 'Order Date', width: '5%', cellFilter: "date:'shortDate'"},
+	                      { field: 'requiredDate', displayName: 'Required Date', width: '5%', cellFilter: "date:'shortDate'"},
+	                      { field: 'shippedDate', displayName: 'Shipped Date', width: '5%', cellFilter: "date:'shortDate'"},
+	                      { field: 'freight', displayName: 'Freight', width: '5%', cellFilter: 'currency'},
+	                      { field: 'shipName', displayName: 'Ship Name', width: '12%'},
+	                      { field: 'shipAddress', displayName: 'Ship Address', width: '12%'},
+	                      { field: 'shipCity', displayName: 'Ship City', width: '12%'},
+	                      { field: 'shipRegion', displayName: 'Region', width: '5%'},
+	                      { field: 'shipPostalCode', displayName: 'Post Code', width: '5%'},
+	                      { field: 'shipCountry', displayName: 'Country', width: '10%'}];
 	    
 	    var gridConfig = {
+	    		columnDefs: columnDefs,
 	    		queryFunction: dataservice.getOrderPage
 	    };
 	    
 	    gridservice.buildPagedGrid($scope, gridConfig);
 
+	    $scope.popup = function() {
+	    	var modalInstance = $modal.open({
+	    		templateUrl: 'App/views/entityEdit.html',
+	    		scope: $scope,
+	    		backdrop: 'static'
+	    	});
+
+	    	modalInstance.result.then(function(customer) {
+	    		//nothing
+	    	}, function(entity) {
+	    		entity.entityAspect.rejectChanges();
+	    	});
+	    };
+
+	    
 	}]);
 
 })();

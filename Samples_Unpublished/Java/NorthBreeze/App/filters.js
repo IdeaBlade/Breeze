@@ -41,5 +41,26 @@
 		}
 	});
 	
+	app.filter('zInputType', function() {
+		/**
+		 * Determine the HTML input type from the data property
+		 * @param prop {DataProperty} - DataProperties to be filtered
+		 * @see http://www.breezejs.com/sites/all/apidocs/classes/DataProperty.html
+		 * @see http://dev.w3.org/html5/markup/input.date.html
+		 * @return a string representing the type 
+		 */
+		return function(prop) {
+			if (!prop) {
+				return 'text';
+			}
+			var dt = prop.dataType;
+			if (dt.isDate) {
+				return 'date';
+			} else if (dt.isNumeric) {
+				return 'number';
+			} 
+			return 'text';
+		}
+	});
 	
 })();
