@@ -17,11 +17,14 @@ namespace Breeze.ContextProvider.NH
     [AttributeUsage(AttributeTargets.Class)]
     public class BreezeNHControllerAttribute : BreezeControllerAttribute
     {
-        internal BreezeQueryableAttribute nhFilter = new BreezeNHQueryableAttribute();
+        public BreezeNHControllerAttribute()
+        {
+            this._queryableFilter = new BreezeNHQueryableAttribute();
+        }
 
         protected override IFilterProvider GetQueryableFilterProvider(BreezeQueryableAttribute defaultFilter)
         {
-            return new BreezeNHQueryableFilterProvider(nhFilter);
+            return new BreezeNHQueryableFilterProvider(defaultFilter);
         }
 
     }
