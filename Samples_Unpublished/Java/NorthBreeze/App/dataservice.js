@@ -48,7 +48,7 @@
 
 	    function getOrderPage(skip, take) {
 	        var query = breeze.EntityQuery
-	                .from("Orders")
+	                .from("Orders").expand("customer,employee")
 	                .skip(skip).take(take)
 	                .inlineCount(true);
 	        return manager.executeQuery(query);

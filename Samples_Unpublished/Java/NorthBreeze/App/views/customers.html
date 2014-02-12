@@ -5,7 +5,7 @@
             <div class="gridStyle" style="width: 500px; height: 378px;" ng-grid="customerGrid"></div>
         </div>
         <div class="col-md-6">
-        <form class="form-horizontal">
+        	<form class="form-horizontal">
                 <!-- We do field-level validation based on the validation rules in the metadata,
                     and twitter bootstrap styles to show invalid fields.  See the breezeinput directive in directives.js -->
                 <breezeinput label="Company Name" ng-model="customer.companyName"></breezeinput>
@@ -22,12 +22,7 @@
                     <button class="btn btn-default" ng-click="reset(customer)">Reset Customer</button>
                     <button class="btn btn-default" ng-click="update(customer)">Save Customer</button>
                 </div>
-        </form>
-        </div>
-    </div>
-    <div class="row">
-         <div class="col-md-6">
-	        <button class="btn btn-default" ng-click="popup()">Edit Customer</button>
+        	</form>
         </div>
     </div>
 </div>
