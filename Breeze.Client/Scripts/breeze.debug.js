@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
+ * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.  
  * Use, reproduction, distribution, and modification of this code is subject to the terms and 
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
@@ -9,10 +9,10 @@
 (function (definition) {
 
     // CommonJS
-    if (typeof exports === "object") {
+    if (typeof exports === "object" && typeof module === "object") {
         module.exports = definition();
         // RequireJS
-    } else if (typeof define === "function") {
+    } else if (typeof define === "function" && define["amd"]) {
         define(definition);
         // <script>
     } else {
@@ -12753,10 +12753,7 @@ var EntityManager = (function () {
                 return Q.reject(valError);
             }
         }
-            
-        updateConcurrencyProperties(entitiesToSave);
-       
-       
+           
         var dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
         var saveContext = {
             entityManager: this,
@@ -12770,7 +12767,19 @@ var EntityManager = (function () {
         var saveBundle = { entities: entitiesToSave, saveOptions: saveOptions };
         
         var that = this;
-        return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
+        
+        try { // Guard against exception thrown in dataservice adapter before it goes async
+            updateConcurrencyProperties(entitiesToSave);
+            return dataService.adapterInstance.saveChanges(saveContext, saveBundle)
+                .then(saveSuccess).then(null, saveFail);
+        } catch (err) {
+            // undo the marking by updateConcurrencyProperties
+            markIsBeingSaved(entitiesToSave, false); 
+            if (errorCallback) errorCallback(err);
+            return Q.reject(err);
+        }
+
+        function saveSuccess(saveResult) {
             
             fixupKeys(that, saveResult.keyMappings);
             
@@ -12793,13 +12802,14 @@ var EntityManager = (function () {
             saveResult.entities = savedEntities;
             if (callback) callback(saveResult);
             return Q.resolve(saveResult);
-        }, function (error) {
-            processServerErrors(saveContext, error);
+        }
+
+        function saveFail(error) {
             markIsBeingSaved(entitiesToSave, false);
+            processServerErrors(saveContext, error);
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
-        });
-
+        }
     };
 
     function clearServerErrors(entities) {

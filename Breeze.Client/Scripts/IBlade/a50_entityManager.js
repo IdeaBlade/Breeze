@@ -915,9 +915,9 @@ var EntityManager = (function () {
         var entitiesToSave = getEntitiesToSave(this, entities);
             
         if (entitiesToSave.length === 0) {
-            var saveResult =  { entities: [], keyMappings: [] };
-            if (callback) callback(saveResult);
-            return Q.resolve(saveResult);
+            var emptySaveResult =  { entities: [], keyMappings: [] };
+            if (callback) callback(emptySaveResult);
+            return Q.resolve(emptySaveResult);
         }
             
         if (!saveOptions.allowConcurrentSaves) {
@@ -946,10 +946,7 @@ var EntityManager = (function () {
                 return Q.reject(valError);
             }
         }
-            
-        updateConcurrencyProperties(entitiesToSave);
-       
-       
+           
         var dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
         var saveContext = {
             entityManager: this,
@@ -963,7 +960,19 @@ var EntityManager = (function () {
         var saveBundle = { entities: entitiesToSave, saveOptions: saveOptions };
         
         var that = this;
-        return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
+        
+        try { // Guard against exception thrown in dataservice adapter before it goes async
+            updateConcurrencyProperties(entitiesToSave);
+            return dataService.adapterInstance.saveChanges(saveContext, saveBundle)
+                .then(saveSuccess).then(null, saveFail);
+        } catch (err) {
+            // undo the marking by updateConcurrencyProperties
+            markIsBeingSaved(entitiesToSave, false); 
+            if (errorCallback) errorCallback(err);
+            return Q.reject(err);
+        }
+
+        function saveSuccess(saveResult) {
             
             fixupKeys(that, saveResult.keyMappings);
             
@@ -986,13 +995,14 @@ var EntityManager = (function () {
             saveResult.entities = savedEntities;
             if (callback) callback(saveResult);
             return Q.resolve(saveResult);
-        }, function (error) {
-            processServerErrors(saveContext, error);
+        }
+
+        function saveFail(error) {
             markIsBeingSaved(entitiesToSave, false);
+            processServerErrors(saveContext, error);
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
-        });
-
+        }
     };
 
     function clearServerErrors(entities) {
