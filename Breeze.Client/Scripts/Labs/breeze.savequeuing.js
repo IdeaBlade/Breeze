@@ -5,13 +5,13 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 1.0.2
+ * Version: 1.0.3
  * --------------------------------------------------------------------------------
  * Adds "Save Queuing" capability to new EntityManagers
  * "Save Queuing" automatically queues and defers an EntityManager.saveChanges call
  * when another save is in progress for that manager.
  *
- * Depends on Breeze (which it patches) and Q.js
+ * Depends on Breeze (which it patches) and Q.js (not for use in Angular ... yet)
  *
  * Without "Save Queuing", an EntityManager will throw an exception when
  * saveChanges is called while another save is in progress.
@@ -37,22 +37,21 @@
  * touch them at your own risk.
  */
 //#endregion
-(function (definition) {
-
-    // CommonJS
-    if (typeof exports === "object") {
+(function (factory) {
+    if (breeze && Q) {
+        factory(breeze, Q);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
         var b = require('breeze');
         var q = require('Q');
-        definition(b, q);
-    // RequireJS
-    } else if (typeof define === "function") {
-        define(['breeze', 'Q'], definition);
-    // <script>
+        factory(b, q);
+    } else if (typeof define === "function" && define["amd"] && !breeze) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define(['breeze', 'Q'], factory);
     } else {
-        definition(breeze, Q);
+        throw new Error("Can't find breeze and/or Q");
     }
-})
-(function (breeze, Q) {
+})(function (breeze, Q) {
     var EntityManager = breeze.EntityManager;
 
     /**

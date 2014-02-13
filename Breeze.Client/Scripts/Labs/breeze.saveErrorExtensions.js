@@ -22,7 +22,7 @@
  * http://opensource.org/licenses/mit-license.php
  * Author: Ward Bell
  *
- * v.1.0.1
+ * v.1.0.2
  *
  * Install:
  *   1) include this script after breeze script
@@ -39,21 +39,17 @@
  *   }
  * 
 */
-(function (definition) {
-
-    // CommonJS
-    if (typeof exports === "object") {
-        var b = require('breeze');
-        definition(b);
-    // RequireJS
-    } else if (typeof define === "function") {
-        define(['breeze'], definition);
-    // <script>
-    } else {
-        definition(this.breeze);
+(function (factory) {
+    if (breeze) {
+        factory(breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node: hard-coded dependency on "breeze"
+        factory(require("breeze"));
+    } else if (typeof define === "function" && define["amd"] && !breeze) {
+        // AMD anonymous module with hard-coded dependency on "breeze"
+        define(["breeze"], factory);
     }
-})
-(function() {
+})(function (breeze) {
 	'use strict';
 
     var service = {
