@@ -1,9 +1,15 @@
 ﻿/*
  * Breeze Labs SharePoint 2013 OData DataServiceAdapter
  *
- *  v.0.1.3-pre
+ *  v.0.1.4-pre
  *
  * Registers a SharePoint 2013 OData DataServiceAdapter with Breeze
+ * 
+ * This adapter cannot get metadata from the server and in general one should
+ * not do so because such metadata cover much more of than you want and are huge (>1MB)
+ * Better to define the metadata "by hand" on the client.
+ * 
+ * W/o need to get metadata, can use AJAX adapter instead of Data.JS.
  *
  * Typical usage in Angular
  *    // configure breeze to use SharePoint OData service
@@ -44,26 +50,28 @@
         // AMD anonymous module with hard-coded dependency on "breeze"
         define(["breeze"], factory);
     }
-})(function(breeze) {
-
-    var core = breeze.core;
-    var OData;
+})(function (breeze) {
 
     var adapterName = "SharePointOData";
+    var ajaxImpl;
+    var core = breeze.core;
     var ctor = function() {
         this.name = adapterName;
     };
 
     ctor.prototype = {
         constructor: ctor,
+        checkForRecomposition: checkForRecomposition,
         executeQuery: executeQuery,
         fetchMetadata: fetchMetadata,
         getRequestDigest: undefined, // function that returns value for X-RequestDigest header
         initialize: initialize,
         jsonResultsAdapter: createJsonResultsAdapter(),
-        Q: Q, // assume Q.js in global namespace; you better set it if it's not there
+        // Todo: use promise adapter after Breeze makes it available
+        Q:  window.Q, // assume Q.js in global namespace; you better set it (e.g., to $q) if it's not there, 
         saveChanges: saveChanges,
         saveOnlyOne: true, // false if you allow multiple entity saves; beware!
+        serializeToJson: serializeToJson // serialize raw entity data to JSON for save
     };
 
     breeze.config.registerAdapter("dataService", ctor);
@@ -71,36 +79,60 @@
     /*** Implementation ***/
 
     function initialize() {
-        OData = core.requireLib("OData", "Needed to support remote OData services");
-        OData.jsonHandler.recognizeDates = true;
+        ajaxImpl = breeze.config.getAdapterInstance("ajax");
+
+        if (!ajaxImpl) {
+            throw new Error("Unable to initialize ajax for " + adapterName);
+        }
+
+        // don't cache 'ajax' because we then we would need to ".bind" it, and don't want to because of browser support issues. 
+        var ajax = ajaxImpl.ajax;
+        if (!ajax) {
+            throw new Error("Breeze was unable to find an 'ajax' adapter for "+adapterName);
+        }
     };
 
-    function createError(error, url) {
+    function adjustQuery(mappingContext) {
+        var query = mappingContext.query;
+        var entityType = query.entityType || query.resultEntityType;
+        // get the default select if query lacks a select and 
+        // the result type is known and it has a defaultSelect
+        // the resultEntityType is most likely present because of a .toType clause
+        var defaultSelect = !query.selectClause && entityType &&
+            entityType.custom && entityType.custom.defaultSelect;
+        if (defaultSelect) {
+            // revise query with a new query that has the default select
+            mappingContext.query = query.select(defaultSelect);
+        }
+    }
+
+    function checkForRecomposition(interfaceInitializedArgs) {
+        if (interfaceInitializedArgs.interfaceName === "ajax" && interfaceInitializedArgs.isDefault) {
+            this.initialize();
+        }
+    };
+
+    function createError(response, url) {
         // OData errors can have the message buried very deeply - and nonobviously
         // this code is tricky so be careful changing the response.body parsing.
         var result = new Error();
-        var response = error.response;
-        result.message = response.statusText;
-        result.statusText = response.statusText;
-        result.status = response.statusCode;
+        result.message =  response.message || response.error || response.statusText;
+        result.statusText = result.message;
+        result.status =  response.status  ;
         // non std
-        if (url) result.url = url;
-        result.body = response.body;
-        if (response.body) {
+        if (url) { result.url = url; }
+        result.data = response.data ;
+        if (result.data) {
             var nextErr;
             try {
-                var body = JSON.parse(response.body);
-                result.body = body;
-                // OData v3 logic
-                if (body['odata.error']) {
-                    body = body['odata.error'];
-                }
+                var data = JSON.parse(result.data);
+                result.data = data;
                 var msg = "";
                 do {
-                    nextErr = body.error || body.innererror;
-                    if (!nextErr) msg = msg + getMessage(body);
-                    nextErr = nextErr || body.internalexception;
-                    body = nextErr || body;
+                    nextErr = data.error || data.innererror;
+                    if (!nextErr) {msg = msg + getMessage(data);}
+                    nextErr = nextErr || data.internalexception;
+                    data = nextErr;
                 } while (nextErr);
                 if (msg.length > 0) {
                     result.message = msg;
@@ -112,7 +144,7 @@
         return result;
 
         function getMessage() {
-            var m = body.message || "";
+            var m = data.message || "";
             return ((typeof (m) === "string") ? m : m.value) + "; ";
         }
 
@@ -186,7 +218,6 @@
                 }
             }
         }
-
     }
 
     function createSaveRequests(saveContext, saveBundle) {
@@ -202,16 +233,16 @@
         return requests;
 
         function createSaveRequest(entity, index) {
-            var request;
+            var data, rawData, request;
             originalEntities.push(entity);
 
             var aspect = entity.entityAspect;
             var state = aspect.entityState;
             var type = entity.entityType;
             var headers = {
+                'Accept': 'application/json;odata=verbose',
                 'DataServiceVersion': "2.0", // Why?
-                'Accept': 'application/json;odata=verbose;',
-                'Content-Type': 'application/json;odata=verbose;',
+                'MaxDataServiceVersion': '3.0',
                 'X-RequestDigest': saveContext.requestDigest
             };
 
@@ -220,19 +251,23 @@
                 if (!rn) {
                     throw new Error("Missing defaultResourceName for type " + type.name);
                 }
+                rawData = helper.unwrapInstance(entity, transformValue);
+                rawData.__metadata = {
+                    'type': saveContext.clientTypeNameToServer(type.shortName)
+                };
+                data = serializeToJson(rawData);
                 request = {
                     requestUri: entityManager.dataService.serviceName + rn,
                     method: "POST",
-                    data: helper.unwrapInstance(entity, transformValue)
+                    data: data
                 };
-                request.data['__metadata'] = {
-                    'type': saveContext.clientTypeNameToServer(type.shortName)
-                };
+
                 tempKeys[index] = aspect.getKey(); // DO NOT PUSH. Gaps expected!
 
             } else if (state.isModified()) {
-                var data = helper.unwrapChangedValues(entity, entityManager.metadataStore, transformValue);
-                data.__metadata = { 'type': aspect.extraMetadata.type };
+                rawData = helper.unwrapChangedValues(entity, entityManager.metadataStore, transformValue);
+                rawData.__metadata = { 'type': aspect.extraMetadata.type };
+                data = serializeToJson(rawData);
                 headers['X-HTTP-Method'] = 'MERGE';
                 request = {
                     method: "POST",
@@ -255,10 +290,11 @@
             return request;
 
             function transformValue(prop, val) {
-                if (prop.isUnmapped) return undefined;
+                if (prop.isUnmapped) {return undefined;}
                 if (prop.dataType === breeze.DataType.DateTimeOffset) {
                     // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
                     // from other dateTimes. This fix compensates before the save.
+                    // TODO: If not using datajs (and this adapter doesn't) is this necessary?
                     val = val && new Date(val.getTime() - (val.getTimezoneOffset() * 60000));
                 } else if (prop.dataType.quoteJsonOData) {
                     val = val != null ? val.toString() : val;
@@ -293,28 +329,38 @@
     }
 
     function executeQuery(mappingContext) {
-
+        adjustQuery(mappingContext);
         var deferred = this.Q.defer();
         var url = mappingContext.getUrl();
         var headers = {
-            'DataServiceVersion': '2.0', // Why?
             'Accept': 'application/json;odata=verbose',
+            'DataServiceVersion': '2.0', // Why?
+            'MaxDataServiceVersion': '3.0', // otherwise set by DataJS
         };
 
-        OData.read({
-                requestUri: url,
-                headers: headers
-            },
-            function(data) {
-                var inlineCount = data.__count ? parseInt(data.__count, 10) : undefined;
-                return deferred.resolve({ results: data.results, inlineCount: inlineCount });
-            },
-            function(error) {
-                return deferred.reject(createError(error, url));
+        ajaxImpl.ajax({
+            type: "GET",
+            url: url,
+            headers: headers,
+            success: querySuccess,
+            error: function(response) {
+                deferred.reject(createError(response, url));
             }
-        );
+        });
         return deferred.promise;
-    };
+
+        function querySuccess(response) {
+            try {
+                var data = response.data;
+                var inlineCount = data.__count ? parseInt(data.__count, 10) : undefined;
+                var rData = { results: data.d.results, inlineCount: inlineCount, httpResponse: response };
+                deferred.resolve(rData);
+            } catch (e) {
+                // program error means adapter it broken, not SP or the user
+                deferred.reject(new Error("Program error: failed while parsing successful query response"));
+            }           
+        }
+    }
 
     function fetchMetadata() {
         throw new Error("Cannot process SharePoint metadata; create your own and use that instead");
@@ -355,7 +401,7 @@
         }
 
         function saveFailed(error) {
-            var requestCount = comboPromise.length;
+            var requestCount = requests.length;
             if (requestCount < 2) {
                 // Only one request so failure is probably no big deal
                 return Q.reject(error);
@@ -394,25 +440,35 @@
 
         function sendSaveRequest(request, index) {
             var deferred = Q.defer();
-
-            OData.request({
-                    requestUri: request.requestUri,
-                    method: request.method,
-                    headers: request.headers,
-                    data: request.data
-                },
-                requestSucceeded,
-                requestFailed);
+            var url = request.requestUri;
+            ajaxImpl.ajax({
+                url: url,
+                type: request.method,
+                headers: request.headers,
+                data: request.data,
+                contentType: 'application/json;odata=verbose',
+                success: tryRequestSucceeded,
+                error: requestFailed
+            });
 
             return deferred.promise;
 
-            function requestSucceeded(data, response) {
-                var statusCode = response.statusCode;
+            function tryRequestSucceeded(response) {
+                try {
+                    requestSucceeded(response);
+                } catch (e) {
+                    // program error means adapter it broken, not SP or the user
+                    deferred.reject("Program error: failed while processing successful save response");
+                }
+            }
+
+            function requestSucceeded(response) {
+                var statusCode = response.status;
                 if ((!statusCode) || statusCode >= 400) {
                     return deferred.reject(createError(response, url));
                 }
 
-                var rawEntity = response.data;
+                var rawEntity = response.data && response.data.d; // sharepoint adds a 'd' !?!
                 if (rawEntity) {
                     var tempKey = saveContext.tempKeys[index];
                     if (tempKey) {
@@ -432,7 +488,8 @@
                     savedEntities.push(rawEntity);
                 } else {
                     var saved = saveContext.originalEntities[index];
-                    var etag = response.headers['ETag'];
+
+                    var etag = response.getHeaders('ETag');
                     if (etag) {
                         saved.entityAspect.extraMetadata.etag = etag;
                     }
@@ -442,9 +499,24 @@
                 return deferred.resolve(true);
             }
 
-            function requestFailed(err, url) {
-                return deferred.reject(createError(err, url));
+            function requestFailed(response) {
+                try {
+                    return deferred.reject(createError(response, url))
+                } catch (e) {
+                    // program error means adapter it broken, not SP or the user
+                    deferred.reject("Program error: failed while processing save error");
+
+                }
             }
         }
+    }
+
+    function serializeToJson(rawEntityData) {
+        // Serialize raw entity data to JSON during save
+        // You could override this default version
+        // Note that DataJS has an amazingly complex set of tricks for this, 
+        // all of them depending on metadata attached to the property values 
+        // which breeze entity data never have.
+        return JSON.stringify(rawEntityData);
     }
 });
