@@ -900,7 +900,11 @@ var EntityManager = (function () {
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.entityErrors] { Array of server side errors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
-        @param [errorCallback.error.httpResponse] {HttpResponse}The raw HttpResponse returned from the server.
+        @param [errorCallback.error.httpResponse] {HttpResponse} The raw HttpResponse returned from the server.
+        @param [errorCallback.error.saveResult] {Object} Some dataservice adapters return a 'saveResult' object 
+        when the failing save operation is non-transactional meaning some entities could be saved while others were not.
+        The 'saveResult' object identifies both that entities that were saved (with their keyMapping)
+        and that entities that were not saved (with their errors).
         
     @return {Promise} Promise
     **/
@@ -909,15 +913,15 @@ var EntityManager = (function () {
         assertParam(saveOptions, "saveOptions").isInstanceOf(SaveOptions).isOptional().check();
         assertParam(callback, "callback").isFunction().isOptional().check();
         assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
-            
+
         saveOptions = saveOptions || this.saveOptions || SaveOptions.defaultInstance;
         var isFullSave = entities == null;
         var entitiesToSave = getEntitiesToSave(this, entities);
             
         if (entitiesToSave.length === 0) {
-            var emptySaveResult =  { entities: [], keyMappings: [] };
-            if (callback) callback(emptySaveResult);
-            return Q.resolve(emptySaveResult);
+            var result =  { entities: [], keyMappings: [] };
+            if (callback) callback(result);
+            return Q.resolve(result);
         }
             
         if (!saveOptions.allowConcurrentSaves) {
@@ -951,6 +955,7 @@ var EntityManager = (function () {
         var saveContext = {
             entityManager: this,
             dataService: dataService,
+            processSavedEntities: processSavedEntities,
             resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges"
         };       
 
@@ -958,8 +963,7 @@ var EntityManager = (function () {
         // are referenced are also in the partial save group
 
         var saveBundle = { entities: entitiesToSave, saveOptions: saveOptions };
-        
-        var that = this;
+
         
         try { // Guard against exception thrown in dataservice adapter before it goes async
             updateConcurrencyProperties(entitiesToSave);
@@ -973,28 +977,39 @@ var EntityManager = (function () {
         }
 
         function saveSuccess(saveResult) {
-            
-            fixupKeys(that, saveResult.keyMappings);
-            
-            var mappingContext = new MappingContext( {
-                query: null, // tells visitAndMerge that this is a save instead of a query
-                entityManager: that,
+            var manager = saveContext.entityManager;
+            var savedEntities = saveResult.entities = saveContext.processSavedEntities(saveResult);
+
+            // update _hasChanges after save.
+            manager._hasChanges = (isFullSave && haveSameContents(entitiesToSave, savedEntities)) ? false : manager._hasChangesCore();
+            if (!manager._hasChanges) {
+                manager.hasChangesChanged.publish({ entityManager: manager, hasChanges: false });
+            }
+
+            markIsBeingSaved(entitiesToSave, false);
+            if (callback) callback(saveResult);
+            return Q.resolve(saveResult);
+        }
+
+        function processSavedEntities(saveResult) {
+            var savedEntities = saveResult.entities;
+            if (savedEntities.length === 0) { return []; }
+            var keyMappings = saveResult.keyMappings;
+            var manager = saveContext.entityManager;
+
+            fixupKeys(manager, keyMappings);
+
+            var mappingContext = new MappingContext({
+                query: null, // tells visitAndMerge this is a save instead of a query
+                entityManager: manager,
                 mergeOptions: { mergeStrategy: MergeStrategy.OverwriteChanges },
                 dataService: dataService
             });
 
-            // Note that the visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
+            // The visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
             // the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
-            var savedEntities = mappingContext.visitAndMerge(saveResult.entities, { nodeType: "root" });
-            markIsBeingSaved(entitiesToSave, false);
-            // update _hasChanges after save.
-            that._hasChanges = (isFullSave && haveSameContents(entitiesToSave, savedEntities)) ? false : that._hasChangesCore();
-            if (!that._hasChanges) {
-                that.hasChangesChanged.publish({ entityManager: that, hasChanges: false });
-            }
-            saveResult.entities = savedEntities;
-            if (callback) callback(saveResult);
-            return Q.resolve(saveResult);
+            savedEntities = mappingContext.visitAndMerge(savedEntities, { nodeType: "root" });
+            return savedEntities;
         }
 
         function saveFail(error) {
