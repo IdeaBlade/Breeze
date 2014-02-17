@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs SharePoint 2013 OData DataServiceAdapter
  *
- *  v.0.1.4-pre
+ *  v.0.1.5-pre
  *
  * Registers a SharePoint 2013 OData DataServiceAdapter with Breeze
  * 
@@ -70,7 +70,7 @@
         // Todo: use promise adapter after Breeze makes it available
         Q:  window.Q, // assume Q.js in global namespace; you better set it (e.g., to $q) if it's not there, 
         saveChanges: saveChanges,
-        saveOnlyOne: true, // false if you allow multiple entity saves; beware!
+        saveOnlyOne: false, // false if you allow multiple entity saves.
         serializeToJson: serializeToJson // serialize raw entity data to JSON for save
     };
 
@@ -117,17 +117,17 @@
         // this code is tricky so be careful changing the response.body parsing.
         var result = new Error();
         result.message =  response.message || response.error || response.statusText;
-        result.statusText = result.message;
+        result.statusText = response.statusText;
         result.status =  response.status  ;
-        // non std
+
         if (url) { result.url = url; }
-        result.data = response.data ;
-        if (result.data) {
-            var nextErr;
+        var data = result.data = response.data;
+        if (data) {
+            var msg = "", nextErr;
             try {
-                var data = JSON.parse(result.data);
-                result.data = data;
-                var msg = "";
+                if (typeof (data) === "string") {
+                    data = result.data = JSON.parse(data);
+                }
                 do {
                     nextErr = data.error || data.innererror;
                     if (!nextErr) {msg = msg + getMessage(data);}
@@ -137,9 +137,7 @@
                 if (msg.length > 0) {
                     result.message = msg;
                 }
-            } catch (e) {
-
-            }
+            } catch (e) { /* carry on */ }
         }
         return result;
 
@@ -389,40 +387,43 @@
             // $q.all waits for all to complete, Q.all quits on first failure
             // It's bad regardless any of multiple save promises fail
             return comboPromise
-                .then(saveSucceeded)
+                .then(reviewSaveResult)
                 .then(null, saveFailed)
 
         } catch (err) {
             return Q.reject(err);
         }
 
-        function saveSucceeded(promiseValues) {
-            return saveContext.saveResult; 
+        function reviewSaveResult(promiseValues) {
+            var saveResult = saveContext.saveResult;
+            return getSaveErrors(saveResult) || saveResult; 
+
+            function getSaveErrors() {
+                var error;
+                var entitiesWithErrors = saveResult.entitiesWithErrors;
+                var errorCount = entitiesWithErrors.length;
+                if (!errorCount) { return undefined; }
+
+                // at least one request failed; process those that succeeded
+                var savedEntities = saveContext.processSavedEntities(saveResult);
+
+                // Compose error; promote the first error when one or all fail
+                if (requests.length === 1 || requests.length === errorCount) {
+                    // When all fail, good chance the first error is the same reason for all
+                    error = entitiesWithErrors[0].error;
+                } else
+                    error = new Error("The save partially succeed and partially failed");
+                error.saveResult = {
+                    savedEntities: savedEntities,
+                    keyMappings: saveResult.keyMappings,
+                    entitiesWithErrors: entitiesWithErrors
+                };
+                return Q.reject(error);
+            }
         }
 
         function saveFailed(error) {
-            var requestCount = requests.length;
-            if (requestCount < 2) {
-                // Only one request so failure is probably no big deal
-                return Q.reject(error);
-            }
-            // Multiple requests => serious trouble.
-            var saveResult = saveContext.saveResult;
-            var savedCount = saveResult.entities.length;
-            var emsg = "At least one of the " + requestCount + " save requests failed " +
-                "with the message '"+ (error.message ? error.message : error) +"'.";
-            emsg += (savedCount ? "At least "+ savedCount : "No");
-            emsg += " requests are known to have succeeded on the server, perhaps more. " +
-            "Regardless, the EntityManager cache is in an unstable state. ;"
-
-            var newErr = new Error(emsg);
-            newErr.originalError = error;
-            // Attaching the 'saveContext' for diagnostic purposes but
-            // it is unlikely that there is any truly safe recovery and
-            // we recommend, at a minimum, that you call manager.rejectChanges()
-            // and reload pertinent entity data from the server.
-            newErr.failedSaveContext = saveContext;
-            return Q.reject(newErr);
+            return Q.reject(error);
         }
     };
 
@@ -431,9 +432,15 @@
         // returns a single "comboPromise" that waits for the individual promises to complete
         // Todo: What happens when there are a gazillion async requests?
         var Q = saveContext.Q;
+        var autoGenKeyTypeNone = breeze.AutoGeneratedKeyType.None;
         var savedEntities = [];
         var keyMappings = [];
-        var saveResult = { entities: savedEntities, keyMappings: keyMappings };
+        var entitiesWithErrors = [];
+        var saveResult = {
+            entities: savedEntities,
+            entitiesWithErrors: entitiesWithErrors,
+            keyMappings: keyMappings 
+        };
         saveContext.saveResult = saveResult;
 
         return requests.map(sendSaveRequest);
@@ -465,7 +472,7 @@
             function requestSucceeded(response) {
                 var statusCode = response.status;
                 if ((!statusCode) || statusCode >= 400) {
-                    return deferred.reject(createError(response, url));
+                    return requestFailed(response);
                 }
 
                 var rawEntity = response.data && response.data.d; // sharepoint adds a 'd' !?!
@@ -473,7 +480,7 @@
                     var tempKey = saveContext.tempKeys[index];
                     if (tempKey) {
                         var entityType = tempKey.entityType;
-                        if (entityType.autoGeneratedKeyType !== breeze.AutoGeneratedKeyType.None) {
+                        if (entityType.autoGeneratedKeyType !== autoGenKeyTypeNone) {
                             var tempValue = tempKey.values[0];
                             var realKey = entityType.getEntityKeyFromRawEntity(
                                 rawEntity, breeze.DataProperty.getRawValueFromServer);
@@ -488,7 +495,6 @@
                     savedEntities.push(rawEntity);
                 } else {
                     var saved = saveContext.originalEntities[index];
-
                     var etag = response.getHeaders('ETag');
                     if (etag) {
                         saved.entityAspect.extraMetadata.etag = etag;
@@ -501,11 +507,15 @@
 
             function requestFailed(response) {
                 try {
-                    return deferred.reject(createError(response, url))
+                    // Do NOT fail saveChanges at the request level
+                    entitiesWithErrors.push({
+                        entity: saveContext.originalEntities[index],
+                        error: createError(response, url)
+                    })
+                    return deferred.resolve(false);
                 } catch (e) {
                     // program error means adapter it broken, not SP or the user
-                    deferred.reject("Program error: failed while processing save error");
-
+                    return deferred.reject("Program error: failed while processing save error");
                 }
             }
         }
