@@ -19,7 +19,6 @@ namespace Breeze.NetClient {
     public EntityManager(String serviceName) {
       DefaultDataService = new DataService(serviceName);
       DefaultMergeStrategy = MergeStrategy.PreserveChanges;
-      MetadataStore = MetadataStore.Instance;
       KeyGenerator = new DefaultKeyGenerator();
       Initialize();
     }
@@ -27,12 +26,12 @@ namespace Breeze.NetClient {
     public EntityManager(EntityManager em) {
       DefaultDataService = em.DefaultDataService;
       DefaultMergeStrategy = em.DefaultMergeStrategy;
-      
       KeyGenerator = em.KeyGenerator; // TODO: review whether we should clone instead.
       Initialize();
     }
 
     private void Initialize() {
+      MetadataStore = MetadataStore.Instance;
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
       TempIds = new HashSet<UniqueId>();
@@ -161,7 +160,7 @@ namespace Breeze.NetClient {
       events.ForEach(a => a());
 
       // in case any of the previously queued events spawned other events.
-      // FireQueuedEvents();
+      FireQueuedEvents();
 
     }
 
@@ -626,8 +625,25 @@ namespace Breeze.NetClient {
 
     #region Other internal 
 
-    internal BooleanUsingBlock NewIsLoadingBlock() {
-      return new BooleanUsingBlock((b) => this.IsLoadingEntity = b);
+
+    internal LoadingBlock NewIsLoadingBlock() {
+      return new LoadingBlock(this);
+    }
+
+    internal class LoadingBlock : IDisposable {
+      public LoadingBlock(EntityManager entityManager) {
+        _entityManager = entityManager;
+        _wasLoadingEntity = _entityManager.IsLoadingEntity;
+        entityManager.IsLoadingEntity = true;
+      }
+
+      public void Dispose() {
+        _entityManager.FireQueuedEvents();
+        _entityManager.IsLoadingEntity = _wasLoadingEntity;
+      }
+
+      private EntityManager _entityManager;
+      private bool _wasLoadingEntity;
     }
 
     internal bool IsLoadingEntity { get; set;  }

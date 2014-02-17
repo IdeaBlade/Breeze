@@ -11,6 +11,7 @@ using Foo;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
+using System.Reflection;
 
 namespace Test_NetClient {
 
@@ -19,7 +20,7 @@ namespace Test_NetClient {
 
     private Task<EntityManager> _emTask = null;
     private EntityManager _em1;
-    private static MetadataStore __metadataStore;
+    
 
     [TestInitialize]
     public void TestInitializeMethod() {
@@ -29,15 +30,6 @@ namespace Test_NetClient {
     //public async Task<EntityManager> SetUpAsync() {
     //  var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
 
-    //  if (__metadataStore == null) {
-    //    _em1 = new EntityManager(serviceName);
-    //    await _em1.FetchMetadata();
-    //    __metadataStore = _em1.MetadataStore;
-    //  } else {
-    //    _em1 = new EntityManager(serviceName, __metadataStore);
-    //  }
-    //  return _em1;
-    //  return null;
     //}
 
     [TestCleanup]
@@ -57,12 +49,12 @@ namespace Test_NetClient {
 
       var ms = MetadataStore.Instance;
 
-      MetadataStore.Clear();
+      MetadataStore.__Reset();
       Assert.IsTrue(ms != MetadataStore.Instance);
-      MetadataStore.Instance.ImportMetadata(metadata);
+      MetadataStore.Instance.ImportMetadata(metadata, new Assembly[] { typeof(Order).Assembly });
       var metadata2 = MetadataStore.Instance.ExportMetadata();
-      
-      
+
+
       File.WriteAllText("c:/temp/metadata2.txt", metadata2);
       Assert.IsTrue(metadata == metadata2);
     }

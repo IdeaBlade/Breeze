@@ -68,7 +68,7 @@ namespace Breeze.NetClient {
 
     #region Public methods
 
-    public static void Clear() {
+    public static void __Reset() {
       lock (__lock) {
         __instance = new MetadataStore();
       }
@@ -195,7 +195,8 @@ namespace Breeze.NetClient {
       return ((IJsonSerializable) this).ToJNode().ToJson();
     }
 
-    public void ImportMetadata(String metadata) {
+    public void ImportMetadata(String metadata, IEnumerable<Assembly> probeAssemblies) {
+      _clrTypeMap.ProbeAssemblies(probeAssemblies);
       var jNode = new JNode(metadata);
       ((IJsonSerializable)this).FromJNode(jNode);
       EntityTypes.ForEach(et => ResolveComplexTypeRefs(et));
@@ -228,7 +229,8 @@ namespace Breeze.NetClient {
       });
       var stypes = jNode.GetObjectArray<StructuralType>("structuralTypes", 
         jn => jn.Get<bool>("isComplexType", false) ? (StructuralType) new ComplexType() : (StructuralType) new EntityType());
-      stypes.ForEach(st => _structuralTypes.Add(st));
+      stypes.ForEach(st => this.AddStructuralType(st));
+
       jNode.GetMap<String>("resourceEntityTypeMap").ForEach(kvp => {
         var et = GetEntityType(kvp.Value);
         AddResourceName(kvp.Key, et);
@@ -467,6 +469,9 @@ namespace Breeze.NetClient {
         TypePair tp;
         if (_map.TryGetValue(stType.Name, out tp)) {
           stType.ClrType = tp.ClrType;
+          if (tp.StructuralType == null) {
+            tp.StructuralType = stType;
+          }
           return tp.ClrType;
         } else {
           _map.Add(stType.Name, new TypePair() { StructuralType = stType });
@@ -474,7 +479,7 @@ namespace Breeze.NetClient {
         }
       }
 
-      private bool ProbeAssemblies(IEnumerable<Assembly> assembliesToProbe) {
+      public bool ProbeAssemblies(IEnumerable<Assembly> assembliesToProbe) {
         // ToList is important on next line
         var assemblies = assembliesToProbe.Except(_probedAssemblies).ToList();
         if (assemblies.Any()) {

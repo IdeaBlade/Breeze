@@ -108,6 +108,7 @@ namespace Breeze.NetClient {
     }
 
     internal NavigationProperty AddNavigationProperty(NavigationProperty np) {
+      np.ParentType = this;
       UpdateClientServerName(np);
       _navigationProperties.Add(np);
 

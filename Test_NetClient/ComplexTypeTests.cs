@@ -18,7 +18,6 @@ namespace Test_NetClient {
 
     private Task<EntityManager> _emTask = null;
     private EntityManager _em1;
-    private static MetadataStore __metadataStore;
 
     [TestInitialize]
     public void TestInitializeMethod() {
@@ -27,11 +26,10 @@ namespace Test_NetClient {
 
     public async Task<EntityManager> SetUpAsync() {
       var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-      
-      if (__metadataStore == null) {
+
+      if (MetadataStore.Instance.EntityTypes.Count == 0) {
         _em1 = new EntityManager(serviceName);
         await _em1.FetchMetadata();
-        __metadataStore = _em1.MetadataStore;
       } else {
         _em1 = new EntityManager(serviceName);
       }

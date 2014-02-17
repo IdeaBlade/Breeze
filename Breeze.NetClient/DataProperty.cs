@@ -46,6 +46,7 @@ namespace Breeze.NetClient {
       jo.Add("defaultValue", this.DefaultValue );
       jo.Add("isPartOfKey", this.IsPartOfKey, false);
       jo.Add("isUnmapped", this.IsUnmapped, false);
+      jo.Add("isAutoIncrementing", this.IsAutoIncrementing, false);
       jo.Add("concurrencyMode", this.ConcurrencyMode == ConcurrencyMode.None ? null : this.ConcurrencyMode.ToString());
       jo.Add("maxLength", this.MaxLength);
       // jo.AddArrayProperty("validators", this.Validators);
@@ -67,6 +68,7 @@ namespace Breeze.NetClient {
       }
       IsPartOfKey = jNode.Get<bool>("isPartOfKey", false);
       IsUnmapped = jNode.Get<bool>("isUnmapped", false);
+      IsAutoIncrementing = jNode.Get<bool>("isAutoIncrementing", false);
       ConcurrencyMode = (ConcurrencyMode) Enum.Parse(typeof(ConcurrencyMode), jNode.Get<String>("conncurrencyMode", ConcurrencyMode.None.ToString()));
       MaxLength = jNode.Get<int?>("maxLength");
       EnumTypeName = jNode.Get<String>("enumType");
