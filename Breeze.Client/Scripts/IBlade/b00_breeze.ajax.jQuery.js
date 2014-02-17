@@ -36,12 +36,15 @@
             data: config.params || config.data,
             dataType: config.dataType,
             contentType: config.contentType,
-            crossDomain: config.crossDomain
+            crossDomain: config.crossDomain,
+            headers: config.headers || {}
         }
         
         if (!core.isEmpty(this.defaultSettings)) {
             var compositeConfig = core.extend({}, this.defaultSettings);
             jqConfig = core.extend(compositeConfig, jqConfig);
+            // extend is shallow; extend headers separately
+            jqConfig.headers = core.extend(this.defaultSettings.headers, jqConfig.headers);
         }
         
         jqConfig.success = function (data, textStatus, XHR) {

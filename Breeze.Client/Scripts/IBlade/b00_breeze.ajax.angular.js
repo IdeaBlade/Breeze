@@ -48,7 +48,8 @@
             url: config.url,
             dataType: config.dataType,
             contentType: config.contentType,
-            crossDomain: config.crossDomain
+            crossDomain: config.crossDomain,
+            headers: config.headers || {}
         }
 
         if (config.params) {
@@ -66,6 +67,8 @@
         if (!core.isEmpty(this.defaultSettings)) {
             var compositeConfig = core.extend({}, this.defaultSettings);
             ngConfig = core.extend(compositeConfig, ngConfig);
+            // extend is shallow; extend headers separately
+            ngConfig.headers = core.extend(this.defaultSettings.headers, ngConfig.headers);
         }
 
         httpService(ngConfig).success(function (data, status, headers, xconfig) {
