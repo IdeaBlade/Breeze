@@ -272,6 +272,7 @@ namespace Breeze.NetClient {
       EntityManager.MarkTempIdAsMapped(this, true);
 
       EntityGroup.DetachEntityAspect(this);
+      SetEntityStateCore(EntityState.Detached); // need to do this before RemoveFromRelations call
       RemoveFromRelations(EntityState.Detached);
       // TODO: determine if this is needed.
       // this.OriginalValuesMap = null;
@@ -280,7 +281,7 @@ namespace Breeze.NetClient {
       // TODO: add later
       // this._validationErrors = {};
 
-      SetEntityStateCore(EntityState.Detached);
+
       EntityManager.NotifyStateChange(this, false);
       EntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
       return true;
@@ -572,7 +573,7 @@ namespace Breeze.NetClient {
       // update fk data property - this can only occur if this navProperty has
       // a corresponding fk on this entity.
       if (property.RelatedDataProperties.Count > 0) {
-        if (!EntityState.IsDeleted()) {
+        if (!EntityState.IsDeletedOrDetached()) {
           var inverseKeyProps = property.EntityType.KeyProperties;
           inverseKeyProps.ForEach((keyProp, i) => {
             var relatedDataProp = property.RelatedDataProperties[i];

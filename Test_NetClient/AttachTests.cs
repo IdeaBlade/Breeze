@@ -563,16 +563,20 @@ namespace Test_NetClient {
       ((INotifyPropertyChanged)order1).PropertyChanged += (s, e) => {
         propChangedList.Add(e);
       };
+      var entityChangedList = new List<EntityChangedEventArgs>();
+      _em1.EntityChanged += (s, e) => {
+        entityChangedList.Add(e);
+      };
       order1.EntityAspect.Detach();
+      
       Assert.IsTrue(collectionChangedList.Last().Action == NotifyCollectionChangedAction.Remove);
       Assert.IsTrue(collectionChangedList.Last().OldItems.Contains(order1), "change event should contain order1");
-      
-      
+
       Assert.IsTrue(propChangedList.Count == 0, "Detaching an entity will not create a propertyChange event");
 
       Assert.IsTrue(!orders.Contains(order1), "order1 should have been removed");
       Assert.IsTrue(order1.Customer == null, "Customer should be null");
-      Assert.IsTrue(order1.CustomerID == null); // null because not required.
+      Assert.IsTrue(order1.CustomerID == cust1.CustomerID, "customerID should NOT be cleared when detached - just the Customer");
       Assert.IsTrue(order1.EntityAspect.EntityState.IsDetached());
       Assert.IsTrue(orders.Count == 1, "count should be 1");
 
@@ -581,12 +585,13 @@ namespace Test_NetClient {
       order1.Customer = cust1;
       Assert.IsTrue(collectionChangedList.Last().Action == NotifyCollectionChangedAction.Add);
       Assert.IsTrue(collectionChangedList.Last().NewItems.Contains(order1), "change event should contain order1");
-      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
-      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
+      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
+      // Not needed because CustomerID is not cleared.
+      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
 
       Assert.IsTrue(orders.Contains(order1), "order1 should be back");
       Assert.IsTrue(order1.Customer == cust1, "Customer should be back");
-      Assert.IsTrue(order1.CustomerID == cust1.CustomerID, "CustomerID should be back"); // null because not required.
+      Assert.IsTrue(order1.CustomerID == cust1.CustomerID, "CustomerID should not have changed"); // null because not required.
       Assert.IsTrue(order1.EntityAspect.EntityState.IsAdded());
       Assert.IsTrue(orders.Count == 2, "count should be 2");
 
@@ -812,7 +817,7 @@ namespace Test_NetClient {
 
       emp2.Manager = emp1;
       emp3.Manager = emp2;
-      _em1.AttachEntity(emp3);
+      _em1.AddEntity(emp3);
       Assert.IsTrue(emp3.EntityAspect.IsAttached);
       Assert.IsTrue(emp2.EntityAspect.IsAttached);
       Assert.IsTrue(emp1.EntityAspect.IsAttached);
