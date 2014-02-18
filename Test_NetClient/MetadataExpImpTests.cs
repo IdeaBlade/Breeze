@@ -20,17 +20,24 @@ namespace Test_NetClient {
 
     private Task<EntityManager> _emTask = null;
     private EntityManager _em1;
-    
 
     [TestInitialize]
     public void TestInitializeMethod() {
-      // _emTask = SetUpAsync();
+      _emTask = SetUpAsync();
     }
 
-    //public async Task<EntityManager> SetUpAsync() {
-    //  var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
+    public async Task<EntityManager> SetUpAsync() {
+      var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
 
-    //}
+      if (MetadataStore.Instance.EntityTypes.Count == 0) {
+        _em1 = new EntityManager(serviceName);
+        await _em1.FetchMetadata();
+      } else {
+        _em1 = new EntityManager(serviceName);
+      }
+      return _em1;
+
+    }
 
     [TestCleanup]
     public void TearDown() {
@@ -40,9 +47,7 @@ namespace Test_NetClient {
     // create entity with complexType property
     [TestMethod]
     public async Task ExportMetadata() {
-      var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-      var dataService = new DataService(serviceName);
-      await MetadataStore.Instance.FetchMetadata(dataService);
+      await _emTask;
 
       var metadata = MetadataStore.Instance.ExportMetadata();
       File.WriteAllText("c:/temp/metadata.txt", metadata);
@@ -57,6 +62,22 @@ namespace Test_NetClient {
 
       File.WriteAllText("c:/temp/metadata2.txt", metadata2);
       Assert.IsTrue(metadata == metadata2);
+    }
+
+    [TestMethod]
+    public async Task ExportEntities() {
+      await _emTask;
+
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
+      
+      var results = await q.Execute(_em1);
+
+      Assert.IsTrue(results.Count() > 0);
+      var exportedEntities = _em1.ExportEntities();
+
+      File.WriteAllText("c:/temp/emExport1.txt", exportedEntities);
+      
     }
 
     

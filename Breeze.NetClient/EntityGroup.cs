@@ -32,7 +32,7 @@ namespace Breeze.NetClient {
   /// using <see cref="M:IdeaBlade.EntityModel.EntityManager.GetEntityGroup(Type)"/>.
   /// </para>
   /// </remarks>
-  internal abstract class EntityGroup : IGrouping<Type, EntityAspect> {
+  internal abstract class EntityGroup : IGrouping<Type, EntityAspect>, IJsonSerializable {
 
     #region ctors
 
@@ -87,9 +87,6 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    
-
-    
 
     #region Public properties
 
@@ -142,7 +139,7 @@ namespace Breeze.NetClient {
     public ReadOnlyCollection<EntityGroup> SelfAndSubtypeGroups {
       get {
         if (_selfAndSubtypeGroups == null) {
-          _selfAndSubtypeGroups = EntityType.Subtypes
+          _selfAndSubtypeGroups = new EntityType[] { EntityType }.Concat(EntityType.Subtypes)
             .Select(et => EntityManager.GetEntityGroup(et.ClrType))
             .ToSafeList();
         }
@@ -346,6 +343,14 @@ namespace Breeze.NetClient {
 
     #endregion
 
+
+    JNode IJsonSerializable.ToJNode(object config) {
+      throw new NotImplementedException();
+    }
+
+    void IJsonSerializable.FromJNode(JNode jNode) {
+      throw new NotImplementedException();
+    }
   }
 
   #endregion

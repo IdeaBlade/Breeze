@@ -26,12 +26,12 @@ namespace Breeze.NetClient {
       this._invForeignKeyNamesOnServer = np._invForeignKeyNamesOnServer;
     }
 
-    JNode IJsonSerializable.ToJNode() {
+    JNode IJsonSerializable.ToJNode(Object config) {
       var jo = new JNode();
-      jo.Add("name", this.Name);
-      jo.Add("entityTypeName", this.EntityTypeName);
-      jo.Add("isScalar", this.IsScalar);
-      jo.Add("associationName", this.AssociationName);
+      jo.AddPrimitive("name", this.Name);
+      jo.AddPrimitive("entityTypeName", this.EntityTypeName);
+      jo.AddPrimitive("isScalar", this.IsScalar);
+      jo.AddPrimitive("associationName", this.AssociationName);
       // jo.AddArray("validators", this.Validators);
       jo.AddArray("foreignKeyNames", this.ForeignKeyNames);
       jo.AddArray("invForeignKeyNames", this.InvForeignKeyNames);
@@ -45,8 +45,8 @@ namespace Breeze.NetClient {
       IsScalar = jNode.Get<bool>("isScalar", true);
       AssociationName = jNode.Get<String>("associationName");
       // _validators.AddRange()
-      _foreignKeyNames.AddRange(jNode.GetSimpleArray<String>("foreignKeyNames"));
-      _invForeignKeyNames.AddRange(jNode.GetSimpleArray<String>("invForeignKeyNames"));
+      _foreignKeyNames.AddRange(jNode.GetPrimitiveArray<String>("foreignKeyNames"));
+      _invForeignKeyNames.AddRange(jNode.GetPrimitiveArray<String>("invForeignKeyNames"));
       // custom
     }
 

@@ -11,11 +11,11 @@ namespace Breeze.NetClient {
       get { return false; }
     }
 
-    JNode IJsonSerializable.ToJNode() {
+    JNode IJsonSerializable.ToJNode(Object config) {
       var jo = new JNode();
-      jo.Add("shortName", this.ShortName);
-      jo.Add("namespace", this.Namespace);
-      jo.Add("isComplexType", true);
+      jo.AddPrimitive("shortName", this.ShortName);
+      jo.AddPrimitive("namespace", this.Namespace);
+      jo.AddPrimitive("isComplexType", true);
       // jo.AddProperty("baseTypeName", this.BaseTypeName);
       // jo.AddProperty("isAbstract", this.IsAbstract, false);
       jo.AddArray("dataProperties", this.DataProperties.Where(dp => dp.IsInherited == false));

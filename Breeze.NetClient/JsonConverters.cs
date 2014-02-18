@@ -1,4 +1,4 @@
-﻿using Breeze.Core;
+﻿
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Breeze.Core;
+
 namespace Breeze.NetClient {
 
   public interface IJsonSerializable {
-    JNode ToJNode();
+    JNode ToJNode(Object config);
     void FromJNode(JNode jNode);
   }
 
@@ -28,15 +30,88 @@ namespace Breeze.NetClient {
       // _jo = JObject.Parse(text);
       _jo = Parse(json);
     }
+
+    public bool IsEmpty {
+      get {
+        return !_jo.Values().Any();
+      }
+    }
+
+    public static JNode ToJNode<T>(IDictionary<String, T> map) {
+      var jn = new JNode();
+      map.ForEach(kvp => {
+        var val = CvtValue(kvp.Value);
+        if (val != null) {
+          if (val is JToken) {
+            jn.AddRaw(kvp.Key, (JToken)val);
+          } else {
+            jn.AddRaw(kvp.Key, new JValue(val));
+          }
+        }
+      });
+      return jn;
+    }
+
+    public static JArray ToJArray<T>(IEnumerable<T> items) {
+      var ja = new JArray();
+      items.ForEach(v => ja.Add(CvtValue(v)));
+      return ja;
+    }
+
+         
+    public Object Config {
+      get;
+      set;
+    }
     
     // needed because we need to set the DateParseHandling to work with DataTimeOffsets
-    public static new JObject Parse(string json)     {
+    public static JObject Parse(string json)     {
       var reader = (JsonReader)new JsonTextReader(new StringReader(json));
       reader.DateParseHandling = DateParseHandling.DateTimeOffset;
       var jobject = JObject.Load(reader);
-      if (reader.Read() && reader.TokenType != JsonToken.Comment)
-          JObject.Parse(json);
+      if (reader.Read() && reader.TokenType != JsonToken.Comment) {
+        JObject.Parse(json);
+      }
       return jobject;
+    }
+
+    public void AddPrimitive(String propName, Object value, Object defaultValue = null) {
+      if (value == null) return;
+      if (value != null && value.Equals(defaultValue)) return;
+      Object val;
+      if (value is DateTimeOffset) {
+        var dummy = value;
+      }
+      AddRaw(propName, new JValue(value));
+    }
+
+    public void AddObject(String propName, IJsonSerializable item) {
+      if (item == null) return;
+      var jn = item.ToJNode(null);
+      AddRaw(propName, jn._jo);
+    }
+
+    public void AddArray<T>(String propName, IEnumerable<T> items) {
+      if (!items.Any()) return;
+      var ja = ToJArray(items);
+      AddRaw(propName, ja);
+    }
+
+    public void AddMap<T>(String propName, IDictionary<String, T> map) {
+      if (map == null) return;
+      if (!map.Values.Any()) return;
+      var jn = ToJNode(map);
+      AddRaw(propName, jn._jo);
+    }
+
+    public void AddJNode(String propName, JNode jn) {
+      if (jn == null) return;
+      if (jn.IsEmpty) return;
+      AddRaw(propName, jn._jo);
+    }
+
+    private void AddRaw(String propName, JToken jt) {
+      _jo.Add(propName, jt);
     }
 
     public Object Get(String propName, Type objectType) {
@@ -76,7 +151,7 @@ namespace Breeze.NetClient {
     }
 
     // for non newable types like String, Int etc..
-    public IEnumerable<T> GetSimpleArray<T>(String propName)  {
+    public IEnumerable<T> GetPrimitiveArray<T>(String propName)  {
       var items = GetToken<JArray>(propName);
       if (items == null) {
         return Enumerable.Empty<T>();
@@ -85,6 +160,20 @@ namespace Breeze.NetClient {
           return item.Value<T>();
         });
       }
+    }
+
+    public T GetObject<T>(String propName) where T : new() {
+      return GetObject<T>(propName, (jn) => new T());
+    }
+
+    public T GetObject<T>(String propName, Func<JNode, T> ctorFn)  {
+      var item = (JObject)GetToken<JObject>(propName);
+      T t;
+      var jNode = new JNode(item);
+      t = ctorFn(jNode);
+
+      ((IJsonSerializable)t).FromJNode(jNode);
+      return t;
     }
 
     public IEnumerable<T> GetObjectArray<T>(String propName) where T : new() {
@@ -110,50 +199,38 @@ namespace Breeze.NetClient {
     public IDictionary<String, T> GetMap<T>(String propName) {
       var rmap = new Dictionary<String, T>();
       var map = (JObject) GetToken<JObject>(propName);
-      // map.ForEach(kvp => rmap.Add(kvp.Key.Value<T1>(), kvp.K ))
       foreach (var kvp in map) {
         rmap.Add(kvp.Key, kvp.Value.Value<T>());
       }
       return rmap;
     }
 
-    public void Add(String propName, Object value, Object defaultValue=null) {
-      if (value == null) return;
-      if (value != null && value.Equals(defaultValue)) return;
-      Object val;
-      if (value is DateTimeOffset) {
-        var dummy = value;        
-      }
-      _jo.Add(propName, new JValue(value));
-      
-    }
 
-    public void AddArray(String propName, IEnumerable items) {
-      var objs = items.Cast<Object>();
-      if (!objs.Any()) return;
-      var ja = new JArray();
-      objs.ForEach(v => ja.Add(CvtValue(v)));
-
-      _jo.Add(new JProperty(propName, ja));
-    }
-
-    public void AddMap<T>(String propName, IDictionary<String, T> map) {
-      if (!map.Any()) return;
-      var jn = new JNode();
-      map.ForEach(kvp => jn.Add(kvp.Key, CvtValue(kvp.Value)));
-
-      _jo.Add(new JProperty(propName, jn._jo));
-    }
 
     public String ToJson() {
       // TODO: change to Formatting.None in production
       return _jo.ToString(Formatting.Indented);
     }
 
-    // returns either a simple value or a JObject
+    // pass in a simple value, a JNode or a IJsonSerializable and returns either a simple value or a JObject or a JArray
     private static Object CvtValue(Object value) {
+      var jn = value as JNode;
+      if (jn != null) {
+        return jn._jo;
+      }
+
+      var nodes = value as IEnumerable<JNode>;
+      if (nodes != null) {
+        return ToJArray(nodes);
+      }
+
       var js = value as IJsonSerializable;
-      return (js == null) ? value : (Object) js.ToJNode()._jo;
+      if (js != null) {
+        return js.ToJNode(null)._jo;
+      }
+
+      
+      return value;
     }
 
     private JObject _jo;

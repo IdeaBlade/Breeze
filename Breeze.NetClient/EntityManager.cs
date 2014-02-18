@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
-  public class EntityManager {
+  public class EntityManager  {
 
     #region Ctor 
 
@@ -19,19 +19,22 @@ namespace Breeze.NetClient {
     public EntityManager(String serviceName) {
       DefaultDataService = new DataService(serviceName);
       DefaultMergeStrategy = MergeStrategy.PreserveChanges;
+      MetadataStore = MetadataStore.Instance;
       KeyGenerator = new DefaultKeyGenerator();
+      
       Initialize();
     }
 
     public EntityManager(EntityManager em) {
       DefaultDataService = em.DefaultDataService;
       DefaultMergeStrategy = em.DefaultMergeStrategy;
+      MetadataStore = em.MetadataStore;
       KeyGenerator = em.KeyGenerator; // TODO: review whether we should clone instead.
       Initialize();
     }
 
     private void Initialize() {
-      MetadataStore = MetadataStore.Instance;
+      
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
       TempIds = new HashSet<UniqueId>();
@@ -171,6 +174,87 @@ namespace Breeze.NetClient {
     #endregion
 
     #region Misc public methods
+
+    public String ExportEntities(IEnumerable<IEntity> entities = null, bool includeMetadata = true) {
+      var jo = new JNode();
+      
+      // entityGroup map is map of entityTypeName: array of serialized entities;
+      jo.AddJNode("entityGroupMap", GetEntityGroupMapNode(entities));
+      // jo.AddArray("tempKeys", );
+
+
+
+      if (includeMetadata) {
+        jo.AddObject("dataService", this.DefaultDataService);
+        // jo.AddObject("queryOptions", this.QueryOptions;
+        // jo.AddObject("saveOptions", this.SaveOptions);
+        // jo.AddObject("validationOptions", this.ValidationOptions);
+         jo.AddJNode("metadataStore", ((IJsonSerializable) this.MetadataStore).ToJNode(null));
+      }
+      return jo.ToJson();
+    }
+
+    private JNode GetEntityGroupMapNode( IEnumerable<IEntity> entities) {
+      var map = new Dictionary<String, IEnumerable<JNode>>();
+      
+      if (entities != null) {
+        map = entities.Select(e => e.EntityAspect).GroupBy(ea => ea.EntityGroup.EntityType).ToDictionary(grp => grp.Key.Name, grp => ToJNodes(grp, grp.Key));
+      } else {
+        map = this.EntityGroups.ToDictionary(eg => eg.EntityType.Name, eg => ToJNodes(eg, eg.EntityType));
+      }
+      var jn = JNode.ToJNode(map);
+      return jn;
+      
+    }
+
+    private IEnumerable<JNode> ToJNodes(IEnumerable<EntityAspect> aspects, EntityType et) {
+      var dps = et.DataProperties;
+      var nodes = aspects.Select(aspect => ToJNode(aspect, dps));
+      return nodes;
+    }
+
+    private JNode ToJNode(StructuralAspect aspect, IEnumerable<DataProperty> dps) {
+      var jn = new JNode();
+      dps.ForEach(dp => {
+        var propName = dp.Name;
+        var value = aspect.GetRawValue(propName);
+        var co = value as IComplexObject;
+        if (co != null) {
+          var complexAspect = co.ComplexAspect;
+          jn.AddJNode(propName, ToJNode(complexAspect, complexAspect.ComplexType.DataProperties));
+        } else {
+          if (value != dp.DefaultValue) {
+            jn.AddPrimitive(propName, value);
+          }
+        }
+      });
+      if (aspect is ComplexAspect) {
+        var complexAspectNode = GetComplexAspectNode((ComplexAspect)aspect);
+        jn.AddJNode("complexAspect", complexAspectNode);
+      } else {
+        var entityAspectNode = GetEntityAspectNode((EntityAspect)aspect);
+        jn.AddJNode("entityAspect", entityAspectNode);
+      }
+      return jn;
+    }
+
+    private JNode GetEntityAspectNode(EntityAspect entityAspect) {
+      var jn = new JNode();
+      var es = entityAspect.EntityState;
+      jn.AddPrimitive("entityState", es.ToString());
+      if (es.IsModified() && es.IsDeleted()) {
+        jn.AddMap("originalValuesMap", entityAspect.OriginalValuesMap);
+      }
+      return jn;
+    }
+
+    private JNode GetComplexAspectNode(ComplexAspect complexAspect) {
+      var jn = new JNode();
+      jn.AddMap("originalValuesMap", complexAspect.OriginalValuesMap);
+      return jn;
+    }
+
+
 
     public void Clear() {
       EntityGroups.ForEach(eg => eg.Clear());

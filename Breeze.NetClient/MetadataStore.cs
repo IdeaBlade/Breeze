@@ -192,7 +192,7 @@ namespace Breeze.NetClient {
     }
 
     public String ExportMetadata() {
-      return ((IJsonSerializable) this).ToJNode().ToJson();
+      return ((IJsonSerializable) this).ToJNode(null).ToJson();
     }
 
     public void ImportMetadata(String metadata, IEnumerable<Assembly> probeAssemblies) {
@@ -207,11 +207,11 @@ namespace Breeze.NetClient {
         .ForEach(cp => cp.ComplexType = GetComplexType(cp.ComplexTypeName));
     }
 
-    JNode IJsonSerializable.ToJNode() {
+    JNode IJsonSerializable.ToJNode(Object config) {
       var jo =  new JNode(); 
-      jo.Add("metadataVersion", MetadataVersion);
+      jo.AddPrimitive("metadataVersion", MetadataVersion);
       // jo.Add("name", this.Name);
-      jo.Add("namingConvention", this.NamingConvention.Name);
+      jo.AddPrimitive("namingConvention", this.NamingConvention.Name);
       // jo.AddProperty("localQueryComparisonOptions", this.LocalQueryComparisonOptions);
       jo.AddArray("dataServices", this._dataServiceMap.Values);
       jo.AddArray("structuralTypes", this._structuralTypes);

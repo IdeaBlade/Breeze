@@ -37,21 +37,21 @@ namespace Breeze.NetClient {
 
 
 
-    JNode IJsonSerializable.ToJNode() {
+    JNode IJsonSerializable.ToJNode(Object config) {
       var jo = new JNode();
-      jo.Add("name", this.Name);
-      jo.Add("dataType", this.DataType != null ? this.DataType.Name : null); 
-      jo.Add("complexTypeName", this.ComplexType != null ? this.ComplexType.Name : null );
-      jo.Add("isNullable", this.IsNullable, true);
-      jo.Add("defaultValue", this.DefaultValue );
-      jo.Add("isPartOfKey", this.IsPartOfKey, false);
-      jo.Add("isUnmapped", this.IsUnmapped, false);
-      jo.Add("isAutoIncrementing", this.IsAutoIncrementing, false);
-      jo.Add("concurrencyMode", this.ConcurrencyMode == ConcurrencyMode.None ? null : this.ConcurrencyMode.ToString());
-      jo.Add("maxLength", this.MaxLength);
+      jo.AddPrimitive("name", this.Name);
+      jo.AddPrimitive("dataType", this.DataType != null ? this.DataType.Name : null); 
+      jo.AddPrimitive("complexTypeName", this.ComplexType != null ? this.ComplexType.Name : null );
+      jo.AddPrimitive("isNullable", this.IsNullable, true);
+      jo.AddPrimitive("defaultValue", this.DefaultValue );
+      jo.AddPrimitive("isPartOfKey", this.IsPartOfKey, false);
+      jo.AddPrimitive("isUnmapped", this.IsUnmapped, false);
+      jo.AddPrimitive("isAutoIncrementing", this.IsAutoIncrementing, false);
+      jo.AddPrimitive("concurrencyMode", this.ConcurrencyMode == ConcurrencyMode.None ? null : this.ConcurrencyMode.ToString());
+      jo.AddPrimitive("maxLength", this.MaxLength);
       // jo.AddArrayProperty("validators", this.Validators);
-      jo.Add("enumType", this.EnumTypeName);
-      jo.Add("isScalar", this.IsScalar, true);
+      jo.AddPrimitive("enumType", this.EnumTypeName);
+      jo.AddPrimitive("isScalar", this.IsScalar, true);
       // jo.AddProperty("custom", this.Custom.ToJObject)
       return jo;
     }
