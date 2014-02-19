@@ -12,7 +12,10 @@ import northwind.model.Customer;
 import northwind.model.Order;
 
 import com.breezejs.OdataParameters;
-import com.breezejs.hib.DataService;
+import com.breezejs.hib.QueryService;
+import com.breezejs.hib.SaveService;
+import com.breezejs.hib.StaticConfigurator;
+import com.breezejs.util.Json;
 
 /**
  * NorthBreeze service returning JSON.
@@ -24,35 +27,40 @@ import com.breezejs.hib.DataService;
 @Produces("application/json; charset=UTF-8")
 public class NorthBreeze {
 	
-	private DataService dataService;
+	private QueryService queryService;
+	private SaveService saveService;
+	private static String metadataJson; 
+	
 	public NorthBreeze() {
-    	dataService = new DataService();
+    	queryService = new QueryService(StaticConfigurator.getSessionFactory());
+    	saveService = new SaveService(StaticConfigurator.getSessionFactory(), StaticConfigurator.getMetadata());
 	}
 
 	@GET
 	@Path("Metadata")
 	public String getMetadata() {
-		return dataService.getMetadata();
+		if (metadataJson == null) {
+			metadataJson = Json.toJson(StaticConfigurator.getMetadata(), false, false);
+		}
+		return metadataJson;
 	}
 	
 	@POST
 	@Path("SaveChanges")
 	public Response saveChanges(String saveBundle) {
-		return dataService.saveChanges(saveBundle);
+		return saveService.saveChanges(saveBundle);
 	}
 	
 	@GET
 	@Path("Customers")
 	public String getCustomers(@BeanParam OdataParameters odataParameters) {
-		return dataService.queryToJson(Customer.class, odataParameters);
-//		return dataService.queryToJson(Customer.class, "&$skip=10&$top=5&$inlinecount=allpages");
+		return queryService.queryToJson(Customer.class, odataParameters);
 	}
 
 	@GET
 	@Path("Orders")
 	public String getOrders(@BeanParam OdataParameters odataParameters) {
-		return dataService.queryToJson(Order.class, odataParameters);
-//		return dataService.queryToJson("from Order where orderId in (10248, 10249, 10250)");
+		return queryService.queryToJson(Order.class, odataParameters);
 	}	  
 	  
 	

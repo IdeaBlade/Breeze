@@ -3,7 +3,6 @@ package northwind.model;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
-import java.util.UUID;
 
 public class Order {
 

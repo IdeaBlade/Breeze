@@ -34,14 +34,12 @@ public class MetadataBuilder {
 	
     private SessionFactory _sessionFactory;
     private Configuration _configuration;
-    private HashMap<String, Object> _map;
+    private Metadata _map;
     private List<HashMap<String, Object>> _typeList;
     private HashMap<String, Object> _resourceMap;
     private HashSet<String> _typeNames;
     private HashMap<String, String> _fkMap;
 
-    public static final String FK_MAP = "fkMap";
-    
     public MetadataBuilder(SessionFactory sessionFactory, Configuration configuration)
     {
         _sessionFactory = sessionFactory;
@@ -52,7 +50,7 @@ public class MetadataBuilder {
      *  Build the Breeze metadata as a nested HashMap.  
      *  The result can be converted to JSON and sent to the Breeze client.
      */
-    public Map<String, Object> buildMetadata()
+    public Metadata buildMetadata()
     {
         initMap();
 
@@ -73,7 +71,7 @@ public class MetadataBuilder {
      */
     void initMap()
     {
-        _map = new LinkedHashMap<String, Object>();
+        _map = new Metadata();
         _typeList = new ArrayList<HashMap<String, Object>>();
         _typeNames = new HashSet<String>();
         _resourceMap = new HashMap<String, Object>();
@@ -81,7 +79,7 @@ public class MetadataBuilder {
         _map.put("localQueryComparisonOptions", "caseInsensitiveSQL");
         _map.put("structuralTypes", _typeList);
         _map.put("resourceEntityTypeMap",_resourceMap);
-        _map.put(FK_MAP, _fkMap);
+        _map.foreignKeyMap = _fkMap;
     }
 
     /**
@@ -217,8 +215,6 @@ public class MetadataBuilder {
                 }
                 else
                 {
-                    ManyToOneType manyToOne = (ManyToOneType) propType;
-                    //var joinable = manyToOne.getAssociatedJoinable(this._sessionFactory);
                     String propColumnNames = getPropertyColumnNames(persister, compName);
 
                     HashMap<String, Object> assProp = makeAssociationProperty(type, (AssociationType)propType, compName, propColumnNames, pClass, relatedDataPropertyMap, true);
