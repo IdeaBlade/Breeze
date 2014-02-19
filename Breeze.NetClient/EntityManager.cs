@@ -173,49 +173,50 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region Misc public methods
+    #region Export/Import entities
 
     public String ExportEntities(IEnumerable<IEntity> entities = null, bool includeMetadata = true) {
-      var jn = new JNode();
-      
-      // entityGroup map is map of entityTypeName: array of serialized entities;
-      AddEntityGroupsAndTempKeys(jn, entities);
+     
+      var jn = ExportEntityGroupsAndTempKeys(entities);
 
       if (includeMetadata) {
         jn.AddObject("dataService", this.DefaultDataService);
         // jo.AddObject("queryOptions", this.QueryOptions;
         // jo.AddObject("saveOptions", this.SaveOptions);
         // jo.AddObject("validationOptions", this.ValidationOptions);
-         jn.AddJNode("metadataStore", ((IJsonSerializable) this.MetadataStore).ToJNode(null));
+        jn.AddJNode("metadataStore", ((IJsonSerializable)this.MetadataStore).ToJNode(null));
       }
       return jn.ToJson();
     }
 
-    private void AddEntityGroupsAndTempKeys(JNode parentNode, IEnumerable<IEntity> entities) {
-      var map = new Dictionary<String, IEnumerable<JNode>>();
+    private JNode ExportEntityGroupsAndTempKeys(IEnumerable<IEntity> entities) {
+      Dictionary<String, IEnumerable<JNode>> map;
       IEnumerable<EntityAspect> aspects;
+
       if (entities != null) {
         aspects = entities.Select(e => e.EntityAspect);
-        map = aspects.GroupBy(ea => ea.EntityGroup.EntityType).ToDictionary(grp => grp.Key.Name, grp => ToJNodes(grp, grp.Key));
+        map = aspects.GroupBy(ea => ea.EntityGroup.EntityType).ToDictionary(grp => grp.Key.Name, grp => ExportAspects(grp, grp.Key));
       } else {
         aspects = this.EntityGroups.SelectMany(eg => eg.EntityAspects);
-        map = this.EntityGroups.ToDictionary(eg => eg.EntityType.Name, eg => ToJNodes(eg, eg.EntityType));
+        map = this.EntityGroups.ToDictionary(eg => eg.EntityType.Name, eg => ExportAspects(eg, eg.EntityType));
       }
 
       var tempKeys = aspects.Where(ea => ea.HasTemporaryKey).Select(ea => ea.EntityKey);
 
-      parentNode.AddMap("entityGroupMap", map);
-      parentNode.AddArray("tempKeys", tempKeys);
-      
+      var jn = new JNode();
+      // entityGroup map is map of entityTypeName: array of serialized entities;
+      jn.AddMap("entityGroupMap", map);
+      jn.AddArray("tempKeys", tempKeys);
+      return jn;
     }
 
-    private IEnumerable<JNode> ToJNodes(IEnumerable<EntityAspect> aspects, EntityType et) {
+    private IEnumerable<JNode> ExportAspects(IEnumerable<EntityAspect> aspects, EntityType et) {
       var dps = et.DataProperties;
-      var nodes = aspects.Select(aspect => ToJNode(aspect, dps));
+      var nodes = aspects.Select(aspect => ExportAspect(aspect, dps));
       return nodes;
     }
 
-    private JNode ToJNode(StructuralAspect aspect, IEnumerable<DataProperty> dps) {
+    private JNode ExportAspect(StructuralAspect aspect, IEnumerable<DataProperty> dps) {
       var jn = new JNode();
       dps.ForEach(dp => {
         var propName = dp.Name;
@@ -223,7 +224,7 @@ namespace Breeze.NetClient {
         var co = value as IComplexObject;
         if (co != null) {
           var complexAspect = co.ComplexAspect;
-          jn.AddJNode(propName, ToJNode(complexAspect, complexAspect.ComplexType.DataProperties));
+          jn.AddJNode(propName, ExportAspect(complexAspect, complexAspect.ComplexType.DataProperties));
         } else {
           if (value != dp.DefaultValue) {
             jn.AddPrimitive(propName, value);
@@ -231,16 +232,16 @@ namespace Breeze.NetClient {
         }
       });
       if (aspect is ComplexAspect) {
-        var complexAspectNode = GetComplexAspectNode((ComplexAspect)aspect);
+        var complexAspectNode = ExportComplexAspectInfo((ComplexAspect)aspect);
         jn.AddJNode("complexAspect", complexAspectNode);
       } else {
-        var entityAspectNode = GetEntityAspectNode((EntityAspect)aspect);
+        var entityAspectNode = ExportEntityAspectInfo((EntityAspect)aspect);
         jn.AddJNode("entityAspect", entityAspectNode);
       }
       return jn;
     }
 
-    private JNode GetEntityAspectNode(EntityAspect entityAspect) {
+    private JNode ExportEntityAspectInfo(EntityAspect entityAspect) {
       var jn = new JNode();
       var es = entityAspect.EntityState;
       jn.AddPrimitive("entityState", es.ToString());
@@ -251,31 +252,31 @@ namespace Breeze.NetClient {
       return jn;
     }
 
-    private IEnumerable<String> GetTempNavPropNames(EntityAspect entityAspect) {
-      var npNames = entityAspect.EntityType.NavigationProperties.Where(np => {
-        if (!np.IsScalar) return false;
-        var val = (IEntity) entityAspect.GetRawValue(np.Name);
-        return (val != null && val.EntityAspect.HasTemporaryKey); 
-      }).Select(np => np.Name);
-      return npNames;
-    }
-
-    private JNode GetComplexAspectNode(ComplexAspect complexAspect) {
+    private JNode ExportComplexAspectInfo(ComplexAspect complexAspect) {
       var jn = new JNode();
       jn.AddMap("originalValuesMap", complexAspect.OriginalValuesMap);
       return jn;
     }
 
+    private IEnumerable<String> GetTempNavPropNames(EntityAspect entityAspect) {
+      var npNames = entityAspect.EntityType.NavigationProperties.Where(np => {
+        if (!np.IsScalar) return false;
+        var val = (IEntity)entityAspect.GetRawValue(np.Name);
+        return (val != null && val.EntityAspect.HasTemporaryKey);
+      }).Select(np => np.Name);
+      return npNames;
+    }
 
+    #endregion
+
+    #region Misc public methods
 
     public void Clear() {
       EntityGroups.ForEach(eg => eg.Clear());
       Initialize();
     }
 
-    public IEntity CreateEntity(EntityType entityType) {
-      return (IEntity) Activator.CreateInstance(entityType.ClrType);
-    }
+
 
     /// <summary>
     /// Find all entities in cache having the specified entity state(s).
@@ -359,10 +360,14 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region Attach/Detach entity methods
+    #region Create/Attach/Detach entity methods
 
-    public IEntity CreateEntity(Type entityType, EntityState entityState = EntityState.Added) {
-      var entity = (IEntity) Activator.CreateInstance(entityType);
+    public IEntity CreateEntity(EntityType entityType, EntityState entityState = EntityState.Added) {
+      return (IEntity)Activator.CreateInstance(entityType.ClrType, entityState);
+    }
+
+    public IEntity CreateEntity(Type clrType, EntityState entityState = EntityState.Added) {
+      var entity = (IEntity) Activator.CreateInstance(clrType);
       if (entityState == EntityState.Detached) {
         PrepareForAttach(entity);
       } else {
@@ -535,8 +540,6 @@ namespace Breeze.NetClient {
     #endregion
 
     #region KeyGenerator methods
-
-
 
     /// <summary>
     /// Generates a temporary ID for an <see cref="IEntity"/>.  The temporary ID will be mapped to a real ID when

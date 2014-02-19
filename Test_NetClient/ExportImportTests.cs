@@ -100,5 +100,26 @@ namespace Test_NetClient {
 
     }
 
+    [TestMethod]
+    public async Task ExportSelectedEntitiesWithChanges() {
+      await _emTask;
+
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
+
+      var results = await q.Execute(_em1);
+
+      Assert.IsTrue(results.Count() > 0);
+      var custs = results.Take(2).ToList();
+      custs.ForEach(c => c.City = "Paris");
+      var emp1 = _em1.CreateEntity<Employee>();
+
+      var exportedEntities = _em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1 }, false);
+
+      File.WriteAllText("c:/temp/emExportWithChanges.txt", exportedEntities);
+
+    }
+
+
   }
 }
