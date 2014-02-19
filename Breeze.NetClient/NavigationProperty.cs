@@ -26,6 +26,17 @@ namespace Breeze.NetClient {
       this._invForeignKeyNamesOnServer = np._invForeignKeyNamesOnServer;
     }
 
+    public NavigationProperty(JNode jNode) {
+      Name = jNode.Get<String>("name");
+      EntityTypeName = jNode.Get<String>("entityTypeName");
+      IsScalar = jNode.Get<bool>("isScalar", true);
+      AssociationName = jNode.Get<String>("associationName");
+      // _validators.AddRange()
+      _foreignKeyNames.AddRange(jNode.GetPrimitiveArray<String>("foreignKeyNames"));
+      _invForeignKeyNames.AddRange(jNode.GetPrimitiveArray<String>("invForeignKeyNames"));
+      // custom
+    }
+
     JNode IJsonSerializable.ToJNode(Object config) {
       var jo = new JNode();
       jo.AddPrimitive("name", this.Name);
@@ -39,16 +50,7 @@ namespace Breeze.NetClient {
       return jo;
     }
 
-    void IJsonSerializable. FromJNode(JNode jNode) {
-      Name = jNode.Get<String>("name");
-      EntityTypeName = jNode.Get<String>("entityTypeName");
-      IsScalar = jNode.Get<bool>("isScalar", true);
-      AssociationName = jNode.Get<String>("associationName");
-      // _validators.AddRange()
-      _foreignKeyNames.AddRange(jNode.GetPrimitiveArray<String>("foreignKeyNames"));
-      _invForeignKeyNames.AddRange(jNode.GetPrimitiveArray<String>("invForeignKeyNames"));
-      // custom
-    }
+  
 
     public EntityType EntityType { get; internal set; }
     public override Type ClrType {

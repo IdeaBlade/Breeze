@@ -6,6 +6,20 @@ using System.Linq;
 namespace Breeze.NetClient {
 
   public class ComplexType: StructuralType, IJsonSerializable {
+
+    public ComplexType() :base() {
+
+    }
+
+    public ComplexType(JNode jNode) {
+      ShortName = jNode.Get<String>("shortName");
+      Namespace = jNode.Get<String>("namespace");
+      // BaseTypeName = jnode.Get<String>("baseTypeName");
+      // IsAbstract = jnode.Get<bool>("isAbstract");
+      jNode.GetObjectArray("dataProperties", jn => new DataProperty(jn)).ForEach(dp => AddDataProperty(dp));
+      // validators
+      // custom
+    }
     
     public override bool IsEntityType {
       get { return false; }
@@ -24,15 +38,7 @@ namespace Breeze.NetClient {
       return jo;
     }
 
-    void IJsonSerializable.FromJNode(JNode jNode) {
-      ShortName = jNode.Get<String>("shortName");
-      Namespace = jNode.Get<String>("namespace");
-      // BaseTypeName = jnode.Get<String>("baseTypeName");
-      // IsAbstract = jnode.Get<bool>("isAbstract");
-      jNode.GetObjectArray<DataProperty>("dataProperties").ForEach(dp => AddDataProperty(dp));
-      // validators
-      // custom
-    }
+  
    
   }
 

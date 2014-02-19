@@ -198,7 +198,7 @@ namespace Breeze.NetClient {
     public void ImportMetadata(String metadata, IEnumerable<Assembly> probeAssemblies) {
       _clrTypeMap.ProbeAssemblies(probeAssemblies);
       var jNode = new JNode(metadata);
-      ((IJsonSerializable)this).FromJNode(jNode);
+      FromJNode(jNode);
       EntityTypes.ForEach(et => ResolveComplexTypeRefs(et));
     }
 
@@ -219,16 +219,16 @@ namespace Breeze.NetClient {
       return jo;
     }
 
-    void IJsonSerializable.FromJNode(JNode jNode) {
+    private void FromJNode(JNode jNode) {
       MetadataVersion = jNode.Get<String>("metadataVersion");
       // Name
       NamingConvention = NamingConvention.FromName(jNode.Get<String>("namingConvention"));
       // localQueryComparisonOptions
-      jNode.GetObjectArray<DataService>("dataServices").ForEach(ds => {
+      jNode.GetObjectArray("dataServices", jn => new DataService(jn)).ForEach(ds => {
         _dataServiceMap.Add(ds.ServiceName, ds);
       });
-      var stypes = jNode.GetObjectArray<StructuralType>("structuralTypes", 
-        jn => jn.Get<bool>("isComplexType", false) ? (StructuralType) new ComplexType() : (StructuralType) new EntityType());
+      var stypes = jNode.GetObjectArray("structuralTypes", 
+        jn => jn.Get<bool>("isComplexType", false) ? (StructuralType) new ComplexType(jn) : (StructuralType) new EntityType(jn));
       stypes.ForEach(st => this.AddStructuralType(st));
 
       jNode.GetMap<String>("resourceEntityTypeMap").ForEach(kvp => {

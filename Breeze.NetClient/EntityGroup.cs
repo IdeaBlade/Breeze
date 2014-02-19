@@ -32,7 +32,7 @@ namespace Breeze.NetClient {
   /// using <see cref="M:IdeaBlade.EntityModel.EntityManager.GetEntityGroup(Type)"/>.
   /// </para>
   /// </remarks>
-  internal abstract class EntityGroup : IGrouping<Type, EntityAspect>, IJsonSerializable {
+  internal abstract class EntityGroup : IGrouping<Type, EntityAspect>  {
 
     #region ctors
 
@@ -344,13 +344,7 @@ namespace Breeze.NetClient {
     #endregion
 
 
-    JNode IJsonSerializable.ToJNode(object config) {
-      throw new NotImplementedException();
-    }
-
-    void IJsonSerializable.FromJNode(JNode jNode) {
-      throw new NotImplementedException();
-    }
+  
   }
 
   #endregion

@@ -11,6 +11,15 @@ namespace Breeze.NetClient {
 
     }
 
+    public DataService(JNode jNode) {
+      ServiceName = jNode.Get<String>("serviceName");
+      // Adapter = null;
+      HasServerMetadata = jNode.Get<bool>("hasServerMetadata");
+      // JsonResultsAdapter
+      UseJsonP = jNode.Get<bool>("useJsonp");
+    }
+
+
     public DataService(String serviceName) {
       ServiceName = serviceName;
       _client = new HttpClient();
@@ -65,14 +74,7 @@ namespace Breeze.NetClient {
       return jo;
     }
 
-    void IJsonSerializable.FromJNode(JNode jNode) {
-      ServiceName = jNode.Get<String>("serviceName");
-      // Adapter = null;
-      HasServerMetadata = jNode.Get<bool>("hasServerMetadata");
-      // JsonResultsAdapter
-      UseJsonP = jNode.Get<bool>("useJsonp");
-    }
-
+ 
     private HttpClient _client;
 
 

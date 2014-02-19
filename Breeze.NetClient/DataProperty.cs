@@ -35,28 +35,7 @@ namespace Breeze.NetClient {
       this.RawTypeName = dp.RawTypeName;
     }
 
-
-
-    JNode IJsonSerializable.ToJNode(Object config) {
-      var jo = new JNode();
-      jo.AddPrimitive("name", this.Name);
-      jo.AddPrimitive("dataType", this.DataType != null ? this.DataType.Name : null); 
-      jo.AddPrimitive("complexTypeName", this.ComplexType != null ? this.ComplexType.Name : null );
-      jo.AddPrimitive("isNullable", this.IsNullable, true);
-      jo.AddPrimitive("defaultValue", this.DefaultValue );
-      jo.AddPrimitive("isPartOfKey", this.IsPartOfKey, false);
-      jo.AddPrimitive("isUnmapped", this.IsUnmapped, false);
-      jo.AddPrimitive("isAutoIncrementing", this.IsAutoIncrementing, false);
-      jo.AddPrimitive("concurrencyMode", this.ConcurrencyMode == ConcurrencyMode.None ? null : this.ConcurrencyMode.ToString());
-      jo.AddPrimitive("maxLength", this.MaxLength);
-      // jo.AddArrayProperty("validators", this.Validators);
-      jo.AddPrimitive("enumType", this.EnumTypeName);
-      jo.AddPrimitive("isScalar", this.IsScalar, true);
-      // jo.AddProperty("custom", this.Custom.ToJObject)
-      return jo;
-    }
-
-    void IJsonSerializable.FromJNode(JNode jNode) {
+    public DataProperty(JNode jNode) {
       Name = jNode.Get<String>("name");
       ComplexTypeName = jNode.Get<String>("complexTypeName");
       if (ComplexTypeName == null) {
@@ -69,11 +48,33 @@ namespace Breeze.NetClient {
       IsPartOfKey = jNode.Get<bool>("isPartOfKey", false);
       IsUnmapped = jNode.Get<bool>("isUnmapped", false);
       IsAutoIncrementing = jNode.Get<bool>("isAutoIncrementing", false);
-      ConcurrencyMode = (ConcurrencyMode) Enum.Parse(typeof(ConcurrencyMode), jNode.Get<String>("conncurrencyMode", ConcurrencyMode.None.ToString()));
+      ConcurrencyMode = (ConcurrencyMode)Enum.Parse(typeof(ConcurrencyMode), jNode.Get<String>("conncurrencyMode", ConcurrencyMode.None.ToString()));
       MaxLength = jNode.Get<int?>("maxLength");
       EnumTypeName = jNode.Get<String>("enumType");
       IsScalar = jNode.Get<bool>("isScalar", true);
     }
+
+
+    JNode IJsonSerializable.ToJNode(Object config) {
+      var jn = new JNode();
+      jn.AddPrimitive("name", this.Name);
+      jn.AddPrimitive("dataType", this.DataType != null ? this.DataType.Name : null); 
+      jn.AddPrimitive("complexTypeName", this.ComplexType != null ? this.ComplexType.Name : null );
+      jn.AddPrimitive("isNullable", this.IsNullable, true);
+      jn.AddPrimitive("defaultValue", this.DefaultValue );
+      jn.AddPrimitive("isPartOfKey", this.IsPartOfKey, false);
+      jn.AddPrimitive("isUnmapped", this.IsUnmapped, false);
+      jn.AddPrimitive("isAutoIncrementing", this.IsAutoIncrementing, false);
+      jn.AddPrimitive("concurrencyMode", this.ConcurrencyMode == ConcurrencyMode.None ? null : this.ConcurrencyMode.ToString());
+      jn.AddPrimitive("maxLength", this.MaxLength);
+      // jo.AddArrayProperty("validators", this.Validators);
+      jn.AddPrimitive("enumType", this.EnumTypeName);
+      jn.AddPrimitive("isScalar", this.IsScalar, true);
+      // jo.AddProperty("custom", this.Custom.ToJObject)
+      return jn;
+    }
+
+    
 
     public DataType DataType { get; internal set; }
     public override Type ClrType {

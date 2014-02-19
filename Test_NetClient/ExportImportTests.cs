@@ -16,7 +16,7 @@ using System.Reflection;
 namespace Test_NetClient {
 
   [TestClass]
-  public class MetadataExpImpTests {
+  public class ExportImportTests {
 
     private Task<EntityManager> _emTask = null;
     private EntityManager _em1;
@@ -76,11 +76,29 @@ namespace Test_NetClient {
       Assert.IsTrue(results.Count() > 0);
       var exportedEntities = _em1.ExportEntities();
 
-      File.WriteAllText("c:/temp/emExport1.txt", exportedEntities);
+      File.WriteAllText("c:/temp/emExport.txt", exportedEntities);
       
     }
 
-    
+    [TestMethod]
+    public async Task ExportEntitiesWithChanges() {
+      await _emTask;
+
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
+
+      var results = await q.Execute(_em1);
+
+      Assert.IsTrue(results.Count() > 0);
+      var custs = results.Take(2);
+      custs.ForEach(c => c.City = "Paris");
+      var emp1 = _em1.CreateEntity<Employee>();
+
+      var exportedEntities = _em1.ExportEntities();
+
+      File.WriteAllText("c:/temp/emExportWithChanges.txt", exportedEntities);
+
+    }
 
   }
 }

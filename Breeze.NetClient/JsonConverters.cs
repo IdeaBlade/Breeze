@@ -14,7 +14,6 @@ namespace Breeze.NetClient {
 
   public interface IJsonSerializable {
     JNode ToJNode(Object config);
-    void FromJNode(JNode jNode);
   }
 
   public class JNode {
@@ -162,22 +161,11 @@ namespace Breeze.NetClient {
       }
     }
 
-    public T GetObject<T>(String propName) where T : new() {
-      return GetObject<T>(propName, (jn) => new T());
-    }
-
     public T GetObject<T>(String propName, Func<JNode, T> ctorFn)  {
       var item = (JObject)GetToken<JObject>(propName);
-      T t;
       var jNode = new JNode(item);
-      t = ctorFn(jNode);
-
-      ((IJsonSerializable)t).FromJNode(jNode);
+      var t = ctorFn(jNode);
       return t;
-    }
-
-    public IEnumerable<T> GetObjectArray<T>(String propName) where T : new() {
-      return GetObjectArray<T>(propName, (jn) => new T());
     }
 
     public IEnumerable<T> GetObjectArray<T>(String propName, Func<JNode, T> ctorFn) {
@@ -189,8 +177,6 @@ namespace Breeze.NetClient {
           T t;
           var jNode = new JNode((JObject)item);
           t = ctorFn(jNode);
-
-          ((IJsonSerializable)t).FromJNode(jNode);
           return t;
         });
       }

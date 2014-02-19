@@ -57,7 +57,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="AttachTests.cs" />
-    <Compile Include="MetadataExpImpTests.cs" />
+    <Compile Include="ExportImportTests.cs" />
     <Compile Include="ComplexTypeTests.cs" />
     <Compile Include="QueryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
