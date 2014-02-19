@@ -4,6 +4,7 @@
  *  v.0.1.6-pre
  *
  * Registers a SharePoint 2013 OData DataServiceAdapter with Breeze
+ * [LAST VERSION BEFORE SPLIT INTO base REST adapter and concrete SharePoint OData adapter]
  * 
  * This adapter cannot get metadata from the server and in general one should
  * not do so because such metadata cover much more of than you want and are huge (>1MB)
@@ -27,13 +28,15 @@
  * If not found, it uses the default versions defined here. 
  * You can create your own type name conversion methods and attach them to the JsonResultsAdapter.
  * 
- * This adapter also memoizes the type names it encounters 
+ * This adapter memoizes the type names it encounters 
  * by adding a 'typeMap' object to the JsonResultsAdapter.
  *
- * By default this adapter permits only one entity to be saved at a time.
- * You can set 'adapter.saveOnlyOne' = false to allow more than one.
- * Beware: when a multi-entity save fails, the cache is likely in an incorrect 
- * and unstable state and the database data may be as well. You bear the risk.
+ * By default this adapter permits multiple entities to be saved at a time,
+ * each in a separate request that this adapter fires off in parallel. 
+ * and waits for all to complete.
+ * 
+ * You can set 'adapter.saveOnlyOne' = true in which case the adapter throws an exception
+ * if you try to save more than one entity at a time.
  * 
  * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.
  * Licensed under the MIT License
