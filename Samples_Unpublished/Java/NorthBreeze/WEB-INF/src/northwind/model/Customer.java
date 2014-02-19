@@ -1,7 +1,6 @@
 package northwind.model;
 
 import java.util.Collection;
-import java.util.UUID;
 
 public class Customer {
 

@@ -21,7 +21,7 @@ import com.breezejs.save.*;
 
 public class HibernateContext extends ContextProvider {
 
-	private Map<String, Object> metadataMap;
+	private Metadata metadataMap;
 	private Session session;
 	private List<EntityError> entityErrors = new ArrayList<EntityError>();
 	private Map<EntityInfo, KeyMapping> entityKeyMapping = new HashMap<EntityInfo, KeyMapping>();
@@ -30,7 +30,7 @@ public class HibernateContext extends ContextProvider {
 	 * @param session Hibernate session to be used for saving
 	 * @param metadataMap metadata from MetadataBuilder
 	 */
-	public HibernateContext(Session session, Map<String, Object> metadataMap) {
+	public HibernateContext(Session session, Metadata metadataMap) {
 		this.session = session;
 		this.metadataMap = metadataMap;
 	}
@@ -63,7 +63,7 @@ public class HibernateContext extends ContextProvider {
 		if (!hasExistingTransaction)
 			tx.begin();
 		try {
-			// Relate entities in the saveMap to other NH entities, so NH can save the FK values.
+			// Relate entities in the saveMap to other entities, so Hibernate can save the FK values.
 			RelationshipFixer fixer = getRelationshipFixer(saveMap);			
 			List<EntityInfo> saveOrder = fixer.fixupRelationships();
 			
@@ -78,7 +78,7 @@ public class HibernateContext extends ContextProvider {
 				tx.commit();
 			fixer.removeRelationships();
 		} catch (PropertyValueException pve) {
-			// NHibernate can throw this
+			// Hibernate can throw this
 			if (tx.isActive())
 				tx.rollback();
 			entityErrors.add(new EntityError("PropertyValueException", pve.getEntityName(), null,
@@ -96,14 +96,13 @@ public class HibernateContext extends ContextProvider {
 	}
 	
 	/**
-	 * Get a new NHRelationshipFixer using the saveMap and the foreign-key map from the metadata.
+	 * Get a new RelationshipFixer using the saveMap and the foreign-key map from the metadata.
 	 * @param saveMap
 	 * @return
 	 */
 	protected RelationshipFixer getRelationshipFixer(Map<Class, List<EntityInfo>> saveMap) {
 		// Get the map of foreign key relationships
-		@SuppressWarnings("unchecked")
-		Map<String, String> fkMap = (Map<String, String>) metadataMap.get(MetadataBuilder.FK_MAP);
+		Map<String, String> fkMap = metadataMap.foreignKeyMap;
 		return new RelationshipFixer(saveMap, fkMap, session);
 	}
 
