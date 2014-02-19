@@ -1,6 +1,7 @@
 ﻿using Breeze.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -30,6 +31,8 @@ namespace Breeze.NetClient {
     private static readonly Object __lock = new Object();
 
     #endregion
+
+    
 
     #region Public properties
 
@@ -62,6 +65,12 @@ namespace Breeze.NetClient {
           _namingConvention = value;
         }
       } 
+    }
+
+    public void ProbeAssemblies(IEnumerable<Assembly> assembliesToProbe) {
+      lock (_structuralTypes) {
+        _clrTypeMap.ProbeAssemblies(assembliesToProbe);
+      }
     }
 
     #endregion
@@ -192,13 +201,26 @@ namespace Breeze.NetClient {
     }
 
     public String ExportMetadata() {
-      return ((IJsonSerializable) this).ToJNode(null).ToJson();
+      return ((IJsonSerializable)this).ToJNode(null).Serialize();
     }
 
-    public void ImportMetadata(String metadata, IEnumerable<Assembly> probeAssemblies) {
-      _clrTypeMap.ProbeAssemblies(probeAssemblies);
-      var jNode = new JNode(metadata);
-      FromJNode(jNode);
+    public TextWriter ExportMetadata(TextWriter textWriter) {
+      return ((IJsonSerializable)this).ToJNode(null).SerializeTo(textWriter);
+    }
+
+    public void ImportMetadata(String metadata) {
+      var jNode = JNode.DeserializeFrom(metadata);
+      ImportMetadata(jNode);
+    }
+
+    public void ImportMetadata(TextReader textReader) {
+      var jNode = JNode.DeserializeFrom(textReader);
+      ImportMetadata(jNode);
+    }
+
+    internal void ImportMetadata(JNode jNode ) {
+
+      DeserializeFrom(jNode);
       EntityTypes.ForEach(et => ResolveComplexTypeRefs(et));
     }
 
@@ -219,7 +241,7 @@ namespace Breeze.NetClient {
       return jo;
     }
 
-    private void FromJNode(JNode jNode) {
+    private void DeserializeFrom(JNode jNode) {
       MetadataVersion = jNode.Get<String>("metadataVersion");
       // Name
       NamingConvention = NamingConvention.FromName(jNode.Get<String>("namingConvention"));
@@ -227,8 +249,8 @@ namespace Breeze.NetClient {
       jNode.GetObjectArray("dataServices", jn => new DataService(jn)).ForEach(ds => {
         _dataServiceMap.Add(ds.ServiceName, ds);
       });
-      var stypes = jNode.GetObjectArray("structuralTypes", 
-        jn => jn.Get<bool>("isComplexType", false) ? (StructuralType) new ComplexType(jn) : (StructuralType) new EntityType(jn));
+      var stypes = jNode.GetObjectArray("structuralTypes",
+        jn => jn.Get<bool>("isComplexType", false) ? (StructuralType)new ComplexType(jn) : (StructuralType)new EntityType(jn));
       stypes.ForEach(st => this.AddStructuralType(st));
 
       jNode.GetMap<String>("resourceEntityTypeMap").ForEach(kvp => {

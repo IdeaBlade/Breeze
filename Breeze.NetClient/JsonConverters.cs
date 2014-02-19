@@ -25,45 +25,18 @@ namespace Breeze.NetClient {
       _jo = jo;
     }
 
-    public JNode(String json) {
-      // _jo = JObject.Parse(text);
-      _jo = DeserializeFrom(json);
-    }
-
     public bool IsEmpty {
       get {
         return !_jo.Values().Any();
       }
     }
-
-    public static JNode ToJNode<T>(IDictionary<String, T> map) {
-      var jn = new JNode();
-      map.ForEach(kvp => {
-        var val = CvtValue(kvp.Value);
-        if (val != null) {
-          if (val is JToken) {
-            jn.AddRaw(kvp.Key, (JToken)val);
-          } else {
-            jn.AddRaw(kvp.Key, new JValue(val));
-          }
-        }
-      });
-      return jn;
-    }
-
-    public static JArray ToJArray<T>(IEnumerable<T> items) {
-      var ja = new JArray();
-      items.ForEach(v => ja.Add(CvtValue(v)));
-      return ja;
-    }
-
-         
+        
     public Object Config {
       get;
       set;
     }
-    
-  
+
+    #region Add Methods
 
     public void AddPrimitive(String propName, Object value, Object defaultValue = null) {
       if (value == null) return;
@@ -103,6 +76,10 @@ namespace Breeze.NetClient {
     private void AddRaw(String propName, JToken jt) {
       _jo.Add(propName, jt);
     }
+
+    #endregion
+
+    #region Get methods 
 
     public Object Get(String propName, Type objectType) {
       var prop = _jo.Property(propName);
@@ -154,6 +131,7 @@ namespace Breeze.NetClient {
 
     public T GetObject<T>(String propName, Func<JNode, T> ctorFn)  {
       var item = (JObject)GetToken<JObject>(propName);
+      if (item == null) return default(T);
       var jNode = new JNode(item);
       var t = ctorFn(jNode);
       return t;
@@ -173,66 +151,22 @@ namespace Breeze.NetClient {
       }
     }
 
+    public JNode GetJNode(String propName) {
+      var item = (JObject)GetToken<JObject>(propName);
+      if (item == null) return null;
+      var jNode = new JNode(item);
+      return jNode;
+    }
+
     public IDictionary<String, T> GetMap<T>(String propName) {
-      var rmap = new Dictionary<String, T>();
       var map = (JObject) GetToken<JObject>(propName);
+      if (map == null) return null;
+      var rmap = new Dictionary<String, T>();
       foreach (var kvp in map) {
         rmap.Add(kvp.Key, kvp.Value.Value<T>());
       }
       return rmap;
     }
-
-
-
-    public String ToJson() {
-      // return _jo.ToString(Formatting.Indented);
-      return SerializeToString();
-    }
-
-    public void SerializeToStream(Stream stream ) {
-      using (var streamWriter = new StreamWriter(stream)) {
-        SerializeWith(streamWriter);
-      }
-      stream.Position = 0;
-    }
-
-    public String SerializeToString() {
-      using (var stringWriter = new StringWriter()) {
-        SerializeWith(stringWriter);
-        return stringWriter.ToString();
-      }
-    }
-
-    private void SerializeWith(TextWriter textWriter) {
-      var serializer = new JsonSerializer();
-      // TODO: change to Formatting.None in production
-      serializer.Formatting = Formatting.Indented;
-      
-      using (var jtw = new JsonTextWriter(textWriter)) {
-        serializer.Serialize(jtw, _jo);
-        jtw.Flush();
-      }
-    }
-
-    private static JObject DeserializeFrom(Stream stream) {
-      var serializer = new JsonSerializer();
-      var reader = new JsonTextReader(new StreamReader(stream));
-      reader.DateParseHandling = DateParseHandling.DateTimeOffset;
-      var jo = JObject.Load(reader);
-      //if (reader.Read() && reader.TokenType != JsonToken.Comment) {
-      //  JObject.Parse(json);
-      //}
-      return jo;
-    }
-
-    // needed because we need to set the DateParseHandling to work with DataTimeOffsets
-    private static JObject DeserializeFrom(string json) {
-      using (MemoryStream stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json))) {
-        return DeserializeFrom(stream);
-      } 
-    }
-
-    // public Stream ToStream()
 
     // pass in a simple value, a JNode or a IJsonSerializable and returns either a simple value or a JObject or a JArray
     private static Object CvtValue(Object value) {
@@ -251,9 +185,86 @@ namespace Breeze.NetClient {
         return js.ToJNode(null)._jo;
       }
 
-      
+
       return value;
     }
+
+    #endregion
+
+    #region Serialize/Deserialize fns
+
+    public String Serialize() {
+      using (var stringWriter = new StringWriter()) {
+        return SerializeTo(stringWriter).ToString();
+      }
+    }
+
+    public Stream SerializeTo(Stream stream) {
+      using (var streamWriter = new StreamWriter(stream)) {
+        SerializeTo(streamWriter);
+      }
+      stream.Position = 0;
+      return stream;
+    }
+
+    public TextWriter SerializeTo(TextWriter textWriter) {
+      var serializer = new JsonSerializer();
+      // TODO: change to Formatting.None in production
+      serializer.Formatting = Formatting.Indented;
+      
+      using (var jtw = new JsonTextWriter(textWriter)) {
+        serializer.Serialize(jtw, _jo);
+        jtw.Flush();
+      }
+      return textWriter;
+    }
+
+    public static JNode DeserializeFrom(Stream stream) {
+      return DeserializeFrom(new StreamReader(stream));
+    }
+
+    public static JNode DeserializeFrom(string json) {
+      return DeserializeFrom(new StringReader(json));
+    }
+
+    public static JNode DeserializeFrom(TextReader textReader) {
+      var serializer = new JsonSerializer();
+      var reader = new JsonTextReader(textReader);
+      // needed because we need to set the DateParseHandling to work with DataTimeOffsets
+      reader.DateParseHandling = DateParseHandling.DateTimeOffset;
+      var jo = JObject.Load(reader);
+      //if (reader.Read() && reader.TokenType != JsonToken.Comment) {
+      //  JObject.Parse(json);
+      //}
+      return new JNode(jo);
+    }
+
+    #endregion
+
+    #region Other Private methods
+
+    private static JNode ToJNode<T>(IDictionary<String, T> map) {
+      var jn = new JNode();
+      map.ForEach(kvp => {
+        var val = CvtValue(kvp.Value);
+        if (val != null) {
+          if (val is JToken) {
+            jn.AddRaw(kvp.Key, (JToken)val);
+          } else {
+            jn.AddRaw(kvp.Key, new JValue(val));
+          }
+        }
+      });
+      return jn;
+    }
+
+    private static JArray ToJArray<T>(IEnumerable<T> items) {
+      var ja = new JArray();
+      items.ForEach(v => ja.Add(CvtValue(v)));
+      return ja;
+    }
+
+    #endregion
 
     private JObject _jo;
   }

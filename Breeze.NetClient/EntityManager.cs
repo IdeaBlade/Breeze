@@ -19,16 +19,15 @@ namespace Breeze.NetClient {
     /// <param name="serviceName">"http://localhost:9000/"</param>
     public EntityManager(String serviceName) {
       DefaultDataService = new DataService(serviceName);
-      DefaultMergeStrategy = MergeStrategy.PreserveChanges;
+      DefaultQueryOptions = QueryOptions.Default;
       MetadataStore = MetadataStore.Instance;
       KeyGenerator = new DefaultKeyGenerator();
-      
       Initialize();
     }
 
     public EntityManager(EntityManager em) {
       DefaultDataService = em.DefaultDataService;
-      DefaultMergeStrategy = em.DefaultMergeStrategy;
+      DefaultQueryOptions = em.DefaultQueryOptions;
       MetadataStore = em.MetadataStore;
       KeyGenerator = em.KeyGenerator; // TODO: review whether we should clone instead.
       Initialize();
@@ -53,7 +52,7 @@ namespace Breeze.NetClient {
       private set;
     }
 
-    public MergeStrategy DefaultMergeStrategy { get; private set; }
+    public QueryOptions DefaultQueryOptions { get; private set; }
 
     public IKeyGenerator KeyGenerator { get; set; }
 
@@ -81,9 +80,10 @@ namespace Breeze.NetClient {
       // HACK
       resourcePath = resourcePath.Replace("/*", "");
       var result = await dataService.GetAsync(resourcePath);
-      var mergeStrategy = query.MergeStrategy ?? this.DefaultMergeStrategy;
+      var mergeStrategy = query.QueryOptions.MergeStrategy ?? this.DefaultQueryOptions.MergeStrategy ?? QueryOptions.Default.MergeStrategy;
+      
       // cannot reuse a jsonConverter - internal refMap is one instance/query
-      var jsonConverter = new JsonEntityConverter(this, mergeStrategy);
+      var jsonConverter = new JsonEntityConverter(this, mergeStrategy.Value);
       Type rType;
       if (resourcePath.Contains("inlinecount")) {
         rType = typeof(QueryResult<>).MakeGenericType(query.TargetType);
@@ -174,40 +174,41 @@ namespace Breeze.NetClient {
 
     #endregion
 
-   
-
-    public static T CreateFromJsonStream<T>(Stream stream)
-    {
-        JsonSerializer serializer = new JsonSerializer();
-        T data;
-        using (StreamReader streamReader = new StreamReader(stream))
-        {
-            data = (T)serializer.Deserialize(streamReader, typeof(T));
-        }
-        return data;
-    }
-
-    public static T CreateFromJsonString<T>(String json)     {
-        T data;
-        using (MemoryStream stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json)))
-        {
-            data = CreateFromJsonStream<T>(stream);
-        }
-        return data;
-    }
-
 
     #region Export/Import entities
 
     public String ExportEntities(IEnumerable<IEntity> entities = null, bool includeMetadata = true) {
       var jn = ExportToJNode(entities, includeMetadata);
-      return jn.ToJson();
+      return jn.Serialize();
     }
 
-    public Stream ExportEntities(IEnumerable<IEntity> entities, bool includeMetadata, Stream stream) {
+    public TextWriter ExportEntities(IEnumerable<IEntity> entities, bool includeMetadata, TextWriter textWriter) {
       var jn = ExportToJNode(entities, includeMetadata);
-      jn.SerializeToStream(stream);
-      return stream;
+      jn.SerializeTo(textWriter);
+      return textWriter;
+    }
+
+    public void ImportEntities(String exportedString, ImportOptions importOptions = null) {
+      var jn = JNode.DeserializeFrom(exportedString);
+      ImportEntities(jn, importOptions);
+    }
+
+    public void ImportEntities(TextReader textReader, ImportOptions importOptions = null) {
+      var jn = JNode.DeserializeFrom(textReader);
+      ImportEntities(jn, importOptions);
+    }
+
+    private void ImportEntities(JNode jn, ImportOptions importOptions) {
+      importOptions = importOptions ?? new ImportOptions() { MergeStrategy = MergeStrategy.OverwriteChanges };
+      var msNode = jn.GetJNode("metadataStore");
+      if (msNode != null) {
+        MetadataStore.ImportMetadata(msNode);
+        // TODO: do we want to do this.
+        if (DefaultDataService == null) {
+          DefaultDataService = jn.GetObject<DataService>("dataService", jn2 => new DataService(jn2));
+        }
+      }
+      var entityGroupMapNode = jn.GetJNode("entityGroupMap");
     }
 
     private JNode ExportToJNode(IEnumerable<IEntity> entities, bool includeMetadata) {
@@ -224,8 +225,6 @@ namespace Breeze.NetClient {
     }
 
 
-
-    // public void ImportEntities(String )
 
     private JNode ExportEntityGroupsAndTempKeys(IEnumerable<IEntity> entities) {
       Dictionary<String, IEnumerable<JNode>> map;
@@ -313,8 +312,6 @@ namespace Breeze.NetClient {
       EntityGroups.ForEach(eg => eg.Clear());
       Initialize();
     }
-
-
 
     /// <summary>
     /// Find all entities in cache having the specified entity state(s).

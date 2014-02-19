@@ -28,7 +28,7 @@ namespace Test_NetClient {
 
     public async Task<EntityManager> SetUpAsync() {
       var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-
+      MetadataStore.Instance.ProbeAssemblies(new Assembly[] { typeof(Order).Assembly });
       if (MetadataStore.Instance.EntityTypes.Count == 0) {
         _em1 = new EntityManager(serviceName);
         await _em1.FetchMetadata();
@@ -56,9 +56,9 @@ namespace Test_NetClient {
 
       MetadataStore.__Reset();
       Assert.IsTrue(ms != MetadataStore.Instance);
-      MetadataStore.Instance.ImportMetadata(metadata, new Assembly[] { typeof(Order).Assembly });
+      
+      MetadataStore.Instance.ImportMetadata(metadata);
       var metadata2 = MetadataStore.Instance.ExportMetadata();
-
 
       File.WriteAllText("c:/temp/metadata2.txt", metadata2);
       Assert.IsTrue(metadata == metadata2);
