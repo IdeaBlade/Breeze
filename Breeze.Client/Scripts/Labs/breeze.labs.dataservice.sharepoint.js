@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs SharePoint 2013 OData DataServiceAdapter
  *
- *  v.0.1.5-pre
+ *  v.0.1.6-pre
  *
  * Registers a SharePoint 2013 OData DataServiceAdapter with Breeze
  * 
@@ -40,7 +40,7 @@
  * http://opensource.org/licenses/mit-license.php
  * Authors: Ward Bell, Andrew Connell
  */
-(function(factory) {
+(function (factory) {
     if (breeze) {
         factory(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
@@ -55,7 +55,7 @@
     var adapterName = "SharePointOData";
     var ajaxImpl;
     var core = breeze.core;
-    var ctor = function() {
+    var ctor = function () {
         this.name = adapterName;
     };
 
@@ -68,7 +68,7 @@
         initialize: initialize,
         jsonResultsAdapter: createJsonResultsAdapter(),
         // Todo: use promise adapter after Breeze makes it available
-        Q:  window.Q, // assume Q.js in global namespace; you better set it (e.g., to $q) if it's not there, 
+        Q: window.Q, // assume Q.js in global namespace; you better set it (e.g., to $q) if it's not there, 
         saveChanges: saveChanges,
         saveOnlyOne: false, // false if you allow multiple entity saves.
         serializeToJson: serializeToJson // serialize raw entity data to JSON for save
@@ -88,16 +88,16 @@
         // don't cache 'ajax' because we then we would need to ".bind" it, and don't want to because of browser support issues. 
         var ajax = ajaxImpl.ajax;
         if (!ajax) {
-            throw new Error("Breeze was unable to find an 'ajax' adapter for "+adapterName);
+            throw new Error("Breeze was unable to find an 'ajax' adapter for " + adapterName);
         }
     };
 
     function adjustQuery(mappingContext) {
         var query = mappingContext.query;
-        var entityType = query.entityType || query.resultEntityType;
+        var entityType = getEntityTypeFromQuery(mappingContext);
+
         // get the default select if query lacks a select and 
         // the result type is known and it has a defaultSelect
-        // the resultEntityType is most likely present because of a .toType clause
         var defaultSelect = !query.selectClause && entityType &&
             entityType.custom && entityType.custom.defaultSelect;
         if (defaultSelect) {
@@ -116,11 +116,12 @@
         // OData errors can have the message buried very deeply - and nonobviously
         // this code is tricky so be careful changing the response.body parsing.
         var result = new Error();
-        result.message =  response.message || response.error || response.statusText;
-        result.statusText = response.statusText;
-        result.status =  response.status  ;
-
+        result.response = response;
         if (url) { result.url = url; }
+        result.message = response.message || response.error || response.statusText;
+        result.statusText = response.statusText;
+        result.status = response.status;
+
         var data = result.data = response.data;
         if (data) {
             var msg = "", nextErr;
@@ -130,7 +131,7 @@
                 }
                 do {
                     nextErr = data.error || data.innererror;
-                    if (!nextErr) {msg = msg + getMessage(data);}
+                    if (!nextErr) { msg = msg + getMessage(data); }
                     nextErr = nextErr || data.internalexception;
                     data = nextErr;
                 } while (nextErr);
@@ -204,7 +205,7 @@
                     defaultServerTypeNameToClient(rawTypeName);
                 entityType = typeName && mappingContext.metadataStore.getEntityType(typeName, true);
                 typeMap[rawTypeName] = entityType || typeMap[""];
-            }
+            } 
 
             if (entityType) {
                 // ASSUME if #-of-properties on node is <= #-of-props for the type 
@@ -213,7 +214,13 @@
                 if (entityType._mappedPropertiesCount <= Object.keys(node).length - 1) {
                     result.entityType = entityType;
                     result.extra = node.__metadata;
-                }
+
+                    // Delete node properties that look like nested navigation paths
+                    // Breeze gets confused into thinking such properties contain actual entities. 
+                    // Todo: rethink this if/when can include related entities through expand
+                    var navPropNames = entityType.navigationProperties.map(function (p) { return p.name; });
+                    navPropNames.forEach(function(n) { if (node[n]) { delete node[n]; } });
+                } 
             }
         }
     }
@@ -239,8 +246,7 @@
             var type = entity.entityType;
             var headers = {
                 'Accept': 'application/json;odata=verbose',
-                'DataServiceVersion': "2.0", // Why?
-                'MaxDataServiceVersion': '3.0',
+                'DataServiceVersion': '2.0', // or get MIME type error
                 'X-RequestDigest': saveContext.requestDigest
             };
 
@@ -288,7 +294,7 @@
             return request;
 
             function transformValue(prop, val) {
-                if (prop.isUnmapped) {return undefined;}
+                if (prop.isUnmapped) { return undefined; }
                 if (prop.dataType === breeze.DataType.DateTimeOffset) {
                     // The datajs lib tries to treat client dateTimes that are defined as DateTimeOffset on the server differently
                     // from other dateTimes. This fix compensates before the save.
@@ -332,8 +338,7 @@
         var url = mappingContext.getUrl();
         var headers = {
             'Accept': 'application/json;odata=verbose',
-            'DataServiceVersion': '2.0', // Why?
-            'MaxDataServiceVersion': '3.0', // otherwise set by DataJS
+            'DataServiceVersion': '2.0', // seems to work w/o this but just in case
         };
 
         ajaxImpl.ajax({
@@ -341,7 +346,7 @@
             url: url,
             headers: headers,
             success: querySuccess,
-            error: function(response) {
+            error: function (response) {
                 deferred.reject(createError(response, url));
             }
         });
@@ -356,7 +361,7 @@
             } catch (e) {
                 // program error means adapter it broken, not SP or the user
                 deferred.reject(new Error("Program error: failed while parsing successful query response"));
-            }           
+            }
         }
     }
 
@@ -367,8 +372,19 @@
     function getClientTypeNameToServer(dataServiceAdapter) {
         var jrAdapter = dataServiceAdapter.jsonResultsAdapter;
         return jrAdapter.clientTypeNameToServer ?
-            function(typeName) { return jrAdapter.clientTypeNameToServer(typeName); } :
+            function (typeName) { return jrAdapter.clientTypeNameToServer(typeName); } :
             defaultClientTypeNameToServer;
+    }
+
+    function getEntityTypeFromQuery(mappingContext) {
+        var query = mappingContext.query;
+        var entityType = query.entityType || query.resultEntityType;
+        if (!entityType) { // try to figure it out from the query. resourceName
+            var metadataStore = mappingContext.metadataStore;
+            var etName = metadataStore.getEntityTypeNameForResourceName(query.resourceName);
+            var entityType = metadataStore.getEntityType(etName);
+        }
+        return entityType
     }
 
     function saveChanges(saveContext, saveBundle) {
@@ -382,7 +398,7 @@
 
         try {
             var requests = createSaveRequests(saveContext, saveBundle);
-            var promises = sendSaveRequests(saveContext, requests); 
+            var promises = sendSaveRequests(saveContext, requests);
             var comboPromise = Q.all(promises);
             // $q.all waits for all to complete, Q.all quits on first failure
             // It's bad regardless any of multiple save promises fail
@@ -396,7 +412,7 @@
 
         function reviewSaveResult(promiseValues) {
             var saveResult = saveContext.saveResult;
-            return getSaveErrors(saveResult) || saveResult; 
+            return getSaveErrors(saveResult) || saveResult;
 
             function getSaveErrors() {
                 var error;
@@ -411,13 +427,12 @@
                 if (requests.length === 1 || requests.length === errorCount) {
                     // When all fail, good chance the first error is the same reason for all
                     error = entitiesWithErrors[0].error;
-                } else
-                    error = new Error("The save partially succeed and partially failed");
-                error.saveResult = {
-                    savedEntities: savedEntities,
-                    keyMappings: saveResult.keyMappings,
-                    entitiesWithErrors: entitiesWithErrors
-                };
+                } else {
+                    error = new Error("\n The save failed although some entities were saved.");
+                }
+                error.message = (error.message || "Save failed") +
+                    "  \n See 'error.saveResult' for more details.\n"
+                error.saveResult = saveResult;
                 return Q.reject(error);
             }
         }
@@ -439,7 +454,7 @@
         var saveResult = {
             entities: savedEntities,
             entitiesWithErrors: entitiesWithErrors,
-            keyMappings: keyMappings 
+            keyMappings: keyMappings
         };
         saveContext.saveResult = saveResult;
 

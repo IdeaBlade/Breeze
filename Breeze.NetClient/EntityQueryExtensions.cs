@@ -125,14 +125,22 @@ namespace Breeze.NetClient {
     /// <param name="mergeStrategy"></param>
     /// <returns></returns>
     public static TQuery With<TQuery>(this TQuery query, MergeStrategy mergeStrategy) where TQuery : EntityQuery {
-      if (query.MergeStrategy == mergeStrategy) {
+      if (query.QueryOptions.MergeStrategy == mergeStrategy) {
         return query;
       }
       TQuery newQuery = (TQuery)query.Clone();
-      newQuery.MergeStrategy = mergeStrategy;
+      newQuery.QueryOptions.MergeStrategy = mergeStrategy;
       return newQuery;
     }
-    
+
+    public static TQuery With<TQuery>(this TQuery query, FetchStrategy fetchStrategy) where TQuery : EntityQuery {
+      if (query.QueryOptions.FetchStrategy == fetchStrategy) {
+        return query;
+      }
+      TQuery newQuery = (TQuery)query.Clone();
+      newQuery.QueryOptions.FetchStrategy = fetchStrategy;
+      return newQuery;
+    }
 
     #endregion
   }
