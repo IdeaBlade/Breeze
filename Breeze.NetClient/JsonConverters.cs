@@ -27,7 +27,7 @@ namespace Breeze.NetClient {
 
     public JNode(String json) {
       // _jo = JObject.Parse(text);
-      _jo = Parse(json);
+      _jo = DeserializeFrom(json);
     }
 
     public bool IsEmpty {
@@ -63,16 +63,7 @@ namespace Breeze.NetClient {
       set;
     }
     
-    // needed because we need to set the DateParseHandling to work with DataTimeOffsets
-    public static JObject Parse(string json)     {
-      var reader = (JsonReader)new JsonTextReader(new StringReader(json));
-      reader.DateParseHandling = DateParseHandling.DateTimeOffset;
-      var jobject = JObject.Load(reader);
-      if (reader.Read() && reader.TokenType != JsonToken.Comment) {
-        JObject.Parse(json);
-      }
-      return jobject;
-    }
+  
 
     public void AddPrimitive(String propName, Object value, Object defaultValue = null) {
       if (value == null) return;
@@ -194,9 +185,54 @@ namespace Breeze.NetClient {
 
 
     public String ToJson() {
-      // TODO: change to Formatting.None in production
-      return _jo.ToString(Formatting.Indented);
+      // return _jo.ToString(Formatting.Indented);
+      return SerializeToString();
     }
+
+    public void SerializeToStream(Stream stream ) {
+      using (var streamWriter = new StreamWriter(stream)) {
+        SerializeWith(streamWriter);
+      }
+      stream.Position = 0;
+    }
+
+    public String SerializeToString() {
+      using (var stringWriter = new StringWriter()) {
+        SerializeWith(stringWriter);
+        return stringWriter.ToString();
+      }
+    }
+
+    private void SerializeWith(TextWriter textWriter) {
+      var serializer = new JsonSerializer();
+      // TODO: change to Formatting.None in production
+      serializer.Formatting = Formatting.Indented;
+      
+      using (var jtw = new JsonTextWriter(textWriter)) {
+        serializer.Serialize(jtw, _jo);
+        jtw.Flush();
+      }
+    }
+
+    private static JObject DeserializeFrom(Stream stream) {
+      var serializer = new JsonSerializer();
+      var reader = new JsonTextReader(new StreamReader(stream));
+      reader.DateParseHandling = DateParseHandling.DateTimeOffset;
+      var jo = JObject.Load(reader);
+      //if (reader.Read() && reader.TokenType != JsonToken.Comment) {
+      //  JObject.Parse(json);
+      //}
+      return jo;
+    }
+
+    // needed because we need to set the DateParseHandling to work with DataTimeOffsets
+    private static JObject DeserializeFrom(string json) {
+      using (MemoryStream stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json))) {
+        return DeserializeFrom(stream);
+      } 
+    }
+
+    // public Stream ToStream()
 
     // pass in a simple value, a JNode or a IJsonSerializable and returns either a simple value or a JObject or a JArray
     private static Object CvtValue(Object value) {

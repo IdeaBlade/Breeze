@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -173,10 +174,43 @@ namespace Breeze.NetClient {
 
     #endregion
 
+   
+
+    public static T CreateFromJsonStream<T>(Stream stream)
+    {
+        JsonSerializer serializer = new JsonSerializer();
+        T data;
+        using (StreamReader streamReader = new StreamReader(stream))
+        {
+            data = (T)serializer.Deserialize(streamReader, typeof(T));
+        }
+        return data;
+    }
+
+    public static T CreateFromJsonString<T>(String json)     {
+        T data;
+        using (MemoryStream stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json)))
+        {
+            data = CreateFromJsonStream<T>(stream);
+        }
+        return data;
+    }
+
+
     #region Export/Import entities
 
     public String ExportEntities(IEnumerable<IEntity> entities = null, bool includeMetadata = true) {
-     
+      var jn = ExportToJNode(entities, includeMetadata);
+      return jn.ToJson();
+    }
+
+    public Stream ExportEntities(IEnumerable<IEntity> entities, bool includeMetadata, Stream stream) {
+      var jn = ExportToJNode(entities, includeMetadata);
+      jn.SerializeToStream(stream);
+      return stream;
+    }
+
+    private JNode ExportToJNode(IEnumerable<IEntity> entities, bool includeMetadata) {
       var jn = ExportEntityGroupsAndTempKeys(entities);
 
       if (includeMetadata) {
@@ -186,8 +220,12 @@ namespace Breeze.NetClient {
         // jo.AddObject("validationOptions", this.ValidationOptions);
         jn.AddJNode("metadataStore", ((IJsonSerializable)this.MetadataStore).ToJNode(null));
       }
-      return jn.ToJson();
+      return jn;
     }
+
+
+
+    // public void ImportEntities(String )
 
     private JNode ExportEntityGroupsAndTempKeys(IEnumerable<IEntity> entities) {
       Dictionary<String, IEnumerable<JNode>> map;
