@@ -16,7 +16,7 @@ namespace Breeze.NetClient {
       Namespace = jNode.Get<String>("namespace");
       // BaseTypeName = jnode.Get<String>("baseTypeName");
       // IsAbstract = jnode.Get<bool>("isAbstract");
-      jNode.GetObjectArray("dataProperties", jn => new DataProperty(jn)).ForEach(dp => AddDataProperty(dp));
+      jNode.GetJNodeArray("dataProperties").Select(jn => new DataProperty(jn)).ForEach(dp => AddDataProperty(dp));
       // validators
       // custom
     }

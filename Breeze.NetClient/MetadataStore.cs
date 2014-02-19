@@ -246,14 +246,16 @@ namespace Breeze.NetClient {
       // Name
       NamingConvention = NamingConvention.FromName(jNode.Get<String>("namingConvention"));
       // localQueryComparisonOptions
-      jNode.GetObjectArray("dataServices", jn => new DataService(jn)).ForEach(ds => {
+      jNode.GetJNodeArray("dataServices").Select(jn => new DataService(jn)).ForEach(ds => {
         _dataServiceMap.Add(ds.ServiceName, ds);
       });
-      var stypes = jNode.GetObjectArray("structuralTypes",
-        jn => jn.Get<bool>("isComplexType", false) ? (StructuralType)new ComplexType(jn) : (StructuralType)new EntityType(jn));
+      var stypes = jNode.GetJNodeArray("structuralTypes")
+        .Select(jn => jn.Get<bool>("isComplexType", false) 
+          ? (StructuralType)new ComplexType(jn) 
+          : (StructuralType)new EntityType(jn));
       stypes.ForEach(st => this.AddStructuralType(st));
 
-      jNode.GetMap<String>("resourceEntityTypeMap").ForEach(kvp => {
+      jNode.GetPrimitiveMap<String>("resourceEntityTypeMap").ForEach(kvp => {
         var et = GetEntityType(kvp.Value);
         AddResourceName(kvp.Key, et);
       });

@@ -21,8 +21,8 @@ namespace Breeze.NetClient {
       if (drn != null) {
         MetadataStore.Instance.AddResourceName(drn, this, true);
       }
-      jNode.GetObjectArray("dataProperties", jn => new DataProperty(jn)).ForEach(dp => AddDataProperty(dp));
-      jNode.GetObjectArray("navigationProperties", jn => new NavigationProperty(jn)).ForEach(np => AddNavigationProperty(np));
+      jNode.GetJNodeArray("dataProperties").Select(jn => new DataProperty(jn)).ForEach(dp => AddDataProperty(dp));
+      jNode.GetJNodeArray("navigationProperties").Select(jn => new NavigationProperty(jn)).ForEach(np => AddNavigationProperty(np));
       // validators
       // custom
     }

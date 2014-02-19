@@ -68,7 +68,6 @@ namespace Test_NetClient {
     public async Task ExportEntities() {
       await _emTask;
 
-      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
       
       var results = await q.Execute(_em1);
@@ -84,7 +83,6 @@ namespace Test_NetClient {
     public async Task ExportEntitiesWithChanges() {
       await _emTask;
 
-      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
 
       var results = await q.Execute(_em1);
@@ -104,7 +102,6 @@ namespace Test_NetClient {
     public async Task ExportSelectedEntitiesWithChanges() {
       await _emTask;
 
-      await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
 
       var results = await q.Execute(_em1);
@@ -117,6 +114,29 @@ namespace Test_NetClient {
       var exportedEntities = _em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1 }, false);
 
       File.WriteAllText("c:/temp/emExportWithChanges.txt", exportedEntities);
+
+    }
+
+    [TestMethod]
+    public async Task ExportImportSelectedEntitiesWithChanges() {
+      await _emTask;
+
+      var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
+
+      var results = await q.Execute(_em1);
+
+      Assert.IsTrue(results.Count() > 0);
+      var custs = results.Take(2).ToList();
+      custs.ForEach(c => c.City = "Paris");
+      var emp1 = _em1.CreateEntity<Employee>();
+
+      var exportedEntities = _em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1 }, false);
+
+      var em2 = new EntityManager(_em1);
+      em2.ImportEntities(exportedEntities);
+      var importedEntities = em2.GetEntities();
+
+      Assert.IsTrue(importedEntities.Count() == 3, "should have imported 3 entities");
 
     }
 

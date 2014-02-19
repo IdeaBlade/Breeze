@@ -199,17 +199,80 @@ namespace Breeze.NetClient {
     }
 
     private void ImportEntities(JNode jn, ImportOptions importOptions) {
-      importOptions = importOptions ?? new ImportOptions() { MergeStrategy = MergeStrategy.OverwriteChanges };
+      importOptions = importOptions ?? ImportOptions.Default;
       var msNode = jn.GetJNode("metadataStore");
       if (msNode != null) {
         MetadataStore.ImportMetadata(msNode);
         // TODO: do we want to do this.
         if (DefaultDataService == null) {
-          DefaultDataService = jn.GetObject<DataService>("dataService", jn2 => new DataService(jn2));
+          var dsJn = jn.GetJNode("dataService");
+          if (dsJn != null) DefaultDataService = new DataService(dsJn);
         }
       }
-      var entityGroupMapNode = jn.GetJNode("entityGroupMap");
+      var entityGroupNodesMap = jn.GetJNodeArrayMap("entityGroupMap");
+      var mergeStrategy = (importOptions.MergeStrategy ?? this.DefaultQueryOptions.MergeStrategy ?? QueryOptions.Default.MergeStrategy).Value;
+      entityGroupNodesMap.ForEach(kvp => {
+        var entityTypeName = kvp.Key;
+        var entityNodes = kvp.Value;
+        var entityType = MetadataStore.GetEntityType(entityTypeName);
+        MergeEntity(entityNodes, entityType, mergeStrategy);
+      });
     }
+
+    private void MergeEntity(IEnumerable<JNode> entityNodes, EntityType entityType, MergeStrategy mergeStrategy) {
+      foreach (var entityNode in entityNodes) {
+        var ek = ExtractEntityKey(entityType, entityNode);
+        var entityAspectNode = entityNode.GetJNode("entityAspect");
+        var entityState = (EntityState)Enum.Parse(typeof(EntityState), entityAspectNode.Get<String>("entityState"));
+        var targetEntity = FindEntityByKey(ek);
+        if (targetEntity != null) {
+          var targetAspect = targetEntity.EntityAspect;
+          if (mergeStrategy == MergeStrategy.Disallowed) continue;
+          if (mergeStrategy == MergeStrategy.PreserveChanges && targetAspect.EntityState != EntityState.Unchanged) continue;
+          PopulateEntity(targetEntity, entityNode);
+          if (targetAspect.EntityState != entityState) {
+            targetAspect.EntityState = entityState;
+          }
+        } else {
+          targetEntity = (IEntity)Activator.CreateInstance(entityType.ClrType);
+          PopulateEntity(targetEntity, entityNode);
+          AttachEntity(targetEntity, entityState);
+        }
+      };
+    }
+
+    public EntityKey ExtractEntityKey(EntityType entityType, JNode jn) {
+      var keyValues = entityType.KeyProperties
+         .Select(p => jn.Get(p.Name, p.ClrType))
+         .ToArray();
+      var entityKey = new EntityKey(entityType, keyValues);
+      return entityKey;
+    }
+
+
+    public void PopulateEntity(IEntity targetEntity, JNode jn) {
+      var targetAspect = targetEntity.EntityAspect;
+      var backingStore = targetAspect.BackingStore;
+
+      var entityType = targetAspect.EntityType;
+      entityType.DataProperties.ForEach(dp => {
+        var propName = dp.Name;
+        var val = jn.Get(propName, dp.ClrType);
+
+        if (dp.IsComplexProperty) {
+          var newCo = (IComplexObject)val;
+          var co = (IComplexObject)backingStore[propName];
+          var coBacking = co.ComplexAspect.BackingStore;
+          newCo.ComplexAspect.BackingStore.ForEach(kvp2 => {
+            coBacking[kvp2.Key] = kvp2.Value;
+          });
+        } else {
+          backingStore[propName] = val;
+        }
+      });
+    }
+
+   
 
     private JNode ExportToJNode(IEnumerable<IEntity> entities, bool includeMetadata) {
       var jn = ExportEntityGroupsAndTempKeys(entities);
