@@ -29,6 +29,35 @@
         }
     });
 
+    test("reject changes reverts an unmapped property - only unmapped property changed", 1, function () {
+        var store = MetadataStore.importMetadata(newEm().metadataStore.exportMetadata());
+
+        var originalTime = new Date(2013, 0, 1);
+        var Customer = function () {
+            this.lastTouched = originalTime;
+        };
+
+        store.registerEntityTypeCtor("Customer", Customer);
+
+        var manager = newEm(store);
+
+        // create a fake customer
+        var cust = manager.createEntity("Customer", { CompanyName: "Acme" },
+                   EntityState.Unchanged);
+        var touched = cust.getProperty("lastTouched");
+
+        // we change only the unmapped property (uncomment the next line and the test will pass)
+        //cust.CompanyName("Beta");
+        cust.setProperty("lastTouched", new Date(touched.getTime() + 60000));
+
+        // cust.entityAspect.rejectChanges(); // roll back name change
+        manager.rejectChanges(); // would have same effect. Obviously less granular
+        var touchedAgain = cust.getProperty("lastTouched");
+        ok(originalTime === touchedAgain,
+            core.formatString("'lastTouched' unmapped property should be rolled back. Started as %1; now is %2",
+            originalTime, cust.getProperty("lastTouched")));
+    });
+
 
     test("export/import with nulls", function () {
         var queryOptions = new QueryOptions({

@@ -77,6 +77,7 @@ namespace Breeze.NetClient {
     }
 
     internal virtual DataProperty AddDataProperty(DataProperty dp) {
+      dp.ParentType = this;
       UpdateClientServerName(dp);
       _dataProperties.Add(dp);
 

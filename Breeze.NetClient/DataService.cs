@@ -11,6 +11,15 @@ namespace Breeze.NetClient {
 
     }
 
+    public DataService(JNode jNode) {
+      ServiceName = jNode.Get<String>("serviceName");
+      // Adapter = null;
+      HasServerMetadata = jNode.Get<bool>("hasServerMetadata");
+      // JsonResultsAdapter
+      UseJsonP = jNode.Get<bool>("useJsonp");
+    }
+
+
     public DataService(String serviceName) {
       ServiceName = serviceName;
       _client = new HttpClient();
@@ -55,24 +64,17 @@ namespace Breeze.NetClient {
       }
     }
 
-    JNode IJsonSerializable.ToJNode() {
+    JNode IJsonSerializable.ToJNode(Object config) {
       var jo = new JNode();
-      jo.Add("serviceName", this.ServiceName);
-      jo.Add("adapterName", this.Adapter == null ? null : this.Adapter.Name);
-      jo.Add("hasServerMetadata", this.HasServerMetadata);
-      jo.Add("jsonResultsAdapter", this.JsonResultsAdapter == null ? null : this.JsonResultsAdapter.Name);
-      jo.Add("useJsonp", this.UseJsonP);
+      jo.AddPrimitive("serviceName", this.ServiceName);
+      jo.AddPrimitive("adapterName", this.Adapter == null ? null : this.Adapter.Name);
+      jo.AddPrimitive("hasServerMetadata", this.HasServerMetadata);
+      jo.AddPrimitive("jsonResultsAdapter", this.JsonResultsAdapter == null ? null : this.JsonResultsAdapter.Name);
+      jo.AddPrimitive("useJsonp", this.UseJsonP);
       return jo;
     }
 
-    void IJsonSerializable.FromJNode(JNode jNode) {
-      ServiceName = jNode.Get<String>("serviceName");
-      // Adapter = null;
-      HasServerMetadata = jNode.Get<bool>("hasServerMetadata");
-      // JsonResultsAdapter
-      UseJsonP = jNode.Get<bool>("useJsonp");
-    }
-
+ 
     private HttpClient _client;
 
 

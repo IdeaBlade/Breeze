@@ -6,16 +6,30 @@ using System.Linq;
 namespace Breeze.NetClient {
 
   public class ComplexType: StructuralType, IJsonSerializable {
+
+    public ComplexType() :base() {
+
+    }
+
+    public ComplexType(JNode jNode) {
+      ShortName = jNode.Get<String>("shortName");
+      Namespace = jNode.Get<String>("namespace");
+      // BaseTypeName = jnode.Get<String>("baseTypeName");
+      // IsAbstract = jnode.Get<bool>("isAbstract");
+      jNode.GetJNodeArray("dataProperties").Select(jn => new DataProperty(jn)).ForEach(dp => AddDataProperty(dp));
+      // validators
+      // custom
+    }
     
     public override bool IsEntityType {
       get { return false; }
     }
 
-    JNode IJsonSerializable.ToJNode() {
+    JNode IJsonSerializable.ToJNode(Object config) {
       var jo = new JNode();
-      jo.Add("shortName", this.ShortName);
-      jo.Add("namespace", this.Namespace);
-      jo.Add("isComplexType", true);
+      jo.AddPrimitive("shortName", this.ShortName);
+      jo.AddPrimitive("namespace", this.Namespace);
+      jo.AddPrimitive("isComplexType", true);
       // jo.AddProperty("baseTypeName", this.BaseTypeName);
       // jo.AddProperty("isAbstract", this.IsAbstract, false);
       jo.AddArray("dataProperties", this.DataProperties.Where(dp => dp.IsInherited == false));
@@ -24,15 +38,7 @@ namespace Breeze.NetClient {
       return jo;
     }
 
-    void IJsonSerializable.FromJNode(JNode jNode) {
-      ShortName = jNode.Get<String>("shortName");
-      Namespace = jNode.Get<String>("namespace");
-      // BaseTypeName = jnode.Get<String>("baseTypeName");
-      // IsAbstract = jnode.Get<bool>("isAbstract");
-      jNode.GetObjectArray<DataProperty>("dataProperties").ForEach(dp => AddDataProperty(dp));
-      // validators
-      // custom
-    }
+  
    
   }
 

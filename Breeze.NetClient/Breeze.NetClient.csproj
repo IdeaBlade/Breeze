@@ -38,7 +38,9 @@
     <Compile Include="BaseComplexObject.cs" />
     <Compile Include="Core\NotifiableSet.cs" />
     <Compile Include="DataServiceAdapter.cs" />
+    <Compile Include="JNode.cs" />
     <Compile Include="JsonResultsAdapter.cs" />
+    <Compile Include="QueryOptions.cs" />
     <Compile Include="StructuralProperty.cs" />
     <Compile Include="Core\AsyncSemaphore.cs" />
     <Compile Include="ComplexAspect.cs" />
@@ -61,7 +63,7 @@
     <Compile Include="IKeyGenerator.cs" />
     <Compile Include="INavigationSet.cs" />
     <Compile Include="IStructuralObject.cs" />
-    <Compile Include="JsonConverters.cs" />
+    <Compile Include="JsonEntityConverter.cs" />
     <Compile Include="FetchStrategy.cs" />
     <Compile Include="MergeStrategy.cs" />
     <Compile Include="OriginalValuesMap.cs" />

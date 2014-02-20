@@ -177,6 +177,8 @@ namespace Breeze.NetClient {
       get { return _dataServiceQuery; }
     }
 
+   
+
     private DataServiceQuery _dataServiceQuery;
     private static String __placeHolderServiceName = "http://localhost:7890/breeze/Undefined/";
     private static String __placeHolderResourceName = "__Undefined__";
@@ -184,7 +186,8 @@ namespace Breeze.NetClient {
   }
   
   public abstract class EntityQuery : IEntityQuery {
-    public EntityQuery() {       
+    public EntityQuery() {
+      QueryOptions = new QueryOptions();
     }
 
     public static EntityQuery<T> From<T>(string resourceName) {
@@ -200,16 +203,14 @@ namespace Breeze.NetClient {
       TargetType = query.TargetType;
       DataService = query.DataService;
       EntityManager = query.EntityManager;
-      MergeStrategy = query.MergeStrategy;
-      FetchStrategy = query.FetchStrategy;
+      QueryOptions = query.QueryOptions;
     }
 
     public String ResourceName { get; protected internal set; }
     public virtual Type TargetType { get; protected internal set; }
     public DataService DataService { get; protected internal set; }
     public EntityManager EntityManager { get; protected internal set; }
-    public MergeStrategy? MergeStrategy { get; protected internal set; }
-    public FetchStrategy? FetchStrategy {get; protected internal set;}
+    public QueryOptions QueryOptions { get; protected internal set; }
     public abstract object Clone();
     public abstract String GetResourcePath();
   }
@@ -217,7 +218,7 @@ namespace Breeze.NetClient {
   public interface IEntityQuery {
     DataService DataService { get;  }
     EntityManager EntityManager { get;  }
-    MergeStrategy? MergeStrategy { get;  }
+    QueryOptions QueryOptions { get;  }
     String ResourceName { get;   }
     Object Clone();
   }

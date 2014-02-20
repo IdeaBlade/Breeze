@@ -837,7 +837,6 @@ var EntityQuery = (function () {
         queryOptions["$expand"] = toExpandString();
         queryOptions["$select"] = toSelectString();
         queryOptions["$inlinecount"] = toInlineCountString();
-        //queryOptions = __extend(queryOptions, this.parameters);
             
         var qoText = toQueryOptionsString(queryOptions);
         return this.resourceName + qoText;

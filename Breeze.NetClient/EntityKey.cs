@@ -8,10 +8,24 @@ namespace Breeze.NetClient {
   /// <summary>
   /// Represents the primary key for an <see cref="IEntity"/>.
   /// </summary>
-  public class EntityKey : IComparable {
+  public class EntityKey : IComparable, IJsonSerializable  {
 
     public EntityKey(Type clrType, params Object[] values)
       : this(clrType, null, values) {
+    }
+
+    public EntityKey(JNode jn) {
+      var etName = jn.Get<String>("entityType");
+      var et = MetadataStore.Instance.GetEntityType(etName);
+      ClrType = et.ClrType;
+      Values = jn.GetPrimitiveArray<Object>("values").ToArray();
+    }
+
+     JNode IJsonSerializable.ToJNode(object config) {
+      var jn = new JNode();
+      jn.AddPrimitive("entityType", this.EntityType.Name);
+      jn.AddArray("values", this.Values);
+      return jn;
     }
 
     /// <summary>
@@ -200,6 +214,10 @@ namespace Breeze.NetClient {
     //  }
     //  return parentEntityKey;
     //}
+
+   
+
+  
   }
 
 }

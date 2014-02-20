@@ -217,6 +217,7 @@ namespace Foo {
     public Territory Territory { get; set; }
 
   }
+
   public partial class Order : BaseEntity {
 
     public int OrderID {

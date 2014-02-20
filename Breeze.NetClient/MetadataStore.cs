@@ -1,6 +1,7 @@
 ﻿using Breeze.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -30,6 +31,8 @@ namespace Breeze.NetClient {
     private static readonly Object __lock = new Object();
 
     #endregion
+
+    
 
     #region Public properties
 
@@ -64,11 +67,17 @@ namespace Breeze.NetClient {
       } 
     }
 
+    public void ProbeAssemblies(IEnumerable<Assembly> assembliesToProbe) {
+      lock (_structuralTypes) {
+        _clrTypeMap.ProbeAssemblies(assembliesToProbe);
+      }
+    }
+
     #endregion
 
     #region Public methods
 
-    public static void Clear() {
+    public static void __Reset() {
       lock (__lock) {
         __instance = new MetadataStore();
       }
@@ -192,12 +201,26 @@ namespace Breeze.NetClient {
     }
 
     public String ExportMetadata() {
-      return ((IJsonSerializable) this).ToJNode().ToJson();
+      return ((IJsonSerializable)this).ToJNode(null).Serialize();
+    }
+
+    public TextWriter ExportMetadata(TextWriter textWriter) {
+      return ((IJsonSerializable)this).ToJNode(null).SerializeTo(textWriter);
     }
 
     public void ImportMetadata(String metadata) {
-      var jNode = new JNode(metadata);
-      ((IJsonSerializable)this).FromJNode(jNode);
+      var jNode = JNode.DeserializeFrom(metadata);
+      ImportMetadata(jNode);
+    }
+
+    public void ImportMetadata(TextReader textReader) {
+      var jNode = JNode.DeserializeFrom(textReader);
+      ImportMetadata(jNode);
+    }
+
+    internal void ImportMetadata(JNode jNode ) {
+
+      DeserializeFrom(jNode);
       EntityTypes.ForEach(et => ResolveComplexTypeRefs(et));
     }
 
@@ -206,11 +229,11 @@ namespace Breeze.NetClient {
         .ForEach(cp => cp.ComplexType = GetComplexType(cp.ComplexTypeName));
     }
 
-    JNode IJsonSerializable.ToJNode() {
+    JNode IJsonSerializable.ToJNode(Object config) {
       var jo =  new JNode(); 
-      jo.Add("metadataVersion", MetadataVersion);
+      jo.AddPrimitive("metadataVersion", MetadataVersion);
       // jo.Add("name", this.Name);
-      jo.Add("namingConvention", this.NamingConvention.Name);
+      jo.AddPrimitive("namingConvention", this.NamingConvention.Name);
       // jo.AddProperty("localQueryComparisonOptions", this.LocalQueryComparisonOptions);
       jo.AddArray("dataServices", this._dataServiceMap.Values);
       jo.AddArray("structuralTypes", this._structuralTypes);
@@ -218,18 +241,21 @@ namespace Breeze.NetClient {
       return jo;
     }
 
-    void IJsonSerializable.FromJNode(JNode jNode) {
+    private void DeserializeFrom(JNode jNode) {
       MetadataVersion = jNode.Get<String>("metadataVersion");
       // Name
       NamingConvention = NamingConvention.FromName(jNode.Get<String>("namingConvention"));
       // localQueryComparisonOptions
-      jNode.GetObjectArray<DataService>("dataServices").ForEach(ds => {
+      jNode.GetJNodeArray("dataServices").Select(jn => new DataService(jn)).ForEach(ds => {
         _dataServiceMap.Add(ds.ServiceName, ds);
       });
-      var stypes = jNode.GetObjectArray<StructuralType>("structuralTypes", 
-        jn => jn.Get<bool>("isComplexType", false) ? (StructuralType) new ComplexType() : (StructuralType) new EntityType());
-      stypes.ForEach(st => _structuralTypes.Add(st));
-      jNode.GetMap<String>("resourceEntityTypeMap").ForEach(kvp => {
+      var stypes = jNode.GetJNodeArray("structuralTypes")
+        .Select(jn => jn.Get<bool>("isComplexType", false) 
+          ? (StructuralType)new ComplexType(jn) 
+          : (StructuralType)new EntityType(jn));
+      stypes.ForEach(st => this.AddStructuralType(st));
+
+      jNode.GetPrimitiveMap<String>("resourceEntityTypeMap").ForEach(kvp => {
         var et = GetEntityType(kvp.Value);
         AddResourceName(kvp.Key, et);
       });
@@ -467,6 +493,9 @@ namespace Breeze.NetClient {
         TypePair tp;
         if (_map.TryGetValue(stType.Name, out tp)) {
           stType.ClrType = tp.ClrType;
+          if (tp.StructuralType == null) {
+            tp.StructuralType = stType;
+          }
           return tp.ClrType;
         } else {
           _map.Add(stType.Name, new TypePair() { StructuralType = stType });
@@ -474,7 +503,7 @@ namespace Breeze.NetClient {
         }
       }
 
-      private bool ProbeAssemblies(IEnumerable<Assembly> assembliesToProbe) {
+      public bool ProbeAssemblies(IEnumerable<Assembly> assembliesToProbe) {
         // ToList is important on next line
         var assemblies = assembliesToProbe.Except(_probedAssemblies).ToList();
         if (assemblies.Any()) {
