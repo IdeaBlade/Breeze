@@ -20,9 +20,8 @@ ToDo
 LocalQuery
 Saves
 NamedQueries
-IEditableObject
 Validation and INotifyDataErrorInfo
-
+ChangeNotificationEnabled
 Inheritance
 NoTracking queries
 UntrackedProperties added directly to Clr type defs.

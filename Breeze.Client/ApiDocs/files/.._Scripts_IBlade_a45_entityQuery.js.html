@@ -906,7 +906,7 @@ var EntityQuery = (function () {
         assertParam(entityKey, &quot;entityKey&quot;).isInstanceOf(EntityKey).check();
         var q = new EntityQuery(entityKey.entityType.defaultResourceName);
         var pred = buildKeyPredicate(entityKey);
-        q = q.where(pred);
+        q = q.where(pred).toType(entityKey.entityType);
         return q;
     };
 
@@ -1044,7 +1044,6 @@ var EntityQuery = (function () {
         queryOptions[&quot;$expand&quot;] = toExpandString();
         queryOptions[&quot;$select&quot;] = toSelectString();
         queryOptions[&quot;$inlinecount&quot;] = toInlineCountString();
-        //queryOptions = __extend(queryOptions, this.parameters);
             
         var qoText = toQueryOptionsString(queryOptions);
         return this.resourceName + qoText;
