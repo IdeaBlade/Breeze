@@ -220,14 +220,14 @@ namespace Breeze.NetClient {
         var entityTypeName = kvp.Key;
         var entityNodes = kvp.Value;
         var entityType = MetadataStore.GetEntityType(entityTypeName);
-        var entities = MergeEntities(entityNodes, entityType, tempKeyMap, mergeStrategy);
+        var entities = ImportEntityGroup(entityNodes, entityType, tempKeyMap, mergeStrategy);
         importedEntities.AddRange(entities);
       });
 
       return new ImportResult(importedEntities, tempKeyMap);
     }
 
-    private List<IEntity> MergeEntities(IEnumerable<JNode> entityNodes, EntityType entityType, Dictionary<EntityKey, EntityKey> tempKeyMap, MergeStrategy mergeStrategy) {
+    private List<IEntity> ImportEntityGroup(IEnumerable<JNode> entityNodes, EntityType entityType, Dictionary<EntityKey, EntityKey> tempKeyMap, MergeStrategy mergeStrategy) {
       var importedEntities = new List<IEntity>();
       foreach (var entityNode in entityNodes) {
         var ek = ExtractEntityKey(entityType, entityNode);
@@ -247,7 +247,7 @@ namespace Breeze.NetClient {
           if (mergeStrategy == MergeStrategy.Disallowed) continue;
           if (mergeStrategy == MergeStrategy.PreserveChanges && targetAspect.EntityState != EntityState.Unchanged) continue;
           PopulateEntity(targetEntity, entityNode);
-          UpdateTempFks(targetEntity, entityNode, tempKeyMap);
+          UpdateTempFks(targetEntity, entityAspectNode, tempKeyMap);
           if (targetAspect.EntityState != entityState) {
             targetAspect.EntityState = entityState;
           }
@@ -260,7 +260,7 @@ namespace Breeze.NetClient {
             var newEk = tempKeyMap[origEk];
             targetEntity.EntityAspect.SetDpValue(entityType.KeyProperties[0], newEk.Values[0]);
           }
-          UpdateTempFks(targetEntity, entityNode, tempKeyMap);
+          UpdateTempFks(targetEntity, entityAspectNode, tempKeyMap);
           AttachEntity(targetEntity, entityState);
         }       
 
@@ -269,28 +269,7 @@ namespace Breeze.NetClient {
       return importedEntities;
     }
 
-    private void UpdateTempFks(IEntity targetEntity, JNode entityNode, Dictionary<EntityKey, EntityKey> tempKeyMap) {
-
-      var tempNavPropNames = entityNode.GetPrimitiveArray<String>("tempNavPropNames");
-      if (!tempNavPropNames.Any()) return;
-      var targetAspect = targetEntity.EntityAspect;
-      var entityType = targetAspect.EntityType;
-
-      tempNavPropNames.ForEach(npName => {
-        var np = entityType.GetNavigationProperty(npName);
-        var fkProp = np.RelatedDataProperties[0].Name;
-        var oldFkValue = targetAspect.GetValue(fkProp);
-        var oldFk = new EntityKey(entityType, oldFkValue);
-        var newFk = tempKeyMap[oldFk];
-        if (newFk == null) {
-
-        }
-        targetAspect.SetValue(fkProp, newFk.Values[0]);
-
-      });
-    }
-
-    public EntityKey ExtractEntityKey(EntityType entityType, JNode jn) {
+    private EntityKey ExtractEntityKey(EntityType entityType, JNode jn) {
       var keyValues = entityType.KeyProperties
          .Select(p => jn.Get(p.Name, p.ClrType))
          .ToArray();
@@ -298,8 +277,7 @@ namespace Breeze.NetClient {
       return entityKey;
     }
 
-
-    public void PopulateEntity(IEntity targetEntity, JNode jn) {
+    private void PopulateEntity(IEntity targetEntity, JNode jn) {
       var targetAspect = targetEntity.EntityAspect;
       var backingStore = targetAspect.BackingStore;
 
@@ -326,7 +304,24 @@ namespace Breeze.NetClient {
         targetAspect._originalValuesMap = new BackupValuesMap(originalValuesMap);
       }
     }
-  
+
+    private void UpdateTempFks(IEntity targetEntity, JNode entityAspectNode, Dictionary<EntityKey, EntityKey> tempKeyMap) {
+
+      var tempNavPropNames = entityAspectNode.GetPrimitiveArray<String>("tempNavPropNames");
+      if (!tempNavPropNames.Any()) return;
+      var targetAspect = targetEntity.EntityAspect;
+      var entityType = targetAspect.EntityType;
+
+      tempNavPropNames.ForEach(npName => {
+        var np = entityType.GetNavigationProperty(npName);
+        var fkProp = np.RelatedDataProperties[0];
+        var oldFkValue = targetAspect.GetValue(fkProp);
+        var oldFk = new EntityKey(np.EntityType, oldFkValue);
+        var newFk = tempKeyMap[oldFk];
+        targetAspect.SetValue(fkProp, newFk.Values[0]);
+
+      });
+    }
 
     private JNode ExportToJNode(IEnumerable<IEntity> entities, bool includeMetadata) {
       var jn = ExportEntityGroupsAndTempKeys(entities);

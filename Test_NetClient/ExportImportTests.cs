@@ -177,7 +177,8 @@ namespace Test_NetClient {
       Assert.IsTrue(allEntities.OfType<Customer>().Count(c => c.EntityAspect.EntityState.IsModified()) == 2, "should only be 2 modified customers");
       Assert.IsTrue(allEntities.OfType<Employee>().All(c => c.EntityAspect.EntityState.IsAdded()));
       Assert.IsTrue(impResult.ImportedEntities.Count == 2, "should have only imported 2 entities");
-      Assert.IsTrue(custs.All(c => c.City == "London"), "city should still be Londen after import");
+      Assert.IsTrue(custs.All(c => c.City == "London"), "city should still be London after import");
+      Assert.IsTrue(custs.All(c => c.EntityAspect.OriginalValuesMap["City"] != "London"), "original city should not be London");
       Assert.IsTrue(impResult.TempKeyMap.All(kvp => kvp.Key != kvp.Value), "imported entities should not have same key values");
     }
   
@@ -209,13 +210,55 @@ namespace Test_NetClient {
       Assert.IsTrue(allEntities.Count() == 9, "should have 9 entities in the cache");
 
       Assert.IsTrue(custs.All(c => c.City == "Paris"), "city should be Paris after import");
-      // Assert.IsTrue(custs.All(c => c.EntityAspect.GetValue("City", EntityVersion.Original) != "Paris"), "city original value should NOT be Paris");
+      Assert.IsTrue(custs.All(c => c.EntityAspect.OriginalValuesMap["City"] != "Paris"), "original city should not be Paris");
       Assert.IsTrue(allEntities.OfType<Customer>().Count() == 5, "should only be the original 5 custs");
       Assert.IsTrue(allEntities.OfType<Employee>().Count() == 4, "should be 4 emps (2 + 2) ");
       Assert.IsTrue(allEntities.OfType<Customer>().Count(c => c.EntityAspect.EntityState.IsModified()) == 2, "should only be 2 modified customers");
       Assert.IsTrue(allEntities.OfType<Employee>().All(c => c.EntityAspect.EntityState.IsAdded()));
       Assert.IsTrue(impResult.ImportedEntities.Count == 4, "should have only imported 4 entities");
       Assert.IsTrue(impResult.TempKeyMap.All(kvp => kvp.Key != kvp.Value), "imported entities should not have same key values");
+    }
+
+    [TestMethod]
+    public async Task ExpImpTempKeyRelatedFixup() {
+      await _emTask;
+
+      var q = new EntityQuery<Foo.Employee>("Employees").Take(3);
+
+      var results = await q.Execute(_em1);
+
+      Assert.IsTrue(results.Count() > 0);
+      var emp1 = new Employee();
+      var order1 = new Order();
+      var order2 = new Order();
+      _em1.AddEntity(emp1);
+      emp1.Orders.Add(order1);
+      emp1.Orders.Add(order2);
+
+      var exportedEntities = _em1.ExportEntities(null, false);
+
+      // custs1 and 2 shouldn't be imported because of default preserveChanges
+      // emps1 and 2 should cause the creation of NEW emps with new temp ids;
+      // tempKeys should cause creation of new entities;
+      var impResult = _em1.ImportEntities(exportedEntities);
+      var allEntities = _em1.GetEntities();
+
+      Assert.IsTrue(allEntities.Count() == 9, "should have 9 (3 orig, 3 added, 3 imported (new) entities in the cache");
+      
+      Assert.IsTrue(allEntities.OfType<Order>().Count() == 4, "should be 4 orders (2 + 2)");
+      Assert.IsTrue(allEntities.OfType<Employee>().Count() == 5, "should be 5 emps (3 + 1 + 1) ");
+      Assert.IsTrue(allEntities.OfType<Employee>().Count(c => c.EntityAspect.EntityState.IsAdded()) == 2, "should only be 2 added emps");
+      Assert.IsTrue(allEntities.OfType<Order>().All(c => c.EntityAspect.EntityState.IsAdded()));
+      Assert.IsTrue(impResult.ImportedEntities.Count == 6, "should have imported 6 entities - 3 orig + 3 new");
+      Assert.IsTrue(impResult.ImportedEntities.OfType<Order>().Count() == 2, "should have imported 2 orders");
+      Assert.IsTrue(impResult.ImportedEntities.OfType<Employee>().Count( e => e.EntityAspect.EntityState.IsAdded()) == 1, "should have imported 1 added emp");
+      Assert.IsTrue(impResult.ImportedEntities.OfType<Employee>().Count( e => e.EntityAspect.EntityState.IsUnchanged()) == 3, "should have imported 3 unchanged emps");
+      Assert.IsTrue(impResult.TempKeyMap.Count == 3, "tempKeyMap should be of length 3");
+      Assert.IsTrue(impResult.TempKeyMap.All(kvp => kvp.Key != kvp.Value), "imported entities should not have same key values");
+      var newOrders = impResult.ImportedEntities.OfType<Order>();
+      var newEmp = impResult.ImportedEntities.OfType<Employee>().First(e => e.EntityAspect.EntityState.IsAdded());
+      Assert.IsTrue(newOrders.All(no => no.EmployeeID == newEmp.EmployeeID), "should have updated order empId refs");
+
     }
   }
 }
