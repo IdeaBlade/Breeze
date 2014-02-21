@@ -160,7 +160,7 @@ namespace Breeze.NetClient {
       set { _entityGroup = value; }
     }
 
-    protected override StructuralType StructuralType {
+    public override StructuralType StructuralType {
       get { return this.EntityType; }
     }
 

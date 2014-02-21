@@ -32,13 +32,5 @@ namespace Breeze.NetClient {
     
   }
 
-  public class ImportOptions {
-
-    public ImportOptions(MergeStrategy? mergeStrategy = null) {
-      MergeStrategy = mergeStrategy;
-    }
-
-    public static ImportOptions Default = new ImportOptions();
-    public MergeStrategy? MergeStrategy { get; set; }
-  }
+ 
 }

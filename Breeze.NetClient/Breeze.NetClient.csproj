@@ -42,6 +42,7 @@
     <Compile Include="JNode.cs" />
     <Compile Include="JsonResultsAdapter.cs" />
     <Compile Include="ImportResult.cs" />
+    <Compile Include="ImportOptions.cs" />
     <Compile Include="QueryOptions.cs" />
     <Compile Include="StructuralProperty.cs" />
     <Compile Include="Core\AsyncSemaphore.cs" />

@@ -181,7 +181,7 @@ namespace Breeze.NetClient {
       });
     }
 
-    protected override StructuralType StructuralType {
+    public override StructuralType StructuralType {
       get { return this.ComplexType; }
     }
 

@@ -199,13 +199,15 @@ namespace Breeze.NetClient {
 
     private ImportResult ImportEntities(JNode jn, ImportOptions importOptions) {
       importOptions = importOptions ?? ImportOptions.Default;
-      var msNode = jn.GetJNode("metadataStore");
-      if (msNode != null) {
-        MetadataStore.ImportMetadata(msNode);
-        var dsJn = jn.GetJNode("dataService");
-        if (dsJn != null) DefaultDataService = new DataService(dsJn);
-        var qoJn = jn.GetJNode("queryOptions");
-        if (qoJn != null) DefaultQueryOptions = new QueryOptions(qoJn);
+      if (importOptions.ShouldMergeMetadata) {
+        var msNode = jn.GetJNode("metadataStore");
+        if (msNode != null) {
+          MetadataStore.ImportMetadata(msNode);
+          var dsJn = jn.GetJNode("dataService");
+          if (dsJn != null) DefaultDataService = new DataService(dsJn);
+          var qoJn = jn.GetJNode("queryOptions");
+          if (qoJn != null) DefaultQueryOptions = new QueryOptions(qoJn);
+        }
       }
       var entityGroupNodesMap = jn.GetJNodeArrayMap("entityGroupMap");
       // tempKeyMap will have a new values where collisions will occur
@@ -284,22 +286,29 @@ namespace Breeze.NetClient {
       var entityType = targetAspect.EntityType;
       entityType.DataProperties.ForEach(dp => {
         var propName = dp.Name;
-        var val = jn.Get(propName, dp.ClrType);
-
         if (dp.IsComplexProperty) {
-          var newCo = (IComplexObject)val;
-          var co = (IComplexObject)backingStore[propName];
-          var coBacking = co.ComplexAspect.BackingStore;
+          var coNode = jn.GetJNode(propName);
+          var newCo = (IComplexObject)coNode.ToObject(dp.ClrType);
+          var targetCo = (IComplexObject)backingStore[propName];
+          var targetCoAspect = targetCo.ComplexAspect;
+          var coBacking = targetCoAspect.BackingStore;
           newCo.ComplexAspect.BackingStore.ForEach(kvp2 => {
             coBacking[kvp2.Key] = kvp2.Value;
           });
+          UpdateOriginalValues(targetCoAspect, coNode);
         } else {
+          var val = jn.Get(propName, dp.ClrType);
           backingStore[propName] = val;
         }
       });
+      UpdateOriginalValues(targetAspect, jn);
+    }
 
-      var entityAspectNode = jn.GetJNode("entityAspect");
-      var originalValuesMap = entityAspectNode.GetPrimitiveMap("originalValuesMap", pn => entityType.GetDataProperty(pn).ClrType);
+    private static void UpdateOriginalValues(StructuralAspect targetAspect, JNode jNode) {
+      var stType = targetAspect.StructuralType;
+      var aspectNode = jNode.GetJNode(stType.IsEntityType ? "entityAspect" : "complexAspect");
+      if (aspectNode == null) return; // aspect node can be null in a complexAspect with no originalValues
+      var originalValuesMap = aspectNode.GetPrimitiveMap("originalValuesMap", pn => stType.GetDataProperty(pn).ClrType);
       if (originalValuesMap != null) {
         targetAspect._originalValuesMap = new BackupValuesMap(originalValuesMap);
       }

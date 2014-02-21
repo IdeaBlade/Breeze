@@ -178,7 +178,7 @@ namespace Test_NetClient {
       Assert.IsTrue(allEntities.OfType<Employee>().All(c => c.EntityAspect.EntityState.IsAdded()));
       Assert.IsTrue(impResult.ImportedEntities.Count == 2, "should have only imported 2 entities");
       Assert.IsTrue(custs.All(c => c.City == "London"), "city should still be London after import");
-      Assert.IsTrue(custs.All(c => c.EntityAspect.OriginalValuesMap["City"] != "London"), "original city should not be London");
+      Assert.IsTrue(custs.All(c => ((String) c.EntityAspect.OriginalValuesMap["City"]) != "London"), "original city should not be London");
       Assert.IsTrue(impResult.TempKeyMap.All(kvp => kvp.Key != kvp.Value), "imported entities should not have same key values");
     }
   
@@ -210,7 +210,7 @@ namespace Test_NetClient {
       Assert.IsTrue(allEntities.Count() == 9, "should have 9 entities in the cache");
 
       Assert.IsTrue(custs.All(c => c.City == "Paris"), "city should be Paris after import");
-      Assert.IsTrue(custs.All(c => c.EntityAspect.OriginalValuesMap["City"] != "Paris"), "original city should not be Paris");
+      Assert.IsTrue(custs.All(c => ((String) c.EntityAspect.OriginalValuesMap["City"]) != "Paris"), "original city should not be Paris");
       Assert.IsTrue(allEntities.OfType<Customer>().Count() == 5, "should only be the original 5 custs");
       Assert.IsTrue(allEntities.OfType<Employee>().Count() == 4, "should be 4 emps (2 + 2) ");
       Assert.IsTrue(allEntities.OfType<Customer>().Count(c => c.EntityAspect.EntityState.IsModified()) == 2, "should only be 2 modified customers");
@@ -220,7 +220,7 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
-    public async Task ExpImpTempKeyRelatedFixup() {
+    public async Task ExpImpTempKeyFixup1() {
       await _emTask;
 
       var q = new EntityQuery<Foo.Employee>("Employees").Take(3);
@@ -259,6 +259,64 @@ namespace Test_NetClient {
       var newEmp = impResult.ImportedEntities.OfType<Employee>().First(e => e.EntityAspect.EntityState.IsAdded());
       Assert.IsTrue(newOrders.All(no => no.EmployeeID == newEmp.EmployeeID), "should have updated order empId refs");
 
+    }
+
+    [TestMethod]
+    public async Task ExpImpTempKeyFixup2() {
+      await _emTask;
+
+      var q = new EntityQuery<Foo.Supplier>("Suppliers").Where(s => s.CompanyName.StartsWith("P"));
+            
+      var suppliers = await q.Execute(_em1);
+
+      Assert.IsTrue(suppliers.Count() > 0, "should be some suppliers");
+      var orderIdProp  = MetadataStore.Instance.GetEntityType("Order").KeyProperties[0];
+      _em1.KeyGenerator.GetNextTempId(orderIdProp);
+
+      var order1 = new Order();
+      var emp1 = new Employee(); 
+      _em1.AddEntity(order1); _em1.AddEntity(emp1);
+      emp1.LastName = "bar";
+      var cust1 = new Customer() { CompanyName = "Foo" };
+      order1.Employee = emp1;
+      order1.Customer = cust1;
+      var exportedEm = _em1.ExportEntities(null, false);
+
+      var em2 = new EntityManager(_em1);
+      em2.ImportEntities(exportedEm);
+
+      var suppliers2 = em2.GetEntities<Supplier>().ToList();
+      Assert.IsTrue(suppliers.Count() == suppliers2.Count, "should be the same number of suppliers");
+      var addedOrders = em2.GetEntities<Order>(EntityState.Added);
+      Assert.IsTrue(addedOrders.Count() == 1, "should be 1 added order");
+      var order1x = addedOrders.First();
+      var cust1x = order1x.Customer;
+      Assert.IsTrue(cust1x.CompanyName == "Foo", "customer company name should be 'Foo'");
+      var emp1x = order1x.Employee;
+      Assert.IsTrue(emp1x.LastName == "bar", "lastName should be 'bar'");
+
+    }
+
+    [TestMethod]
+    public async Task ExpImpComplexType() {
+      await _emTask;
+
+      var q = new EntityQuery<Foo.Supplier>("Suppliers").Where(s => s.CompanyName.StartsWith("P"));
+
+      var suppliers = await q.Execute(_em1);
+      suppliers.ForEach((s, i) => s.Location.Address = "Foo:" + i.ToString());
+      Assert.IsTrue(suppliers.All(s => s.EntityAspect.EntityState.IsModified()));
+      var exportedEm = _em1.ExportEntities();
+      var em2 = new EntityManager(_em1);
+      var impResult = em2.ImportEntities(exportedEm);
+      Assert.IsTrue(impResult.ImportedEntities.Count == suppliers.Count());
+      impResult.ImportedEntities.Cast<Supplier>().ForEach( s => {
+        Assert.IsTrue(s.EntityAspect.OriginalValuesMap.Count == 0, "supplierOriginalValuesMap should be empty");
+        var location = s.Location;
+        Assert.IsTrue(location.Address.StartsWith("Foo"), "address should start with 'Foo'");
+        Assert.IsTrue(location.ComplexAspect.OriginalValuesMap.ContainsKey("Address"), "ComplexAspect originalValues should contain address");
+
+      });
     }
   }
 }

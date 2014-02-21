@@ -247,7 +247,9 @@ namespace Breeze.NetClient {
       NamingConvention = NamingConvention.FromName(jNode.Get<String>("namingConvention"));
       // localQueryComparisonOptions
       jNode.GetJNodeArray("dataServices").Select(jn => new DataService(jn)).ForEach(ds => {
-        _dataServiceMap.Add(ds.ServiceName, ds);
+        if (!_dataServiceMap.ContainsKey(ds.ServiceName)) {
+          _dataServiceMap.Add(ds.ServiceName, ds);
+        }
       });
       var stypes = jNode.GetJNodeArray("structuralTypes")
         .Select(jn => jn.Get<bool>("isComplexType", false) 
@@ -290,13 +292,17 @@ namespace Breeze.NetClient {
     private T GetStructuralType<T>(String typeName, bool okIfNotFound = false) where T : class {
       lock (_structuralTypes) {
         var t = _structuralTypes[typeName];
+        if (t == null) {
+          // locate by short name if not found by full name;
+          t = _structuralTypes.FirstOrDefault(st => st.ShortName == typeName);
+        }
         if (t != null) {
           var result = t as T;
           if (result == null) {
             throw new Exception("A type by this name exists but is not a " + typeof(T).Name);
           }
           return result;
-        } else if (okIfNotFound) {
+        }  else if (okIfNotFound) {
           return (T)null;
         } else {
           throw new Exception("Unable to locate Type: " + typeName);
@@ -314,8 +320,11 @@ namespace Breeze.NetClient {
       }
     }
 
-    private void AddStructuralType(StructuralType stType) {
+    private void AddStructuralType(StructuralType stType, bool allowMerge = true) {
       lock (_structuralTypes) {
+        // for now ignore dups
+        // TODO: handle custom metadata later.
+        if (_structuralTypes[stType.Name] != null) return;
         _clrTypeMap.GetClrType(stType);
         //// don't register anon types
         if (!stType.IsAnonymous) {

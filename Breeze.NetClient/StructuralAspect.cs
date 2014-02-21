@@ -26,7 +26,7 @@ namespace Breeze.NetClient {
 
     public abstract EntityVersion EntityVersion { get; internal set;  }
      
-    protected abstract StructuralType StructuralType { get; }
+    public abstract StructuralType StructuralType { get; }
 
     protected abstract IStructuralObject StructuralObject { get; }
 

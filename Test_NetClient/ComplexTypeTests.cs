@@ -287,6 +287,28 @@ namespace Test_NetClient {
       Assert.IsTrue(aspectPropChangedList.Count == 0, "no more EntityAspect changes");
     }
 
+    [TestMethod]
+    public async Task OriginalValues() {
+      await _emTask;
+
+      var q = new EntityQuery<Foo.Supplier>("Suppliers").Where(s => s.CompanyName.StartsWith("P"));
+
+      var suppliers = await q.Execute(_em1);
+      suppliers.ForEach((s, i) => s.Location.Address = "Foo:" + s.Location.Address);
+      Assert.IsTrue(suppliers.All(s => s.EntityAspect.EntityState.IsModified()));
+      Assert.IsTrue(suppliers.All(s => s.EntityAspect.OriginalValuesMap.Count() == 0), "supplier originalValuesMap should be empty");
+      suppliers.ForEach(s => {
+        var location = s.Location;
+        Assert.IsTrue(location.Address.StartsWith("Foo"), "address should start with 'Foo'");
+        Assert.IsTrue(location.ComplexAspect.OriginalValuesMap.ContainsKey("Address"), "ComplexAspect originalValues should contain address");
+        var oldAddress = (String) location.ComplexAspect.OriginalValuesMap["Address"];
+        if (oldAddress == null) {
+          Assert.IsTrue(location.Address == "Foo:", "should have a null old address");
+        } else {
+          Assert.IsTrue(location.Address.Substring(4) == oldAddress, "should have the right old address");
+        }
+      });
+    }
     
     //test("save changes - modified - only cp", function() {
     //    var em = newEm();

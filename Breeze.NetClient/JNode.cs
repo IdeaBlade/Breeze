@@ -30,6 +30,10 @@ namespace Breeze.NetClient {
         return !_jo.Values().Any();
       }
     }
+
+    public Object ToObject(Type t) {
+      return _jo.ToObject(t);
+    }
         
     public Object Config {
       get;
@@ -84,6 +88,8 @@ namespace Breeze.NetClient {
           } else {
             jn.AddRaw(kvp.Key, new JValue(val));
           }
+        } else {
+          jn.AddRaw(kvp.Key, null);
         }
       });
       
