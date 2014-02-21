@@ -386,7 +386,7 @@ namespace Breeze.NetClient {
         _entityState = value;
       } else {
         if (value.IsAdded()) {
-          OriginalValuesMap = null;
+          _originalValuesMap = null;
         }
         var hadChanges = _entityState != EntityState.Unchanged;
         _entityState = value;

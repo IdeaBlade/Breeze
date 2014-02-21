@@ -1,7 +1,7 @@
 ﻿using Breeze.Core;
-
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Breeze.NetClient {
@@ -14,20 +14,6 @@ namespace Breeze.NetClient {
       : this(clrType, null, values) {
     }
 
-    public EntityKey(JNode jn) {
-      var etName = jn.Get<String>("entityType");
-      var et = MetadataStore.Instance.GetEntityType(etName);
-      ClrType = et.ClrType;
-      Values = jn.GetPrimitiveArray<Object>("values").ToArray();
-    }
-
-     JNode IJsonSerializable.ToJNode(object config) {
-      var jn = new JNode();
-      jn.AddPrimitive("entityType", this.EntityType.Name);
-      jn.AddArray("values", this.Values);
-      return jn;
-    }
-
     /// <summary>
     /// Initializes a new instance of the EntityKey class.    
     /// </summary>
@@ -37,16 +23,32 @@ namespace Breeze.NetClient {
       : this(entityType.ClrType, entityType, values) {
     }
 
+    public EntityKey(JNode jn) {
+      var etName = jn.Get<String>("entityType");
+      _entityType = MetadataStore.Instance.GetEntityType(etName);
+      ClrType = _entityType.ClrType;
+      // coerce the incoming data
+      Values = jn.GetPrimitiveArray("values", EntityType.KeyProperties.Select(kp => kp.ClrType)).ToArray();
+    }
+
+     JNode IJsonSerializable.ToJNode(object config) {
+      var jn = new JNode();
+      jn.AddPrimitive("entityType", this.EntityType.Name);
+      jn.AddArray("values", this.Values);
+
+      return jn;
+    }
    
     internal EntityKey(Type clrType, EntityType entityType, Object[] values) {
       ClrType = clrType;
-      EntityType = entityType;
-
+      _entityType = entityType;
+      
       if (values.Length == 1 && values[0] is Array) {
         Values = ((IEnumerable)values[0]).Cast<Object>().ToArray();
       } else {
         Values = values;
       }
+   
     }
 
     public Type ClrType {
@@ -58,8 +60,12 @@ namespace Breeze.NetClient {
     /// The <see cref="IEntity"/> type associated with this primary key.
     /// </summary>
     public EntityType EntityType {
-      get;
-      private set;
+      get {
+        if (_entityType == null) {
+          _entityType = MetadataStore.Instance.GetEntityType(ClrType);
+        }
+        return _entityType;
+      }
     }
 
     /// <summary>
@@ -99,7 +105,8 @@ namespace Breeze.NetClient {
         if (EntityType != null && EntityType != entityType) {
           throw new Exception("Cannot coerce entityKey: " + this + " to : " + entityType);
         }
-        EntityType = entityType;
+        _entityType = entityType;
+        ClrType = _entityType.ClrType;
       }
     
       for (int i = 0; i < Values.Length; i++) {
@@ -195,6 +202,8 @@ namespace Breeze.NetClient {
     public override String ToString() {
       return ClrType.Name + ": " + Values.ToAggregateString(",");
     }
+
+    private EntityType _entityType;
 
     //// do not need to serialize this.
     //internal EntityKey BasemostEntityKey {

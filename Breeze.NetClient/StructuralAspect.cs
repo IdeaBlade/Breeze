@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Breeze.Core;
 using System.Collections;
 using System.Runtime.CompilerServices;
+using System.Collections.ObjectModel;
 
 namespace Breeze.NetClient {
   public interface IHasBackingStore {
@@ -127,8 +128,8 @@ namespace Breeze.NetClient {
     #region other misc
 
     protected void RejectChangesCore() {
-      if (this.OriginalValuesMap == null) return;
-      this.OriginalValuesMap.ForEach(kvp => {
+      if (_originalValuesMap == null) return;
+      _originalValuesMap.ForEach(kvp => {
         SetValue(kvp.Key, kvp.Value);
       });
       this.ProcessComplexProperties(co => co.ComplexAspect.RejectChangesCore());
@@ -174,7 +175,7 @@ namespace Breeze.NetClient {
         var co = (IComplexObject)GetValue(property, EntityVersion.Current);
         return co.ComplexAspect.GetOriginalVersion();
       } else {
-        if (OriginalValuesMap != null && OriginalValuesMap.TryGetValue(property.Name, out result)) {
+        if (_originalValuesMap != null && _originalValuesMap.TryGetValue(property.Name, out result)) {
           return result;
         } else {
           return GetValue(property);
@@ -184,7 +185,7 @@ namespace Breeze.NetClient {
 
     protected Object GetPreproposedValue(DataProperty property) {
       object result;
-      if (PreproposedValuesMap != null && PreproposedValuesMap.TryGetValue(property.Name, out result)) {
+      if (_preproposedValuesMap != null && _preproposedValuesMap.TryGetValue(property.Name, out result)) {
         return result;
       } else {
         return GetValue(property);
@@ -194,14 +195,14 @@ namespace Breeze.NetClient {
     protected internal virtual void ClearBackupVersion(EntityVersion version) {
 
       if (version == EntityVersion.Original) {
-        if (OriginalValuesMap != null) {
+        if (_originalValuesMap != null) {
           ClearComplexBackupVersions(version);
-          OriginalValuesMap = null;
+          _originalValuesMap = null;
         }
       } else if (version == EntityVersion.Proposed) {
-        if (PreproposedValuesMap != null) {
+        if (_preproposedValuesMap != null) {
           ClearComplexBackupVersions(version);
-          PreproposedValuesMap = null;
+          _preproposedValuesMap = null;
         }
       }
     }
@@ -215,14 +216,14 @@ namespace Breeze.NetClient {
 
     protected internal virtual void RestoreBackupVersion(EntityVersion version) {
       if (version == EntityVersion.Original) {
-        if (OriginalValuesMap != null) {
-          RestoreOriginalValues(OriginalValuesMap, version);
-          OriginalValuesMap = null;
+        if (_originalValuesMap != null) {
+          RestoreOriginalValues(_originalValuesMap, version);
+          _originalValuesMap = null;
         }
       } else if (version == EntityVersion.Proposed) {
-        if (PreproposedValuesMap != null) {
-          RestoreOriginalValues(PreproposedValuesMap, version);
-          PreproposedValuesMap = null;
+        if (_preproposedValuesMap != null) {
+          RestoreOriginalValues(_preproposedValuesMap, version);
+          _preproposedValuesMap = null;
         }
       }
     }
@@ -249,33 +250,50 @@ namespace Breeze.NetClient {
 
 
     private void BackupOriginalValueIfNeeded(DataProperty property, Object oldValue) {
-      if (OriginalValuesMap == null) {
-        OriginalValuesMap = new OriginalValuesMap();
+      if (_originalValuesMap == null) {
+        _originalValuesMap = new BackupValuesMap();
+      } else {
+        if (_originalValuesMap.ContainsKey(property.Name)) return;
       }
-
-      if (OriginalValuesMap.ContainsKey(property.Name)) return;
       // reference copy of complex object is deliberate - actual original values will be stored in the co itself.
-      OriginalValuesMap.Add(property.Name, oldValue);
+      _originalValuesMap.Add(property.Name, oldValue);
     }
 
     private void BackupProposedValueIfNeeded(DataProperty property, Object oldValue) {
-      if (PreproposedValuesMap == null) {
-        PreproposedValuesMap = new BackupValuesMap();
+      if (_preproposedValuesMap == null) {
+        _preproposedValuesMap = new BackupValuesMap();
+      } else {
+        if (_preproposedValuesMap.ContainsKey(property.Name)) return;
       }
-
-      if (PreproposedValuesMap.ContainsKey(property.Name)) return;
-      PreproposedValuesMap.Add(property.Name, oldValue);
+      _preproposedValuesMap.Add(property.Name, oldValue);
     }
 
-    protected internal OriginalValuesMap OriginalValuesMap {
-      get;
-      set;
+    private BackupValuesMap CreateIfNeeded(ref BackupValuesMap map) {
+      if (map == null) map = new BackupValuesMap();
+      return map;
     }
 
-    protected internal BackupValuesMap PreproposedValuesMap {
-      get;
-      set;
+    public ReadOnlyDictionary<String, Object> OriginalValuesMap {
+      get { return HandleNull(_originalValuesMap); }
     }
+
+    public ReadOnlyDictionary<String, Object> PreproposedValuesMap {
+      get { return HandleNull(_preproposedValuesMap); }
+    }
+
+    private ReadOnlyDictionary<String, Object> HandleNull(SafeDictionary<String, Object> map) {
+      if (map == null) {
+        return BackupValuesMap.Empty.ReadOnlyDictionary;
+      } else {
+        return map.ReadOnlyDictionary;
+      }
+    }
+
+    
+
+    
+    internal BackupValuesMap _originalValuesMap;
+    internal BackupValuesMap _preproposedValuesMap;
 
 
     #endregion

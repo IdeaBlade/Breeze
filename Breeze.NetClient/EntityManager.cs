@@ -174,7 +174,6 @@ namespace Breeze.NetClient {
 
     #endregion
 
-
     #region Export/Import entities
 
     public String ExportEntities(IEnumerable<IEntity> entities = null, bool includeMetadata = true) {
@@ -188,17 +187,17 @@ namespace Breeze.NetClient {
       return textWriter;
     }
 
-    public void ImportEntities(String exportedString, ImportOptions importOptions = null) {
+    public ImportResult ImportEntities(String exportedString, ImportOptions importOptions = null) {
       var jn = JNode.DeserializeFrom(exportedString);
-      ImportEntities(jn, importOptions);
+      return ImportEntities(jn, importOptions);
     }
 
-    public void ImportEntities(TextReader textReader, ImportOptions importOptions = null) {
+    public ImportResult ImportEntities(TextReader textReader, ImportOptions importOptions = null) {
       var jn = JNode.DeserializeFrom(textReader);
-      ImportEntities(jn, importOptions);
+      return ImportEntities(jn, importOptions);
     }
 
-    private void ImportEntities(JNode jn, ImportOptions importOptions) {
+    private ImportResult ImportEntities(JNode jn, ImportOptions importOptions) {
       importOptions = importOptions ?? ImportOptions.Default;
       var msNode = jn.GetJNode("metadataStore");
       if (msNode != null) {
@@ -210,35 +209,86 @@ namespace Breeze.NetClient {
         }
       }
       var entityGroupNodesMap = jn.GetJNodeArrayMap("entityGroupMap");
+      // tempKeyMap will have a new values where collisions will occur
+      var tempKeyMap = jn.GetJNodeArray("tempKeys").Select(jnEk => new EntityKey(jnEk)).ToDictionary(
+        ek => ek, 
+        ek => this.FindEntityByKey(ek) == null ? ek : new EntityKey(ek.EntityType, KeyGenerator.GetNextTempId(ek.EntityType.KeyProperties.First())) 
+      );
+      
       var mergeStrategy = (importOptions.MergeStrategy ?? this.DefaultQueryOptions.MergeStrategy ?? QueryOptions.Default.MergeStrategy).Value;
+      var importedEntities = new List<IEntity>();
       entityGroupNodesMap.ForEach(kvp => {
         var entityTypeName = kvp.Key;
         var entityNodes = kvp.Value;
         var entityType = MetadataStore.GetEntityType(entityTypeName);
-        MergeEntity(entityNodes, entityType, mergeStrategy);
+        var entities = MergeEntities(entityNodes, entityType, tempKeyMap, mergeStrategy);
+        importedEntities.AddRange(entities);
       });
+
+      return new ImportResult(importedEntities, tempKeyMap);
     }
 
-    private void MergeEntity(IEnumerable<JNode> entityNodes, EntityType entityType, MergeStrategy mergeStrategy) {
+    private List<IEntity> MergeEntities(IEnumerable<JNode> entityNodes, EntityType entityType, Dictionary<EntityKey, EntityKey> tempKeyMap, MergeStrategy mergeStrategy) {
+      var importedEntities = new List<IEntity>();
       foreach (var entityNode in entityNodes) {
         var ek = ExtractEntityKey(entityType, entityNode);
         var entityAspectNode = entityNode.GetJNode("entityAspect");
-        var entityState = (EntityState)Enum.Parse(typeof(EntityState), entityAspectNode.Get<String>("entityState"));
-        var targetEntity = FindEntityByKey(ek);
+        // var entityState = (EntityState)Enum.Parse(typeof(EntityState), entityAspectNode.Get<String>("entityState"));
+        var entityState = entityAspectNode.GetEnum<EntityState>("entityState");
+        IEntity targetEntity = null;
+        bool hasCollision = false;
+        // allow merge of added records with non temp keys
+        if (entityState.IsAdded() && tempKeyMap.ContainsKey(ek)) {
+          hasCollision = tempKeyMap[ek] != ek;
+        } else {
+          targetEntity = FindEntityByKey(ek);
+        }
         if (targetEntity != null) {
           var targetAspect = targetEntity.EntityAspect;
           if (mergeStrategy == MergeStrategy.Disallowed) continue;
           if (mergeStrategy == MergeStrategy.PreserveChanges && targetAspect.EntityState != EntityState.Unchanged) continue;
           PopulateEntity(targetEntity, entityNode);
+          UpdateTempFks(targetEntity, entityNode, tempKeyMap);
           if (targetAspect.EntityState != entityState) {
             targetAspect.EntityState = entityState;
           }
+          
         } else {
           targetEntity = (IEntity)Activator.CreateInstance(entityType.ClrType);
           PopulateEntity(targetEntity, entityNode);
+          if (hasCollision) {
+            var origEk = targetEntity.EntityAspect.EntityKey;
+            var newEk = tempKeyMap[origEk];
+            targetEntity.EntityAspect.SetDpValue(entityType.KeyProperties[0], newEk.Values[0]);
+          }
+          UpdateTempFks(targetEntity, entityNode, tempKeyMap);
           AttachEntity(targetEntity, entityState);
-        }
+        }       
+
+        importedEntities.Add(targetEntity);
       };
+      return importedEntities;
+    }
+
+    private void UpdateTempFks(IEntity targetEntity, JNode entityNode, Dictionary<EntityKey, EntityKey> tempKeyMap) {
+
+      var tempNavPropNames = entityNode.GetPrimitiveArray<String>("tempNavPropNames");
+      if (!tempNavPropNames.Any()) return;
+      var targetAspect = targetEntity.EntityAspect;
+      var entityType = targetAspect.EntityType;
+
+      tempNavPropNames.ForEach(npName => {
+        var np = entityType.GetNavigationProperty(npName);
+        var fkProp = np.RelatedDataProperties[0].Name;
+        var oldFkValue = targetAspect.GetValue(fkProp);
+        var oldFk = new EntityKey(entityType, oldFkValue);
+        var newFk = tempKeyMap[oldFk];
+        if (newFk == null) {
+
+        }
+        targetAspect.SetValue(fkProp, newFk.Values[0]);
+
+      });
     }
 
     public EntityKey ExtractEntityKey(EntityType entityType, JNode jn) {
@@ -270,15 +320,20 @@ namespace Breeze.NetClient {
           backingStore[propName] = val;
         }
       });
-    }
 
-   
+      var entityAspectNode = jn.GetJNode("entityAspect");
+      var originalValuesMap = entityAspectNode.GetPrimitiveMap("originalValuesMap", pn => entityType.GetDataProperty(pn).ClrType);
+      if (originalValuesMap != null) {
+        targetAspect._originalValuesMap = new BackupValuesMap(originalValuesMap);
+      }
+    }
+  
 
     private JNode ExportToJNode(IEnumerable<IEntity> entities, bool includeMetadata) {
       var jn = ExportEntityGroupsAndTempKeys(entities);
 
       if (includeMetadata) {
-        jn.AddObject("dataService", this.DefaultDataService);
+        jn.AddJNode("dataService", this.DefaultDataService);
         // jo.AddObject("queryOptions", this.QueryOptions;
         // jo.AddObject("saveOptions", this.SaveOptions);
         // jo.AddObject("validationOptions", this.ValidationOptions);
@@ -286,8 +341,6 @@ namespace Breeze.NetClient {
       }
       return jn;
     }
-
-
 
     private JNode ExportEntityGroupsAndTempKeys(IEnumerable<IEntity> entities) {
       Dictionary<String, IEnumerable<JNode>> map;
@@ -318,7 +371,7 @@ namespace Breeze.NetClient {
 
     private JNode ExportAspect(StructuralAspect aspect, IEnumerable<DataProperty> dps) {
       var jn = new JNode();
-      dps.ForEach(dp => {
+      dps.ForEach( (dp) => {
         var propName = dp.Name;
         var value = aspect.GetRawValue(propName);
         var co = value as IComplexObject;
@@ -344,17 +397,17 @@ namespace Breeze.NetClient {
     private JNode ExportEntityAspectInfo(EntityAspect entityAspect) {
       var jn = new JNode();
       var es = entityAspect.EntityState;
-      jn.AddPrimitive("entityState", es.ToString());
+      jn.AddEnum("entityState", entityAspect.EntityState);
       jn.AddArray("tempNavPropNames", GetTempNavPropNames(entityAspect));
       if (es.IsModified() || es.IsDeleted()) {
-        jn.AddMap("originalValuesMap", entityAspect.OriginalValuesMap);
+        jn.AddMap("originalValuesMap", entityAspect._originalValuesMap);
       }
       return jn;
     }
 
     private JNode ExportComplexAspectInfo(ComplexAspect complexAspect) {
       var jn = new JNode();
-      jn.AddMap("originalValuesMap", complexAspect.OriginalValuesMap);
+      jn.AddMap("originalValuesMap", complexAspect._originalValuesMap);
       return jn;
     }
 
@@ -657,7 +710,6 @@ namespace Breeze.NetClient {
     /// <exception cref="ArgumentException">Incorrect entity type/property</exception>
     /// <exception cref="IdeaBladeException">IdGenerator not found</exception>
     public UniqueId GenerateId(IEntity entity, DataProperty entityProperty) {
-      var x = new NavigationSet<IEntity>();
 
       var aspect = entity.EntityAspect;
       var entityType = entity.GetType();
