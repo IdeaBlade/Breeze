@@ -202,11 +202,10 @@ namespace Breeze.NetClient {
       var msNode = jn.GetJNode("metadataStore");
       if (msNode != null) {
         MetadataStore.ImportMetadata(msNode);
-        // TODO: do we want to do this.
-        if (DefaultDataService == null) {
-          var dsJn = jn.GetJNode("dataService");
-          if (dsJn != null) DefaultDataService = new DataService(dsJn);
-        }
+        var dsJn = jn.GetJNode("dataService");
+        if (dsJn != null) DefaultDataService = new DataService(dsJn);
+        var qoJn = jn.GetJNode("queryOptions");
+        if (qoJn != null) DefaultQueryOptions = new QueryOptions(qoJn);
       }
       var entityGroupNodesMap = jn.GetJNodeArrayMap("entityGroupMap");
       // tempKeyMap will have a new values where collisions will occur
@@ -334,7 +333,7 @@ namespace Breeze.NetClient {
 
       if (includeMetadata) {
         jn.AddJNode("dataService", this.DefaultDataService);
-        // jo.AddObject("queryOptions", this.QueryOptions;
+        jn.AddJNode("queryOptions", this.DefaultQueryOptions);
         // jo.AddObject("saveOptions", this.SaveOptions);
         // jo.AddObject("validationOptions", this.ValidationOptions);
         jn.AddJNode("metadataStore", ((IJsonSerializable)this.MetadataStore).ToJNode(null));

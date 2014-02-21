@@ -268,10 +268,10 @@ namespace Breeze.NetClient {
       _preproposedValuesMap.Add(property.Name, oldValue);
     }
 
-    private BackupValuesMap CreateIfNeeded(ref BackupValuesMap map) {
-      if (map == null) map = new BackupValuesMap();
-      return map;
-    }
+    //private BackupValuesMap CreateIfNeeded(ref BackupValuesMap map) {
+    //  if (map == null) map = new BackupValuesMap();
+    //  return map;
+    //}
 
     public ReadOnlyDictionary<String, Object> OriginalValuesMap {
       get { return HandleNull(_originalValuesMap); }
@@ -281,16 +281,9 @@ namespace Breeze.NetClient {
       get { return HandleNull(_preproposedValuesMap); }
     }
 
-    private ReadOnlyDictionary<String, Object> HandleNull(SafeDictionary<String, Object> map) {
-      if (map == null) {
-        return BackupValuesMap.Empty.ReadOnlyDictionary;
-      } else {
-        return map.ReadOnlyDictionary;
-      }
+    private ReadOnlyDictionary<String, Object> HandleNull(BackupValuesMap map) {
+      return (map ?? BackupValuesMap.Empty).ReadOnlyDictionary;
     }
-
-    
-
     
     internal BackupValuesMap _originalValuesMap;
     internal BackupValuesMap _preproposedValuesMap;

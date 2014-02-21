@@ -68,7 +68,7 @@
     <Compile Include="JsonEntityConverter.cs" />
     <Compile Include="FetchStrategy.cs" />
     <Compile Include="MergeStrategy.cs" />
-    <Compile Include="OriginalValuesMap.cs" />
+    <Compile Include="BackupValuesMap.cs" />
     <Compile Include="StructuralAspect.cs" />
     <Compile Include="StructuralType.cs" />
     <Compile Include="CsdlMetadataProcessor.cs" />
