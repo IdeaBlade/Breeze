@@ -1140,6 +1140,7 @@ namespace Breeze.NetClient {
       if (EntityVersion != EntityVersion.Proposed) return;
       RestoreBackupVersion(EntityVersion.Proposed);
       EntityVersion = EntityVersion.Current;
+      if (_altEntityState == EntityState.Detached) return; // no need to do the rest
       var wasUnchanged = this.EntityState.IsUnchanged();
       this.SetEntityStateCore(_altEntityState);
       EntityManager.CheckStateChange(this, wasUnchanged, _altEntityState.IsUnchanged());
