@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
     <metadata>
         <id>Breeze.Angular</id>
-        <version>0.8.1-pre</version>
+        <version>0.8.1</version>
         <title>Breeze Labs Breeze Angular Service</title>
         <authors>Ward Bell</authors>
         <owners>Ward Bell</owners>
