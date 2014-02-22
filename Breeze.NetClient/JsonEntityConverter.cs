@@ -55,30 +55,20 @@ namespace Breeze.NetClient {
 
       var objectType = jsonContext.ObjectType;
       var entityType =  _metadataStore.GetEntityType(objectType);
-      
-      if (entityType != null) {
-        // an entity type
-        jsonContext.StructuralType = entityType;
-        var keyValues = entityType.KeyProperties
-          .Select(p => jObject[p.Name].ToObject(p.ClrType))
-          .ToArray();
-        var entityKey = new EntityKey(entityType, keyValues);
-        var entity = _entityManager.FindEntityByKey(entityKey);
-        if (entity == null) {
-          entity = (IEntity) Activator.CreateInstance(objectType);
-        }
-        // must be called before populate
-        UpdateRefMap(jObject, entity);
-        return PopulateEntity(jsonContext, entity );
-      } else {
-        // anonymous type
-        var target =  Activator.CreateInstance(objectType);
-        // must be called before populate
-        UpdateRefMap(jObject, target);
-        // Populate the object properties directly
-        jsonContext.Serializer.Populate(jObject.CreateReader(), target);
-        return target;
+
+      // an entity type
+      jsonContext.StructuralType = entityType;
+      var keyValues = entityType.KeyProperties
+        .Select(p => jObject[p.Name].ToObject(p.ClrType))
+        .ToArray();
+      var entityKey = new EntityKey(entityType, keyValues);
+      var entity = _entityManager.FindEntityByKey(entityKey);
+      if (entity == null) {
+        entity = (IEntity)Activator.CreateInstance(objectType);
       }
+      // must be called before populate
+      UpdateRefMap(jObject, entity);
+      return PopulateEntity(jsonContext, entity);
 
     }
 
