@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs 2013 abstract REST DataServiceAdapter
  *
- *  v.0.2.0-pre
+ *  v.0.2.1-pre
  *
  * Extends Breeze with a REST DataService Adapter abstract type
  * 
@@ -62,8 +62,6 @@
 
         // Configuration API
         checkForRecomposition: checkForRecomposition,
-        // Todo: use promise adapter after Breeze makes it available
-        Q: window.Q, // assume Q.js in global namespace; you better set it (e.g., to $q) if it's not there, 
         saveOnlyOne: false, // true if may only save one entity at a time.
 
         // "protected" members available to derived concrete dataservice adapter types
@@ -96,6 +94,10 @@
         if (!ajax) {
             throw new Error("Breeze was unable to find an 'ajax' adapter for " + adapter.name);
         }
+
+        // Todo: hacking for Q right now; use promise adapter after Breeze makes it available
+        // if no breeze.Q, assume Q is in global window namespace (e.g., Q.js)
+        adapter.Q = breeze.Q ? breeze.Q : window.Q;
 
         if (!adapter.jsonResultsAdapter) {
             adapter.jsonResultsAdapter = adapter._createJsonResultsAdapter();

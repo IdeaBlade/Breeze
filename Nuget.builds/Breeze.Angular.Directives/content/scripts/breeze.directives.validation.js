@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze directives for validation
  *
- *  v.1.3.3
+ *  v.1.3.4
  *
  *  Usage:
  *     Make this module a dependency of your app module:

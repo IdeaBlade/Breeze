@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+    <metadata>
+        <id>Breeze.Angular</id>
+        <version>0.8.1</version>
+        <title>Breeze Labs Breeze Angular Service</title>
+        <authors>Ward Bell</authors>
+        <owners>Ward Bell</owners>
+        <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
+        <projectUrl>http://www.breezejs.com/breeze-labs/breezeangularservice</projectUrl>
+        <iconUrl>http://www.breezejs.com/sites/all/images/breezeb.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>A Breeze service for Angular apps. This version configures breeze to use the angular model library, to use the app's $q for promises, and the app's $http for ajax calls.</description>
+        <summary>A Breeze service for Angular apps</summary>
+        <copyright>Copyright © 2014 IdeaBlade</copyright>
+        <language>en-US</language>
+        <tags>breeze angular</tags>
+        <dependencies>
+            <dependency id="Breeze.Client" version="[1.4.8, ]" />
+            <dependency id="Breeze.Angular.Directives" version="[1.3.2, ]" />
+        </dependencies>
+    </metadata>
+</package>
