@@ -55,9 +55,17 @@ namespace Breeze.NetClient {
       return q;
     }
 
-    public EntityQuery<T> AddQueryOption(string name, Object value) {
+    public EntityQuery<T> WithParameter(string name, Object value) {
       var q = new EntityQuery<T>(this);
       q.DataServiceQuery = this.DataServiceQuery.AddQueryOption(name, value);
+      return q;
+    }
+
+    public EntityQuery<T> WithParameters(IDictionary<String, Object> dictionary) {
+      var q = new EntityQuery<T>(this);
+      var dsq = this.DataServiceQuery;
+      dictionary.ForEach(kvp => dsq = dsq.AddQueryOption(kvp.Key, kvp.Value));
+      q.DataServiceQuery = dsq;
       return q;
     }
     

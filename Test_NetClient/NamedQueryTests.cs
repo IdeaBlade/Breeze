@@ -14,6 +14,7 @@ using System.IO;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
 using System.Dynamic;
+using System.Net.Http;
 
 namespace Test_NetClient {
 
@@ -53,7 +54,7 @@ namespace Test_NetClient {
     public async Task CustomersStartingWith() {
       await _emTask;
 
-      var q = new EntityQuery<Customer>("CustomersStartingWith").AddQueryOption("companyName", "A");
+      var q = new EntityQuery<Customer>("CustomersStartingWith").WithParameter("companyName", "A");
       var rp = q.GetResourcePath();
       var customers = await q.Execute(_em1);
       Assert.IsTrue(customers.Count() > 0, "should be some results");
@@ -89,6 +90,19 @@ namespace Test_NetClient {
       var item = companyNamesAndIdObjects.First();
       var companyName = item["CompanyName"].ToObject<String>();
       var id = item["CustomerID"].ToObject<Guid>();
+    }
+
+    [TestMethod]
+    public async Task CompanyNamesAndIds2() {
+      await _emTask;
+      var q = EntityQuery.From("CompanyNamesAndIds", new { CompanyName = "", CustomerID = new Guid() });
+      var rp = q.GetResourcePath();
+      var companyNamesAndIds = await q.Execute(_em1);
+      Assert.IsTrue(companyNamesAndIds.Count() > 0, "should be some results");
+      Assert.IsTrue(companyNamesAndIds.All(x => {
+        return x.CompanyName.Length > 0 && x.CustomerID != null;
+      }));
+      
     }
 
     [TestMethod]
@@ -128,5 +142,80 @@ namespace Test_NetClient {
       public Customer Customer { get; set; }
       public IEnumerable<Order> BigOrders { get; set; }
     }
+
+    [TestMethod]
+    public async Task CustomersAndOrders() {
+      await _emTask;
+
+      var q = new EntityQuery<Customer>("CustomersAndOrders").Where(c => c.CompanyName.StartsWith("A"));
+      var rp = q.GetResourcePath();
+      var results = await q.Execute(_em1);
+      Assert.IsTrue(results.Count() > 0, "should be some results");
+
+      Assert.IsTrue(_em1.GetEntities<Customer>().Count() > 0, "should have some customers");
+      Assert.IsTrue(_em1.GetEntities<Order>().Count() > 0, "should have some orders");
+      Assert.IsTrue(results.All(c => c.CompanyName.StartsWith("A")));
+
+    }
+
+    [TestMethod]
+    public async Task SearchCustomers() {
+      await _emTask;
+
+      //var query = EntityQuery.from("SearchCustomers")
+      //      .withParameters( { CompanyName: "A", ContactNames: ["B", "C"] , City: "Los Angeles"  } );
+      var q = new EntityQuery<Customer>("SearchCustomers")
+        .WithParameter("CompanyName", "A")
+        .WithParameter("ContactNames", new String[] { "B", "C" })
+        .WithParameter("City", "LosAngeles");
+      var rp = q.GetResourcePath();
+      var results = await q.Execute(_em1);
+      Assert.IsTrue(results.Count() == 3, "should be 3 results");
+
+      Assert.IsTrue(_em1.GetEntities<Customer>().Count() > 0, "should have some customers");
+      
+      
+
+    }
+
+    [TestMethod]
+    public async Task SearchCustomersWithParameters() {
+      await _emTask;
+
+      //var query = EntityQuery.from("SearchCustomers")
+      //      .withParameters( { CompanyName: "A", ContactNames: ["B", "C"] , City: "Los Angeles"  } );
+      var q = new EntityQuery<Customer>("SearchCustomers")
+        .WithParameters(new Dictionary<String, Object> {
+          { "CompanyName", "A" }, 
+          { "ContactNames", new String[] { "B", "C" }},
+          { "City", "LosAngeles" }
+      });
+      var rp = q.GetResourcePath();
+      var results = await q.Execute(_em1);
+      Assert.IsTrue(results.Count() == 3, "should be 3 results");
+
+      Assert.IsTrue(_em1.GetEntities<Customer>().Count() > 0, "should have some customers");
+
+    }
+
+    [TestMethod]
+    public async Task CustomersWithHttpError() {
+      await _emTask;
+
+      var q = new EntityQuery<Customer>("CustomersWithHttpError");
+        
+      var rp = q.GetResourcePath();
+      try {
+        var results = await q.Execute(_em1);
+        Assert.Fail("shouldn't get here");
+      } catch (HttpRequestException e) {
+        Assert.IsTrue(e.Message.Contains("Custom Reason"));
+        Assert.IsTrue(e.Message.Contains("404"));
+
+      }
+      
+    }
+    
+    
   }
 }
