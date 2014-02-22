@@ -41,6 +41,7 @@ namespace Breeze.NetClient {
 
     public override bool CanConvert(Type objectType) {
       return MetadataStore.IsStructuralType(objectType);
+      // return MetadataStore.IsStructuralType(objectType) || objectType == typeof(Object);
     }
 
 

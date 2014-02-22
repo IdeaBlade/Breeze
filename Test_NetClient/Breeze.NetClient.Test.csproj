@@ -56,6 +56,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="NamedQueryTests.cs" />
     <Compile Include="IEditableObjectTests.cs" />
     <Compile Include="AttachTests.cs" />
     <Compile Include="ExportImportTests.cs" />

@@ -22,6 +22,8 @@ namespace Breeze.NetClient {
       if (resourceName != null) ResourceName = resourceName;
     }
 
+
+
     public EntityQuery(EntityQuery<T> query) : base(query) {
       DataServiceQuery = query.DataServiceQuery;
     }
@@ -192,6 +194,10 @@ namespace Breeze.NetClient {
 
     public static EntityQuery<T> From<T>(string resourceName) {
       return new EntityQuery<T>(resourceName); 
+    }
+
+    public static EntityQuery<T> From<T>(string resourceName, T dummy) {
+      return new EntityQuery<T>(resourceName);
     }
 
     public EntityQuery(EntityQuery query) {
