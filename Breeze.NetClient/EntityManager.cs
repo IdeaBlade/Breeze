@@ -45,16 +45,20 @@ namespace Breeze.NetClient {
 
     #region Public props
 
-    public DataService DefaultDataService { get; private set; }
-
     public MetadataStore MetadataStore {
       get;
       private set;
     }
 
-    public QueryOptions DefaultQueryOptions { get; private set; }
+    public DataService DefaultDataService { get; set; }
+
+    public QueryOptions DefaultQueryOptions { get; set; }
+
+    public SaveOptions DefaultSaveOptions { get; set; }
 
     public IKeyGenerator KeyGenerator { get; set; }
+
+    public IDataServiceAdapter DataServiceAdapter { get; set; }
 
     #endregion
 
@@ -93,6 +97,20 @@ namespace Breeze.NetClient {
       using (NewIsLoadingBlock()) {
         return (IEnumerable)JsonConvert.DeserializeObject(result, rType, jsonConverter);
       }
+    }
+
+    public async Task<SaveResult> SaveChanges(IEnumerable<IEntity> entities = null, SaveOptions saveOptions = null) {
+      IEnumerable<IEntity> entitiesToSave;
+      if (entities == null) {
+        entitiesToSave = this.GetChanges();
+      } else {
+        entitiesToSave = entities.Where(e => !e.EntityAspect.IsDetached && e.EntityAspect.EntityManager == this);
+      }
+      saveOptions = new SaveOptions(saveOptions ?? this.DefaultSaveOptions ?? SaveOptions.Default);
+      if (saveOptions.ResourceName == null) saveOptions.ResourceName = "SaveChanges";
+      if (saveOptions.DataService == null) saveOptions.DataService = this.DefaultDataService;
+      var saveResult = await DataServiceAdapter.SaveChanges(this, entitiesToSave, saveOptions);
+      return saveResult;
     }
 
     #endregion
@@ -483,6 +501,20 @@ namespace Breeze.NetClient {
           .Where(ea => ((ea.EntityState & entityState) > 0))
           .Select(ea => ea.Entity);
       }
+    }
+
+    public IEnumerable<IEntity> GetChanges(params Type[] entityTypes) {
+      return GetChanges((IEnumerable<Type>) entityTypes);
+    }
+
+    public IEnumerable<IEntity> GetChanges(IEnumerable<Type> entityTypes = null) {
+      if (entityTypes == null) {
+        return GetEntities(EntityState.AnyAddedModifiedOrDeleted);
+      }
+      var groups = entityTypes.SelectMany(et => this.EntityGroups.Where(eg => et.IsAssignableFrom(eg.ClrType)));
+      return groups.SelectMany(f => f.LocalEntityAspects)
+        .Where(ea => ((ea.EntityState & EntityState.AnyAddedModifiedOrDeleted) > 0))
+        .Select(ea => ea.Entity);
     }
 
     public IEntity FindEntityByKey(EntityKey entityKey) {

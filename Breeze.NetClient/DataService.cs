@@ -38,7 +38,7 @@ namespace Breeze.NetClient {
 
     public bool HasServerMetadata { get; set; }
 
-    public DataServiceAdapter Adapter { get; set; }
+    public IDataServiceAdapter Adapter { get; set; }
 
     public JsonResultsAdapter JsonResultsAdapter { get; set; }
 

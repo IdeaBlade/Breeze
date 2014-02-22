@@ -38,7 +38,10 @@
     <Compile Include="BaseComplexObject.cs" />
     <Compile Include="Core\NotifiableSet.cs" />
     <Compile Include="Core\SafeDictionary.cs" />
-    <Compile Include="DataServiceAdapter.cs" />
+    <Compile Include="DataServiceAdapter.WebApi.cs" />
+    <Compile Include="IDataServiceAdapter.cs" />
+    <Compile Include="SaveOptions.cs" />
+    <Compile Include="SaveResult.cs" />
     <Compile Include="JNode.cs" />
     <Compile Include="JsonResultsAdapter.cs" />
     <Compile Include="ImportResult.cs" />
