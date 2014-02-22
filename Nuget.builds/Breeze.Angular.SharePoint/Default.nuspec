@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+    <metadata>
+        <id>Breeze.Angular.SharePoint</id>
+        <version>0.8.1-preC</version>
+        <title>Breeze Labs: Breeze + Angular for SharePoint 2013</title>
+        <authors>Ward Bell</authors>
+        <owners>Ward Bell</owners>
+        <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
+        <projectUrl>http://www.breezejs.com/breeze-labs/breezeangularsharepoint</projectUrl>
+        <iconUrl>http://www.breezejs.com/sites/all/images/breezeb.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Configure your SharePoint 2013 app for Breeze and Angular with this convenience package that combines the other Breeze packages you'll need.</description>
+        <summary>The breeze you need for SharePoint 2013 Angular apps</summary>
+        <copyright>Copyright © 2014 IdeaBlade</copyright>
+        <language>en-US</language>
+        <tags>breeze angular sharepoint</tags>
+        <dependencies>
+            <dependency id="Breeze.Client" version="[1.4.8, ]" />
+            <dependency id="Breeze.Angular" version="[0.8.1-pre, ]" />
+            <dependency id="Breeze.DataService.SharePoint" version="[0.2.2, ]" />
+            <dependency id="Breeze.Metadata.Helper" version="[1.0.4, ]" />
+        </dependencies>
+    </metadata>
+</package>
