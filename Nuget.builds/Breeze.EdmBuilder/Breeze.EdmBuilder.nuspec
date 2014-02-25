@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>Breeze.EdmBuilder</id>
+        <version>1.0.0</version>
+        <title>Breeze Labs: EdmBuilder</title>
+        <authors>Ward Bell</authors>
+        <owners>Ward Bell</owners>
+        <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
+        <projectUrl>http://www.breezejs.com/breeze-labs/breezeedmbuilder</projectUrl>
+        <iconUrl>http://www.breezejs.com/sites/all/images/breezeb.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Generates an "Entity Data Model" (EDM) from an Entity Framework DbContext. This EDM can produce the metadata Breeze needs to manage a corresponding JavaScript entity model on the client including the foreign key properties necessary to maintaining associations. This builder replaces the ODataConventionModelBuilder in a Web API OData application. See the comments in the code for an explanation and usage. See it in action in
+		the "Breeze Web API OData Sample".</description>
+        <summary>Generates an "Entity Data Model" (EDM) from an Entity Framework DbContext.</summary>
+        <copyright>Copyright © 2014 IdeaBlade</copyright>
+        <language>en-US</language>
+        <tags>breeze webapi odata</tags>
+    </metadata>
+</package>
