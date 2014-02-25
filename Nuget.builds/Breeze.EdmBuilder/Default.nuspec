@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.EdmBuilder</id>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
         <title>Breeze Labs: EdmBuilder</title>
         <authors>Ward Bell</authors>
         <owners>Ward Bell</owners>
@@ -18,6 +18,6 @@
         <tags>breeze webapi odata</tags>
     </metadata>
     <files>
-        <file src="content\App_Data\EdmBuilder.cs" target="content\App_Data\EdmBuilder.cs" />
+        <file src="content\App_Data\EdmBuilder.cs" target="content\App_Start\EdmBuilder.cs" />
     </files>
 </package>
