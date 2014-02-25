@@ -1,3 +1,11 @@
+/*****************************************************
+ * Breeze Labs: EdmBuilder
+ *
+ * v.1.0.1
+ * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.  
+ * Licensed under the MIT License
+ * http://opensource.org/licenses/mit-license.php
+ *****************************************************/
 using System.Data.Entity;
 using System.IO;
 using System.Xml;
