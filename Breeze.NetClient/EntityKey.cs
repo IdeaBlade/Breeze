@@ -28,7 +28,7 @@ namespace Breeze.NetClient {
       _entityType = MetadataStore.Instance.GetEntityType(etName);
       ClrType = _entityType.ClrType;
       // coerce the incoming data
-      Values = jn.GetPrimitiveArray("values", EntityType.KeyProperties.Select(kp => kp.ClrType)).ToArray();
+      Values = jn.GetArray("values", EntityType.KeyProperties.Select(kp => kp.ClrType)).ToArray();
     }
 
      JNode IJsonSerializable.ToJNode(object config) {

@@ -2,9 +2,9 @@
 using System;
 
 namespace Breeze.NetClient {
-  public class SaveOptions : IJsonSerializable {
+  public class SaveContext {
 
-    public SaveOptions(string resourceName, DataService dataService, bool allowConcurrentSaves, String tag) {
+    public SaveContext(string resourceName, DataService dataService, bool allowConcurrentSaves, String tag) {
       ResourceName = resourceName;
       DataService = dataService;
       AllowConcurrentSaves = allowConcurrentSaves;
@@ -25,8 +25,7 @@ namespace Breeze.NetClient {
 
     JNode IJsonSerializable.ToJNode(object config) {
       var jn = new JNode();
-      jn.AddPrimitive("allowConcurrentSaves", AllowConcurrentSaves);
-      jn.AddPrimitive("tag", Tag);
+      
       return jn;
     }
 

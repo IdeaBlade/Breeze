@@ -14,16 +14,27 @@ namespace Breeze.NetClient {
 
   public class JsonEntityConverter : JsonConverter {
   
-    public JsonEntityConverter(EntityManager entityManager, MergeStrategy mergeStrategy) {
+    public JsonEntityConverter(EntityManager entityManager, MergeStrategy mergeStrategy, Func<String, String> normalizeTypeNameFn = null) {
       _entityManager = entityManager;
       _metadataStore = entityManager.MetadataStore;
       _mergeStrategy = mergeStrategy;
+      _normalizeTypeNameFn = normalizeTypeNameFn;
     }
 
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
       if (reader.TokenType != JsonToken.Null) {
         // Load JObject from stream
         var jObject = JObject.Load(reader);
+
+       
+
+        if (objectType == typeof(IEntity)) {
+          JToken typeNameToken;
+          if (jObject.TryGetValue("$type", out typeNameToken)) {
+            var entityTypeName = _normalizeTypeNameFn(typeNameToken.Value<String>());
+            objectType = MetadataStore.Instance.GetEntityType(entityTypeName).ClrType;
+          }
+        }
 
         var jsonContext = new JsonContext { JObject = jObject, ObjectType = objectType, Serializer = serializer };
         // Create target object based on JObject
@@ -38,10 +49,8 @@ namespace Breeze.NetClient {
       throw new NotImplementedException();
     }
 
-
     public override bool CanConvert(Type objectType) {
       return MetadataStore.IsStructuralType(objectType);
-      // return MetadataStore.IsStructuralType(objectType) || objectType == typeof(Object);
     }
 
 
@@ -177,7 +186,17 @@ namespace Breeze.NetClient {
     private EntityManager _entityManager;
     private MetadataStore _metadataStore;
     private MergeStrategy _mergeStrategy;
+    private Func<String, String> _normalizeTypeNameFn;
     private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
+  }
+
+  
+  internal class SaveResult2 {
+
+    public IEnumerable<IEntity> Entities { get; set; }
+    public IEnumerable<KeyMapping> KeyMappings { get; set; }  
+    public IEnumerable<EntityError> EntityErrors { get; set; }
+    
   }
 
   //public static class JsonFns {

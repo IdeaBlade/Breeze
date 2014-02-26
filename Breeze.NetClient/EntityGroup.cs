@@ -224,6 +224,9 @@ namespace Breeze.NetClient {
 
     #region Internal props/methods 
 
+    internal void PerformKeyMapping(KeyMapping keyMapping) {
+
+    }
 
 
     internal EntityAspect FindEntityAspect(EntityKey entityKey, bool includeDeleted) {
@@ -258,7 +261,6 @@ namespace Breeze.NetClient {
     }
 
     internal void ReplaceKey(EntityAspect entityAspect, EntityKey oldKey, EntityKey newKey) {
-      // if (IsNullGroup) return;
       _entityKeyMap.Remove(oldKey);  // it may not exist if this object was just Imported or Queried.
       _entityKeyMap.Add(newKey, entityAspect);
     }

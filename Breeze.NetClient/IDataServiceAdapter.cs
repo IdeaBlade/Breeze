@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace Breeze.NetClient {
   public interface IDataServiceAdapter {
     String Name { get; }
-    Task<SaveResult> SaveChanges(EntityManager em, IEnumerable<IEntity> entitiesToSave, SaveOptions saveOptions);
+    Task<SaveResult> SaveChanges(IEnumerable<IEntity> entitiesToSave, SaveOptions saveOptions);
   }
 }

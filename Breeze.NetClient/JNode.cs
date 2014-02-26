@@ -79,22 +79,12 @@ namespace Breeze.NetClient {
       if (map == null) return;
       if (!map.Values.Any()) return;
 
-      var jn = new JNode();
-      map.ForEach(kvp => {
-        var val = CvtValue(kvp.Value);
-        if (val != null) {
-          if (val is JToken) {
-            jn.AddRaw(kvp.Key, (JToken)val);
-          } else {
-            jn.AddRaw(kvp.Key, new JValue(val));
-          }
-        } else {
-          jn.AddRaw(kvp.Key, null);
-        }
-      });
+      var jn = BuildMapNode<T>(map);
       
       AddRaw(propName, jn._jo);
     }
+
+
 
     public void AddJNode(String propName, JNode jn) {
       if (jn == null) return;
@@ -109,6 +99,7 @@ namespace Breeze.NetClient {
     #endregion
 
     #region Get methods 
+
 
     public Object Get(String propName, Type objectType) {
       var prop = _jo.Property(propName);
@@ -130,7 +121,7 @@ namespace Breeze.NetClient {
       return val;
     }
 
-    private T GetToken<T>(String propName ) where T: JToken {
+    public T GetToken<T>(String propName ) where T: JToken {
       var prop = _jo.Property(propName);
       if (prop == null) return null;
       return (T)prop.Value;
@@ -156,7 +147,7 @@ namespace Breeze.NetClient {
     }
 
     // for non newable types like String, Int etc..
-    public IEnumerable<T> GetPrimitiveArray<T>(String propName)  {
+    public IEnumerable<T> GetArray<T>(String propName)  {
       var items = GetToken<JArray>(propName);
       if (items == null) {
         return Enumerable.Empty<T>();
@@ -166,8 +157,9 @@ namespace Breeze.NetClient {
         });
       }
     }
+  
 
-    public IEnumerable<Object> GetPrimitiveArray(String propName, IEnumerable<Type> toTypes) {
+    public IEnumerable<Object> GetArray(String propName, IEnumerable<Type> toTypes) {
       var items = GetToken<JArray>(propName);
       if (items == null) {
         return Enumerable.Empty<Object>();
@@ -178,7 +170,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    public Dictionary<String, T> GetPrimitiveMap<T>(String propName) {
+    public Dictionary<String, T> GetMap<T>(String propName) {
       var map = (JObject)GetToken<JObject>(propName);
       if (map == null) return null;
       var rmap = new Dictionary<String, T>();
@@ -188,7 +180,7 @@ namespace Breeze.NetClient {
       return rmap;
     }
 
-    public Dictionary<String, Object> GetPrimitiveMap(String propName, Func<String, Type> toTypeFn) {
+    public Dictionary<String, Object> GetMap(String propName, Func<String, Type> toTypeFn) {
       var map = (JObject)GetToken<JObject>(propName);
       if (map == null) return null;
       var rmap = new Dictionary<String, Object>();
@@ -316,8 +308,24 @@ namespace Breeze.NetClient {
 
     #region Other Private methods
 
+    public static JNode BuildMapNode<T>(IDictionary<String, T> map) {
+      var jn = new JNode();
+      map.ForEach(kvp => {
+        var val = CvtValue(kvp.Value);
+        if (val != null) {
+          if (val is JToken) {
+            jn.AddRaw(kvp.Key, (JToken)val);
+          } else {
+            jn.AddRaw(kvp.Key, new JValue(val));
+          }
+        } else {
+          jn.AddRaw(kvp.Key, null);
+        }
+      });
+      return jn;
+    }
 
-    private static JArray ToJArray<T>(IEnumerable<T> items) {
+    public static JArray ToJArray<T>(IEnumerable<T> items) {
       var ja = new JArray();
       items.ForEach(v => ja.Add(CvtValue(v)));
       return ja;
@@ -325,7 +333,7 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    private JObject _jo;
+    internal JObject _jo;
   }
 
 

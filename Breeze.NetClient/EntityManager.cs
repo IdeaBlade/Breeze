@@ -58,7 +58,6 @@ namespace Breeze.NetClient {
 
     public IKeyGenerator KeyGenerator { get; set; }
 
-    public IDataServiceAdapter DataServiceAdapter { get; set; }
 
     #endregion
 
@@ -109,7 +108,8 @@ namespace Breeze.NetClient {
       saveOptions = new SaveOptions(saveOptions ?? this.DefaultSaveOptions ?? SaveOptions.Default);
       if (saveOptions.ResourceName == null) saveOptions.ResourceName = "SaveChanges";
       if (saveOptions.DataService == null) saveOptions.DataService = this.DefaultDataService;
-      var saveResult = await DataServiceAdapter.SaveChanges(this, entitiesToSave, saveOptions);
+      var dataServiceAdapter = saveOptions.DataService.Adapter;
+      var saveResult = await dataServiceAdapter.SaveChanges(entitiesToSave, saveOptions);
       return saveResult;
     }
 
@@ -326,7 +326,7 @@ namespace Breeze.NetClient {
       var stType = targetAspect.StructuralType;
       var aspectNode = jNode.GetJNode(stType.IsEntityType ? "entityAspect" : "complexAspect");
       if (aspectNode == null) return; // aspect node can be null in a complexAspect with no originalValues
-      var originalValuesMap = aspectNode.GetPrimitiveMap("originalValuesMap", pn => stType.GetDataProperty(pn).ClrType);
+      var originalValuesMap = aspectNode.GetMap("originalValuesMap", pn => stType.GetDataProperty(pn).ClrType);
       if (originalValuesMap != null) {
         targetAspect._originalValuesMap = new BackupValuesMap(originalValuesMap);
       }
@@ -334,7 +334,7 @@ namespace Breeze.NetClient {
 
     private void UpdateTempFks(IEntity targetEntity, JNode entityAspectNode, Dictionary<EntityKey, EntityKey> tempKeyMap) {
 
-      var tempNavPropNames = entityAspectNode.GetPrimitiveArray<String>("tempNavPropNames");
+      var tempNavPropNames = entityAspectNode.GetArray<String>("tempNavPropNames");
       if (!tempNavPropNames.Any()) return;
       var targetAspect = targetEntity.EntityAspect;
       var entityType = targetAspect.EntityType;
@@ -909,6 +909,12 @@ namespace Breeze.NetClient {
 
     #region Other internal 
 
+    internal void PerformKeyMappings(IEnumerable<KeyMapping> keyMappings) {
+      keyMappings.ForEach(km => {
+        var clrType = MetadataStore.GetEntityType(km.EntityTypeName).ClrType;
+        GetEntityGroup(clrType).PerformKeyMapping(km);
+      });
+    }
 
     internal LoadingBlock NewIsLoadingBlock() {
       return new LoadingBlock(this);
