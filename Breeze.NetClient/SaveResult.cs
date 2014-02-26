@@ -12,14 +12,9 @@ namespace Breeze.NetClient {
     internal SaveResult(IEnumerable<IEntity> entities, Dictionary<EntityKey, EntityKey> keyMappings) {
       _savedEntities = new SafeList<IEntity>(entities);
       _keyMappings = new SafeDictionary<EntityKey,EntityKey>(keyMappings);
+      _entityErrors = new SafeList<EntityError>();
     }
 
-
-    //internal SaveResult(SaveResult2 saveResult2) {
-    //  _savedEntities = new SafeList<IEntity>(saveResult2.Entities);
-    //  _keyMappings = new SafeList<KeyMapping>(saveResult2.KeyMappings);
-    //  _entityErrors = new SafeList<EntityError>(saveResult2.EntityErrors);
-    //}
 
     public ReadOnlyCollection<IEntity> Entities {
       get { return _savedEntities.ReadOnlyValues;  }

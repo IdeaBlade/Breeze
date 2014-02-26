@@ -44,7 +44,7 @@ namespace Breeze.NetClient {
         var jsonConverter = new JsonEntityConverter(entityManager, MergeStrategy.OverwriteChanges, NormalizeEntityTypeName);
         serializer.Converters.Add(jsonConverter);
         var entities = serializer.Deserialize<IEnumerable<IEntity>>(entityNodes.CreateReader());
-        
+        entities.ForEach(e => e.EntityAspect.AcceptChanges());
         return new SaveResult(entities, keyMappings);
       }
     

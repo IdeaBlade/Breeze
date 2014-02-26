@@ -26,8 +26,6 @@ namespace Breeze.NetClient {
         // Load JObject from stream
         var jObject = JObject.Load(reader);
 
-       
-
         if (objectType == typeof(IEntity)) {
           JToken typeNameToken;
           if (jObject.TryGetValue("$type", out typeNameToken)) {

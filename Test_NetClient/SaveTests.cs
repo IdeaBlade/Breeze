@@ -57,16 +57,30 @@ namespace Test_NetClient {
       var custs = await q.Execute(_em1);
       Assert.IsTrue(custs.Count() > 0, "should be some results");
       custs.ForEach(c => c.Fax = MorphString(c.Fax));
-      var newCust = _em1.CreateEntity<Customer>();
-      newCust.CompanyName = "Test001";
-      var newOrder = _em1.CreateEntity<Order>();
-      var newOrderKey = newOrder.EntityAspect.EntityKey;
+      var cust1 = _em1.CreateEntity<Customer>();
+      cust1.CompanyName = "Test001";
+      var cust1Key = cust1.EntityAspect.EntityKey;
+      var order1 = _em1.CreateEntity<Order>();
+      var order1Key = order1.EntityAspect.EntityKey;
 
-      newOrder.Customer = newCust;
+      order1.Customer = cust1;
+      var custCount = _em1.GetEntities<Customer>().Count();
+      Assert.IsTrue(_em1.HasChanges(), "hasChanges should be true");
+      Assert.IsTrue(_em1.GetChanges().Count() > 0, "should have changes");
       var saveResult = await _em1.SaveChanges();
-      Assert.IsTrue(saveResult.Entities.Count > 0);
-
-
+      Assert.IsTrue(saveResult.Entities.Count == custs.Count() + 2, "should have returned the correct number of entities");
+      Assert.IsTrue(order1Key != order1.EntityAspect.EntityKey, "order1 entityKey should have changed");
+      Assert.IsTrue(cust1Key != cust1.EntityAspect.EntityKey, "cust1 entityKey should have changed");
+      Assert.IsTrue(order1.Customer == cust1, "cust attachment should be the same");
+      Assert.IsTrue(cust1.Orders.Contains(order1), "order attachment should be the same");
+      Assert.IsTrue(saveResult.KeyMappings[order1Key] == order1.EntityAspect.EntityKey, "keyMapping for order should be avail");
+      Assert.IsTrue(saveResult.KeyMappings[cust1Key] == cust1.EntityAspect.EntityKey, "keyMapping for order should be avail");
+      Assert.IsTrue(saveResult.EntityErrors.Count == 0, "should be no errors");
+      Assert.IsTrue(_em1.GetEntities<Customer>().Count() == custCount, "should be the same number of custs");
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsUnchanged());
+      Assert.IsTrue(cust1.EntityAspect.EntityState.IsUnchanged());
+      Assert.IsTrue(_em1.HasChanges() == false, "hasChanges should be false");
+      Assert.IsTrue(_em1.GetChanges().Count() == 0, "should be no changes left");
     }
     
     [TestMethod]
@@ -78,7 +92,7 @@ namespace Test_NetClient {
       Assert.IsTrue(custs.Count() > 0, "should be some results");
       custs.ForEach(c => c.Fax = MorphString(c.Fax));
       var saveResult = await _em1.SaveChanges();
-      Assert.IsTrue(saveResult.Entities.Count > 0);
+      Assert.IsTrue(saveResult.Entities.Count == custs.Count());
       
     }
 

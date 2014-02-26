@@ -595,7 +595,7 @@ namespace Breeze.NetClient {
     }
 
     private void SetDpValueKey(DataProperty property, object newValue, object oldValue) {
-      if (this.IsAttached && !EntityManager.IsLoadingEntity) {
+      if (this.IsAttached) {
         var values = EntityType.KeyProperties
           .Select(p => (p == property) ? newValue : GetValue(p))
           .ToArray();
