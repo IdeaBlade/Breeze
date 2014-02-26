@@ -31,6 +31,9 @@ namespace Breeze.NetClient {
         if (objectType == typeof(IEntity)) {
           JToken typeNameToken;
           if (jObject.TryGetValue("$type", out typeNameToken)) {
+            if (_normalizeTypeNameFn == null) {
+              throw new Exception("NormalizeTypeNameFn not defined");
+            }
             var entityTypeName = _normalizeTypeNameFn(typeNameToken.Value<String>());
             objectType = MetadataStore.Instance.GetEntityType(entityTypeName).ClrType;
           }
@@ -70,7 +73,7 @@ namespace Breeze.NetClient {
       var keyValues = entityType.KeyProperties
         .Select(p => jObject[p.Name].ToObject(p.ClrType))
         .ToArray();
-      var entityKey = new EntityKey(entityType, keyValues);
+      var entityKey = EntityKey.Create(entityType, keyValues);
       var entity = _entityManager.FindEntityByKey(entityKey);
       if (entity == null) {
         entity = (IEntity)Activator.CreateInstance(objectType);
@@ -188,15 +191,6 @@ namespace Breeze.NetClient {
     private MergeStrategy _mergeStrategy;
     private Func<String, String> _normalizeTypeNameFn;
     private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
-  }
-
-  
-  internal class SaveResult2 {
-
-    public IEnumerable<IEntity> Entities { get; set; }
-    public IEnumerable<KeyMapping> KeyMappings { get; set; }  
-    public IEnumerable<EntityError> EntityErrors { get; set; }
-    
   }
 
   //public static class JsonFns {

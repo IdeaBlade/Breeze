@@ -231,7 +231,7 @@ namespace Breeze.NetClient {
       // tempKeyMap will have a new values where collisions will occur
       var tempKeyMap = jn.GetJNodeArray("tempKeys").Select(jnEk => new EntityKey(jnEk)).ToDictionary(
         ek => ek, 
-        ek => this.FindEntityByKey(ek) == null ? ek : new EntityKey(ek.EntityType, KeyGenerator.GetNextTempId(ek.EntityType.KeyProperties.First())) 
+        ek => this.FindEntityByKey(ek) == null ? ek : EntityKey.Create(ek.EntityType, KeyGenerator.GetNextTempId(ek.EntityType.KeyProperties.First())) 
       );
       
       var mergeStrategy = (importOptions.MergeStrategy ?? this.DefaultQueryOptions.MergeStrategy ?? QueryOptions.Default.MergeStrategy).Value;
@@ -293,7 +293,7 @@ namespace Breeze.NetClient {
       var keyValues = entityType.KeyProperties
          .Select(p => jn.Get(p.Name, p.ClrType))
          .ToArray();
-      var entityKey = new EntityKey(entityType, keyValues);
+      var entityKey = EntityKey.Create(entityType, keyValues);
       return entityKey;
     }
 
@@ -518,11 +518,7 @@ namespace Breeze.NetClient {
     }
 
     public IEntity FindEntityByKey(EntityKey entityKey) {
-      if (entityKey.EntityType == null) {
-        var eg = GetEntityGroup(entityKey.ClrType);
-        if (eg == null) return null;
-        entityKey.Coerce(eg.EntityType);
-      }
+
       var subtypes = entityKey.EntityType.Subtypes;
       EntityAspect ea;
       if (subtypes.Count > 0) {

@@ -24,8 +24,7 @@ namespace Breeze.NetClient {
     }
 
     private SaveResult ProcessSaveResult(EntityManager entityManager, string saveResultJson) {
-      var jsonConverter = new JsonEntityConverter(entityManager, MergeStrategy.OverwriteChanges, NormalizeEntityTypeName);
-      Type rType;
+
 
       var jo = JObject.Parse(saveResultJson);
 
@@ -41,29 +40,21 @@ namespace Breeze.NetClient {
         var prop = jo.Property("Entities");
         if (prop == null) return null;
         var entityNodes = (JArray)prop.Value;
-        var js = new JsonSerializer();
-        js.Converters.Add(jsonConverter);
-        var entities = js.Deserialize<IEnumerable<IEntity>>(entityNodes.CreateReader());
+        var serializer = new JsonSerializer();
+        var jsonConverter = new JsonEntityConverter(entityManager, MergeStrategy.OverwriteChanges, NormalizeEntityTypeName);
+        serializer.Converters.Add(jsonConverter);
+        var entities = serializer.Deserialize<IEnumerable<IEntity>>(entityNodes.CreateReader());
         
-        //var entities = entityNodes.Select(en => {
-        //  var typeName = en.Get<String>("$type");
-        //  var et = MetadataStore.Instance.GetEntityType(NormalizeEntityTypeName(typeName));
-        //  var entity = en._jo.ToObject(et.ClrType, js);
-        //  return (IEntity)entity;
-        //}).ToList();
-      
-        // sr2 = (SaveResult2) JsonConvert.DeserializeObject(saveResultJson, typeof(SaveResult2), jsonConverter);
         return new SaveResult(entities, keyMappings);
       }
-    
     
     }
 
     private Tuple<EntityKey, EntityKey> ToEntityKeys(KeyMapping keyMapping) {
       var entityTypeName = NormalizeEntityTypeName(keyMapping.EntityTypeName);
       var et = MetadataStore.Instance.GetEntityType(entityTypeName);
-      var oldKey = new EntityKey(et, keyMapping.TempValue).Coerce();
-      var newKey = new EntityKey(et, keyMapping.RealValue).Coerce();
+      var oldKey = new EntityKey(et, keyMapping.TempValue);
+      var newKey = new EntityKey(et, keyMapping.RealValue);
       return Tuple.Create(oldKey, newKey);
     }
 

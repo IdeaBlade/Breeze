@@ -60,9 +60,12 @@ namespace Test_NetClient {
       var newCust = _em1.CreateEntity<Customer>();
       newCust.CompanyName = "Test001";
       var newOrder = _em1.CreateEntity<Order>();
+      var newOrderKey = newOrder.EntityAspect.EntityKey;
+
       newOrder.Customer = newCust;
       var saveResult = await _em1.SaveChanges();
       Assert.IsTrue(saveResult.Entities.Count > 0);
+
 
     }
     

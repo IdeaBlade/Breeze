@@ -76,7 +76,7 @@ namespace Breeze.NetClient {
         // need to insure 
         if (_entityKey == null) {
           Object[] values = GetValues(this.EntityType.KeyProperties);
-          var key = new EntityKey(this.EntityType, values);
+          var key = EntityKey.Create(this.EntityType, values);
           // do not cache _entityKey values that have not yet
           // gone thru a save
           if (this.EntityState.IsAdded() | this.EntityState.IsDetached()) {
@@ -599,7 +599,7 @@ namespace Breeze.NetClient {
         var values = EntityType.KeyProperties
           .Select(p => (p == property) ? newValue : GetValue(p))
           .ToArray();
-        var newKey = new EntityKey(EntityType, values).Coerce();
+        var newKey = new EntityKey(EntityType, values);
         if (EntityManager.FindEntityByKey(newKey) != null) {
           throw new Exception("An entity with this key is already in the cache: " + newKey);
         }
