@@ -1,0 +1,7 @@
+{
+  "name": "breeze-intellisense-build",
+  "version": "0.1.0",
+  "devDependencies": {
+    "handlebars": "~1.1.2"
+  }
+}
