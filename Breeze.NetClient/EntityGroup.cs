@@ -224,10 +224,6 @@ namespace Breeze.NetClient {
 
     #region Internal props/methods 
 
-    internal void PerformKeyMapping(KeyMapping keyMapping) {
-
-    }
-
 
     internal EntityAspect FindEntityAspect(EntityKey entityKey, bool includeDeleted) {
       EntityAspect result;

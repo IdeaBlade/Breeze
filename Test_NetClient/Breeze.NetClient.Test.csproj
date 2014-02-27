@@ -58,6 +58,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="EntityManagerTests.cs" />
+    <Compile Include="LocalQueryTests.cs" />
     <Compile Include="SaveTests.cs" />
     <Compile Include="NamedQueryTests.cs" />
     <Compile Include="IEditableObjectTests.cs" />

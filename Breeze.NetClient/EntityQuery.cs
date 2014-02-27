@@ -29,6 +29,13 @@ namespace Breeze.NetClient {
       DataServiceQuery = query.DataServiceQuery;
     }
 
+    public IEnumerable<T> ExecuteLocalQuery(EntityManager em) {
+      // var cqVisitor = new CacheQueryExpressionVisitor(CacheQueryOptions.Default, typeof(T));
+      // var expr = ResourceSetReplacementVisitor.Visit(this.Expression, cqVisitor.EntityManagerParameterExpr);
+      var func = CacheQueryExpressionVisitor.GetCompiledFunc<IEnumerable<T>>(this.Expression, CacheQueryOptions.Default, typeof(T));
+      return func(em).ToList();
+    }
+
     public override object  Clone() {
       return new EntityQuery<T>(this);
     }

@@ -36,6 +36,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BaseComplexObject.cs" />
+    <Compile Include="CacheQueryExpressionVisitor.cs" />
+    <Compile Include="CacheQueryOptions.cs" />
+    <Compile Include="Core\MethodReflector.cs" />
     <Compile Include="Core\NotifiableSet.cs" />
     <Compile Include="Core\PredicateBuilder.cs" />
     <Compile Include="Core\SafeDictionary.cs" />
@@ -43,6 +46,7 @@
     <Compile Include="EntityQueryBuilder.cs" />
     <Compile Include="IDataServiceAdapter.cs" />
     <Compile Include="SaveOptions.cs" />
+    <Compile Include="SaveException.cs" />
     <Compile Include="SaveResult.cs" />
     <Compile Include="JNode.cs" />
     <Compile Include="JsonResultsAdapter.cs" />

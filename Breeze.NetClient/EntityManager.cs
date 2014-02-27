@@ -481,6 +481,10 @@ namespace Breeze.NetClient {
       return GetEntities(typeof(T), entityState).Cast<T>();
     }
 
+    public IEnumerable<IEntity> GetEntities(Type type) {
+      return GetEntities(type, EntityState.AllButDetached);
+    }
+
     /// <summary>
     /// Retrieves all entities of a specified type with the specified entity state(s) from cache.
     /// </summary>
@@ -491,7 +495,7 @@ namespace Breeze.NetClient {
     /// As the <see cref="EntityState"/> is a flags enumeration, you can supply multiple 
     /// OR'ed values to search for multiple entity states.
     /// </remarks>
-    public IEnumerable<IEntity> GetEntities(Type type, EntityState entityState = EntityState.AllButDetached) {
+    public IEnumerable<IEntity> GetEntities(Type type, EntityState entityState) {
       if (type.GetTypeInfo().IsAbstract) {
         var groups = type == typeof(IEntity) 
           ? this.EntityGroups
@@ -908,13 +912,6 @@ namespace Breeze.NetClient {
     #endregion
 
     #region Other internal 
-
-    internal void PerformKeyMappings(IEnumerable<KeyMapping> keyMappings) {
-      keyMappings.ForEach(km => {
-        var clrType = MetadataStore.GetEntityType(km.EntityTypeName).ClrType;
-        GetEntityGroup(clrType).PerformKeyMapping(km);
-      });
-    }
 
     internal LoadingBlock NewIsLoadingBlock() {
       return new LoadingBlock(this);

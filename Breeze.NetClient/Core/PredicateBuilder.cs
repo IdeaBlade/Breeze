@@ -9,6 +9,7 @@ namespace Breeze.NetClient.Core {
   /// <summary>
   /// Enables the efficient, dynamic composition of query predicates.
   /// From: http://petemontgomery.wordpress.com/2011/02/10/a-universal-predicatebuilder/
+  /// with minor mods.
   /// </summary>
   public static class PredicateBuilder {
     /// <summary>
@@ -51,7 +52,7 @@ namespace Breeze.NetClient.Core {
     /// <summary>
     /// Combines the first expression with the second using the specified merge function.
     /// </summary>
-    static Expression<T> Compose<T>(this Expression<T> first, Expression<T> second, Func<Expression, Expression, Expression> merge) {
+    static Expression<T> Compose<T>(this Expression<T> first, Expression<T> second, Func<Expression, Expression, Expression> mergeFn) {
       // zip parameters (map from parameters of second to parameters of first)
       var map = first.Parameters
           .Select((f, i) => new { f, s = second.Parameters[i] })
@@ -61,14 +62,13 @@ namespace Breeze.NetClient.Core {
       var secondBody = ParameterRebinder.ReplaceParameters(map, second.Body);
 
       // create a merged lambda expression with parameters from the first expression
-      return Expression.Lambda<T>(merge(first.Body, secondBody), first.Parameters);
+      return Expression.Lambda<T>(mergeFn(first.Body, secondBody), first.Parameters);
     }
 
     class ParameterRebinder : ExpressionVisitor {
-      readonly Dictionary<ParameterExpression, ParameterExpression> map;
-
-      ParameterRebinder(Dictionary<ParameterExpression, ParameterExpression> map) {
-        this.map = map ?? new Dictionary<ParameterExpression, ParameterExpression>();
+      
+      private ParameterRebinder(Dictionary<ParameterExpression, ParameterExpression> map) {
+        this._map = map ?? new Dictionary<ParameterExpression, ParameterExpression>();
       }
 
       public static Expression ReplaceParameters(Dictionary<ParameterExpression, ParameterExpression> map, Expression exp) {
@@ -77,13 +77,14 @@ namespace Breeze.NetClient.Core {
 
       protected override Expression VisitParameter(ParameterExpression p) {
         ParameterExpression replacement;
-
-        if (map.TryGetValue(p, out replacement)) {
+        if (_map.TryGetValue(p, out replacement)) {
           p = replacement;
         }
 
         return base.VisitParameter(p);
       }
+
+      private readonly Dictionary<ParameterExpression, ParameterExpression> _map;
     }
   }
 }
