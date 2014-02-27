@@ -1,7 +1,7 @@
 ﻿/*
- * Breeze Labs 2013 abstract REST DataServiceAdapter
+ * Breeze Labs Abstract REST DataServiceAdapter
  *
- *  v.0.2.1-pre
+ *  v.0.2.2-pre
  *
  * Extends Breeze with a REST DataService Adapter abstract type
  * 
@@ -239,7 +239,9 @@
         if (!entityType) { // try to figure it out from the query.resourceName
             var metadataStore = mappingContext.metadataStore;
             var etName = metadataStore.getEntityTypeNameForResourceName(query.resourceName);
-            entityType = metadataStore.getEntityType(etName);
+            if (etName) {
+                entityType = metadataStore.getEntityType(etName);
+            }
         }
         return entityType;
     }

@@ -16,8 +16,4 @@
         <language>en-US</language>
         <tags>breeze sharepoint</tags>
     </metadata>
-    <files>
-        <file src="..\..\Breeze.Client\Scripts\Labs\breeze.labs.dataservice.abstractrest.js" target="content\Scripts\breeze.labs.dataservice.abstractrest.js" />
-        <file src="..\..\Breeze.Client\Scripts\Labs\breeze.labs.dataservice.sharepoint.js" target="content\Scripts\breeze.labs.dataservice.sharepoint.js" />
-    </files>
 </package>
