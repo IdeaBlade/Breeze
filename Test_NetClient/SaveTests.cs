@@ -231,12 +231,51 @@ namespace Test_NetClient {
       Assert.IsTrue(sr.Entities.OfType<Product>().Count() == 12, "should be 12 products");
       var ek = category.EntityAspect.EntityKey;
       var em2 = new EntityManager(_em1);
-      
+      var r2 = await em2.ExecuteQuery(ek.ToQuery<Category>().Expand("Products"));
+      var cat2 = r2.First();
+      var products2 = cat2.Products;
 
-      var newPrices = products.Select(p => p.UnitPrice).ToList();
+      var newPrices = products2.Select(p => p.UnitPrice).ToList();
       Assert.IsTrue(!prices.SequenceEqual(newPrices), "prices should have changed");
     }
 
+    [TestMethod]
+    public async Task CaptureAddlAddOnServer() {
+      await _emTask;
+      //        ok(true, "Skipped test - OData does not support server interception or alt resources");
+      var supplier = new Supplier() { CompanyName = "CompName" };
+      _em1.AddEntity(supplier);
+      var sr = await _em1.SaveChanges(null, new SaveOptions(tag: "addProdOnServer"));
+      Assert.IsTrue(sr.Entities.Count == 2, "should have saved two entities");
+      Assert.IsTrue(supplier.Products.Count == 1, "supplier should have one product");
+      Assert.IsTrue(supplier.Products.First().EntityAspect.EntityState.IsUnchanged(), "should be unchanged");
+    }
+
+    [TestMethod]
+    public async Task OrderAndInternationalOrder() {
+      await _emTask;
+      //        ok(true, "N/A for Mongo - primary keys cannot be shared between collections");
+      var order = new Order() {
+        CustomerID = TestFns.WellKnownData.AlfredsID,
+        EmployeeID = TestFns.WellKnownData.NancyEmployeeID,
+        ShipName = "Test " + new DateTime().ToString()
+      };
+      _em1.AddEntity(order);
+      var internationalOrder = new InternationalOrder() {
+        OrderID = order.OrderID,
+        Order = order,
+        CustomsDescription = "rare, exotic birds"
+      };
+      Assert.IsTrue(internationalOrder.EntityAspect.EntityState.IsAdded(), "internationalOrder should be Added");
+      var sr = await _em1.SaveChanges();
+      Assert.IsTrue(sr.Entities.Count == 2, "should have saved 2 entities");
+      Assert.IsTrue(order.OrderID == internationalOrder.OrderID);
+      Assert.IsTrue(order.OrderID > 0);
+      Assert.IsTrue(order.InternationalOrder == internationalOrder);
+
+    }
+
+  
    
     //test("add UserRole", function () {
     //    if (testFns.DEBUG_MONGO) {

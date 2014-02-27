@@ -489,13 +489,22 @@ namespace Breeze.NetClient {
     }
 
     internal void SetNpValue(NavigationProperty property, object newValue) {
-      SetValueWithEvents(property, newValue, SetNpValueCore);
+      if (_inProcess) return;
+      try {
+        _inProcess = true;
+        SetValueWithEvents(property, newValue, SetNpValueCore);
+      } finally {
+        _inProcess = false;
+      }
     }
 
+    private bool _inProcess;
+
     private void SetNpValueCore(NavigationProperty property, object newValue, object oldValue) {
+      
       var newEntity = (IEntity)newValue;
       var oldEntity = (IEntity)oldValue;
-
+      
       EntityAspect newAspect = (newEntity == null) ? null : newEntity.EntityAspect;
       EntityAspect oldAspect = (oldEntity == null) ? null : oldEntity.EntityAspect;
 
@@ -518,7 +527,7 @@ namespace Breeze.NetClient {
             oldAspect.SetNpValue(inverseProp, null);
           }
           if (newValue != null) {
-            newAspect.SetNpValue(inverseProp, this);
+            newAspect.SetNpValue(inverseProp, this.Entity);
           }
         } else {
           // Example: bidirectional navProperty: 1->n: order -> orderDetails

@@ -98,6 +98,10 @@ namespace Breeze.NetClient {
       }
     }
 
+    public async Task<SaveResult> SaveChanges(SaveOptions saveOptions) {
+      return await SaveChanges(null, saveOptions);
+    }
+
     public async Task<SaveResult> SaveChanges(IEnumerable<IEntity> entities = null, SaveOptions saveOptions = null) {
       IEnumerable<IEntity> entitiesToSave;
       if (entities == null) {
