@@ -9,8 +9,12 @@ using System.Threading.Tasks;
 namespace Breeze.NetClient {
   public class DataService : IJsonSerializable {
 
-    public DataService() {
-
+    public DataService(String serviceName) {
+      ServiceName = serviceName;
+      HasServerMetadata = true;
+      UseJsonP = false;
+      Adapter = new WebApiDataServiceAdapter();
+      InitializeHttpClient();
     }
 
     public DataService(JNode jNode) {
@@ -19,24 +23,21 @@ namespace Breeze.NetClient {
       // TODO: implement JsonResultsAdapter
       UseJsonP = jNode.Get<bool>("useJsonp");
       Adapter = GetAdapter(jNode.Get<String>("adapterName"));
+      InitializeHttpClient();
+    }
+
+    private void InitializeHttpClient() {
+      _client = new HttpClient();
+      _client.BaseAddress = new Uri(ServiceName);
+
+      // Add an Accept header for JSON format.
+      _client.DefaultRequestHeaders.Accept.Add(
+          new MediaTypeWithQualityHeaderValue("application/json"));
     }
 
     private IDataServiceAdapter GetAdapter(string adapterName) {
       // TODO: fix this later using some form of DI
       return new WebApiDataServiceAdapter();
-    }
-
-    public DataService(String serviceName) {
-      ServiceName = serviceName;
-      _client = new HttpClient();
-      _client.BaseAddress = new Uri(serviceName);
-
-      // Add an Accept header for JSON format.
-      _client.DefaultRequestHeaders.Accept.Add(
-          new MediaTypeWithQualityHeaderValue("application/json"));
-      HasServerMetadata = true;
-      UseJsonP = false;
-      Adapter = new WebApiDataServiceAdapter();
     }
 
     public String ServiceName {get; private set; }
@@ -56,9 +57,11 @@ namespace Breeze.NetClient {
       try {
 
         var response = await _client.GetAsync(resourcePath);
-        response.EnsureSuccessStatusCode(); // Throw on error code.
 
         var result = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode) {
+          throw new HttpRequestException(result);
+        }
         return result;
       } catch (HttpRequestException ex) {
         Debug.WriteLine(ex.Message);
@@ -73,28 +76,22 @@ namespace Breeze.NetClient {
 
     public async Task<String> PostAsync(String resourcePath, String json) {
 
-      try {
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-        // example of how to use FormUrl instead.
-        //var content = new FormUrlEncodedContent(new[] 
-        //    {
-        //        new KeyValuePair<string, string>("", "login")
-        //    });
+      var content = new StringContent(json, Encoding.UTF8, "application/json");
+      // example of how to use FormUrl instead.
+      //var content = new FormUrlEncodedContent(new[] 
+      //    {
+      //        new KeyValuePair<string, string>("", "login")
+      //    });
 
-        var response = await _client.PostAsync(resourcePath, content);
-        response.EnsureSuccessStatusCode(); // Throw on error code.
+      var response = await _client.PostAsync(resourcePath, content);
 
-        var result = await response.Content.ReadAsStringAsync();
-        return result;
-      } catch (HttpRequestException ex) {
-        Debug.WriteLine(ex.Message);
-        throw;
-      } catch (Exception e) {
-        Debug.WriteLine(e.Message);
-        throw;
-      } finally {
-
+      var result = await response.Content.ReadAsStringAsync();
+        
+      if (!response.IsSuccessStatusCode) {
+        throw new HttpRequestException(result);
       }
+      return result;
+
     }
 
     JNode IJsonSerializable.ToJNode(Object config) {

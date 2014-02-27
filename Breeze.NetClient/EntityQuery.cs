@@ -14,14 +14,14 @@ namespace Breeze.NetClient {
 
     public EntityQuery( ) : base() {
       var context = new DataServiceContext(new Uri(__placeHolderServiceName), DataServiceProtocolVersion.V3);
-      DataServiceQuery = context.CreateQuery<T>(__placeHolderResourceName);
+      // TODO: where(x => true) is a hack to avoid DataServiceQuery from inferring the entity key
+      DataServiceQuery = (DataServiceQuery<T>) context.CreateQuery<T>(__placeHolderResourceName).Where(x => true);
     }
 
     public EntityQuery(String resourceName)
       : this() {
       if (resourceName != null) ResourceName = resourceName;
     }
-
 
 
     public EntityQuery(EntityQuery<T> query) : base(query) {
@@ -77,6 +77,7 @@ namespace Breeze.NetClient {
 
     public override String GetResourcePath() {
       var dsq = (DataServiceQuery<T>)_dataServiceQuery;
+      
       var requestUri = dsq.RequestUri;
       var s2 = requestUri.AbsoluteUri.Replace(__placeHolderServiceName, "");
       
@@ -88,6 +89,8 @@ namespace Breeze.NetClient {
       var queryResource = s2.Replace(__placeHolderResourceName + "()", resourceName);
       // if no filter conditions
       queryResource = queryResource.Replace(__placeHolderResourceName, resourceName);
+      // TODO: Hack to avoid DataServiceQuery from inferring the entity key
+      queryResource = queryResource.Replace("filter=true%20and%20", "filter=");
       return queryResource;
     }
 
@@ -101,11 +104,11 @@ namespace Breeze.NetClient {
       throw new Exception("EntityQueries cannot be enumerated because they can only be executed asynchronously");
     }
 
-    public Type ElementType {
-      get { return DataServiceQuery.ElementType; }
-    }
+    //public Type ElementType {
+    //  get { return DataServiceQuery.ElementType; }
+    //}
 
-    public System.Linq.Expressions.Expression Expression {
+    public override Expression Expression {
       get { return DataServiceQuery.Expression; }
     }
 
@@ -174,7 +177,7 @@ namespace Breeze.NetClient {
 
     #endregion 
 
-    public override Type TargetType {
+    public override Type ElementType {
       get { return typeof(T);}
     }
 
@@ -200,6 +203,11 @@ namespace Breeze.NetClient {
       QueryOptions = new QueryOptions();
     }
 
+    public static EntityQuery Create(Type entityType) {
+      var queryType = typeof(EntityQuery<>).MakeGenericType(entityType);
+      return (EntityQuery)Activator.CreateInstance(queryType);
+    }
+
     public static EntityQuery<T> From<T>(string resourceName) {
       return new EntityQuery<T>(resourceName); 
     }
@@ -214,16 +222,17 @@ namespace Breeze.NetClient {
 
     public void UpdateFrom(EntityQuery query) {
       ResourceName = query.ResourceName;
-      TargetType = query.TargetType;
+      ElementType = query.ElementType;
       DataService = query.DataService;
       EntityManager = query.EntityManager;
       QueryOptions = query.QueryOptions;
     }
 
     public String ResourceName { get; protected internal set; }
-    public virtual Type TargetType { get; protected internal set; }
+    public virtual Type ElementType { get; protected internal set; }
     public DataService DataService { get; protected internal set; }
     public EntityManager EntityManager { get; protected internal set; }
+    public abstract Expression Expression { get; }
     public QueryOptions QueryOptions { get; protected internal set; }
     public abstract object Clone();
     public abstract String GetResourcePath();

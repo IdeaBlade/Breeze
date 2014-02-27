@@ -3,12 +3,16 @@
 All Server queries including
    Where/Skip/Take/OrderBy
    Expand/Select
-   InlineCount/Anonymous projections
+   InlineCount
+   Client side anon projections
+   Server side anon projections
+   NamedQueries
+Saves - including Named Saves
 Change tracking/Accept-RejectChanges/OriginalValuesMap
 Interfaces implemented for INotifyPropertyChanged, IEditableObject, IChangeTracking, IRevertibleChangeTracking
 ComplexTypes
 Automatic Entity graph attachment - 
-TempKey generation and fk fixup
+TempKey generation and fk fixup on Saves and Imports
 Emport/Import to stream/string
 EntityManager events - EntityChanging/EntityChanged/HasChangesChanged 
 Live navigation collections
@@ -18,10 +22,10 @@ MergeStrategy
 ToDo
 ---------------------------
 LocalQuery
-Saves
-NamedQueries
+Registered EntityInitializers - ??? public empty ctors;
 Validation and INotifyDataErrorInfo
 ChangeNotificationEnabled
+LoadNavigationProperty
 Inheritance
 NoTracking queries
 UntrackedProperties added directly to Clr type defs.

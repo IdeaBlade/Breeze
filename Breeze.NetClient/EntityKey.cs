@@ -32,7 +32,7 @@ namespace Breeze.NetClient {
       InitializeValues(values, true);
     }
 
-    public EntityKey(JNode jn) {
+    internal EntityKey(JNode jn) {
       var etName = jn.Get<String>("entityType");
       EntityType = MetadataStore.Instance.GetEntityType(etName);
       ClrType = EntityType.ClrType;
@@ -93,24 +93,17 @@ namespace Breeze.NetClient {
       internal set;
     }
 
+    public EntityQuery ToQuery() {
+      return EntityQueryBuilder.BuildQuery(this);
+    }
+
+    public EntityQuery<T> ToQuery<T>() {
+      return (EntityQuery<T>) EntityQueryBuilder.BuildQuery(this);
+    }
 
     public bool IsEmpty() {
       return Values == null || Values.Length == 0 || Values.Any(v => v==null) ;
     }
-
-    /// <summary>
-    /// Returns an <see cref="EntityQuery"/> to retrieve the item
-    /// represented by this key.
-    /// </summary>
-    /// <returns></returns>
-    public EntityQuery ToQuery() {
-      return null;
-      // return new EntityQuery
-      //var query = EntityQueryBuilder.BuildQuery(this);
-      //query.EntityManager = entityManager;
-      //return query;
-    }
-
 
     private void Coerce() {
       for (int i = 0; i < Values.Length; i++) {

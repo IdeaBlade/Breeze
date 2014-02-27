@@ -74,7 +74,7 @@ namespace Breeze.NetClient {
     }
 
     public async Task<IEnumerable> ExecuteQuery(EntityQuery query) {
-      if (query.TargetType == null) {
+      if (query.ElementType == null) {
         throw new Exception("Cannot execute a query with a null TargetType");
       }
       var dataService = query.DataService != null ? query.DataService : this.DefaultDataService;
@@ -89,9 +89,9 @@ namespace Breeze.NetClient {
       var jsonConverter = new JsonEntityConverter(this, mergeStrategy.Value);
       Type rType;
       if (resourcePath.Contains("inlinecount")) {
-        rType = typeof(QueryResult<>).MakeGenericType(query.TargetType);
+        rType = typeof(QueryResult<>).MakeGenericType(query.ElementType);
       } else {
-        rType = typeof(IEnumerable<>).MakeGenericType(query.TargetType);
+        rType = typeof(IEnumerable<>).MakeGenericType(query.ElementType);
       }
       using (NewIsLoadingBlock()) {
         return (IEnumerable)JsonConvert.DeserializeObject(result, rType, jsonConverter);

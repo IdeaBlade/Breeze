@@ -98,9 +98,9 @@ namespace Breeze.NetClient {
         return _entityState;
       }
       set {
-        if (!this.EntityGroup.ChangeNotificationEnabled) {
-          _entityState = value;
-        } else if (value == EntityState.Added) {
+        //if (!this.EntityGroup.ChangeNotificationEnabled) {
+        //  _entityState = value;
+        if (value == EntityState.Added) {
           SetAdded();
         } else if (value == EntityState.Modified) {
           SetModified();

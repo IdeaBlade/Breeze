@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Breeze.NetClient.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -32,6 +33,7 @@ namespace Breeze.NetClient {
       return (EntityQuery<TSource>)Queryable.Where(source1, predicate);
     }
 
+    
     /// <summary>
     /// Sorts the elements of a sequence in ascending order.
     /// </summary>

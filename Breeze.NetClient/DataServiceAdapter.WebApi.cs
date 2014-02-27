@@ -7,6 +7,7 @@ using Breeze.Core;
 using System.Collections;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Net.Http;
 
 namespace Breeze.NetClient {
   public class WebApiDataServiceAdapter : IDataServiceAdapter {
@@ -18,9 +19,12 @@ namespace Breeze.NetClient {
     public async Task<SaveResult> SaveChanges(IEnumerable<IEntity> entitiesToSave, SaveOptions saveOptions) {
       var entityManager = entitiesToSave.First().EntityAspect.EntityManager;
       var saveBundleNode = PrepareSaveBundle(entitiesToSave, saveOptions);
-      var saveResultJson = await saveOptions.DataService.PostAsync(saveOptions.ResourceName, saveBundleNode.Serialize());
-      return ProcessSaveResult(entityManager, saveResultJson);
-      
+      try {
+        var saveResultJson = await saveOptions.DataService.PostAsync(saveOptions.ResourceName, saveBundleNode.Serialize());
+        return ProcessSaveResult(entityManager, saveResultJson);
+      } catch (HttpRequestException e) {
+        throw SaveException.Parse(e.Message);
+      }
     }
 
     private SaveResult ProcessSaveResult(EntityManager entityManager, string saveResultJson) {

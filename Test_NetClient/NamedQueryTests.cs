@@ -209,7 +209,7 @@ namespace Test_NetClient {
         var results = await q.Execute(_em1);
         Assert.Fail("shouldn't get here");
       } catch (HttpRequestException e) {
-        Assert.IsTrue(e.Message.Contains("Custom Reason"));
+        Assert.IsTrue(e.Message.Contains("Custom error message"));
         Assert.IsTrue(e.Message.Contains("404"));
 
       }

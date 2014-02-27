@@ -5,6 +5,7 @@ using System.Linq;
 using Breeze.Core;
 using Breeze.NetClient;
 using System.Collections.Generic;
+using Foo;
 
 namespace Test_NetClient {
 
@@ -263,6 +264,42 @@ namespace Test_NetClient {
     public class Dummy {
       public String CompanyName;
       public IEnumerable<Foo.Order> Orders;
+    }
+
+    [TestMethod]
+    public async Task GuidQuery() {
+      await _emTask;
+      var q = new EntityQuery<Customer>().Where(c => c.CustomerID.Equals(Guid.NewGuid())); // && true);
+      var rp = q.GetResourcePath();
+      var r = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(r.Count() == 0, "should be no results");
+
+    }
+    
+    [TestMethod]
+    public async Task GuidQuery2() {
+      await _emTask;
+      var q = new EntityQuery<Order>().Where(o => o.CustomerID == Guid.NewGuid()); // && true);
+      var rp = q.GetResourcePath();
+      var r = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(r.Count() == 0, "should be no results");
+
+    }
+
+    [TestMethod]
+    public async Task EntityKeyQuery() {
+      await _emTask;
+      var q = new EntityQuery<Customer>().Take(1);
+
+      var r = await _em1.ExecuteQuery(q);
+      var customer = r.First();
+      var q1 = new EntityQuery<Customer>().Where(c => c.CustomerID == customer.CustomerID);
+      var r1 = await _em1.ExecuteQuery(q1);
+      Assert.IsTrue(r1.First() == customer);
+      var ek = customer.EntityAspect.EntityKey;
+      var q2 = ek.ToQuery();
+      var r2 = await _em1.ExecuteQuery(q2);
+      Assert.IsTrue(r2.Cast<Customer>().First() == customer);
     }
     
   }

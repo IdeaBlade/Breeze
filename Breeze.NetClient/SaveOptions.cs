@@ -4,7 +4,7 @@ using System;
 namespace Breeze.NetClient {
   public class SaveOptions : IJsonSerializable {
 
-    public SaveOptions(string resourceName, DataService dataService, bool allowConcurrentSaves, String tag) {
+    public SaveOptions(string resourceName=null, DataService dataService=null, bool allowConcurrentSaves=false, String tag=null) {
       ResourceName = resourceName;
       DataService = dataService;
       AllowConcurrentSaves = allowConcurrentSaves;
@@ -18,10 +18,10 @@ namespace Breeze.NetClient {
       Tag = saveOptions.Tag;
     }
     
-    public SaveOptions(JNode jNode) {
+    //public SaveOptions(JNode jNode) {
       
       
-    }
+    //}
 
     JNode IJsonSerializable.ToJNode(object config) {
       var jn = new JNode();

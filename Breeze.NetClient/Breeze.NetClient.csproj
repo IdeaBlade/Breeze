@@ -37,8 +37,10 @@
   <ItemGroup>
     <Compile Include="BaseComplexObject.cs" />
     <Compile Include="Core\NotifiableSet.cs" />
+    <Compile Include="Core\PredicateBuilder.cs" />
     <Compile Include="Core\SafeDictionary.cs" />
     <Compile Include="DataServiceAdapter.WebApi.cs" />
+    <Compile Include="EntityQueryBuilder.cs" />
     <Compile Include="IDataServiceAdapter.cs" />
     <Compile Include="SaveOptions.cs" />
     <Compile Include="SaveResult.cs" />
