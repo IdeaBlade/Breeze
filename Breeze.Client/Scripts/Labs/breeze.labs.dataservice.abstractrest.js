@@ -241,7 +241,7 @@
             var etName = metadataStore.getEntityTypeNameForResourceName(query.resourceName);
             if (etName) {
                 entityType = metadataStore.getEntityType(etName);
-            }  
+            }
         }
         return entityType;
     }
