@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
     <metadata>
         <id>Breeze.Angular.SharePoint</id>
-        <version>0.8.1-preD</version>
+        <version>0.8.2-pre</version>
         <title>Breeze Labs: Breeze + Angular for SharePoint 2013</title>
         <authors>Ward Bell</authors>
         <owners>Ward Bell</owners>
@@ -22,4 +22,8 @@
             <dependency id="Breeze.Metadata.Helper" version="[1.0.4, ]" />
         </dependencies>
     </metadata>
+    <files>
+        <file src="..\..\Breeze.Client\Scripts\Labs\breeze.labs.dataservice.abstractrest.js" target="content\Scripts\breeze.labs.dataservice.abstractrest.js" />
+        <file src="content\Scripts\breeze.labs.dataservice.sharepoint.js" target="content\Scripts\breeze.labs.dataservice.sharepoint.js" />
+    </files>
 </package>
