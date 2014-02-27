@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Breeze.Core;
-using System.Collections;
+﻿using Breeze.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
+
   public class WebApiDataServiceAdapter : IDataServiceAdapter {
 
     public String Name {
@@ -27,62 +27,13 @@ namespace Breeze.NetClient {
       }
     }
 
-    private SaveResult ProcessSaveResult(EntityManager entityManager, string saveResultJson) {
-
-
-      var jo = JObject.Parse(saveResultJson);
-
-      var jn = new JNode(jo);
-      var kms = jn.GetArray<KeyMapping>("KeyMappings");
-      var keyMappings = kms.Select(km => ToEntityKeys(km)).ToDictionary(tpl => tpl.Item1, tpl => tpl.Item2);
-      using (entityManager.NewIsLoadingBlock()) {
-        keyMappings.ForEach(km => {
-          var targetEntity = entityManager.FindEntityByKey(km.Key);
-          targetEntity.EntityAspect.SetDpValue(km.Key.EntityType.KeyProperties[0], km.Value.Values[0]);
-        });
-
-        var prop = jo.Property("Entities");
-        if (prop == null) return null;
-        var entityNodes = (JArray)prop.Value;
-        var serializer = new JsonSerializer();
-        var jsonConverter = new JsonEntityConverter(entityManager, MergeStrategy.OverwriteChanges, NormalizeEntityTypeName);
-        serializer.Converters.Add(jsonConverter);
-        var entities = serializer.Deserialize<IEnumerable<IEntity>>(entityNodes.CreateReader());
-        entities.ForEach(e => e.EntityAspect.AcceptChanges());
-        return new SaveResult(entities, keyMappings);
-      }
-    
-    }
-
-    private Tuple<EntityKey, EntityKey> ToEntityKeys(KeyMapping keyMapping) {
-      var entityTypeName = NormalizeEntityTypeName(keyMapping.EntityTypeName);
-      var et = MetadataStore.Instance.GetEntityType(entityTypeName);
-      var oldKey = new EntityKey(et, keyMapping.TempValue);
-      var newKey = new EntityKey(et, keyMapping.RealValue);
-      return Tuple.Create(oldKey, newKey);
-    }
+    #region Save Preparation
 
     private JNode PrepareSaveBundle(IEnumerable<IEntity> entitiesToSave, SaveOptions saveOptions) {
       var jn = new JNode();
       jn.AddArray("entities", entitiesToSave.Select(e => EntityToJNode(e)));
       jn.AddJNode("saveOptions", saveOptions);
       return jn;
-    }
-
-    private String NormalizeEntityTypeName(String clrTypeName) {
-      if (String.IsNullOrEmpty(clrTypeName)) return null;
-
-      var entityTypeNameNoAssembly = clrTypeName.Split(',')[0];
-      var nameParts = entityTypeNameNoAssembly.Split('.');
-      String ns;
-      var shortName = nameParts[nameParts.Length - 1];
-      if (nameParts.Length > 1) {
-        ns = String.Join(".", nameParts.Take(nameParts.Length - 1));
-      } else {
-        ns = "";
-      }
-      var typeName = StructuralType.QualifyTypeName(shortName, ns);
-      return typeName;
     }
 
     private JNode EntityToJNode(IStructuralObject so) {
@@ -153,11 +104,67 @@ namespace Breeze.NetClient {
       });
       var result = JNode.BuildMapNode(ovMap);
       return result;
-        
-      
     }
-  }
 
+    #endregion
+
+    #region Save results processing
+
+    private SaveResult ProcessSaveResult(EntityManager entityManager, string saveResultJson) {
+
+      var jo = JObject.Parse(saveResultJson);
+
+      var jn = new JNode(jo);
+      var kms = jn.GetArray<KeyMapping>("KeyMappings");
+      var keyMappings = kms.Select(km => ToEntityKeys(km)).ToDictionary(tpl => tpl.Item1, tpl => tpl.Item2);
+      using (entityManager.NewIsLoadingBlock()) {
+        keyMappings.ForEach(km => {
+          var targetEntity = entityManager.FindEntityByKey(km.Key);
+          targetEntity.EntityAspect.SetDpValue(km.Key.EntityType.KeyProperties[0], km.Value.Values[0]);
+        });
+
+        var prop = jo.Property("Entities");
+        if (prop == null) return null;
+        var entityNodes = (JArray)prop.Value;
+        var serializer = new JsonSerializer();
+        var jsonConverter = new JsonEntityConverter(entityManager, MergeStrategy.OverwriteChanges, NormalizeEntityTypeName);
+        serializer.Converters.Add(jsonConverter);
+        // Don't use the result of the Deserialize call to get the list of entities 
+        // because it won't include entities added on the server.
+        serializer.Deserialize<IEnumerable<IEntity>>(entityNodes.CreateReader());
+        var allEntities = jsonConverter.AllEntities;
+        allEntities.ForEach(e => e.EntityAspect.AcceptChanges());
+        return new SaveResult(allEntities, keyMappings);
+      }
+
+    }
+
+    private Tuple<EntityKey, EntityKey> ToEntityKeys(KeyMapping keyMapping) {
+      var entityTypeName = NormalizeEntityTypeName(keyMapping.EntityTypeName);
+      var et = MetadataStore.Instance.GetEntityType(entityTypeName);
+      var oldKey = new EntityKey(et, keyMapping.TempValue);
+      var newKey = new EntityKey(et, keyMapping.RealValue);
+      return Tuple.Create(oldKey, newKey);
+    }
+
+    private String NormalizeEntityTypeName(String clrTypeName) {
+      if (String.IsNullOrEmpty(clrTypeName)) return null;
+
+      var entityTypeNameNoAssembly = clrTypeName.Split(',')[0];
+      var nameParts = entityTypeNameNoAssembly.Split('.');
+      String ns;
+      var shortName = nameParts[nameParts.Length - 1];
+      if (nameParts.Length > 1) {
+        ns = String.Join(".", nameParts.Take(nameParts.Length - 1));
+      } else {
+        ns = "";
+      }
+      var typeName = StructuralType.QualifyTypeName(shortName, ns);
+      return typeName;
+    }
+
+    #endregion
+  }
 
 
   public class KeyMapping {

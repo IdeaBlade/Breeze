@@ -19,6 +19,12 @@ namespace Breeze.NetClient {
       _metadataStore = entityManager.MetadataStore;
       _mergeStrategy = mergeStrategy;
       _normalizeTypeNameFn = normalizeTypeNameFn;
+      _allEntities = new List<IEntity>();
+    }
+
+    // AllEntities is a list of all deserialized entities not just the top level ones.
+    public List<IEntity> AllEntities {
+      get { return _allEntities; }
     }
 
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
@@ -78,6 +84,7 @@ namespace Breeze.NetClient {
       }
       // must be called before populate
       UpdateRefMap(jObject, entity);
+      _allEntities.Add(entity);
       return PopulateEntity(jsonContext, entity);
 
     }
@@ -188,6 +195,7 @@ namespace Breeze.NetClient {
     private MetadataStore _metadataStore;
     private MergeStrategy _mergeStrategy;
     private Func<String, String> _normalizeTypeNameFn;
+    private List<IEntity> _allEntities;
     private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
   }
 

@@ -23,9 +23,6 @@ namespace Breeze.NetClient {
       get { return _keyMappings.ReadOnlyDictionary; }
     }
 
-    
-
-
     private SafeList<IEntity> _savedEntities;
     private SafeDictionary<EntityKey, EntityKey> _keyMappings;
     
