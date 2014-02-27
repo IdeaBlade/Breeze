@@ -40,6 +40,17 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
+    public async Task SimpleQuery() {
+      await _emTask;
+      var q = new EntityQuery<Customer>();
+
+      var results = await _em1.ExecuteQuery(q);
+
+      Assert.IsTrue(results.Cast<Object>().Count() > 0);
+
+    }
+
+    [TestMethod]
     public async Task NonGenericQuery() {
       await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");

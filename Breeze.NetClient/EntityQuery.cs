@@ -13,9 +13,10 @@ namespace Breeze.NetClient {
   public class EntityQuery<T> : EntityQuery, IQueryable<T>, IOrderedQueryable<T>, IQueryProvider, IHasDataServiceQuery {
 
     public EntityQuery( ) : base() {
-      var context = new DataServiceContext(new Uri(__placeHolderServiceName), DataServiceProtocolVersion.V3);
+      var context = new DataServiceContext(new Uri(__placeholderServiceName), DataServiceProtocolVersion.V3);
+      DataServiceQuery = (DataServiceQuery<T>)context.CreateQuery<T>(__placeholderResourceName);
       // TODO: where(x => true) is a hack to avoid DataServiceQuery from inferring the entity key
-      DataServiceQuery = (DataServiceQuery<T>) context.CreateQuery<T>(__placeHolderResourceName).Where(x => true);
+      // DataServiceQuery = (DataServiceQuery<T>) context.CreateQuery<T>(__placeHolderResourceName).Where(x => true);
     }
 
     public EntityQuery(String resourceName)
@@ -78,19 +79,27 @@ namespace Breeze.NetClient {
     public override String GetResourcePath() {
       var dsq = (DataServiceQuery<T>)_dataServiceQuery;
       
-      var requestUri = dsq.RequestUri;
-      var s2 = requestUri.AbsoluteUri.Replace(__placeHolderServiceName, "");
+      var requestUri = dsq.RequestUri.AbsoluteUri;
+      // TODO: Hack to avoid DataServiceQuery from inferring the entity key
+      var hasEntityKeyUrl = !(requestUri.Contains(__placeholderResourceName + "()") || requestUri.EndsWith(__placeholderResourceName));
+      if (hasEntityKeyUrl) {
+        dsq = (DataServiceQuery<T>) dsq.Where( x => true);
+        requestUri = dsq.RequestUri.AbsoluteUri;
+      }
+      var s2 = requestUri.Replace(__placeholderServiceName, "");
       
       var resourceName = (String.IsNullOrEmpty(ResourceName)) 
         ? MetadataStore.Instance.GetDefaultResourceName(typeof(T))
         : ResourceName;
       
       // if any filter conditions
-      var queryResource = s2.Replace(__placeHolderResourceName + "()", resourceName);
+      var queryResource = s2.Replace(__placeholderResourceName + "()", resourceName);
       // if no filter conditions
-      queryResource = queryResource.Replace(__placeHolderResourceName, resourceName);
+      queryResource = queryResource.Replace(__placeholderResourceName, resourceName);
       // TODO: Hack to avoid DataServiceQuery from inferring the entity key
-      queryResource = queryResource.Replace("filter=true%20and%20", "filter=");
+      if (hasEntityKeyUrl) {
+        queryResource = queryResource.Replace("%20and%20true", "");
+      }
       return queryResource;
     }
 
@@ -193,8 +202,8 @@ namespace Breeze.NetClient {
    
 
     private DataServiceQuery _dataServiceQuery;
-    private static String __placeHolderServiceName = "http://localhost:7890/breeze/Undefined/";
-    private static String __placeHolderResourceName = "__Undefined__";
+    private static String __placeholderServiceName = "http://localhost:7890/breeze/Undefined/";
+    private static String __placeholderResourceName = "__Undefined__";
 
   }
   

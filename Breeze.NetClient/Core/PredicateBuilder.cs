@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace Breeze.NetClient.Core {
   /// <summary>
   /// Enables the efficient, dynamic composition of query predicates.
+  /// From: http://petemontgomery.wordpress.com/2011/02/10/a-universal-predicatebuilder/
   /// </summary>
   public static class PredicateBuilder {
     /// <summary>

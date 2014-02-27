@@ -210,7 +210,7 @@ namespace Test_NetClient {
         Assert.Fail("shouldn't get here");
       } catch (HttpRequestException e) {
         Assert.IsTrue(e.Message.Contains("Custom error message"));
-        Assert.IsTrue(e.Message.Contains("404"));
+        
 
       }
       
