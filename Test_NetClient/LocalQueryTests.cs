@@ -47,7 +47,19 @@ namespace Test_NetClient {
       var r0 = await _em1.ExecuteQuery(q);
 
       Assert.IsTrue(r0.Cast<Object>().Count() > 0);
-      var r1 = q.ExecuteLocalQuery(_em1);
+      var r1 = q.ExecuteLocally(_em1);
+      Assert.IsTrue(r0.Count() == r1.Count());
+    }
+
+    [TestMethod]
+    public async Task WithOnlyExpand() {
+      await _emTask;
+      var q = new EntityQuery<Customer>().Take(3);
+      var r0 = await _em1.ExecuteQuery(q);
+      var q1 = new EntityQuery<Customer>().Expand("Orders");
+      var r1 = q1.ExecuteLocally(_em1);
+      Assert.IsTrue(r0.Count() == r1.Count());
+      
     }
 
     [TestMethod]
@@ -60,7 +72,7 @@ namespace Test_NetClient {
 
       Assert.IsTrue(r.Count() > 0);
       Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
-      var rLocal = q3.ExecuteLocalQuery(_em1);
+      var rLocal = q3.ExecuteLocally(_em1);
       Assert.IsTrue(rLocal.Count() == r.Count());
       Assert.IsTrue(r.SequenceEqual(rLocal), "should be in the same order");
     }
@@ -78,113 +90,153 @@ namespace Test_NetClient {
 
       Assert.IsTrue(r.Count() > 0);
       Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
-      var rLocal = q3.ExecuteLocalQuery(_em1);
+      var rLocal = q3.ExecuteLocally(_em1);
       Assert.IsTrue(rLocal.Count() == r.Count());
       Assert.IsTrue(r.SequenceEqual(rLocal), "should be in the same order");
     }
 
-    //[TestMethod]
-    //public async Task NonGenericQuery() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C")).Take(3);
-    //  var q3 = (EntityQuery)q2;
+    [TestMethod]
+    public async Task GuidQuery() {
+      await _emTask;
 
-    //  var results = await _em1.ExecuteQuery(q3);
+      var q = new EntityQuery<Customer>().Take(3);
+      var r = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(r.Count() == 3, "should be no results");
+      var q1 = new EntityQuery<Customer>().Where(c => c.CustomerID.Equals(Guid.NewGuid())); 
+      var r1 = q1.ExecuteLocally(_em1);
+      Assert.IsTrue(r1.Count() == 0);
 
-    //  Assert.IsTrue(results.Cast<Object>().Count() == 3);
+    }
+
+    [TestMethod]
+    public async Task GuidQuery2() {
+      await _emTask;
+
+      var q = new EntityQuery<Customer>().Take(3);
+      var r = await _em1.ExecuteQuery(q);
+      Assert.IsTrue(r.Count() == 3, "should be no results");
       
-    //}
+      var q1 = new EntityQuery<Order>().Where(o => o.CustomerID == Guid.NewGuid()); // && true);
+      var r1 = q1.ExecuteLocally(_em1);
+      Assert.IsTrue(r1.Count() == 0);
 
-    //[TestMethod]
-    //public async Task InlineCount() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C")) ;
-    //  var q3 = q2.InlineCount();
+    }
 
-    //  var results = await q3.Execute(_em1);
 
-    //  var count = ((IHasInlineCount) results).InlineCount;
+    [TestMethod]
+    public async Task StartsWith() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers").Take(10);
+      var results = await _em1.ExecuteQuery(q);
+
+      var q1 = new EntityQuery<Customer>().Where(c => c.CompanyName.StartsWith("C")).Take(3);
+      var r1 = await _em1.ExecuteQuery(q1);
+      Assert.IsTrue(r1.Count() == 3);
+      var r2 = _em1.ExecuteQueryLocally(q1);
+
+      Assert.IsTrue(r1.Count() == r2.Count());
+
+    }
+
+    [TestMethod]
+    public async Task InlineCount() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
+      var q3 = q2.InlineCount();
+
+      var r = await q3.Execute(_em1);
+
+      var ilCount = ((IHasInlineCount)r).InlineCount;
+      Assert.IsTrue(ilCount > 0);
+      var r3 = q3.ExecuteLocally(_em1);
+      Assert.IsTrue(r.Count() == r3.Count());
+    }
+
+    [TestMethod]
+    public async Task InlineCount2() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C")).Take(2);
+      var q3 = q2.InlineCount();
+
+      var r = await q3.Execute(_em1);
+      Assert.IsTrue(r.Count() == 2);
+      var ilCount = ((IHasInlineCount)r).InlineCount;
+      Assert.IsTrue(ilCount > 0);
+      var r3 = q3.ExecuteLocally(_em1);
+      Assert.IsTrue(r3.Count() == 2);
+    }
+
+
+    [TestMethod]
+    public async Task WithEntityManager() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
+      var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
+      var r = await q3.With(_em1).Execute();
+
+      Assert.IsTrue(r.Count() == 2);
+      var r3 = q3.With(_em1).ExecuteLocally();
+      Assert.IsTrue(r3.Count() == 2);
+
+    }
+
+    [TestMethod]
+    public async Task WhereOrderByTake() {
+      await _emTask;
       
-    //  Assert.IsTrue(results.Count() > 0);
-    //  Assert.IsTrue(results.Count() == count, "counts should be the same");
-    //  Assert.IsTrue(results.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
-    //}
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      // to fill the cache
+      var r = await _em1.ExecuteQuery(q.Take(5));
 
-    //[TestMethod]
-    //public async Task InlineCount2() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C")).Take(2);
-    //  var q3 = q2.InlineCount();
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
+      var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
+      var r3 = await q3.Execute(_em1);
 
-    //  var results = await q3.Execute(_em1);
+      Assert.IsTrue(r3.Count() == 2);
+      Assert.IsTrue(r3.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
+      var r3Local = q3.ExecuteLocally(_em1);
+      Assert.IsTrue(r3Local.SequenceEqual(r3));
+    }
 
-    //  var count = ((IHasInlineCount)results).InlineCount;
-
-    //  Assert.IsTrue(results.Count() == 2);
-    //  Assert.IsTrue(results.Count() < count, "counts should be the same");
-    //  Assert.IsTrue(results.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
-    //}
-
-   
-
-    //[TestMethod]
-    //public async Task WithOverwriteChanges() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C")) ;
-    //  var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
-    //  var results = await q3.Execute(_em1);
-
-    //  Assert.IsTrue(results.Count() == 2);
-    //  results.ForEach(r => {
-    //    r.City = "xxx";
-    //    r.CompanyName = "xxx";
-    //  });
-    //  var results2 = await q3.With(MergeStrategy.OverwriteChanges).Execute(_em1);
-    //  // contents of results2 should be exactly the same as results
-    //  Assert.IsTrue(results.Count() == 2);
-
-    //}
-
-    //[TestMethod]
-    //public async Task WithEntityManager() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
-    //  var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
-    //  var results = await q3.With(_em1).Execute();
-
-    //  Assert.IsTrue(results.Count() == 2);
+    [TestMethod]
+    public async Task SimpleSelect() {
+      await _emTask;
+      var q = new EntityQuery<Order>().Take(5);
+      var r = await q.Execute(_em1);
+      Assert.IsTrue(r.Count() == 5);
+      var q1 = new EntityQuery<Order>().Select(o => o.Customer).Take(5);
+      var r1 = await q1.Execute(_em1);
+      Assert.IsTrue(r1.Count() == 5);
+      var ok = r1.All(c => c.GetType() == typeof(Customer));
+      Assert.IsTrue(ok);
       
-    //}
+      var r1Local = q1.ExecuteLocally(_em1);
+      Assert.IsTrue(r1Local.Count() == r1.Count());
+      ok = r1Local.All(c => c.GetType() == typeof(Customer));
+      Assert.IsTrue(ok );
 
-    //[TestMethod]
-    //public async Task WhereOrderByTake() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
-    //  var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
-    //  var results = await q3.Execute(_em1);
+    }
 
-    //  Assert.IsTrue(results.Count() == 2);
-    //  Assert.IsTrue(results.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
-    //}
+    [TestMethod]
+    public async Task SelectAnonWithEntityCollection() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
+      var q3 = q2.Select(c => new { Orders = c.Orders });
+      var r3 = await q3.Execute(_em1);
 
-    //[TestMethod]
-    //public async Task SelectAnonWithEntityCollection() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
-    //  var q3 = q2.Select(c => new { Orders = c.Orders });
-    //  var results = await q3.Execute(_em1);
+      Assert.IsTrue(r3.Count() > 0);
+      var ok = r3.All(r1 => (r1.Orders.Count() > 0) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
+      Assert.IsTrue(ok, "every item of anon should contain a collection of Orders");
+      var r3Local = q3.ExecuteLocally(_em1);
+      Assert.IsTrue(r3Local.Count() == r3.Count());
+      ok = r3Local.All(r1 => (r1.Orders.Count() > 0) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
+      Assert.IsTrue(ok, "every item of anon should contain a collection of Orders again");
 
-    //  Assert.IsTrue(results.Count() > 0);
-    //  var ok = results.All(r1 => ( r1.Orders.Count() > 0 ) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
-    //  Assert.IsTrue(ok, "every item of anon should contain a collection of Orders");
-    //}
+    }
 
     //[TestMethod]
     //public async Task SelectAnonWithScalarAndEntityCollection() {

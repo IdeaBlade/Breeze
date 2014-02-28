@@ -51,6 +51,33 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
+    public async Task SimpleSelect() {
+      await _emTask;
+
+      var q1 = new EntityQuery<Order>().Select(o => o.Customer).Take(5);
+      var r1 = await q1.Execute(_em1);
+      Assert.IsTrue(r1.Count() == 5);
+      var ok = r1.All(c => c.GetType() == typeof(Customer));
+      Assert.IsTrue(ok);
+
+
+    }
+
+    [TestMethod]
+    public async Task SimpleSelect2() {
+      await _emTask;
+
+      var q1 = new EntityQuery<Customer>().Where(c => c.CompanyName.StartsWith("C")).Expand("Orders").Select(c => c.Orders);
+      var r1 = await q1.Execute(_em1);
+      Assert.IsTrue(r1.Count() > 0);
+      //var ok = r1.All(c => c.GetType() == typeof(Customer));
+      //Assert.IsTrue(ok);
+
+
+    }
+
+
+    [TestMethod]
     public async Task NonGenericQuery() {
       await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");

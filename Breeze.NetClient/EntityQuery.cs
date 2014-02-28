@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Breeze.NetClient {
 
   // TODO: EntityQuery is currently just additive - i.e. no way to remove clauses
-  public class EntityQuery<T> : EntityQuery, IQueryable<T>, IOrderedQueryable<T>, IQueryProvider, IHasDataServiceQuery {
+  public class EntityQuery<T> : EntityQuery, IQueryable<T>, IOrderedQueryable<T>, IQueryProvider, IHasDataServiceQuery  {
 
     public EntityQuery( ) : base() {
       var context = new DataServiceContext(new Uri(__placeholderServiceName), DataServiceProtocolVersion.V3);
@@ -29,14 +29,6 @@ namespace Breeze.NetClient {
       DataServiceQuery = query.DataServiceQuery;
     }
 
-    public IEnumerable<T> ExecuteLocalQuery(EntityManager em) {
-
-      var lambda = CacheQueryExpressionVisitor.Visit<T>(this.Expression, CacheQueryOptions.Default);
-      var func = lambda.Compile();
-    
-      return func(em).ToList();
-    }
-
     public override object  Clone() {
       return new EntityQuery<T>(this);
     }
@@ -47,9 +39,25 @@ namespace Breeze.NetClient {
       return q;
     }
 
-    public Task<IEnumerable<T>> Execute(EntityManager em = null) {
-      em = em ?? this.EntityManager;
-      return em.ExecuteQuery<T>(this);
+    public Task<IEnumerable<T>> Execute(EntityManager entityManager = null) {
+      entityManager = CheckEm(entityManager);
+      return entityManager.ExecuteQuery<T>(this);
+    }
+
+    public IEnumerable<T> ExecuteLocally(EntityManager entityManager = null) {
+      entityManager = CheckEm(entityManager);
+      var lambda = CacheQueryExpressionVisitor.Visit<T>(this.Expression, entityManager.DefaultCacheQueryOptions);
+      var func = lambda.Compile();
+
+      return func(entityManager).ToList();
+    }
+
+    private EntityManager CheckEm(EntityManager entityManager) {
+      entityManager = entityManager ?? this.EntityManager;
+      if (entityManager == null) {
+        throw new ArgumentException("entityManager parameter is null and this EntityQuery does not have its own EntityManager specified");
+      }
+      return entityManager;
     }
 
     public EntityQuery<T> Expand<TTarget>(Expression<Func<T, TTarget>> navigationPropertyAccessor) {

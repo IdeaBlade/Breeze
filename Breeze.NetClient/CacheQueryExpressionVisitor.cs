@@ -29,11 +29,15 @@ namespace Breeze.NetClient {
     }
 
 
-    public static Expression<Func<EntityManager, IEnumerable<T>>> Visit<T>(Expression expr, CacheQueryOptions cacheQueryOptions) {
+    public static Expression<Func<EntityManager, IEnumerable<T>>> Visit<T>(Expression expr, CacheQueryOptions cacheQueryOptions)  {
       var visitor = new CacheQueryExpressionVisitor(cacheQueryOptions, typeof(T));
-      var cacheExpr = visitor.Visit(expr);
-
-      var lambda = Expression.Lambda<Func<EntityManager, IEnumerable<T>>>(cacheExpr, visitor._entityManagerParameterExpr);
+      Expression<Func<EntityManager, IEnumerable<T>>> lambda;
+      if (IsResourceSetExpression(expr)) {
+        lambda = (EntityManager em) => em.GetEntities<T>(EntityState.AllButDetached);
+      } else {
+        var cacheExpr = visitor.Visit(expr);
+        lambda = Expression.Lambda<Func<EntityManager, IEnumerable<T>>>(cacheExpr, visitor._entityManagerParameterExpr);
+      }
       return lambda;
     }
 
@@ -73,6 +77,8 @@ namespace Breeze.NetClient {
       return base.VisitBinary(be);
     }
 
+
+
     protected override Expression VisitMethodCall(MethodCallExpression mce) {
 
       // Dequote lambda expressions - this is required because that Enumerable.XXX() methods take Func's whereas
@@ -82,25 +88,17 @@ namespace Breeze.NetClient {
       var method = TranslateQueryableToEnumerable(mce.Method);
 
       MethodCallExpression newMce;
-      Expression objectExpr;
+      Expression objectExpr = mce.Object;
 
-      if ((int) args[0].NodeType == 10000) {
+      if (args.Any() && IsResourceSetExpression(args[0])) {
         args[0] = GetEntitiesAsParameterExpr(_elementType);
         newMce = Expression.Call(method, args);
         return base.VisitMethodCall(newMce);
       }
 
-      objectExpr = mce.Object;
-
-      //if (objectExpr != null) {
-      //  if (typeof(DataServiceQuery).GetTypeInfo().IsAssignableFrom(objectExpr.Type.GetTypeInfo())) {
-      //    objectExpr = GetEntitiesAsParameterExpr(_elementType);
-      //  }
-      //}
-
-      if (method.Name == "Expand") {
+      if (method.Name == "Expand" || method.Name == "IncludeTotalCount") {
         var operand = ((UnaryExpression)objectExpr).Operand;
-        if ((int)operand.NodeType == 10000) {
+        if (IsResourceSetExpression(operand)) {
           return GetEntitiesAsParameterExpr(_elementType);
         } else {
           return base.Visit(operand);
@@ -158,6 +156,12 @@ namespace Breeze.NetClient {
     #endregion
 
     #region Private members
+
+
+    private static bool IsResourceSetExpression(Expression expr) {
+      return (int)expr.NodeType == 10000;
+    }
+
 
     private MethodInfo TranslateQueryableToEnumerable(MethodInfo method) {
       // convert from method Queryable<A,B>.OrderBy( a, b) -> Queryable<A, B>.OrderBy( a, b, IComparer<B>);
@@ -263,13 +267,14 @@ namespace Breeze.NetClient {
 
     }
 
-    private MethodCallExpression HandleCacheQueryOptions(MethodCallExpression expr) {
-      if (_cacheQueryOptions == CacheQueryOptions.None) return expr;
+    private MethodCallExpression HandleCacheQueryOptions(MethodCallExpression mce) {
+      if (mce.Object == null || mce.Method.DeclaringType != typeof(String)) return mce;
+      if (_cacheQueryOptions == CacheQueryOptions.None) return mce;
 
       MethodInfo mi;
-      if (!StringFns.Map.TryGetValue(expr.Method.Name, out mi)) return expr;
-      if (expr.Arguments.Count != 1) return expr;
-      var newExpr = Expression.Call(mi, BuildStrFnArgs(expr.Object, expr.Arguments[0]));
+      if (!StringFns.Map.TryGetValue(mce.Method.Name, out mi)) return mce;
+      if (mce.Arguments.Count != 1) return mce;
+      var newExpr = Expression.Call(mi, BuildStrFnArgs(mce.Object, mce.Arguments[0]));
       return newExpr;
     }
 

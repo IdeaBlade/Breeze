@@ -20,6 +20,7 @@ namespace Breeze.NetClient {
     public EntityManager(String serviceName) {
       DefaultDataService = new DataService(serviceName);
       DefaultQueryOptions = QueryOptions.Default;
+      DefaultCacheQueryOptions = CacheQueryOptions.Default;
       MetadataStore = MetadataStore.Instance;
       KeyGenerator = new DefaultKeyGenerator();
       Initialize();
@@ -28,6 +29,7 @@ namespace Breeze.NetClient {
     public EntityManager(EntityManager em) {
       DefaultDataService = em.DefaultDataService;
       DefaultQueryOptions = em.DefaultQueryOptions;
+      DefaultCacheQueryOptions = em.DefaultCacheQueryOptions;
       MetadataStore = em.MetadataStore;
       KeyGenerator = em.KeyGenerator; // TODO: review whether we should clone instead.
       Initialize();
@@ -56,9 +58,10 @@ namespace Breeze.NetClient {
 
     public SaveOptions DefaultSaveOptions { get; set; }
 
+    public CacheQueryOptions DefaultCacheQueryOptions { get; set; }
+
     public IKeyGenerator KeyGenerator { get; set; }
-
-
+    
     #endregion
 
     #region async methods
@@ -71,6 +74,10 @@ namespace Breeze.NetClient {
     public async Task<IEnumerable<T>> ExecuteQuery<T>(EntityQuery<T> query) {
       var result = await ExecuteQuery((EntityQuery) query);
       return (IEnumerable<T>)result;
+    }
+
+    public IEnumerable<T> ExecuteQueryLocally<T>(EntityQuery<T> query) {
+      return query.ExecuteLocally(this);
     }
 
     public async Task<IEnumerable> ExecuteQuery(EntityQuery query) {
@@ -477,7 +484,7 @@ namespace Breeze.NetClient {
     /// As the <see cref="EntityState"/> is a flags enumeration, you can supply multiple 
     /// OR'ed values to search for multiple entity states.
     /// </remarks>
-    public IEnumerable<T> GetEntities<T>(EntityState entityState = EntityState.AllButDetached) where T : class {
+    public IEnumerable<T> GetEntities<T>(EntityState entityState = EntityState.AllButDetached) {
       return GetEntities(typeof(T), entityState).Cast<T>();
     }
 
