@@ -234,7 +234,7 @@ var Param = (function () {
                 curContext.prevContext = context;
                 // just update the prevContext but don't change the curContext.
                 return that;
-            } else if (context.prevContext === null) {
+            } else if (context.prevContext == null) {
                 context.prevContext = that._context;
             } else {
                 throw new Error("Illegal construction - use 'or' to combine checks");
