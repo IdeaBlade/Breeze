@@ -48,7 +48,7 @@ module.exports = function(grunt) {
 	exec: {
 	  buildIntellisense: {
 	    cwd: '../Intellisense',
-		  cmd: 'node server.js'
+		  cmd: 'npm install --silent && node server.js'
 	  }
 	},
   });
