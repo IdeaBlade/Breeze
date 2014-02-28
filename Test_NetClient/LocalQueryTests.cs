@@ -65,6 +65,24 @@ namespace Test_NetClient {
       Assert.IsTrue(r.SequenceEqual(rLocal), "should be in the same order");
     }
 
+    [TestMethod]
+    public async Task WhereAnyOrderBy2() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      // just to fill up some extra custs
+      var rBase = await q.Take(10).Execute(_em1);
+
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C") && c.Orders.Any(o => o.Freight > 10));
+      var q3 = q2.OrderBy(c => c.City).Expand("Orders");
+      var r = await q3.Execute(_em1);
+
+      Assert.IsTrue(r.Count() > 0);
+      Assert.IsTrue(r.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
+      var rLocal = q3.ExecuteLocalQuery(_em1);
+      Assert.IsTrue(rLocal.Count() == r.Count());
+      Assert.IsTrue(r.SequenceEqual(rLocal), "should be in the same order");
+    }
+
     //[TestMethod]
     //public async Task NonGenericQuery() {
     //  await _emTask;

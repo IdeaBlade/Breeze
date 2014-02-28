@@ -30,9 +30,10 @@ namespace Breeze.NetClient {
     }
 
     public IEnumerable<T> ExecuteLocalQuery(EntityManager em) {
-      // var cqVisitor = new CacheQueryExpressionVisitor(CacheQueryOptions.Default, typeof(T));
-      // var expr = ResourceSetReplacementVisitor.Visit(this.Expression, cqVisitor.EntityManagerParameterExpr);
-      var func = CacheQueryExpressionVisitor.GetCompiledFunc<IEnumerable<T>>(this.Expression, CacheQueryOptions.Default, typeof(T));
+
+      var lambda = CacheQueryExpressionVisitor.Visit<T>(this.Expression, CacheQueryOptions.Default);
+      var func = lambda.Compile();
+    
       return func(em).ToList();
     }
 
