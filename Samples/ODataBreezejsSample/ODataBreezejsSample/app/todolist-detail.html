@@ -1,0 +1,72 @@
+﻿<!--------------------------------------------------- 
+    View of a single TodoList
+    
+    A subview of todolists.html which assumes that
+    its todolistdetail controller has access to the parent controller
+    --------------------------------------------------->
+<div class="panel panel-primary" data-ng-controller="todolist-detail as vm">
+    
+    <!-- TodoList Panel Heading - the TodoList Title -->
+    <div class="panel-heading" data-ng-switch="vm.isEditing(vm.todoList)">
+    
+        <!-- Display mode -->
+        <div data-ng-switch-when="false">
+            <h1 data-ng-click="vm.editBegin(vm.todoList)">
+                {{vm.todoList.title}}
+                <a data-ng-click="vm.deleteTodoList()">
+                    <i class="glyphicon glyphicon-remove" title="Delete this TodoList"></i>
+                </a>
+            </h1>
+        </div>
+
+        <!-- Edit mode -->
+        <div data-ng-switch-default>
+            <form data-ng-submit="vm.editEnd()" >
+                <input type="text" autofocus placeholder="Title"
+                       class="todolist-title"
+                       data-z-validate
+                       data-ng-model="vm.todoList.title"
+                       data-ng-blur="vm.editEnd()" />
+            </form>
+        </div>
+    </div>
+
+    <!-- TodoList Panel Body - the Todos -->
+    <div class="panel-body">
+        
+        <!-- New Todo Item description -->
+        <form class="app-todo-text" data-ng-submit="vm.addTodoItem()">
+            <input type="text" autofocus placeholder="What is to be done?"
+                   class="todoitem-description"
+                   data-ng-model="vm.newTodoItemDescription"
+                   data-ng-blur="vm.addTodoItem()" />
+        </form>
+
+
+        <div class="app-todo-text"
+             data-ng-repeat="todoItem in vm.todoItems()"
+             data-ng-switch="vm.isEditing(todoItem)">
+
+            <!-- Display mode -->
+            <div data-ng-switch-when="false">
+                <input type="checkbox" data-ng-model="todoItem.isDone" title="checked if done" />
+                <label data-ng-click="vm.editBegin(todoItem)"
+                       data-ng-class="{done: todoItem.IsDone}">{{todoItem.description}}</label>
+                <a data-ng-click="vm.deleteTodoItem(todoItem)">
+                    <i class="glyphicon glyphicon-remove" title="Delete this Todo item"></i>
+                </a>
+            </div>
+
+            <!-- Edit mode -->
+            <div data-ng-switch-default>
+                <form data-ng-submit="vm.editEnd()">
+                    <input type="text" autofocus placeholder="Description"
+                           class="todoitem-description"
+                           data-z-validate
+                           data-ng-model="todoItem.description"
+                           data-ng-blur="vm.editEnd()" />
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
