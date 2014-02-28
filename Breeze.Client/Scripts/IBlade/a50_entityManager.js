@@ -744,8 +744,7 @@ var EntityManager = (function () {
         var promise;
         // 'resolve' methods create a new typed object with all of its properties fully resolved against a list of sources.
         // Thought about creating a 'normalized' query with these 'resolved' objects
-        // but decided not to be the 'query' may not be an EntityQuery (it can be a string) and hence might not have a queryOptions or dataServices property on it.
-        // It can be a string.
+        // but decided not to because the 'query' may not be an EntityQuery (it can be a string) and hence might not have a queryOptions or dataServices property on it.
         var queryOptions = QueryOptions.resolve([ query.queryOptions, this.queryOptions, QueryOptions.defaultInstance]);
         var dataService = DataService.resolve([ query.dataService, this.dataService]);
 
@@ -1144,9 +1143,7 @@ var EntityManager = (function () {
     will be used to merge any server side entity returned by this method.
     @example
         // assume em1 is an EntityManager containing a number of preexisting entities. 
-        var employeeType = em1.metadataStore.getEntityType("Employee");
-        var employeeKey = new EntityKey(employeeType, 1);
-        em1.fetchEntityByKey(employeeKey).then(function(result) {
+        em1.fetchEntityByKey("Employee", 1).then(function(result) {
             var employee = result.entity;
             var entityKey = result.entityKey;
             var fromCache = result.fromCache;
@@ -1186,18 +1183,32 @@ var EntityManager = (function () {
         promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
     **/
     proto.fetchEntityByKey = function () {
-        var tpl = createEntityKey(this, arguments);
+        dataService = DataService.resolve([this.dataService]);
+        if ((!dataService.hasServerMetadata) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
+            return fetchEntityByKeyCore(this, arguments);
+        } else {
+            var that = this;
+            var args = arguments;
+            return this.fetchMetadata(dataService).then(function () {
+                return fetchEntityByKeyCore(that, args);
+            });
+        }
+    };
+
+    function fetchEntityByKeyCore(em, args) {
+
+        var tpl = createEntityKey(em, args);
         var entityKey = tpl.entityKey;
         var checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
         var entity;
         var isDeleted = false;
         if (checkLocalCacheFirst) {
-            entity = this.getEntityByKey(entityKey);
+            entity = em.getEntityByKey(entityKey);
             isDeleted = entity && entity.entityAspect.entityState.isDeleted();
             if (isDeleted) {
                 entity = null;
                 // entityManager.queryOptions is always  fully resolved 
-                if (this.queryOptions.mergeStrategy === MergeStrategy.OverwriteChanges) {
+                if (em.queryOptions.mergeStrategy === MergeStrategy.OverwriteChanges) {
                     isDeleted = false;
                 }
             }
@@ -1205,7 +1216,7 @@ var EntityManager = (function () {
         if (entity || isDeleted) {
             return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
         } else {
-            return EntityQuery.fromEntityKey(entityKey).using(this).execute().then(function(data) {
+            return EntityQuery.fromEntityKey(entityKey).using(em).execute().then(function(data) {
                 entity = (data.results.length === 0) ? null : data.results[0];
                 return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: false });
             });
