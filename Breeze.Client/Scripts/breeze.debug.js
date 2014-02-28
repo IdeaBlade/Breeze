@@ -15801,13 +15801,12 @@ breeze.SaveOptions= SaveOptions;
     //}
 
     function wrapPropDescription(proto, property) {
-        if (!proto.hasOwnProperty(property.name)) {
-            var nextProto = Object.getPrototypeOf(proto);
-            wrapPropDescription(nextProto, property);
-            return;
-        } 
+        var protoWithPropertyDescription = proto;
+        while (!protoWithPropertyDescription.hasOwnProperty(property.name)) {
+            protoWithPropertyDescription = Object.getPrototypeOf(proto);
+        }
 
-        var propDescr = Object.getOwnPropertyDescriptor(proto, property.name);
+        var propDescr = Object.getOwnPropertyDescriptor(protoWithPropertyDescription, property.name);
         // if not configurable; we can't touch it - so leave.
         if (!propDescr.configurable) return;
         // if a data descriptor - don't change it - this is basically a static property - i.e. defined on every instance of the type with the same value. 
