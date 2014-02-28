@@ -1456,7 +1456,7 @@
             ok(saveResult.keyMappings.length === 0, "no key mappings should be returned");
 
             entities.forEach(function(e) {
-                ok(e.entityAspect.entityState.isUnchanged, "entity is not in unchanged state");
+                ok(e.entityAspect.entityState.isUnchanged(), "entity is not in unchanged state");
                 if (e.entityType === cust.entityType) {
                     ok(e === cust, "cust does not match");
                 } else {

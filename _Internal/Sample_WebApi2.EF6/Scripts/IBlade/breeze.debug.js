@@ -841,7 +841,7 @@ var Param = (function () {
                 curContext.prevContext = context;
                 // just update the prevContext but don't change the curContext.
                 return that;
-            } else if (context.prevContext === null) {
+            } else if (context.prevContext == null) {
                 context.prevContext = that._context;
             } else {
                 throw new Error("Illegal construction - use 'or' to combine checks");
@@ -14272,7 +14272,7 @@ var MappingContext = (function () {
                     em.entityChanged.publish({ entityAction: action, entity: targetEntity });
                     // this is needed to handle an overwrite of a modified entity with an unchanged entity 
                     // which might in turn cause _hasChanges to change.
-                    if (!targetEntityState.isUnchanged) {
+                    if (!targetEntityState.isUnchanged()) {
                         em._notifyStateChange(targetEntity, false);
                     }
                 } else {

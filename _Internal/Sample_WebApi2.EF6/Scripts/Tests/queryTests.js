@@ -28,6 +28,7 @@
 
     test("query by entity key without preexisting metadata", function() {
         manager = new breeze.EntityManager(testFns.serviceName);
+        stop();
         manager.fetchMetadata().then(function () { 
             var empType = manager.metadataStore.getEntityType("Employee");
             var entityKey = new EntityKey(empType, 1);
@@ -1457,6 +1458,9 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
+  
+
+
     test("duplicates after relation query", function() {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - expand not yet supported");
@@ -1671,7 +1675,7 @@
         customer.entityAspect.setUnchanged();
         
         // SHOULD BE THE SAME. EITHER WAY ITS AN ATTACHED UNCHANGED ENTITY
-        ok(customer.entityAspect.entityState.isUnchanged,
+        ok(customer.entityAspect.entityState.isUnchanged(),
             "Attached entity is in state " + customer.entityAspect.entityState);
 
         ok(em.getEntities().length === 1,
