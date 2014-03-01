@@ -726,7 +726,7 @@ var EntityAspect = (function() {
         if (property) {
             var propertyName = typeof (property) === &#x27;string&#x27; ? property : property.name;
             result = result.filter(function (ve) {
-                return (ve.property &amp;&amp; ve.property.name === propertyName);
+                return ve.property &amp;&amp; (ve.property.name === propertyName || (propertyName.indexOf(&quot;.&quot;) != -1 &amp;&amp; ve.propertyName == propertyName));
             });
         }
         return result;
