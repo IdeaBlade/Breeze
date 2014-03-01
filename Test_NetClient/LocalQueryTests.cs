@@ -202,37 +202,44 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
-    public async Task SimpleSelect() {
+    public async Task AnonSelectEntity() {
       await _emTask;
       var q = new EntityQuery<Order>().Take(5);
-      var r = await q.Execute(_em1);
-      Assert.IsTrue(r.Count() == 5);
-      var q1 = new EntityQuery<Order>().Select(o => o.Customer).Take(5);
+      var r0 = await q.Execute(_em1);
+      Assert.IsTrue(r0.Count() == 5);
+      var q1 = new EntityQuery<Order>().Select(o => new { o.Customer }).Take(5);
       var r1 = await q1.Execute(_em1);
       Assert.IsTrue(r1.Count() == 5);
-      var ok = r1.All(c => c.GetType() == typeof(Customer));
+      var ok = r1.All(r => r.Customer.GetType() == typeof(Customer));
       Assert.IsTrue(ok);
-      
+
+      // This only works because we insure that the order exists in cache before the query
       var r1Local = q1.ExecuteLocally(_em1);
+      
       Assert.IsTrue(r1Local.Count() == r1.Count());
-      ok = r1Local.All(c => c.GetType() == typeof(Customer));
+      ok = r1Local.All(r => r.Customer.Orders.Count == 1);
+      Assert.IsTrue(ok, "Order's per customer should be only one for now because that's all we cached");
+      ok = r1Local.All(r => r.Customer.GetType() == typeof(Customer));
       Assert.IsTrue(ok );
 
     }
 
     [TestMethod]
-    public async Task SelectAnonWithEntityCollection() {
+    public async Task AnonSelectEntityCollection() {
       await _emTask;
-      var q = new EntityQuery<Foo.Customer>("Customers");
-      var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
-      var q3 = q2.Select(c => new { Orders = c.Orders });
-      var r3 = await q3.Execute(_em1);
+      // precache the selected custs - needed to insure that local query works later.
+      var q0 = new EntityQuery<Foo.Customer>("Customers")
+        .Where(c => c.CompanyName.StartsWith("C"));
+      var r0 = await q0.With(_em1).Execute();
 
-      Assert.IsTrue(r3.Count() > 0);
-      var ok = r3.All(r1 => (r1.Orders.Count() > 0) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
+      var q2 = q0.Select(c => new { Orders = c.Orders });
+      var r2 = await q2.Execute(_em1);
+
+      Assert.IsTrue(r2.Count() > 0);
+      var ok = r2.All(r1 => (r1.Orders.Count() > 0) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
       Assert.IsTrue(ok, "every item of anon should contain a collection of Orders");
-      var r3Local = q3.ExecuteLocally(_em1);
-      Assert.IsTrue(r3Local.Count() == r3.Count());
+      var r3Local = q2.ExecuteLocally(_em1);
+      Assert.IsTrue(r3Local.Count() == r2.Count());
       ok = r3Local.All(r1 => (r1.Orders.Count() > 0) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
       Assert.IsTrue(ok, "every item of anon should contain a collection of Orders again");
 

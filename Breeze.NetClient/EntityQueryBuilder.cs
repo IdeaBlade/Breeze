@@ -234,6 +234,21 @@ namespace Breeze.NetClient {
             typeof(Func<,,,,>)
         };
 
+    // TODO: review this later.
+    //static Expression<Func<T, bool>> In<T, R>(this Expression<Func<T, R>> member, params R[] values) {
+    //  var prop = member.Body as MemberExpression;
+    //  if (prop == null)
+    //    throw new Exception("Expression has to be member");
+    //  if (values.Length == 0)
+    //    return _ => true;
+    //  var body = values.Select(v => Expression.Equal(prop, Expression.Constant(v))).Aggregate(Expression.OrElse);
+    //  return Expression.Lambda<Func<T, bool>>(body, member.Parameters[0]);
+    //}
+
+    //// Helps with type inference
+    //static Expression<Func<A, B>> E<A, B>(Expression<Func<A, B>> exp) {
+    //  return exp;
+    //}
   
   }
 }

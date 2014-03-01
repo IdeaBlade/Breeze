@@ -21,16 +21,16 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="cacheQueryOptions"></param>
     /// <param name="entityManagerParameterExpr"></param>
-    private  CacheQueryExpressionVisitor(CacheQueryOptions cacheQueryOptions, Type entityType)
+    private  CacheQueryExpressionVisitor(CacheQueryOptions cacheQueryOptions, Type queryableType)
       : base() {
         _cacheQueryOptions = cacheQueryOptions;
-        _elementType = entityType;
+        _queryableType = queryableType;
         _entityManagerParameterExpr = Expression.Parameter(typeof(EntityManager));
     }
 
 
-    public static Expression<Func<EntityManager, IEnumerable<T>>> Visit<T>(Expression expr, CacheQueryOptions cacheQueryOptions)  {
-      var visitor = new CacheQueryExpressionVisitor(cacheQueryOptions, typeof(T));
+    public static Expression<Func<EntityManager, IEnumerable<T>>> Visit<T>(Expression expr, Type queryableType, CacheQueryOptions cacheQueryOptions)  {
+      var visitor = new CacheQueryExpressionVisitor(cacheQueryOptions, queryableType);
       Expression<Func<EntityManager, IEnumerable<T>>> lambda;
       if (IsResourceSetExpression(expr)) {
         lambda = (EntityManager em) => em.GetEntities<T>(EntityState.AllButDetached);
@@ -44,7 +44,7 @@ namespace Breeze.NetClient {
 
     private ParameterExpression _entityManagerParameterExpr;
     private CacheQueryOptions _cacheQueryOptions;
-    private Type _elementType;
+    private Type _queryableType;
 
     #region Visit methods 
 
@@ -55,7 +55,7 @@ namespace Breeze.NetClient {
 
       var entityQuery = ce.Value as EntityQuery;
       if (entityQuery != null) {
-        return GetEntitiesAsParameterExpr(_elementType);
+        return GetEntitiesAsParameterExpr(_queryableType);
       }
 
       return base.VisitConstant(ce);
@@ -91,7 +91,7 @@ namespace Breeze.NetClient {
       Expression objectExpr = mce.Object;
 
       if (args.Any() && IsResourceSetExpression(args[0])) {
-        args[0] = GetEntitiesAsParameterExpr(_elementType);
+        args[0] = GetEntitiesAsParameterExpr(_queryableType);
         newMce = Expression.Call(method, args);
         return base.VisitMethodCall(newMce);
       }
@@ -99,7 +99,7 @@ namespace Breeze.NetClient {
       if (method.Name == "Expand" || method.Name == "IncludeTotalCount") {
         var operand = ((UnaryExpression)objectExpr).Operand;
         if (IsResourceSetExpression(operand)) {
-          return GetEntitiesAsParameterExpr(_elementType);
+          return GetEntitiesAsParameterExpr(_queryableType);
         } else {
           return base.Visit(operand);
         }

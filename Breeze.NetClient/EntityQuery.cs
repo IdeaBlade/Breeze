@@ -15,8 +15,7 @@ namespace Breeze.NetClient {
     public EntityQuery( ) : base() {
       var context = new DataServiceContext(new Uri(__placeholderServiceName), DataServiceProtocolVersion.V3);
       DataServiceQuery = (DataServiceQuery<T>)context.CreateQuery<T>(__placeholderResourceName);
-      // TODO: where(x => true) is a hack to avoid DataServiceQuery from inferring the entity key
-      // DataServiceQuery = (DataServiceQuery<T>) context.CreateQuery<T>(__placeHolderResourceName).Where(x => true);
+      QueryableType = typeof(T);
     }
 
     public EntityQuery(String resourceName)
@@ -46,7 +45,7 @@ namespace Breeze.NetClient {
 
     public IEnumerable<T> ExecuteLocally(EntityManager entityManager = null) {
       entityManager = CheckEm(entityManager);
-      var lambda = CacheQueryExpressionVisitor.Visit<T>(this.Expression, entityManager.DefaultCacheQueryOptions);
+      var lambda = CacheQueryExpressionVisitor.Visit<T>(this.Expression, this.QueryableType, entityManager.DefaultCacheQueryOptions);
       var func = lambda.Compile();
 
       return func(entityManager).ToList();
@@ -105,7 +104,7 @@ namespace Breeze.NetClient {
       var s2 = requestUri.Replace(__placeholderServiceName, "");
       
       var resourceName = (String.IsNullOrEmpty(ResourceName)) 
-        ? MetadataStore.Instance.GetDefaultResourceName(typeof(T))
+        ? MetadataStore.Instance.GetDefaultResourceName(this.QueryableType)
         : ResourceName;
       
       // if any filter conditions
@@ -248,13 +247,15 @@ namespace Breeze.NetClient {
     public void UpdateFrom(EntityQuery query) {
       ResourceName = query.ResourceName;
       ElementType = query.ElementType;
+      QueryableType = query.QueryableType;
       DataService = query.DataService;
       EntityManager = query.EntityManager;
       QueryOptions = query.QueryOptions;
     }
 
     public String ResourceName { get; protected internal set; }
-    public virtual Type ElementType { get; protected internal set; }
+    public virtual Type ElementType { get; protected set; }
+    public virtual Type QueryableType { get; protected set; }
     public DataService DataService { get; protected internal set; }
     public EntityManager EntityManager { get; protected internal set; }
     public abstract Expression Expression { get; }
