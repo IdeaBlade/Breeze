@@ -32,6 +32,35 @@
         teardown: function () { }
     });
 
+    test("hasChangesChanged event raised after saveChanges", 4, function () {
+        var em = newEm();
+        
+        var hasChangesChangedRaised = [];
+        em.hasChangesChanged.subscribe(
+            function (eventArgs) {
+                hasChangesChangedRaised.push(eventArgs.hasChanges);
+            }
+        );
+
+        var emp = em.createEntity("Employee");
+        emp.setProperty("firstName", "Test fn");
+        emp.setProperty("lastName", "Test ln");
+        emp.setProperty("fullName", "foo");
+
+        stop();
+        em.saveChanges()
+           .then(function () {
+               equal(hasChangesChangedRaised.length, 2,
+                "hasChangesChanged should have been raised twice");
+               ok(hasChangesChangedRaised[0] === true,
+                "first hasChangesChanged is true after create");
+               ok(hasChangesChangedRaised[1] === false,
+                "second hasChangesChanged is false after save");
+               ok(!em.hasChanges(),
+                "manager should not have pending changes after save");
+           }).fail(testFns.handleFail).fin(start);
+    });
+
     test("delete without query", function () {
         var em = newEm();
         var em2 = newEm();

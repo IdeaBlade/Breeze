@@ -7369,7 +7369,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 459,
+            "line": 460,
             "description": "Clears this EntityManager's cache but keeps all other settings. Note that this \nmethod is not as fast as creating a new EntityManager via 'new EntityManager'.\nThis is because clear actually detaches all of the entities from the EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    em1.clear();\n    // em1 is will now contain no entities, but all other setting will be maintained."
@@ -7381,7 +7381,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 487,
+            "line": 485,
             "description": "Creates an empty copy of this EntityManager",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var em2 = em1.createEmptyCopy();\n    // em2 is a new EntityManager with all of em1's settings\n    // but no entities."
@@ -7397,7 +7397,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 503,
+            "line": 501,
             "description": "Attaches an entity to this EntityManager with an  {{#crossLink \"EntityState\"}}{{/crossLink}} of 'Added'.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var cust1 = custType.createEntity();\n    em1.addEntity(cust1);\nNote that this is the same as using 'attachEntity' with an {{#crossLink \"EntityState\"}}{{/crossLink}} of 'Added'.",
@@ -7421,7 +7421,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 524,
+            "line": 522,
             "description": "Attaches an entity to this EntityManager with a specified {{#crossLink \"EntityState\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var cust1 = custType.createEntity();\n    em1.attachEntity(cust1, EntityState.Added);"
@@ -7458,7 +7458,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 592,
+            "line": 590,
             "description": "Detaches an entity from this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    // assume cust1 is a customer Entity previously attached to em1\n    em1.detachEntity(cust1);\n    // em1 will now no longer contain cust1 and cust1 will have an \n    // entityAspect.entityState of EntityState.Detached"
@@ -7481,7 +7481,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 618,
+            "line": 616,
             "description": "Fetches the metadata associated with the EntityManager's current 'serviceName'.  This call\noccurs internally before the first query to any service if the metadata hasn't already been\nloaded.",
             "example": [
                 "\nUsually you will not actually process the results of a fetchMetadata call directly, but will instead\nask for the metadata from the EntityManager after the fetchMetadata call returns.",
@@ -7529,7 +7529,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 667,
+            "line": 665,
             "description": "Executes the specified query.",
             "example": [
                 "\nThis method can be called using a 'promises' syntax ( recommended)",
@@ -7628,7 +7628,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 763,
+            "line": 761,
             "description": "Executes the specified query against this EntityManager's local cache.",
             "example": [
                 "\nBecause this method is executed immediately there is no need for a promise or a callback",
@@ -7653,7 +7653,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 835,
+            "line": 833,
             "description": "Saves either a list of specified entities or all changed entities within this EntityManager. If there are no changes to any of the entities\nspecified then there will be no server side call made but a valid 'empty' saveResult will still be returned.",
             "example": [
                 "\nOften we will be saving all of the entities within an EntityManager that are either added, modified or deleted\nand we will let the 'saveChanges' call determine which entities these are. ",

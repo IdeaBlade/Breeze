@@ -17,6 +17,7 @@ module.exports = function(grunt) {
            'CarBones',
            'Edmunds',
            'TempHire',
+           'ODataBreezeJsSample'
         ];
   var sampleSolutionDirs = sampleNames.map(function(sn) {
     return samplesDir + sn + '/';
@@ -35,14 +36,14 @@ module.exports = function(grunt) {
   
   var nugetPackageNames = [
      'Breeze.WebApi', 
-	   'Breeze.WebApi2.EF6',
+     'Breeze.WebApi2.EF6',
      'Breeze.WebApi2.NH',
-	   'Breeze.Client',
-	   'Breeze.Server.WebApi2',
+     'Breeze.Client',
+     'Breeze.Server.WebApi2',
      'Breeze.Server.ContextProvider.EF6',
      'Breeze.Server.ContextProvider.NH',
      'Breeze.Server.ContextProvider'
-	];
+  ];
   
   var breezeDlls = [
     'Breeze.WebApi', 
@@ -124,7 +125,8 @@ module.exports = function(grunt) {
           buildSampleCopy('../', tempDir , 'NoDb'),
           buildSampleCopy('../', tempDir , 'Edmunds'),
           buildSampleCopy('../', tempDir , 'TempHire'),
-          buildSampleCopy('../', tempDir , 'CarBones', ['**/*.mdf', '**/*.ldf'])
+          buildSampleCopy('../', tempDir , 'CarBones', ['**/*.mdf', '**/*.ldf']),
+          buildSampleCopy('../', tempDir , 'CarBones', ['**/*.mdf', '**/*.ldf']),
         ]
       },  
     },
