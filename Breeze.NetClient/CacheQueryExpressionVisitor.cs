@@ -21,30 +21,41 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="cacheQueryOptions"></param>
     /// <param name="entityManagerParameterExpr"></param>
-    private  CacheQueryExpressionVisitor(CacheQueryOptions cacheQueryOptions, Type queryableType)
+    private  CacheQueryExpressionVisitor(EntityQuery query, CacheQueryOptions cacheQueryOptions )
       : base() {
+        _query = query;
         _cacheQueryOptions = cacheQueryOptions;
-        _queryableType = queryableType;
         _entityManagerParameterExpr = Expression.Parameter(typeof(EntityManager));
     }
 
+    public static Expression<Func<EntityManager, IEnumerable<T>>> Visit<T>(EntityQuery query, CacheQueryOptions cacheQueryOptions)  {
+      var visitor = new CacheQueryExpressionVisitor(query, cacheQueryOptions);
+      return visitor.VisitRoot<T>(query.Expression);
+    }
 
-    public static Expression<Func<EntityManager, IEnumerable<T>>> Visit<T>(Expression expr, Type queryableType, CacheQueryOptions cacheQueryOptions)  {
-      var visitor = new CacheQueryExpressionVisitor(cacheQueryOptions, queryableType);
+    public static Expression<Func<EntityManager, IEnumerable>> Visit(EntityQuery query, CacheQueryOptions cacheQueryOptions) {
+      var visitor = new CacheQueryExpressionVisitor(query, cacheQueryOptions);
+      var visitRootMi = MethodReflector.GetMethodByExample((CacheQueryExpressionVisitor v) => v.VisitRoot<String>((Expression) null), query.ElementType);
+      var result = visitRootMi.Invoke(visitor, new Object[] { query.Expression });
+      return (Expression<Func<EntityManager, IEnumerable>>)result;
+    }
+
+    private Expression<Func<EntityManager, IEnumerable<T>>> VisitRoot<T>(Expression expr) {
       Expression<Func<EntityManager, IEnumerable<T>>> lambda;
       if (IsResourceSetExpression(expr)) {
         lambda = (EntityManager em) => em.GetEntities<T>(EntityState.AllButDetached);
       } else {
-        var cacheExpr = visitor.Visit(expr);
-        lambda = Expression.Lambda<Func<EntityManager, IEnumerable<T>>>(cacheExpr, visitor._entityManagerParameterExpr);
+        var cacheExpr = Visit(expr);
+        lambda = Expression.Lambda<Func<EntityManager, IEnumerable<T>>>(cacheExpr, _entityManagerParameterExpr);
       }
       return lambda;
     }
 
+    
 
     private ParameterExpression _entityManagerParameterExpr;
     private CacheQueryOptions _cacheQueryOptions;
-    private Type _queryableType;
+    private EntityQuery _query;
 
     #region Visit methods 
 
@@ -55,7 +66,7 @@ namespace Breeze.NetClient {
 
       var entityQuery = ce.Value as EntityQuery;
       if (entityQuery != null) {
-        return GetEntitiesAsParameterExpr(_queryableType);
+        return GetEntitiesAsParameterExpr(_query.QueryableType);
       }
 
       return base.VisitConstant(ce);
@@ -91,7 +102,7 @@ namespace Breeze.NetClient {
       Expression objectExpr = mce.Object;
 
       if (args.Any() && IsResourceSetExpression(args[0])) {
-        args[0] = GetEntitiesAsParameterExpr(_queryableType);
+        args[0] = GetEntitiesAsParameterExpr(_query.QueryableType);
         newMce = Expression.Call(method, args);
         return base.VisitMethodCall(newMce);
       }
@@ -99,7 +110,7 @@ namespace Breeze.NetClient {
       if (method.Name == "Expand" || method.Name == "IncludeTotalCount") {
         var operand = ((UnaryExpression)objectExpr).Operand;
         if (IsResourceSetExpression(operand)) {
-          return GetEntitiesAsParameterExpr(_queryableType);
+          return GetEntitiesAsParameterExpr(_query.QueryableType);
         } else {
           return base.Visit(operand);
         }

@@ -1,5 +1,6 @@
 ﻿using Breeze.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Services.Client;
 using System.Data.Services.Common;
@@ -38,26 +39,20 @@ namespace Breeze.NetClient {
       return q;
     }
 
-    public Task<IEnumerable<T>> Execute(EntityManager entityManager = null) {
+    public new Task<IEnumerable<T>> Execute(EntityManager entityManager = null) {
       entityManager = CheckEm(entityManager);
       return entityManager.ExecuteQuery<T>(this);
     }
 
-    public IEnumerable<T> ExecuteLocally(EntityManager entityManager = null) {
+    public new IEnumerable<T> ExecuteLocally(EntityManager entityManager = null) {
       entityManager = CheckEm(entityManager);
-      var lambda = CacheQueryExpressionVisitor.Visit<T>(this.Expression, this.QueryableType, entityManager.DefaultCacheQueryOptions);
+      var lambda = CacheQueryExpressionVisitor.Visit<T>(this, entityManager.DefaultCacheQueryOptions );
       var func = lambda.Compile();
 
       return func(entityManager).ToList();
     }
 
-    private EntityManager CheckEm(EntityManager entityManager) {
-      entityManager = entityManager ?? this.EntityManager;
-      if (entityManager == null) {
-        throw new ArgumentException("entityManager parameter is null and this EntityQuery does not have its own EntityManager specified");
-      }
-      return entityManager;
-    }
+   
 
     public EntityQuery<T> Expand<TTarget>(Expression<Func<T, TTarget>> navigationPropertyAccessor) {
       var q = new EntityQuery<T>(this);
@@ -244,13 +239,34 @@ namespace Breeze.NetClient {
       UpdateFrom(query);
     }
 
-    public void UpdateFrom(EntityQuery query) {
+    public Task<IEnumerable> Execute(EntityManager entityManager = null) {
+      entityManager = CheckEm(entityManager);
+      return entityManager.ExecuteQuery(this);
+    }
+
+    public IEnumerable ExecuteLocally(EntityManager entityManager = null) {
+      entityManager = CheckEm(entityManager);
+      var lambda = CacheQueryExpressionVisitor.Visit(this, entityManager.DefaultCacheQueryOptions);
+      var func = lambda.Compile();
+
+      return func(entityManager);
+    }
+
+    protected void UpdateFrom(EntityQuery query) {
       ResourceName = query.ResourceName;
       ElementType = query.ElementType;
       QueryableType = query.QueryableType;
       DataService = query.DataService;
       EntityManager = query.EntityManager;
       QueryOptions = query.QueryOptions;
+    }
+
+    protected EntityManager CheckEm(EntityManager entityManager) {
+      entityManager = entityManager ?? this.EntityManager;
+      if (entityManager == null) {
+        throw new ArgumentException("entityManager parameter is null and this EntityQuery does not have its own EntityManager specified");
+      }
+      return entityManager;
     }
 
     public String ResourceName { get; protected internal set; }

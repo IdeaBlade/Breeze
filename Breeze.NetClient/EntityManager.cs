@@ -77,12 +77,19 @@ namespace Breeze.NetClient {
     }
 
     public IEnumerable<T> ExecuteQueryLocally<T>(EntityQuery<T> query) {
-      return query.ExecuteLocally(this);
+      return query.ExecuteLocally(query.EntityManager ?? this);
     }
 
     public async Task<IEnumerable> ExecuteQuery(EntityQuery query) {
       if (query.ElementType == null) {
         throw new Exception("Cannot execute a query with a null TargetType");
+      }
+      var fetchStrategy = query.QueryOptions.FetchStrategy ?? this.DefaultQueryOptions.FetchStrategy ?? QueryOptions.Default.FetchStrategy;
+      if (fetchStrategy == FetchStrategy.FromLocalCache) {
+        return query.ExecuteLocally(query.EntityManager ?? this);
+        //var tcs = new TaskCompletionSource<IEnumerable>();
+        //tcs.SetResult(query.ExecuteLocally());
+        //return tcs.Task;
       }
       var dataService = query.DataService != null ? query.DataService : this.DefaultDataService;
       await FetchMetadata(dataService);

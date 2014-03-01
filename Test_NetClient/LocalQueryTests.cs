@@ -139,6 +139,22 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
+    public async Task StartsWithFetchStrategy() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers").Take(10);
+      var results = await _em1.ExecuteQuery(q);
+
+      var q1 = new EntityQuery<Customer>().Where(c => c.CompanyName.StartsWith("C")).Take(3);
+      var r1 = await _em1.ExecuteQuery(q1);
+      Assert.IsTrue(r1.Count() == 3);
+      // var r2 = _em1.ExecuteQueryLocally(q1);
+      var r2 = await _em1.ExecuteQuery(q1.With(FetchStrategy.FromLocalCache));
+
+      Assert.IsTrue(r1.Count() == r2.Count());
+
+    }
+
+    [TestMethod]
     public async Task InlineCount() {
       await _emTask;
       var q = new EntityQuery<Foo.Customer>("Customers");
@@ -245,150 +261,57 @@ namespace Test_NetClient {
 
     }
 
-    //[TestMethod]
-    //public async Task SelectAnonWithScalarAndEntityCollection() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
-    //  var q3 = q2.Select(c => new { c.CompanyName, c.Orders});
-    //  var results = await q3.Execute(_em1);
 
-    //  Assert.IsTrue(results.Count() > 0);
-    //  var ok = results.All(r1 => (r1.Orders.Count() > 0) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
-    //  Assert.IsTrue(ok, "every item of anon should contain a collection of Orders");
-    //  ok = results.All(r1 => r1.CompanyName.Length > 0);
-    //  Assert.IsTrue(ok, "anon type should have a populated company name");
-      
-    //}
+    [TestMethod]
+    public async Task SelectIntoCustom() {
+      await _emTask;
+      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
+      await _em1.ExecuteQuery(q2.Expand("Orders")); // precache for later local query;
 
-    //[TestMethod]
-    //public async Task SelectAnonWithScalarEntity() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Order>("Orders");
-    //  var q2 = q.Where(c => c.Freight > 500);
-    //  var q3 = q2.Select(c => new { c.Customer, c.Freight });
-    //  var results = await q3.Execute(_em1);
+      var q3 = q2.Select(c => new Dummy() { CompanyName = c.CompanyName, Orders = c.Orders });
+      var r3 = await q3.Execute(_em1);
 
-    //  Assert.IsTrue(results.Count() > 0);
-    //  var ok = results.All(r1 => r1.Freight > 500);
-    //  Assert.IsTrue(ok, "anon type should the right freight");
-    //  ok = results.All(r1 => r1.Customer.GetType() == typeof(Foo.Customer));
-    //  Assert.IsTrue(ok, "anon type should have a populated 'Customer'");
-    //}
+      Assert.IsTrue(r3.Count() > 0);
+      var ok = r3.All(r1 =>
+        r1.GetType() == typeof(Dummy) &&
+        r1.Orders.Count() > 0 &&
+        r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
+      Assert.IsTrue(ok, "every Dummy should contain a collection of Orders");
+      ok = r3.All(r1 => r1.CompanyName.Length > 0);
+      Assert.IsTrue(ok, "and should have a populated company name");
+      var r3Local = _em1.ExecuteQueryLocally(q3);
+      Assert.IsTrue(r3.Count() == r3Local.Count());
+      ok = r3Local.All(r1 =>
+        r1.GetType() == typeof(Dummy) &&
+        r1.Orders.Count() > 0 &&
+        r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
+      Assert.IsTrue(ok, "every Dummy should contain a collection of Orders");
+    }
 
-    //[TestMethod]
-    //public async Task SelectAnonWithScalarSelf() {
-    //  Assert.Inconclusive("OData doesn't support this kind of query (I think)");
-    //  return;
+    public class Dummy {
+      public String CompanyName;
+      public IEnumerable<Foo.Order> Orders;
+    }
 
-    //  // Pretty sure this is an issue with OData not supporting this syntax.
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
-    //  var q3 = q2.Select(c => new { c.CompanyName, Customer = c });
-    //  var results = await q3.Execute(_em1);
 
-    //  Assert.IsTrue(results.Count() > 0);
-    //  var ok = results.All(r1 => r1.CompanyName.Length > 0);
-    //  Assert.IsTrue(ok, "anon type should have a populated company name");
-    //  ok = results.All(r1 => r1.Customer.GetType() == typeof(Foo.Customer));
-    //  Assert.IsTrue(ok, "anon type should have a populated 'Customer'");
-    //}
+    [TestMethod]
+    public async Task EntityKeyQuery() {
+      await _emTask;
+      var q = new EntityQuery<Customer>().Take(1);
 
-    //[TestMethod]
-    //public async Task ExpandNonScalar() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
-    //  var q3 = q2.Expand(c => c.Orders);
-    //  var results = await q3.Execute(_em1);
-
-    //  Assert.IsTrue(results.Count() > 0);
-    //  var ok = results.All(r1 => 
-    //    r1.GetType() == typeof(Foo.Customer) && 
-    //    r1.Orders.Count() > 0 && 
-    //    r1.Orders.All(o => o.GetType() == typeof(Foo.Order)) &&
-    //    r1.Orders.All(o => o.Customer == r1));
-    //  Assert.IsTrue(ok, "every Customer should contain a collection of Orders");
-    //  ok = results.All(r1 => r1.CompanyName.Length > 0);
-    //  Assert.IsTrue(ok, "and should have a populated company name");
-    //}
-
-    //[TestMethod]
-    //public async Task ExpandScalar() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Order>("Orders");
-    //  var q2 = q.Where(o => o.Freight > 500);
-    //  var q3 = q2.Expand(o => o.Customer);
-    //  var results = await q3.Execute(_em1);
-
-    //  Assert.IsTrue(results.Count() > 0);
-    //  var ok = results.All(r1 =>
-    //    r1.GetType() == typeof(Foo.Order) &&
-    //    r1.Customer.GetType() == typeof(Foo.Customer));
-    //  Assert.IsTrue(ok, "every Order should have a customer");
-    //  ok = results.All(r1 => r1.Freight > 500);
-    //  Assert.IsTrue(ok, "and should have the right freight");
-    //}
-
-    //[TestMethod]
-    //public async Task SelectIntoCustom() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Foo.Customer>("Customers");
-    //  var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
-    //  var q3 = q2.Select(c => new Dummy() { CompanyName = c.CompanyName, Orders = c.Orders}  );
-    //  var results = await q3.Execute(_em1);
-
-    //  Assert.IsTrue(results.Count() > 0);
-    //  var ok = results.All(r1 =>
-    //    r1.GetType() == typeof(Dummy) &&
-    //    r1.Orders.Count() > 0 &&
-    //    r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
-    //  Assert.IsTrue(ok, "every Dummy should contain a collection of Orders");
-    //  ok = results.All(r1 => r1.CompanyName.Length > 0);
-    //  Assert.IsTrue(ok, "and should have a populated company name");
-    //}
-
-    //public class Dummy {
-    //  public String CompanyName;
-    //  public IEnumerable<Foo.Order> Orders;
-    //}
-
-    //[TestMethod]
-    //public async Task GuidQuery() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Customer>().Where(c => c.CustomerID.Equals(Guid.NewGuid())); // && true);
-    //  var rp = q.GetResourcePath();
-    //  var r = await _em1.ExecuteQuery(q);
-    //  Assert.IsTrue(r.Count() == 0, "should be no results");
-
-    //}
-    
-    //[TestMethod]
-    //public async Task GuidQuery2() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Order>().Where(o => o.CustomerID == Guid.NewGuid()); // && true);
-    //  var rp = q.GetResourcePath();
-    //  var r = await _em1.ExecuteQuery(q);
-    //  Assert.IsTrue(r.Count() == 0, "should be no results");
-
-    //}
-
-    //[TestMethod]
-    //public async Task EntityKeyQuery() {
-    //  await _emTask;
-    //  var q = new EntityQuery<Customer>().Take(1);
-
-    //  var r = await _em1.ExecuteQuery(q);
-    //  var customer = r.First();
-    //  var q1 = new EntityQuery<Customer>().Where(c => c.CustomerID == customer.CustomerID);
-    //  var r1 = await _em1.ExecuteQuery(q1);
-    //  Assert.IsTrue(r1.First() == customer);
-    //  var ek = customer.EntityAspect.EntityKey;
-    //  var q2 = ek.ToQuery();
-    //  var r2 = await _em1.ExecuteQuery(q2);
-    //  Assert.IsTrue(r2.Cast<Customer>().First() == customer);
-    //}
+      var r = await _em1.ExecuteQuery(q);
+      var customer = r.First();
+      var q1 = new EntityQuery<Customer>().Where(c => c.CustomerID == customer.CustomerID);
+      var r1 = await _em1.ExecuteQuery(q1);
+      Assert.IsTrue(r1.First() == customer);
+      var ek = customer.EntityAspect.EntityKey;
+      var q2 = ek.ToQuery();
+      var r2 = await _em1.ExecuteQuery(q2);
+      Assert.IsTrue(r2.Cast<Customer>().First() == customer);
+      var r2Local = _em1.ExecuteQueryLocally((EntityQuery<Customer>)q2);
+      Assert.IsTrue(r2Local.First() == customer);
+    }
     
   }
 }

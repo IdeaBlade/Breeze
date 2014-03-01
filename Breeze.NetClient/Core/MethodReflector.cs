@@ -39,8 +39,25 @@ namespace Breeze.NetClient.Core {
       return GetMethodInfo(method);
     }
 
-    private static MethodInfo GetMethodInfo(Expression method) {
+    /// <summary>
+    /// For internal use only.
+    /// </summary>
+    /// <typeparam name="TIn"></typeparam>
+    /// <typeparam name="TOut"></typeparam>
+    /// <param name="prototypeLambda"></param>
+    /// <param name="resolvedTypes"></param>
+    /// <returns></returns>
+    public static MethodInfo GetMethodByExample<TIn, TOut>(Expression<Func<TIn, TOut>> prototypeLambda, params Type[] resolvedTypes) {
+      //Example: var method = TypeFns.GetMethodByExample((IQueryable<String> s) => s.FirstOrDefault(s1 => s1.Any()), source.ElementType);
+      var mi = (prototypeLambda.Body as MethodCallExpression).Method;
+      if (!resolvedTypes.Any()) return mi;
+      if (!mi.IsGenericMethod) return mi;
+      var mi2 = mi.GetGenericMethodDefinition();
+      var mi3 = mi2.MakeGenericMethod(resolvedTypes);
+      return mi3;
+    }
 
+    private static MethodInfo GetMethodInfo(Expression method) {
       LambdaExpression lambda = method as LambdaExpression;
       if (lambda == null) throw new ArgumentNullException("method");
       MethodCallExpression methodExpr = null;
@@ -58,5 +75,7 @@ namespace Breeze.NetClient.Core {
       return methodExpr.Method;
 
     }
+
+   
   }
 }
