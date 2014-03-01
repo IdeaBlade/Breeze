@@ -7,21 +7,16 @@
         <strong>New TodoList</strong>
 
         <button type="button" style="float: right;" class="btn btn-danger btn-xs" aria-hidden="true"
-                ng-click="vm.isAddingTodoList=false"
+                ng-click="vm.closeDiscardNewTodoList()"
                 title="Close and do not add">
             <i class="glyphicon glyphicon-remove"></i>
         </button>
-        <button style="float: right; margin-right:4px;" class="btn btn-primary btn-xs"
-                ng-click="vm.addTodoList()"
-                ng-disabled="!vm.newTodoListTitle"
-                title="Add new TodoList with this title">
-            Add
-        </button>
     </div>
     <div class="panel-body">
-        <form data-ng-submit="vm.addTodoList()" class="input-group input-group-lg">
+        <form data-ng-submit="vm.closeNewTodoList()" class="input-group input-group-lg">
             <input style="width: 200%" type="text" autofocus class="form-control" placeholder="Title"
-                    data-ng-model="vm.newTodoListTitle" />
+                   data-ng-model="vm.newTodoListTitle"
+                   data-ng-blur="vm.closeNewTodoList()" />
         </form>
     </div>
 </div>

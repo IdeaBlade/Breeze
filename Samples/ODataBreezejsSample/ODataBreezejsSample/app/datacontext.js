@@ -64,9 +64,10 @@
         }
 
         function getTodoLists(forceRefresh) {
+            var count;
             if (forceRefresh) {
                 if (manager.hasChanges()) {
-                    var count = getChangesCount();
+                    count = getChangesCount();
                     manager.rejectChanges(); // undo all unsaved changes!
                     logWarning('Discarded ' + count + ' pending change(s)', null, true);
                 }
@@ -80,7 +81,8 @@
                 .then(success).catch(failed);
 
             function success(response) {
-                logSuccess('Got todolists', response, true);
+                count = response.results.length;
+                logSuccess('Got '+count+' todolist(s)', response, true);
                 return response.results;
             }
             function failed(error) {
@@ -94,6 +96,7 @@
         }
 
         function save() {
+            var count = getChangesCount();
             var promise = null;
             var saveBatches = prepareSaveBatches();
             saveBatches.forEach(function (batch) {
@@ -107,7 +110,7 @@
             return promise.then(success).catch(failed);
 
             function success(result) {
-                logSuccess('Saved data', result, true);
+                logSuccess('Saved ' + count + ' change(s)', result, true);
             }
 
             function failed(error) {

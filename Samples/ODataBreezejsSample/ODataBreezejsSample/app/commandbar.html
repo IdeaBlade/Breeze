@@ -4,12 +4,13 @@
     Relies on the ambient controller/viewmodel of the containing view
 --------------------------------------------------->
 <div class="app-command-bar">
-    <button class="btn btn-success navbar-btn" ng-disabled="vm.isSaveDisabled()" ng-click="vm.save()"
+    <button class="btn btn-success navbar-btn" 
+            ng-disabled="vm.isSaveDisabled()" ng-click="vm.save()"
             title="Save pending changes to any and all todolists">
         <i class="glyphicon glyphicon-floppy-disk"></i> Save
     </button>&nbsp;&nbsp;
     <button class="btn btn-primary navbar-btn"
-            ng-click="vm.toggleIsAddingTodoList()"
+            ng-click="vm.addNewTodoList()"
             title="Add a new TodoList">
         <i class="glyphicon glyphicon-plus"></i> Add
     </button>&nbsp;&nbsp;

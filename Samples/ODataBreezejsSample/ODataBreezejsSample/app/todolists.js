@@ -22,7 +22,9 @@
         var isSaving = false;
 
         var vm = this;
-        vm.addTodoList = addTodoList;
+        vm.addNewTodoList = addTodoList;
+        vm.closeDiscardNewTodoList = closeDiscardNewTodoList;
+        vm.closeNewTodoList = closeNewTodoList;
         vm.changesCount = changesCount;
         vm.deleteTodoList = deleteTodoList;
         vm.editBegin = editBegin;
@@ -45,13 +47,26 @@
         }
 
         function addTodoList() {
+            vm.isAddingTodoList = true;
             var title = vm.newTodoListTitle.trim();
             if (title) {
                 var newList = datacontext.createTodoList({title: title});
                 vm.todoLists.unshift(newList);
                 vm.newTodoListTitle = '';
-                vm.isAddingTodoList = false;
             }
+        }
+        function closeDiscardNewTodoList() {
+            vm.newTodoListTitle = '';
+            vm.isAddingTodoList = false;
+        }
+        function closeNewTodoList() {
+            var title = vm.newTodoListTitle.trim();
+            if (title) {
+                var newList = datacontext.createTodoList({ title: title });
+                vm.todoLists.unshift(newList);
+            }
+            vm.newTodoListTitle = '';
+            vm.isAddingTodoList = false;
         }
         function changesCount() {
             return datacontext.getChangesCount();

@@ -51,7 +51,7 @@
             <div data-ng-switch-when="false">
                 <input type="checkbox" data-ng-model="todoItem.isDone" title="checked if done" />
                 <label data-ng-click="vm.editBegin(todoItem)"
-                       data-ng-class="{done: todoItem.IsDone}">{{todoItem.description}}</label>
+                       data-ng-class="{done: todoItem.isDone}">{{todoItem.description}}</label>
                 <a data-ng-click="vm.deleteTodoItem(todoItem)">
                     <i class="glyphicon glyphicon-remove" title="Delete this Todo item"></i>
                 </a>

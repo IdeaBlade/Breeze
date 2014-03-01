@@ -15,19 +15,19 @@ namespace ODataBreezejsSample.Controllers
 
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
+            ViewBag.Message = "Some page in your MVC app.";
 
             return View();
         }
         public ActionResult Bowa()
         {
-            ViewBag.Message = "Your BOWA page.";
+            ViewBag.Message = "The BOWA Sample.";
 
             return View();
         }
         public ActionResult Contact()
         {
-            ViewBag.Message = "Your contact page.";
+            ViewBag.Message = "Your contact page";
 
             return View();
         }
