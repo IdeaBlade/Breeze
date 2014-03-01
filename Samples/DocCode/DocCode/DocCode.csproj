@@ -41,10 +41,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Breeze.ContextProvider">
-      <HintPath>..\packages\Breeze.Server.ContextProvider.1.4.8\lib\Breeze.ContextProvider.dll</HintPath>
+      <HintPath>..\packages\Breeze.Server.ContextProvider.1.4.9\lib\Breeze.ContextProvider.dll</HintPath>
     </Reference>
     <Reference Include="Breeze.WebApi2">
-      <HintPath>..\packages\Breeze.Server.WebApi2.1.4.8\lib\Breeze.WebApi2.dll</HintPath>
+      <HintPath>..\packages\Breeze.Server.WebApi2.1.4.9\lib\Breeze.WebApi2.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
