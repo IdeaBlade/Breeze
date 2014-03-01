@@ -17,12 +17,13 @@ Automatic Entity graph attachment -
 TempKey generation and fk fixup on Saves and Imports
 Emport/Import to stream/string
 EntityManager events - EntityChanging/EntityChanged/HasChangesChanged 
-Live navigation collections
+Live navigation collections with INotifyCollectionChanged
 Full Metadata 
-MergeStrategy 
+MergeStrategy / FetchStrategy
 
 ToDo
 ---------------------------
+More tests
 Validation and INotifyDataErrorInfo
 Registered EntityInitializers - ??? public empty ctors;
 ChangeNotificationEnabled flag

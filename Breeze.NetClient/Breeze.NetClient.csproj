@@ -39,7 +39,7 @@
     <Compile Include="CacheQueryExpressionVisitor.cs" />
     <Compile Include="CacheQueryOptions.cs" />
     <Compile Include="Core\MethodReflector.cs" />
-    <Compile Include="Core\NotifiableSet.cs" />
+    <Compile Include="Core\NotifiableCollection.cs" />
     <Compile Include="Core\PredicateBuilder.cs" />
     <Compile Include="Core\SafeDictionary.cs" />
     <Compile Include="DataServiceAdapter.WebApi.cs" />
@@ -96,7 +96,6 @@
     <Compile Include="EntityManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Validator.cs" />
-    <Compile Include="Core\WeakRefDictionary.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Data.Edm.Portable">
