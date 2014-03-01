@@ -45,14 +45,9 @@ namespace Breeze.NetClient {
     }
 
     public new IEnumerable<T> ExecuteLocally(EntityManager entityManager = null) {
-      entityManager = CheckEm(entityManager);
-      var lambda = CacheQueryExpressionVisitor.Visit<T>(this, entityManager.DefaultCacheQueryOptions );
-      var func = lambda.Compile();
-
-      return func(entityManager).ToList();
+      var result = base.ExecuteLocally(entityManager);
+      return result.Cast<T>();
     }
-
-   
 
     public EntityQuery<T> Expand<TTarget>(Expression<Func<T, TTarget>> navigationPropertyAccessor) {
       var q = new EntityQuery<T>(this);
@@ -248,7 +243,6 @@ namespace Breeze.NetClient {
       entityManager = CheckEm(entityManager);
       var lambda = CacheQueryExpressionVisitor.Visit(this, entityManager.DefaultCacheQueryOptions);
       var func = lambda.Compile();
-
       return func(entityManager);
     }
 
