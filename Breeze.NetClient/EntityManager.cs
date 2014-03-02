@@ -76,10 +76,6 @@ namespace Breeze.NetClient {
       return (IEnumerable<T>)result;
     }
 
-    public IEnumerable<T> ExecuteQueryLocally<T>(EntityQuery<T> query) {
-      return query.ExecuteLocally(query.EntityManager ?? this);
-    }
-
     public async Task<IEnumerable> ExecuteQuery(EntityQuery query) {
       if (query.ElementType == null) {
         throw new Exception("Cannot execute a query with a null TargetType");
@@ -110,6 +106,14 @@ namespace Breeze.NetClient {
       using (NewIsLoadingBlock()) {
         return (IEnumerable)JsonConvert.DeserializeObject(result, rType, jsonConverter);
       }
+    }
+
+    public IEnumerable<T> ExecuteQueryLocally<T>(EntityQuery<T> query) {
+      return query.ExecuteLocally(query.EntityManager ?? this);
+    }
+
+    public IEnumerable ExecuteQueryLocally(EntityQuery query) {
+      return query.ExecuteLocally(query.EntityManager ?? this);
     }
 
     public async Task<SaveResult> SaveChanges(SaveOptions saveOptions) {
@@ -463,6 +467,16 @@ namespace Breeze.NetClient {
 
     #region Misc public methods
 
+    public void AcceptChanges() {
+      var entities = this.GetChanges();
+      entities.ForEach(e => e.AcceptChanges());
+    }
+
+    public void RejectChanges() {
+      var entities = this.GetChanges();
+      entities.ForEach(e => e.RejectChanges());
+    }
+
     public void Clear() {
       EntityGroups.ForEach(eg => eg.Clear());
       Initialize();
@@ -539,6 +553,15 @@ namespace Breeze.NetClient {
         .Select(ea => ea.Entity);
     }
 
+    public T FindEntityByKey<T>(EntityKey entityKey) {
+      return (T)FindEntityByKey(entityKey);
+    }
+
+    public T FindEntityByKey<T>(params Object[] values) where T : IEntity {
+      var ek = new EntityKey(typeof(T), values);
+      return (T)FindEntityByKey(ek);
+    }
+
     public IEntity FindEntityByKey(EntityKey entityKey) {
 
       var subtypes = entityKey.EntityType.Subtypes;
@@ -555,12 +578,6 @@ namespace Breeze.NetClient {
       return ea == null ? null : ea.Entity;
     }
 
-    
-
-    public T FindEntityByKey<T>(params Object[] values) where T:IEntity {
-      var ek = new EntityKey(typeof(T), values);
-      return (T)FindEntityByKey(ek);
-    }
 
     #endregion
 
