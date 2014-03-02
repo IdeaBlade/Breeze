@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Angular</id>
-        <version>0.8.2</version>
+        <version>0.8.3</version>
         <title>Breeze Labs Breeze Angular Service</title>
         <authors>Ward Bell</authors>
         <owners>Ward Bell</owners>
@@ -16,8 +16,11 @@
         <language>en-US</language>
         <tags>breeze angular</tags>
         <dependencies>
-            <dependency id="Breeze.Client" version="[1.4.8, ]" />
+            <dependency id="Breeze.Client" version="[1.4.9, ]" />
             <dependency id="Breeze.Angular.Directives" version="[1.3.2, ]" />
         </dependencies>
     </metadata>
+	<files>
+        <file src="..\..\Breeze.Client\Scripts\Labs\breeze.angular.js" target="content\scripts\breeze.angular.js" />
+    </files>
 </package>

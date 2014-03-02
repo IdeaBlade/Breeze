@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Metadata.Helper</id>
-        <version>1.0.4</version>
+        <version>1.0.5</version>
         <title>Breeze Labs: Breeze Metadata Helper</title>
         <authors>Ward Bell</authors>
         <owners>Ward Bell</owners>
@@ -16,7 +16,7 @@
         <language>en-US</language>
         <tags>breeze angular sharepoint</tags>
         <dependencies>
-            <dependency id="Breeze.Client" version="[1.4.8, ]" />
+            <dependency id="Breeze.Client" version="[1.4.9, ]" />
         </dependencies>
     </metadata>
     <files>
