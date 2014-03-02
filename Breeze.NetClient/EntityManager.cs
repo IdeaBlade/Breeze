@@ -168,12 +168,9 @@ namespace Breeze.NetClient {
     }
 
     internal void OnEntityChanged(IEntity entity, EntityAction entityAction) {
-      OnEntityChanged(new EntityChangedEventArgs(entity, entityAction));
-    }
-
-    internal void OnEntityChanged(EntityChangedEventArgs args) {
       EventHandler<EntityChangedEventArgs> handler = EntityChanged;
       if (handler != null) {
+        var args = new EntityChangedEventArgs(entity, entityAction);
         try {
           handler(this, args);
         } catch {
@@ -184,12 +181,9 @@ namespace Breeze.NetClient {
     }
 
     internal void OnHasChangesChanged() {
-      OnHasChangesChanged(new EntityManagerHasChangesChangedEventArgs(this));
-    }
-
-    internal virtual void OnHasChangesChanged(EntityManagerHasChangesChangedEventArgs args) {
       var handler = HasChangesChanged;
       if (handler != null) {
+        var args = new EntityManagerHasChangesChangedEventArgs(this);
         handler(this, args);
       }
     }

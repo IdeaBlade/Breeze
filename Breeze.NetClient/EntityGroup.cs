@@ -327,17 +327,6 @@ namespace Breeze.NetClient {
     private SafeList<EntityGroup> _selfAndSubtypeGroups;
     // private List<Action> _pendingEvents;
 
-    // DataForm blows unless we use String.Empty - see B1112 - we're keeping 
-    // old non-SL behavior because this change was made at last minute and couldn't
-    // be adequately tested.
-#if NET
-    internal static readonly PropertyChangedEventArgs AllPropertiesChangedEventArgs
-      = new PropertyChangedEventArgs(null);
-#else
-    internal static readonly PropertyChangedEventArgs AllPropertiesChangedEventArgs
-      = new PropertyChangedEventArgs(String.Empty);
-
-#endif
 
     #endregion
 

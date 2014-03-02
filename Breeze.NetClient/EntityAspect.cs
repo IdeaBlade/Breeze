@@ -1196,7 +1196,7 @@ namespace Breeze.NetClient {
     /// <summary>
     /// Forces a PropertyChanged event to be fired. 
     /// </summary>
-    /// <param name="e">A <see cref="System.ComponentModel.PropertyChangedEventArgs"/> or null</param>
+    /// <param name="args">A <see cref="System.ComponentModel.PropertyChangedEventArgs"/> or null</param>
     /// <remarks>
     /// An Empty value or a null reference (<c>Nothing</c> in Visual Basic) for the propertyName parameter of 
     /// PropertyChangedEventArgs indicates that all of the properties have changed, causing 
@@ -1211,11 +1211,9 @@ namespace Breeze.NetClient {
     /// not backed by an <see cref="StructuralProperty"/> must be made known.
     /// </para>
     /// </remarks>
-    public void ForceEntityPropertyChanged(PropertyChangedEventArgs e) {
-      if (e == null) {
-        e = EntityGroup.AllPropertiesChangedEventArgs;
-      }
-      OnPropertyChanged(e);
+    public void ForceEntityPropertyChanged(PropertyChangedEventArgs args) {
+      var propName = (args == null) ? null : args.PropertyName;
+      OnPropertyChanged(propName);
     }
 
     // internal because may be called from ComplexAspect
@@ -1226,42 +1224,41 @@ namespace Breeze.NetClient {
 
     // also raises Entitychanged with an Action of PropertyChanged.
     // internal because may be called from ComplexAspect
-    internal virtual void OnPropertyChanged(StructuralProperty property) {
-      var args = new PropertyChangedEventArgs(property.Name);
-      OnPropertyChanged(args);
+    internal void OnPropertyChanged(StructuralProperty property) {
+      OnPropertyChanged(property.Name);
     }
 
-    private void OnPropertyChanged(PropertyChangedEventArgs args) {
+    private void OnPropertyChanged(String propertyName) {
       if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return;
       QueueEvent(() => {
-        OnPropertyChangedCore(args);
-        OnEntityChangedCore(new EntityChangedEventArgs(Entity, EntityAction.PropertyChange));
+        OnPropertyChangedCore(propertyName);
+        OnEntityChangedCore(Entity, EntityAction.PropertyChange);
       });
     }
 
     private void OnEntityChanged(EntityAction entityAction) {
       if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return;
-      var args = new EntityChangedEventArgs(Entity, entityAction);
-      QueueEvent(() => OnEntityChangedCore(args));
+      QueueEvent(() => OnEntityChangedCore(this.Entity, entityAction));
     }
 
-    private void OnPropertyChangedCore(PropertyChangedEventArgs e) {
+    private void OnPropertyChangedCore(String propertyName) {
       var handler = EntityPropertyChanged;
       if (handler == null) return;
+      var args = new PropertyChangedEventArgs(propertyName);
       try {
-        handler(this.Entity, e);
+        handler(this.Entity, args);
       } catch {
         // eat exceptions during load
         if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
       }
     }
 
-    private void OnEntityChangedCore(EntityChangedEventArgs e) {
+    private void OnEntityChangedCore(IEntity entity, EntityAction entityAction) {
       // change actions will fire property change inside of OnPropertyChanged 
-      if (e.Action != EntityAction.PropertyChange) {
-        OnPropertyChanged(AllPropertiesChangedEventArgs);
+      if (entityAction != EntityAction.PropertyChange) {
+        OnPropertyChanged((String) null);
       }
-      EntityManager.OnEntityChanged(e);
+      EntityManager.OnEntityChanged(entity, entityAction);
     }
 
   
