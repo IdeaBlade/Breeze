@@ -309,155 +309,101 @@ namespace Test_NetClient {
         }
       });
     }
-    
-    //test("save changes - modified - only cp", function() {
-    //    var em = newEm();
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    var q = EntityQuery.from("Suppliers")
-    //        .where("companyName", "startsWith", "P");
 
-    //    stop();
-    //    var val = "foo-" + Date.now().toString().substr(5);
-    //    var oldVal;
-    //    var companyName;
-    //    em.executeQuery(q).then(function(data) {
-    //        var r = data.results;
-    //        ok(r.length > 0, "should be at least one record");
-    //        var supplier0 = r[0];
-    //        companyName = supplier0.getProperty("companyName");
-    //        var location0 = supplier0.getProperty("location");
-    //        oldVal = location0.getProperty("city");
-    //        location0.setProperty("city", val);
-    //        ok(val != oldVal, "city values should not match here");
-    //        return em.saveChanges();
-    //    }).then(function(sr) {
-    //        var saved = sr.entities;
-    //        ok(saved.length === 1, "should have saved one record");
-    //        var q2 = EntityQuery.from("Suppliers")
-    //            .where("location.city", "==", val);
-    //        var em2 = newEm();
-    //        return em2.executeQuery(q2);
-    //    }).then(function(data2) {
-    //        var results = data2.results;
-    //        ok(results.length === 1, "should have requeried 1 record");
-    //        var supplier2 = results[0];
-    //        ok(supplier2.getProperty("companyName") == companyName, "companyNames should match");
-    //        var val2 = supplier2.getProperty("location").getProperty("city");
-    //        ok(val2 == val, "values should be the same");
-            
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
-    
-    //test("save changes - modified - both cp and non-cp", function () {
-    //    var em = newEm();
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    var q = EntityQuery.from("Suppliers")
-    //        .where("companyName", "startsWith", "P");
+    [TestMethod]
+    public async Task SaveModifiedCpOnly() {
+      await _emTask;
 
-    //    stop();
-    //    var newCity = "foo-" + Date.now().toString().substr(5);
-        
-    //    var newCompanyName;
-    //    em.executeQuery(q).then(function (data) {
-    //        var r = data.results;
-    //        ok(r.length > 0, "should be at least one record");
-    //        var supplier0 = r[0];
-    //        var companyName = supplier0.getProperty("companyName");
-    //        newCompanyName = testFns.morphString(companyName);
-    //        supplier0.setProperty("companyName", newCompanyName);
-            
-    //        var location0 = supplier0.getProperty("location");
-    //        var oldCity = location0.getProperty("city");
-    //        location0.setProperty("city", newCity);
-    //        ok(newCity != oldCity, "city values should not match here");
-    //        return em.saveChanges();
-    //    }).then(function (sr) {
-    //        var saved = sr.entities;
-    //        ok(saved.length === 1, "should have saved one record");
-    //        var q2 = EntityQuery.from("Suppliers")
-    //            .where("location.city", "==", newCity);
-    //        var em2 = newEm();
-    //        return em2.executeQuery(q2);
-    //    }).then(function (data2) {
-    //        var results = data2.results;
-    //        ok(results.length === 1, "should have requeried 1 record");
-    //        var supplier2 = results[0];
-    //        ok(supplier2.getProperty("companyName") == newCompanyName, "companyNames should match");
-    //        var city2 = supplier2.getProperty("location").getProperty("city");
-    //        ok(city2 == newCity, "values should be the same");
+      var q0 = EntityQuery.From<Supplier>().Where(s => s.CompanyName.StartsWith("P"));
+      var r0 = await q0.With(_em1).Execute();
+      Assert.IsTrue(r0.Count() > 0);
+      var supplier = r0.First();
+      var val = "foo-" + TestFns.RandomSuffix(5);
+      var oldVal = supplier.Location.PostalCode;
+      Assert.IsTrue(val != oldVal);
+      supplier.Location.PostalCode = val;
+      var sr = await _em1.SaveChanges();
+      Assert.IsTrue(sr.Entities.Count == 1);
+      _em1.Clear();
+      var q1 = new EntityQuery<Supplier>().Where(s => s.Location.PostalCode == val);
+      var r1 = await q1.Execute(_em1);
+      Assert.IsTrue(r1.Count() == 1);
 
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
-    
-    //test("save changes - modified - no cp", function () {
-    //    var em = newEm();
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    var q = EntityQuery.from("Suppliers")
-    //        .where("companyName", "startsWith", "P");
 
-    //    stop();
-    //    var newCompanyName;
-    //    em.executeQuery(q).then(function (data) {
-    //        var r = data.results;
-    //        ok(r.length > 0, "should be at least one record");
-    //        var supplier0 = r[0];
-    //        var companyName = supplier0.getProperty("companyName");
-    //        newCompanyName = testFns.morphString(companyName);
-            
-    //        supplier0.setProperty("companyName", newCompanyName);
-    //        return em.saveChanges();
-    //    }).then(function (sr) {
-    //        var saved = sr.entities;
-    //        ok(saved.length === 1, "should have saved one record");
-    //        var q2 = EntityQuery.from("Suppliers")
-    //            .where("companyName", "==", newCompanyName);
-    //        var em2 = newEm();
-    //        return em2.executeQuery(q2);
-    //    }).then(function (data2) {
-    //        var results = data2.results;
-    //        ok(results.length === 1, "should have requeried 1 record");
-    //        var supplier2 = results[0];
-    //        ok(supplier2.getProperty("companyName") == newCompanyName, "companyNames should match");
+    }
 
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
-    
-    //test("save changes - added", function () {
-    //    var em = newEm();
-    //    var supplierType = em.metadataStore.getEntityType("Supplier");
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    var companyName = "Test-" + Date.now().toString().substr(5);
-    //    var supplier = supplierType.createEntity({
-    //        companyName: companyName
-    //    });
-    //    var location = supplier.getProperty("location");
-    //    location.setProperty("region", "USA");
-    //    location.setProperty("address", "123 Main St.");
-    //    location.setProperty("city", "anywhere");
-    //    em.addEntity(supplier);
+    [TestMethod]
+    public async Task SaveModifiedCpAndNonCp() {
+      await _emTask;
 
-    //    stop();
-        
-    //    em.saveChanges().then(function (sr) {
-    //        var saved = sr.entities;
-    //        ok(saved.length === 1, "should have saved one record");
-    //        var q2 = EntityQuery.from("Suppliers")
-    //            .where("location.city", "==", "anywhere")
-    //            .where("companyName", "==", companyName);
-    //        var em2 = newEm();
-    //        return em2.executeQuery(q2);
-    //    }).then(function (data2) {
-    //        var results = data2.results;
-    //        ok(results.length === 1, "should have requeried 1 record");
-    //        var supplier2 = results[0];
-    //        ok(supplier2.getProperty("companyName") == companyName, "companyNames should match");
-    //        var city2 = supplier2.getProperty("location").getProperty("city");
-    //        ok(city2 == "anywhere", "cities should be the same");
-    //        var location2 = supplier2.getProperty("location");
-    //        ok(location2.getProperty("address") === "123 Main St.", "address should have been saved");
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
+      var q0 = EntityQuery.From<Supplier>().Where(s => s.CompanyName.StartsWith("P"));
+      var r0 = await q0.With(_em1).Execute();
+      Assert.IsTrue(r0.Count() > 0);
+      var supplier = r0.First();
+      var val = "foo-" + TestFns.RandomSuffix(5);
+      var oldVal = supplier.Location.PostalCode;
+      Assert.IsTrue(val != oldVal);
+      supplier.Location.PostalCode = val;
+      var oldCompanyName = supplier.CompanyName;
+      supplier.CompanyName = TestFns.MorphString(supplier.CompanyName);
+      var newCompanyName = supplier.CompanyName;
+      var sr = await _em1.SaveChanges();
+      Assert.IsTrue(sr.Entities.Count == 1);
+      var _em2 = new EntityManager(_em1);
+      var q1 = new EntityQuery<Supplier>().Where(s => s.Location.PostalCode == val);
+      var r1 = await q1.Execute(_em2);
+      Assert.IsTrue(r1.Count() == 1);
+      Assert.IsTrue(r1.First().CompanyName == newCompanyName, "should have changed the companyName");
 
+    }
+
+    [TestMethod]
+    public async Task SaveAdded() {
+      await _emTask;
+
+      var supplier = new Supplier();
+      supplier.CompanyName = "Test-" + TestFns.RandomSuffix(5);
+      var companyName = supplier.CompanyName;
+      supplier.Location = new Location() { Region = "USA", Address = "123 Main Street", City = "San Diego", PostalCode = "12345" } ;
+      _em1.AddEntity(supplier);
+      
+      var sr = await _em1.SaveChanges();
+      Assert.IsTrue(sr.Entities.Count == 1);
+      var ek = sr.Entities.First().EntityAspect.EntityKey;
+
+      var _em2 = new EntityManager(_em1);
+      var q1 = ek.ToQuery<Supplier>();
+      var r1 = await q1.Execute(_em2);
+      Assert.IsTrue(r1.Count() == 1);
+      Assert.IsTrue(r1.First().CompanyName == companyName, "should have set the companyName");
+      Assert.IsTrue(r1.First().Location.City == "San Diego");
+      Assert.IsTrue(r1.First().Location.PostalCode == "12345");
+
+    }
+
+    [TestMethod]
+    public async Task DeleteTestEntities() {
+      await _emTask;
+
+      var supplier = new Supplier();
+      supplier.CompanyName = "Test-" + TestFns.RandomSuffix(5);
+      var companyName = supplier.CompanyName;
+      supplier.Location = new Location() { Region = "USA", Address = "123 Main Street", City = "San Diego", PostalCode = "12345" };
+      _em1.AddEntity(supplier);
+
+      var sr = await _em1.SaveChanges();
+
+      Assert.IsTrue(sr.Entities.Count ==1);
+      var q1 = new EntityQuery<Supplier>().Where(s => s.CompanyName.StartsWith("Test"));
+      var r1 = await _em1.ExecuteQuery(q1);
+      Assert.IsTrue(r1.Count() > 0);
+      r1.ForEach(r => r.EntityAspect.Delete());
+      var sr2 = await _em1.SaveChanges();
+      Assert.IsTrue(sr2.Entities.Count == r1.Count());
+      Assert.IsTrue(_em1.GetEntities().Count() == 0);
+      var r2 = await _em1.ExecuteQuery(q1);
+      Assert.IsTrue(r2.Count() == 0);
+    }
     //test("validationErrorsChanged event", function () {
     //    var em = newEm();
     //    var supplierType = em.metadataStore.getEntityType("Supplier");

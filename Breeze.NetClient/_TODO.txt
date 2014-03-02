@@ -7,7 +7,7 @@ All Server queries including
    Client side anon projections
    Server side anon projections
    NamedQueries
-LocalQuery - some minor bugs - with selects.
+LocalQuery 
 	CacheQueryOptions 
 Saves - including Named Saves
 Change tracking/Accept-RejectChanges/OriginalValuesMap

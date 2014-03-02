@@ -56,7 +56,7 @@ namespace Test_NetClient {
       var q = new EntityQuery<Customer>("Customers").Where(c => c.CompanyName.StartsWith("A"));
       var custs = await q.Execute(_em1);
       Assert.IsTrue(custs.Count() > 0, "should be some results");
-      custs.ForEach(c => c.Fax = MorphString(c.Fax));
+      custs.ForEach(c => c.Fax = TestFns.MorphString(c.Fax));
       var cust1 = _em1.CreateEntity<Customer>();
       cust1.CompanyName = "Test001";
       var cust1Key = cust1.EntityAspect.EntityKey;
@@ -89,7 +89,7 @@ namespace Test_NetClient {
       var q = new EntityQuery<Customer>("Customers").Where(c => c.CompanyName.StartsWith("A"));
       var custs = await q.Execute(_em1);
       Assert.IsTrue(custs.Count() > 0, "should be some results");
-      custs.ForEach(c => c.Fax = MorphString(c.Fax));
+      custs.ForEach(c => c.Fax = TestFns.MorphString(c.Fax));
       var saveResult = await _em1.SaveChanges();
       Assert.IsTrue(saveResult.Entities.Count == custs.Count());
       
@@ -103,7 +103,7 @@ namespace Test_NetClient {
       var custsx = await q.Execute(_em1);
       var custs = custsx.ToList();
       Assert.IsTrue(custs.Count() > 0, "should be some results");
-      custs.ForEach(c => c.Fax = MorphString(c.Fax));
+      custs.ForEach(c => c.Fax = TestFns.MorphString(c.Fax));
       var cust1 = _em1.CreateEntity<Customer>();
       cust1.CompanyName = "Test001";
       var cust1Key = cust1.EntityAspect.EntityKey;
@@ -224,7 +224,7 @@ namespace Test_NetClient {
       var category = r.First();
       var products = category.Products;
       var prices = products.Select(p => p.UnitPrice).ToList();
-      category.CategoryName = MorphString(category.CategoryName);
+      category.CategoryName = TestFns.MorphString(category.CategoryName);
       var so = new SaveOptions(tag: "increaseProductPrice");
       var sr = await _em1.SaveChanges(null, so);
       Assert.IsTrue(sr.Entities.Count == 13, "should have saved 13 entities + 1 category + 12 products");
@@ -322,19 +322,7 @@ namespace Test_NetClient {
     //});
 
 
-    private String MorphString(String val) {
-      var suffix = "__";
-      if (String.IsNullOrEmpty(val)) {
-        return suffix;
-      } else {
-        if (val.EndsWith(suffix)) {
-          val = val.Substring(0, val.Length - 2);
-        } else {
-          val = val + suffix;
-        }
-      }
-      return val;
-    }
+   
     
     
   }

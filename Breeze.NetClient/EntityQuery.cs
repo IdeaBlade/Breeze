@@ -222,6 +222,10 @@ namespace Breeze.NetClient {
       return (EntityQuery)Activator.CreateInstance(queryType);
     }
 
+    public static EntityQuery<T> From<T>() {
+      return new EntityQuery<T>();
+    }
+
     public static EntityQuery<T> From<T>(string resourceName) {
       return new EntityQuery<T>(resourceName); 
     }
