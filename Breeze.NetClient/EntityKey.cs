@@ -111,7 +111,7 @@ namespace Breeze.NetClient {
         var val = Values[i];
         if (val == null) continue;
         if (clrType != val.GetType()) {
-          Values[i] = TypeFns.ConvertType(val, clrType, false);
+          Values[i] = TypeFns.ConvertType(val, clrType, true);
         }
       }
     }
