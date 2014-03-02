@@ -152,27 +152,26 @@ namespace Breeze.NetClient {
     public event EventHandler<EntityManagerHasChangesChangedEventArgs> HasChangesChanged;
 
 
-    internal void OnEntityChanging(IEntity entity, EntityAction entityAction) {
-      OnEntityChanging(new EntityChangingEventArgs(entity, entityAction));
-    }
-
-    internal virtual void OnEntityChanging(EntityChangingEventArgs args) {
+    internal bool OnEntityChanging(IEntity entity, EntityAction action) {
       EventHandler<EntityChangingEventArgs> handler = EntityChanging;
       if (handler != null) {
+        var args = new EntityChangingEventArgs(entity, action);
         try {
           handler(this, args);
+          return !args.Cancel;
         } catch {
           // Eat any handler exceptions during load (query or import) - throw for all others. 
           if (!(args.Action == EntityAction.AttachOnQuery || args.Action == EntityAction.AttachOnImport)) throw;
         }
       }
+      return true;
     }
 
     internal void OnEntityChanged(IEntity entity, EntityAction entityAction) {
       OnEntityChanged(new EntityChangedEventArgs(entity, entityAction));
     }
 
-    internal virtual void OnEntityChanged(EntityChangedEventArgs args) {
+    internal void OnEntityChanged(EntityChangedEventArgs args) {
       EventHandler<EntityChangedEventArgs> handler = EntityChanged;
       if (handler != null) {
         try {

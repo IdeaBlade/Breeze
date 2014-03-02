@@ -32,6 +32,7 @@ Inheritance
 NoTracking queries
 UntrackedProperties added directly to Clr type defs.
 ChangeNotificationEnabled flag
+IsNavigationPropertyLoaded
 CodeGeneration - 
 Metadata by hand 
 CustomMetadata
