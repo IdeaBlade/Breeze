@@ -137,7 +137,7 @@
     function findEntityKey(typeDef) {
         var dps = typeDef.dataProperties;
         var typenameId = typeDef.shortName.toLowerCase() + 'id';
-        for (key in dps) {
+        for (var key in dps) {
             var prop = dps[key];
             if (prop.isPartOfKey) { // found a key part; stop analysis 
                 return key;
