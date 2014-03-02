@@ -20,29 +20,27 @@ EntityManager events - EntityChanging/EntityChanged/HasChangesChanged
 Live navigation collections with INotifyCollectionChanged
 Full Metadata 
 MergeStrategy / FetchStrategy
+LoadNavigationProperty
 
 ToDo
 ---------------------------
 More tests
 Validation and INotifyDataErrorInfo
 Registered EntityInitializers - ??? public empty ctors;
-ChangeNotificationEnabled flag
-LoadNavigationProperty
+Raw OData queries
 Inheritance
 NoTracking queries
 UntrackedProperties added directly to Clr type defs.
+ChangeNotificationEnabled flag
 CodeGeneration - 
 Metadata by hand 
 CustomMetadata
-
-
 
 
 Extensions for later ( that we can charge for)
 --------------------------------------------
 Property interception
 PostSharp (or other static IL weaver support) 
-Addl Design time support.
 Query filters (like devforce - registered on the EntityManager and applied to queries before execution)
 GetEntityGraph
 EntityQueryPager

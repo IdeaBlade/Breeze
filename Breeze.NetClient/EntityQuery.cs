@@ -49,15 +49,15 @@ namespace Breeze.NetClient {
       return result.Cast<T>();
     }
 
-    public EntityQuery<T> Expand<TTarget>(Expression<Func<T, TTarget>> navigationPropertyAccessor) {
+    public EntityQuery<T> Expand<TTarget>(Expression<Func<T, TTarget>> navigationPropertyFn) {
       var q = new EntityQuery<T>(this);
-      q.DataServiceQuery = this.DataServiceQuery.Expand(navigationPropertyAccessor);
+      q.DataServiceQuery = this.DataServiceQuery.Expand(navigationPropertyFn);
       return q;
     }
 
     public EntityQuery<T> Expand(String path) {
       var q = new EntityQuery<T>(this);
-      q.DataServiceQuery = this.DataServiceQuery.Expand(path);
+      q.DataServiceQuery = this.DataServiceQuery.Expand(path.Replace('.','/'));
       return q;
     }
 

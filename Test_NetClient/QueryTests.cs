@@ -448,7 +448,119 @@ namespace Test_NetClient {
       Assert.IsTrue(count > 0);
     }
 
-    
+    [TestMethod]
+    public async Task NestedExpand() {
+      await _emTask;
+
+      var q0 = new EntityQuery<OrderDetail>().Take(5).Expand(od => od.Order.Customer);
+
+      var r0 = await q0.Execute(_em1);
+      Assert.IsTrue(r0.Count() > 0, "should have returned some orderDetails");
+      Assert.IsTrue(r0.All(od => od.Order != null && od.Order.Customer != null));
+      
+    }
+
+    [TestMethod]
+    public async Task NestedExpand3Levels() {
+      await _emTask;
+
+      var q0 = new EntityQuery<Order>().Take(5).Expand("OrderDetails.Product.Category");
+
+      var r0 = await q0.Execute(_em1);
+      Assert.IsTrue(r0.Count() > 0, "should have returned some orders");
+      Assert.IsTrue(r0.All(o => o.OrderDetails.Any(od => od.Product.Category != null)));
+
+    }
+
+    //test("query with take, orderby and expand", function () {
+    //    if (testFns.DEBUG_MONGO) {
+    //        ok(true, "NA for Mongo - expand not yet supported");
+    //        return;
+    //    }
+    //    var em = newEm();
+    //    var q1 = EntityQuery.from("Products")
+    //        .expand("category")
+    //        .orderBy("category.categoryName desc, productName");
+    //    stop();
+    //    var topTen;
+    //    em.executeQuery(q1).then(function (data) {
+    //        topTen = data.results.slice(0, 10);
+    //        var q2 = q1.take(10);
+    //        return em.executeQuery(q2);
+    //    }).then(function (data2) {
+    //        var topTenAgain = data2.results;
+    //        for(var i=0; i<10; i++) {
+    //            ok(topTen[i] === topTenAgain[i]);
+    //        }
+    //    }).fail(testFns.handleFail).fin(start);
+
+    //});
+
+
+    //test("query with take, skip, orderby and expand", function () {
+    //    if (testFns.DEBUG_MONGO) {
+    //        ok(true, "NA for Mongo - expand not yet supported");
+    //        return;
+    //    }
+
+    //    var em = newEm();
+    //    var q1 = EntityQuery.from("Products")
+    //        .expand("category")
+    //        .orderBy("category.categoryName, productName");
+    //    stop();
+    //    var nextTen;
+    //    em.executeQuery(q1).then(function (data) {
+    //        nextTen = data.results.slice(10, 20);
+    //        var q2 = q1.skip(10).take(10);
+    //        return em.executeQuery(q2);
+    //    }).then(function (data2) {
+    //        var nextTenAgain = data2.results;
+    //        for (var i = 0; i < 10; i++) {
+    //            ok(nextTen[i] === nextTenAgain[i], extractDescr(nextTen[i]) + " -- " + extractDescr(nextTenAgain[i]));
+    //        }
+    //    }).fail(testFns.handleFail).fin(start);
+
+    //});
+
+    //function extractDescr(product) {
+    //    var cat =  product.getProperty("category");
+    //    return cat && cat.getProperty("categoryName") + ":" + product.getProperty("productName");
+    //}
+
+    //test("query with quotes", function () {
+    //    var em = newEm();
+
+    //    var q = EntityQuery.from("Customers")
+    //        .where("companyName", 'contains', "'")
+    //        .using(em);
+    //    stop();
+
+    //    q.execute().then(function (data) {
+    //        ok(data.results.length > 0);
+    //        var r = em.executeQueryLocally(q);
+    //        ok(r.length === data.results.length, "local query should return same subset");
+    //    }).fail(testFns.handleFail).fin(start);
+            
+    //});
+
+    //test("bad query test", function () {
+    //    var em = newEm();
+        
+    //    var q = EntityQuery.from("EntityThatDoesnotExist")
+    //        .using(em);
+    //    stop();
+
+    //    q.execute().then(function (data) {
+    //        ok(false, "should not get here");
+    //    }).fail(function (e) {
+    //        ok(e.message && e.message.toLowerCase().indexOf("entitythatdoesnotexist") >= 0, e.message);
+    //    }).fin(function(x) {
+    //        start();
+    //    });
+    //});
+
+   
+
 
     //test("OData predicate - add combined with regular predicate", function () {
     //    if (testFns.DEBUG_MONGO) {
