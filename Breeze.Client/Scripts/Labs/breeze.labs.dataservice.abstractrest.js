@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs Abstract REST DataServiceAdapter
  *
- *  v.0.2.2-pre
+ *  v.0.2.3
  *
  * Extends Breeze with a REST DataService Adapter abstract type
  * 
@@ -35,17 +35,20 @@
  * http://opensource.org/licenses/mit-license.php
  * Authors: Ward Bell
  */
-(function (factory) {
-    if (breeze) {
-        factory(breeze);
+(function (definition, window) {
+    if (window.breeze) {
+        definition(window.breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
-        // CommonJS or Node: hard-coded dependency on "breeze"
-        factory(require("breeze"));
-    } else if (typeof window.define === "function" && window.define["amd"] && !breeze) {
-        // AMD anonymous module with hard-coded dependency on "breeze"
-        window.define(["breeze"], factory);
+        // CommonJS or Node
+        var b = require('breeze');
+        definition(b);
+    } else if (typeof define === "function" && define["amd"] && !window.breeze) {
+        // Requirejs / AMD 
+        define(['breeze'], definition);
+    } else {
+        throw new Error("Can't find breeze");
     }
-})(function (breeze) {
+}(function (breeze) {
     "use strict";
 
     var ctor = function () { };
@@ -411,4 +414,4 @@
         return saved;
     }
 
-});
+}, this));

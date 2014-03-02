@@ -16,8 +16,8 @@
         <language>en-US</language>
         <tags>breeze angular directive spa javascript</tags>
     </metadata>
-    <files>
-        <file src="..\..\Breeze.Client\Scripts\Labs\breeze.directives.css" target="content\content\breeze.directives.css" />
+	<files>
+	    <file src="..\..\Breeze.Client\Scripts\Labs\breeze.directives.css" target="content\content\breeze.directives.css" />
         <file src="..\..\Breeze.Client\Scripts\Labs\breeze.directives.validation.js" target="content\scripts\breeze.directives.validation.js" />
     </files>
 </package>

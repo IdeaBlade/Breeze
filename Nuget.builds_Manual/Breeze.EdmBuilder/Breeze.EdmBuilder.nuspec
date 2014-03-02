@@ -18,6 +18,6 @@
         <tags>breeze webapi odata</tags>
     </metadata>
     <files>
-        <file src="content\App_Data\EdmBuilder.cs" target="content\App_Start\EdmBuilder.cs" />
+        <file src="..\..\Breeze.Client\Scripts\Labs\EdmBuilder.cs" target="content\App_Start\EdmBuilder.cs" />
     </files>
 </package>
