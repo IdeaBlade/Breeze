@@ -349,40 +349,27 @@ namespace Test_NetClient {
 
     }
 
-    //test("export/import with nulls", function () {
-    //     var queryOptions = new QueryOptions({
-    //         mergeStrategy: MergeStrategy.OverwriteChanges,
-    //         fetchStrategy: FetchStrategy.FromServer
-    //     });
-    //     var em = newEm();
-    //     var pred = new breeze.Predicate("companyName", "!=" , null).and("city", "!=", null);
-    //     var q = EntityQuery.from("Customers").where(pred).take(2)
-    //         .using(MergeStrategy.OverwriteChanges);
-    //     var val = Date.now().toString();
-    //     stop();
-    //     var exported;
-    //     em.executeQuery(q).then(function (data) {
-    //         var custs = data.results;
-    //         custs[0].setProperty("companyName", null);
-    //         custs[1].setProperty("city", null);
-    //         exported = em.exportEntities(null, false);
-    //         var em2 = newEm();
-    //         em2.importEntities(exported);
-    //         cust0x = em2.findEntityByKey(custs[0].entityAspect.getKey());
-    //         ok(cust0x.getProperty("companyName") === null, "orig export companyName should be null");
-    //         cust1x = em2.findEntityByKey(custs[1].entityAspect.getKey());
-    //         ok(cust1x.getProperty("city") === null, "orig export city should be null");
-    //         cust0x.setProperty("companyName", "Foo");
-    //         cust1x.setProperty("city", "Foo");
-    //         cust0x.entityAspect.acceptChanges();
-    //         cust1x.entityAspect.acceptChanges();
-    //         em2.importEntities(exported);
-    //         ok(cust0x.getProperty("companyName") === null, "2nd import company should be null");
-    //         ok(cust1x.getProperty("city") === null, "2nd import city should be null");
+    [TestMethod]
+    public async Task ExpImpDeleted() {
+      await _emTask;
 
-    //     }).fail(testFns.handleFail).fin(start);
+      var c1 = new Customer() { CompanyName = "Test_1", City = "Oakland", RowVersion = 13, Fax = "510 999-9999" };
+      var c2 = new Customer() { CompanyName = "Test_2", City = "Oakland", RowVersion = 13, Fax = "510 999-9999" };
+      _em1.AddEntity(c1);
+      _em1.AddEntity(c2);
+      var sr = await _em1.SaveChanges();
+      Assert.IsTrue(sr.Entities.Count == 2);
+      c1.EntityAspect.Delete();
+      c2.CompanyName = TestFns.MorphString(c2.CompanyName);
+      var exportedEntities = _em1.ExportEntities(null, false);
+      var em2 = new EntityManager(_em1);
+      em2.ImportEntities(exportedEntities);
+      var c1x = em2.FindEntityByKey<Customer>(c1.EntityAspect.EntityKey);
+      Assert.IsTrue(c1x.EntityAspect.EntityState.IsDeleted(), "should be deleted");
+      var c2x = em2.FindEntityByKey<Customer>(c2.EntityAspect.EntityKey);
+      Assert.IsTrue(c2x.CompanyName == c2.CompanyName, "company names should match");
+    }
 
-
-    // });
+    
   }
 }
