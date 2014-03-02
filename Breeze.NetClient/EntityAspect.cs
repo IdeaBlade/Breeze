@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
 
@@ -1106,14 +1107,15 @@ namespace Breeze.NetClient {
 
     #region NavProperty loading info
 
-    public void LoadNavigationProperty(String propertyName) {
+    public async Task<Object> LoadNavigationProperty(String propertyName) {
       var np = this.EntityType.GetNavigationProperty(propertyName);
-      LoadNavigationProperty(np);
+      return await LoadNavigationProperty(np);
     }
 
-    public void LoadNavigationProperty(NavigationProperty navProperty) {
-      // var query = EntityQueryBuilder.BuildQuery()
-      throw new NotImplementedException();
+    public async Task<Object> LoadNavigationProperty(NavigationProperty navProperty) {
+      var query = EntityQueryBuilder.BuildQuery(this.Entity, navProperty);
+      await this.EntityManager.ExecuteQuery(query);
+      return GetValue(navProperty.Name);
     }
 
     internal List<String> LoadedNavigationPropertyNames {

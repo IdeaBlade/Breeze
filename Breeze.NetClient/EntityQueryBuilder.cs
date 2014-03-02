@@ -39,11 +39,11 @@ namespace Breeze.NetClient {
       return AddWhereClause(entityQuery, keys);
     }
 
-    //public static EntityQuery BuildQuery(IEntity entity, NavigationProperty np) {
-    //  var ekQuery = BuildQuery(entity.EntityAspect.EntityKey);
-    //  ekQuery.Expand
-    //  return AddWhereClause(entityQuery, keys);
-    //}
+    public static EntityQuery BuildQuery(IEntity entity, NavigationProperty np) {
+      var ekQuery = BuildQuery(entity.EntityAspect.EntityKey);
+      var q = ekQuery.ExpandNonGeneric(np.Name);
+      return q;
+    }
 
     /// <summary>
     /// Returns a query that will return an Empty enumeration of specified type when executed.

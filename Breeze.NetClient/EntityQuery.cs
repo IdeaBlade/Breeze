@@ -1,4 +1,5 @@
 ﻿using Breeze.Core;
+using Breeze.NetClient.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace Breeze.NetClient {
 
   // TODO: EntityQuery is currently just additive - i.e. no way to remove clauses
-  public class EntityQuery<T> : EntityQuery, IQueryable<T>, IOrderedQueryable<T>, IQueryProvider, IHasDataServiceQuery  {
+  public class EntityQuery<T> : EntityQuery, IQueryable<T>, IOrderedQueryable<T>, IQueryProvider  {
 
     public EntityQuery( ) : base() {
       var context = new DataServiceContext(new Uri(__placeholderServiceName), DataServiceProtocolVersion.V3);
@@ -23,7 +24,6 @@ namespace Breeze.NetClient {
       : this() {
       if (resourceName != null) ResourceName = resourceName;
     }
-
 
     public EntityQuery(EntityQuery<T> query) : base(query) {
       DataServiceQuery = query.DataServiceQuery;
@@ -61,6 +61,11 @@ namespace Breeze.NetClient {
       return q;
     }
 
+    // can be called from EntityQuery;
+    protected internal override EntityQuery ExpandNonGeneric(String path) {
+      return Expand(path);
+    }
+
     public EntityQuery<T> WithParameter(string name, Object value) {
       var q = new EntityQuery<T>(this);
       q.DataServiceQuery = this.DataServiceQuery.AddQueryOption(name, value);
@@ -82,7 +87,7 @@ namespace Breeze.NetClient {
     }
 
     public override String GetResourcePath() {
-      var dsq = (DataServiceQuery<T>)_dataServiceQuery;
+      var dsq = this.DataServiceQuery;
       
       var requestUri = dsq.RequestUri.AbsoluteUri;
       // TODO: Hack to avoid DataServiceQuery from inferring the entity key
@@ -195,24 +200,18 @@ namespace Breeze.NetClient {
       get { return typeof(T);}
     }
 
-    protected DataServiceQuery<T> DataServiceQuery {
-      get { return (DataServiceQuery<T>)_dataServiceQuery;  }
-      set { _dataServiceQuery = value; }
+    protected new DataServiceQuery<T> DataServiceQuery {
+      get { return (DataServiceQuery<T>) base.DataServiceQuery;  }
+      set { base.DataServiceQuery =  value; }
     }
 
-    DataServiceQuery IHasDataServiceQuery.DataServiceQuery {
-      get { return _dataServiceQuery; }
-    }
-
-   
-
-    private DataServiceQuery _dataServiceQuery;
+    
     private static String __placeholderServiceName = "http://localhost:7890/breeze/Undefined/";
     private static String __placeholderResourceName = "__Undefined__";
 
   }
   
-  public abstract class EntityQuery : IEntityQuery {
+  public abstract class EntityQuery : IEntityQuery, IHasDataServiceQuery {
     public EntityQuery() {
       QueryOptions = new QueryOptions();
     }
@@ -250,6 +249,8 @@ namespace Breeze.NetClient {
       return func(entityManager);
     }
 
+    protected internal abstract EntityQuery ExpandNonGeneric(String path);
+
     protected void UpdateFrom(EntityQuery query) {
       ResourceName = query.ResourceName;
       ElementType = query.ElementType;
@@ -267,10 +268,15 @@ namespace Breeze.NetClient {
       return entityManager;
     }
 
+    DataServiceQuery IHasDataServiceQuery.DataServiceQuery {
+      get { return DataServiceQuery; }
+    }
+
     public String ResourceName { get; protected internal set; }
     public virtual Type ElementType { get; protected set; }
     public virtual Type QueryableType { get; protected set; }
     public DataService DataService { get; protected internal set; }
+    public DataServiceQuery DataServiceQuery { get; protected internal set; }
     public EntityManager EntityManager { get; protected internal set; }
     public abstract Expression Expression { get; }
     public QueryOptions QueryOptions { get; protected internal set; }
