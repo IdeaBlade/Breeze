@@ -58,6 +58,36 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
+    public async Task NullForeignKey() {
+      await _emTask;
+      var prod1 = new Product();
+      
+      _em1.AttachEntity(prod1);
+      prod1.ProductName = "Test";
+      prod1.SupplierID = null;
+
+      var q0 = new EntityQuery<Product>().Where(p => p.Supplier != null).Take(2).Expand(p => p.Supplier);
+      var r0 = (await q0.Execute(_em1)).ToList();
+      Assert.IsTrue(r0.Count() == 2);
+      Assert.IsTrue(r0.All(p => p.Supplier != null));
+      var p0 = r0[0];
+      var p1 = r0[1];
+      var s0 = p0.Supplier;
+      var s1 = p1.Supplier;
+
+      Assert.IsTrue(s0.Products.Contains(p0));
+      p0.Supplier = null;
+      Assert.IsTrue(p0.SupplierID == null);
+      Assert.IsTrue(!s0.Products.Contains(p0));
+      
+      Assert.IsTrue(s1.Products.Contains(p1));
+      p1.SupplierID = null;
+      Assert.IsTrue(p1.Supplier == null);
+      Assert.IsTrue(!s1.Products.Contains(p1));
+    }
+   
+
+    [TestMethod]
     public async Task CreateEntity() {
       await _emTask;
 

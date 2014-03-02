@@ -96,6 +96,25 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
+    public async Task NullableProperty() {
+      await _emTask;
+
+      var emp = new Employee() { FirstName = "Test Joe", LastName = "Test Smith" , BirthDate = DateTime.Now };
+      Assert.IsTrue(emp.BirthDate != null);
+      _em1.AddEntity(emp);
+      Assert.IsTrue(emp.BirthDate != null);
+      emp.BirthDate = null;
+      var sr = await _em1.SaveChanges(new IEntity[] { emp });
+      Assert.IsTrue(sr.Entities.Count == 1);
+      Assert.IsTrue(sr.Entities.First() == emp);
+      Assert.IsTrue(emp.BirthDate == null);
+      emp.EntityAspect.Delete();
+      var sr2 = await _em1.SaveChanges();
+      Assert.IsTrue(sr.Entities.Count == 1);
+      Assert.IsTrue(_em1.GetEntities().Count() == 0);
+    }
+
+    [TestMethod]
     public async Task PartialSave() {
       await _emTask;
 
