@@ -23,7 +23,6 @@ namespace Breeze.NetClient {
       return BuildQuery((IEnumerable<EntityKey>) keys);
     }
 
-
     /// <summary>
     /// Builds an <see cref="EntityQuery"/> based on a collection of <see cref="EntityKey"/>s.
     /// The EntityQuery returned is actually an EntityQuery{T} but T is unknown at compile time.
@@ -37,34 +36,13 @@ namespace Breeze.NetClient {
       var firstKey = keys.FirstOrDefault();
       if (firstKey == null) return null;
       var entityQuery = EntityQuery.Create(firstKey.EntityType.ClrType);
-      return BuildQuery(keys, entityQuery);
+      return AddWhereClause(entityQuery, keys);
     }
 
-    /// <summary>
-    /// Builds an <see cref="EntityQuery"/> tied to a specific <see cref="EntityGroup"/> based on a collection of <see cref="EntityKey"/>s
-    /// </summary>
-    /// <param name="keys"></param>
-    /// <param name="entityQuery"></param>
-    /// <returns></returns>
-    internal static EntityQuery BuildQuery(IEnumerable<EntityKey> keys, EntityQuery entityQuery) {
-      var lambda = BuildLambdaKeyQuery(keys);
-      return MakeEntityQueryWhere(entityQuery, lambda);
-    }
-
-    ///// <summary>
-    ///// Builds an <see cref="EntityQuery"/> given a specified collection of entities and a <see cref="EntityRelationLink"/>.
-    ///// The EntityQuery returned is actually an EntityQuery{T} but T is unknown at compile time.
-    ///// </summary>
-    ///// <param name="entities"></param>
-    ///// <param name="relationLink"></param>
-    ///// <returns></returns>
-    //public static EntityQuery BuildQuery(IEnumerable entities, EntityRelationLink relationLink) {
-    //  var aspects = EntityAspect.WrapAll(entities).ToList();
-    //  if (!aspects.AllEqual(w => w.Entity.GetType())) {
-    //    throw new ArgumentException("The EntityQueryBuilder.BuildQuery method requires that the 'entities' parameter consist of entities of the same type");
-    //  }
-    //  return BuildQuery( aspects , relationLink);
-
+    //public static EntityQuery BuildQuery(IEntity entity, NavigationProperty np) {
+    //  var ekQuery = BuildQuery(entity.EntityAspect.EntityKey);
+    //  ekQuery.Expand
+    //  return AddWhereClause(entityQuery, keys);
     //}
 
     /// <summary>
@@ -74,78 +52,26 @@ namespace Breeze.NetClient {
     /// <returns></returns>
     public static EntityQuery BuildEmptyQuery(Type entityType) {
       var parameterExpr = Expression.Parameter(entityType, "t");
-      var predicateExpr  = Expression.Equal(Expression.Constant(1), Expression.Constant(0));
-      var lambdaExpr= Expression.Lambda(predicateExpr, parameterExpr);
+      // where 1 = 0;
+      var predicateExpr = Expression.Equal(Expression.Constant(1), Expression.Constant(0));
+      var lambdaExpr = Expression.Lambda(predicateExpr, parameterExpr);
       var entityQuery = EntityQuery.Create(entityType);
-      entityQuery = MakeEntityQueryWhere(entityQuery, lambdaExpr);
+      entityQuery = AddWhereClause(entityQuery, lambdaExpr);
       return entityQuery;
     }
 
-    //internal static EntityQuery BuildQuery(List<EntityAspect> aspects, EntityRelationLink relationLink) {
-    //  // Building a query of the form:
-    //  // var q0 = customers
-    //  //   .Where(c => c.CustomerID == 1 || c.CustomerID == 2)
-    //  //   .SelectMany(c => c.SalesOrderHeaders);
-    //  // --- RelationLink: Customer_SalesOrderHeader.ToChild From: Customer To: SalesOrderHeader
-    //  if (aspects.Count == 0) {
-    //    throw new ArgumentException("entities must contains at least one entity");
-    //  }
-    //  var eks = aspects.Select(e => e.EntityKey);
-    //  var entityType = eks.First().EntityType;
-    //  var em = aspects[0].InternalEntityManager;
-    //  var baseQuery = EntityQuery.Create(entityType, em);
-
-    //  var fromLambdaExpr = BuildLambdaKeyQuery(eks);
-    //  var parameterExpr = fromLambdaExpr.Parameters[0];
-    //  var whereExpr = BuildCallWhereExpr(baseQuery, fromLambdaExpr);
-    //  var castExpr = Expression.Call(
-    //    typeof(Queryable), "OfType",
-    //      new Type[] { entityType },
-    //      whereExpr);
-      
-    //  var memberAccessLambda = BuildLambdaMemberAccessExpr(entityType, relationLink, parameterExpr);
-      
-    //  Expression expr;
-    //  if (relationLink.IsScalar) {
-    //    expr = Expression.Call(
-    //      typeof(Queryable), "Select",
-    //      new Type[] { entityType, relationLink.ToRole.EntityType },
-    //      castExpr, Expression.Quote(memberAccessLambda));
-    //  } else {
-    //    expr = Expression.Call(
-    //      typeof(Queryable), "SelectMany",
-    //      new Type[] { entityType, relationLink.ToRole.EntityType },
-    //      castExpr, Expression.Quote(memberAccessLambda));
-    //  }
-
-    //  var query = (EntityQuery)TypeFns.ConstructGenericInstance(typeof(EntityQuery<>), 
-    //    new Type[] { relationLink.ToRole.EntityType },
-    //    expr, baseQuery);
-    //  return query;
-    //}
-
     /// <summary>
-    /// For internal use only. Handles both scalar and multivalued primary keys
+    /// Builds an <see cref="EntityQuery"/> tied to a specific <see cref="EntityGroup"/> based on a collection of <see cref="EntityKey"/>s
     /// </summary>
     /// <param name="keys"></param>
+    /// <param name="entityQuery"></param>
     /// <returns></returns>
-    private static LambdaExpression BuildLambdaKeyQuery(IEnumerable<EntityKey> keys) {
-      var firstKey = keys.FirstOrDefault();
-      if (firstKey == null) return null;
-      var entityType = firstKey.EntityType;
-
-      
-      var parameterExpr = Expression.Parameter(entityType.ClrType, "t");
-      // get list of propExpressions for entity type's primary key properties
-      var propExpressions =  entityType.KeyProperties.Select(
-       property => Expression.Property(parameterExpr, property.Name));
-
-      var pkExpressions = keys.Select(key => BuildMultiEqualExpr(propExpressions, key.Values));
-      var resultExpr = pkExpressions.Or();
-      return Expression.Lambda(resultExpr, parameterExpr);
+    private static EntityQuery AddWhereClause(EntityQuery entityQuery, IEnumerable<EntityKey> keys) {
+      var lambda = BuildWhereLambda(keys);
+      return AddWhereClause(entityQuery, lambda);
     }
 
-    internal static EntityQuery MakeEntityQueryWhere(EntityQuery entityQuery, LambdaExpression lambda) {
+    private static EntityQuery AddWhereClause(EntityQuery entityQuery, LambdaExpression lambda) {
       // This works too - not sure which is faster or better
       //var method = factory.GetType().GetMethod("Where", new Type[] { typeof(LambdaExpression) });
       //var query = method.Invoke(factory, new Object[] { lambda });
@@ -157,6 +83,26 @@ namespace Breeze.NetClient {
       return query;
     }
 
+    /// <summary>
+    /// For internal use only. Handles both scalar and multivalued primary keys
+    /// </summary>
+    /// <param name="keys"></param>
+    /// <returns></returns>
+    private static LambdaExpression BuildWhereLambda(IEnumerable<EntityKey> keys) {
+      var firstKey = keys.FirstOrDefault();
+      if (firstKey == null) return null;
+      var entityType = firstKey.EntityType;
+
+      var parameterExpr = Expression.Parameter(entityType.ClrType, "t");
+      // get list of propExpressions for entity type's primary key properties
+      var propExpressions =  entityType.KeyProperties.Select(
+       property => Expression.Property(parameterExpr, property.Name));
+
+      var pkExpressions = keys.Select(key => BuildMultiEqualExpr(propExpressions, key.Values));
+      var resultExpr = pkExpressions.Or();
+      return Expression.Lambda(resultExpr, parameterExpr);
+    }
+
     private static MethodCallExpression BuildCallWhereExpr(EntityQuery entityQuery, LambdaExpression lambda) {
       // var entityQueryExpression = Expression.Constant(entityQuery);
       var expr = Expression.Call(
@@ -165,25 +111,6 @@ namespace Breeze.NetClient {
                     entityQuery.Expression, Expression.Quote(lambda));
       return expr;
     }
-
-    //private static LambdaExpression BuildLambdaMemberAccessExpr(Type fromType, EntityRelationLink relationLink, ParameterExpression parameterExpr) {
-    //  // fromType may not be the same as the relationLink.FromType because of inheritence
-    //  var propertyName = relationLink.ToRole.RelationPropertyName;
-    //  var propertyInfo = TypeFns.FindPropertyOrField(fromType, propertyName, false, false);
-    //  Type funcType;
-    //  if (!relationLink.IsScalar) {
-    //    var enumerableToType = typeof(IEnumerable<>).MakeGenericType(relationLink.ToRole.EntityType);
-    //    funcType = GetFuncType(fromType, enumerableToType);
-    //  } else {
-    //    funcType = GetFuncType(fromType, relationLink.ToRole.EntityType);
-    //  }
-
-    //  var selectLambda = Expression.Lambda(
-    //    funcType,
-    //    Expression.MakeMemberAccess(parameterExpr, propertyInfo),
-    //    parameterExpr);
-    //  return selectLambda;
-    //}
 
 
     private static BinaryExpression BuildMultiEqualExpr(IEnumerable<MemberExpression> propExpressions, Object[] values) {
@@ -248,6 +175,70 @@ namespace Breeze.NetClient {
     //// Helps with type inference
     //static Expression<Func<A, B>> E<A, B>(Expression<Func<A, B>> exp) {
     //  return exp;
+    //}
+
+    // ------------------------------------------------------------------------------------------------
+
+    //internal static EntityQuery BuildQuery(List<EntityAspect> aspects, EntityRelationLink relationLink) {
+    //  // Building a query of the form:
+    //  // var q0 = customers
+    //  //   .Where(c => c.CustomerID == 1 || c.CustomerID == 2)
+    //  //   .SelectMany(c => c.SalesOrderHeaders);
+    //  // --- RelationLink: Customer_SalesOrderHeader.ToChild From: Customer To: SalesOrderHeader
+    //  if (aspects.Count == 0) {
+    //    throw new ArgumentException("entities must contains at least one entity");
+    //  }
+    //  var eks = aspects.Select(e => e.EntityKey);
+    //  var entityType = eks.First().EntityType;
+    //  var em = aspects[0].InternalEntityManager;
+    //  var baseQuery = EntityQuery.Create(entityType, em);
+
+    //  var fromLambdaExpr = BuildLambdaKeyQuery(eks);
+    //  var parameterExpr = fromLambdaExpr.Parameters[0];
+    //  var whereExpr = BuildCallWhereExpr(baseQuery, fromLambdaExpr);
+    //  var castExpr = Expression.Call(
+    //    typeof(Queryable), "OfType",
+    //      new Type[] { entityType },
+    //      whereExpr);
+
+    //  var memberAccessLambda = BuildLambdaMemberAccessExpr(entityType, relationLink, parameterExpr);
+
+    //  Expression expr;
+    //  if (relationLink.IsScalar) {
+    //    expr = Expression.Call(
+    //      typeof(Queryable), "Select",
+    //      new Type[] { entityType, relationLink.ToRole.EntityType },
+    //      castExpr, Expression.Quote(memberAccessLambda));
+    //  } else {
+    //    expr = Expression.Call(
+    //      typeof(Queryable), "SelectMany",
+    //      new Type[] { entityType, relationLink.ToRole.EntityType },
+    //      castExpr, Expression.Quote(memberAccessLambda));
+    //  }
+
+    //  var query = (EntityQuery)TypeFns.ConstructGenericInstance(typeof(EntityQuery<>), 
+    //    new Type[] { relationLink.ToRole.EntityType },
+    //    expr, baseQuery);
+    //  return query;
+    //}
+
+    //private static LambdaExpression BuildLambdaMemberAccessExpr(Type fromType, EntityRelationLink relationLink, ParameterExpression parameterExpr) {
+    //  // fromType may not be the same as the relationLink.FromType because of inheritence
+    //  var propertyName = relationLink.ToRole.RelationPropertyName;
+    //  var propertyInfo = TypeFns.FindPropertyOrField(fromType, propertyName, false, false);
+    //  Type funcType;
+    //  if (!relationLink.IsScalar) {
+    //    var enumerableToType = typeof(IEnumerable<>).MakeGenericType(relationLink.ToRole.EntityType);
+    //    funcType = GetFuncType(fromType, enumerableToType);
+    //  } else {
+    //    funcType = GetFuncType(fromType, relationLink.ToRole.EntityType);
+    //  }
+
+    //  var selectLambda = Expression.Lambda(
+    //    funcType,
+    //    Expression.MakeMemberAccess(parameterExpr, propertyInfo),
+    //    parameterExpr);
+    //  return selectLambda;
     //}
   
   }

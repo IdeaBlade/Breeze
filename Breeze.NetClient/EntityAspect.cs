@@ -1106,6 +1106,16 @@ namespace Breeze.NetClient {
 
     #region NavProperty loading info
 
+    public void LoadNavigationProperty(String propertyName) {
+      var np = this.EntityType.GetNavigationProperty(propertyName);
+      LoadNavigationProperty(np);
+    }
+
+    public void LoadNavigationProperty(NavigationProperty navProperty) {
+      // var query = EntityQueryBuilder.BuildQuery()
+      throw new NotImplementedException();
+    }
+
     internal List<String> LoadedNavigationPropertyNames {
       get;
       set;
