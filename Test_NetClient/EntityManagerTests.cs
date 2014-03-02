@@ -68,6 +68,30 @@ namespace Test_NetClient {
 
     }
 
+    [TestMethod]
+    public async Task HasChangesChangedAfterSave() {
+      await _emTask;
+
+      var hccArgs = new List<EntityManagerHasChangesChangedEventArgs>();
+      _em1.HasChangesChanged += (s, e) => {
+        hccArgs.Add(e);
+      };
+
+      var emp = new Employee() { FirstName = "Test_Fn", LastName = "Test_Ln" };
+
+      _em1.AddEntity(emp);
+      Assert.IsTrue(hccArgs.Count == 1);
+      Assert.IsTrue(hccArgs.Last().HasChanges == true);
+      Assert.IsTrue(_em1.HasChanges());
+      var sr = await _em1.SaveChanges();
+      Assert.IsTrue(sr.Entities.Count == 1);
+      Assert.IsTrue(hccArgs.Count == 2);
+      Assert.IsTrue(hccArgs.Last().HasChanges == false);
+      Assert.IsTrue(_em1.HasChanges() == false);
+    }
+
+    
+
 
   }
 }

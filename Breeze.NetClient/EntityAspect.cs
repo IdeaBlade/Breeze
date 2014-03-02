@@ -190,7 +190,6 @@ namespace Breeze.NetClient {
       var entity = this.Entity;
       if (this.EntityState.IsAdded()) {
         this.EntityManager.DetachEntity(entity);
-        // this.EntityManager.NotifyStateChange(this, false);
       } else {
         this.SetEntityStateCore(EntityState.Deleted);
         RemoveFromRelations(EntityState.Deleted);
