@@ -382,21 +382,20 @@ namespace Breeze.NetClient {
     #region EntityState change methods
 
     internal void SetEntityStateCore(EntityState value) {
-
-      if (!this.EntityGroup.ChangeNotificationEnabled) {
-        _entityState = value;
-      } else {
-        if (value.IsAdded()) {
-          _originalValuesMap = null;
-        }
-        var hadChanges = _entityState != EntityState.Unchanged;
-        _entityState = value;
-        var hasChanges = _entityState != EntityState.Unchanged;
+      
+      if (value.IsAdded()) {
+        _originalValuesMap = null;
+      }
+      var hadChanges = _entityState != EntityState.Unchanged;
+      _entityState = value;
+      var hasChanges = _entityState != EntityState.Unchanged;
+      if (this.EntityGroup.ChangeNotificationEnabled) {
         OnEntityAspectPropertyChanged("EntityState");
         if (hadChanges != hasChanges) {
           OnEntityAspectPropertyChanged("IsChanged");
         }
       }
+    
     }
 
     // Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}

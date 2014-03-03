@@ -38,18 +38,17 @@ namespace Breeze.NetClient {
 
     protected EntityGroup(Type clrEntityType) {
       ClrType = clrEntityType;
-      Initialize();
     }
 
-    /// <summary>
-    /// For internal use only.
-    /// </summary>
-    /// <param name="clrEntityType"></param>
-    protected EntityGroup(Type clrEntityType, EntityType entityType) {
-      ClrType = clrEntityType;
-      EntityType = entityType;
-      Initialize();
-    }
+    ///// <summary>
+    ///// For internal use only.
+    ///// </summary>
+    ///// <param name="clrEntityType"></param>
+    //protected EntityGroup(Type clrEntityType, EntityType entityType) {
+    //  ClrType = clrEntityType;
+    //  EntityType = entityType;
+    //  Initialize();
+    //}
 
 
     /// <summary>
@@ -57,36 +56,27 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="clrEntityType"></param>
     /// <returns></returns>
-    internal static EntityGroup Create(Type clrEntityType) {
+    internal static EntityGroup Create(Type clrEntityType, EntityManager em) {
       EntityGroup entityGroup;
       Type egType = typeof(EntityGroup<>).MakeGenericType(clrEntityType);
       entityGroup = (EntityGroup)Activator.CreateInstance(egType);
-      
+      entityGroup.Initialize(em);
       return entityGroup;
     }
 
-    private void Initialize() {
+    private void Initialize(EntityManager em) {
       _entityAspects = new EntityCollection();
       _entityKeyMap = new Dictionary<EntityKey, EntityAspect>();
       // _pendingEvents = new List<Action>();
-      ChangeNotificationEnabled = false;
+      EntityManager = em;
+      EntityType = em.MetadataStore.GetEntityType(ClrType);
+      // insure that any added table can watch for change events
+      ChangeNotificationEnabled = em.ChangeNotificationEnabled;      
+      
     }
 
 
     #endregion
-
-    #region Null EntityGroup
-
-
-    ///// <summary>
-    ///// Whether or not this is the 'null group.  The 'null' group contains no entities and is automatically provided to detached entities.
-    ///// </summary>
-    //public virtual bool IsNullGroup {
-    //  get { return false; }
-    //}
-
-    #endregion
-
 
     #region Public properties
 
@@ -265,26 +255,6 @@ namespace Breeze.NetClient {
 
     #region private and protected
 
-    //private EntityAspect MergeEntityAspect(EntityAspect entityAspect, EntityAspect targetEntityAspect, EntityState entityState, MergeStrategy mergeStrategy) {
-    //  if (entityAspect == targetEntityAspect) {
-    //    entityAspect.EntityState = entityState;
-    //    return entityAspect;
-    //  }
-
-    //  var targetWasUnchanged = targetEntityAspect.EntityState.IsUnchanged();
-    //  if (mergeStrategy == MergeStrategy.Disallowed) {
-    //     throw new Exception("A MergeStrategy of 'Disallowed' does not allow you to attach an entity when an entity with the same key is already attached: " + entityAspect.EntityKey);
-    //  } else if (mergeStrategy == MergeStrategy.OverwriteChanges || (mergeStrategy == MergeStrategy.PreserveChanges && targetWasUnchanged)) {
-    //    // TODO: this needs to be implementated.
-    //     // MergeEntityAspectCore(entityAspect, targetEntityAspect);
-    //     this.EntityManager.CheckStateChange(targetEntityAspect, targetWasUnchanged, entityState.IsUnchanged());
-    //  } else {
-    //    // do nothing PreserveChanges and target is modified
-    //  }
-    //  return targetEntityAspect;
-      
-    //}
-
     private void AddToKeyMap(EntityAspect aspect) {
       try {
         _entityKeyMap.Add(aspect.EntityKey, aspect);
@@ -298,7 +268,6 @@ namespace Breeze.NetClient {
     }
 
    
-
     #endregion
 
     #region explict interfaces
@@ -330,8 +299,6 @@ namespace Breeze.NetClient {
 
     #endregion
 
-
-  
   }
 
   #endregion

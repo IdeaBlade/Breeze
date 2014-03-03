@@ -61,6 +61,14 @@ namespace Breeze.NetClient {
     public CacheQueryOptions DefaultCacheQueryOptions { get; set; }
 
     public IKeyGenerator KeyGenerator { get; set; }
+
+    public bool ChangeNotificationEnabled {
+      get { return _changeNotificationEnabled; }
+      set {
+        _changeNotificationEnabled = value;
+        this.EntityGroups.ForEach(eg => eg.ChangeNotificationEnabled = value);
+      }
+    }
     
     #endregion
 
@@ -108,13 +116,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    public IEnumerable<T> ExecuteQueryLocally<T>(EntityQuery<T> query) {
-      return query.ExecuteLocally(query.EntityManager ?? this);
-    }
-
-    public IEnumerable ExecuteQueryLocally(EntityQuery query) {
-      return query.ExecuteLocally(query.EntityManager ?? this);
-    }
+ 
 
     public async Task<SaveResult> SaveChanges(SaveOptions saveOptions) {
       return await SaveChanges(null, saveOptions);
@@ -191,9 +193,9 @@ namespace Breeze.NetClient {
     // TODO: not currently called.
     internal void FireQueuedEvents() {
       // IsLoadingEntity will still be true when this occurs.
-      if (!QueuedEvents.Any()) return;
-      var events = QueuedEvents;
-      _queuedEvents = new List<Action>();
+      if (! _queuedEvents.Any()) return;
+      var events = _queuedEvents.ToList();
+      _queuedEvents.Clear();
       events.ForEach(a => a());
 
       // in case any of the previously queued events spawned other events.
@@ -460,6 +462,26 @@ namespace Breeze.NetClient {
 
     #region Misc public methods
 
+    public void EnableChangeNotification(Type clrEntityType, bool enabled = true) {
+      CheckEntityType(clrEntityType);
+      var eg = GetEntityGroup(clrEntityType);
+      eg.ChangeNotificationEnabled = enabled;
+    }
+
+    public bool IsChangeNotificationEnabled(Type clrEntityType) {
+      CheckEntityType(clrEntityType);
+      var eg = GetEntityGroup(clrEntityType);
+      return eg.ChangeNotificationEnabled;
+    }
+
+    public IEnumerable<T> ExecuteQueryLocally<T>(EntityQuery<T> query) {
+      return query.ExecuteLocally(query.EntityManager ?? this);
+    }
+
+    public IEnumerable ExecuteQueryLocally(EntityQuery query) {
+      return query.ExecuteLocally(query.EntityManager ?? this);
+    }
+
     public void AcceptChanges() {
       var entities = this.GetChanges();
       entities.ForEach(e => e.AcceptChanges());
@@ -723,9 +745,8 @@ namespace Breeze.NetClient {
           return eg;
         }
 
-        eg = EntityGroup.Create(clrEntityType);
-        AddEntityGroup(eg);
-
+        eg = EntityGroup.Create(clrEntityType, this);
+        this.EntityGroups.Add(eg);
         // ensure that any entities placed into the table on initialization are 
         // marked so as not to be saved again
         eg.AcceptChanges();
@@ -739,15 +760,6 @@ namespace Breeze.NetClient {
       return (EntityGroup<T>)GetEntityGroup(typeof(T));
     }
 
-    private void AddEntityGroup(EntityGroup entityGroup) {
-      // don't both checking if an entityGroup with the same key already exists
-      // should have been checked in calling code ( and will fail in the Add if not)
-      entityGroup.EntityManager = this;
-      entityGroup.EntityType = this.MetadataStore.GetEntityType(entityGroup.ClrType);
-      // insure that any added table can watch for change events
-      entityGroup.ChangeNotificationEnabled = true;      
-      this.EntityGroups.Add(entityGroup);
-    }
 
     #endregion
 
@@ -935,6 +947,12 @@ namespace Breeze.NetClient {
 
     #region Other internal 
 
+    internal static void CheckEntityType(Type clrEntityType) {
+      var etInfo = clrEntityType.GetTypeInfo();
+      if ( typeof(IEntity).GetTypeInfo().IsAssignableFrom(etInfo) && !etInfo.IsAbstract) return;
+      throw new ArgumentException("This operation requires a nonabstract type that implements the IEntity interface");
+    }
+
     internal LoadingBlock NewIsLoadingBlock() {
       return new LoadingBlock(this);
     }
@@ -947,7 +965,9 @@ namespace Breeze.NetClient {
       }
 
       public void Dispose() {
-        _entityManager.FireQueuedEvents();
+        if (!_wasLoadingEntity) {
+          _entityManager.FireQueuedEvents();
+        }
         _entityManager.IsLoadingEntity = _wasLoadingEntity;
       }
 
@@ -965,6 +985,7 @@ namespace Breeze.NetClient {
 
     private EntityGroupCollection EntityGroups { get; set; }
     private List<Action> _queuedEvents = new List<Action>();
+    private bool _changeNotificationEnabled = true;
     private bool _hasChanges;
     #endregion
   }
