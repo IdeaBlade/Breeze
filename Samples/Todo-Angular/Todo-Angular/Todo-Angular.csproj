@@ -121,20 +121,25 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\breeze.directives.css" />
     <Content Include="Content\reset.css" />
     <Content Include="Content\toastr.css" />
     <Content Include="Content\todo.css" />
     <Content Include="favicon.ico" />
     <Content Include="Index.html" />
+    <Content Include="Scripts\angular-mocks.js" />
     <Content Include="Scripts\angular.js" />
     <Content Include="Scripts\angular.min.js" />
     <Content Include="Scripts\app\dataservice.js" />
     <Content Include="Scripts\app\logger.js" />
     <Content Include="Scripts\app\controller.js" />
+    <Content Include="Scripts\angular.min.js.map" />
     <None Include="Scripts\jquery-1.8.3.intellisense.js" />
     <Content Include="Scripts\app\main.js" />
     <None Include="Scripts\breeze.intellisense.js" />
+    <Content Include="Scripts\breeze.angular.js" />
     <Content Include="Scripts\breeze.debug.js" />
+    <Content Include="Scripts\breeze.directives.validation.js" />
     <Content Include="Scripts\breeze.min.js" />
     <Content Include="Scripts\breeze.savequeuing.js" />
     <Content Include="Scripts\jquery-1.8.3.js" />

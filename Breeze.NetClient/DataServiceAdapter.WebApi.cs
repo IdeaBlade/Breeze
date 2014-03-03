@@ -117,7 +117,7 @@ namespace Breeze.NetClient {
       var jn = new JNode(jo);
       var kms = jn.GetArray<KeyMapping>("KeyMappings");
       var keyMappings = kms.Select(km => ToEntityKeys(km)).ToDictionary(tpl => tpl.Item1, tpl => tpl.Item2);
-      using (entityManager.NewIsLoadingBlock()) {
+      using (entityManager.NewIsLoadingBlock(false)) {
         keyMappings.ForEach(km => {
           var targetEntity = entityManager.FindEntityByKey(km.Key);
           targetEntity.EntityAspect.SetDpValue(km.Key.EntityType.KeyProperties[0], km.Value.Values[0]);
