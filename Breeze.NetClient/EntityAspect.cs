@@ -281,7 +281,10 @@ namespace Breeze.NetClient {
 
 
       EntityManager.NotifyStateChange(this, false);
-      EntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
+      if (this.EntityGroup.ChangeNotificationEnabled) {
+        // only place that this gets called directly EXCEPT from EntityAspect.OnEntityChanged
+        EntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
+      }
       return true;
     }
 
@@ -303,7 +306,7 @@ namespace Breeze.NetClient {
       } else {
         this.SetUnchanged();
       }
-      this.EntityManager.OnEntityChanged(this.Entity, EntityAction.AcceptChanges);
+      OnEntityChanged(EntityAction.AcceptChanges);
 
     }
 
@@ -1232,19 +1235,19 @@ namespace Breeze.NetClient {
       if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return;
       QueueEvent(() => {
         OnPropertyChangedCore(propertyName);
-        OnEntityChangedCore(Entity, EntityAction.PropertyChange);
+        OnEntityChangedCore(EntityAction.PropertyChange);
       });
     }
 
-    private void OnEntityChanged(EntityAction entityAction) {
+    internal void OnEntityChanged(EntityAction entityAction) {
       if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return;
-      QueueEvent(() => OnEntityChangedCore(this.Entity, entityAction));
+      QueueEvent(() => OnEntityChangedCore(entityAction));
     }
 
     private void OnPropertyChangedCore(String propertyName) {
       var handler = EntityPropertyChanged;
       if (handler == null) return;
-      var args = new PropertyChangedEventArgs(propertyName);
+      var args = new PropertyChangedEventArgs(propertyName ?? NullPropertyName);
       try {
         handler(this.Entity, args);
       } catch {
@@ -1253,20 +1256,18 @@ namespace Breeze.NetClient {
       }
     }
 
-    private void OnEntityChangedCore(IEntity entity, EntityAction entityAction) {
+    private void OnEntityChangedCore(EntityAction entityAction) {
       // change actions will fire property change inside of OnPropertyChanged 
-      if (entityAction != EntityAction.PropertyChange) {
+      if (entityAction != EntityAction.PropertyChange && entityAction != EntityAction.EntityStateChange) {
         OnPropertyChanged((String) null);
       }
-      EntityManager.OnEntityChanged(entity, entityAction);
+      EntityManager.OnEntityChanged(this.Entity, entityAction);
     }
-
-  
 
     private void OnEntityAspectPropertyChanged(String propertyName) {
       var handler = PropertyChanged;
       if (handler == null) return;
-      var args = new PropertyChangedEventArgs(propertyName);
+      var args = new PropertyChangedEventArgs(propertyName ?? NullPropertyName);
       try {
         handler(this, args);
       } catch {
@@ -1282,6 +1283,12 @@ namespace Breeze.NetClient {
         action();
       }
     }
+
+#if NET
+    private static readonly String NullPropertyName = null;
+#else
+    private static readonly String NullPropertyName = String.Empty;
+#endif
 
     //private void TryToHandle<T>(EventHandler<T> handler, T args) where T : EventArgs {
     //  if (handler == null) return;

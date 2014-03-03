@@ -625,7 +625,7 @@ namespace Breeze.NetClient {
         if (!entityState.IsUnchanged()) {
           NotifyStateChange(aspect, true);
         }
-        OnEntityChanged(aspect.Entity, EntityAction.Attach);
+        aspect.OnEntityChanged(EntityAction.Attach);
         return aspect.Entity;
 
       }
@@ -649,12 +649,10 @@ namespace Breeze.NetClient {
         //        attachedEntity.entityAspect.validateEntity();
         //    }
 
-        OnEntityChanged(aspect.Entity, EntityAction.Attach);
+        aspect.OnEntityChanged(EntityAction.Attach);
         return aspect;
       }
     }
-
-  
 
     private EntityAspect PrepareForAttach(IEntity entity) {
       var aspect = entity.EntityAspect;
@@ -914,7 +912,7 @@ namespace Breeze.NetClient {
     }
 
     internal void NotifyStateChange(EntityAspect entityAspect, bool needsSave) {
-      OnEntityChanged(entityAspect.Entity, EntityAction.EntityStateChange);
+      entityAspect.OnEntityChanged(EntityAction.EntityStateChange);
 
       if (needsSave) {
         if (!this._hasChanges) {
