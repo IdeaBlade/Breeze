@@ -40,7 +40,6 @@ namespace Breeze.NetClient {
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
       TempIds = new HashSet<UniqueId>();
-      _hasChanges = false;
     }
 
     #endregion
@@ -494,6 +493,7 @@ namespace Breeze.NetClient {
 
     public void Clear() {
       EntityGroups.ForEach(eg => eg.Clear());
+      SetHasChanges(false);
       Initialize();
     }
 
@@ -927,21 +927,30 @@ namespace Breeze.NetClient {
       entityAspect.OnEntityChanged(EntityAction.EntityStateChange);
 
       if (needsSave) {
-        if (!this._hasChanges) {
-          this._hasChanges = true;
-          OnHasChangesChanged();
-        }
+        SetHasChanges(true);
       } else {
         // called when rejecting a change or merging an unchanged record.
+        // NOTE: this can be slow with lots of entities in the cache.
         if (this._hasChanges) {
-          // NOTE: this can be slow with lots of entities in the cache.
-          this._hasChanges = this.HasChangesCore(null);
-          if (!this._hasChanges) {
-            OnHasChangesChanged();
+          if (this.IsLoadingEntity) {
+            this.HasChangesAction = this.HasChangesAction ?? (() => SetHasChanges(null));
+          } else {
+            SetHasChanges(null);
           }
         }
       }
     }
+
+    internal void SetHasChanges(bool? value) {
+      var hasChanges = value.HasValue ? value.Value : this.HasChangesCore(null);
+      if (hasChanges != this._hasChanges) {
+        this._hasChanges = hasChanges;
+        OnHasChangesChanged();
+      }
+      HasChangesAction = null;
+    }
+
+    internal Action HasChangesAction { get; private set; }
 
     #endregion
 
@@ -967,6 +976,9 @@ namespace Breeze.NetClient {
       public void Dispose() {
         if (!_wasLoadingEntity) {
           _entityManager.FireQueuedEvents();
+          if (_entityManager.HasChangesAction != null) {
+            _entityManager.HasChangesAction();
+          }
         }
         _entityManager.IsLoadingEntity = _wasLoadingEntity;
       }
