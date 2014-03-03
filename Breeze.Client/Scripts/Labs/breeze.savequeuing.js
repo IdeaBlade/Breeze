@@ -1,11 +1,11 @@
 ﻿//#region Copyright, Version, and Description
 /*
- * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
+ * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.  
  * Use, reproduction, distribution, and modification of this code is subject to the terms and 
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 1.0.3
+ * Version: 1.0.4
  * --------------------------------------------------------------------------------
  * Adds "Save Queuing" capability to new EntityManagers
  * "Save Queuing" automatically queues and defers an EntityManager.saveChanges call
@@ -37,21 +37,22 @@
  * touch them at your own risk.
  */
 //#endregion
-(function (factory) {
-    if (breeze && Q) {
-        factory(breeze, Q);
+(function (definition, window) {
+    if (window.breeze && window.Q) {
+        definition(window.breeze, window.Q);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
-        // CommonJS or Node: hard-coded dependency on "breeze"
+        // CommonJS or Node
         var b = require('breeze');
         var q = require('Q');
-        factory(b, q);
-    } else if (typeof define === "function" && define["amd"] && !breeze) {
-        // AMD anonymous module with hard-coded dependency on "breeze"
-        define(['breeze', 'Q'], factory);
+        definition(b, q);
+    } else if (typeof define === "function" && define["amd"] && !window.breeze) {
+        // Requirejs / AMD 
+        define(['breeze', 'Q'], definition);
     } else {
         throw new Error("Can't find breeze and/or Q");
     }
-})(function (breeze, Q) {
+}(function (breeze, Q) {
+    'use strict';
     var EntityManager = breeze.EntityManager;
 
     /**
@@ -161,4 +162,4 @@
     QueuedSaveFailedError.prototype.constructor = QueuedSaveFailedError;
     //#endregion
 
-});
+}, this));

@@ -1,0 +1,22 @@
+﻿<!---------------------------------------------------
+    "New Todolist"" View
+    Relies on the ambient controller/viewmodel of the containing view
+--------------------------------------------------->
+<div class="panel panel-info animate-if" ng-if="vm.isAddingTodoList">
+    <div class="panel-heading">
+        <strong>New TodoList</strong>
+
+        <button type="button" style="float: right;" class="btn btn-danger btn-xs" aria-hidden="true"
+                ng-click="vm.closeDiscardNewTodoList()"
+                title="Close and do not add">
+            <i class="glyphicon glyphicon-remove"></i>
+        </button>
+    </div>
+    <div class="panel-body">
+        <form data-ng-submit="vm.closeNewTodoList()" class="input-group input-group-lg">
+            <input style="width: 200%" type="text" autofocus class="form-control" placeholder="Title"
+                   data-ng-model="vm.newTodoListTitle"
+                   data-ng-blur="vm.closeNewTodoList()" />
+        </form>
+    </div>
+</div>

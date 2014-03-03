@@ -1,7 +1,7 @@
 ﻿using Breeze.Core;
-
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Breeze.NetClient {
@@ -10,22 +10,15 @@ namespace Breeze.NetClient {
   /// </summary>
   public class EntityKey : IComparable, IJsonSerializable  {
 
-    public EntityKey(Type clrType, params Object[] values)
-      : this(clrType, null, values) {
+    // used by EntityKey.Create
+    private EntityKey() {
+
     }
 
-    public EntityKey(JNode jn) {
-      var etName = jn.Get<String>("entityType");
-      var et = MetadataStore.Instance.GetEntityType(etName);
-      ClrType = et.ClrType;
-      Values = jn.GetPrimitiveArray<Object>("values").ToArray();
-    }
-
-     JNode IJsonSerializable.ToJNode(object config) {
-      var jn = new JNode();
-      jn.AddPrimitive("entityType", this.EntityType.Name);
-      jn.AddArray("values", this.Values);
-      return jn;
+    public EntityKey(Type clrType, params Object[] values) {
+      ClrType = clrType;
+      EntityType = MetadataStore.Instance.GetEntityType(ClrType);
+      InitializeValues(values, true);
     }
 
     /// <summary>
@@ -33,22 +26,51 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="entityType">The Entity type</param>
     /// <param name="values">The values of the primary key properties</param>
-    public EntityKey(EntityType entityType, params Object[] values)
-      : this(entityType.ClrType, entityType, values) {
+    public EntityKey(EntityType entityType, params Object[] values) {
+      EntityType = entityType;
+      ClrType = EntityType.ClrType;
+      InitializeValues(values, true);
     }
 
-   
-    internal EntityKey(Type clrType, EntityType entityType, Object[] values) {
-      ClrType = clrType;
-      EntityType = entityType;
+    internal EntityKey(JNode jn) {
+      var etName = jn.Get<String>("entityType");
+      EntityType = MetadataStore.Instance.GetEntityType(etName);
+      ClrType = EntityType.ClrType;
+      // coerce the incoming data
+      Values = jn.GetArray("values", EntityType.KeyProperties.Select(kp => kp.ClrType)).ToArray();
+    }
 
+    // should be called internally when we don't need to go thru coercion.
+    internal static EntityKey Create(EntityType entityType, params Object[] values) {
+      var ek = new EntityKey();
+      ek.EntityType = entityType;
+      ek.ClrType = entityType.ClrType;
+      ek.InitializeValues(values, false);
+      return ek;
+    }
+
+    private void InitializeValues(Object[] values, bool shouldCoerce = true) {
       if (values.Length == 1 && values[0] is Array) {
         Values = ((IEnumerable)values[0]).Cast<Object>().ToArray();
       } else {
         Values = values;
       }
+
+      if (shouldCoerce) {
+        Coerce();
+      }
     }
 
+    
+
+     JNode IJsonSerializable.ToJNode(object config) {
+      var jn = new JNode();
+      jn.AddPrimitive("entityType", this.EntityType.Name);
+      jn.AddArray("values", this.Values);
+
+      return jn;
+    }
+   
     public Type ClrType {
       get;
       private set;
@@ -71,46 +93,27 @@ namespace Breeze.NetClient {
       internal set;
     }
 
+    public EntityQuery ToQuery() {
+      return EntityQueryBuilder.BuildQuery(this);
+    }
+
+    public EntityQuery<T> ToQuery<T>() {
+      return (EntityQuery<T>) EntityQueryBuilder.BuildQuery(this);
+    }
 
     public bool IsEmpty() {
       return Values == null || Values.Length == 0 || Values.Any(v => v==null) ;
     }
 
-    /// <summary>
-    /// Returns an <see cref="EntityQuery"/> to retrieve the item
-    /// represented by this key.
-    /// </summary>
-    /// <returns></returns>
-    public EntityQuery ToQuery() {
-      return null;
-      // return new EntityQuery
-      //var query = EntityQueryBuilder.BuildQuery(this);
-      //query.EntityManager = entityManager;
-      //return query;
-    }
-
-    
-    internal EntityKey Coerce(EntityType entityType=null) {
-      if (entityType == null) {
-        if (EntityType == null) {
-          throw new Exception("No EntityType to coerce into");
-        }
-      } else {
-        if (EntityType != null && EntityType != entityType) {
-          throw new Exception("Cannot coerce entityKey: " + this + " to : " + entityType);
-        }
-        EntityType = entityType;
-      }
-    
+    private void Coerce() {
       for (int i = 0; i < Values.Length; i++) {
-        var  clrType = EntityType.KeyProperties[i].ClrType;
+        var clrType = EntityType.KeyProperties[i].ClrType;
         var val = Values[i];
         if (val == null) continue;
         if (clrType != val.GetType()) {
-          Values[i] = TypeFns.ConvertType(val, clrType, false);
+          Values[i] = TypeFns.ConvertType(val, clrType, true);
         }
       }
-      return this;
     }
 
     /// <summary>
@@ -195,6 +198,7 @@ namespace Breeze.NetClient {
     public override String ToString() {
       return ClrType.Name + ": " + Values.ToAggregateString(",");
     }
+
 
     //// do not need to serialize this.
     //internal EntityKey BasemostEntityKey {

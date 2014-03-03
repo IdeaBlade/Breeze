@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
+ * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.  
  * Use, reproduction, distribution, and modification of this code is subject to the terms and 
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
@@ -9,10 +9,10 @@
 (function (definition) {
 
     // CommonJS
-    if (typeof exports === "object") {
+    if (typeof exports === "object" && typeof module === "object") {
         module.exports = definition();
         // RequireJS
-    } else if (typeof define === "function") {
+    } else if (typeof define === "function" && define["amd"]) {
         define(definition);
         // <script>
     } else {
@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.4.8",
+        version: "1.4.9",
         metadataVersion: "1.0.5"
     };
 
@@ -841,7 +841,7 @@ var Param = (function () {
                 curContext.prevContext = context;
                 // just update the prevContext but don't change the curContext.
                 return that;
-            } else if (context.prevContext === null) {
+            } else if (context.prevContext == null) {
                 context.prevContext = that._context;
             } else {
                 throw new Error("Illegal construction - use 'or' to combine checks");
@@ -3845,7 +3845,7 @@ var EntityAspect = (function() {
         if (property) {
             var propertyName = typeof (property) === 'string' ? property : property.name;
             result = result.filter(function (ve) {
-                return (ve.property && ve.property.name === propertyName);
+                return ve.property && (ve.property.name === propertyName || (propertyName.indexOf(".") != -1 && ve.propertyName == propertyName));
             });
         }
         return result;
@@ -8255,7 +8255,7 @@ var DataProperty = (function () {
                 } else {
                     this.defaultValue = this.dataType.defaultValue;
                     if (this.defaultValue == null) {
-                        throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + this.name);
+                        throw new Error("A nonnullable DataProperty cannot have a null defaultValue. Name: " + (this.name || this.nameOnServer));
                     }
                 }
             }
@@ -9840,7 +9840,7 @@ var EntityQuery = (function () {
         assertParam(entityKey, "entityKey").isInstanceOf(EntityKey).check();
         var q = new EntityQuery(entityKey.entityType.defaultResourceName);
         var pred = buildKeyPredicate(entityKey);
-        q = q.where(pred);
+        q = q.where(pred).toType(entityKey.entityType);
         return q;
     };
 
@@ -9978,7 +9978,6 @@ var EntityQuery = (function () {
         queryOptions["$expand"] = toExpandString();
         queryOptions["$select"] = toSelectString();
         queryOptions["$inlinecount"] = toInlineCountString();
-        //queryOptions = __extend(queryOptions, this.parameters);
             
         var qoText = toQueryOptionsString(queryOptions);
         return this.resourceName + qoText;
@@ -12123,14 +12122,6 @@ var EntityManager = (function () {
     }
 
     /**
-    Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. 
-    @method rejectChanges
-    **/
-    proto.rejectChanges = function () {
-        this.getChanges().forEach(function (entity) { entity.entityAspect.rejectChanges(); })
-    }
-
-    /**
     Exports an entire EntityManager or just selected entities into a serialized string for external storage.
     @example
     This method can be used to take a snapshot of an EntityManager that can be either stored offline or held 
@@ -12253,6 +12244,7 @@ var EntityManager = (function () {
         }, function(state) {
             that._pendingPubs.forEach(function(fn) { fn(); });
             that._pendingPubs = null;
+            that._hasChangesAction && that._hasChangesAction();
         }, function () {
             __objectForEach(json.entityGroupMap, function(entityTypeName, jsonGroup) {
                 var entityType = that.metadataStore._getEntityType(entityTypeName, true);
@@ -12291,10 +12283,7 @@ var EntityManager = (function () {
         this._unattachedChildrenMap = new UnattachedChildrenMap();
         this.keyGenerator = new this.keyGeneratorCtor();
         this.entityChanged.publish({ entityAction: EntityAction.Clear });
-        if (this._hasChanges) {
-            this._hasChanges = false;
-            this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
-        }
+        this._setHasChanges(false);
     };
 
   
@@ -12559,8 +12548,7 @@ var EntityManager = (function () {
         var promise;
         // 'resolve' methods create a new typed object with all of its properties fully resolved against a list of sources.
         // Thought about creating a 'normalized' query with these 'resolved' objects
-        // but decided not to be the 'query' may not be an EntityQuery (it can be a string) and hence might not have a queryOptions or dataServices property on it.
-        // It can be a string.
+        // but decided not to because the 'query' may not be an EntityQuery (it can be a string) and hence might not have a queryOptions or dataServices property on it.
         var queryOptions = QueryOptions.resolve([ query.queryOptions, this.queryOptions, QueryOptions.defaultInstance]);
         var dataService = DataService.resolve([ query.dataService, this.dataService]);
 
@@ -12707,7 +12695,11 @@ var EntityManager = (function () {
         failureFunction([error])
         @param [errorCallback.error] {Error} Any error that occured wrapped into an Error object.
         @param [errorCallback.error.entityErrors] { Array of server side errors }  These are typically validation errors but are generally any error that can be easily isolated to a single entity. 
-        @param [errorCallback.error.httpResponse] {HttpResponse}The raw HttpResponse returned from the server.
+        @param [errorCallback.error.httpResponse] {HttpResponse} The raw HttpResponse returned from the server.
+        @param [errorCallback.error.saveResult] {Object} Some dataservice adapters return a 'saveResult' object 
+        when the failing save operation is non-transactional meaning some entities could be saved while others were not.
+        The 'saveResult' object identifies both that entities that were saved (with their keyMapping)
+        and that entities that were not saved (with their errors).
         
     @return {Promise} Promise
     **/
@@ -12716,15 +12708,15 @@ var EntityManager = (function () {
         assertParam(saveOptions, "saveOptions").isInstanceOf(SaveOptions).isOptional().check();
         assertParam(callback, "callback").isFunction().isOptional().check();
         assertParam(errorCallback, "errorCallback").isFunction().isOptional().check();
-            
+
         saveOptions = saveOptions || this.saveOptions || SaveOptions.defaultInstance;
         var isFullSave = entities == null;
         var entitiesToSave = getEntitiesToSave(this, entities);
             
         if (entitiesToSave.length === 0) {
-            var saveResult =  { entities: [], keyMappings: [] };
-            if (callback) callback(saveResult);
-            return Q.resolve(saveResult);
+            var result =  { entities: [], keyMappings: [] };
+            if (callback) callback(result);
+            return Q.resolve(result);
         }
             
         if (!saveOptions.allowConcurrentSaves) {
@@ -12753,14 +12745,12 @@ var EntityManager = (function () {
                 return Q.reject(valError);
             }
         }
-            
-        updateConcurrencyProperties(entitiesToSave);
-       
-       
+           
         var dataService = DataService.resolve([saveOptions.dataService, this.dataService]);
         var saveContext = {
             entityManager: this,
             dataService: dataService,
+            processSavedEntities: processSavedEntities,
             resourceName: saveOptions.resourceName || this.saveOptions.resourceName || "SaveChanges"
         };       
 
@@ -12768,38 +12758,63 @@ var EntityManager = (function () {
         // are referenced are also in the partial save group
 
         var saveBundle = { entities: entitiesToSave, saveOptions: saveOptions };
-        
-        var that = this;
-        return dataService.adapterInstance.saveChanges(saveContext, saveBundle).then(function (saveResult) {
-            
-            fixupKeys(that, saveResult.keyMappings);
-            
-            var mappingContext = new MappingContext( {
-                query: null, // tells visitAndMerge that this is a save instead of a query
-                entityManager: that,
-                mergeOptions: { mergeStrategy: MergeStrategy.OverwriteChanges },
-                dataService: dataService
-            });
 
-            // Note that the visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
-            // the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
-            var savedEntities = mappingContext.visitAndMerge(saveResult.entities, { nodeType: "root" });
-            markIsBeingSaved(entitiesToSave, false);
+        
+        try { // Guard against exception thrown in dataservice adapter before it goes async
+            updateConcurrencyProperties(entitiesToSave);
+            return dataService.adapterInstance.saveChanges(saveContext, saveBundle)
+                .then(saveSuccess).then(null, saveFail);
+        } catch (err) {
+            // undo the marking by updateConcurrencyProperties
+            markIsBeingSaved(entitiesToSave, false); 
+            if (errorCallback) errorCallback(err);
+            return Q.reject(err);
+        }
+
+        function saveSuccess(saveResult) {
+            var em = saveContext.entityManager;
+            var savedEntities = saveResult.entities = saveContext.processSavedEntities(saveResult);
+
             // update _hasChanges after save.
-            that._hasChanges = (isFullSave && haveSameContents(entitiesToSave, savedEntities)) ? false : that._hasChangesCore();
-            if (!that._hasChanges) {
-                that.hasChangesChanged.publish({ entityManager: that, hasChanges: false });
-            }
-            saveResult.entities = savedEntities;
+            var hasChanges = (isFullSave && haveSameContents(entitiesToSave, savedEntities)) ? false : null;
+            em._setHasChanges(hasChanges);
+
+            markIsBeingSaved(entitiesToSave, false);
             if (callback) callback(saveResult);
             return Q.resolve(saveResult);
-        }, function (error) {
-            processServerErrors(saveContext, error);
+        }
+
+        function processSavedEntities(saveResult) {
+
+            var savedEntities = saveResult.entities;
+            if (savedEntities.length === 0) { return []; }
+            var keyMappings = saveResult.keyMappings;
+            var em = saveContext.entityManager;
+
+            __using(em, "isLoading", true, function () {
+                fixupKeys(em, keyMappings);
+
+                var mappingContext = new MappingContext({
+                    query: null, // tells visitAndMerge this is a save instead of a query
+                    entityManager: em,
+                    mergeOptions: { mergeStrategy: MergeStrategy.OverwriteChanges },
+                    dataService: dataService
+                });
+
+                // The visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
+                // the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
+                savedEntities = mappingContext.visitAndMerge(savedEntities, { nodeType: "root" });
+            });
+            
+            return savedEntities;
+        }
+
+        function saveFail(error) {
             markIsBeingSaved(entitiesToSave, false);
+            processServerErrors(saveContext, error);
             if (errorCallback) errorCallback(error);
             return Q.reject(error);
-        });
-
+        }
     };
 
     function clearServerErrors(entities) {
@@ -12934,9 +12949,7 @@ var EntityManager = (function () {
     will be used to merge any server side entity returned by this method.
     @example
         // assume em1 is an EntityManager containing a number of preexisting entities. 
-        var employeeType = em1.metadataStore.getEntityType("Employee");
-        var employeeKey = new EntityKey(employeeType, 1);
-        em1.fetchEntityByKey(employeeKey).then(function(result) {
+        em1.fetchEntityByKey("Employee", 1).then(function(result) {
             var employee = result.entity;
             var entityKey = result.entityKey;
             var fromCache = result.fromCache;
@@ -12976,18 +12989,32 @@ var EntityManager = (function () {
         promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
     **/
     proto.fetchEntityByKey = function () {
-        var tpl = createEntityKey(this, arguments);
+        dataService = DataService.resolve([this.dataService]);
+        if ((!dataService.hasServerMetadata) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
+            return fetchEntityByKeyCore(this, arguments);
+        } else {
+            var that = this;
+            var args = arguments;
+            return this.fetchMetadata(dataService).then(function () {
+                return fetchEntityByKeyCore(that, args);
+            });
+        }
+    };
+
+    function fetchEntityByKeyCore(em, args) {
+
+        var tpl = createEntityKey(em, args);
         var entityKey = tpl.entityKey;
         var checkLocalCacheFirst = tpl.remainingArgs.length === 0 ? false : !!tpl.remainingArgs[0];
         var entity;
         var isDeleted = false;
         if (checkLocalCacheFirst) {
-            entity = this.getEntityByKey(entityKey);
+            entity = em.getEntityByKey(entityKey);
             isDeleted = entity && entity.entityAspect.entityState.isDeleted();
             if (isDeleted) {
                 entity = null;
                 // entityManager.queryOptions is always  fully resolved 
-                if (this.queryOptions.mergeStrategy === MergeStrategy.OverwriteChanges) {
+                if (em.queryOptions.mergeStrategy === MergeStrategy.OverwriteChanges) {
                     isDeleted = false;
                 }
             }
@@ -12995,7 +13022,7 @@ var EntityManager = (function () {
         if (entity || isDeleted) {
             return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: true });
         } else {
-            return EntityQuery.fromEntityKey(entityKey).using(this).execute().then(function(data) {
+            return EntityQuery.fromEntityKey(entityKey).using(em).execute().then(function(data) {
                 entity = (data.results.length === 0) ? null : data.results[0];
                 return Q.resolve({ entity: entity, entityKey: entityKey, fromCache: false });
             });
@@ -13154,6 +13181,7 @@ var EntityManager = (function () {
 
     /**
     Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.
+    Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. 
     @example
         // assume em1 is an EntityManager containing a number of preexisting entities.
         var entities = em1.rejectChanges();
@@ -13237,20 +13265,31 @@ var EntityManager = (function () {
 
         if (needsSave) {
             if (!this._hasChanges) {
-                this._hasChanges = true;
-                this.hasChangesChanged.publish({ entityManager: this, hasChanges: true });
+                this._setHasChanges(true);
             }
         } else {
             // called when rejecting a change or merging an unchanged record.
+            // NOTE: this can be slow with lots of entities in the cache.
+            // so defer it during a query/import or save and call it once when complete ( if needed).
             if (this._hasChanges) {
-                // NOTE: this can be slow with lots of entities in the cache.
-                this._hasChanges = this._hasChangesCore();
-                if (!this._hasChanges) {
-                    this.hasChangesChanged.publish({ entityManager: this, hasChanges: false });
+                if (this.isLoading) {
+                    this._hasChangesAction = this._hasChangesAction || function () { this._setHasChanges(null); }.bind(this);
+                } else {
+                    this._setHasChanges(null);
                 }
             }
         }
     };
+
+    proto._setHasChanges = function (hasChanges) {
+        if (hasChanges == null) hasChanges = this._hasChangesCore();
+        var hadChanges = this._hasChanges;
+        this._hasChanges = hasChanges;
+        if (hasChanges != hadChanges) {
+            this.hasChangesChanged.publish({ entityManager: this, hasChanges: hasChanges });
+        }
+        this._hasChangesAction = null;
+    }
 
     proto._linkRelatedEntities = function (entity) {
         var em = this;
@@ -13765,8 +13804,9 @@ var EntityManager = (function () {
                 }, function (state) {
                     // cleanup
                     em.isLoading = state.isLoading;
-                    em._pendingPubs.forEach(function(fn) { fn(); });
+                    em._pendingPubs.forEach(function (fn) { fn(); });
                     em._pendingPubs = null;
+                    em._hasChangesAction && em._hasChangesAction();
                     // HACK for GC
                     query = null;
                     mappingContext = null;
@@ -14255,7 +14295,7 @@ var MappingContext = (function () {
                     em.entityChanged.publish({ entityAction: action, entity: targetEntity });
                     // this is needed to handle an overwrite of a modified entity with an unchanged entity 
                     // which might in turn cause _hasChanges to change.
-                    if (!targetEntityState.isUnchanged) {
+                    if (!targetEntityState.isUnchanged()) {
                         em._notifyStateChange(targetEntity, false);
                     }
                 } else {
@@ -14532,15 +14572,9 @@ breeze.SaveOptions= SaveOptions;
     ctor.prototype.initialize = function () {
         ajaxImpl = breeze.config.getAdapterInstance("ajax");
 
-        if (!ajaxImpl) {
-            throw new Error("Unable to initialize ajax for WebApi.");
-        }
-
-        // don't cache 'ajax' because we then we would need to ".bind" it, and don't want to because of brower support issues. 
-        var ajax = ajaxImpl.ajax;
-        if (!ajax) {
-            throw new Error("Breeze was unable to find an 'ajax' adapter");
-        }
+        // don't cache 'ajax' because then we would need to ".bind" it, and don't want to because of brower support issues. 
+        if (ajaxImpl && ajaxImpl.ajax) { return; }
+        throw new Error("Unable to find ajax adapter for dataservice adapter '"+(this.name||'')+"'.");
     };
 
     ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
@@ -14793,7 +14827,8 @@ breeze.SaveOptions= SaveOptions;
             url: config.url,
             dataType: config.dataType,
             contentType: config.contentType,
-            crossDomain: config.crossDomain
+            crossDomain: config.crossDomain,
+            headers: config.headers || {}
         }
 
         if (config.params) {
@@ -14811,6 +14846,8 @@ breeze.SaveOptions= SaveOptions;
         if (!core.isEmpty(this.defaultSettings)) {
             var compositeConfig = core.extend({}, this.defaultSettings);
             ngConfig = core.extend(compositeConfig, ngConfig);
+            // extend is shallow; extend headers separately
+            ngConfig.headers = core.extend(this.defaultSettings.headers, ngConfig.headers);
         }
 
         httpService(ngConfig).success(function (data, status, headers, xconfig) {
@@ -14908,12 +14945,15 @@ breeze.SaveOptions= SaveOptions;
             data: config.params || config.data,
             dataType: config.dataType,
             contentType: config.contentType,
-            crossDomain: config.crossDomain
+            crossDomain: config.crossDomain,
+            headers: config.headers || {}
         }
         
         if (!core.isEmpty(this.defaultSettings)) {
             var compositeConfig = core.extend({}, this.defaultSettings);
             jqConfig = core.extend(compositeConfig, jqConfig);
+            // extend is shallow; extend headers separately
+            jqConfig.headers = core.extend(this.defaultSettings.headers, jqConfig.headers);
         }
         
         jqConfig.success = function (data, textStatus, XHR) {
@@ -14980,16 +15020,17 @@ breeze.SaveOptions= SaveOptions;
     
     var ctor = function () {
         this.name = "OData";
-
     };
 
-    ctor.prototype.initialize = function () {
+    var fn = ctor.prototype; // minifies better (as seen in jQuery)
+
+    fn.initialize = function () {
         OData = core.requireLib("OData", "Needed to support remote OData services");
         OData.jsonHandler.recognizeDates = true;
     };
     
     
-    ctor.prototype.executeQuery = function (mappingContext) {
+    fn.executeQuery = function (mappingContext) {
     
         var deferred = Q.defer();
         var url = mappingContext.getUrl();
@@ -15014,7 +15055,7 @@ breeze.SaveOptions= SaveOptions;
     };
     
 
-    ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
+    fn.fetchMetadata = function (metadataStore, dataService) {
 
         var deferred = Q.defer();
 
@@ -15062,14 +15103,16 @@ breeze.SaveOptions= SaveOptions;
 
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundle) {
+    fn.getRoutePrefix = function(dataService){ return ''; /* see webApiODataCtor */}
+
+    fn.saveChanges = function (saveContext, saveBundle) {
 
         var deferred = Q.defer();
 
         var helper = saveContext.entityManager.helper;
         var url = saveContext.dataService.makeUrl("$batch");
-        
-        var requestData = createChangeRequests(saveContext, saveBundle);
+        var routePrefix = this.getRoutePrefix(saveContext.dataService);
+        var requestData = createChangeRequests(saveContext, saveBundle, routePrefix);
         var tempKeys = saveContext.tempKeys;
         var contentKeys = saveContext.contentKeys;
         var that = this;
@@ -15120,7 +15163,7 @@ breeze.SaveOptions= SaveOptions;
 
     };
  
-    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
+    fn.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
         visitNode: function (node, mappingContext, nodeContext) {
@@ -15162,11 +15205,11 @@ breeze.SaveOptions= SaveOptions;
         return val;
     }
 
-    function createChangeRequests(saveContext, saveBundle) {
+    function createChangeRequests(saveContext, saveBundle, routePrefix) {
         var changeRequests = [];
         var tempKeys = [];
         var contentKeys = [];
-        var prefix = saveContext.dataService.serviceName;
+        var baseUri = saveContext.dataService.serviceName;
         var entityManager = saveContext.entityManager;
         var helper = entityManager.helper;
         var id = 0;
@@ -15176,17 +15219,17 @@ breeze.SaveOptions= SaveOptions;
             var request = { headers: { "Content-ID": id, "DataServiceVersion": "2.0" } };
             contentKeys[id] = entity;
             if (aspect.entityState.isAdded()) {
-                request.requestUri = entity.entityType.defaultResourceName;
+                request.requestUri = routePrefix + entity.entityType.defaultResourceName;
                 request.method = "POST";
                 request.data = helper.unwrapInstance(entity, transformValue);
                 tempKeys[id] = aspect.getKey();
             } else if (aspect.entityState.isModified()) {
-                updateDeleteMergeRequest(request, aspect, prefix);
+                updateDeleteMergeRequest(request, aspect, baseUri, routePrefix);
                 request.method = "MERGE";
                 request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, transformValue);
                 // should be a PATCH/MERGE
             } else if (aspect.entityState.isDeleted()) {
-                updateDeleteMergeRequest(request, aspect, prefix);
+                updateDeleteMergeRequest(request, aspect, baseUri, routePrefix);
                 request.method = "DELETE";
             } else {
                 return;
@@ -15203,11 +15246,11 @@ breeze.SaveOptions= SaveOptions;
 
     }
 
-    function updateDeleteMergeRequest(request, aspect, prefix) {
+    function updateDeleteMergeRequest(request, aspect, baseUri, routePrefix) {
         var extraMetadata = aspect.extraMetadata;
         var uri = extraMetadata.uri || extraMetadata.id;
-        if (core.stringStartsWith(uri, prefix)) {
-            uri = uri.substring(prefix.length);
+        if (core.stringStartsWith(uri, baseUri)) {
+            uri = routePrefix + uri.substring(baseUri.length);
         }
         request.requestUri = uri;
         if (extraMetadata.etag) {
@@ -15259,9 +15302,28 @@ breeze.SaveOptions= SaveOptions;
 
     breeze.config.registerAdapter("dataService", ctor);
 
-}));
 
-;(function(factory) {
+    var webApiODataCtor = function () {
+        this.name = "webApiOData";
+    }
+
+    breeze.core.extend(webApiODataCtor.prototype, fn);
+
+    webApiODataCtor.prototype.getRoutePrefix = function(dataService){
+        // Get the routePrefix from a Web API OData service name.
+        // Web API OData requires inclusion of the routePrefix in the Uri of a batch subrequest
+        // By convention, Breeze developers add the Web API OData routePrefix to the end of the serviceName
+        // e.g. the routePrefix in 'http://localhost:55802/odata/' is 'odata/'
+        var segments = dataService.serviceName.split('/');
+        var last = segments.length-1 ;
+        var routePrefix = segments[last] || segments[last-1];
+        routePrefix = routePrefix ? routePrefix += '/' : '';
+        return routePrefix;
+    };
+
+    breeze.config.registerAdapter("dataService", webApiODataCtor);
+
+}));;(function(factory) {
     if (breeze) {
         factory(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {

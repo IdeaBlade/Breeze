@@ -8,6 +8,8 @@ using System.Transactions;
 using System.Xml;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using System.Threading;
+using System.Collections.ObjectModel;
 
 namespace Breeze.ContextProvider {
 
@@ -17,8 +19,9 @@ namespace Breeze.ContextProvider {
     public static BreezeConfig Instance {
       get {
         lock (__lock) {
+          AppDomain.CurrentDomain.AssemblyLoad += CurrentDomain_AssemblyLoad;
           if (__instance == null) {
-            var typeCandidates = BreezeConfig.ProbeAssemblies.Value.SelectMany(a => GetTypes(a));
+            var typeCandidates = ProbeAssemblies.SelectMany(a => GetTypes(a));
             var types = typeCandidates.Where(t => typeof (BreezeConfig).IsAssignableFrom(t) && !t.IsAbstract).ToList();
 
             if (types.Count == 0) {
@@ -35,6 +38,8 @@ namespace Breeze.ContextProvider {
       }
     }
 
+
+
     public JsonSerializerSettings GetJsonSerializerSettings() {
       lock (__lock) {
         if (_jsonSerializerSettings == null) {
@@ -44,6 +49,26 @@ namespace Breeze.ContextProvider {
       }
     }
 
+    public static ReadOnlyCollection<Assembly> ProbeAssemblies {
+      get {
+        lock (__lock) {
+          if (__assemblyCount == 0 || __assemblyCount != __assemblyLoadedCount) {
+            // Cache the ProbeAssemblies.
+            __probeAssemblies = new ReadOnlyCollection<Assembly>(AppDomain.CurrentDomain.GetAssemblies().Where(a => !IsFrameworkAssembly(a)).ToList());
+            __assemblyCount = __assemblyLoadedCount;
+          }
+          return __probeAssemblies;
+        }
+      }
+    }
+
+    static void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args) {
+      Interlocked.Increment(ref __assemblyLoadedCount);
+    }
+    private static ReadOnlyCollection<Assembly> __probeAssemblies;
+    private static int __assemblyCount = 0;
+    private static int __assemblyLoadedCount = 0;
+   
     /// <summary>
     /// Override to use a specialized JsonSerializer implementation.
     /// </summary>
@@ -73,14 +98,13 @@ namespace Breeze.ContextProvider {
     }
 
 
-    // Cache the ProbeAssemblies.
-    // Note: look at BuildManager.GetReferencedAssemblies if we start having
-    // issues with Assemblies not yet having been loaded.
-    public static Lazy<List<Assembly>> ProbeAssemblies = new Lazy<List<Assembly>>( () => 
-      AppDomain.CurrentDomain.GetAssemblies().Where(a => !IsFrameworkAssembly(a)).ToList()
-    );
+    
 
     public static bool IsFrameworkAssembly(Assembly assembly) {
+      var fullName = assembly.FullName;
+      if (fullName.StartsWith("Microsoft.")) return true;
+      if (fullName.StartsWith("EntityFramework")) return true;
+      if (fullName.StartsWith("NHibernate")) return true;
       var attrs = assembly.GetCustomAttributes(typeof(AssemblyProductAttribute), false).OfType<AssemblyProductAttribute>();
       var attr = attrs.FirstOrDefault();
       if (attr == null) {
@@ -107,12 +131,14 @@ namespace Breeze.ContextProvider {
     }
 
     protected static readonly List<String> FrameworkProductNames = new List<String> {
-      "Microsoft® .NET Framework",
-      "Microsoft (R) Visual Studio (R) 2010",
+      "Microsoft®",
+      "Microsoft (R)",
       "Microsoft ASP.",
       "System.Net.Http",
       "Json.NET",
-      "Irony",
+      "Antlr3.Runtime",
+      "Iesi.Collections",
+      "WebGrease",
       "Breeze.ContextProvider"
     };
 

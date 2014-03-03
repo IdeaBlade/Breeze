@@ -1,4 +1,4 @@
-﻿// Generated on: Mon Feb 17 2014 09:23:12 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Fri Feb 28 2014 23:30:07 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -2477,14 +2477,6 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     
     /// </signature>
   },
-  'rejectChanges': function() {
-    /// <signature>
-    ///   <summary>
-    ///   Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. }
-    ///   </summary>
-    
-    /// </signature>
-  },
   'exportEntities': function() {
     /// <signature>
     ///   <summary>
@@ -2685,6 +2677,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     /// <signature>
     ///   <summary>
     ///   Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager. }
+    ///   Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. }
     ///   </summary>
     ///   <returns type="Array" elementType="Entity" >The entities whose changes were rejected. These entities will all have EntityStates of  either 'Unchanged' or 'Detached'</returns>
     /// </signature>

@@ -816,7 +816,7 @@ namespace Sample_WebApi2.Controllers {
 
     [HttpGet]
     public IQueryable<Object> CustomersWithBigOrders() {
-      var stuff = ContextProvider.Context.Customers.Select(c => new { Customer = c, BigOrders = c.Orders.Where(o => o.Freight > 100) });
+      var stuff = ContextProvider.Context.Customers.Where(c => c.Orders.Any(o => o.Freight > 100)).Select(c => new { Customer = c, BigOrders = c.Orders.Where(o => o.Freight > 100) });
       return stuff;
     }
 

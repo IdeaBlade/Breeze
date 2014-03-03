@@ -181,7 +181,7 @@ namespace Breeze.NetClient {
       });
     }
 
-    protected override StructuralType StructuralType {
+    public override StructuralType StructuralType {
       get { return this.ComplexType; }
     }
 
@@ -271,7 +271,7 @@ namespace Breeze.NetClient {
       var oldValue = GetValue(property);
       if (Object.Equals(oldValue, newValue)) return;
 
-      if (!EntityAspect.FireEntityChanging(EntityAction.PropertyChange)) return;
+      if (!EntityAspect.OnEntityChanging(EntityAction.PropertyChange)) return;
 
       action(property, newValue, oldValue);
 

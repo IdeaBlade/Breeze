@@ -441,7 +441,7 @@ var Param = (function () {
                 curContext.prevContext = context;
                 // just update the prevContext but don&#x27;t change the curContext.
                 return that;
-            } else if (context.prevContext === null) {
+            } else if (context.prevContext == null) {
                 context.prevContext = that._context;
             } else {
                 throw new Error(&quot;Illegal construction - use &#x27;or&#x27; to combine checks&quot;);

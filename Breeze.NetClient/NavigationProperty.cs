@@ -32,8 +32,8 @@ namespace Breeze.NetClient {
       IsScalar = jNode.Get<bool>("isScalar", true);
       AssociationName = jNode.Get<String>("associationName");
       // _validators.AddRange()
-      _foreignKeyNames.AddRange(jNode.GetPrimitiveArray<String>("foreignKeyNames"));
-      _invForeignKeyNames.AddRange(jNode.GetPrimitiveArray<String>("invForeignKeyNames"));
+      _foreignKeyNames.AddRange(jNode.GetArray<String>("foreignKeyNames"));
+      _invForeignKeyNames.AddRange(jNode.GetArray<String>("invForeignKeyNames"));
       // custom
     }
 

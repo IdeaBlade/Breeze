@@ -728,7 +728,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1212,
+            "line": 1211,
             "description": "FilterQueryOp is an 'Enum' containing all of the valid  {{#crossLink \"Predicate\"}}{{/crossLink}} \nfilter operators for an {{#crossLink \"EntityQuery\"}}{{/crossLink}}.",
             "static": 1
         },
@@ -743,7 +743,7 @@
             "module": "breeze",
             "namespace": "",
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1356,
+            "line": 1355,
             "description": "Used to define a 'where' predicate for an EntityQuery.  Predicates are immutable, which means that any\nmethod that would modify a Predicate actually returns a new Predicate."
         },
         "MergeStrategy": {
@@ -6408,7 +6408,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1220,
+            "line": 1219,
             "description": "Aliases: \"eq\", \"==\"",
             "itemtype": "property",
             "name": "Equals",
@@ -6420,7 +6420,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1227,
+            "line": 1226,
             "description": "Aliases: \"ne\", \"!=\"",
             "itemtype": "property",
             "name": "NotEquals",
@@ -6432,7 +6432,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1234,
+            "line": 1233,
             "description": "Aliases: \"gt\", \">\"",
             "itemtype": "property",
             "name": "GreaterThan",
@@ -6444,7 +6444,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1241,
+            "line": 1240,
             "description": "Aliases: \"lt\", \"<\"",
             "itemtype": "property",
             "name": "LessThan",
@@ -6456,7 +6456,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1248,
+            "line": 1247,
             "description": "Aliases: \"ge\", \">=\"",
             "itemtype": "property",
             "name": "GreaterThanOrEqual",
@@ -6468,7 +6468,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1255,
+            "line": 1254,
             "description": "Aliases: \"le\", \"<=\"",
             "itemtype": "property",
             "name": "LessThanOrEqual",
@@ -6480,7 +6480,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1262,
+            "line": 1261,
             "description": "String operation: Is a string a substring of another string.\nAliases: \"substringof\"",
             "itemtype": "property",
             "name": "Contains",
@@ -6492,7 +6492,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1270,
+            "line": 1269,
             "itemtype": "property",
             "name": "StartsWith",
             "type": "FilterQueryOp",
@@ -6503,7 +6503,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1276,
+            "line": 1275,
             "itemtype": "property",
             "name": "EndsWith",
             "type": "FilterQueryOp",
@@ -6514,7 +6514,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1283,
+            "line": 1282,
             "description": "Aliases: \"some\"",
             "itemtype": "property",
             "name": "Any",
@@ -6526,7 +6526,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1291,
+            "line": 1290,
             "description": "Aliases: \"every\"",
             "itemtype": "property",
             "name": "All",
@@ -6538,7 +6538,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1362,
+            "line": 1361,
             "description": "Predicate constructor",
             "example": [
                 "\n    var p1 = new Predicate(\"CompanyName\", \"StartsWith\", \"B\");\n    var query = new EntityQuery(\"Customers\").where(p1);\nor ",
@@ -6568,7 +6568,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1406,
+            "line": 1405,
             "description": "Creates a new 'simple' Predicate.  Note that this method can also take its parameters as an array.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\nor parameters can be passed as an array.",
@@ -6600,7 +6600,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1433,
+            "line": 1432,
             "description": "Creates a 'composite' Predicate by 'and'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.and(p1, p2, p3);\nor",
@@ -6622,7 +6622,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1460,
+            "line": 1459,
             "description": "Creates a 'composite' Predicate by 'or'ing a set of specified Predicates together.",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = Predicate.or(p1, p2, p3);\nor",
@@ -6644,7 +6644,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1487,
+            "line": 1486,
             "description": "Creates a 'composite' Predicate by 'negating' a specified predicate.",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = Predicate.not(p1);\nThis can also be accomplished using the 'instance' version of the 'not' method",
@@ -6666,7 +6666,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1506,
+            "line": 1505,
             "description": "'And's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.and(p2, p3);\nor",
@@ -6688,7 +6688,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1531,
+            "line": 1530,
             "description": "'Or's this Predicate with one or more other Predicates and returns a new 'composite' Predicate",
             "example": [
                 "\n    var dt = new Date(88, 9, 12);\n    var p1 = Predicate.create(\"OrderDate\", \"ne\", dt);\n    var p2 = Predicate.create(\"ShipCity\", \"startsWith\", \"C\");\n    var p3 = Predicate.create(\"Freight\", \">\", 100);\n    var newPred = p1.or(p2, p3);\nor",
@@ -6710,7 +6710,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1556,
+            "line": 1555,
             "description": "Returns the 'negated' version of this Predicate",
             "example": [
                 "\n    var p1 = Predicate.create(\"Freight\", \"gt\", 100);\n    var not_p1 = p1.not();\nThis can also be accomplished using the 'static' version of the 'not' method",
@@ -6724,7 +6724,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1576,
+            "line": 1575,
             "description": "Returns the function that will be used to execute this Predicate against the local cache.",
             "itemtype": "method",
             "name": "toFunction",
@@ -6737,7 +6737,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1582,
+            "line": 1581,
             "description": "Returns a human readable string for this Predicate.",
             "itemtype": "method",
             "name": "toString",
@@ -6750,7 +6750,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a45_entityQuery.js",
-            "line": 1588,
+            "line": 1587,
             "description": "Determines whether this Predicate is 'valid' for the specified EntityType; This method will throw an exception\nif invalid.",
             "itemtype": "method",
             "name": "validate",
@@ -7295,15 +7295,6 @@
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
             "line": 318,
-            "description": "Calls EntityAspect.rejectChanges on every changed entity in this EntityManager.",
-            "itemtype": "method",
-            "name": "rejectChanges",
-            "class": "EntityManager",
-            "module": "breeze"
-        },
-        {
-            "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 326,
             "description": "Exports an entire EntityManager or just selected entities into a serialized string for external storage.",
             "example": [
                 "\nThis method can be used to take a snapshot of an EntityManager that can be either stored offline or held \nmemory.  This snapshot can be restored or merged into an another EntityManager at some later date. ",
@@ -7334,7 +7325,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 375,
+            "line": 367,
             "description": "Imports a previously exported result into this EntityManager.",
             "example": [
                 "\nThis method can be used to make a complete copy of any previously created entityManager, even if created\nin a previous session and stored in localStorage. The static version of this method performs a\nvery similar process. ",
@@ -7378,7 +7369,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 467,
+            "line": 460,
             "description": "Clears this EntityManager's cache but keeps all other settings. Note that this \nmethod is not as fast as creating a new EntityManager via 'new EntityManager'.\nThis is because clear actually detaches all of the entities from the EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    em1.clear();\n    // em1 is will now contain no entities, but all other setting will be maintained."
@@ -7390,7 +7381,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 495,
+            "line": 485,
             "description": "Creates an empty copy of this EntityManager",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var em2 = em1.createEmptyCopy();\n    // em2 is a new EntityManager with all of em1's settings\n    // but no entities."
@@ -7406,7 +7397,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 511,
+            "line": 501,
             "description": "Attaches an entity to this EntityManager with an  {{#crossLink \"EntityState\"}}{{/crossLink}} of 'Added'.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var cust1 = custType.createEntity();\n    em1.addEntity(cust1);\nNote that this is the same as using 'attachEntity' with an {{#crossLink \"EntityState\"}}{{/crossLink}} of 'Added'.",
@@ -7430,7 +7421,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 532,
+            "line": 522,
             "description": "Attaches an entity to this EntityManager with a specified {{#crossLink \"EntityState\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var cust1 = custType.createEntity();\n    em1.attachEntity(cust1, EntityState.Added);"
@@ -7467,7 +7458,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 600,
+            "line": 590,
             "description": "Detaches an entity from this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of existing entities.\n    // assume cust1 is a customer Entity previously attached to em1\n    em1.detachEntity(cust1);\n    // em1 will now no longer contain cust1 and cust1 will have an \n    // entityAspect.entityState of EntityState.Detached"
@@ -7490,7 +7481,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 626,
+            "line": 616,
             "description": "Fetches the metadata associated with the EntityManager's current 'serviceName'.  This call\noccurs internally before the first query to any service if the metadata hasn't already been\nloaded.",
             "example": [
                 "\nUsually you will not actually process the results of a fetchMetadata call directly, but will instead\nask for the metadata from the EntityManager after the fetchMetadata call returns.",
@@ -7538,7 +7529,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 675,
+            "line": 665,
             "description": "Executes the specified query.",
             "example": [
                 "\nThis method can be called using a 'promises' syntax ( recommended)",
@@ -7637,7 +7628,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 772,
+            "line": 761,
             "description": "Executes the specified query against this EntityManager's local cache.",
             "example": [
                 "\nBecause this method is executed immediately there is no need for a promise or a callback",
@@ -7662,7 +7653,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 844,
+            "line": 833,
             "description": "Saves either a list of specified entities or all changed entities within this EntityManager. If there are no changes to any of the entities\nspecified then there will be no server side call made but a valid 'empty' saveResult will still be returned.",
             "example": [
                 "\nOften we will be saving all of the entities within an EntityManager that are either added, modified or deleted\nand we will let the 'saveChanges' call determine which entities these are. ",
@@ -7743,6 +7734,12 @@
                                     "description": "The raw HttpResponse returned from the server.",
                                     "type": "HttpResponse",
                                     "optional": true
+                                },
+                                {
+                                    "name": "saveResult",
+                                    "description": "Some dataservice adapters return a 'saveResult' object \n    when the failing save operation is non-transactional meaning some entities could be saved while others were not.\n    The 'saveResult' object identifies both that entities that were saved (with their keyMapping)\n    and that entities that were not saved (with their errors).",
+                                    "type": "Object",
+                                    "optional": true
                                 }
                             ]
                         }
@@ -7758,7 +7755,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1081,
+            "line": 1097,
             "description": "Attempts to locate an entity within this EntityManager by its key.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employee = em1.getEntityByKey(\"Employee\", 1);\n    // employee will either be an entity or null."
@@ -7786,7 +7783,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1093,
+            "line": 1109,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.getEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -7809,10 +7806,10 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1124,
+            "line": 1140,
             "description": "Attempts to fetch an entity from the server by its key with\nan option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy \nwill be used to merge any server side entity returned by this method.",
             "example": [
-                "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
+                "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    em1.fetchEntityByKey(\"Employee\", 1).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
             ],
             "itemtype": "method",
             "name": "fetchEntityByKey",
@@ -7843,7 +7840,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1149,
+            "line": 1163,
             "description": "Attempts to fetch an entity from the server by its {{#crossLink \"EntityKey\"}}{{/crossLink}} with\nan option to check the local cache first.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -7872,7 +7869,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1198,
+            "line": 1226,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.findEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -7897,7 +7894,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1215,
+            "line": 1243,
             "description": "Generates a temporary key for the specified entity.  This is used to insure that newly\ncreated entities have unique keys and to register that these keys are temporary and\nneed to be automatically replaced with 'real' key values once these entities are saved.\n\nThe EntityManager.keyGeneratorCtor property is used internally by this method to actually generate\nthe keys - See the  {{#crossLink \"~keyGenerator-interface\"}}{{/crossLink}} interface description to see\nhow a custom key generator can be plugged in.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var custumer = custType.createEntity();\n    var customerId = em.generateTempKeyValue(custumer);\n    // The 'customer' entity 'CustomerID' property is now set to a newly generated unique id value\n    // This property will change again after a successful save of the 'customer' entity.\n\n    em1.saveChanges()\n        .then( function( data) {\n            var sameCust1 = data.results[0];\n            // cust1 === sameCust1;\n            // but cust1.getProperty(\"CustomerId\") != customerId\n            // because the server will have generated a new id \n            // and the client will have been updated with this \n            // new id.\n        })"
@@ -7920,7 +7917,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1256,
+            "line": 1284,
             "description": "Returns whether there are any changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to determine if an EntityManager has any changes",
@@ -7947,7 +7944,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1292,
+            "line": 1320,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes.",
             "example": [
                 "                    \n    var em = new EntityManager( {serviceName: \"breeze/NorthwindIBModel\" });\n    em.hasChangesChanged.subscribe(function(args) {\n        var hasChangesChanged = args.hasChanges;\n        var entityManager = args.entityManager;\n    });\n});"
@@ -7972,7 +7969,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1318,
+            "line": 1346,
             "description": "Returns a array of all changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to get all of the changed entities within an EntityManager",
@@ -7999,8 +7996,8 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1348,
-            "description": "Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.",
+            "line": 1376,
+            "description": "Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.\nCalls EntityAspect.rejectChanges on every changed entity in this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var entities = em1.rejectChanges();"
             ],
@@ -8015,7 +8012,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1371,
+            "line": 1400,
             "description": "Returns a array of all entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s with the specified {{#crossLink \"EntityState\"}}{{/crossLink}}s.",
             "example": [
                 "\nThis method can be used to get all of the entities within an EntityManager",

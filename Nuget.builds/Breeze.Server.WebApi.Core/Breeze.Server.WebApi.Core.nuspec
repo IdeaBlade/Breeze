@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Server.WebApi.Core</id>
-        <version>1.4.8</version>
+        <version>1.4.9</version>
         <title>Breeze Server (obsolete) - for Legacy ASP.NET Web API (Core)</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>

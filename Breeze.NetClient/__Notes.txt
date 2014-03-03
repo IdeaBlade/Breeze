@@ -1,0 +1,20 @@
+﻿Notes: 
+  Linq to OData - projection (select restrictions)
+    - project into anon types only
+	- no aliasing
+	- can only project properties 
+
+	- EntityAspect EntityManager & EntityGroup properties are set if an entity was ever attached. 
+	This is not cleared when an entity is detached.  This assumption removes a lot of special purpose logic
+	- Only the MetadataStore and immutable types are ThreadSafe.  Any property returned by the MetadataStore 
+	must therefore also be either immutable or thread safe itself. (all StructuralTypes are effectively immutable)
+
+Think about
+-------------
+Abiltity to configure clr namespace mapping - server name: Foo.Customer - client name: Bar.Cust
+A Breeze specific Http exception that include both a status code and a message.
+Enum for flags like InProcess, IsLoading etc ( probably not a good idea for booleans that have a concept of inheritance)
+Test the incoming Metadata to insure that it matches the Clr descriptions.
+If moving MetadataInfo from .NET to JS and back NamingConventions are likely not compatible - so what do we do ???
+ShortName map
+NullEntity

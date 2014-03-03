@@ -1,7 +1,7 @@
 ﻿/*
- * Breeze Labs 2013 abstract REST DataServiceAdapter
+ * Breeze Labs Abstract REST DataServiceAdapter
  *
- *  v.0.2.0-pre
+ *  v.0.2.3
  *
  * Extends Breeze with a REST DataService Adapter abstract type
  * 
@@ -35,17 +35,20 @@
  * http://opensource.org/licenses/mit-license.php
  * Authors: Ward Bell
  */
-(function (factory) {
-    if (breeze) {
-        factory(breeze);
+(function (definition, window) {
+    if (window.breeze) {
+        definition(window.breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
-        // CommonJS or Node: hard-coded dependency on "breeze"
-        factory(require("breeze"));
-    } else if (typeof window.define === "function" && window.define["amd"] && !breeze) {
-        // AMD anonymous module with hard-coded dependency on "breeze"
-        window.define(["breeze"], factory);
+        // CommonJS or Node
+        var b = require('breeze');
+        definition(b);
+    } else if (typeof define === "function" && define["amd"] && !window.breeze) {
+        // Requirejs / AMD 
+        define(['breeze'], definition);
+    } else {
+        throw new Error("Can't find breeze");
     }
-})(function (breeze) {
+}(function (breeze) {
     "use strict";
 
     var ctor = function () { };
@@ -62,8 +65,6 @@
 
         // Configuration API
         checkForRecomposition: checkForRecomposition,
-        // Todo: use promise adapter after Breeze makes it available
-        Q: window.Q, // assume Q.js in global namespace; you better set it (e.g., to $q) if it's not there, 
         saveOnlyOne: false, // true if may only save one entity at a time.
 
         // "protected" members available to derived concrete dataservice adapter types
@@ -96,6 +97,10 @@
         if (!ajax) {
             throw new Error("Breeze was unable to find an 'ajax' adapter for " + adapter.name);
         }
+
+        // Todo: hacking for Q right now; use promise adapter after Breeze makes it available
+        // if no breeze.Q, assume Q is in global window namespace (e.g., Q.js)
+        adapter.Q = breeze.Q ? breeze.Q : window.Q;
 
         if (!adapter.jsonResultsAdapter) {
             adapter.jsonResultsAdapter = adapter._createJsonResultsAdapter();
@@ -237,7 +242,9 @@
         if (!entityType) { // try to figure it out from the query.resourceName
             var metadataStore = mappingContext.metadataStore;
             var etName = metadataStore.getEntityTypeNameForResourceName(query.resourceName);
-            entityType = metadataStore.getEntityType(etName);
+            if (etName) {
+                entityType = metadataStore.getEntityType(etName);
+            }
         }
         return entityType;
     }
@@ -407,4 +414,4 @@
         return saved;
     }
 
-});
+}, this));

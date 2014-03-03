@@ -17,6 +17,7 @@ module.exports = function(grunt) {
            'CarBones',
            'Edmunds',
            'TempHire',
+           'ODataBreezeJsSample'
         ];
   var sampleSolutionDirs = sampleNames.map(function(sn) {
     return samplesDir + sn + '/';
@@ -124,7 +125,8 @@ module.exports = function(grunt) {
           buildSampleCopy('../', tempDir , 'NoDb'),
           buildSampleCopy('../', tempDir , 'Edmunds'),
           buildSampleCopy('../', tempDir , 'TempHire'),
-          buildSampleCopy('../', tempDir , 'CarBones', ['**/*.mdf', '**/*.ldf'])
+          buildSampleCopy('../', tempDir , 'CarBones', ['**/*.mdf', '**/*.ldf']),
+          buildSampleCopy('../', tempDir , 'ODataBreezeJsSample')
         ]
       },  
     },

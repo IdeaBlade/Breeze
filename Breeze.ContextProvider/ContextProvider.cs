@@ -257,7 +257,7 @@ namespace Breeze.ContextProvider {
       var ns = parts[1];
 
       var typeName = ns + "." + shortName;
-      var type = BreezeConfig.ProbeAssemblies.Value
+      var type = BreezeConfig.ProbeAssemblies
         .Select(a => a.GetType(typeName, false, true))
         .FirstOrDefault(t => t != null);
       if (type != null) {
@@ -268,7 +268,7 @@ namespace Breeze.ContextProvider {
     }
 
     protected static Lazy<Type> KeyGeneratorType = new Lazy<Type>(() => {
-      var typeCandidates = BreezeConfig.ProbeAssemblies.Value.Concat(new Assembly[] { typeof(IKeyGenerator).Assembly })
+      var typeCandidates = BreezeConfig.ProbeAssemblies.Concat(new Assembly[] { typeof(IKeyGenerator).Assembly })
        .SelectMany(a => a.GetTypes()).ToList();
       var generatorTypes = typeCandidates.Where(t => typeof(IKeyGenerator).IsAssignableFrom(t) && !t.IsAbstract)
         .ToList();

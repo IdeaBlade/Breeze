@@ -136,5 +136,12 @@ namespace Breeze.NetClient {
 
   }
 
+  internal class TypeNameInfo {
+    public String ShortTypeName { get; set; }
+    public String Namespace { get; set; }
+    public String TypeName { get; set; }
+    public Boolean IsAnonymous { get; set; }
+  }
+
 
 }

@@ -1,42 +1,51 @@
-﻿ToDo
+﻿Already supported
+-----------------
+All Server queries including
+   Where/Skip/Take/OrderBy
+   Expand/Select
+   InlineCount
+   Client side anon projections
+   Server side anon projections
+   NamedQueries
+LocalQuery 
+	CacheQueryOptions 
+Saves - including Named Saves
+Change tracking/Accept-RejectChanges/OriginalValuesMap
+Interfaces implemented for INotifyPropertyChanged, IEditableObject, IChangeTracking, IRevertibleChangeTracking
+ComplexTypes
+Automatic Entity graph attachment - 
+TempKey generation and fk fixup on Saves and Imports
+Emport/Import to stream/string
+EntityManager events - EntityChanging/EntityChanged/HasChangesChanged 
+Live navigation collections with INotifyCollectionChanged
+Full Metadata 
+MergeStrategy / FetchStrategy
+LoadNavigationProperty
+ChangeNotificationEnabled flag at both EntityManager & EntityType levels
+ToDo
 ---------------------------
-LocalQuery
+More tests
+Concurrency tests
 Validation and INotifyDataErrorInfo
+Registered EntityInitializers - ??? public empty ctors;
+Raw OData queries
 Inheritance
-Saves
-NamedQueries
 NoTracking queries
-ShortName map
-IEditableObject
 UntrackedProperties added directly to Clr type defs.
+IsNavigationPropertyLoaded
 CodeGeneration - 
 Metadata by hand 
-Export/Import
-
-
-
-Notes: 
-	- EntityAspect EntityManager & EntityGroup properties are set if an entity was ever attached. 
-	This is not cleared when an entity is detached.  This assumption removes a lot of special purpose logic
-	- Only the MetadataStore and immutable types are ThreadSafe.  Any property returned by the MetadataStore 
-	must therefore also be either immutable or thread safe itself. (all StructuralTypes are effectively immutable)
-
-Think about
--------------
-Enum for flags like InProcess, IsLoading etc ( probably not a good idea for booleans that have a concept of inheritance)
-Test the incoming Metadata to insure that it matches the Clr descriptions.
-If moving MetadataInfo from .NET to JS and back NamingConventions are likely not compatible - so what do we do ???
-
+CustomMetadata
 
 
 Extensions for later ( that we can charge for)
 --------------------------------------------
 Property interception
-PostSharp (or other static IL weaver support)
+PostSharp (or other static IL weaver support) 
 Query filters (like devforce - registered on the EntityManager and applied to queries before execution)
 GetEntityGraph
 EntityQueryPager
-Logging/Tracing
+Logging/Tracing ( client / server)
 Dynamic linq
 DesignTime functionality ???
 Silverlight 5 ( ??? )

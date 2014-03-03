@@ -430,13 +430,6 @@
                             </li>
                         
                             <li class="index-item method">
-                                <a href="#method_rejectChanges">rejectChanges</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item method">
                                 <a href="#method_saveChanges">saveChanges</a>
 
                                 
@@ -882,7 +875,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l511"><code>..\Scripts\IBlade\a50_entityManager.js:511</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l501"><code>..\Scripts\IBlade\a50_entityManager.js:501</code></a>
         
         </p>
 
@@ -1018,7 +1011,7 @@ em1.attachEntity(cust1, EntityState.Added);</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l532"><code>..\Scripts\IBlade\a50_entityManager.js:532</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l522"><code>..\Scripts\IBlade\a50_entityManager.js:522</code></a>
         
         </p>
 
@@ -1157,7 +1150,7 @@ em1.attachEntity(cust1, EntityState.Added);</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l467"><code>..\Scripts\IBlade\a50_entityManager.js:467</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l460"><code>..\Scripts\IBlade\a50_entityManager.js:460</code></a>
         
         </p>
 
@@ -1229,7 +1222,7 @@ em1.clear();
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l495"><code>..\Scripts\IBlade\a50_entityManager.js:495</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l485"><code>..\Scripts\IBlade\a50_entityManager.js:485</code></a>
         
         </p>
 
@@ -1525,7 +1518,7 @@ var emp4 = em1.createEntity(&quot;Employee&quot;, { id: 435, lastName: Smith&quo
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l600"><code>..\Scripts\IBlade\a50_entityManager.js:600</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l590"><code>..\Scripts\IBlade\a50_entityManager.js:590</code></a>
         
         </p>
 
@@ -1659,7 +1652,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l675"><code>..\Scripts\IBlade\a50_entityManager.js:675</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l665"><code>..\Scripts\IBlade\a50_entityManager.js:665</code></a>
         
         </p>
 
@@ -1985,7 +1978,7 @@ would have been applied.</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l772"><code>..\Scripts\IBlade\a50_entityManager.js:772</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l761"><code>..\Scripts\IBlade\a50_entityManager.js:761</code></a>
         
         </p>
 
@@ -2121,7 +2114,7 @@ a FetchStrategy of FromLocalCache and making use of the Promise or callback</p>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l326"><code>..\Scripts\IBlade\a50_entityManager.js:326</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l318"><code>..\Scripts\IBlade\a50_entityManager.js:318</code></a>
         
         </p>
 
@@ -2286,7 +2279,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );</c
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1124"><code>..\Scripts\IBlade\a50_entityManager.js:1124</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1140"><code>..\Scripts\IBlade\a50_entityManager.js:1140</code></a>
         
         </p>
 
@@ -2385,9 +2378,7 @@ promiseData.fromCache {Boolean} Whether this entity was fetched from the server 
 
             <div class="example-content">
                 <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
-var employeeType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
-var employeeKey = new EntityKey(employeeType, 1);
-em1.fetchEntityByKey(employeeKey).then(function(result) {
+em1.fetchEntityByKey(&quot;Employee&quot;, 1).then(function(result) {
     var employee = result.entity;
     var entityKey = result.entityKey;
     var fromCache = result.fromCache;
@@ -2453,7 +2444,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1149"><code>..\Scripts\IBlade\a50_entityManager.js:1149</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1163"><code>..\Scripts\IBlade\a50_entityManager.js:1163</code></a>
         
         </p>
 
@@ -2603,7 +2594,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l626"><code>..\Scripts\IBlade\a50_entityManager.js:626</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l616"><code>..\Scripts\IBlade\a50_entityManager.js:616</code></a>
         
         </p>
 
@@ -2794,7 +2785,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1198"><code>..\Scripts\IBlade\a50_entityManager.js:1198</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1226"><code>..\Scripts\IBlade\a50_entityManager.js:1226</code></a>
         
         </p>
 
@@ -2916,7 +2907,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1215"><code>..\Scripts\IBlade\a50_entityManager.js:1215</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1243"><code>..\Scripts\IBlade\a50_entityManager.js:1243</code></a>
         
         </p>
 
@@ -3052,7 +3043,7 @@ em1.saveChanges()
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1318"><code>..\Scripts\IBlade\a50_entityManager.js:1318</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1346"><code>..\Scripts\IBlade\a50_entityManager.js:1346</code></a>
         
         </p>
 
@@ -3188,7 +3179,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);</code></p
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1371"><code>..\Scripts\IBlade\a50_entityManager.js:1371</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1400"><code>..\Scripts\IBlade\a50_entityManager.js:1400</code></a>
         
         </p>
 
@@ -3346,7 +3337,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1081"><code>..\Scripts\IBlade\a50_entityManager.js:1081</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1097"><code>..\Scripts\IBlade\a50_entityManager.js:1097</code></a>
         
         </p>
 
@@ -3480,7 +3471,7 @@ var employee = em1.getEntityByKey(&quot;Employee&quot;, 1);
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1093"><code>..\Scripts\IBlade\a50_entityManager.js:1093</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1109"><code>..\Scripts\IBlade\a50_entityManager.js:1109</code></a>
         
         </p>
 
@@ -3600,7 +3591,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1256"><code>..\Scripts\IBlade\a50_entityManager.js:1256</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1284"><code>..\Scripts\IBlade\a50_entityManager.js:1284</code></a>
         
         </p>
 
@@ -3942,7 +3933,7 @@ var em2 = EntityManager.importEntities(bundleFromStorage);
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l375"><code>..\Scripts\IBlade\a50_entityManager.js:375</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l367"><code>..\Scripts\IBlade\a50_entityManager.js:367</code></a>
         
         </p>
 
@@ -4094,61 +4085,6 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
     
 
     
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    <div class="meta">
-        
-            
-                
-                <p>
-                
-                Defined in
-                
-            
-        
-        
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l318"><code>..\Scripts\IBlade\a50_entityManager.js:318</code></a>
-        
-        </p>
-
-
-        
-
-        
-    </div>
-
-    <div class="description">
-        <p>Calls EntityAspect.rejectChanges on every changed entity in this EntityManager.</p>
-
-    </div>
-
-    
-
-    
-
-    
-</div>
-
-                
-                    <div id="method_rejectChanges" class="method item">
-    <h3 class="name"><code>rejectChanges</code></h3>
-
-    
-        <span class="paren">()</span>
-    
-
-    
         <span class="returns-inline">
             <span class="type">Array of Entity</span>
         </span>
@@ -4177,7 +4113,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1348"><code>..\Scripts\IBlade\a50_entityManager.js:1348</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1376"><code>..\Scripts\IBlade\a50_entityManager.js:1376</code></a>
         
         </p>
 
@@ -4188,7 +4124,8 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
     </div>
 
     <div class="description">
-        <p>Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.</p>
+        <p>Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.
+Calls EntityAspect.rejectChanges on every changed entity in this EntityManager.</p>
 
     </div>
 
@@ -4291,7 +4228,7 @@ var entities = em1.rejectChanges();</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l844"><code>..\Scripts\IBlade\a50_entityManager.js:844</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l833"><code>..\Scripts\IBlade\a50_entityManager.js:833</code></a>
         
         </p>
 
@@ -4483,6 +4420,21 @@ EntityManager/saveOptions if null.</p>
 
                                             <div class="param-description">
                                                 The raw HttpResponse returned from the server.
+                                            </div>
+                                        </li>
+                                        
+                                        <li class="param">
+                                            
+                                                <code class="param-name optional">[saveResult]</code>
+                                                <span class="type">Object</span>
+                                                <span class="flag optional" title="This parameter is optional.">optional</span>
+                                            
+
+                                            <div class="param-description">
+                                                Some dataservice adapters return a 'saveResult' object 
+    when the failing save operation is non-transactional meaning some entities could be saved while others were not.
+    The 'saveResult' object identifies both that entities that were saved (with their keyMapping)
+    and that entities that were not saved (with their errors).
                                             </div>
                                         </li>
                                         
@@ -5223,7 +5175,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1292"><code>..\Scripts\IBlade\a50_entityManager.js:1292</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1320"><code>..\Scripts\IBlade\a50_entityManager.js:1320</code></a>
         
         </p>
 

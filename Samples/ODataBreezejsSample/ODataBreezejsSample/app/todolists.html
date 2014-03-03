@@ -1,0 +1,17 @@
+﻿<!---------------------------------------------------
+    Master view of all TodoLists
+    --------------------------------------------------->
+<div class="well" data-ng-controller="todolists as vm">
+
+    <!-- Command Bar Buttons -->
+    <div data-ng-include="'/app/commandbar.html'"></div>
+
+    <!-- "New TodoList" expando -->
+    <div data-ng-include="'/app/new-todolist.html'"></div>
+
+    <!-- TodoList Content -->
+    <div data-ng-repeat="todoList in vm.todoLists">
+        <div data-ng-include="'/app/todolist-detail.html'"></div>
+    </div>
+
+</div>
