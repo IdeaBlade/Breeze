@@ -2,6 +2,8 @@
  * Extend breeze with saveErrorMessageService,   
  * a utility service for processing errors returned from a save.
  *
+ * Depends on Breeze which it patches
+ *
  * `getErrorMessage is its primary method (see example).
  *
  * The default implementation extracts validation error messages and 
@@ -20,7 +22,7 @@
  * http://opensource.org/licenses/mit-license.php
  * Author: Ward Bell
  *
- * v.1.0
+ * v.1.0.3
  *
  * Install:
  *   1) include this script after breeze script
@@ -36,9 +38,21 @@
  *       throw error;
  *   }
  * 
-
 */
-(function() {
+(function (definition, window) {
+    if (window.breeze) {
+        definition(window.breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node
+        var b = require('breeze');
+        definition(b);
+    } else if (typeof define === "function" && define["amd"] && !window.breeze) {
+        // Requirejs / AMD 
+        define(['breeze'], definition);
+    } else {
+        throw new Error("Can't find breeze");
+    }
+}(function (breeze) {
 	'use strict';
 
     var service = {
@@ -128,4 +142,4 @@
 			});
 		})(badEntity);
 	}
-})();
+}, this));
