@@ -35,6 +35,7 @@
         /*** implementation details ***/
 
         function addPropertyChangeHandler(handler) {
+            // call handler when an entity property of any entity changes
             return manager.entityChanged.subscribe(function(changeArgs) {
                 var action = changeArgs.entityAction;
                 if (action === breeze.EntityAction.PropertyChange) {
@@ -56,13 +57,18 @@
                 .from("Todos")
                 .orderBy("CreatedAt");
 
-            if (!includeArchived) { // exclude archived Todos
+            if (!includeArchived) { // if excluding archived Todos ...
                 // add filter clause limiting results to non-archived Todos
                 query = query.where("IsArchived", "==", false);
             }
 
-            var promise = manager.executeQuery(query);
+            var promise = manager.executeQuery(query).catch(queryFailed);
             return promise;
+
+            function queryFailed(error) {
+                logger.error(error.message, "Query failed");
+                throw error; // so downstream promise users know it failed
+            }
         }
 
         function hasChanges() {
@@ -74,8 +80,7 @@
             try { // fish out the first error
                 var firstErr = error.entityErrors[0];
                 message += ": " + firstErr.errorMessage;
-            } catch (e) { /* eat it for now */
-            }
+            } catch (e) { /* eat it for now */ }
             return message;
         }
 
@@ -133,11 +138,10 @@
                 $timeout(function() {
                     manager.rejectChanges();
                 }, 1000);
-                throw error; // so caller can see it
+                throw error; // so downstream promise users know it failed
             }
 
         }
-
     }
 
 })();
