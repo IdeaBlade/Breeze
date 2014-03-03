@@ -133,6 +133,11 @@ namespace Breeze.NetClient {
       if (saveOptions.DataService == null) saveOptions.DataService = this.DefaultDataService;
       var dataServiceAdapter = saveOptions.DataService.Adapter;
       var saveResult = await dataServiceAdapter.SaveChanges(entitiesToSave, saveOptions);
+      if (entities == null) {
+        SetHasChanges(false);
+      } else {
+        SetHasChanges(null);
+      }
       return saveResult;
     }
 
@@ -252,14 +257,15 @@ namespace Breeze.NetClient {
       
       var mergeStrategy = (importOptions.MergeStrategy ?? this.DefaultQueryOptions.MergeStrategy ?? QueryOptions.Default.MergeStrategy).Value;
       var importedEntities = new List<IEntity>();
-      entityGroupNodesMap.ForEach(kvp => {
-        var entityTypeName = kvp.Key;
-        var entityNodes = kvp.Value;
-        var entityType = MetadataStore.GetEntityType(entityTypeName);
-        var entities = ImportEntityGroup(entityNodes, entityType, tempKeyMap, mergeStrategy);
-        importedEntities.AddRange(entities);
-      });
-
+      using (NewIsLoadingBlock()) {
+        entityGroupNodesMap.ForEach(kvp => {
+          var entityTypeName = kvp.Key;
+          var entityNodes = kvp.Value;
+          var entityType = MetadataStore.GetEntityType(entityTypeName);
+          var entities = ImportEntityGroup(entityNodes, entityType, tempKeyMap, mergeStrategy);
+          importedEntities.AddRange(entities);
+        });
+      }
       return new ImportResult(importedEntities, tempKeyMap);
     }
 
@@ -483,12 +489,18 @@ namespace Breeze.NetClient {
 
     public void AcceptChanges() {
       var entities = this.GetChanges();
-      entities.ForEach(e => e.AcceptChanges());
+      using (NewIsLoadingBlock(false)) {
+        entities.ForEach(e => e.AcceptChanges());
+      }
+      SetHasChanges(false);
     }
 
     public void RejectChanges() {
       var entities = this.GetChanges();
-      entities.ForEach(e => e.RejectChanges());
+      using (NewIsLoadingBlock(false)) {
+        entities.ForEach(e => e.RejectChanges());
+      }
+      SetHasChanges(false);
     }
 
     public void Clear() {
@@ -661,19 +673,16 @@ namespace Breeze.NetClient {
       var aspect = entity.EntityAspect;
       aspect.EntityType = entityType;
 
-      using (NewIsLoadingBlock()) {
-        // don't fire EntityChanging because there is no entity to recieve the event until it is attached.
+      AttachEntityAspect(aspect, EntityState.Unchanged); 
 
-        AttachEntityAspect(aspect, EntityState.Unchanged); 
+      // TODO: impl validate on attach
+      //    if (this.validationOptions.validateOnAttach) {
+      //        attachedEntity.entityAspect.validateEntity();
+      //    }
 
-        // TODO: impl validate on attach
-        //    if (this.validationOptions.validateOnAttach) {
-        //        attachedEntity.entityAspect.validateEntity();
-        //    }
+      aspect.OnEntityChanged(EntityAction.Attach);
+      return aspect;
 
-        aspect.OnEntityChanged(EntityAction.Attach);
-        return aspect;
-      }
     }
 
     private EntityAspect PrepareForAttach(IEntity entity) {
@@ -950,7 +959,7 @@ namespace Breeze.NetClient {
       HasChangesAction = null;
     }
 
-    internal Action HasChangesAction { get; private set; }
+    internal Action HasChangesAction { get; set; }
 
     #endregion
 
@@ -962,14 +971,18 @@ namespace Breeze.NetClient {
       throw new ArgumentException("This operation requires a nonabstract type that implements the IEntity interface");
     }
 
-    internal LoadingBlock NewIsLoadingBlock() {
-      return new LoadingBlock(this);
+    internal LoadingBlock NewIsLoadingBlock(bool allowHasChangesAction=true) {
+      return new LoadingBlock(this, allowHasChangesAction);
     }
 
     internal class LoadingBlock : IDisposable {
-      public LoadingBlock(EntityManager entityManager) {
+      public LoadingBlock(EntityManager entityManager, bool allowHasChangesAction) {
         _entityManager = entityManager;
         _wasLoadingEntity = _entityManager.IsLoadingEntity;
+        if (!allowHasChangesAction) {
+          // makes the HasChangesAction a noop if not already set;
+          _entityManager.HasChangesAction = entityManager.HasChangesAction ?? (() => { return; });
+        }
         entityManager.IsLoadingEntity = true;
       }
 
@@ -978,6 +991,7 @@ namespace Breeze.NetClient {
           _entityManager.FireQueuedEvents();
           if (_entityManager.HasChangesAction != null) {
             _entityManager.HasChangesAction();
+            _entityManager.HasChangesAction = null;
           }
         }
         _entityManager.IsLoadingEntity = _wasLoadingEntity;
