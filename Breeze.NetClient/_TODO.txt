@@ -22,9 +22,12 @@ Full Metadata
 MergeStrategy / FetchStrategy
 LoadNavigationProperty
 ChangeNotificationEnabled flag at both EntityManager & EntityType levels
+
 ToDo
 ---------------------------
 More tests
+Native OData and Mongo DB adapter.
+AttachOnQuery/AttachOnImport actions ( currently just Attach)
 Concurrency tests
 Validation and INotifyDataErrorInfo
 Registered EntityInitializers - ??? public empty ctors;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,8 @@ using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
 
-  public interface IEntity : IStructuralObject, INotifyDataErrorInfo, INotifyPropertyChanged, IEditableObject, IChangeTracking, IRevertibleChangeTracking, IComparable {
+  public interface IEntity : IStructuralObject, INotifyDataErrorInfo, INotifyPropertyChanged, IEditableObject, 
+    IChangeTracking, IRevertibleChangeTracking, IComparable {
     EntityAspect EntityAspect { get; set; }
   }
 

@@ -51,6 +51,7 @@ namespace Breeze.NetClient {
       private set;
     }
 
+    // TODO: insure that none of these can be set to null;
     public DataService DefaultDataService { get; set; }
 
     public QueryOptions DefaultQueryOptions { get; set; }
@@ -58,6 +59,8 @@ namespace Breeze.NetClient {
     public SaveOptions DefaultSaveOptions { get; set; }
 
     public CacheQueryOptions DefaultCacheQueryOptions { get; set; }
+
+    public ValidationOptions DefaultValidationOptions { get; set; }
 
     public IKeyGenerator KeyGenerator { get; set; }
 
