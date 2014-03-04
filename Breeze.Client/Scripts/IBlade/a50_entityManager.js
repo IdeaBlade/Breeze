@@ -1183,7 +1183,7 @@ var EntityManager = (function () {
         promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
     **/
     proto.fetchEntityByKey = function () {
-        dataService = DataService.resolve([this.dataService]);
+        var dataService = DataService.resolve([this.dataService]);
         if ((!dataService.hasServerMetadata) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
             return fetchEntityByKeyCore(this, arguments);
         } else {
