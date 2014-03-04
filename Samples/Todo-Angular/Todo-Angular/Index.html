@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html data-ng-app="TodoMain">
+﻿<!DOCTYPE html>
+<html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
@@ -12,12 +12,13 @@
 </head>
 <body>
 
-    <div id="applicationHost" data-ng-controller="TodoCtrl" class="ng-cloak">
+    <div id="applicationHost" data-ng-app="app" data-ng-controller="TodoCtrl" class="ng-cloak">
         <header>
-            <h1>Breeze Todos</h1>
-            <h2>with AngularJs</h2>
+            <h1>Breeze Todos</h1><h2>with AngularJs</h2>
             <form data-ng-submit="addItem()">
-                <input type="text" data-ng-model="newTodo" placeholder="What needs to be done?" />
+                <input type="text"
+                       data-ng-model="newTodo"
+                       placeholder="What needs to be done?" />
             </form>
         </header>
 
@@ -28,24 +29,36 @@
                     <label for="markAll">Mark all as complete </label>
                 </span>
 
-                <input id="includeArchived" type="checkbox" data-ng-model="includeArchived" data-ng-click="getAllTodos()" />
+                <input id="includeArchived" type="checkbox" data-ng-model="includeArchived" data-ng-click="getTodos()" />
                 <label for="includeArchived" class="archived">Show archived</label>
             </div>
             <div>
-              <!--[if lte IE 9]><span style='font-size:.5em;'>Filter </span><![endif]-->
-              <input data-ng-model="searchText" type="search" placeholder="Filter by name ..." />
+                <!--[if lte IE 9]><span style='font-size:.5em;'>Filter </span><![endif]-->
+                <input data-ng-model="itemFilterText"
+                       type="search" placeholder="Filter by name ..." />
             </div>
             <ul>
                 <li data-ng-repeat="item in items | filter:itemFilter">
-                    <div data-ng-show="!(item.isEditing)">
-                         <!--data-ng-class on the checkbox in the next line is a fix for a subtle IE9 repaint bug-->
-                        <input type="checkbox" data-ng-model="item.IsDone" data-ng-class="{done: item.IsDone}" />
-                        <label data-ng-click="edit(item)" data-ng-class="{done: item.IsDone, archived: item.IsArchived}" >{{item.Description}}</label>
-                        <a href="#" data-ng-click="removeItem(item)">X</a>
+                    
+                    <!-- Readonly View -->
+                    <div data-ng-hide="isEditing(item)">
+                        <input type="checkbox"
+                               data-ng-model="item.IsDone"
+                               data-ng-class="{done: item.IsDone}" />
+                        <label data-ng-click="editBegin(item)"
+                               data-ng-class="{done: item.IsDone, archived: item.IsArchived}">
+                            {{item.Description}}
+                        </label>
+                        <a href="#" data-ng-click="deleteItem(item)">X</a>
                     </div>
-                    <div data-ng-show="item.isEditing">
-                        <form data-ng-submit="completeEdit(item)">
-                            <input type="text" data-ng-model="item.Description" data-on-blur="completeEdit(item)" data-focus-when="item.isEditing" />
+
+                    <!-- Editing View -->
+                    <div data-ng-show="isEditing(item)">
+                        <form data-ng-submit="editEnd()">
+                            <input type="text" autofocus
+                                   data-ng-model="item.Description"
+                                   data-ng-blur="editEnd()"
+                                   data-ng-mouseout="editEnd()" />
                         </form>
                     </div>
                 </li>
@@ -66,18 +79,19 @@
     </div>
 
     <!-- 3rd party libraries -->
+    <script src="Scripts/angular.js"></script>
     <script src="Scripts/jquery-1.8.3.min.js"></script>
     <script src="Scripts/q.js"></script>
     <script src="Scripts/breeze.debug.js"></script>
+    <script src="Scripts/breeze.angular.js"></script>
     <script src="Scripts/breeze.savequeuing.js"></script>
     <script src="Scripts/toastr.js"></script>
-    <script src="Scripts/angular.js"></script>
 
     <!-- App libraries -->
-    <script src="Scripts/app/main.js"></script>
-    <script src="Scripts/app/logger.js"></script>
-    <script src="Scripts/app/dataservice.js"></script>
-    <script src="Scripts/app/controller.js"></script>
+    <script src="app/main.js"></script>
+    <script src="app/logger.js"></script>
+    <script src="app/dataservice.js"></script>
+    <script src="app/controller.js"></script>
 
 </body>
 </html>
