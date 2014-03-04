@@ -875,7 +875,7 @@ var entityManager = new EntityManager({
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l503"><code>..\Scripts\IBlade\a50_entityManager.js:503</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l501"><code>..\Scripts\IBlade\a50_entityManager.js:501</code></a>
         
         </p>
 
@@ -1011,7 +1011,7 @@ em1.attachEntity(cust1, EntityState.Added);</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l524"><code>..\Scripts\IBlade\a50_entityManager.js:524</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l522"><code>..\Scripts\IBlade\a50_entityManager.js:522</code></a>
         
         </p>
 
@@ -1150,7 +1150,7 @@ em1.attachEntity(cust1, EntityState.Added);</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l459"><code>..\Scripts\IBlade\a50_entityManager.js:459</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l460"><code>..\Scripts\IBlade\a50_entityManager.js:460</code></a>
         
         </p>
 
@@ -1222,7 +1222,7 @@ em1.clear();
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l487"><code>..\Scripts\IBlade\a50_entityManager.js:487</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l485"><code>..\Scripts\IBlade\a50_entityManager.js:485</code></a>
         
         </p>
 
@@ -1518,7 +1518,7 @@ var emp4 = em1.createEntity(&quot;Employee&quot;, { id: 435, lastName: Smith&quo
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l592"><code>..\Scripts\IBlade\a50_entityManager.js:592</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l590"><code>..\Scripts\IBlade\a50_entityManager.js:590</code></a>
         
         </p>
 
@@ -1652,7 +1652,7 @@ em1.detachEntity(cust1);
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l667"><code>..\Scripts\IBlade\a50_entityManager.js:667</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l665"><code>..\Scripts\IBlade\a50_entityManager.js:665</code></a>
         
         </p>
 
@@ -1978,7 +1978,7 @@ would have been applied.</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l764"><code>..\Scripts\IBlade\a50_entityManager.js:764</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l761"><code>..\Scripts\IBlade\a50_entityManager.js:761</code></a>
         
         </p>
 
@@ -2279,7 +2279,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );</c
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1141"><code>..\Scripts\IBlade\a50_entityManager.js:1141</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1140"><code>..\Scripts\IBlade\a50_entityManager.js:1140</code></a>
         
         </p>
 
@@ -2378,9 +2378,7 @@ promiseData.fromCache {Boolean} Whether this entity was fetched from the server 
 
             <div class="example-content">
                 <pre class="code prettyprint"><code>// assume em1 is an EntityManager containing a number of preexisting entities. 
-var employeeType = em1.metadataStore.getEntityType(&quot;Employee&quot;);
-var employeeKey = new EntityKey(employeeType, 1);
-em1.fetchEntityByKey(employeeKey).then(function(result) {
+em1.fetchEntityByKey(&quot;Employee&quot;, 1).then(function(result) {
     var employee = result.entity;
     var entityKey = result.entityKey;
     var fromCache = result.fromCache;
@@ -2446,7 +2444,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1166"><code>..\Scripts\IBlade\a50_entityManager.js:1166</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1163"><code>..\Scripts\IBlade\a50_entityManager.js:1163</code></a>
         
         </p>
 
@@ -2596,7 +2594,7 @@ em1.fetchEntityByKey(employeeKey).then(function(result) {
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l618"><code>..\Scripts\IBlade\a50_entityManager.js:618</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l616"><code>..\Scripts\IBlade\a50_entityManager.js:616</code></a>
         
         </p>
 
@@ -2787,7 +2785,7 @@ ask for the metadata from the EntityManager after the fetchMetadata call returns
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1215"><code>..\Scripts\IBlade\a50_entityManager.js:1215</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1226"><code>..\Scripts\IBlade\a50_entityManager.js:1226</code></a>
         
         </p>
 
@@ -2909,7 +2907,7 @@ var employee = em1.findEntityByKey(employeeKey);
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1232"><code>..\Scripts\IBlade\a50_entityManager.js:1232</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1243"><code>..\Scripts\IBlade\a50_entityManager.js:1243</code></a>
         
         </p>
 
@@ -3045,7 +3043,7 @@ em1.saveChanges()
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1335"><code>..\Scripts\IBlade\a50_entityManager.js:1335</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1346"><code>..\Scripts\IBlade\a50_entityManager.js:1346</code></a>
         
         </p>
 
@@ -3181,7 +3179,7 @@ var changedCustomersAndOrders = em1.getChanges([custType, orderType]);</code></p
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1389"><code>..\Scripts\IBlade\a50_entityManager.js:1389</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1400"><code>..\Scripts\IBlade\a50_entityManager.js:1400</code></a>
         
         </p>
 
@@ -3339,7 +3337,7 @@ var addedCustomersAndOrders = em1.getEntities([custType, orderType], EntityState
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1098"><code>..\Scripts\IBlade\a50_entityManager.js:1098</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1097"><code>..\Scripts\IBlade\a50_entityManager.js:1097</code></a>
         
         </p>
 
@@ -3473,7 +3471,7 @@ var employee = em1.getEntityByKey(&quot;Employee&quot;, 1);
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1110"><code>..\Scripts\IBlade\a50_entityManager.js:1110</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1109"><code>..\Scripts\IBlade\a50_entityManager.js:1109</code></a>
         
         </p>
 
@@ -3593,7 +3591,7 @@ var employee = em1.getEntityByKey(employeeKey);
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1273"><code>..\Scripts\IBlade\a50_entityManager.js:1273</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1284"><code>..\Scripts\IBlade\a50_entityManager.js:1284</code></a>
         
         </p>
 
@@ -4115,7 +4113,7 @@ em2.importEntities(bundle, { mergeStrategy: MergeStrategy.PreserveChanges} );
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1365"><code>..\Scripts\IBlade\a50_entityManager.js:1365</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1376"><code>..\Scripts\IBlade\a50_entityManager.js:1376</code></a>
         
         </p>
 
@@ -4230,7 +4228,7 @@ var entities = em1.rejectChanges();</code></pre>
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l836"><code>..\Scripts\IBlade\a50_entityManager.js:836</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l833"><code>..\Scripts\IBlade\a50_entityManager.js:833</code></a>
         
         </p>
 
@@ -5177,7 +5175,7 @@ em.entityChanged.subscribe(function(changeArgs) {
             
         
         
-        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1309"><code>..\Scripts\IBlade\a50_entityManager.js:1309</code></a>
+        <a href="../files/.._Scripts_IBlade_a50_entityManager.js.html#l1320"><code>..\Scripts\IBlade\a50_entityManager.js:1320</code></a>
         
         </p>
 

@@ -257,7 +257,7 @@ namespace Breeze.NetClient {
           : (StructuralType)new EntityType(jn));
       stypes.ForEach(st => this.AddStructuralType(st));
 
-      jNode.GetPrimitiveMap<String>("resourceEntityTypeMap").ForEach(kvp => {
+      jNode.GetMap<String>("resourceEntityTypeMap").ForEach(kvp => {
         var et = GetEntityType(kvp.Value);
         AddResourceName(kvp.Key, et);
       });

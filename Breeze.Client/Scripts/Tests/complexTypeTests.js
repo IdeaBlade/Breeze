@@ -571,6 +571,10 @@
         ok(notificationCount === 2, "should have been 2 notifications");
         var errs = supplier1.entityAspect.getValidationErrors();
         ok(errs.length == 2, "should be 2 errors"); // on companyName and city;
+        var coErrs = supplier1.entityAspect.getValidationErrors("companyName");
+        ok(coErrs.length == 1, "should be 1 company name error");
+        var lcErrs = supplier1.entityAspect.getValidationErrors("location.city");
+        ok(lcErrs.length == 1, "should be 1 location.city error");
 
         location.setProperty("city", "much shorter");
         ok(lastNotification.removed, "last notification should have been 'removed'");

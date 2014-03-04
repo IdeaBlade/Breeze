@@ -335,7 +335,49 @@
             ok(city != val);
         }).fin(start);
         
-        
+    });
+
+    test("mergeStrategy.overwriteChanges and change events", function () {
+        if (testFns.DEBUG_MONGO) {
+            ok(true, "NA for Mongo - expand not yet supported");
+            return;
+        }
+
+        var em = newEm();
+        em.queryOptions = em.queryOptions.using(MergeStrategy.OverwriteChanges);
+        var alfredsID = '785efa04-cbf2-4dd7-a7de-083ee17b6ad2';
+        var query = EntityQuery.from("Customers")
+            .where(testFns.customerKeyName, "==", alfredsID);
+        var entityChangedArgs = [];
+        var hasChangesChangedArgs = [];
+
+        em.entityChanged.subscribe(function (args) {
+            entityChangedArgs.push(args);
+            lastArgs = args;
+            lastAction = args.entityAction;
+            lastEntity = args.entity;
+        });
+        em.hasChangesChanged.subscribe(function (args) {
+            hasChangesChangedArgs.push(args);
+        });
+        var customer;
+        stop();
+        query.using(em).execute().then(function (data) {
+            ok(!em.hasChanges(), "should not have any changes");
+            customer = data.results[0];
+            customer.setProperty("companyName", "Foo");
+            ok(em.hasChanges(), "now should have changes");
+            hasChangesChangedArgs.length = 0;
+            entityChangedArgs.length = 0;
+            return query.using(em).execute();
+        }).then(function (data2) {
+            ok(!em.hasChanges(), "now should no longer have changes");
+            ok(em.getChanges().length === 0, "getChanges should return 0 records");
+            ok(hasChangesChangedArgs.length == 1, "hasChangeschanged should have been fired");
+            // entityStateChange and propertyChange
+            ok(entityChangedArgs.length == 2, "entityChanged should have been fired twice");
+        }).fail(testFns.handleFail).fin(start);
+
     });
 
     test("hasChanges basic", function() {
@@ -666,10 +708,18 @@
             return em.executeQuery(q);
         }).then(function(data2) {
             ok(data2.results.length == 2, "results.length should be 2");
-            ok(changedArgs.length == 2);
-            changedArgs.forEach(function(arg) {
-                ok(arg.entityAction === EntityAction.MergeOnQuery, "all actions should be MergeOnQuery"); 
+            ok(changedArgs.length == 3); // two mergeOnQuery and 1 entityStateChange
+            var moqCount = 0;
+            var esCount = 0;
+            changedArgs.forEach(function (arg) {
+                if (arg.entityAction === EntityAction.MergeOnQuery) {
+                    moqCount++;
+                }
+                if (arg.entityAction == EntityAction.EntityStateChange) {
+                    esCount++;
+                }
             });
+            ok(moqCount == 2 && esCount == 1, "change args should be correct");
             start();
         }).fail(testFns.handleFail);
     });

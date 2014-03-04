@@ -9978,7 +9978,6 @@ var EntityQuery = (function () {
         queryOptions["$expand"] = toExpandString();
         queryOptions["$select"] = toSelectString();
         queryOptions["$inlinecount"] = toInlineCountString();
-        //queryOptions = __extend(queryOptions, this.parameters);
             
         var qoText = toQueryOptionsString(queryOptions);
         return this.resourceName + qoText;
@@ -12123,14 +12122,6 @@ var EntityManager = (function () {
     }
 
     /**
-    Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. 
-    @method rejectChanges
-    **/
-    proto.rejectChanges = function () {
-        this.getChanges().forEach(function (entity) { entity.entityAspect.rejectChanges(); })
-    }
-
-    /**
     Exports an entire EntityManager or just selected entities into a serialized string for external storage.
     @example
     This method can be used to take a snapshot of an EntityManager that can be either stored offline or held 
@@ -13179,6 +13170,7 @@ var EntityManager = (function () {
 
     /**
     Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.
+    Calls EntityAspect.rejectChanges on every changed entity in this EntityManager. 
     @example
         // assume em1 is an EntityManager containing a number of preexisting entities.
         var entities = em1.rejectChanges();
@@ -14557,15 +14549,9 @@ breeze.SaveOptions= SaveOptions;
     ctor.prototype.initialize = function () {
         ajaxImpl = breeze.config.getAdapterInstance("ajax");
 
-        if (!ajaxImpl) {
-            throw new Error("Unable to initialize ajax for WebApi.");
-        }
-
-        // don't cache 'ajax' because we then we would need to ".bind" it, and don't want to because of brower support issues. 
-        var ajax = ajaxImpl.ajax;
-        if (!ajax) {
-            throw new Error("Breeze was unable to find an 'ajax' adapter");
-        }
+        // don't cache 'ajax' because then we would need to ".bind" it, and don't want to because of brower support issues. 
+        if (ajaxImpl && ajaxImpl.ajax) { return; }
+        throw new Error("Unable to find ajax adapter for dataservice adapter '"+(this.name||'')+"'.");
     };
 
     ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
@@ -15011,16 +14997,17 @@ breeze.SaveOptions= SaveOptions;
     
     var ctor = function () {
         this.name = "OData";
-
     };
 
-    ctor.prototype.initialize = function () {
+    var fn = ctor.prototype; // minifies better (as seen in jQuery)
+
+    fn.initialize = function () {
         OData = core.requireLib("OData", "Needed to support remote OData services");
         OData.jsonHandler.recognizeDates = true;
     };
     
     
-    ctor.prototype.executeQuery = function (mappingContext) {
+    fn.executeQuery = function (mappingContext) {
     
         var deferred = Q.defer();
         var url = mappingContext.getUrl();
@@ -15045,7 +15032,7 @@ breeze.SaveOptions= SaveOptions;
     };
     
 
-    ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
+    fn.fetchMetadata = function (metadataStore, dataService) {
 
         var deferred = Q.defer();
 
@@ -15093,14 +15080,16 @@ breeze.SaveOptions= SaveOptions;
 
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundle) {
+    fn.getRoutePrefix = function(dataService){ return ''; /* see webApiODataCtor */}
+
+    fn.saveChanges = function (saveContext, saveBundle) {
 
         var deferred = Q.defer();
 
         var helper = saveContext.entityManager.helper;
         var url = saveContext.dataService.makeUrl("$batch");
-        
-        var requestData = createChangeRequests(saveContext, saveBundle);
+        var routePrefix = this.getRoutePrefix(saveContext.dataService);
+        var requestData = createChangeRequests(saveContext, saveBundle, routePrefix);
         var tempKeys = saveContext.tempKeys;
         var contentKeys = saveContext.contentKeys;
         var that = this;
@@ -15151,7 +15140,7 @@ breeze.SaveOptions= SaveOptions;
 
     };
  
-    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
+    fn.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
         visitNode: function (node, mappingContext, nodeContext) {
@@ -15193,11 +15182,11 @@ breeze.SaveOptions= SaveOptions;
         return val;
     }
 
-    function createChangeRequests(saveContext, saveBundle) {
+    function createChangeRequests(saveContext, saveBundle, routePrefix) {
         var changeRequests = [];
         var tempKeys = [];
         var contentKeys = [];
-        var prefix = saveContext.dataService.serviceName;
+        var baseUri = saveContext.dataService.serviceName;
         var entityManager = saveContext.entityManager;
         var helper = entityManager.helper;
         var id = 0;
@@ -15207,17 +15196,17 @@ breeze.SaveOptions= SaveOptions;
             var request = { headers: { "Content-ID": id, "DataServiceVersion": "2.0" } };
             contentKeys[id] = entity;
             if (aspect.entityState.isAdded()) {
-                request.requestUri = entity.entityType.defaultResourceName;
+                request.requestUri = routePrefix + entity.entityType.defaultResourceName;
                 request.method = "POST";
                 request.data = helper.unwrapInstance(entity, transformValue);
                 tempKeys[id] = aspect.getKey();
             } else if (aspect.entityState.isModified()) {
-                updateDeleteMergeRequest(request, aspect, prefix);
+                updateDeleteMergeRequest(request, aspect, baseUri, routePrefix);
                 request.method = "MERGE";
                 request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, transformValue);
                 // should be a PATCH/MERGE
             } else if (aspect.entityState.isDeleted()) {
-                updateDeleteMergeRequest(request, aspect, prefix);
+                updateDeleteMergeRequest(request, aspect, baseUri, routePrefix);
                 request.method = "DELETE";
             } else {
                 return;
@@ -15234,11 +15223,11 @@ breeze.SaveOptions= SaveOptions;
 
     }
 
-    function updateDeleteMergeRequest(request, aspect, prefix) {
+    function updateDeleteMergeRequest(request, aspect, baseUri, routePrefix) {
         var extraMetadata = aspect.extraMetadata;
         var uri = extraMetadata.uri || extraMetadata.id;
-        if (core.stringStartsWith(uri, prefix)) {
-            uri = uri.substring(prefix.length);
+        if (core.stringStartsWith(uri, baseUri)) {
+            uri = routePrefix + uri.substring(baseUri.length);
         }
         request.requestUri = uri;
         if (extraMetadata.etag) {
@@ -15290,9 +15279,28 @@ breeze.SaveOptions= SaveOptions;
 
     breeze.config.registerAdapter("dataService", ctor);
 
-}));
 
-;(function(factory) {
+    var webApiODataCtor = function () {
+        this.name = "webApiOData";
+    }
+
+    breeze.core.extend(webApiODataCtor.prototype, fn);
+
+    webApiODataCtor.prototype.getRoutePrefix = function(dataService){
+        // Get the routePrefix from a Web API OData service name.
+        // Web API OData requires inclusion of the routePrefix in the Uri of a batch subrequest
+        // By convention, Breeze developers add the Web API OData routePrefix to the end of the serviceName
+        // e.g. the routePrefix in 'http://localhost:55802/odata/' is 'odata/'
+        var segments = dataService.serviceName.split('/');
+        var last = segments.length-1 ;
+        var routePrefix = segments[last] || segments[last-1];
+        routePrefix = routePrefix ? routePrefix += '/' : '';
+        return routePrefix;
+    };
+
+    breeze.config.registerAdapter("dataService", webApiODataCtor);
+
+}));;(function(factory) {
     if (breeze) {
         factory(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {

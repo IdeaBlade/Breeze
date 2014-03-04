@@ -1,0 +1,24 @@
+﻿<!---------------------------------------------------
+    View of command bar
+    The buttons and indicators at the top of the TodoLists view
+    Relies on the ambient controller/viewmodel of the containing view
+--------------------------------------------------->
+<div class="app-command-bar">
+    <button class="btn btn-success navbar-btn" 
+            ng-disabled="vm.isSaveDisabled()" ng-click="vm.save()"
+            title="Save pending changes to any and all todolists">
+        <i class="glyphicon glyphicon-floppy-disk"></i> Save
+    </button>&nbsp;&nbsp;
+    <button class="btn btn-primary navbar-btn"
+            ng-click="vm.addNewTodoList()"
+            title="Add a new TodoList">
+        <i class="glyphicon glyphicon-plus"></i> Add
+    </button>&nbsp;&nbsp;
+    <button class="btn btn-danger navbar-btn" ng-click="vm.refresh()"
+            title="Discard changes and refresh from the server">
+        <i class="glyphicon glyphicon-refresh"></i> Refresh
+    </button>&nbsp;&nbsp;
+    <span class="alert alert-danger" ng-if="vm.changesCount()">
+        Unsaved changes: {{vm.changesCount()}}
+    </span>
+</div>

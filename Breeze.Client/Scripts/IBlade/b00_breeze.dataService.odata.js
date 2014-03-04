@@ -20,16 +20,17 @@
     
     var ctor = function () {
         this.name = "OData";
-
     };
 
-    ctor.prototype.initialize = function () {
+    var fn = ctor.prototype; // minifies better (as seen in jQuery)
+
+    fn.initialize = function () {
         OData = core.requireLib("OData", "Needed to support remote OData services");
         OData.jsonHandler.recognizeDates = true;
     };
     
     
-    ctor.prototype.executeQuery = function (mappingContext) {
+    fn.executeQuery = function (mappingContext) {
     
         var deferred = Q.defer();
         var url = mappingContext.getUrl();
@@ -54,7 +55,7 @@
     };
     
 
-    ctor.prototype.fetchMetadata = function (metadataStore, dataService) {
+    fn.fetchMetadata = function (metadataStore, dataService) {
 
         var deferred = Q.defer();
 
@@ -102,14 +103,16 @@
 
     };
 
-    ctor.prototype.saveChanges = function (saveContext, saveBundle) {
+    fn.getRoutePrefix = function(dataService){ return ''; /* see webApiODataCtor */}
+
+    fn.saveChanges = function (saveContext, saveBundle) {
 
         var deferred = Q.defer();
 
         var helper = saveContext.entityManager.helper;
         var url = saveContext.dataService.makeUrl("$batch");
-        
-        var requestData = createChangeRequests(saveContext, saveBundle);
+        var routePrefix = this.getRoutePrefix(saveContext.dataService);
+        var requestData = createChangeRequests(saveContext, saveBundle, routePrefix);
         var tempKeys = saveContext.tempKeys;
         var contentKeys = saveContext.contentKeys;
         var that = this;
@@ -160,7 +163,7 @@
 
     };
  
-    ctor.prototype.jsonResultsAdapter = new JsonResultsAdapter({
+    fn.jsonResultsAdapter = new JsonResultsAdapter({
         name: "OData_default",
 
         visitNode: function (node, mappingContext, nodeContext) {
@@ -202,11 +205,11 @@
         return val;
     }
 
-    function createChangeRequests(saveContext, saveBundle) {
+    function createChangeRequests(saveContext, saveBundle, routePrefix) {
         var changeRequests = [];
         var tempKeys = [];
         var contentKeys = [];
-        var prefix = saveContext.dataService.serviceName;
+        var baseUri = saveContext.dataService.serviceName;
         var entityManager = saveContext.entityManager;
         var helper = entityManager.helper;
         var id = 0;
@@ -216,17 +219,17 @@
             var request = { headers: { "Content-ID": id, "DataServiceVersion": "2.0" } };
             contentKeys[id] = entity;
             if (aspect.entityState.isAdded()) {
-                request.requestUri = entity.entityType.defaultResourceName;
+                request.requestUri = routePrefix + entity.entityType.defaultResourceName;
                 request.method = "POST";
                 request.data = helper.unwrapInstance(entity, transformValue);
                 tempKeys[id] = aspect.getKey();
             } else if (aspect.entityState.isModified()) {
-                updateDeleteMergeRequest(request, aspect, prefix);
+                updateDeleteMergeRequest(request, aspect, baseUri, routePrefix);
                 request.method = "MERGE";
                 request.data = helper.unwrapChangedValues(entity, entityManager.metadataStore, transformValue);
                 // should be a PATCH/MERGE
             } else if (aspect.entityState.isDeleted()) {
-                updateDeleteMergeRequest(request, aspect, prefix);
+                updateDeleteMergeRequest(request, aspect, baseUri, routePrefix);
                 request.method = "DELETE";
             } else {
                 return;
@@ -243,11 +246,11 @@
 
     }
 
-    function updateDeleteMergeRequest(request, aspect, prefix) {
+    function updateDeleteMergeRequest(request, aspect, baseUri, routePrefix) {
         var extraMetadata = aspect.extraMetadata;
         var uri = extraMetadata.uri || extraMetadata.id;
-        if (core.stringStartsWith(uri, prefix)) {
-            uri = uri.substring(prefix.length);
+        if (core.stringStartsWith(uri, baseUri)) {
+            uri = routePrefix + uri.substring(baseUri.length);
         }
         request.requestUri = uri;
         if (extraMetadata.etag) {
@@ -299,5 +302,25 @@
 
     breeze.config.registerAdapter("dataService", ctor);
 
-}));
 
+    var webApiODataCtor = function () {
+        this.name = "webApiOData";
+    }
+
+    breeze.core.extend(webApiODataCtor.prototype, fn);
+
+    webApiODataCtor.prototype.getRoutePrefix = function(dataService){
+        // Get the routePrefix from a Web API OData service name.
+        // Web API OData requires inclusion of the routePrefix in the Uri of a batch subrequest
+        // By convention, Breeze developers add the Web API OData routePrefix to the end of the serviceName
+        // e.g. the routePrefix in 'http://localhost:55802/odata/' is 'odata/'
+        var segments = dataService.serviceName.split('/');
+        var last = segments.length-1 ;
+        var routePrefix = segments[last] || segments[last-1];
+        routePrefix = routePrefix ? routePrefix += '/' : '';
+        return routePrefix;
+    };
+
+    breeze.config.registerAdapter("dataService", webApiODataCtor);
+
+}));

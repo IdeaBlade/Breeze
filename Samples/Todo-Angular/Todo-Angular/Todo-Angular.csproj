@@ -44,13 +44,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Breeze.ContextProvider">
-      <HintPath>..\packages\Breeze.Server.ContextProvider.1.4.8\lib\Breeze.ContextProvider.dll</HintPath>
+      <HintPath>..\packages\Breeze.Server.ContextProvider.1.4.9\lib\Breeze.ContextProvider.dll</HintPath>
     </Reference>
     <Reference Include="Breeze.ContextProvider.EF6">
-      <HintPath>..\packages\Breeze.Server.ContextProvider.EF6.1.4.8\lib\Breeze.ContextProvider.EF6.dll</HintPath>
+      <HintPath>..\packages\Breeze.Server.ContextProvider.EF6.1.4.9\lib\Breeze.ContextProvider.EF6.dll</HintPath>
     </Reference>
     <Reference Include="Breeze.WebApi2">
-      <HintPath>..\packages\Breeze.Server.WebApi2.1.4.8\lib\Breeze.WebApi2.dll</HintPath>
+      <HintPath>..\packages\Breeze.Server.WebApi2.1.4.9\lib\Breeze.WebApi2.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -121,20 +121,25 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\breeze.directives.css" />
     <Content Include="Content\reset.css" />
     <Content Include="Content\toastr.css" />
     <Content Include="Content\todo.css" />
     <Content Include="favicon.ico" />
     <Content Include="Index.html" />
+    <Content Include="Scripts\angular-mocks.js" />
     <Content Include="Scripts\angular.js" />
     <Content Include="Scripts\angular.min.js" />
-    <Content Include="Scripts\app\dataservice.js" />
-    <Content Include="Scripts\app\logger.js" />
-    <Content Include="Scripts\app\controller.js" />
+    <Content Include="app\dataservice.js" />
+    <Content Include="app\logger.js" />
+    <Content Include="app\controller.js" />
+    <Content Include="Scripts\angular.min.js.map" />
     <None Include="Scripts\jquery-1.8.3.intellisense.js" />
-    <Content Include="Scripts\app\main.js" />
+    <Content Include="app\main.js" />
     <None Include="Scripts\breeze.intellisense.js" />
+    <Content Include="Scripts\breeze.angular.js" />
     <Content Include="Scripts\breeze.debug.js" />
+    <Content Include="Scripts\breeze.directives.validation.js" />
     <Content Include="Scripts\breeze.min.js" />
     <Content Include="Scripts\breeze.savequeuing.js" />
     <Content Include="Scripts\jquery-1.8.3.js" />

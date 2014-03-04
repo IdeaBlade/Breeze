@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Breeze.NetClient {
 
@@ -76,7 +77,7 @@ namespace Breeze.NetClient {
         // need to insure 
         if (_entityKey == null) {
           Object[] values = GetValues(this.EntityType.KeyProperties);
-          var key = new EntityKey(this.EntityType, values);
+          var key = EntityKey.Create(this.EntityType, values);
           // do not cache _entityKey values that have not yet
           // gone thru a save
           if (this.EntityState.IsAdded() | this.EntityState.IsDetached()) {
@@ -98,9 +99,7 @@ namespace Breeze.NetClient {
         return _entityState;
       }
       set {
-        if (!this.EntityGroup.ChangeNotificationEnabled) {
-          _entityState = value;
-        } else if (value == EntityState.Added) {
+        if (value == EntityState.Added) {
           SetAdded();
         } else if (value == EntityState.Modified) {
           SetModified();
@@ -186,11 +185,10 @@ namespace Breeze.NetClient {
     /// </remarks>
     public void Delete() {
       if (this.EntityState.IsDeletedOrDetached()) return;
-      if (!FireEntityChanging(EntityAction.Delete)) return;
+      if (!OnEntityChanging(EntityAction.Delete)) return;
       var entity = this.Entity;
       if (this.EntityState.IsAdded()) {
         this.EntityManager.DetachEntity(entity);
-        // this.EntityManager.NotifyStateChange(this, false);
       } else {
         this.SetEntityStateCore(EntityState.Deleted);
         RemoveFromRelations(EntityState.Deleted);
@@ -283,7 +281,10 @@ namespace Breeze.NetClient {
 
 
       EntityManager.NotifyStateChange(this, false);
-      EntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
+      if (this.EntityGroup.ChangeNotificationEnabled) {
+        // only place that this gets called directly EXCEPT from EntityAspect.OnEntityChanged
+        EntityManager.OnEntityChanged(this.Entity, EntityAction.Detach);
+      }
       return true;
     }
 
@@ -299,13 +300,13 @@ namespace Breeze.NetClient {
 
     public void AcceptChanges() {
       if (this.IsDetached) return;
-      if (!FireEntityChanging(EntityAction.AcceptChanges)) return;
+      if (!OnEntityChanging(EntityAction.AcceptChanges)) return;
       if (this.EntityState.IsDeleted()) {
         this.EntityManager.DetachEntity(this.Entity);
       } else {
         this.SetUnchanged();
       }
-      this.EntityManager.OnEntityChanged(this.Entity, EntityAction.AcceptChanges);
+      OnEntityChanged(EntityAction.AcceptChanges);
 
     }
 
@@ -324,7 +325,7 @@ namespace Breeze.NetClient {
     /// </remarks>
     public void RejectChanges() {
       if (this.IsDetached) return;
-      if (!FireEntityChanging(EntityAction.RejectChanges)) return;
+      if (!OnEntityChanging(EntityAction.RejectChanges)) return;
 
       // we do not want PropertyChange or EntityChange events to occur here
       // because the single RejectChanges will cover both
@@ -381,21 +382,20 @@ namespace Breeze.NetClient {
     #region EntityState change methods
 
     internal void SetEntityStateCore(EntityState value) {
-
-      if (!this.EntityGroup.ChangeNotificationEnabled) {
-        _entityState = value;
-      } else {
-        if (value.IsAdded()) {
-          _originalValuesMap = null;
-        }
-        var hadChanges = _entityState != EntityState.Unchanged;
-        _entityState = value;
-        var hasChanges = _entityState != EntityState.Unchanged;
+      
+      if (value.IsAdded()) {
+        _originalValuesMap = null;
+      }
+      var hadChanges = _entityState != EntityState.Unchanged;
+      _entityState = value;
+      var hasChanges = _entityState != EntityState.Unchanged;
+      if (this.EntityGroup.ChangeNotificationEnabled) {
         OnEntityAspectPropertyChanged("EntityState");
         if (hadChanges != hasChanges) {
           OnEntityAspectPropertyChanged("IsChanged");
         }
       }
+    
     }
 
     // Sets the entity to an EntityState of 'Unchanged'.  This is also the equivalent of calling {{#crossLink "EntityAspect/acceptChanges"}}{{/crossLink}}
@@ -489,10 +489,97 @@ namespace Breeze.NetClient {
     }
 
     internal void SetNpValue(NavigationProperty property, object newValue) {
-      SetValueWithEvents(property, newValue, SetNpValueCore);
+      if (_inProcess) return;
+      try {
+        _inProcess = true;
+        SetValueWithEvents(property, newValue, SetNpValueCore);
+      } finally {
+        _inProcess = false;
+      }
+    }
+
+    private bool _inProcess;
+
+    private void SetValueWithEvents<T>(T property, object newValue, Action<T, Object, Object> action) where T : StructuralProperty {
+
+      var oldValue = GetValue(property);
+      if (Object.Equals(oldValue, newValue)) return;
+
+      if (!OnEntityChanging(EntityAction.PropertyChange)) return;
+
+      action(property, newValue, oldValue);
+
+      OnPropertyChanged(property);
+
+      if (this.IsAttached) {
+        if (!EntityManager.IsLoadingEntity) {
+          if (this.EntityState == EntityState.Unchanged) {
+            SetModified();
+          }
+        }
+
+
+        if ((EntityManager.DefaultValidationOptions.ValidationApplicability & ValidationApplicability.OnPropertyChange) > 0) {
+          // ValidateProperty(newValue, property, oldValue);
+        }
+      }
+
+    }
+ 
+    private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
+      SetRawValue(property.Name, newValue);
+
+      UpdateBackupVersion(property, oldValue);
+      UpdateRelated(property, newValue, oldValue);
+    }
+
+    private void SetDpValueKey(DataProperty property, object newValue, object oldValue) {
+      if (this.IsAttached) {
+        var values = EntityType.KeyProperties
+          .Select(p => (p == property) ? newValue : GetValue(p))
+          .ToArray();
+        var newKey = new EntityKey(EntityType, values);
+        if (EntityManager.FindEntityByKey(newKey) != null) {
+          throw new Exception("An entity with this key is already in the cache: " + newKey);
+        }
+        var oldKey = EntityKey;
+        var eg = EntityManager.GetEntityGroup(EntityType.ClrType);
+        eg.ReplaceKey(this, oldKey, newKey);
+
+        // Actually set the value;
+        SetRawValue(property.Name, newValue);
+        // insure that cached key is updated.
+        EntityKey = null;
+        LinkRelatedEntities();
+      } else {
+        SetRawValue(property.Name, newValue);
+      }
+
+      UpdateBackupVersion(property, oldValue);
+      UpdateRelated(property, newValue, oldValue);
+
+      // propogate pk change to all related entities;
+      var propertyIx = EntityType.KeyProperties.IndexOf(property);
+      EntityType.NavigationProperties.ForEach(np => {
+        var inverseNp = np.Inverse;
+        var fkProps = inverseNp != null ? inverseNp.ForeignKeyProperties : np.InvForeignKeyProperties;
+        if (fkProps.Count == 0) return;
+        var fkProp = fkProps[propertyIx];
+        ProcessNpValue(np, e => e.EntityAspect.SetDpValue(fkProp, newValue));
+      });
+    }
+
+    private void SetDpValueComplex(DataProperty property, object newValue, object oldValue) {
+      if (newValue == null) {
+        throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
+      }
+      var oldCo = (IComplexObject)oldValue;
+      var newCo = (IComplexObject)newValue;
+      oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
     }
 
     private void SetNpValueCore(NavigationProperty property, object newValue, object oldValue) {
+
       var newEntity = (IEntity)newValue;
       var oldEntity = (IEntity)oldValue;
 
@@ -518,7 +605,7 @@ namespace Breeze.NetClient {
             oldAspect.SetNpValue(inverseProp, null);
           }
           if (newValue != null) {
-            newAspect.SetNpValue(inverseProp, this);
+            newAspect.SetNpValue(inverseProp, this.Entity);
           }
         } else {
           // Example: bidirectional navProperty: 1->n: order -> orderDetails
@@ -587,57 +674,6 @@ namespace Breeze.NetClient {
       }
     }
 
-    private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
-      SetRawValue(property.Name, newValue);
-
-      UpdateBackupVersion(property, oldValue);
-      UpdateRelated(property, newValue, oldValue);
-    }
-
-    private void SetDpValueKey(DataProperty property, object newValue, object oldValue) {
-      if (this.IsAttached && !EntityManager.IsLoadingEntity) {
-        var values = EntityType.KeyProperties
-          .Select(p => (p == property) ? newValue : GetValue(p))
-          .ToArray();
-        var newKey = new EntityKey(EntityType, values).Coerce();
-        if (EntityManager.FindEntityByKey(newKey) != null) {
-          throw new Exception("An entity with this key is already in the cache: " + newKey);
-        }
-        var oldKey = EntityKey;
-        var eg = EntityManager.GetEntityGroup(EntityType.ClrType);
-        eg.ReplaceKey(this, oldKey, newKey);
-
-        // Actually set the value;
-        SetRawValue(property.Name, newValue);
-        // insure that cached key is updated.
-        EntityKey = null;
-        LinkRelatedEntities();
-      } else {
-        SetRawValue(property.Name, newValue);
-      }
-
-      UpdateBackupVersion(property, oldValue);
-      UpdateRelated(property, newValue, oldValue);
-
-      // propogate pk change to all related entities;
-      var propertyIx = EntityType.KeyProperties.IndexOf(property);
-      EntityType.NavigationProperties.ForEach(np => {
-        var inverseNp = np.Inverse;
-        var fkProps = inverseNp != null ? inverseNp.ForeignKeyProperties : np.InvForeignKeyProperties;
-        if (fkProps.Count == 0) return;
-        var fkProp = fkProps[propertyIx];
-        ProcessNpValue(np, e => e.EntityAspect.SetDpValue(fkProp, newValue));
-      });
-    }
-
-    private void SetDpValueComplex(DataProperty property, object newValue, object oldValue) {
-      if (newValue == null) {
-        throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
-      }
-      var oldCo = (IComplexObject)oldValue;
-      var newCo = (IComplexObject)newValue;
-      oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
-    }
 
     private void ManageAttachment(IEntity newEntity) {
       var newAspect = newEntity.EntityAspect;
@@ -661,32 +697,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    private void SetValueWithEvents<T>(T property, object newValue, Action<T, Object, Object> action) where T : StructuralProperty {
-
-      var oldValue = GetValue(property);
-      if (Object.Equals(oldValue, newValue)) return;
-
-      if (!FireEntityChanging(EntityAction.PropertyChange)) return;
-
-      action(property, newValue, oldValue);
-
-      OnPropertyChanged(property);
-
-      if (this.IsAttached) {
-        if (!EntityManager.IsLoadingEntity) {
-          if (this.EntityState == EntityState.Unchanged) {
-            SetModified();
-          }
-        }
-
-        // TODO: implement this.
-        //if (entityManager.validationOptions.validateOnPropertyChange) {
-        //    entityAspect._validateProperty(newValue,
-        //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
-        //}
-      }
-
-    }
+  
 
     // only ever called once for each EntityAspect when the EntityType is first set
     internal void InitializeDefaultValues() {
@@ -1098,6 +1109,17 @@ namespace Breeze.NetClient {
 
     #region NavProperty loading info
 
+    public async Task<Object> LoadNavigationProperty(String propertyName) {
+      var np = this.EntityType.GetNavigationProperty(propertyName);
+      return await LoadNavigationProperty(np);
+    }
+
+    public async Task<Object> LoadNavigationProperty(NavigationProperty navProperty) {
+      var query = EntityQueryBuilder.BuildQuery(this.Entity, navProperty);
+      await this.EntityManager.ExecuteQuery(query);
+      return GetValue(navProperty.Name);
+    }
+
     internal List<String> LoadedNavigationPropertyNames {
       get;
       set;
@@ -1175,67 +1197,10 @@ namespace Breeze.NetClient {
     /// </summary>
     public event PropertyChangedEventHandler PropertyChanged;
 
-    // also raises Entitychanged with an Action of PropertyChanged.
-    internal virtual void OnPropertyChanged(StructuralProperty property) {
-      var args = new PropertyChangedEventArgs(property.Name);
-      OnPropertyChanged(args);
-    }
-
-    private void OnPropertyChanged(PropertyChangedEventArgs args) {
-      if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return;
-      QueueEvent(() => {
-        OnPropertyChangedCore(args);
-        OnEntityChangedCore(new EntityChangedEventArgs(Entity, EntityAction.PropertyChange));
-      });
-    }
-
-    private void OnPropertyChangedCore(PropertyChangedEventArgs e) {
-      var handler = EntityPropertyChanged;
-      if (handler == null) return;
-      try {
-        handler(this.Entity, e);
-      } catch {
-        // eat exceptions during load
-        if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
-      }
-    }
-
-    internal bool FireEntityChanging(EntityAction action) {
-      if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return true;
-      var args = new EntityChangingEventArgs(this.Entity, action);
-      EntityManager.OnEntityChanging(args);
-      return !args.Cancel;
-    }
-
-    protected internal void OnEntityChanged(EntityAction entityAction) {
-      if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return;
-      var args = new EntityChangedEventArgs(Entity, entityAction);
-      QueueEvent(() => OnEntityChangedCore(args));
-    }
-
-    private void OnEntityChangedCore(EntityChangedEventArgs e) {
-      // change actions will fire property change inside of OnPropertyChanged 
-      if (e.Action != EntityAction.PropertyChange) {
-        OnPropertyChanged(AllPropertiesChangedEventArgs);
-      }
-      EntityManager.OnEntityChanged(e);
-    }
-
-    private void OnEntityAspectPropertyChanged(String propertyName) {
-      var handler = PropertyChanged;
-      if (handler == null) return;
-      var args = new PropertyChangedEventArgs(propertyName);
-      try {
-        handler(this, args);
-      } catch {
-        if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
-      }
-    }
-
     /// <summary>
     /// Forces a PropertyChanged event to be fired. 
     /// </summary>
-    /// <param name="e">A <see cref="System.ComponentModel.PropertyChangedEventArgs"/> or null</param>
+    /// <param name="args">A <see cref="System.ComponentModel.PropertyChangedEventArgs"/> or null</param>
     /// <remarks>
     /// An Empty value or a null reference (<c>Nothing</c> in Visual Basic) for the propertyName parameter of 
     /// PropertyChangedEventArgs indicates that all of the properties have changed, causing 
@@ -1250,11 +1215,65 @@ namespace Breeze.NetClient {
     /// not backed by an <see cref="StructuralProperty"/> must be made known.
     /// </para>
     /// </remarks>
-    public void ForceEntityPropertyChanged(PropertyChangedEventArgs e) {
-      if (e == null) {
-        e = EntityGroup.AllPropertiesChangedEventArgs;
+    public void ForceEntityPropertyChanged(PropertyChangedEventArgs args) {
+      var propName = (args == null) ? null : args.PropertyName;
+      OnPropertyChanged(propName);
+    }
+
+    // internal because may be called from ComplexAspect
+    internal bool OnEntityChanging(EntityAction action) {
+      if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return true;
+      return EntityManager.OnEntityChanging(this.Entity, action);
+    }
+
+    // also raises Entitychanged with an Action of PropertyChanged.
+    // internal because may be called from ComplexAspect
+    internal void OnPropertyChanged(StructuralProperty property) {
+      OnPropertyChanged(property.Name);
+    }
+
+    private void OnPropertyChanged(String propertyName) {
+      if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return;
+      QueueEvent(() => {
+        OnPropertyChangedCore(propertyName);
+        OnEntityChangedCore(EntityAction.PropertyChange);
+      });
+    }
+
+    internal void OnEntityChanged(EntityAction entityAction) {
+      if (IsDetached || !EntityGroup.ChangeNotificationEnabled) return;
+      QueueEvent(() => OnEntityChangedCore(entityAction));
+    }
+
+    private void OnPropertyChangedCore(String propertyName) {
+      var handler = EntityPropertyChanged;
+      if (handler == null) return;
+      var args = new PropertyChangedEventArgs(propertyName ?? NullPropertyName);
+      try {
+        handler(this.Entity, args);
+      } catch {
+        // eat exceptions during load
+        if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
       }
-      OnPropertyChanged(e);
+    }
+
+    private void OnEntityChangedCore(EntityAction entityAction) {
+      // change actions will fire property change inside of OnPropertyChanged 
+      if (entityAction != EntityAction.PropertyChange && entityAction != EntityAction.EntityStateChange) {
+        OnPropertyChanged((String) null);
+      }
+      EntityManager.OnEntityChanged(this.Entity, entityAction);
+    }
+
+    private void OnEntityAspectPropertyChanged(String propertyName) {
+      var handler = PropertyChanged;
+      if (handler == null) return;
+      var args = new PropertyChangedEventArgs(propertyName ?? NullPropertyName);
+      try {
+        handler(this, args);
+      } catch {
+        if (IsDetached || !this.EntityManager.IsLoadingEntity) throw;
+      }
     }
 
     // TODO: make sure we clear this
@@ -1265,6 +1284,12 @@ namespace Breeze.NetClient {
         action();
       }
     }
+
+#if NET
+    private static readonly String NullPropertyName = null;
+#else
+    private static readonly String NullPropertyName = String.Empty;
+#endif
 
     //private void TryToHandle<T>(EventHandler<T> handler, T args) where T : EventArgs {
     //  if (handler == null) return;

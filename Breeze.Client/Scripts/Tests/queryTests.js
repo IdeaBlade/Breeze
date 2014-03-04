@@ -28,6 +28,7 @@
 
     test("query by entity key without preexisting metadata", function() {
         manager = new breeze.EntityManager(testFns.serviceName);
+        stop();
         manager.fetchMetadata().then(function () { 
             var empType = manager.metadataStore.getEntityType("Employee");
             var entityKey = new EntityKey(empType, 1);
@@ -1147,6 +1148,19 @@
             ok(data3.fromCache === false, "should not have been from cache");
         }).fail(testFns.handleFail).fin(start);
     });
+
+    test("fetchEntityByKey without metadata", function () {
+        var emX = new breeze.EntityManager(testFns.serviceName);
+        var alfredsID = wellKnownData.alfredsID;
+        stop();
+        var alfred;
+        emX.fetchEntityByKey("Customer", alfredsID, true).then(function (data) {
+            alfred = data.entity;
+            ok(alfred, "alfred should have been found");
+            ok(data.fromCache === false, "should have been from database");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
     
     test("fetchEntityByKey - deleted", function () {
         var em = newEm();
@@ -1457,6 +1471,9 @@
         }).fail(testFns.handleFail).fin(start);
     });
 
+  
+
+
     test("duplicates after relation query", function() {
         if (testFns.DEBUG_MONGO) {
             ok(true, "NA for Mongo - expand not yet supported");
@@ -1671,7 +1688,7 @@
         customer.entityAspect.setUnchanged();
         
         // SHOULD BE THE SAME. EITHER WAY ITS AN ATTACHED UNCHANGED ENTITY
-        ok(customer.entityAspect.entityState.isUnchanged,
+        ok(customer.entityAspect.entityState.isUnchanged(),
             "Attached entity is in state " + customer.entityAspect.entityState);
 
         ok(em.getEntities().length === 1,
