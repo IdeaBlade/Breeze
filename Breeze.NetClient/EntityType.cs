@@ -168,9 +168,6 @@ namespace Breeze.NetClient {
 
     #endregion
 
-
-
-  
   }
 
   public class EntityTypeCollection : MapCollection<String, EntityType> {

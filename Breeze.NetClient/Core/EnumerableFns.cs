@@ -314,5 +314,7 @@ namespace Breeze.Core {
       return new SafeList<T>(items);
     }
 
+    
+
   }
 }

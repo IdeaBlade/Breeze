@@ -36,10 +36,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BaseComplexObject.cs" />
-    <Compile Include="Breeze.NetClient.Designer.cs">
+    <Compile Include="Core\UtilFns.cs" />
+    <Compile Include="ValidationMessages.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Breeze.NetClient.resx</DependentUpon>
+      <DependentUpon>ValidationMessages.resx</DependentUpon>
     </Compile>
     <Compile Include="CacheQueryExpressionVisitor.cs" />
     <Compile Include="CacheQueryOptions.cs" />
@@ -114,10 +115,7 @@
       <HintPath>..\packages\Microsoft.Data.Services.Client.5.6.1\lib\portable-net45+sl5+wp8+win8\Microsoft.Data.Services.Client.Portable.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\portable-net40+sl4+wp7+win8\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System.ComponentModel.DataAnnotations">
-      <HintPath>..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.ComponentModel.DataAnnotations.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\portable-net45+wp80+win8\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http">
       <HintPath>..\packages\Microsoft.Net.Http.2.2.18\lib\portable-net40+sl4+win8+wp71\System.Net.Http.dll</HintPath>
@@ -136,6 +134,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -143,9 +142,9 @@
     <Content Include="__Notes.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Breeze.NetClient.resx">
+    <EmbeddedResource Include="ValidationMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Breeze.NetClient.Designer.cs</LastGenOutput>
+      <LastGenOutput>ValidationMessages.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />

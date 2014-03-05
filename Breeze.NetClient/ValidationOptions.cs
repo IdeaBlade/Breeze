@@ -1,5 +1,5 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
+
 
 namespace Breeze.NetClient {
   // TODO: make immutable later

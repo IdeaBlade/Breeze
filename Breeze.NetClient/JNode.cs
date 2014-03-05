@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 
 using Breeze.Core;
+using Newtonsoft.Json.Serialization;
 
 namespace Breeze.NetClient {
 
@@ -25,14 +26,31 @@ namespace Breeze.NetClient {
       _jo = jo;
     }
 
+    public static JNode FromObject(Object o, bool shouldCamelCase) {
+      JObject jo;
+      if (shouldCamelCase) {
+        jo = (JObject)JToken.FromObject(o, CamelCaseSerializer);
+      } else {
+        jo = (JObject)JToken.FromObject(o);
+      }
+      return new JNode(jo);
+    }
+
     public bool IsEmpty {
       get {
         return !_jo.Values().Any();
       }
     }
 
-    public Object ToObject(Type t) {
+    public Object ToObject(Type t, bool shouldCamelCase = false) {
+      if (shouldCamelCase) {
+        return _jo.ToObject(t, CamelCaseSerializer);
+      }
       return _jo.ToObject(t);
+    }
+
+    public override String ToString() {
+      return _jo.ToString();
     }
         
     public Object Config {
@@ -234,6 +252,7 @@ namespace Breeze.NetClient {
     }
   
 
+
     // pass in a simple value, a JNode or a IJsonSerializable and returns either a simple value or a JObject or a JArray
     private static Object CvtValue(Object value) {
       var jn = value as JNode;
@@ -334,6 +353,7 @@ namespace Breeze.NetClient {
     #endregion
 
     internal JObject _jo;
+    private static JsonSerializer CamelCaseSerializer = new JsonSerializer() { ContractResolver = new CamelCasePropertyNamesContractResolver() };
   }
 
 

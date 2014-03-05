@@ -6,53 +6,140 @@ using System.Threading.Tasks;
 
 using Breeze.Core;
 using System.Resources;
+using System.Reflection;
+using Breeze.NetClient.Core;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace Breeze.NetClient {
 
   /// <summary>
   /// 
   /// </summary>
-  public abstract class ValidationRule {
+  public abstract class ValidationRule  {
 
-    protected ValidationRule(String name) {
-      Name = name;
+    protected ValidationRule() {
+      Name = TypeToRuleName(this.GetType());
     }
 
-    public static ResourceManager DefaultResourceManager {
+    
+
+    public String Name {
+      get;
+      private set;
+    }
+
+    internal bool IsFrozen {
       get;
       set;
     }
 
-    public String Name {
-      get;
-      private set; 
+    public static void RegisterRules(Assembly assembly) {
+      lock (__lock) {
+        var vrTypes = TypeFns.GetTypesImplementing(typeof(ValidationRule), Enumerable.Repeat(assembly, 1))
+          .Where(t => {
+            var ti = t.GetTypeInfo();
+            return (!ti.IsAbstract) && ti.GenericTypeArguments.Length == 0;
+          });
+        vrTypes.ForEach(t => {
+          var key = TypeToRuleName(t);
+          __validationRuleMap[key] = t;
+        });
+      }
     }
 
-    public ResourceManager ResourceManager {
-      get {
-        return _resourceManager ?? DefaultResourceManager;
-      }
-      set {
-        _resourceManager = value;
-        _messageTemplate = null;
+    public JNode ToJNode() {
+      var jNode = JNode.FromObject(this, true);
+      return jNode;
+    }
+
+    public static ValidationRule FromJNode(JNode jNode) {
+      lock (__lock) {
+
+        var name = jNode.Get<String>("name");
+        ValidationRule vr;
+        var jNodeKey = jNode.ToString();
+        if (__validationRuleCache.TryGetValue(jNodeKey, out vr)) {
+          return vr;
+        }
+        
+        Type vrType;
+        if (!__validationRuleMap.TryGetValue(name, out vrType)) {
+          throw new Exception("Unable to create a validation rule for " + name);
+        }
+        vr = (ValidationRule) jNode.ToObject(vrType, true);
+        __validationRuleCache[jNodeKey] = vr;
+        return vr;
       }
     }
 
-    
+    private static String TypeToRuleName(Type type) {
+      var typeName = type.Name;
+      var name = (typeName.EndsWith("ValidationRule")) ? typeName.Substring(0, typeName.Length - 12) : typeName;
+      name = ToCamelCase(name);
+      return name;
+    }
+
+    private static String ToCamelCase(String s) {
+      if (s.Length > 1) {
+        return s.Substring(0, 1).ToLower() + s.Substring(1);
+      } else if (s.Length == 1) {
+        return s.Substring(0, 1).ToLower();
+      } else {
+        return s;
+      }
+    }
+
+    private static Object __lock = new Object();
+    private static Dictionary<String, Type> __validationRuleMap = new Dictionary<string, Type>();
+    private static Dictionary<String, ValidationRule> __validationRuleCache = new Dictionary<String, ValidationRule>();
 
     public virtual IEnumerable<ValidationError> Validate(ValidationContext context) {
       if (ValidateCore(context)) return EmptyErrors;
       return GetDefaultValidationErrors(context);
     }
 
+    protected abstract bool ValidateCore(ValidationContext context);
+
+
+    protected IEnumerable<ValidationError> GetDefaultValidationErrors(ValidationContext context) {
+      // return Enumerable.Repeat(new ValidationError(this, context), 1);
+      return UtilFns.ToArray(new ValidationError(this, context));
+    }
+
+    #region Message handling
+
     public virtual String GetErrorMessage(ValidationContext validationContext) {
       return MessageTemplate ?? "Error with rule " + this.Name;
     }
 
-    protected String FormatMessage(String defaultTemplate, params Object[] parameters) {
-      // '**' indicates that a defaultTemplate was used - i.e. a MessageTemplate could not be found.
-      var template =  String.IsNullOrEmpty(MessageTemplate) ? defaultTemplate + " **" : MessageTemplate;
-      return String.Format(template, parameters);
+    public Type ResourceType {
+      get {
+        return _resourceType;
+      }
+      set {
+        ErrorIfFrozen();
+        _resourceType = value;
+        _resourceManager = null;
+        _messageTemplate = null;
+      }
+    }
+
+    public ResourceManager ResourceManager {
+      get {
+        if (_resourceManager == null) {
+          _resourceManager = (ResourceType != null)
+            ? new ResourceManager(ResourceType)
+            : new ResourceManager("Breeze.NetClient.ValidationMessages", this.GetType().GetTypeInfo().Assembly);
+        }
+        return _resourceManager;
+      }
+      set {
+        ErrorIfFrozen();
+        _resourceManager = value;
+        _messageTemplate = null;
+      }
     }
 
     public String MessageTemplate {
@@ -68,25 +155,37 @@ namespace Breeze.NetClient {
         return _messageTemplate;
       }
       private set {
+        ErrorIfFrozen();
         _messageTemplate = value;
       }
     }
 
-    
+    protected String FormatMessage(String defaultTemplate, params Object[] parameters) {
+      // '**' indicates that a defaultTemplate was used - i.e. a MessageTemplate could not be found.
+      var template = String.IsNullOrEmpty(MessageTemplate) ? defaultTemplate + " **" : MessageTemplate;
+      return String.Format(template, parameters);
+    }
 
-    protected abstract bool ValidateCore(ValidationContext context);
-    
+    #endregion
 
-    protected IEnumerable<ValidationError> GetDefaultValidationErrors(ValidationContext context) {
-      return Enumerable.Repeat(new ValidationError(this, context), 1) ;
+    /// <summary>
+    /// Should be called by every public "Set" property or method.
+    /// </summary>
+    protected internal void ErrorIfFrozen() {
+      if (IsFrozen) {
+        throw new Exception("ValidationRule: " + this.Name + " is frozen.\nNo properties may be set on a frozen ValidationRule. ");
+      }
     }
 
 
     public static readonly IEnumerable<ValidationError> EmptyErrors = Enumerable.Empty<ValidationError>();
 
     private ResourceManager _resourceManager;
+    private Type _resourceType;
     private String _messageTemplate;
   }
+
+  
 
   /// <summary>
   /// 
@@ -145,10 +244,9 @@ namespace Breeze.NetClient {
 
   }
 
-  public class RequiredValidationRule : ValidationRule  {
-    public RequiredValidationRule(bool treatEmptyStringAsNull = true) 
-      : base("Required") {
-        TreatEmptyStringAsNull = treatEmptyStringAsNull;
+  public class RequiredValidationRule : ValidationRule {
+    public RequiredValidationRule(bool treatEmptyStringAsNull = true) {
+      TreatEmptyStringAsNull = treatEmptyStringAsNull;
     }
 
     protected override bool ValidateCore(ValidationContext context) {
@@ -161,9 +259,9 @@ namespace Breeze.NetClient {
     }
 
     public override String GetErrorMessage(ValidationContext context) {
-      return FormatMessage("{0} is a required field.*", context.DisplayName);
+      return FormatMessage("{0} is a required field.", context.DisplayName);
     }
-   
+
     public bool TreatEmptyStringAsNull {
       get;
       private set;
@@ -171,7 +269,7 @@ namespace Breeze.NetClient {
   }
 
   public class PrimitiveTypeValidationRule<T> : ValidationRule {
-    public PrimitiveTypeValidationRule(Type type) : base(type.Name) {
+    public PrimitiveTypeValidationRule(Type type) {
       ValidationType = type;
     }
 
@@ -190,21 +288,65 @@ namespace Breeze.NetClient {
   }
 
   public class MaxLengthValidationRule : ValidationRule {
-     public MaxLengthValidationRule(int maxLength) : base("MaxLength") {
-      MaxLength = maxLength;  
+    public MaxLengthValidationRule(int maxLength) {
+      MaxLength = maxLength;
     }
 
-     protected override bool ValidateCore(ValidationContext context) {
-       var value = context.PropertyValue;
-       if (value == null) return true;
-       return ((String) value).Length <= MaxLength;
-     }
+    //public MaxLengthValidationRule(JNode jNode) : base("MaxLength") {
+    //  MaxLength = jNode.Get<Int32>("maxlength");
+    //}
 
-     public override String GetErrorMessage(ValidationContext context) {
-       return FormatMessage("'{0}' must be {1} character(s) or less.", context.DisplayName, MaxLength);
-     }
-    
+    //public JNode IJsonSerializable.ToJNode() {
+    //  var jn = new JNode();
+    //  jn.AddPrimitive("name", this.Name);
+    //  jn.AddPrimitive("maxlength", this.MaxLength);
+    //  return jn;
+    //}
+
+    protected override bool ValidateCore(ValidationContext context) {
+      var value = context.PropertyValue;
+      if (value == null) return true;
+      return ((String)value).Length <= MaxLength;
+    }
+
+    public override String GetErrorMessage(ValidationContext context) {
+      return FormatMessage("'{0}' must be {1} character(s) or less.", context.DisplayName, MaxLength);
+    }
+
     public int MaxLength { get; private set; }
   }
- 
+
+  //public class RangeValidationRule<T> : ValidationRule {
+  //  public RangeValidationRule(T? min, T? max, bool includeMinEndPoint = true, bool includeMaxEndPoint = true)
+  //    : base("Range") {
+  //    Min = min;
+  //    Max = max;
+  //    IncludeMinEndPoint = includeMinEndPoint;
+  //    IncludeMaxEndPoint = includeMinEndPoint;
+  //  }
+
+
+
+  //  public T? Min {
+  //    get;
+  //    private set;
+  //  }
+
+  //  public bool IncludeMinEndPoint {
+  //    get;
+  //    private set;
+  //  }
+
+  //  public T? Max {
+  //    get;
+  //    private set;
+  //  }
+
+  //  public bool IncludeMaxEndPoint {
+  //    get;
+  //    private set;
+  //  }
+
+  //}
+
 }
