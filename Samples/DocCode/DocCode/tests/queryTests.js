@@ -1624,18 +1624,57 @@
             em.fetchEntityByKey("Customer", id,
                // Look in cache first; it will be there this time
                /* checkLocalCacheFirst */ true)
-              .then(fetchSucceeded)
+              .then(fetchUnchangedCustomerByKeySucceeded)
+              .fail(handleFail)
+              .fin(start);
+        });
+    /*********************************************************
+    * Fetch unchanged Customer by key found in cache using EntityType instead of type name
+    *********************************************************/
+    test("fetchEntityByKey of unchanged Customer found in cache using EntityType", 2,
+        function () {
+
+            var em = newEm(); // empty manager
+            var id = '11111111-2222-3333-4444-555555555555';
+            // fake it in cache so we can find it
+            var cust = attachCustomer(em, id);
+
+            stop(); // actually won't go async
+            var customerType = cust.entityType;
+            em.fetchEntityByKey(customerType, id, true)
+              .then(fetchUnchangedCustomerByKeySucceeded)
               .fail(handleFail)
               .fin(start);
 
-            function fetchSucceeded(data) {
-                var customer = data.entity;
-                var name = customer && customer.CompanyName();
-                var entityState = customer && customer.entityAspect.entityState;
-                ok(entityState.isUnchanged, "should have found unchanged customer, " + name);
-                ok(data.fromCache, "should have found customer in cache");
-            }
+
         });
+    /*********************************************************
+    * Fetch unchanged Customer by key found in cache using EntityKey
+    *********************************************************/
+    test("fetchEntityByKey of unchanged Customer found in cache using EntityKey", 2,
+        function () {
+
+            var em = newEm(); // empty manager
+            var id = '11111111-2222-3333-4444-555555555555';
+            // fake it in cache so we can find it
+            var cust = attachCustomer(em, id);
+
+            stop(); // actually won't go async
+            var key = cust.entityAspect.getKey();
+            em.fetchEntityByKey(key, true)
+              .then(fetchUnchangedCustomerByKeySucceeded)
+              .fail(handleFail)
+              .fin(start);
+
+
+        });
+    function fetchUnchangedCustomerByKeySucceeded(data) {
+        var customer = data.entity;
+        var name = customer && customer.CompanyName();
+        var entityState = customer && customer.entityAspect.entityState;
+        ok(entityState.isUnchanged, "should have found unchanged customer, " + name);
+        ok(data.fromCache, "should have found customer in cache");
+    }
     /*********************************************************
      * Fetch OrderDetail by its 2-part key from cache from server
      *********************************************************/
