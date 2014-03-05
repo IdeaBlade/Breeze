@@ -111,18 +111,13 @@
 
             function getTodosImpl() {
                 dataservice.getTodos($scope.includeArchived)
-                    .then(querySucceeded)
-                    .catch(queryFailed);
+                    .then(querySucceeded);
             }
 
             function querySucceeded(data) {
                 $scope.items = data.results;
                 logger.info("Fetched Todos " +
                 ($scope.includeArchived ? "including archived" : "excluding archived"));
-            }
-
-            function queryFailed(error) {
-                logger.error(error.message, "Query failed");
             }
         };
 

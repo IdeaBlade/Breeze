@@ -1,10 +1,14 @@
-﻿app.dataservice = (function (breeze, logger) {
+﻿app.dataservice = app.factory("dataservice", ['logger', '$http', function (logger, $http) {
 
 
     breeze.config.initializeAdapterInstance("modelLibrary", "backingStore", true);
+    var ajaxAdapter = breeze.config.initializeAdapterInstance("ajax", "angular");
+    ajaxAdapter.setHttp($http);
+    breeze.ajaxpost.configAjaxAdapter(ajaxAdapter);  // now we can use POST
 
-    //var serviceName = 'breeze/NorthBreeze'; // route to the same origin Web Api controller
-    var serviceName = 'breeze/Criteria'; // route to the same origin Web Api controller
+
+    var serviceName = 'breeze/NorthBreeze'; // route to the same origin Web Api controller
+    //var serviceName = 'breeze/Criteria'; // route to the same origin Web Api controller
 
     //var manager = new breeze.EntityManager(serviceName);  // gets metadata from /breeze/NorthBreeze/Metadata
     var metadataStore = getMetadataStore();     // gets metadata from metadata.js
@@ -89,6 +93,7 @@
         var query = breeze.EntityQuery
                 .from("Customers")
                 .orderBy("CompanyName")
+                .expand("orders")
                 .skip(skip).take(take)
                 .inlineCount(true);
         if (searchText) {
@@ -178,4 +183,4 @@
     //#endregion
 
 
-})(breeze, app.logger);
+}]);

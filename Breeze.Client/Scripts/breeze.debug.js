@@ -13451,15 +13451,16 @@ var EntityManager = (function () {
     }
         
     function createEntityKey(em, args) {
-        if (args[0] instanceof EntityKey) {
-            return { entityKey: args[0], remainingArgs: __arraySlice(args, 1) };
-        } else if (typeof args[0] === 'string' && args.length >= 2) {
-            var entityType = em.metadataStore._getEntityType(args[0], false);
-            return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: __arraySlice(args, 2) };
-        } else {
-            throw new Error("This method requires as its initial parameters either an EntityKey or an entityType name followed by a value or an array of values.");
-        }
-    }       
+        try {
+            if (args[0] instanceof EntityKey) {
+                return { entityKey: args[0], remainingArgs: __arraySlice(args, 1) };
+            } else if (args.length >= 2) {
+                var entityType = (typeof args[0] === 'string') ? em.metadataStore._getEntityType(args[0], false) : args[0];
+                return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: __arraySlice(args, 2) };
+            }
+        } catch (e) {/* throw below */}
+        throw new Error("Must supply an EntityKey OR an EntityType name or EntityType followed by a key value or an array of key values.");
+    }          
         
     function markIsBeingSaved(entities, flag) {
         entities.forEach(function(entity) {

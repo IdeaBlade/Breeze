@@ -1,5 +1,6 @@
 ﻿using Breeze.WebApi.NH;
 using Models.NorthwindIB.NH;
+using System.Linq;
 
 namespace NorthBreeze.Controllers
 {
@@ -75,6 +76,9 @@ namespace NorthBreeze.Controllers
         {
             get { return GetQuery<User>(); }
         }
-
+        public IQueryable<Customer> Customers2()
+        {
+            return Customers.Where(c => true);
+        }
     }
 }

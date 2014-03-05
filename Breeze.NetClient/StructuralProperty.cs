@@ -21,7 +21,7 @@ namespace Breeze.NetClient {
       this.IsInherited = prop.IsInherited;
       this.IsScalar = prop.IsScalar;
       this.IsUnmapped = prop.IsUnmapped;
-      this.Validators = new ValidatorCollection(prop.Validators);
+      this.ValidationRules = prop.ValidationRules.ToList();
     }
     public StructuralType ParentType { get; internal set; }
     public abstract Type ClrType { get; }
@@ -30,8 +30,13 @@ namespace Breeze.NetClient {
     public bool IsScalar { get; internal set; }
     public bool IsInherited { get; internal set; }
     public bool IsUnmapped { get; internal set; }
-    public ValidatorCollection Validators { get; internal set; }
-    public dynamic Custom { get; internal set; }
+    public IEnumerable<ValidationRule> ValidationRules { get; internal set; }
+
+    // TODO: enhance this later with DisplayName property and localization
+    public String DisplayName {
+      get { return this.Name; }
+    }
+    public Object Custom { get; internal set; }
 
     public abstract bool IsDataProperty { get;  }
     public abstract bool IsNavigationProperty { get; }

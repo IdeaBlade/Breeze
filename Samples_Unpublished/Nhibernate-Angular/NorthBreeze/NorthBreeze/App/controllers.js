@@ -7,35 +7,35 @@ app.controller('RouteCtrl', function ($scope, $route) {
 });
 
 
-app.controller('HomeCtrl', ['$scope', function ($scope) {
+app.controller('HomeCtrl', ['$scope', 'dataservice', 'logger', function ($scope, dataservice, logger) {
 
-    app.dataservice.getSimilarCustomersGET()
+    dataservice.getSimilarCustomersGET()
         .then(customersQuerySucceededGET)
         .fail(queryFailed);
 
-    app.dataservice.getSimilarCustomersPOST()
+    dataservice.getSimilarCustomersPOST()
         .then(customersQuerySucceededPOST)
         .fail(queryFailed);
 
     function customersQuerySucceededGET(data) {
         $scope.customersGET = data.results;
         $scope.$apply();
-        app.logger.info("Fetched " + data.results.length + " Customers ");
+        logger.info("Fetched " + data.results.length + " Customers ");
     }
 
     function customersQuerySucceededPOST(data) {
         $scope.customersPOST = data.results;
         $scope.$apply();
-        app.logger.info("Fetched " + data.results.length + " Customers ");
+        logger.info("Fetched " + data.results.length + " Customers ");
     }
 
     function queryFailed(error) {
-        app.logger.error(error.message, "Query failed");
+        logger.error(error.message, "Query failed");
     }
 
 }]);
 
-app.controller('CustomerCtrl', ['$scope', function ($scope) {
+app.controller('CustomerCtrl', ['$scope', 'dataservice', 'logger', function ($scope, dataservice, logger) {
 
     // we should *not* have to use _backingStore, but grid isn't displaying data without it.
     var columnDefs = [{ field: '_backingStore.CompanyName', displayName: 'Company Name', width: '50%' },
@@ -65,7 +65,7 @@ app.controller('CustomerCtrl', ['$scope', function ($scope) {
     }
 
     $scope.update = function (customer) {
-        app.dataservice.saveChanges();
+        dataservice.saveChanges();
     }
 
 
@@ -83,7 +83,7 @@ app.controller('CustomerCtrl', ['$scope', function ($scope) {
     $scope.getPagedDataAsync = function (pageSize, page, searchText) {
         var skip = (page - 1) * pageSize;
         var take = pageSize * 1;
-        app.dataservice.getCustomerPage(skip, take, searchText)
+        dataservice.getCustomerPage(skip, take, searchText)
             .then(customersQuerySucceeded)
             .fail(queryFailed);
     };
@@ -115,20 +115,20 @@ app.controller('CustomerCtrl', ['$scope', function ($scope) {
         $scope.customers = data.results;
         $scope.pagingOptions.totalServerItems = data.inlineCount;
         $scope.$apply();
-        app.logger.info("Fetched " + data.results.length + " Customers ");
+        logger.info("Fetched " + data.results.length + " Customers ");
     }
 
     function queryFailed(error) {
-        app.logger.error(error.message, "Query failed");
+        logger.error(error.message, "Query failed");
     }
 
 }]);
 
-app.controller('OrderCtrl', function ($scope) {
+app.controller('OrderCtrl', ['$scope', 'dataservice', 'logger', function ($scope, dataservice, logger) {
 
     $scope.orders = $scope.orders || [];
     
-    app.dataservice.getOrders()
+    dataservice.getOrders()
         .then(querySucceeded)
         .fail(queryFailed);
 
@@ -136,7 +136,7 @@ app.controller('OrderCtrl', function ($scope) {
     function querySucceeded(data) {
         $scope.orders = data.results;
         $scope.$apply();
-        app.logger.info("Fetched " + data.results.length + " Orders ");
+        logger.info("Fetched " + data.results.length + " Orders ");
     }
 
     function queryFailed(error) {
@@ -144,4 +144,4 @@ app.controller('OrderCtrl', function ($scope) {
     }
 
 
-});
+}]);

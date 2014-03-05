@@ -444,6 +444,35 @@ namespace Breeze.NetClient {
 
     #endregion
 
+    #region Validation
+
+    public IEnumerable<ValidationError> Validate() {
+      var vc = new ValidationContext(this.Entity);
+      var et = this.EntityType;
+
+      var propertyErrors = et.Properties.SelectMany(prop => {
+        vc.Property = prop;
+        vc.PropertyValue = this.GetValue(prop);
+        return prop.ValidationRules.SelectMany(vr => vr.Validate(vc));
+      });
+      vc.Property = null;
+      vc.PropertyValue = null;
+      var entityErrors = et.ValidationRules.SelectMany(vr => vr.Validate(vc));
+      return propertyErrors.Concat(entityErrors);
+    }
+
+    public IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop) {
+      var value = this.GetValue(prop);
+      return ValidateProperty(value, prop);
+    }
+
+    internal IEnumerable<ValidationError> ValidateProperty(Object value, StructuralProperty prop) {
+      var vc = new ValidationContext(this.Entity, value, prop);
+      return prop.ValidationRules.SelectMany(vr => vr.Validate(vc));
+    }
+
+    #endregion
+
 
     #region GetValue(s)/SetValue methods
 
@@ -500,11 +529,89 @@ namespace Breeze.NetClient {
 
     private bool _inProcess;
 
+    private void SetValueWithEvents<T>(T property, object newValue, Action<T, Object, Object> action) where T : StructuralProperty {
+
+      var oldValue = GetValue(property);
+      if (Object.Equals(oldValue, newValue)) return;
+
+      if (!OnEntityChanging(EntityAction.PropertyChange)) return;
+
+      action(property, newValue, oldValue);
+
+      OnPropertyChanged(property);
+
+      if (this.IsAttached) {
+        if (!EntityManager.IsLoadingEntity) {
+          if (this.EntityState == EntityState.Unchanged) {
+            SetModified();
+          }
+        }
+
+
+        //if ((EntityManager.DefaultValidationOptions.ValidationApplicability & ValidationApplicability.OnPropertyChange) > 0) {
+        //  // ValidateProperty(newValue, property, oldValue);
+        //}
+      }
+
+    }
+ 
+    private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
+      SetRawValue(property.Name, newValue);
+
+      UpdateBackupVersion(property, oldValue);
+      UpdateRelated(property, newValue, oldValue);
+    }
+
+    private void SetDpValueKey(DataProperty property, object newValue, object oldValue) {
+      if (this.IsAttached) {
+        var values = EntityType.KeyProperties
+          .Select(p => (p == property) ? newValue : GetValue(p))
+          .ToArray();
+        var newKey = new EntityKey(EntityType, values);
+        if (EntityManager.FindEntityByKey(newKey) != null) {
+          throw new Exception("An entity with this key is already in the cache: " + newKey);
+        }
+        var oldKey = EntityKey;
+        var eg = EntityManager.GetEntityGroup(EntityType.ClrType);
+        eg.ReplaceKey(this, oldKey, newKey);
+
+        // Actually set the value;
+        SetRawValue(property.Name, newValue);
+        // insure that cached key is updated.
+        EntityKey = null;
+        LinkRelatedEntities();
+      } else {
+        SetRawValue(property.Name, newValue);
+      }
+
+      UpdateBackupVersion(property, oldValue);
+      UpdateRelated(property, newValue, oldValue);
+
+      // propogate pk change to all related entities;
+      var propertyIx = EntityType.KeyProperties.IndexOf(property);
+      EntityType.NavigationProperties.ForEach(np => {
+        var inverseNp = np.Inverse;
+        var fkProps = inverseNp != null ? inverseNp.ForeignKeyProperties : np.InvForeignKeyProperties;
+        if (fkProps.Count == 0) return;
+        var fkProp = fkProps[propertyIx];
+        ProcessNpValue(np, e => e.EntityAspect.SetDpValue(fkProp, newValue));
+      });
+    }
+
+    private void SetDpValueComplex(DataProperty property, object newValue, object oldValue) {
+      if (newValue == null) {
+        throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
+      }
+      var oldCo = (IComplexObject)oldValue;
+      var newCo = (IComplexObject)newValue;
+      oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
+    }
+
     private void SetNpValueCore(NavigationProperty property, object newValue, object oldValue) {
-      
+
       var newEntity = (IEntity)newValue;
       var oldEntity = (IEntity)oldValue;
-      
+
       EntityAspect newAspect = (newEntity == null) ? null : newEntity.EntityAspect;
       EntityAspect oldAspect = (oldEntity == null) ? null : oldEntity.EntityAspect;
 
@@ -596,57 +703,6 @@ namespace Breeze.NetClient {
       }
     }
 
-    private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
-      SetRawValue(property.Name, newValue);
-
-      UpdateBackupVersion(property, oldValue);
-      UpdateRelated(property, newValue, oldValue);
-    }
-
-    private void SetDpValueKey(DataProperty property, object newValue, object oldValue) {
-      if (this.IsAttached) {
-        var values = EntityType.KeyProperties
-          .Select(p => (p == property) ? newValue : GetValue(p))
-          .ToArray();
-        var newKey = new EntityKey(EntityType, values);
-        if (EntityManager.FindEntityByKey(newKey) != null) {
-          throw new Exception("An entity with this key is already in the cache: " + newKey);
-        }
-        var oldKey = EntityKey;
-        var eg = EntityManager.GetEntityGroup(EntityType.ClrType);
-        eg.ReplaceKey(this, oldKey, newKey);
-
-        // Actually set the value;
-        SetRawValue(property.Name, newValue);
-        // insure that cached key is updated.
-        EntityKey = null;
-        LinkRelatedEntities();
-      } else {
-        SetRawValue(property.Name, newValue);
-      }
-
-      UpdateBackupVersion(property, oldValue);
-      UpdateRelated(property, newValue, oldValue);
-
-      // propogate pk change to all related entities;
-      var propertyIx = EntityType.KeyProperties.IndexOf(property);
-      EntityType.NavigationProperties.ForEach(np => {
-        var inverseNp = np.Inverse;
-        var fkProps = inverseNp != null ? inverseNp.ForeignKeyProperties : np.InvForeignKeyProperties;
-        if (fkProps.Count == 0) return;
-        var fkProp = fkProps[propertyIx];
-        ProcessNpValue(np, e => e.EntityAspect.SetDpValue(fkProp, newValue));
-      });
-    }
-
-    private void SetDpValueComplex(DataProperty property, object newValue, object oldValue) {
-      if (newValue == null) {
-        throw new Exception(String.Format("You cannot set the '{0}' property to null because it's datatype is the ComplexType: '{1}'", property.Name, property.ComplexType.Name));
-      }
-      var oldCo = (IComplexObject)oldValue;
-      var newCo = (IComplexObject)newValue;
-      oldCo.ComplexAspect.AbsorbCurrentValues(newCo.ComplexAspect);
-    }
 
     private void ManageAttachment(IEntity newEntity) {
       var newAspect = newEntity.EntityAspect;
@@ -670,32 +726,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    private void SetValueWithEvents<T>(T property, object newValue, Action<T, Object, Object> action) where T : StructuralProperty {
-
-      var oldValue = GetValue(property);
-      if (Object.Equals(oldValue, newValue)) return;
-
-      if (!OnEntityChanging(EntityAction.PropertyChange)) return;
-
-      action(property, newValue, oldValue);
-
-      OnPropertyChanged(property);
-
-      if (this.IsAttached) {
-        if (!EntityManager.IsLoadingEntity) {
-          if (this.EntityState == EntityState.Unchanged) {
-            SetModified();
-          }
-        }
-
-        // TODO: implement this.
-        //if (entityManager.validationOptions.validateOnPropertyChange) {
-        //    entityAspect._validateProperty(newValue,
-        //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
-        //}
-      }
-
-    }
+  
 
     // only ever called once for each EntityAspect when the EntityType is first set
     internal void InitializeDefaultValues() {
