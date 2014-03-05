@@ -77,6 +77,11 @@ namespace Breeze.NetClient {
       get { return _concurrencyProperties.ReadOnlyValues; }
     }
 
+    public IEnumerable<ValidationRule> ValidationRules {
+      get;
+      set;
+    }
+
     #endregion
 
     #region Public methods

@@ -36,6 +36,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BaseComplexObject.cs" />
+    <Compile Include="Breeze.NetClient.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Breeze.NetClient.resx</DependentUpon>
+    </Compile>
     <Compile Include="CacheQueryExpressionVisitor.cs" />
     <Compile Include="CacheQueryOptions.cs" />
     <Compile Include="Core\MethodReflector.cs" />
@@ -96,7 +101,7 @@
     <Compile Include="EntityManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ValidationOptions.cs" />
-    <Compile Include="Validator.cs" />
+    <Compile Include="ValidationRule.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Data.Edm.Portable">
@@ -136,6 +141,12 @@
   <ItemGroup>
     <Content Include="_TODO.txt" />
     <Content Include="__Notes.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Breeze.NetClient.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Breeze.NetClient.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

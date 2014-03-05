@@ -444,6 +444,35 @@ namespace Breeze.NetClient {
 
     #endregion
 
+    #region Validation
+
+    public IEnumerable<ValidationError> Validate() {
+      var vc = new ValidationContext(this.Entity);
+      var et = this.EntityType;
+
+      var propertyErrors = et.Properties.SelectMany(prop => {
+        vc.Property = prop;
+        vc.PropertyValue = this.GetValue(prop);
+        return prop.ValidationRules.SelectMany(vr => vr.Validate(vc));
+      });
+      vc.Property = null;
+      vc.PropertyValue = null;
+      var entityErrors = et.ValidationRules.SelectMany(vr => vr.Validate(vc));
+      return propertyErrors.Concat(entityErrors);
+    }
+
+    public IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop) {
+      var value = this.GetValue(prop);
+      return ValidateProperty(value, prop);
+    }
+
+    internal IEnumerable<ValidationError> ValidateProperty(Object value, StructuralProperty prop) {
+      var vc = new ValidationContext(this.Entity, value, prop);
+      return prop.ValidationRules.SelectMany(vr => vr.Validate(vc));
+    }
+
+    #endregion
+
 
     #region GetValue(s)/SetValue methods
 
@@ -519,9 +548,9 @@ namespace Breeze.NetClient {
         }
 
 
-        if ((EntityManager.DefaultValidationOptions.ValidationApplicability & ValidationApplicability.OnPropertyChange) > 0) {
-          // ValidateProperty(newValue, property, oldValue);
-        }
+        //if ((EntityManager.DefaultValidationOptions.ValidationApplicability & ValidationApplicability.OnPropertyChange) > 0) {
+        //  // ValidateProperty(newValue, property, oldValue);
+        //}
       }
 
     }
