@@ -67,8 +67,6 @@ namespace Test_NetClient {
       await _emTask;
       Validator.RegisterValidators(typeof(Validator).Assembly);
 
-
-
       var vr2 = Validator.FindOrCreate<RequiredValidator>(true);
       var vr3 = Validator.FindOrCreate<RequiredValidator>(true);
       Assert.IsTrue(vr2 == vr3);

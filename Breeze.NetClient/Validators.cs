@@ -17,10 +17,22 @@ namespace Breeze.NetClient {
 
 
   public class RequiredValidator : Validator {
-    public RequiredValidator(bool treatEmptyStringAsNull = true) : base() {
+    public RequiredValidator(bool? treatEmptyStringAsNull = null) : base() {
       LocalizedMessage = new LocalizedMessage(LocalizedKey, "{0} is a required field");
-      TreatEmptyStringAsNull = treatEmptyStringAsNull;
+      TreatEmptyStringAsNull = treatEmptyStringAsNull.HasValue ? treatEmptyStringAsNull.Value : DefaultTreatEmptyStringAsNull;
     }
+
+    public static bool DefaultTreatEmptyStringAsNull {
+      get {
+        return __defaultTreatEmptyStringAsNull;
+      }
+      set {
+        __defaultTreatEmptyStringAsNull = value;
+        Default = new RequiredValidator(value);
+      }
+    }
+
+    public static RequiredValidator Default = new RequiredValidator(DefaultTreatEmptyStringAsNull);
 
     protected override bool ValidateCore(ValidationContext context) {
       var value = context.PropertyValue;
@@ -39,6 +51,8 @@ namespace Breeze.NetClient {
       get;
       private set;
     }
+
+    private static bool __defaultTreatEmptyStringAsNull;
   }
 
   public class MaxLengthValidator : Validator {

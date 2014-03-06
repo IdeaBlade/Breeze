@@ -40,6 +40,12 @@ namespace Breeze.NetClient {
       return (T)FindOrCreate(typeof(T), parameters);
     }
 
+    public static T GetCachedVersion<T>(T validator) where T : Validator {
+      var jNode = ((IJsonSerializable)validator).ToJNode(null);
+      RegisterValidators(validator.GetType().GetTypeInfo().Assembly);
+      return (T)FindOrCreate(jNode);
+    }
+
     public static Validator FindOrCreate(Type type, params Object[] parameters) {
       var key = new ParamsWrapper(parameters);
       Validator vr;
@@ -96,6 +102,7 @@ namespace Breeze.NetClient {
 
     public static void RegisterValidators(Assembly assembly) {
       lock (__lock) {
+        if (__assembliesProbed.Contains(assembly)) return;
         var vrTypes = TypeFns.GetTypesImplementing(typeof(Validator), Enumerable.Repeat(assembly, 1))
           .Where(t => {
             var ti = t.GetTypeInfo();
@@ -105,6 +112,7 @@ namespace Breeze.NetClient {
           var key = TypeToValidatorName(t);
           __validatorMap[key] = t;
         });
+        __assembliesProbed.Add(assembly);
       }
     }
 
@@ -152,6 +160,7 @@ namespace Breeze.NetClient {
     }
 
     private static Object __lock = new Object();
+    private static HashSet<Assembly> __assembliesProbed = new HashSet<Assembly>();
     private static Dictionary<String, Type> __validatorMap = new Dictionary<string, Type>();
     private static Dictionary<String, Validator> __validatorJsonCache = new Dictionary<String, Validator>();
     private static Dictionary<ParamsWrapper, Validator> __validatorParamsCache = new Dictionary<ParamsWrapper, Validator>();

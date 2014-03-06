@@ -96,7 +96,8 @@ namespace Test_NetClient {
 
       var q0 = new EntityQuery<Customer>().Where(c => c.Orders.Any()).Take(3);
       var r0 = await q0.Execute(_em1);
-      await Task.WhenAll(r0.Select(c => c.EntityAspect.LoadNavigationProperty("Orders")));
+      Task.WaitAll(r0.Select(c => c.EntityAspect.LoadNavigationProperty("Orders")).ToArray());
+      // await Task.WhenAll(r0.Select(c => c.EntityAspect.LoadNavigationProperty("Orders")));
       Assert.IsTrue(r0.All(c => c.Orders.Count() > 0));
     }
 
@@ -106,7 +107,8 @@ namespace Test_NetClient {
 
       var q0 = new EntityQuery<Order>().Where(o => o.Customer != null).Take(3);
       var r0 = await q0.Execute(_em1);
-      await Task.WhenAll(r0.Select(o => o.EntityAspect.LoadNavigationProperty("Customer")));
+      Task.WaitAll(r0.Select(o => o.EntityAspect.LoadNavigationProperty("Customer")).ToArray());
+      // await Task.WhenAll(r0.Select(o => o.EntityAspect.LoadNavigationProperty("Customer")));
       Assert.IsTrue(r0.All(o => o.Customer != null));
     }
     
