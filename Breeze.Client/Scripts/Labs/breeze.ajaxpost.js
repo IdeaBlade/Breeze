@@ -8,12 +8,12 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Steve Schmidt
- * Version: 1.0.4
+ * Version: 1.0.5
  * 
  * Special parameters:
- *	$method: ‘POST’ or ‘GET’ (the default)
- *	$encoding: ‘JSON’ or x-www-form-urlencoded (the default)
- *	$data: contains the data to be sent to the server
+ *  $method: ‘POST’ or ‘GET’ (the default)
+ *  $encoding: ‘JSON’ or x-www-form-urlencoded (the default)
+ *  $data: contains the data to be sent to the server
  *
  * Example:
  *   var query = breeze.EntityQuery.from('SimilarCustomersPOST')
@@ -40,13 +40,16 @@
     }
 }(function (breeze) {
     'use strict';
-    breeze.ajaxpost = (function (ajaxAdapter) {
+    breeze.ajaxpost = function(ajaxAdapter) {
 
-    divertAjaxImpl(ajaxAdapter);
+        divertAjaxImpl(ajaxAdapter);
 
-    return {
-        configAjaxAdapter: divertAjaxImpl
+        return {
+            configAjaxAdapter: divertAjaxImpl
+        };
     };
+
+    breeze.ajaxpost(); // run it immediately on whatever is the current ajax adapter
 
     // Add processSettings to ajaxAdapter
     function divertAjaxImpl(ajaxAdapter) {
