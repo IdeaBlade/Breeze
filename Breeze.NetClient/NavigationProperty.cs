@@ -31,7 +31,7 @@ namespace Breeze.NetClient {
       EntityTypeName = jNode.Get<String>("entityTypeName");
       IsScalar = jNode.Get<bool>("isScalar", true);
       AssociationName = jNode.Get<String>("associationName");
-      // _validators.AddRange()
+      _validators = jNode.GetJNodeArray("validators").Select(jn => ValidationRule.FromJNode(jn)).ToList();
       _foreignKeyNames.AddRange(jNode.GetArray<String>("foreignKeyNames"));
       _invForeignKeyNames.AddRange(jNode.GetArray<String>("invForeignKeyNames"));
       // custom
@@ -43,7 +43,7 @@ namespace Breeze.NetClient {
       jo.AddPrimitive("entityTypeName", this.EntityTypeName);
       jo.AddPrimitive("isScalar", this.IsScalar);
       jo.AddPrimitive("associationName", this.AssociationName);
-      // jo.AddArray("validators", this.Validators);
+      jo.AddArray("validators", this.Validators);
       jo.AddArray("foreignKeyNames", this.ForeignKeyNames);
       jo.AddArray("invForeignKeyNames", this.InvForeignKeyNames);
       // jo.Add("custom", this.Custom.ToJObject)

@@ -37,10 +37,10 @@
   <ItemGroup>
     <Compile Include="BaseComplexObject.cs" />
     <Compile Include="Core\UtilFns.cs" />
-    <Compile Include="ValidationMessages.Designer.cs">
+    <Compile Include="LocalizedMessages.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>ValidationMessages.resx</DependentUpon>
+      <DependentUpon>LocalizedMessages.resx</DependentUpon>
     </Compile>
     <Compile Include="CacheQueryExpressionVisitor.cs" />
     <Compile Include="CacheQueryOptions.cs" />
@@ -102,6 +102,10 @@
     <Compile Include="EntityManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ValidationOptions.cs" />
+    <Compile Include="LocalizedMessage.cs" />
+    <Compile Include="ValidationContext.cs" />
+    <Compile Include="ValidationError.cs" />
+    <Compile Include="ValidationRules.cs" />
     <Compile Include="ValidationRule.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -142,9 +146,9 @@
     <Content Include="__Notes.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ValidationMessages.resx">
+    <EmbeddedResource Include="LocalizedMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ValidationMessages.Designer.cs</LastGenOutput>
+      <LastGenOutput>LocalizedMessages.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />

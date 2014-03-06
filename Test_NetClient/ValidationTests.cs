@@ -49,20 +49,47 @@ namespace Test_NetClient {
       ValidationRule.RegisterRules(typeof(ValidationRule).Assembly);
 
       var vr = new RequiredValidationRule();
-      var vrNode = vr.ToJNode();
+      var vrNode = ((IJsonSerializable) vr).ToJNode(null);
       var vr2 = ValidationRule.FromJNode(vrNode);
       var vr3 = ValidationRule.FromJNode(vrNode);
       Assert.IsTrue(vr2 == vr3);
 
       var mlVr = new MaxLengthValidationRule(17);
-      var mlVrNode = mlVr.ToJNode();
+      var mlVrNode = ((IJsonSerializable)mlVr).ToJNode(null);
       var mlVr2 = ValidationRule.FromJNode(mlVrNode);
       var mlVr3 = ValidationRule.FromJNode(mlVrNode);
       Assert.IsTrue(mlVr2 == mlVr3);
-
       
     }
-    
+
+    [TestMethod]
+    public async Task LocalizedValidationMessage() {
+      await _emTask;
+      ValidationRule.RegisterRules(typeof(ValidationRule).Assembly);
+
+      var vr = new RequiredValidationRule();
+      var mt = vr.LocalizedMessage.MessageTemplate;
+      Assert.IsTrue(!String.IsNullOrEmpty(mt));
+      Assert.IsTrue(!mt.EndsWith("**"));
+    }
+
+    [TestMethod]
+    public async Task RequiredProperty() {
+      await _emTask;
+      ValidationRule.RegisterRules(typeof(ValidationRule).Assembly);
+
+      var emp = new Employee();
+      var vr = new RequiredValidationRule();
+      var dp = emp.EntityAspect.EntityType.GetDataProperty("LastName");
+      var vc = new ValidationContext(emp, null, dp );
+      var ves = vr.Validate(vc);
+      Assert.IsTrue(ves.Any());
+      var ve = ves.First();
+      Assert.IsTrue(ve.Message.Contains("LastName") && ve.Message.Contains("required"));
+      Assert.IsTrue(ve.Context.Instance == emp);
+      Assert.IsTrue(ve.Rule == vr);
+      Assert.IsTrue(ve.Key != null);
+    }
 
   }
 }

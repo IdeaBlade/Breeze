@@ -23,14 +23,14 @@ namespace Breeze.NetClient {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class ValidationMessages {
+    internal class LocalizedMessages {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal ValidationMessages() {
+        internal LocalizedMessages() {
         }
         
         /// <summary>
@@ -40,7 +40,7 @@ namespace Breeze.NetClient {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Breeze.NetClient.ValidationMessages", typeof(ValidationMessages).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Breeze.NetClient.LocalizedMessages", typeof(LocalizedMessages).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -62,20 +62,38 @@ namespace Breeze.NetClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; must be {1} character(s) or less..
+        ///   Looks up a localized string similar to &apos;{0}&apos; must be {1} {2} and {3} {4}..
         /// </summary>
-        internal static string Val_MaxLength {
+        internal static string Val_int32Range {
             get {
-                return ResourceManager.GetString("Val_MaxLength", resourceCulture);
+                return ResourceManager.GetString("Val_int32Range", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is a required field.
+        ///   Looks up a localized string similar to &apos;{0}&apos; must be {1} character(s) or less..
         /// </summary>
-        internal static string Val_Required {
+        internal static string Val_maxLength {
             get {
-                return ResourceManager.GetString("Val_Required", resourceCulture);
+                return ResourceManager.GetString("Val_maxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is a required field..
+        /// </summary>
+        internal static string Val_required {
+            get {
+                return ResourceManager.GetString("Val_required", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; must be betwee {1} and {2} character(s)..
+        /// </summary>
+        internal static string Val_stringLength {
+            get {
+                return ResourceManager.GetString("Val_stringLength", resourceCulture);
             }
         }
     }

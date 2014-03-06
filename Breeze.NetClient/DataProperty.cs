@@ -1,5 +1,6 @@
 ﻿using Breeze.Core;
 using System;
+using System.Linq;
 
 namespace Breeze.NetClient {
 
@@ -52,6 +53,7 @@ namespace Breeze.NetClient {
       MaxLength = jNode.Get<int?>("maxLength");
       EnumTypeName = jNode.Get<String>("enumType");
       IsScalar = jNode.Get<bool>("isScalar", true);
+      _validators = jNode.GetJNodeArray("validators").Select(jn => ValidationRule.FromJNode(jn)).ToList();
     }
 
 
@@ -67,7 +69,7 @@ namespace Breeze.NetClient {
       jn.AddPrimitive("isAutoIncrementing", this.IsAutoIncrementing, false);
       jn.AddPrimitive("concurrencyMode", this.ConcurrencyMode == ConcurrencyMode.None ? null : this.ConcurrencyMode.ToString());
       jn.AddPrimitive("maxLength", this.MaxLength);
-      // jo.AddArrayProperty("validators", this.Validators);
+      jn.AddArray("validators", this.Validators);
       jn.AddPrimitive("enumType", this.EnumTypeName);
       jn.AddPrimitive("isScalar", this.IsScalar, true);
       // jo.AddProperty("custom", this.Custom.ToJObject)

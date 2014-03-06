@@ -23,7 +23,7 @@ namespace Breeze.NetClient {
       }
       jNode.GetJNodeArray("dataProperties").Select(jn => new DataProperty(jn)).ForEach(dp => AddDataProperty(dp));
       jNode.GetJNodeArray("navigationProperties").Select(jn => new NavigationProperty(jn)).ForEach(np => AddNavigationProperty(np));
-      // validators
+      jNode.GetJNodeArray("validators").Select(jn => ValidationRule.FromJNode(jn)).ToList();
       // custom
     }
 
@@ -37,7 +37,7 @@ namespace Breeze.NetClient {
       jo.AddPrimitive("defaultResourceName", this.DefaultResourceName);
       jo.AddArray("dataProperties", this.DataProperties.Where(dp => dp.IsInherited == false));
       jo.AddArray("navigationProperties", this.NavigationProperties.Where(np => np.IsInherited == false));
-      // jo.AddArrayProperty("validators", this.Validators);
+      jo.AddArray("validators", this.Validators);
       // jo.AddProperty("custom", this.Custom.ToJObject)
       return jo;
     }
@@ -77,9 +77,8 @@ namespace Breeze.NetClient {
       get { return _concurrencyProperties.ReadOnlyValues; }
     }
 
-    public IEnumerable<ValidationRule> ValidationRules {
-      get;
-      set;
+    public IEnumerable<ValidationRule> Validators {
+      get { return _validators; }
     }
 
     #endregion
@@ -163,6 +162,7 @@ namespace Breeze.NetClient {
     private SafeList<DataProperty> _keyProperties = new SafeList<DataProperty>();
     private SafeList<DataProperty> _foreignKeyProperties = new SafeList<DataProperty>();
     private SafeList<DataProperty> _concurrencyProperties = new SafeList<DataProperty>();
+    private List<ValidationRule> _validators = new List<ValidationRule>();
 
     private SafeList<EntityType> _subtypes = new SafeList<EntityType>();
 

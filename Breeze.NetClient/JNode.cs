@@ -93,6 +93,12 @@ namespace Breeze.NetClient {
       AddRaw(propName, ja);
     }
 
+    public void AddArray<T>(String propName, IEnumerable<T> items, Func<T, JNode> func) {
+      if (!items.Any()) return;
+      var ja = ToJArray(items, func);
+      AddRaw(propName, ja);
+    }
+
     public void AddMap<T>(String propName, IDictionary<String, T> map) {
       if (map == null) return;
       if (!map.Values.Any()) return;
@@ -347,6 +353,12 @@ namespace Breeze.NetClient {
     public static JArray ToJArray<T>(IEnumerable<T> items) {
       var ja = new JArray();
       items.ForEach(v => ja.Add(CvtValue(v)));
+      return ja;
+    }
+
+    public static JArray ToJArray<T>(IEnumerable<T> items, Func<T, JNode> func) {
+      var ja = new JArray();
+      items.ForEach(v => ja.Add(func(v)));
       return ja;
     }
 

@@ -453,11 +453,11 @@ namespace Breeze.NetClient {
       var propertyErrors = et.Properties.SelectMany(prop => {
         vc.Property = prop;
         vc.PropertyValue = this.GetValue(prop);
-        return prop.ValidationRules.SelectMany(vr => vr.Validate(vc));
+        return prop.Validators.SelectMany(vr => vr.Validate(vc));
       });
       vc.Property = null;
       vc.PropertyValue = null;
-      var entityErrors = et.ValidationRules.SelectMany(vr => vr.Validate(vc));
+      var entityErrors = et.Validators.SelectMany(vr => vr.Validate(vc));
       return propertyErrors.Concat(entityErrors);
     }
 
@@ -468,7 +468,7 @@ namespace Breeze.NetClient {
 
     internal IEnumerable<ValidationError> ValidateProperty(Object value, StructuralProperty prop) {
       var vc = new ValidationContext(this.Entity, value, prop);
-      return prop.ValidationRules.SelectMany(vr => vr.Validate(vc));
+      return prop.Validators.SelectMany(vr => vr.Validate(vc));
     }
 
     #endregion
