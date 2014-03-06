@@ -11,6 +11,7 @@ using Breeze.NetClient.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace Breeze.NetClient {
 
@@ -22,8 +23,6 @@ namespace Breeze.NetClient {
     protected ValidationRule() {
       Name = TypeToRuleName(this.GetType());
     }
-
-    
 
     public String Name {
       get;
@@ -40,7 +39,7 @@ namespace Breeze.NetClient {
         var vrTypes = TypeFns.GetTypesImplementing(typeof(ValidationRule), Enumerable.Repeat(assembly, 1))
           .Where(t => {
             var ti = t.GetTypeInfo();
-            return (!ti.IsAbstract) && ti.GenericTypeArguments.Length == 0;
+            return (!ti.IsAbstract) && ti.GenericTypeParameters.Length == 0;
           });
         vrTypes.ForEach(t => {
           var key = TypeToRuleName(t);
@@ -74,9 +73,13 @@ namespace Breeze.NetClient {
       }
     }
 
+    public static ValidationRule FromRule(ValidationRule rule) {
+      return FromJNode(rule.ToJNode());
+    }
+
     private static String TypeToRuleName(Type type) {
       var typeName = type.Name;
-      var name = (typeName.EndsWith("ValidationRule")) ? typeName.Substring(0, typeName.Length - 12) : typeName;
+      var name = (typeName.EndsWith("ValidationRule")) ? typeName.Substring(0, typeName.Length - 14) : typeName;
       name = ToCamelCase(name);
       return name;
     }
@@ -114,6 +117,7 @@ namespace Breeze.NetClient {
       return MessageTemplate ?? "Error with rule " + this.Name;
     }
 
+    [JsonIgnore]
     public Type ResourceType {
       get {
         return _resourceType;
@@ -126,6 +130,7 @@ namespace Breeze.NetClient {
       }
     }
 
+    [JsonIgnore]
     public ResourceManager ResourceManager {
       get {
         if (_resourceManager == null) {
@@ -142,6 +147,7 @@ namespace Breeze.NetClient {
       }
     }
 
+    [JsonIgnore]
     public String MessageTemplate {
       get {
         if (_messageTemplate != null) return _messageTemplate;
@@ -268,40 +274,10 @@ namespace Breeze.NetClient {
     }
   }
 
-  public class PrimitiveTypeValidationRule<T> : ValidationRule {
-    public PrimitiveTypeValidationRule(Type type) {
-      ValidationType = type;
-    }
-
-    protected override bool ValidateCore(ValidationContext context) {
-      var value = context.PropertyValue;
-      if (value == null) return true;
-      if (value.GetType() == ValidationType) return true;
-      return true;
-    }
-
-    public override String GetErrorMessage(ValidationContext context) {
-      return FormatMessage("'{0}' value is not of type: {1}.", context.DisplayName, ValidationType.Name);
-    }
-
-    public Type ValidationType { get; private set; }
-  }
-
   public class MaxLengthValidationRule : ValidationRule {
     public MaxLengthValidationRule(int maxLength) {
       MaxLength = maxLength;
     }
-
-    //public MaxLengthValidationRule(JNode jNode) : base("MaxLength") {
-    //  MaxLength = jNode.Get<Int32>("maxlength");
-    //}
-
-    //public JNode IJsonSerializable.ToJNode() {
-    //  var jn = new JNode();
-    //  jn.AddPrimitive("name", this.Name);
-    //  jn.AddPrimitive("maxlength", this.MaxLength);
-    //  return jn;
-    //}
 
     protected override bool ValidateCore(ValidationContext context) {
       var value = context.PropertyValue;
@@ -316,37 +292,111 @@ namespace Breeze.NetClient {
     public int MaxLength { get; private set; }
   }
 
-  //public class RangeValidationRule<T> : ValidationRule {
-  //  public RangeValidationRule(T? min, T? max, bool includeMinEndPoint = true, bool includeMaxEndPoint = true)
-  //    : base("Range") {
-  //    Min = min;
-  //    Max = max;
-  //    IncludeMinEndPoint = includeMinEndPoint;
-  //    IncludeMaxEndPoint = includeMinEndPoint;
+  public class StringLengthValidationRule : ValidationRule {
+    public StringLengthValidationRule(int minLength, int maxLength) {
+      MinLength = minLength;
+      MaxLength = maxLength;
+    }
+
+    protected override bool ValidateCore(ValidationContext context) {
+      var value = context.PropertyValue;
+      if (value == null) return true;
+      var length = ((String) value).Length;
+      return length <= MaxLength & length >= MinLength;
+    }
+
+    public override String GetErrorMessage(ValidationContext context) {
+      return FormatMessage("'{0}' must be {1} character(s) or less.", context.DisplayName, MaxLength);
+    }
+
+    public int MinLength { get; private set; }
+    public int MaxLength { get; private set; }
+  }
+
+  public class RangeValidationRule<T> : ValidationRule where T:struct  {
+    public RangeValidationRule(T min, T max, bool includeMinEndpoint = true, bool includeMaxEndpoint = true) {
+      Min = min;
+      Max = max;
+      IncludeMinEndpoint = includeMinEndpoint;
+      IncludeMaxEndpoint = includeMinEndpoint;
+    }
+
+    protected override bool ValidateCore(ValidationContext context) {
+      var val = context.PropertyValue;
+      T value = (T)Convert.ChangeType(val, typeof(T), CultureInfo.CurrentCulture);
+
+      bool ok = true;
+
+      if (IncludeMinEndpoint) {
+        ok = Comparer<T>.Default.Compare(value, Min) >= 0;
+      } else {
+        ok = Comparer<T>.Default.Compare(value, Min) > 0;
+      }
+      
+      if (!ok) return false;
+
+      if (IncludeMaxEndpoint) {
+        ok = (Comparer<T>.Default.Compare(value, Max) <= 0);
+      } else {
+        ok = (Comparer<T>.Default.Compare(value, Max) < 0);
+      }
+
+      return ok;
+      
+    }
+
+    public override String GetErrorMessage(ValidationContext context) {
+      var minPhrase = IncludeMinEndpoint ? ">=" : ">";
+      var maxPhrase = IncludeMaxEndpoint ? "<=" : "<";
+      return FormatMessage("'{0}' must be {1} {2} and {3} {4}", context.DisplayName, minPhrase, Min, maxPhrase, Max);
+    }
+
+    public T Min {
+      get;
+      private set;
+    }
+
+    public bool IncludeMinEndpoint {
+      get;
+      private set;
+    }
+
+    public T Max {
+      get;
+      private set;
+    }
+
+    public bool IncludeMaxEndpoint {
+      get;
+      private set;
+    }
+
+  }
+
+  public class Int32RangeValidationRule : RangeValidationRule<Int32> {
+     public Int32RangeValidationRule(Int32 min, Int32 max, bool includeMinEndpoint = true, bool includeMaxEndpoint = true) 
+       :base(min, max, includeMinEndpoint, includeMaxEndpoint) {
+    }
+  }
+
+  #region Unused Rules
+  //public class PrimitiveTypeValidationRule<T> : ValidationRule {
+  //  public PrimitiveTypeValidationRule(Type type) {
+  //    ValidationType = type;
   //  }
 
-
-
-  //  public T? Min {
-  //    get;
-  //    private set;
+  //  protected override bool ValidateCore(ValidationContext context) {
+  //    var value = context.PropertyValue;
+  //    if (value == null) return true;
+  //    if (value.GetType() == ValidationType) return true;
+  //    return true;
   //  }
 
-  //  public bool IncludeMinEndPoint {
-  //    get;
-  //    private set;
+  //  public override String GetErrorMessage(ValidationContext context) {
+  //    return FormatMessage("'{0}' value is not of type: {1}.", context.DisplayName, ValidationType.Name);
   //  }
 
-  //  public T? Max {
-  //    get;
-  //    private set;
-  //  }
-
-  //  public bool IncludeMaxEndPoint {
-  //    get;
-  //    private set;
-  //  }
-
+  //  public Type ValidationType { get; private set; }
   //}
-
+  #endregion
 }
