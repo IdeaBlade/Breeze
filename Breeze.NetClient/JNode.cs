@@ -331,7 +331,7 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region Other Private methods
+    #region Other methods
 
     public static JNode BuildMapNode<T>(IDictionary<String, T> map) {
       var jn = new JNode();
@@ -362,10 +362,22 @@ namespace Breeze.NetClient {
       return ja;
     }
 
+    public override bool Equals(object obj) {
+      if (obj == this) return true;
+      var other = obj as JNode;
+      if (other == null) return false;
+      return EqualityComparer.Equals(this._jo, other._jo);
+    }
+
+    public override int GetHashCode() {
+      return EqualityComparer.GetHashCode(this._jo);
+    }
+
     #endregion
 
     internal JObject _jo;
     private static JsonSerializer CamelCaseSerializer = new JsonSerializer() { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+    private static JTokenEqualityComparer EqualityComparer = new JTokenEqualityComparer();
   }
 
 

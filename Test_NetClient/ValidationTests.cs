@@ -46,7 +46,7 @@ namespace Test_NetClient {
     [TestMethod]
     public async Task FindOrCreateFromJson() {
       await _emTask;
-      Validator.RegisterValidators(typeof(Validator).Assembly);
+      // Validator.RegisterValidators(typeof(Validator).Assembly);
 
       var vr = new RequiredValidator();
       var vrNode = ((IJsonSerializable) vr).ToJNode(null);
@@ -65,19 +65,18 @@ namespace Test_NetClient {
     [TestMethod]
     public async Task FindOrCreateFromParams() {
       await _emTask;
-      Validator.RegisterValidators(typeof(Validator).Assembly);
+      // Validator.RegisterValidators(typeof(Validator).Assembly);
 
-      var vr2 = Validator.FindOrCreate<RequiredValidator>(true);
-      var vr3 = Validator.FindOrCreate<RequiredValidator>(true);
+      var vr2 = new RequiredValidator().Intern();
+      var vr3 = new RequiredValidator().Intern();
       Assert.IsTrue(vr2 == vr3);
 
-
-      var mlVr2 = Validator.FindOrCreate<MaxLengthValidator>(17);
-      var mlVr3 = Validator.FindOrCreate<MaxLengthValidator>(17);
+      var mlVr2 = new MaxLengthValidator(17).Intern();
+      var mlVr3 = new MaxLengthValidator(17).Intern();
       Assert.IsTrue(mlVr2 == mlVr3);
 
-      var slVr2 = Validator.FindOrCreate<StringLengthValidator>(3, 12);
-      var slVr3 = Validator.FindOrCreate<StringLengthValidator>(3, 12);
+      var slVr2 = new StringLengthValidator(3, 12).Intern();
+      var slVr3 = new StringLengthValidator(3, 12).Intern();
       Assert.IsTrue(slVr2 == slVr3);
 
     }
@@ -85,7 +84,7 @@ namespace Test_NetClient {
     [TestMethod]
     public async Task LocalizedValidationMessage() {
       await _emTask;
-      Validator.RegisterValidators(typeof(Validator).Assembly);
+      // Validator.RegisterValidators(typeof(Validator).Assembly);
 
       var vr = new RequiredValidator();
       var mt = vr.LocalizedMessage.Message;
@@ -96,7 +95,7 @@ namespace Test_NetClient {
     [TestMethod]
     public async Task RequiredProperty() {
       await _emTask;
-      Validator.RegisterValidators(typeof(Validator).Assembly);
+      // Validator.RegisterValidators(typeof(Validator).Assembly);
 
       var emp = new Employee();
       var vr = new RequiredValidator();
