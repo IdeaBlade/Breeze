@@ -23,7 +23,7 @@ namespace Breeze.NetClient {
       }
       jNode.GetJNodeArray("dataProperties").Select(jn => new DataProperty(jn)).ForEach(dp => AddDataProperty(dp));
       jNode.GetJNodeArray("navigationProperties").Select(jn => new NavigationProperty(jn)).ForEach(np => AddNavigationProperty(np));
-      jNode.GetJNodeArray("validators").Select(jn => ValidationRule.FromJNode(jn)).ToList();
+      jNode.GetJNodeArray("validators").Select(jn => Validator.FindOrCreate(jn)).ToList();
       // custom
     }
 
@@ -77,7 +77,7 @@ namespace Breeze.NetClient {
       get { return _concurrencyProperties.ReadOnlyValues; }
     }
 
-    public IEnumerable<ValidationRule> Validators {
+    public IEnumerable<Validator> Validators {
       get { return _validators; }
     }
 
@@ -162,7 +162,7 @@ namespace Breeze.NetClient {
     private SafeList<DataProperty> _keyProperties = new SafeList<DataProperty>();
     private SafeList<DataProperty> _foreignKeyProperties = new SafeList<DataProperty>();
     private SafeList<DataProperty> _concurrencyProperties = new SafeList<DataProperty>();
-    private List<ValidationRule> _validators = new List<ValidationRule>();
+    private List<Validator> _validators = new List<Validator>();
 
     private SafeList<EntityType> _subtypes = new SafeList<EntityType>();
 

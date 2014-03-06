@@ -1,31 +1,44 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Breeze.Core;
-using System.Resources;
 using System.Reflection;
-using Breeze.NetClient.Core;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json.Linq;
-using System.Globalization;
+using System.Resources;
 
 namespace Breeze.NetClient {
 
   public class LocalizedMessage {
 
+    public LocalizedMessage(String message) {
+      _message = message;
+      IsDefault = true;
+    }
+
     public LocalizedMessage(String key, String defaultMessage, Type resourceType = null) {
       Key = key;
       DefaultMessage = defaultMessage;
       ResourceType = resourceType;
+      IsDefault = true;
     }
 
     public String Key {
       get;
       private set;
+    }
+
+    [JsonIgnore]
+    public String Message {
+      get {
+        if (_message == null) {
+          _message = ResourceManager.GetString(this.Key);
+          _wasLocalized = _message != null;
+          _message = _message  ?? DefaultMessage;
+        }
+        return _message;
+      }
+      private set {
+        IsDefault = false;
+        _message = value;
+      }
     }
 
     public String DefaultMessage {
@@ -38,9 +51,23 @@ namespace Breeze.NetClient {
         return _resourceType;
       }
       set {
+        IsDefault = false;
          _resourceType = value;
-        _messageTemplate = null;
+        _message = null;
       }
+    }
+
+    public bool WasLocalized {
+      get {
+        var x = Message;
+        return _wasLocalized;
+      }
+      
+    }
+
+    public bool IsDefault {
+      get;
+      private set;
     }
 
     public ResourceManager ResourceManager {
@@ -49,21 +76,8 @@ namespace Breeze.NetClient {
       }
     }
 
-    [JsonIgnore]
-    public String MessageTemplate {
-      get {
-        if (_messageTemplate == null) {
-          _messageTemplate = ResourceManager.GetString(this.Key) ?? DefaultMessage;
-        }
-        return _messageTemplate;
-      }
-      private set {
-         _messageTemplate = value;
-      }
-    }
-
     public String Format(params Object[] parameters) {
-      return String.Format(MessageTemplate, parameters);
+      return String.Format(Message, parameters);
     }
 
     private static ResourceManager GetResourceManager(Type resourceType) {
@@ -77,8 +91,10 @@ namespace Breeze.NetClient {
       }
     }
 
+    private String _message;
+    private bool _wasLocalized;
     private Type _resourceType;
-    private String _messageTemplate;
+    
     private static Object __lock = new Object();
     private static Dictionary<Type, ResourceManager> __resourceManagerMap = new Dictionary<Type, ResourceManager>();
     private static ResourceManager __defaultResourceManager = new ResourceManager("Breeze.NetClient.LocalizedMessages", typeof(LocalizedMessage).GetTypeInfo().Assembly);

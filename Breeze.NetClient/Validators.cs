@@ -16,8 +16,8 @@ using System.Globalization;
 namespace Breeze.NetClient {
 
 
-  public class RequiredValidationRule : ValidationRule {
-    public RequiredValidationRule(bool treatEmptyStringAsNull = true) : base() {
+  public class RequiredValidator : Validator {
+    public RequiredValidator(bool treatEmptyStringAsNull = true) : base() {
       LocalizedMessage = new LocalizedMessage(LocalizedKey, "{0} is a required field");
       TreatEmptyStringAsNull = treatEmptyStringAsNull;
     }
@@ -41,8 +41,8 @@ namespace Breeze.NetClient {
     }
   }
 
-  public class MaxLengthValidationRule : ValidationRule {
-    public MaxLengthValidationRule(int maxLength) : base() {
+  public class MaxLengthValidator : Validator {
+    public MaxLengthValidator(int maxLength) : base() {
       LocalizedMessage = new LocalizedMessage(LocalizedKey, "'{0}' must be {1} character(s) or less");
       MaxLength = maxLength;
     }
@@ -60,9 +60,9 @@ namespace Breeze.NetClient {
     public int MaxLength { get; private set; }
   }
 
-  public class StringLengthValidationRule : ValidationRule {
-    public StringLengthValidationRule(int minLength, int maxLength) : base() {
-      LocalizedMessage = new LocalizedMessage(LocalizedKey, "'{0}' must be betwee {1} and {2} character(s)");
+  public class StringLengthValidator : Validator {
+    public StringLengthValidator(int minLength, int maxLength) : base() {
+      LocalizedMessage = new LocalizedMessage(LocalizedKey, "'{0}' must be between {1} and {2} character(s)");
       MinLength = minLength;
       MaxLength = maxLength;
     }
@@ -82,8 +82,8 @@ namespace Breeze.NetClient {
     public int MaxLength { get; private set; }
   }
 
-  public class RangeValidationRule<T> : ValidationRule where T:struct  {
-    public RangeValidationRule(T min, T max, bool includeMinEndpoint = true, bool includeMaxEndpoint = true) : base() {
+  public class RangeValidator<T> : Validator where T:struct  {
+    public RangeValidator(T min, T max, bool includeMinEndpoint = true, bool includeMaxEndpoint = true) : base() {
       LocalizedMessage = new LocalizedMessage(LocalizedKey, "'{0}' must be {1} {2} and {3} {4}");
       Min = min;
       Max = max;
@@ -142,15 +142,15 @@ namespace Breeze.NetClient {
 
   }
 
-  public class Int32RangeValidationRule : RangeValidationRule<Int32> {
-     public Int32RangeValidationRule(Int32 min, Int32 max, bool includeMinEndpoint = true, bool includeMaxEndpoint = true) 
+  public class Int32RangeValidator : RangeValidator<Int32> {
+     public Int32RangeValidator(Int32 min, Int32 max, bool includeMinEndpoint = true, bool includeMaxEndpoint = true) 
        :base(min, max, includeMinEndpoint, includeMaxEndpoint) {
     }
   }
 
-  #region Unused Rules
-  //public class PrimitiveTypeValidationRule<T> : ValidationRule {
-  //  public PrimitiveTypeValidationRule(Type type) {
+  #region Unused Validators
+  //public class PrimitiveTypeValidator<T> : Validator {
+  //  public PrimitiveTypeValidator(Type type) {
   //    ValidationType = type;
   //  }
 

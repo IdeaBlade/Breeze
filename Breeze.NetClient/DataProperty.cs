@@ -8,8 +8,6 @@ namespace Breeze.NetClient {
     protected override String GetKeyForItem(DataProperty item) {
       return item.Name;
     }
-
-    
   }
 
   public class DataProperty : StructuralProperty, IJsonSerializable {
@@ -53,9 +51,8 @@ namespace Breeze.NetClient {
       MaxLength = jNode.Get<int?>("maxLength");
       EnumTypeName = jNode.Get<String>("enumType");
       IsScalar = jNode.Get<bool>("isScalar", true);
-      _validators = jNode.GetJNodeArray("validators").Select(jn => ValidationRule.FromJNode(jn)).ToList();
+      _validators = jNode.GetJNodeArray("validators").Select(jn => Validator.FindOrCreate(jn)).ToList();
     }
-
 
     JNode IJsonSerializable.ToJNode(Object config) {
       var jn = new JNode();

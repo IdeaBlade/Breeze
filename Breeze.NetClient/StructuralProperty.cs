@@ -30,7 +30,7 @@ namespace Breeze.NetClient {
     public bool IsScalar { get; internal set; }
     public bool IsInherited { get; internal set; }
     public bool IsUnmapped { get; internal set; }
-    public IEnumerable<ValidationRule> Validators {
+    public IEnumerable<Validator> Validators {
       get { return _validators; }
     }
 
@@ -43,7 +43,7 @@ namespace Breeze.NetClient {
     public abstract bool IsDataProperty { get;  }
     public abstract bool IsNavigationProperty { get; }
 
-    internal List<ValidationRule> _validators = new List<ValidationRule>();
+    internal List<Validator> _validators = new List<Validator>();
 
   }
 

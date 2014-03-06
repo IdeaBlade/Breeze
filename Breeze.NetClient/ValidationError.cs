@@ -1,38 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Breeze.Core;
-using System.Resources;
-using System.Reflection;
-using Breeze.NetClient.Core;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json.Linq;
-using System.Globalization;
+﻿using Breeze.Core;
+using System;
 
 namespace Breeze.NetClient {
+
+  public class ValidationErrorCollection : MapCollection<String, ValidationError> {
+    protected override String GetKeyForItem(ValidationError item) {
+      return item.Key;
+    }
+  }
 
   /// <summary>
   /// 
   /// </summary>
   public class ValidationError {
 
-    public ValidationError(ValidationRule rule, ValidationContext context, String message = null, String key = null) {
-      Rule = rule;
+    public ValidationError(Validator validator, ValidationContext context, String message = null, String key = null) {
+      Validator = validator;
       Context = context;
       _message = message;
-      key = key ?? rule.Name;
+      key = key ?? validator.Name;
     }
 
-    public ValidationRule Rule { get; private set; }
+    public Validator Validator { get; private set; }
     public ValidationContext Context { get; private set; }
     public String Message {
       get {
         if (_message == null) {
-          _message = Rule.GetErrorMessage(Context);
+          _message = Validator.GetErrorMessage(Context);
         }
         return _message;
       }
@@ -40,7 +34,7 @@ namespace Breeze.NetClient {
     public String Key {
       get {
         if (_key == null) {
-          _key = GetKey(Rule, Context.Property);
+          _key = GetKey(Validator, Context.Property);
         }
         return _key;
       }
@@ -50,11 +44,11 @@ namespace Breeze.NetClient {
     }
 
     // To obtain a key that can be used to remove an item from a validationErrorsCollection
-    public static String GetKey(ValidationRule rule, StructuralProperty property = null) {
+    public static String GetKey(Validator validator, StructuralProperty property = null) {
       if (property != null) {
-        return rule.Name + "_" + property.Name;
+        return validator.Name + "_" + property.Name;
       } else {
-        return rule.Name;
+        return validator.Name;
       }
     }
 

@@ -105,8 +105,8 @@
     <Compile Include="LocalizedMessage.cs" />
     <Compile Include="ValidationContext.cs" />
     <Compile Include="ValidationError.cs" />
-    <Compile Include="ValidationRules.cs" />
-    <Compile Include="ValidationRule.cs" />
+    <Compile Include="Validators.cs" />
+    <Compile Include="Validator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Data.Edm.Portable">

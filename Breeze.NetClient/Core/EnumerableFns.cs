@@ -22,19 +22,6 @@ namespace Breeze.Core {
   /// </remarks>
   public static class EnumerableFns {
 
-    // TODO: Think about it.
-    ///// <summary>
-    ///// Returns the count of any IEnumerable
-    ///// </summary>
-    ///// <param name="items"></param>
-    ///// <returns></returns>
-    //public static int Count(this IEnumerable items) {
-    //  int count = 0;
-    //  foreach (var item in items) count++;
-    //  return count;
-    //}
-
-
     /// <summary>
     /// Enumerate a cached collection performing the specified action on each item.
     /// </summary>
@@ -61,86 +48,6 @@ namespace Breeze.Core {
         action(item, i);
         i++;
       }
-    }
-
-    /// <summary>
-    /// Returns true if any of the items in the indexed collection in cache satisfy the given predicate.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="items"></param>
-    /// <param name="predicate"></param>
-    /// <returns></returns>
-    /// <include file='EnumerableFns.Examples.xml' path='//Class[@name="EnumerableFns"]/method[@name="Any"]/*' />
-    public static bool Any<T>(this IEnumerable<T> items, Func<T, int, bool> predicate) {
-      int i = 0;
-      foreach (T item in items) {
-        if (predicate(item, i)) return true;
-        i++;
-      }
-      return false;
-    }
-
-    /// <summary>
-    /// Returns true if all items in a cached collection satisfy the given predicate.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="items"></param>
-    /// <param name="predicate"></param>
-    /// <returns></returns>
-    /// <include file='EnumerableFns.Examples.xml' path='//Class[@name="EnumerableFns"]/method[@name="All"]/*' />
-    public static bool All<T>(this IEnumerable<T> items, Func<T, int, bool> predicate) {
-      int i = 0;
-      foreach (T item in items) {
-        if (!predicate(item, i)) return false;
-        i++;
-      }
-      return true;
-    }
-
-    /// <summary>
-    /// Returns true if all items in a cached collection are equal.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="items"></param>
-    /// <returns></returns>
-    public static bool AllEqual<T>(this IEnumerable<T> items) {
-      if (!items.Any()) return true;
-      T val = items.First();
-      foreach (T item in items.Skip(1)) {
-        if (!Object.Equals(val, item)) return false;
-      }
-      return true;
-
-    }
-
-    /// <summary>
-    /// Returns true if all items in a cached collection have the same projected value.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="U"></typeparam>
-    /// <param name="items"></param>
-    /// <param name="selector"></param>
-    /// <returns></returns>
-    public static bool AllEqual<T, U>(this IEnumerable<T> items, Func<T, U> selector) {
-      if (!items.Any()) return true;
-      U val = selector(items.First());
-      foreach (T item in items.Skip(1)) {
-        if (!Object.Equals(val, selector(item))) return false;
-      }
-      return true;
-    }
-
-
-    /// <summary>
-    /// Concatenates two sequences.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="sequence1"></param>
-    /// <param name="sequence2"></param>
-    /// <returns></returns>
-    public static IEnumerable<T> Concat<T>(this IEnumerable<T> sequence1, params T[] sequence2) {
-      foreach (var item in sequence1) yield return item;
-      foreach (var item in sequence2) yield return item;
     }
 
 
@@ -182,25 +89,19 @@ namespace Breeze.Core {
     /// <param name="items"></param>
     /// <returns></returns>
     public static int GetAggregateHashCode(this IEnumerable items) {
-      // Old code - talk to Jay about issues with this. 
-      //int hash = 0;
-      //foreach (Object item in items) {
-      //  if (item != null) {
-      //    hash ^= item.GetHashCode();
-      //  }
-      //}
-      int hash = 0;
-      foreach (Object item in items) {
-        if (item != null) {
-          if (hash == 0) {
-            hash = item.GetHashCode();
-          } else {
-            hash = ((hash << 5) + hash) ^ item.GetHashCode();
+
+      // Overflow is fine, just wrap (17/23 here - but any two primes should do)
+      unchecked {
+        int hash = 17;
+        foreach (Object item in items) {
+          if (item != null) {
+            hash = hash * 23 + item.GetHashCode();
           }
         }
+        return hash;
       }
-      return hash;
     }
+
 
     /// <summary>
     /// Concatenates the string version of each element in a collection using the delimiter provided.
@@ -223,21 +124,6 @@ namespace Breeze.Core {
     }
 
     /// <summary>
-    /// Repeat the items enumerable count times.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="items"></param>
-    /// <param name="count"></param>
-    /// <returns></returns>
-    public static IEnumerable<T> Repeat<T>(this IEnumerable<T> items, int count) {
-      for (int i = 0; i < count; i++) {
-        foreach (T item in items) {
-          yield return item;
-        }
-      }
-    }
-
-    /// <summary>
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
@@ -252,6 +138,7 @@ namespace Breeze.Core {
         remainingItems = remainingItems.Skip(batchSize);
       }
     }
+    
 
     /// <summary>
     ///  Returns distinct elements from a sequence by using a specified selector function to project objects to compare.
@@ -310,11 +197,122 @@ namespace Breeze.Core {
       return first.Except(second, new DynamicComparer<TSource, TResult>(selector));
     }
 
+    /// <summary>
+    /// Returns true if all items in a cached collection are equal.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="items"></param>
+    /// <returns></returns>
+    public static bool AllEqual<T>(this IEnumerable<T> items) {
+      if (!items.Any()) return true;
+      T val = items.First();
+      foreach (T item in items.Skip(1)) {
+        if (!Object.Equals(val, item)) return false;
+      }
+      return true;
+
+    }
+
+    /// <summary>
+    /// Returns true if all items in a cached collection have the same projected value.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="U"></typeparam>
+    /// <param name="items"></param>
+    /// <param name="selector"></param>
+    /// <returns></returns>
+    public static bool AllEqual<T, U>(this IEnumerable<T> items, Func<T, U> selector) {
+      if (!items.Any()) return true;
+      U val = selector(items.First());
+      foreach (T item in items.Skip(1)) {
+        if (!Object.Equals(val, selector(item))) return false;
+      }
+      return true;
+    }
+
     internal static SafeList<T> ToSafeList<T>(this IEnumerable<T> items) {
       return new SafeList<T>(items);
     }
 
-    
+    #region Not yet needed 
 
+    ///// <summary>
+    ///// Returns true if any of the items in the indexed collection in cache satisfy the given predicate.
+    ///// </summary>
+    ///// <typeparam name="T"></typeparam>
+    ///// <param name="items"></param>
+    ///// <param name="predicate"></param>
+    ///// <returns></returns>
+    ///// <include file='EnumerableFns.Examples.xml' path='//Class[@name="EnumerableFns"]/method[@name="Any"]/*' />
+    //public static bool Any<T>(this IEnumerable<T> items, Func<T, int, bool> predicate) {
+    //  int i = 0;
+    //  foreach (T item in items) {
+    //    if (predicate(item, i)) return true;
+    //    i++;
+    //  }
+    //  return false;
+    //}
+
+    ///// <summary>
+    ///// Returns true if all items in a cached collection satisfy the given predicate.
+    ///// </summary>
+    ///// <typeparam name="T"></typeparam>
+    ///// <param name="items"></param>
+    ///// <param name="predicate"></param>
+    ///// <returns></returns>
+    ///// <include file='EnumerableFns.Examples.xml' path='//Class[@name="EnumerableFns"]/method[@name="All"]/*' />
+    //public static bool All<T>(this IEnumerable<T> items, Func<T, int, bool> predicate) {
+    //  int i = 0;
+    //  foreach (T item in items) {
+    //    if (!predicate(item, i)) return false;
+    //    i++;
+    //  }
+    //  return true;
+    //}
+
+
+    ///// <summary>
+    ///// Repeat the items enumerable count times.
+    ///// </summary>
+    ///// <typeparam name="T"></typeparam>
+    ///// <param name="items"></param>
+    ///// <param name="count"></param>
+    ///// <returns></returns>
+    //public static IEnumerable<T> Repeat<T>(this IEnumerable<T> items, int count) {
+    //  for (int i = 0; i < count; i++) {
+    //    foreach (T item in items) {
+    //      yield return item;
+    //    }
+    //  }
+    //}
+
+    ///// <summary>
+    ///// Concatenates two sequences.
+    ///// </summary>
+    ///// <typeparam name="T"></typeparam>
+    ///// <param name="sequence1"></param>
+    ///// <param name="sequence2"></param>
+    ///// <returns></returns>
+    //public static IEnumerable<T> Concat<T>(this IEnumerable<T> sequence1, params T[] sequence2) {
+    //  foreach (var item in sequence1) yield return item;
+    //  foreach (var item in sequence2) yield return item;
+    //}
+
+
+   
+
+    // TODO: Think about it.
+    ///// <summary>
+    ///// Returns the count of any IEnumerable
+    ///// </summary>
+    ///// <param name="items"></param>
+    ///// <returns></returns>
+    //public static int Count(this IEnumerable items) {
+    //  int count = 0;
+    //  foreach (var item in items) count++;
+    //  return count;
+    //}
+
+    #endregion
   }
 }

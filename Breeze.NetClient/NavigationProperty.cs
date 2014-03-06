@@ -31,7 +31,7 @@ namespace Breeze.NetClient {
       EntityTypeName = jNode.Get<String>("entityTypeName");
       IsScalar = jNode.Get<bool>("isScalar", true);
       AssociationName = jNode.Get<String>("associationName");
-      _validators = jNode.GetJNodeArray("validators").Select(jn => ValidationRule.FromJNode(jn)).ToList();
+      _validators = jNode.GetJNodeArray("validators").Select(jn => Validator.FindOrCreate(jn)).ToList();
       _foreignKeyNames.AddRange(jNode.GetArray<String>("foreignKeyNames"));
       _invForeignKeyNames.AddRange(jNode.GetArray<String>("invForeignKeyNames"));
       // custom
