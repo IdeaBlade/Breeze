@@ -55,18 +55,17 @@ namespace Breeze.NetClient {
       }
     }
 
-    public virtual IEnumerable<ValidationError> Validate(ValidationContext context) {
-      if (ValidateCore(context)) return EmptyErrors;
-      return GetDefaultValidationErrors(context);
+    public virtual ValidationError Validate(ValidationContext context) {
+      return (ValidateCore(context)) ? null : new ValidationError(this, context);
     }
 
     protected abstract bool ValidateCore(ValidationContext context);
 
 
-    protected IEnumerable<ValidationError> GetDefaultValidationErrors(ValidationContext context) {
-      // return Enumerable.Repeat(new ValidationError(this, context), 1);
-      return UtilFns.ToArray(new ValidationError(this, context));
-    }
+    //protected IEnumerable<ValidationError> GetDefaultValidationErrors(ValidationContext context) {
+    //  // return Enumerable.Repeat(new ValidationError(this, context), 1);
+    //  return UtilFns.ToArray(new ValidationError(this, context));
+    //}
 
     public abstract String GetErrorMessage(ValidationContext validationContext);
 
@@ -87,17 +86,17 @@ namespace Breeze.NetClient {
     }
 
     internal static T Intern<T>(T validator) where T : Validator {
-      if (validator._isCachedVersion) return validator;
-      var jNode = ((IJsonSerializable)validator).ToJNode(null);
+      if (validator._isInterned) return validator;
+      var jNode = validator.ToJNode();
 
       lock (__validatorJNodeCache) {
         Validator cachedValidator;
         if (__validatorJNodeCache.TryGetValue(jNode, out cachedValidator)) {
-          cachedValidator._isCachedVersion = true;
+          cachedValidator._isInterned = true;
           return (T)cachedValidator;
         } else {
           __validatorJNodeCache[jNode] = validator;
-          validator._isCachedVersion = true;
+          validator._isInterned = true;
           return validator;
         }
       }
@@ -160,7 +159,7 @@ namespace Breeze.NetClient {
 
     private JNode _jNode;
     private int _hashCode;
-    private bool _isCachedVersion;
+    private bool _isInterned;
 
     private static Object __lock = new Object();
     private static HashSet<Assembly> __assembliesProbed = new HashSet<Assembly>();

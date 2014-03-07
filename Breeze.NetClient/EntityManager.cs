@@ -20,7 +20,8 @@ namespace Breeze.NetClient {
     public EntityManager(String serviceName) {
       DefaultDataService = new DataService(serviceName);
       DefaultQueryOptions = QueryOptions.Default;
-      DefaultCacheQueryOptions = CacheQueryOptions.Default;
+      CacheQueryOptions = CacheQueryOptions.Default;
+      ValidationOptions = ValidationOptions.Default;
       MetadataStore = MetadataStore.Instance;
       KeyGenerator = new DefaultKeyGenerator();
       Initialize();
@@ -29,7 +30,8 @@ namespace Breeze.NetClient {
     public EntityManager(EntityManager em) {
       DefaultDataService = em.DefaultDataService;
       DefaultQueryOptions = em.DefaultQueryOptions;
-      DefaultCacheQueryOptions = em.DefaultCacheQueryOptions;
+      CacheQueryOptions = em.CacheQueryOptions;
+      ValidationOptions = em.ValidationOptions;
       MetadataStore = em.MetadataStore;
       KeyGenerator = em.KeyGenerator; // TODO: review whether we should clone instead.
       Initialize();
@@ -58,9 +60,9 @@ namespace Breeze.NetClient {
 
     public SaveOptions DefaultSaveOptions { get; set; }
 
-    public CacheQueryOptions DefaultCacheQueryOptions { get; set; }
+    public CacheQueryOptions CacheQueryOptions { get; set; }
 
-    public ValidationOptions DefaultValidationOptions { get; set; }
+    public ValidationOptions ValidationOptions { get; set; }
 
     public IKeyGenerator KeyGenerator { get; set; }
 

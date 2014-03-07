@@ -244,7 +244,7 @@ namespace Breeze.NetClient {
 
     public IEnumerable ExecuteLocally(EntityManager entityManager = null) {
       entityManager = CheckEm(entityManager);
-      var lambda = CacheQueryExpressionVisitor.Visit(this, entityManager.DefaultCacheQueryOptions);
+      var lambda = CacheQueryExpressionVisitor.Visit(this, entityManager.CacheQueryOptions);
       var func = lambda.Compile();
       return func(entityManager);
     }
