@@ -17,6 +17,12 @@ namespace Breeze.NetClient {
       Property = property;
     }
 
+    public ValidationContext(ValidationContext vc) {
+      Instance = vc.Instance;
+      PropertyValue = vc.PropertyValue;
+      Property = vc.Property;
+    }
+
     public Object Instance { get; set; }
     public Object PropertyValue { get; set; }
     // May be null

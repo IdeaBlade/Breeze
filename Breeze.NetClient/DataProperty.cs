@@ -51,7 +51,7 @@ namespace Breeze.NetClient {
       MaxLength = jNode.Get<int?>("maxLength");
       EnumTypeName = jNode.Get<String>("enumType");
       IsScalar = jNode.Get<bool>("isScalar", true);
-      _validators = jNode.GetJNodeArray("validators").Select(jn => Validator.FindOrCreate(jn)).ToList();
+      _validators = new ValidatorCollection(jNode.GetJNodeArray("validators").Select(jn => Validator.FindOrCreate(jn)));
     }
 
     JNode IJsonSerializable.ToJNode(Object config) {

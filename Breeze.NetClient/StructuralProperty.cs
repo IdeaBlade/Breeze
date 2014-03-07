@@ -21,7 +21,7 @@ namespace Breeze.NetClient {
       this.IsInherited = prop.IsInherited;
       this.IsScalar = prop.IsScalar;
       this.IsUnmapped = prop.IsUnmapped;
-      this._validators = prop.Validators.ToList();
+      this._validators = new ValidatorCollection(prop.Validators);
     }
     public StructuralType ParentType { get; internal set; }
     public abstract Type ClrType { get; }
@@ -43,7 +43,7 @@ namespace Breeze.NetClient {
     public abstract bool IsDataProperty { get;  }
     public abstract bool IsNavigationProperty { get; }
 
-    internal List<Validator> _validators = new List<Validator>();
+    internal ValidatorCollection _validators = new ValidatorCollection();
 
   }
 

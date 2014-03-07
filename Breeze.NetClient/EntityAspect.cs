@@ -450,6 +450,7 @@ namespace Breeze.NetClient {
       var vc = new ValidationContext(this.Entity);
       var et = this.EntityType;
 
+      // PERF: 
       // Not using LINQ here because we want to reuse the same
       // vc property for perf reasons and this
       // would cause closure issues with a linq expression unless 
@@ -461,7 +462,10 @@ namespace Breeze.NetClient {
         vc.PropertyValue = this.GetValue(prop);
         foreach (var vr in prop.Validators) {
           var ve = ValidateCore(vr, vc);
+          
           if (ve != null) {
+            // need to clone it because this will be handed out of the func
+            ve.Context = new ValidationContext(vc);
             errors.Add(ve);
           }
         }
@@ -481,7 +485,7 @@ namespace Breeze.NetClient {
 
     public IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop) {
       var value = this.GetValue(prop);
-      return ValidateProperty(prop, value);
+      return ValidateProperty(prop, value).ToList();
     }
 
     // called internally by property set logic

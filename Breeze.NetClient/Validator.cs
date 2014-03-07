@@ -1,10 +1,10 @@
 ﻿using Breeze.Core;
-using Breeze.NetClient.Core;
 using Newtonsoft.Json;     // need because of JsonIgnore attribute
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Resources;
 
 namespace Breeze.NetClient {
 
@@ -13,6 +13,7 @@ namespace Breeze.NetClient {
 
   /// <summary>
   /// Validators are by convention immutable - if this convention is violated your app WILL break.
+  /// You can use 'With' methods to change the message.  i.e. new RequiredValidator().With(new LocalizedMessage("foo"));
   /// </summary>
   public abstract class Validator : IJsonSerializable {
 
@@ -22,6 +23,7 @@ namespace Breeze.NetClient {
 
     protected Validator() {
       Name = TypeToValidatorName(this.GetType());
+      LocalizedMessage = new LocalizedMessage(LocalizedKey);
     }
 
     public String Name {
@@ -37,9 +39,8 @@ namespace Breeze.NetClient {
     [JsonIgnore]
     public LocalizedMessage LocalizedMessage {
       get;
-      protected set;
+      internal protected set;
     }
-
 
     public static Validator FindOrCreate(JNode jNode) {
       lock (__validatorJNodeCache) {
@@ -61,11 +62,6 @@ namespace Breeze.NetClient {
 
     protected abstract bool ValidateCore(ValidationContext context);
 
-
-    //protected IEnumerable<ValidationError> GetDefaultValidationErrors(ValidationContext context) {
-    //  // return Enumerable.Repeat(new ValidationError(this, context), 1);
-    //  return UtilFns.ToArray(new ValidationError(this, context));
-    //}
 
     public abstract String GetErrorMessage(ValidationContext validationContext);
 
@@ -215,8 +211,43 @@ namespace Breeze.NetClient {
   }
 
   public static class ValidatorExtns {
+    public static T WithMessage<T>(this T validator, String message) where T: Validator {
+      return WithMessage(validator, new LocalizedMessage(message));
+    }
+
+    public static T WithMessage<T>(this T validator, Type resourceType) where T:Validator {
+      return WithMessage(validator, new LocalizedMessage(key: validator.LocalizedKey, resourceType: resourceType));
+    }
+
+    public static T WithMessage<T>(this T validator, String baseName, Assembly assembly) where T : Validator {
+      return WithMessage(validator, new LocalizedMessage(key: validator.LocalizedKey, baseName: baseName, assembly: assembly));
+    }
+
+    // returns a new Validator cloned from the original with a new localizedMessage;
+    public static T WithMessage<T>(this T validator, LocalizedMessage localizedMessage) where T:Validator {
+      // Deserialize the object - poor mans clone;
+      var vr = (Validator) validator.ToJNode().ToObject(validator.GetType(), true);
+      vr.LocalizedMessage = localizedMessage;
+      return (T) vr;
+    }
+
     public static T Intern<T>(this T validator) where T : Validator {
       return Validator.Intern<T>(validator);
     }
+  }
+
+  public class ValidatorCollection : MapCollection<Validator, Validator> {
+
+    public ValidatorCollection() : base() { }
+    public ValidatorCollection(IEnumerable<Validator> validators) : base(validators) { }
+    protected override Validator GetKeyForItem(Validator item) {
+      return item.Intern();
+    }
+
+    public override void Add(Validator value) {
+      value = value.Intern();
+      base.Add(value);
+    }
+
   }
 }

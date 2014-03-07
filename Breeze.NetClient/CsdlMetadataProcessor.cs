@@ -354,10 +354,10 @@ namespace Breeze.NetClient {
 
     private void AddValidators(DataProperty dp) {
       if (!dp.IsNullable) {
-        dp._validators.Add(RequiredValidator.Default);
+        dp._validators.Add(new RequiredValidator().Intern());
       }
       if (dp.MaxLength.HasValue) {
-        var vr = Validator.Intern(new MaxLengthValidator( (Int32) dp.MaxLength.Value));
+        var vr = new MaxLengthValidator( (Int32) dp.MaxLength.Value).Intern();
         dp._validators.Add(vr);
       }
     }

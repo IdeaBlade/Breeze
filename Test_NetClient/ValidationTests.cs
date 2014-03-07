@@ -89,7 +89,7 @@ namespace Test_NetClient {
       var vr = new RequiredValidator();
       var mt = vr.LocalizedMessage.Message;
       Assert.IsTrue(!String.IsNullOrEmpty(mt));
-      Assert.IsTrue(vr.LocalizedMessage.WasLocalized);
+      Assert.IsTrue(vr.LocalizedMessage.IsLocalized);
     }
 
     [TestMethod]
@@ -103,6 +103,103 @@ namespace Test_NetClient {
       var ve = vr.Validate(vc);
       Assert.IsTrue(ve != null);
       Assert.IsTrue(ve.Message.Contains("LastName") && ve.Message.Contains("required"));
+      Assert.IsTrue(ve.Context.Instance == emp);
+      Assert.IsTrue(ve.Validator == vr);
+      Assert.IsTrue(ve.Key != null);
+    }
+
+    [TestMethod]
+    public async Task RequiredProperty2() {
+      await _emTask;
+
+      var emp = new Employee();
+      var dp = emp.EntityAspect.EntityType.GetDataProperty("LastName");
+      var ves = emp.EntityAspect.ValidateProperty(dp);
+
+      Assert.IsTrue(ves.Count() > 0);
+      var ve = ves.First();
+      Assert.IsTrue(ve.Message.Contains("LastName") && ve.Message.Contains("required"));
+      Assert.IsTrue(ve.Context.Instance == emp);
+      Assert.IsTrue(ve.Validator == new RequiredValidator().Intern(), "validator should a requiredValdator");
+      Assert.IsTrue(ve.Key != null);
+    }
+
+    [TestMethod]
+    public async Task EntireEntity() {
+      await _emTask;
+
+      var emp = new Employee();
+
+      var ves = emp.EntityAspect.Validate();
+
+      Assert.IsTrue(ves.Count() > 0);
+      
+      Assert.IsTrue(ves.Any(ve => ve.Message.Contains("LastName") && ve.Message.Contains("required")));
+      Assert.IsTrue(ves.All(ve => ve.Context.Instance == emp));
+      Assert.IsTrue(ves.Any(ve => ve.Validator == new RequiredValidator().Intern()), "validator should a requiredValdator");
+      Assert.IsTrue(ves.All(ve => ve.Key != null));
+    }
+
+    [TestMethod]
+    public async Task OnAttach() {
+      await _emTask;
+
+      var emp = new Employee();
+
+      Assert.IsTrue(!emp.EntityAspect.GetValidationErrors().Any(), "should not be any validation errors");
+      _em1.AddEntity(emp);
+      var ves = emp.EntityAspect.GetValidationErrors();
+      Assert.IsTrue(ves.Any(), "should be some now");
+
+      Assert.IsTrue(ves.Any(ve => ve.Message.Contains("LastName") && ve.Message.Contains("required")));
+      Assert.IsTrue(ves.All(ve => ve.Context.Instance == emp));
+      Assert.IsTrue(ves.Any(ve => ve.Validator == new RequiredValidator().Intern()), "validator should a requiredValdator");
+      Assert.IsTrue(ves.All(ve => ve.Key != null));
+    }
+
+    [TestMethod]
+    public async Task ChangeMessageString() {
+      await _emTask;
+
+      var emp = new Employee();
+      var vr = new RequiredValidator().WithMessage("{0} is bad");
+      var dp = emp.EntityAspect.EntityType.GetDataProperty("LastName");
+      var vc = new ValidationContext(emp, null, dp);
+      var ve = vr.Validate(vc);
+      Assert.IsTrue(ve != null);
+      Assert.IsTrue(ve.Message.Contains("LastName") && ve.Message.Contains("bad"));
+      Assert.IsTrue(ve.Context.Instance == emp);
+      Assert.IsTrue(ve.Validator == vr);
+      Assert.IsTrue(ve.Key != null);
+    }
+
+    [TestMethod]
+    public async Task ChangeMessageResourceType() {
+      await _emTask;
+
+      var emp = new Employee();
+      var vr = new RequiredValidator().WithMessage(typeof(Model_Northwind_NetClient.CustomMessages1));
+      var dp = emp.EntityAspect.EntityType.GetDataProperty("LastName");
+      var vc = new ValidationContext(emp, null, dp);
+      var ve = vr.Validate(vc);
+      Assert.IsTrue(ve != null);
+      Assert.IsTrue(ve.Message.Contains("LastName") && ve.Message.Contains("required") && ve.Message.Contains("CUSTOM 1"));
+      Assert.IsTrue(ve.Context.Instance == emp);
+      Assert.IsTrue(ve.Validator == vr);
+      Assert.IsTrue(ve.Key != null);
+    }
+
+    [TestMethod]
+    public async Task ChangeMessageBaseAndAssembly() {
+      await _emTask;
+
+      var emp = new Employee();
+      var vr = new RequiredValidator().WithMessage("Model_Northwind_NetClient.CustomMessages2", typeof(Employee).Assembly);
+      var dp = emp.EntityAspect.EntityType.GetDataProperty("LastName");
+      var vc = new ValidationContext(emp, null, dp);
+      var ve = vr.Validate(vc);
+      Assert.IsTrue(ve != null);
+      Assert.IsTrue(ve.Message.Contains("LastName") && ve.Message.Contains("required") && ve.Message.Contains("CUSTOM 2"));
       Assert.IsTrue(ve.Context.Instance == emp);
       Assert.IsTrue(ve.Validator == vr);
       Assert.IsTrue(ve.Key != null);

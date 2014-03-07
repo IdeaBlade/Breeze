@@ -16,7 +16,7 @@ namespace Breeze.Core {
 
     protected abstract T GetKeyForItem(U value);
 
-    public void Add(U value) {
+    public virtual void Add(U value) {
       var key = GetKeyForItem(value);
       _map.Add(key, value);
     }

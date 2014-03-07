@@ -22,7 +22,7 @@ namespace Breeze.NetClient {
     }
 
     public Validator Validator { get; private set; }
-    public ValidationContext Context { get; private set; }
+    public ValidationContext Context { get; internal set; }
     public String Message {
       get {
         if (_message == null) {

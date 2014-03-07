@@ -18,7 +18,7 @@ namespace Breeze.NetClient {
 
   public class RequiredValidator : Validator {
     public RequiredValidator(bool? treatEmptyStringAsNull = null) : base() {
-      LocalizedMessage = new LocalizedMessage(LocalizedKey, "{0} is a required field");
+      LocalizedMessage = new LocalizedMessage(LocalizedKey, (ResourceManager) null);
       TreatEmptyStringAsNull = treatEmptyStringAsNull.HasValue ? treatEmptyStringAsNull.Value : DefaultTreatEmptyStringAsNull;
     }
 
@@ -28,11 +28,8 @@ namespace Breeze.NetClient {
       }
       set {
         __defaultTreatEmptyStringAsNull = value;
-        Default = new RequiredValidator(value);
       }
     }
-
-    public static RequiredValidator Default = new RequiredValidator(DefaultTreatEmptyStringAsNull);
 
     protected override bool ValidateCore(ValidationContext context) {
       var value = context.PropertyValue;
@@ -52,12 +49,12 @@ namespace Breeze.NetClient {
       private set;
     }
 
-    private static bool __defaultTreatEmptyStringAsNull;
+    private static bool __defaultTreatEmptyStringAsNull = true;
   }
 
   public class MaxLengthValidator : Validator {
     public MaxLengthValidator(int maxLength) : base() {
-      LocalizedMessage = new LocalizedMessage(LocalizedKey, "'{0}' must be {1} character(s) or less");
+      LocalizedMessage = new LocalizedMessage(LocalizedKey, (ResourceManager)null);
       MaxLength = maxLength;
     }
 
@@ -68,6 +65,7 @@ namespace Breeze.NetClient {
     }
 
     public override String GetErrorMessage(ValidationContext context) {
+      // '{0}' must be {1} character(s) or less
       return LocalizedMessage.Format(context.DisplayName, MaxLength);
     }
 
@@ -76,7 +74,7 @@ namespace Breeze.NetClient {
 
   public class StringLengthValidator : Validator {
     public StringLengthValidator(int minLength, int maxLength) : base() {
-      LocalizedMessage = new LocalizedMessage(LocalizedKey, "'{0}' must be between {1} and {2} character(s)");
+      LocalizedMessage = new LocalizedMessage(LocalizedKey, (ResourceManager)null);
       MinLength = minLength;
       MaxLength = maxLength;
     }
@@ -89,6 +87,7 @@ namespace Breeze.NetClient {
     }
 
     public override String GetErrorMessage(ValidationContext context) {
+      // '{0}' must be between {1} and {2} character(s)
       return LocalizedMessage.Format(context.DisplayName, MinLength, MaxLength);
     }
 
@@ -98,7 +97,7 @@ namespace Breeze.NetClient {
 
   public class RangeValidator<T> : Validator where T:struct  {
     public RangeValidator(T min, T max, bool includeMinEndpoint = true, bool includeMaxEndpoint = true) : base() {
-      LocalizedMessage = new LocalizedMessage(LocalizedKey, "'{0}' must be {1} {2} and {3} {4}");
+      LocalizedMessage = new LocalizedMessage(LocalizedKey, (ResourceManager)null);
       Min = min;
       Max = max;
       IncludeMinEndpoint = includeMinEndpoint;
@@ -129,6 +128,7 @@ namespace Breeze.NetClient {
     }
 
     public override String GetErrorMessage(ValidationContext context) {
+      // '{0}' must be {1} {2} and {3} {4}"
       var minPhrase = IncludeMinEndpoint ? ">=" : ">";
       var maxPhrase = IncludeMaxEndpoint ? "<=" : "<";
       return LocalizedMessage.Format(context.DisplayName, minPhrase, Min, maxPhrase, Max);

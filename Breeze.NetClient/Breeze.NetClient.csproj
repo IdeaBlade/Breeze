@@ -37,11 +37,6 @@
   <ItemGroup>
     <Compile Include="BaseComplexObject.cs" />
     <Compile Include="Core\UtilFns.cs" />
-    <Compile Include="LocalizedMessages.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>LocalizedMessages.resx</DependentUpon>
-    </Compile>
     <Compile Include="CacheQueryExpressionVisitor.cs" />
     <Compile Include="CacheQueryOptions.cs" />
     <Compile Include="Core\MethodReflector.cs" />
@@ -146,10 +141,7 @@
     <Content Include="__Notes.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="LocalizedMessages.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>LocalizedMessages.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Include="LocalizedMessages.resx" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
