@@ -32,6 +32,84 @@
         teardown: function () { }
     });
 
+
+    test("insert multipart entity", function () {
+        var em = newEm();
+        var product = createProduct(em);
+        stop();
+        var order, orderDetail, productID, odOrderID, odProductID;
+        em.saveChanges().then(function (sr0) {
+            ok(sr0.entities.length == 1, "should have saved 1 entity");
+            order = createOrder(em);
+            orderDetail = createOrderDetail(em, order, product);
+
+            orderID = order.getProperty("orderID");
+            productID = product.getProperty("productID");
+            ok(orderID != 0, "orderID should not be 0");
+            ok(productID != 0, "productID should not be 0");
+            var odOrderID = orderDetail.getProperty("orderID");
+            var odProductID = orderDetail.getProperty("productID");
+            ok(orderID == odOrderID, "orderID's should be the same");
+            ok(productID == odProductID, "productID's should be the same");
+            return em.saveChanges().fail(function (e) {
+                var x = e;
+            });
+        }).then(function (sr) {
+            ok(sr.entities.length == 2, "should have saved 3 entities");
+            var orderIDx = order.getProperty("orderID");
+            var productIDx = product.getProperty("productID");
+            ok(orderID != orderIDx, "orderID should have changed");
+            // ok(productID != productIDx, "productID should have changed");
+            var odOrderIDx = orderDetail.getProperty("orderID");
+            var odProductIDx = orderDetail.getProperty("productID");
+            ok(orderIDx == odOrderIDx, "new orderID's should be the same");
+            ok(productIDx == odProductIDx, "new productID's should be the same");
+            // hack should not be necessary.
+            orderDetail.setProperty("productID", productIDx);
+            orderDetail.setProperty("unitPrice", 10);
+            return em.saveChanges();
+        }).then(function (sr2) {
+            ok(sr2.entities.length == 1, "should have saved 1 entity");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
+    // bug is with fixup of the 2nd part of the pk
+    test("insert multipart entity 2", function() {
+        var em = newEm();
+        var order = createOrder(em);
+        var product = createProduct(em);
+        var orderDetail = createOrderDetail(em, order, product);
+        
+        var orderID = order.getProperty("orderID");
+        var productID = product.getProperty("productID");
+        ok(orderID != 0, "orderID should not be 0");
+        ok(productID != 0, "productID should not be 0");
+        var odOrderID = orderDetail.getProperty("orderID");
+        var odProductID = orderDetail.getProperty("productID");
+        ok(orderID == odOrderID, "orderID's should be the same");
+        ok(productID == odProductID, "productID's should be the same");
+        stop();
+        em.saveChanges().then(function(sr) {
+            ok(sr.entities.length == 3, "should have saved 3 entities");
+            var orderIDx = order.getProperty("orderID");
+            var productIDx = product.getProperty("productID");
+            ok(orderID != orderIDx, "orderID should have changed");
+            ok(productID != productIDx, "productID should have changed");
+            var odOrderIDx = orderDetail.getProperty("orderID");
+            var odProductIDx = orderDetail.getProperty("productID");
+            ok(orderIDx == odOrderIDx, "new orderID's should be the same");
+            ok(productIDx == odProductIDx, "new productID's should be the same");
+            // hack should not be necessary.
+            orderDetail.setProperty("productID", productIDx);
+            orderDetail.setProperty("unitPrice", 10);
+            return em.saveChanges();
+        }).then(function(sr2) {
+            ok(sr2.entities.length == 1, "should have saved 1 entity");
+        }).fail(testFns.handleFail).fin(start);
+
+    });
+
     test("hasChangesChanged event raised after saveChanges", 4, function () {
         var em = newEm();
         
@@ -536,9 +614,6 @@
 
             var orderId = order.getProperty("orderID");
             ok(orderId > 0, "orderID is positive");
-
-            
-
 
         }).fail(testFns.handleFail).fin(start);
 
@@ -1701,7 +1776,8 @@
             ok((exceptionType.indexOf("concurrency") >= 0 || exceptionType.indexOf("staleobjectstate") >= 0), "wrong error message: " + error.detail.ExceptionType);
         }).fin(start);
     });
-    
+
+   
     //test("concurrency violation on delete", function () {
     //    ok(false, "not yet implemented");
     //});
@@ -2107,6 +2183,36 @@
             order1.setProperty("shipRegion", "foo-region");
             orders.push(order1);
         }
+    }
+
+    function createOrder(em) {
+        var orderType = em.metadataStore.getEntityType("Order");
+        var order = orderType.createEntity();
+        em.addEntity(order);
+        order.setProperty("shipName", "Test_" + new Date().toDateString());
+        return order;
+    }
+
+    function createProduct(em) {
+        var productType = em.metadataStore.getEntityType("Product");
+        var product = productType.createEntity();
+        em.addEntity(product);
+        product.setProperty("productName", "Test_" + new Date().toDateString());
+        return product;
+    }
+
+    function createOrderDetail(em, order, product) {
+        var odType = em.metadataStore.getEntityType("OrderDetail");
+        var od = odType.createEntity();
+        var orderID = order.getProperty("orderID");
+        var productID = product.getProperty("productID");
+
+        od.setProperty("orderID", orderID);
+        od.setProperty("productID", productID);
+        od.setProperty("quantity", 1);
+        od.setProperty("unitPrice", 3.14);
+        em.addEntity(od);
+        return od;
     }
 
     function createRegion(em, descr) {

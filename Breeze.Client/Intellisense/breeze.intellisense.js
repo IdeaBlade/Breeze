@@ -1,4 +1,4 @@
-﻿// Generated on: Fri Feb 28 2014 23:30:07 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Fri Mar 07 2014 17:51:48 GMT-0800 (Pacific Standard Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -2595,7 +2595,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   <summary>
     ///   Attempts to locate an entity within this EntityManager by its key. }
     ///   </summary>
-    ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
+    ///   <param name="typeName" type="EntityType | String" optional="true">The EntityType or EntityType name for this key.</param>
     ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
     ///   <returns type="Entity" >An Entity or null;</returns>
     /// </signature>
@@ -2616,7 +2616,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   an option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy  }
     ///   will be used to merge any server side entity returned by this method. }
     ///   </summary>
-    ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
+    ///   <param name="typeName" type="EntityType | String" optional="true">The EntityType or EntityType name for this key.</param>
     ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
     ///   <param name="checkLocalCacheFirst" type="Boolean=false" optional="true">Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.</param>
     ///   <returns type="breeze.breeze.Promise" ></returns>

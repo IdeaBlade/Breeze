@@ -12790,10 +12790,9 @@ var EntityManager = (function () {
             if (savedEntities.length === 0) { return []; }
             var keyMappings = saveResult.keyMappings;
             var em = saveContext.entityManager;
-
+            fixupKeys(em, keyMappings);
             __using(em, "isLoading", true, function () {
-                fixupKeys(em, keyMappings);
-
+                
                 var mappingContext = new MappingContext({
                     query: null, // tells visitAndMerge this is a save instead of a query
                     entityManager: em,
@@ -12804,7 +12803,7 @@ var EntityManager = (function () {
                 // The visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
                 // the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
                 savedEntities = mappingContext.visitAndMerge(savedEntities, { nodeType: "root" });
-            });
+             });
             
             return savedEntities;
         }
@@ -12907,7 +12906,7 @@ var EntityManager = (function () {
         var employee = em1.getEntityByKey("Employee", 1);
         // employee will either be an entity or null.
     @method getEntityByKey
-    @param typeName {String} The entityType name for this key.
+    @param typeName {EntityType | String} The EntityType or EntityType name for this key.
     @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
     @return {Entity} An Entity or null;
     **/
@@ -12956,7 +12955,7 @@ var EntityManager = (function () {
         });
     @method fetchEntityByKey
     @async
-    @param typeName {String} The entityType name for this key.
+    @param typeName {EntityType | String} The EntityType or EntityType name for this key.
     @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
     @param checkLocalCacheFirst {Boolean=false} Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.
     @return {Promise} 
@@ -12989,7 +12988,7 @@ var EntityManager = (function () {
         promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
     **/
     proto.fetchEntityByKey = function () {
-        dataService = DataService.resolve([this.dataService]);
+        var dataService = DataService.resolve([this.dataService]);
         if ((!dataService.hasServerMetadata) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
             return fetchEntityByKeyCore(this, arguments);
         } else {
@@ -13460,7 +13459,7 @@ var EntityManager = (function () {
             }
         } catch (e) {/* throw below */}
         throw new Error("Must supply an EntityKey OR an EntityType name or EntityType followed by a key value or an array of key values.");
-    }          
+    }      
         
     function markIsBeingSaved(entities, flag) {
         entities.forEach(function(entity) {

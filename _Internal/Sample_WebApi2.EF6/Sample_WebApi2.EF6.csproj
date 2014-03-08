@@ -334,6 +334,7 @@
     <Content Include="Global.asax" />
     <Content Include="Index.html" />
     <None Include="Scripts\jquery-2.0.3.intellisense.js" />
+    <Content Include="Scripts\IBlade\breeze.debug.1.4.8.js" />
     <Content Include="Scripts\jquery-2.0.3.js" />
     <Content Include="Scripts\jquery-2.0.3.min.js" />
     <Content Include="Scripts\jquery.unobtrusive-ajax.js" />

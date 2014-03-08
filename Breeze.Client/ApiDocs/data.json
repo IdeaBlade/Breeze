@@ -7755,7 +7755,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1097,
+            "line": 1096,
             "description": "Attempts to locate an entity within this EntityManager by its key.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employee = em1.getEntityByKey(\"Employee\", 1);\n    // employee will either be an entity or null."
@@ -7765,8 +7765,8 @@
             "params": [
                 {
                     "name": "typeName",
-                    "description": "The entityType name for this key.",
-                    "type": "String"
+                    "description": "The EntityType or EntityType name for this key.",
+                    "type": "EntityType | String"
                 },
                 {
                     "name": "keyValues",
@@ -7783,7 +7783,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1109,
+            "line": 1108,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.getEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -7806,7 +7806,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1140,
+            "line": 1139,
             "description": "Attempts to fetch an entity from the server by its key with\nan option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy \nwill be used to merge any server side entity returned by this method.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    em1.fetchEntityByKey(\"Employee\", 1).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -7817,8 +7817,8 @@
             "params": [
                 {
                     "name": "typeName",
-                    "description": "The entityType name for this key.",
-                    "type": "String"
+                    "description": "The EntityType or EntityType name for this key.",
+                    "type": "EntityType | String"
                 },
                 {
                     "name": "keyValues",
@@ -7840,7 +7840,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1163,
+            "line": 1162,
             "description": "Attempts to fetch an entity from the server by its {{#crossLink \"EntityKey\"}}{{/crossLink}} with\nan option to check the local cache first.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    em1.fetchEntityByKey(employeeKey).then(function(result) {\n        var employee = result.entity;\n        var entityKey = result.entityKey;\n        var fromCache = result.fromCache;\n    });"
@@ -7869,7 +7869,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1226,
+            "line": 1225,
             "description": "Attempts to locate an entity within this EntityManager by its  {{#crossLink \"EntityKey\"}}{{/crossLink}}.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var employeeType = em1.metadataStore.getEntityType(\"Employee\");\n    var employeeKey = new EntityKey(employeeType, 1);\n    var employee = em1.findEntityByKey(employeeKey);\n    // employee will either be an entity or null."
@@ -7894,7 +7894,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1243,
+            "line": 1242,
             "description": "Generates a temporary key for the specified entity.  This is used to insure that newly\ncreated entities have unique keys and to register that these keys are temporary and\nneed to be automatically replaced with 'real' key values once these entities are saved.\n\nThe EntityManager.keyGeneratorCtor property is used internally by this method to actually generate\nthe keys - See the  {{#crossLink \"~keyGenerator-interface\"}}{{/crossLink}} interface description to see\nhow a custom key generator can be plugged in.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities. \n    var custType = em1.metadataStore.getEntityType(\"Customer\");\n    var custumer = custType.createEntity();\n    var customerId = em.generateTempKeyValue(custumer);\n    // The 'customer' entity 'CustomerID' property is now set to a newly generated unique id value\n    // This property will change again after a successful save of the 'customer' entity.\n\n    em1.saveChanges()\n        .then( function( data) {\n            var sameCust1 = data.results[0];\n            // cust1 === sameCust1;\n            // but cust1.getProperty(\"CustomerId\") != customerId\n            // because the server will have generated a new id \n            // and the client will have been updated with this \n            // new id.\n        })"
@@ -7917,7 +7917,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1284,
+            "line": 1283,
             "description": "Returns whether there are any changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to determine if an EntityManager has any changes",
@@ -7944,7 +7944,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1320,
+            "line": 1319,
             "description": "An {{#crossLink \"Event\"}}{{/crossLink}} that fires whenever an EntityManager transitions to or from having changes.",
             "example": [
                 "                    \n    var em = new EntityManager( {serviceName: \"breeze/NorthwindIBModel\" });\n    em.hasChangesChanged.subscribe(function(args) {\n        var hasChangesChanged = args.hasChanges;\n        var entityManager = args.entityManager;\n    });\n});"
@@ -7969,7 +7969,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1346,
+            "line": 1345,
             "description": "Returns a array of all changed entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s. A 'changed' Entity has\nhas an {{#crossLink \"EntityState\"}}{{/crossLink}} of either Added, Modified or Deleted.",
             "example": [
                 "\nThis method can be used to get all of the changed entities within an EntityManager",
@@ -7996,7 +7996,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1376,
+            "line": 1375,
             "description": "Rejects (reverses the effects) all of the additions, modifications and deletes from this EntityManager.\nCalls EntityAspect.rejectChanges on every changed entity in this EntityManager.",
             "example": [
                 "\n    // assume em1 is an EntityManager containing a number of preexisting entities.\n    var entities = em1.rejectChanges();"
@@ -8012,7 +8012,7 @@
         },
         {
             "file": "..\\Scripts\\IBlade\\a50_entityManager.js",
-            "line": 1400,
+            "line": 1399,
             "description": "Returns a array of all entities of the specified {{#crossLink \"EntityType\"}}{{/crossLink}}s with the specified {{#crossLink \"EntityState\"}}{{/crossLink}}s.",
             "example": [
                 "\nThis method can be used to get all of the entities within an EntityManager",
