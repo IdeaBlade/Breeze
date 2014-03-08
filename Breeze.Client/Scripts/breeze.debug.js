@@ -12790,7 +12790,10 @@ var EntityManager = (function () {
             if (savedEntities.length === 0) { return []; }
             var keyMappings = saveResult.keyMappings;
             var em = saveContext.entityManager;
+
+            // must occur outside of isLoading block
             fixupKeys(em, keyMappings);
+
             __using(em, "isLoading", true, function () {
                 
                 var mappingContext = new MappingContext({
@@ -12803,7 +12806,7 @@ var EntityManager = (function () {
                 // The visitAndMerge operation has been optimized so that we do not actually perform a merge if the 
                 // the save operation did not actually return the entity - i.e. during OData and Mongo updates and deletes.
                 savedEntities = mappingContext.visitAndMerge(savedEntities, { nodeType: "root" });
-             });
+            });
             
             return savedEntities;
         }
