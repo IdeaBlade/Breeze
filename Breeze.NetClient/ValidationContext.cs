@@ -28,6 +28,16 @@ namespace Breeze.NetClient {
     // May be null
     public StructuralProperty Property { get; set; }
 
+    // should be set manually if this context is going to be changed after it is created.
+    // this tells any object that recieve a ref to this object to clone it before saving it.
+    // This is for perf reasons to avoid excessive creation of new ValidationContext objects,
+    // by allowing them to be mutated as long as any other objects that store refs to these object
+    // knows to clone them first;
+    internal bool IsMutable {
+      get;
+      set;
+    }
+
     public String DisplayName {
       get {
         return _displayName ?? (Property == null ? Instance.ToString() : Property.DisplayName);
@@ -37,6 +47,7 @@ namespace Breeze.NetClient {
       }
     }
 
+    
     private String _displayName;
   }
 

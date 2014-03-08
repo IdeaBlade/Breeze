@@ -448,6 +448,8 @@ namespace Breeze.NetClient {
 
     public IEnumerable<ValidationError> Validate() {
       var vc = new ValidationContext(this.Entity);
+      // need to insure that the vc is cloned if it ever makes it out of this method. 
+      vc.IsMutable = true;
       var et = this.EntityType;
 
       // PERF: 
@@ -462,10 +464,7 @@ namespace Breeze.NetClient {
         vc.PropertyValue = this.GetValue(prop);
         foreach (var vr in prop.Validators) {
           var ve = ValidateCore(vr, vc);
-          
           if (ve != null) {
-            // need to clone it because this will be handed out of the func
-            ve.Context = new ValidationContext(vc);
             errors.Add(ve);
           }
         }

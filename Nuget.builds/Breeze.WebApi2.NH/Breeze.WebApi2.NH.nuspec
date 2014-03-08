@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.WebApi2.NH</id>
-        <version>1.4.9</version>
+        <version>1.4.11</version>
         <title>Breeze Client and Server - Javascript client with ASP.NET Web API 2 and NHibernate.</title>
         <authors>Jay Traband</authors>
         <owners>IdeaBlade</owners>
@@ -17,9 +17,9 @@
         <releaseNotes>Please review the BreezeJS release notes at http://www.breezejs.com/documentation/download</releaseNotes>        
         <tags>javascript WebApi Breeze SPA</tags>
 		<dependencies>
-		    <dependency id="Breeze.Client" version="[1.4.9]"/>
-		    <dependency id="Breeze.Server.WebApi2" version="[1.4.9]"/>
-			  <dependency id="Breeze.Server.ContextProvider.NH" version="[1.4.9]" />
+		    <dependency id="Breeze.Client" version="[1.4.11]"/>
+		    <dependency id="Breeze.Server.WebApi2" version="[1.4.11]"/>
+			  <dependency id="Breeze.Server.ContextProvider.NH" version="[1.4.11]" />
 		</dependencies>
     </metadata>
     <files>

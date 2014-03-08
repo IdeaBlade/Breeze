@@ -16,7 +16,8 @@ namespace Breeze.NetClient {
 
     public ValidationError(Validator validator, ValidationContext context, String message = null, String key = null) {
       Validator = validator;
-      Context = context;
+      // clone it if mutated.
+      Context = context.IsMutable ? new ValidationContext(context) : context;
       _message = message;
       key = key ?? validator.Name;
     }
