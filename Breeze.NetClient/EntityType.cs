@@ -81,9 +81,7 @@ namespace Breeze.NetClient {
       get { return _concurrencyProperties.ReadOnlyValues; }
     }
 
-    public ICollection<Validator> Validators {
-      get { return _validators.ReadOnlyValues; }
-    }
+  
 
     #endregion
 
@@ -167,7 +165,7 @@ namespace Breeze.NetClient {
     private SafeList<DataProperty> _foreignKeyProperties = new SafeList<DataProperty>();
     internal SafeList<DataProperty> _inverseForeignKeyProperties = new SafeList<DataProperty>();
     private SafeList<DataProperty> _concurrencyProperties = new SafeList<DataProperty>();
-    private ValidatorCollection _validators = new ValidatorCollection();
+
 
     private SafeList<EntityType> _subtypes = new SafeList<EntityType>();
 

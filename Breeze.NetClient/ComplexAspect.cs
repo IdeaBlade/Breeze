@@ -156,7 +156,26 @@ namespace Breeze.NetClient {
 
     #endregion
 
+    #region Public methods
+
+    
+
+    #endregion
+
     #region internal and protected
+
+    protected override ValidationError ValidateCore(Validator vr, ValidationContext vc) {
+      var ve = vr.Validate(vc);
+      var entityAspect = this.EntityAspect;
+      if (entityAspect != null) {
+        if (ve == null) {
+          entityAspect.RemoveValidationError(ValidationError.GetKey(vr, vc.PropertyPath));
+        } else {
+          entityAspect.AddValidationError(ve);
+        }
+      }
+      return ve;
+    }
 
     internal bool IsDetached {
       get { return ParentEntity == null || ParentEntity.EntityAspect.IsDetached; }
@@ -251,6 +270,9 @@ namespace Breeze.NetClient {
       UpdateBackupVersion(property, oldValue);
 
       if (this.IsAttached && !EntityManager.IsLoadingEntity) {
+        if ((EntityManager.ValidationOptions.ValidationApplicability & ValidationApplicability.OnPropertyChange) > 0) {
+          EntityAspect.ValidateProperty(property, newValue);
+        }
         //if (entityManager.validationOptions.validateOnPropertyChange) {
         //    entityAspect._validateProperty(newValue,
         //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
@@ -304,6 +326,18 @@ namespace Breeze.NetClient {
       return originalClone;
     }
 
+    internal override String GetPropertyPath(String propName) {
+      if (Parent == null) return null;
+      var aspect = Parent.GetStructuralAspect();
+      return aspect.GetPropertyPath(this.ParentEntityProperty.Name) + "." + propName;
+    }
+
+    // proto.getPropertyPath = function(propName) {
+    //    var parent = this.parent;
+    //    if (!parent) return null;
+    //    var aspect = parent.complexAspect || parent.entityAspect;
+    //    return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
+    //}
 
     //private DateTime ConvertToSqlDateTime(DateTime dt) {
     //  var ticks = ((long)1E5) * (dt.Ticks / (long)1E5);

@@ -35,7 +35,7 @@ namespace Breeze.NetClient {
     public String Key {
       get {
         if (_key == null) {
-          _key = GetKey(Validator, Context.Property);
+          _key = GetKey(Validator, Context.Property.Name);
         }
         return _key;
       }
@@ -45,9 +45,9 @@ namespace Breeze.NetClient {
     }
 
     // To obtain a key that can be used to remove an item from a validationErrorsCollection
-    public static String GetKey(Validator validator, StructuralProperty property = null) {
-      if (property != null) {
-        return validator.Name + "_" + property.Name;
+    public static String GetKey(Validator validator, String propertyPath = null) {
+      if (propertyPath != null) {
+        return validator.Name + "_" + propertyPath;
       } else {
         return validator.Name;
       }

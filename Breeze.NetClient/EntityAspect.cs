@@ -446,70 +446,24 @@ namespace Breeze.NetClient {
 
     #region Validation
 
-    public IEnumerable<ValidationError> Validate() {
-      var vc = new ValidationContext(this.Entity);
-      // need to insure that the vc is cloned if it ever makes it out of this method. 
-      vc.IsMutable = true;
-      var et = this.EntityType;
+    // much of the validation code is in StructuralAspect.
 
-      // PERF: 
-      // Not using LINQ here because we want to reuse the same
-      // vc property for perf reasons and this
-      // would cause closure issues with a linq expression unless 
-      // we kept resolving with toList.  This is actually simpler code.
-
-      var errors = new List<ValidationError>();
-      foreach (var prop in et.Properties) {
-        vc.Property = prop;
-        vc.PropertyValue = this.GetValue(prop);
-        foreach (var vr in prop.Validators) {
-          var ve = ValidateCore(vr, vc);
-          if (ve != null) {
-            errors.Add(ve);
-          }
-        }
-      }
-
-      vc.Property = null;
-      vc.PropertyValue = null;
-      foreach (var vr in et.Validators) {
-        var ve = ValidateCore(vr, vc);
-        if (ve != null) {
-          errors.Add(ve);
-        }
-      }
-
-      return errors;
-    }
-
-    public IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop) {
-      var value = this.GetValue(prop);
-      return ValidateProperty(prop, value).ToList();
-    }
-
-    // called internally by property set logic
-    internal IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop, Object value) {
-      var vc = new ValidationContext(this.Entity, value, prop);
-      return prop.Validators.Select(vr => ValidateCore(vr, vc)).Where(ve => ve != null);
-    }
-
-    // insures that validation events get fired and _validators collection is updated.
-    private ValidationError ValidateCore(Validator vr, ValidationContext vc) {
+    protected override ValidationError ValidateCore(Validator vr, ValidationContext vc) {
       var ve = vr.Validate(vc);
       if (ve == null) {
-        RemoveValidationError(ValidationError.GetKey(vr, vc.Property));
+        RemoveValidationError(ValidationError.GetKey(vr, vc.PropertyPath));
       } else {
         AddValidationError(ve);
       }
       return ve;
     }
 
-    public IEnumerable<ValidationError> GetValidationErrors(String propertyName = null) {
-      if (propertyName == null) {
+    public IEnumerable<ValidationError> GetValidationErrors(String propertyPath = null) {
+      if (propertyPath == null) {
         return _validationErrors.ReadOnlyValues;
       } else {
         // TODO: determine if we need to perform a ToList here.
-        return _validationErrors.Where(ve => ve.Context.Property != null && ve.Context.Property.Name == propertyName);
+        return _validationErrors.Where(ve => ve.Context.PropertyPath == propertyPath);
       }
     }
 
@@ -536,6 +490,8 @@ namespace Breeze.NetClient {
       _validationErrors.Clear();
       oldErrors.ForEach(ve => RemoveValidationError(ve));
     }
+
+  
 
     #endregion
 

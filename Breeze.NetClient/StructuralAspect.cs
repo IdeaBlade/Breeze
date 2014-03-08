@@ -125,7 +125,79 @@ namespace Breeze.NetClient {
 
     #endregion
 
+    #region Validation
+
+    public IEnumerable<ValidationError> Validate() {
+      var vc = new ValidationContext(this.StructuralObject);
+      vc.IsMutable = true;
+      var properties = this.StructuralType.Properties;
+      // PERF: 
+      // Not using LINQ here because we want to reuse the same
+      // vc property for perf reasons and this
+      // would cause closure issues with a linq expression unless 
+      // we kept resolving with toList.  This is actually simpler code.
+      
+      var errors = new List<ValidationError>();
+      foreach (var prop in properties) {
+        vc.Property = prop;
+        vc.PropertyValue = this.GetValue(prop);
+        
+        var co = vc.PropertyValue as IComplexObject;
+        vc.ComplexObject = co;
+        if (co != null) {
+          var coErrors = co.ComplexAspect.Validate();
+          errors.AddRange(coErrors);
+        }
+        foreach (var vr in prop.Validators) {
+          var ve = ValidateCore(vr, vc);
+          if (ve != null) {
+            errors.Add(ve);
+          }
+        }
+      }
+
+      vc.Property = null;
+      vc.PropertyValue = null;
+      foreach (var vr in this.StructuralType.Validators) {
+        var ve = ValidateCore(vr, vc);
+        if (ve != null) {
+          errors.Add(ve);
+        }
+      }
+
+      return errors;
+    }
+
+    public IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop) {
+      var value = this.GetValue(prop);
+      return ValidateProperty(prop, value).ToList();
+    }
+
+    // called internally by property set logic
+    internal IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop, Object value) {
+      IEnumerable<ValidationError> errors = null;
+      var co = value as IComplexObject;
+      if (co != null) {
+        errors = co.ComplexAspect.Validate();
+      }
+      var vc = new ValidationContext(this.StructuralObject, prop, value);
+      var itemErrors = prop.Validators.Select(vr => ValidateCore(vr, vc)).Where(ve => ve != null);
+      return errors == null ? itemErrors : errors.Concat(itemErrors);
+
+    }
+
+    // insures that validation events get fired and _validators collection is updated.
+    protected abstract ValidationError ValidateCore(Validator vr, ValidationContext vc);
+
+    internal virtual String GetPropertyPath(String propName) {
+      return propName;
+    }
+
+    #endregion
+
     #region other misc
+
+
 
     protected void RejectChangesCore() {
       if (_originalValuesMap == null) return;

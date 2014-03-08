@@ -24,4 +24,15 @@ namespace Breeze.NetClient {
 
   }
 
+  public static class IStructuralObjectExtns {
+    public static StructuralAspect GetStructuralAspect(this IStructuralObject so) {
+      var entity = so as IEntity;
+      if (entity != null) {
+        return entity.EntityAspect;
+      } else {
+        return ((IComplexObject)so).ComplexAspect;
+      }
+    }
+  }
+
 }
