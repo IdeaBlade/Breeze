@@ -639,7 +639,7 @@ namespace Breeze.NetClient {
 
     public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Unchanged, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
       var aspect = PrepareForAttach(entity);
-      if (aspect.IsAttached && aspect.EntityState == entityState) return entity;
+      if (aspect.IsAttached) return entity;
       using (NewIsLoadingBlock()) {
         // don't fire EntityChanging because there is no entity to recieve the event until it is attached.
 
@@ -969,6 +969,13 @@ namespace Breeze.NetClient {
     #endregion
 
     #region Other internal 
+
+    internal void UpdateFkVal(DataProperty fkProp, Object oldValue, Object newValue) {
+      var eg = this.EntityGroups[fkProp.ParentType.ClrType];
+      if (eg == null) return;
+        
+      eg.UpdateFkVal(fkProp, oldValue, newValue);
+    }
 
     internal static void CheckEntityType(Type clrEntityType) {
       var etInfo = clrEntityType.GetTypeInfo();

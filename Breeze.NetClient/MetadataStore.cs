@@ -409,6 +409,7 @@ namespace Breeze.NetClient {
 
       fkProps.ForEach(dp => {
         dp.RelatedNavigationProperty = np;
+        np.EntityType._inverseForeignKeyProperties.Add(dp);
         dp.IsForeignKey = true;
         np._relatedDataProperties.Add(dp);
       });

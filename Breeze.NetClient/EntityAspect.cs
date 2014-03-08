@@ -653,6 +653,10 @@ namespace Breeze.NetClient {
       UpdateRelated(property, newValue, oldValue);
 
       // propogate pk change to all related entities;
+
+      // this part handles order.orderId => orderDetail.orderId
+      // but won't handle product.productId => orderDetail.productId because product
+      // doesn't have an orderDetails property.
       var propertyIx = EntityType.KeyProperties.IndexOf(property);
       EntityType.NavigationProperties.ForEach(np => {
         var inverseNp = np.Inverse;
@@ -661,6 +665,17 @@ namespace Breeze.NetClient {
         var fkProp = fkProps[propertyIx];
         ProcessNpValue(np, e => e.EntityAspect.SetDpValue(fkProp, newValue));
       });
+
+      if (this.IsAttached) {
+        this.EntityType.InverseForeignKeyProperties.ForEach(invFkProp => {
+          if (invFkProp.RelatedNavigationProperty.Inverse == null) {
+            // this next step may be slow - it iterates over all of the entities in a group;
+            // hopefully it doesn't happen often.
+            EntityManager.UpdateFkVal(invFkProp, oldValue, newValue);
+          };
+        });
+      }
+      
     }
 
     private void SetDpValueComplex(DataProperty property, object newValue, object oldValue) {

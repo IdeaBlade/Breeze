@@ -121,7 +121,6 @@ namespace Breeze.NetClient {
             __resourceManagerTypeMap[resourceType] = rm;
           } catch (Exception e) {
             throw new Exception("Unable to resolve resourceManager for " + resourceType.ToString(), e);
-            return null;
           }
         }
         return rm;

@@ -63,10 +63,6 @@ namespace Breeze.NetClient {
     public void AddPrimitive(String propName, Object value, Object defaultValue = null) {
       if (value == null) return;
       if (value != null && value.Equals(defaultValue)) return;
-      Object val;
-      if (value is DateTimeOffset) {
-        var dummy = value;
-      }
       AddRaw(propName, new JValue(value));
     }
 

@@ -294,8 +294,88 @@ namespace Test_NetClient {
 
     }
 
-  
-   
+    private Order CreateOrder(EntityManager em) {
+      var order = new Order();
+      em.AddEntity(order);
+      order.ShipName = "Test.NET_" + TestFns.RandomSuffix(7);
+      return order;
+    }
+
+    private Product CreateProduct(EntityManager em) {
+      var product = new Product();
+      em.AddEntity(product);
+      product.ProductName = "Test.NET_" + TestFns.RandomSuffix(7);
+      return product;
+    }
+
+    private OrderDetail CreateOrderDetail(EntityManager em, Order order, Product product) {
+      var od = new OrderDetail();
+      var orderID = order.OrderID;
+      var productID = product.ProductID;
+      od.ProductID = productID;
+      od.OrderID = orderID;
+      od.Quantity = 1;
+      od.UnitPrice = 3.14m;
+      em.AddEntity(od);
+      return od;
+    }
+
+
+    [TestMethod]
+    public async Task InsertEntityWithMultipartKey() {
+      await _emTask;
+      //        ok(true, "N/A for Mongo - primary keys cannot be shared between collections");
+
+      var product = CreateProduct(_em1);
+      var sr = await _em1.SaveChanges();
+      
+      Assert.IsTrue(sr.Entities.Count == 1, "should have saved 1 entity");
+      var order = CreateOrder(_em1);
+      var orderDetail = CreateOrderDetail(_em1, order, product);
+      var orderID = order.OrderID;
+      var productID = product.ProductID;
+      Assert.IsTrue(order.OrderID != 0);
+      Assert.IsTrue(product.ProductID != 0);
+      Assert.IsTrue(order.OrderID == orderDetail.OrderID);
+      Assert.IsTrue(product.ProductID == orderDetail.ProductID);
+      var sr1 = await _em1.SaveChanges();
+
+      Assert.IsTrue(sr1.Entities.Count == 2, "should have saved 2 entities");
+      Assert.IsTrue(order.OrderID != orderID);
+      Assert.IsTrue(order.OrderID == orderDetail.OrderID);
+      Assert.IsTrue(product.ProductID == orderDetail.ProductID);
+      orderDetail.UnitPrice = 11m;
+      var sr2 = await _em1.SaveChanges();
+
+      Assert.IsTrue(sr2.Entities.Count == 1, "should have saved 1 entity");
+    }
+
+    [TestMethod]
+    public async Task InsertEntityWithMultipartKey2() {
+      await _emTask;
+      
+      var order = CreateOrder(_em1);
+      var product = CreateProduct(_em1);
+      var orderDetail = CreateOrderDetail(_em1, order, product);
+      var orderID = order.OrderID;
+      var productID = product.ProductID;
+      Assert.IsTrue(order.OrderID != 0);
+      Assert.IsTrue(product.ProductID != 0);
+      Assert.IsTrue(order.OrderID == orderDetail.OrderID);
+      Assert.IsTrue(product.ProductID == orderDetail.ProductID);
+      var sr1 = await _em1.SaveChanges();
+
+      Assert.IsTrue(sr1.Entities.Count == 3, "should have saved 3 entities");
+      Assert.IsTrue(order.OrderID != orderID);
+      Assert.IsTrue(product.ProductID != productID);
+      Assert.IsTrue(order.OrderID == orderDetail.OrderID);
+      Assert.IsTrue(product.ProductID == orderDetail.ProductID);
+      orderDetail.UnitPrice = 11m;
+      var sr2 = await _em1.SaveChanges();
+
+      Assert.IsTrue(sr2.Entities.Count == 1, "should have saved 1 entity");
+    }
+ 
     //test("add UserRole", function () {
     //    if (testFns.DEBUG_MONGO) {
     //        ok(true, "TODO for Mongo - needs to be written specifically for Mongo - should succeed in Mongo");

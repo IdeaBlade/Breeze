@@ -73,6 +73,10 @@ namespace Breeze.NetClient {
       get { return _foreignKeyProperties.ReadOnlyValues; }
     }
 
+    public ReadOnlyCollection<DataProperty> InverseForeignKeyProperties {
+      get { return _inverseForeignKeyProperties.ReadOnlyValues; }
+    }
+
     public ReadOnlyCollection<DataProperty> ConcurrencyProperties {
       get { return _concurrencyProperties.ReadOnlyValues; }
     }
@@ -161,6 +165,7 @@ namespace Breeze.NetClient {
     private NavigationPropertyCollection _navigationProperties = new NavigationPropertyCollection();
     private SafeList<DataProperty> _keyProperties = new SafeList<DataProperty>();
     private SafeList<DataProperty> _foreignKeyProperties = new SafeList<DataProperty>();
+    internal SafeList<DataProperty> _inverseForeignKeyProperties = new SafeList<DataProperty>();
     private SafeList<DataProperty> _concurrencyProperties = new SafeList<DataProperty>();
     private ValidatorCollection _validators = new ValidatorCollection();
 

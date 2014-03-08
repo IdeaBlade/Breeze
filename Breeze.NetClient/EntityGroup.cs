@@ -251,6 +251,15 @@ namespace Breeze.NetClient {
       _entityKeyMap.Add(newKey, entityAspect);
     }
 
+    internal void UpdateFkVal(DataProperty fkProp, Object oldValue, Object newValue) {
+      var fkPropName = fkProp.Name;
+      _entityAspects.ForEach(ea => {
+        if (Equals(ea.GetValue(fkPropName), oldValue)) {
+          ea.SetValue(fkPropName, newValue);
+        }
+      });
+    }
+
     #endregion
 
     #region private and protected
