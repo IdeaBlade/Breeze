@@ -4985,6 +4985,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 // propogate pk change to all related entities;
 
                 var propertyIx = this.entityType.keyProperties.indexOf(property);
+                // this part handles order.orderId => orderDetail.orderId
+                // but won't handle product.productId => orderDetail.productId because product
+                // doesn't have an orderDetails property.
                 this.entityType.navigationProperties.forEach(function (np) {
                     var inverseNp = np.inverse;
                     var fkNames = inverseNp ? inverseNp.foreignKeyNames : np.invForeignKeyNames;
@@ -5001,6 +5004,17 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         });
                     }
                 });
+                // this handles unidirectional problems not covered above.
+                if (entityManager) {
+                    this.entityType.inverseForeignKeyProperties.forEach(function (invFkProp) {
+                        if (invFkProp.relatedNavigationProperty.inverse == null) {
+                            // this next step may be slow - it iterates over all of the entities in a group;
+                            // hopefully it doesn't happen often.
+                            entityManager._updateFkVal(invFkProp, oldValue, newValue);
+                        };
+                    });
+                }
+                
                 // insure that cached key is updated.
                 entityAspect.getKey(true);
             }
@@ -7098,6 +7112,7 @@ var EntityType = (function () {
         this.complexProperties = [];
         this.keyProperties = [];
         this.foreignKeyProperties = [];
+        this.inverseForeignKeyProperties = [];
         this.concurrencyProperties = [];
         this.unmappedProperties = []; // will be updated later.
         this.validators = [];
@@ -7915,6 +7930,8 @@ var EntityType = (function () {
         fkProps.forEach(function (dp) {
             addUniqueItem(fkPropCollection, dp);
             dp.relatedNavigationProperty = np;
+            // now update the inverse
+            np.entityType.inverseForeignKeyProperties.push(dp);
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
             } else {
@@ -11755,6 +11772,17 @@ var EntityGroup = (function () {
         this._emptyIndexes = null;
     };
 
+    proto._updateFkVal = function (fkProp, oldValue, newValue) {
+        var fkPropName = fkProp.name;
+        this._entities.forEach(function (entity) {
+            if (entity != null) {
+                if (entity.getProperty(fkPropName) == oldValue) {
+                    entity.setProperty(fkPropName, newValue);
+                }
+            }
+        });
+    }
+
     proto._fixupKey = function (tempValue, realValue) {
         // single part keys appear directly in map
         var ix = this._indexMap[tempValue];
@@ -13751,6 +13779,12 @@ var EntityManager = (function () {
         var attachedEntity = group.attachEntity(entity, entityState, mergeStrategy);
         this._linkRelatedEntities(attachedEntity);
         return attachedEntity;
+    }
+
+    proto._updateFkVal = function (fkProp, oldValue, newValue) {
+        var group = this._entityGroupMap[fkProp.parentType.name];
+        if (!group) return;
+        group._updateFkVal(fkProp, oldValue, newValue)
     }
 
     function attachRelatedEntities(em, entity, entityState, mergeStrategy) {

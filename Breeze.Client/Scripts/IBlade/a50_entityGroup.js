@@ -107,6 +107,17 @@ var EntityGroup = (function () {
         this._emptyIndexes = null;
     };
 
+    proto._updateFkVal = function (fkProp, oldValue, newValue) {
+        var fkPropName = fkProp.name;
+        this._entities.forEach(function (entity) {
+            if (entity != null) {
+                if (entity.getProperty(fkPropName) == oldValue) {
+                    entity.setProperty(fkPropName, newValue);
+                }
+            }
+        });
+    }
+
     proto._fixupKey = function (tempValue, realValue) {
         // single part keys appear directly in map
         var ix = this._indexMap[tempValue];

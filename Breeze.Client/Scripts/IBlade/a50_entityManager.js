@@ -1947,6 +1947,12 @@ var EntityManager = (function () {
         return attachedEntity;
     }
 
+    proto._updateFkVal = function (fkProp, oldValue, newValue) {
+        var group = this._entityGroupMap[fkProp.parentType.name];
+        if (!group) return;
+        group._updateFkVal(fkProp, oldValue, newValue)
+    }
+
     function attachRelatedEntities(em, entity, entityState, mergeStrategy) {
         var navProps = entity.entityType.navigationProperties;
         navProps.forEach(function (np) {

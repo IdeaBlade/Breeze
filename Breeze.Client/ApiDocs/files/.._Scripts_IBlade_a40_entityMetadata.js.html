@@ -1416,6 +1416,7 @@ var EntityType = (function () {
         this.complexProperties = [];
         this.keyProperties = [];
         this.foreignKeyProperties = [];
+        this.inverseForeignKeyProperties = [];
         this.concurrencyProperties = [];
         this.unmappedProperties = []; // will be updated later.
         this.validators = [];
@@ -2233,6 +2234,8 @@ var EntityType = (function () {
         fkProps.forEach(function (dp) {
             addUniqueItem(fkPropCollection, dp);
             dp.relatedNavigationProperty = np;
+            // now update the inverse
+            np.entityType.inverseForeignKeyProperties.push(dp);
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
             } else {

@@ -65,7 +65,7 @@
             ok(orderIDx == odOrderIDx, "new orderID's should be the same");
             ok(productIDx == odProductIDx, "new productID's should be the same");
             // hack should not be necessary.
-            orderDetail.setProperty("productID", productIDx);
+            // orderDetail.setProperty("productID", productIDx);
             orderDetail.setProperty("unitPrice", 10);
             return em.saveChanges();
         }).then(function (sr2) {
@@ -101,7 +101,7 @@
             ok(orderIDx == odOrderIDx, "new orderID's should be the same");
             ok(productIDx == odProductIDx, "new productID's should be the same");
             // hack should not be necessary.
-            orderDetail.setProperty("productID", productIDx);
+            // orderDetail.setProperty("productID", productIDx);
             orderDetail.setProperty("unitPrice", 10);
             return em.saveChanges();
         }).then(function(sr2) {
