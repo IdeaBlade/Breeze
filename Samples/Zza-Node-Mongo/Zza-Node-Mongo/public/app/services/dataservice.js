@@ -39,7 +39,7 @@
             initFailed = false;
 
             initPromise = fetchLookups()
-                .then(success).fail(failure)
+                .then(success).fail(failure);
 
             initPromise = Q.timeout(initPromise, config.serverTimeoutMs)
                 .fail(initialzeServerTimeout)
