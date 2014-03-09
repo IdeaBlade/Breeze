@@ -232,7 +232,7 @@
 
     test("returns just first order with expand='Customer' when order.Customer is null", 2, function (){
         var first = orders[0];
-        first.Customer = null;
+        first.setProperty('Customer', null);
 
         var graph = getEntityGraph(first, 'Customer');
 
@@ -539,8 +539,8 @@
         for (var ordIx = 0, ordLen = orders.length; ordIx < ordLen; ordIx++) {
             for (var prodIx = 0; prodIx < ordIx; prodIx++)
                 orderDetails.push( manager.createEntity('OrderDetail', {
-                    OrderID: orders[ordIx].OrderID,
-                    ProductID: products[prodIx].ProductID,
+                    OrderID: orders[ordIx].getProperty('OrderID'),
+                    ProductID: products[prodIx].getProperty('ProductID'),
                     Quantity: 1 + orderDetails.length
                 }, UNCHGD));
         }
