@@ -136,6 +136,7 @@
   <ItemGroup>
     <Content Include="tests\apiDirectTests.js" />
     <Content Include="tests\basicTodoTests.js" />
+    <Content Include="tests\getEntityGraphTests.js" />
     <Content Include="tests\helpers\metadataOnClient.js" />
     <Content Include="tests\metadataOnClientTests.js" />
     <Content Include="tests\multiControllerTests.js" />
