@@ -205,151 +205,115 @@
     });
 
     test("returns first order and its customer with expand='Customer'", 1, function () {
-        var first = orders[0];
-        var firstCust = first.getProperty('Customer');
+        var order = orders[0];
+        var orderCust = order.getProperty('Customer');
 
-        var graph = getEntityGraph(first, 'Customer');
+        var graph = getEntityGraph(order, 'Customer');
 
         var k = graph.length === 2 &&
-            graph[0] === first &&
-            graph[1] === firstCust;
+            graph.indexOf(order) > -1 &&
+            graph.indexOf(orderCust) > -1;
         ok(k, "should return one `Order`+ one `Customer`");
     });
 
     test("returns first order and its customer with expandClause", 1, function () {
         var query = new breeze.EntityQuery.from('Orders').expand('Customer');
 
-        var first = orders[0];
-        var firstCust = first.getProperty('Customer');
+        var order = orders[0];
+        var orderCust = order.getProperty('Customer');
 
-        var graph = getEntityGraph(first, query.expandClause);
+        var graph = getEntityGraph(order, query.expandClause);
 
         var k = graph.length === 2 &&
-            graph[0] === first &&
-            graph[1] === firstCust;
+            graph.indexOf(order) > -1 &&
+            graph.indexOf(orderCust) > -1;
         ok(k, "should return one `Order`+ one `Customer`");
     });
 
     test("returns just first order with expand='Customer' when order.Customer is null", 2, function (){
-        var first = orders[0];
-        first.setProperty('Customer', null);
+        var order = orders[0];
+        order.setProperty('Customer', null);
 
-        var graph = getEntityGraph(first, 'Customer');
+        var graph = getEntityGraph(order, 'Customer');
 
-        var k = graph.length === 1 && graph[0] === first;
-        ok(k, "should return exactly one `Order`");
+        var k = graph.length === 1 && graph[0] === order;
+        ok(k, "should return exactly one `Order` (the first)");
         equal(graph[0].entityAspect.entityState.name, breeze.EntityState.Modified.name,
             "the order should be 'Modified'");
     });
 
     test("first order returns no details with expand='OrderDetails'", 1, function () {
-        var first = orders[0];
-        var graph = getEntityGraph(first, 'OrderDetails');
-        var k = graph.length === 1 && graph[0] === first;
-        ok(k, "should return exactly one `Order`");
+        var order = orders[0];
+        var graph = getEntityGraph(order, 'OrderDetails');
+        var k = graph.length === 1 && graph[0] === order;
+        ok(k, "should return exactly one `Order` (the first)");
     });
 
-    test("last order returns details with expand='OrderDetails'", 1, function () {
-        var last = orders.pop();
-        var detailsCount = last.getProperty('OrderDetails').length;
+    test("last order returns details with expand='OrderDetails'", 3, function () {
+        var order = orders.pop();
+        var orderdetails = order.getProperty('OrderDetails');
 
-        var graph = getEntityGraph(last, 'OrderDetails');
+        var graph = getEntityGraph(order, 'OrderDetails');
 
-        var details = graph.slice(1);
-        var k = graph.length >= 2 &&
-            graph[0] === last &&
-            details.length === detailsCount &&
-            details.every(function(d) {
-                return d.entityType.shortName === 'OrderDetail';
-            });
-        ok(k, "should return one `Order` and its "+detailsCount+" `OrderDetails`");
+        assertCount(graph, 1 + orderdetails.length);
+        assertAllInNoDups(graph, order, "order (the last)");
+        assertAllInNoDups(graph, orderdetails, " order details");
     });
 
-    test("last order returns details (including deleted) with expand='OrderDetails'", 3, function () {
-        var last = orders.pop();
-        var details = last.getProperty('OrderDetails');
-        var detailsCount = details.length;
-        details[0].entityAspect.setDeleted();
+    test("last order returns details (including deleted) with expand='OrderDetails'", 4,
+    function () {
+        var order = orders.pop();
+        var orderdetails = order.getProperty('OrderDetails').slice();
+        orderdetails[0].entityAspect.setDeleted();
 
-        equal(last.getProperty('OrderDetails').length, detailsCount - 1,
-            "'OrderDetails nav returns one fewer because of deletion");
+        var graph = getEntityGraph(order, 'OrderDetails');
 
-        var graph = getEntityGraph(last, 'OrderDetails');
-
-        details = graph.slice(1);
-        var k = graph.length >= 2 &&
-            graph[0] === last &&
-            details.length === detailsCount &&
-            details.every(function (d) {
-                return d.entityType.shortName === 'OrderDetail';
-            });
-        ok(k, "should return one `Order` and all " + detailsCount + " `OrderDetails`");
-        var deleted = details.filter(function(d) {
-            return d.entityAspect.entityState === breeze.EntityState.Deleted;
-        });
-        equal(deleted.length, 1, "one of the `OrderDetails` should be 'Deleted'");
+        assertCount(graph, 1 + orderdetails.length);
+        assertAllInNoDups(graph, order, "order (the last)");
+        assertAllInNoDups(graph, orderdetails, " order details");
+        equal(order.getProperty('OrderDetails').length, orderdetails.length - 1,
+             "'order.OrderDetails' returns one fewer because of deletion");
     });
 
-    test("last order returns customer and details with expand='Customer,OrderDetails'", 1, function () {
-        var last = orders.pop();
-        var lastCust = last.getProperty('Customer');
-        var detailsCount = last.getProperty('OrderDetails').length;
+    test("last order returns customer and details with expand='Customer,OrderDetails'", 4,
+    function () {
+        var order = orders.pop();
+        var orderCust = order.getProperty('Customer');
+        var orderdetails = order.getProperty('OrderDetails');
 
-        var graph = getEntityGraph(last, 'Customer, OrderDetails');
+        var graph = getEntityGraph(order, 'Customer, OrderDetails');
 
-        var order = graph.shift();
-        var customer = graph.shift();
-        var details = graph;
-        var k = order === last &&
-            customer === lastCust &&
-            details.length === detailsCount &&
-            details.every(function (d) {
-                return d.entityType.shortName === 'OrderDetail';
-            });
-        ok(k, "should return one `Order`, its `Customer` and its " +
-            detailsCount + " `OrderDetails`");
+        var expectedCount = 2 + orderdetails.length;
+        assertCount(graph, expectedCount);
+        assertAllInNoDups(graph, order, "order (the last)");
+        assertAllInNoDups(graph, orderCust, "order customer");
+        assertAllInNoDups(graph, orderdetails, " order details");
     });
-
 
     test("first order returns just the order with expand='OrderDetails.Product'", 1, function () {
-        var first = orders[0];
-        var graph = getEntityGraph(first, 'OrderDetails.Product');
-        var k = graph.length === 1 && graph[0] === first;
+        var order = orders[0];
+        var graph = getEntityGraph(order, 'OrderDetails.Product');
+        var k = graph.length === 1 && graph[0] === order;
         ok(k, "should return exactly one `Order`");
     });
 
     test("last order returns the order, its customer, its details, and their products " +
          "with expand='OrderDetails.Product, Customer'", 5,
     function () {
-        var last = orders.pop();
-        var lastCust = last.getProperty('Customer');
-        var lastDetails = last.getProperty('OrderDetails');
-        var detailsCount = lastDetails.length;
-        var lastProducts = [];
-        lastDetails.forEach(function(d) {
-            var p = d.getProperty('Product');
-            if (lastProducts.indexOf(p) < 0) {
-                lastProducts.push(p);
-            }
-        });
-        var productCount = lastProducts.length;
-        var expectedCount = 2 + detailsCount + productCount;
+        var order = orders.pop();
+        var orderCust = order.getProperty('Customer');
+        var orderdetails = order.getProperty('OrderDetails');
+        var prods = orderDetails.map(function (d) { return d.getProperty('Product'); });
+        var orderProducts = addDistinct(prods);
 
-        var graph = getEntityGraph(last, 'OrderDetails.Product, Customer');
+        var graph = getEntityGraph(order, 'OrderDetails.Product, Customer');
 
-        equal(graph.length, expectedCount, 'graph count should be ' + expectedCount);
-
-        var ords =  graph.filter(function(e) { return e.entityType.shortName === 'Order'; });
-        equal(ords[ords.length - 1], last, "graph should have the last order");
-
-        var cnt = graph.filter(function (e) { return e.entityType.shortName === 'OrderDetail'; }).length;
-        equal(cnt, detailsCount, "graph should have "+detailsCount+ " `OrderDetails`");
-
-        cnt = graph.filter(function (e) { return e.entityType.shortName === 'Product'; }).length;
-        equal(cnt, detailsCount, "graph should have " + productCount + " distinct `Products`");
-
-        var custs = graph.filter(function (e) { return e.entityType.shortName === 'Customer'; });
-        equal(custs[custs.length - 1], lastCust, "graph should have last order's `Customer`");
+        var expectedCount = 2 + orderdetails.length + orderProducts.length;
+        assertCount(graph, expectedCount);
+        assertAllInNoDups(graph, order, "order (the last)");
+        assertAllInNoDups(graph, orderCust, "order customer");
+        assertAllInNoDups(graph, orderdetails, " order details");
+        assertAllInNoDups(graph, orderProducts, " distinct order products");
     });
 
     // Compact expand
@@ -369,50 +333,30 @@
     function customerExpandTest () {
         // setup
         var cust = customers[0];
-        var custOrders = cust.getProperty('Orders');
         var custEmps = [];
         var custDetails = [];
         var custProducts = [];
+        var custOrders = cust.getProperty('Orders');
         custOrders.forEach(function(ord) {
-            var e = ord.getProperty('Employee');
-            if (custEmps.indexOf(e)< 0) {
-                custEmps.push(e);
-            }
+            addDistinct(ord.getProperty('Employee'), custEmps);
             var details = ord.getProperty('OrderDetails');
+            var prods = details.map(function(d) { return d.getProperty('Product'); });
+            addDistinct(prods, custProducts);
             custDetails = custDetails.concat(details);
-            details.forEach(function (d) {
-                var p = d.getProperty('Product');
-                if (custProducts.indexOf(p) < 0) {
-                    custProducts.push(p);
-                }
-            });
         });
 
-        var orderCount = custOrders.length;
-        var employeeCount = custEmps.length;
-        var detailCount = custDetails.length;
-        var productCount = custProducts.length;
-        var expectedCount = 1 + orderCount + employeeCount + detailCount + productCount;
 
         var graph = getEntityGraph(cust, custExpand);
 
         // Asserts
-        equal(graph.length, expectedCount, 'graph count should be ' + expectedCount);
-
-        var custs = graph.filter(function (e) { return e.entityType.shortName === 'Customer'; });
-        equal(custs[custs.length - 1], cust, "graph should have the first customer");
-
-        var cnt = graph.filter(function (e) { return e.entityType.shortName === 'Order'; }).length;
-        equal(cnt, orderCount, "graph should have " + orderCount + " orders");
-
-        cnt = graph.filter(function (e) { return e.entityType.shortName === 'Employee'; }).length;
-        equal(cnt, employeeCount, "graph should have " + employeeCount + " distinct employees");
-
-        cnt = graph.filter(function (e) { return e.entityType.shortName === 'OrderDetail'; }).length;
-        equal(cnt, detailCount, "graph should have " + detailCount + " details");
-
-        cnt = graph.filter(function (e) { return e.entityType.shortName === 'Product'; }).length;
-        equal(cnt, productCount, "graph should have " + productCount + " distinct products");
+        var expectedCount = 1 + custOrders.length + custEmps.length +
+            custDetails.length + custProducts.length;
+        assertCount(graph, expectedCount);
+        assertAllInNoDups(graph, cust, "customer (the first)");
+        assertAllInNoDups(graph, custOrders, "orders");
+        assertAllInNoDups(graph, custEmps, "distinct order employees");
+        assertAllInNoDups(graph, custDetails, " order details");
+        assertAllInNoDups(graph, custProducts, " distinct order products");
     }
 
     // works for self-referential type
@@ -430,11 +374,8 @@
 
         equal(graph.length - 1, reportsCount, "should have " + reportsCount + " reports");
 
-        var k = seconds.every(function (emp) { return graph.indexOf(emp) > -1; });
-        ok(k, "its " + seconds.length + " direct reports are in the graph");
-
-        k = thirds.every(function (emp) { return graph.indexOf(emp) > -1; });
-        ok(k, "the " + thirds.length + " direct reports of its direct reports are in the graph");
+        assertAllInNoDups(graph, seconds, "direct reports");
+        assertAllInNoDups(graph, thirds, "direct reports of its direct reports");
     });
 
     /*********************************************************
@@ -473,7 +414,6 @@
         }, /entitymanager/i, "throws mixed EntityManager error");
     });
 
-
     test("should error if bad expand object", 1, function () {
         var order = orders.pop();
         throws(function () {
@@ -488,10 +428,20 @@
         }, /can't expand/, "throws 'can\'t expand' error");
     });
 
-
     /*********************************************************
      * helpers
     *********************************************************/
+
+    function addDistinct(input, results) {
+        results = results || [];
+        input = Array.isArray(input) ? input : [input];
+        input.forEach(function (item) {
+            if (item != null && results.indexOf(item) < 0) {
+                results.push(item);
+            }
+        });
+        return results;
+    }
 
     function addTestEntities() {
         var UNCHGD = breeze.EntityState.Unchanged;
@@ -544,6 +494,28 @@
                     Quantity: 1 + orderDetails.length
                 }, UNCHGD));
         }
+    }
+
+    function assertAllInNoDups(dest, src, srcDescription) {
+        src = Array.isArray(src) ? src : [src];
+        var srcCount = src.length;
+        var bad = []; // for debugging
+        src.forEach(function (s) {
+            if (s == null) {
+                srcCount -= 1;
+            } else {
+                var miss = dest.filter(function (d) { return d === s; });
+                if (miss.length !== 1) { bad = bad.push(s); }
+            }
+        });
+        var message = 'should have ' + srcCount + ' ' + srcDescription + '.';
+        equal(bad.length, 0, message);
+    }
+
+    function assertCount(array, expectedCount, description) {
+        description = description || 'graph';
+        equal(array.length, expectedCount, description +
+            " count should be " + expectedCount);
     }
 
     // Populate the moduleMetadataStore with Northwind service metadata
