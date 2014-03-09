@@ -2,158 +2,6 @@
 // ReSharper disable UnusedLocals
 (function (testFns) {
     "use strict";
-    /*********************************************************
-    * getEntityGraph 
-    *********************************************************/
-    function getEntityGraph(roots, expand) {
-        var entityGroupMap, rootType;
-        roots = Array.isArray(roots) ? roots : [roots];
-        if (!roots.length) { return []; }
-        getRootInfo();
-        var expandFns = getExpandFns();
-        var results = roots.slice();
-        expandFns.forEach(function(fn) { fn(roots); });
-        return results;
-
-        function getRootInfo() {
-            roots.forEach(function (root, ix) {
-                var aspect;
-                var getRootErr = function (msg) {
-                    return new Error("'getEntityGraph' root[" + ix + "] " + msg);
-                };
-
-                if (!root || !(aspect = root.entityAspect)) {
-                    throw getRootErr('is not an entity');
-                }
-                if (aspect.entityState === breeze.EntityState.Detached) {
-                    throw getRootErr('is a detached entity');
-                }
-                if (rootType) {
-                    if (rootType !== root.entityType) {
-                        throw getRootErr("has a different 'EntityType' than other roots");
-                    }
-                } else {
-                    rootType = root.entityType;
-                }
-
-                var em = aspect.entityManager;
-                if (entityGroupMap) {
-                    if (entityGroupMap !== em._entityGroupMap) {
-                        throw getRootErr("has a different 'EntityManager' than other roots");
-                    }
-                } else {
-                    entityGroupMap = em._entityGroupMap;
-                }
-            });
-        }
-
-        function getExpandFns() {
-            try {
-                if (!expand) {
-                    return [];
-                } else if (typeof expand === 'string') {
-                    // tricky because Breeze expandClause not exposed publically
-                    expand = new breeze.EntityQuery().expand(expand).expandClause;
-                } 
-                if (expand.propertyPaths) { // expand clause
-                    expand = expand.propertyPaths;
-                } else if (Array.isArray(expand)) {
-                    if (!expand.every(function(elem) { return typeof elem === 'string'; })) {
-                        throw '';
-                    }
-                } else {throw '';}
-            } catch (_) {
-                throw new Error(
-                    "expand must be an expand string, an expand clause, or array of string paths");
-            }
-
-            var fns = expand.map(makePathFns);         
-            return fns;
-        }
-
-        function makePathFns(path) {
-            var fns = [],
-                segments = path.split('.'),
-                type = rootType;
-
-            for (var i = 0, len = segments.length; i < len; i++) {
-                var f = makePathFn(type, segments[i]);
-                type = f.navType;
-                fns.push(f);
-            } 
-
-            return function (entities) {
-                for (var fi = 0, flen = fns.length; fi < len; fi++) {
-                    var related = [];
-                    f = fns[fi];
-                    entities.forEach(function(entity) {
-                        related = related.concat(f(entity));
-                    });
-                    entities = [];
-                    var notLast = fi < flen - 1;
-                    related.forEach(function (entity) {
-                        if (results.indexOf(entity) < 0) {
-                            results.push(entity);
-                        }
-                        if (notLast && entities.indexOf(entity) < 0) {
-                            entities.push(entity);
-                        }
-                    });
-                }
-            };
-        }
-
-        function makePathFn(baseType, path) {
-            var fn, navType;
-            try {
-                var baseTypeName = baseType.name;
-                var nav = baseType.getNavigationProperty(path);
-                navType = nav.entityType;
-                var navTypeName = navType.name;
-                var fkName = nav.foreignKeyNames[0];
-                if (fkName) {
-                    fn = function (entity) {
-                        try {
-                            var keyValue = entity.getProperty(fkName);
-                            var grp = entityGroupMap[navTypeName];
-                            if (grp) {
-                                var val = grp._entities[grp._indexMap[keyValue]];
-                                return val ? [val] : [];
-                            } else {
-                                return [];
-                            }
-                        } catch (_) {
-                            throw new Error("can't expand '" + path + "' for " + baseTypeName);
-                        }
-
-                    };
-                } else {
-                    fkName = nav.inverse ?
-                       nav.inverse.foreignKeyNames[0] :
-                       nav.inverseForeignKeyNames[0];
-                    if (!fkName) { throw ''; }
-                    fn = function (entity) {
-                        try {
-                            var keyValue = entity.entityAspect.getKey().values[0];
-                            var grp = entityGroupMap[navTypeName];
-                            return grp ?
-                                grp._entities.filter(function(e) {
-                                    return e.getProperty(fkName) === keyValue;
-                                }) : [];
-                        } catch (_) {
-                            throw new Error("can't expand '" + path + "' for " + baseTypeName);
-                        }
-                    };
-                }
-                fn.navType = navType;
-                fn.path = path;
-                return fn;
-
-            } catch (ex) {
-                throw new Error("'getEntityGraph' can't expand path=" + path);
-            }
-        }
-    }
 
     /*********************************************************
     * Breeze configuration and module setup 
@@ -163,6 +11,7 @@
     var EntityManager = breeze.EntityManager;
     var EntityQuery = breeze.EntityQuery;
     var EntityState = breeze.EntityState;
+    var getEntityGraph = EntityManager.getEntityGraph;
 
     var customers, employees, manager, orders, orderDetails, products;
     var moduleMetadataStore = new MetadataStore();
@@ -345,7 +194,6 @@
             custDetails = custDetails.concat(details);
         });
 
-
         var graph = getEntityGraph(cust, custExpand);
 
         // Asserts
@@ -368,15 +216,49 @@
             thirds = thirds.concat(emp.getProperty('DirectReports'));
         });
 
-        var reportsCount = seconds.length + thirds.length;
-
         var graph = getEntityGraph(first, 'DirectReports.DirectReports');
 
-        equal(graph.length - 1, reportsCount, "should have " + reportsCount + " reports");
-
+        assertCount(graph, 1 + seconds.length + thirds.length);
         assertAllInNoDups(graph, seconds, "direct reports");
         assertAllInNoDups(graph, thirds, "direct reports of its direct reports");
     });
+
+    // get graph from a Customer expand query; requires a manager instance
+    test("customer query with 'Orders.OrderDetails' returns graph with orders & details", 4, function () {
+        var cust = customers[0];
+
+        var query = breeze.EntityQuery.from('Customers')
+                    .where('CompanyName', 'eq', cust.getProperty('CompanyName'))
+                    .expand('Orders.OrderDetails');
+
+        customerQueryTest(cust, query);
+    });
+
+    // get graph from a Customer query but override expand; requires a manager instance
+    test("customer query with separate expand spec returns graph with orders & details", 4, function () {
+        var cust = customers[1];
+
+        var query = breeze.EntityQuery.from('Customers')
+            .where('CompanyName', 'eq', cust.getProperty('CompanyName'))
+            .expand('Orders.Employee'); // WILL OVERRIDE THIS EXPAND
+        customerQueryTest(cust, query, 'Orders.OrderDetails');
+    });
+
+    function customerQueryTest(cust, query, expand) {
+        var custOrders = cust.getProperty('Orders');
+        var custDetails = [];
+        custOrders.forEach(function (o) {
+            custDetails = custDetails.concat(o.getProperty('OrderDetails'));
+        });
+
+        var graph = manager.getEntityGraph(query, expand);
+
+        var expectedCount = 1 + custOrders.length + custDetails.length;
+        assertCount(graph, expectedCount);
+        assertAllInNoDups(graph, cust, "customer = "+cust.getProperty('CompanyName'));
+        assertAllInNoDups(graph, custOrders, "customer orders");
+        assertAllInNoDups(graph, custDetails, "customer order details");
+    }
 
     /*********************************************************
      * Error cases
