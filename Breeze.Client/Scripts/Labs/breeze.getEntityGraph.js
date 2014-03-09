@@ -7,7 +7,7 @@
  * Author: Ward Bell
  * Version: 0.9.0
  * --------------------------------------------------------------------------------
- * Adds getEntityGraph method to Breeze EntityManager prototype
+ * Adds getEntityGraph method to Breeze EntityManager and EntityManager prototype
  * Source:
  * https://github.com/IdeaBlade/Breeze/blob/master/Breeze.Client/Scripts/Labs/breeze.getEntityGraph.js
  *
@@ -40,7 +40,7 @@
 
     if (!EntityManager.getEntityGraph){
         /**
-        Get entity/entities and their related entities as specified by expand. 
+        Get related entities of root entity (or root entities) as specified by expand. 
         @example
             var results = breeze.EntityManager.getEntityGraph(customer, 'Orders.OrderDetails');
             // results will be the customer, all of its orders and their details even if deleted.
@@ -68,7 +68,7 @@
         **/
 
         /**
-        Get entity/entities and their related entities as specified by expand. 
+        Get related entities of root entity (or root entities) as specified by expand. 
         @example
             var results = manager.getEntityGraph(customer, 'Orders.OrderDetails');
             // results will be the customer, all of its orders and their details even if deleted.
