@@ -47,7 +47,7 @@
         @method getEntityGraph
         @param roots {Entity|Array of Entity} The root entity or root entities.
         @param expand {String|Array of String|Object} an expand string, a query expand clause, or array of string paths
-        @return {Array of Entity} root entities and their related entities, including deleted entities;
+        @return {Array of Entity} root entities and their related entities, including deleted entities. Duplicates are removed and the order of results is indeterminate.
         **/
         EntityManager.getEntityGraph = getEntityGraphCore;
     }
@@ -64,7 +64,7 @@
         @method getEntityGraph
         @param query {EntityQuery} A query to be executed against the manager's local cache.
         @param [expand] {String|Array of String|Object} an expand string, a query expand clause, or array of string paths
-        @return {Array of Entity} local queried root entities and their related entities, including deleted entities;
+        @return {Array of Entity} local queried root entities and their related entities, including deleted entities. Duplicates are removed and the order of results is indeterminate.
         **/
 
         /**
@@ -75,7 +75,7 @@
         @method getEntityGraph
         @param roots {Entity|Array of Entity} The root entity or root entities.
         @param expand {String|Array of String|Object} an expand string, a query expand clause, or array of string paths
-        @return {Array of Entity} root entities and their related entities, including deleted entities;
+        @return {Array of Entity} root entities and their related entities, including deleted entities. Duplicates are removed and the order of results is indeterminate.
         **/
         proto.getEntityGraph = getEntityGraph;
     }
@@ -90,14 +90,21 @@
     }
 
     function getEntityGraphCore(roots, expand) {
-        var entityGroupMap, rootType;
+        var entityGroupMap, results = [], rootType;
         roots = Array.isArray(roots) ? roots : [roots];
-        if (!roots.length) { return []; }
+        addToResults(roots); // removes dups & nulls
+        roots = results.slice(); 
+        if (!roots.length) { return results; }
         getRootInfo();
         var expandFns = getExpandFns();
-        var results = roots.slice();
         expandFns.forEach(function (fn) { fn(roots); });
         return results;
+
+        function addToResults(entities){
+            entities.forEach(function(entity){
+                if (entity && results.indexOf(entity) < 0) { results.push(entity); }
+            })
+        }
 
         function getRootInfo() {
             roots.forEach(function (root, ix) {
@@ -173,16 +180,15 @@
                     entities.forEach(function (entity) {
                         related = related.concat(f(entity));
                     });
-                    entities = [];
-                    var notLast = fi < flen - 1;
-                    related.forEach(function (entity) {
-                        if (results.indexOf(entity) < 0) {
-                            results.push(entity);
-                        }
-                        if (notLast && entities.indexOf(entity) < 0) {
-                            entities.push(entity);
-                        }
-                    });
+                    addToResults(related);
+                    if (fi < flen - 1) { // only if more fns
+                        entities = [];
+                        related.forEach(function (entity) {
+                            if (entities.indexOf(entity) < 0) {
+                                entities.push(entity);
+                            }
+                        });                        
+                    };
                 }
             };
         }

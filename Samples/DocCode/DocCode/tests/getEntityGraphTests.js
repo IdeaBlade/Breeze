@@ -261,8 +261,19 @@
     }
 
     /*********************************************************
-     * Error cases
+     * Edge and Error cases
     *********************************************************/
+
+    test("removes duplicate roots from result", 1, function () {
+        var graph = getEntityGraph([orders[0], orders[0], orders[0]]);
+        equal(graph.length, 1, "should return only one of the duplicate orders");
+    });
+
+    test("ignores root collection with null element", 1, function () {
+        var graph = getEntityGraph([null]);
+        equal(graph.length, 0, "should ignore the null root");
+    });
+
     test("should error if root is not an entity", 1, function () {
         throws(function () {
             var graph = getEntityGraph({}, 'OrderDetails');
