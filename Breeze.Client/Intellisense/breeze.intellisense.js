@@ -1,4 +1,4 @@
-﻿// Generated on: Sat Mar 08 2014 14:53:53 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Sun Mar 09 2014 15:53:05 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -903,7 +903,7 @@ intellisense.annotate(breeze.breeze.EntityAction, {
   /// <field name="AttachOnImport" type="breeze.breeze.EntityAction" >AttachOnImport - Entity was attached as a result of an import.</field>
   'AttachOnImport': null,
   
-  /// <field name="Detach" type="breeze.breeze.EntityAction" >AttachOnQuery - Entity was detached.</field>
+  /// <field name="Detach" type="breeze.breeze.EntityAction" >Detach - Entity was detached.</field>
   'Detach': null,
   
   /// <field name="MergeOnQuery" type="breeze.breeze.EntityAction" >MergeOnQuery - Properties on the entity were merged as a result of a query.</field>
@@ -912,8 +912,8 @@ intellisense.annotate(breeze.breeze.EntityAction, {
   /// <field name="MergeOnImport" type="breeze.breeze.EntityAction" >MergeOnImport - Properties on the entity were merged as a result of an import.</field>
   'MergeOnImport': null,
   
-  /// <field name="MergeOnImport" type="breeze.breeze.EntityAction" >MergeOnImport - Properties on the entity were merged as a result of a save</field>
-  'MergeOnImport': null,
+  /// <field name="MergeOnSave" type="breeze.breeze.EntityAction" >MergeOnSave - Properties on the entity were merged as a result of a save</field>
+  'MergeOnSave': null,
   
   /// <field name="PropertyChange" type="breeze.breeze.EntityAction" >PropertyChange - A property on the entity was changed.</field>
   'PropertyChange': null,

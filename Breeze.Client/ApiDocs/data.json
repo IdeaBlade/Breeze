@@ -2457,7 +2457,7 @@
         {
             "file": "..\\Scripts\\IBlade\\a30_entityAction.js",
             "line": 49,
-            "description": "AttachOnQuery - Entity was detached.",
+            "description": "Detach - Entity was detached.",
             "itemtype": "property",
             "name": "Detach",
             "type": "EntityAction",
@@ -2493,9 +2493,9 @@
         {
             "file": "..\\Scripts\\IBlade\\a30_entityAction.js",
             "line": 76,
-            "description": "MergeOnImport - Properties on the entity were merged as a result of a save",
+            "description": "MergeOnSave - Properties on the entity were merged as a result of a save",
             "itemtype": "property",
-            "name": "MergeOnImport",
+            "name": "MergeOnSave",
             "type": "EntityAction",
             "final": 1,
             "static": 1,
