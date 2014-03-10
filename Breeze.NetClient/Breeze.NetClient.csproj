@@ -137,6 +137,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="_Status.txt" />
     <Content Include="_TODO.txt" />
     <Content Include="__Notes.txt" />
   </ItemGroup>

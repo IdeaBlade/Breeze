@@ -133,6 +133,15 @@ namespace Breeze.NetClient {
       } else {
         entitiesToSave = entities.Where(e => !e.EntityAspect.IsDetached && e.EntityAspect.EntityManager == this);
       }
+
+      if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnSave) > 0) {
+        entitiesToSave.ForEach(e => {
+          var errors = e.EntityAspect.Validate();
+          if (errors.Any()) {
+            throw new SaveException(errors);
+          };
+        });
+      }
       saveOptions = new SaveOptions(saveOptions ?? this.DefaultSaveOptions ?? SaveOptions.Default);
       if (saveOptions.ResourceName == null) saveOptions.ResourceName = "SaveChanges";
       if (saveOptions.DataService == null) saveOptions.DataService = this.DefaultDataService;
@@ -654,12 +663,11 @@ namespace Breeze.NetClient {
         aspect.EntityType.NavigationProperties.ForEach(np => {
           aspect.ProcessNpValue(np, e => AttachEntity(e, entityState, mergeStrategy));
         });
-        
 
-        // TODO: impl validate on attach
-        //    if (this.validationOptions.validateOnAttach) {
-        //        attachedEntity.entityAspect.validateEntity();
-        //    }
+        if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnAttach) > 0) {
+          aspect.Validate();
+        }
+
 
         if (!entityState.IsUnchanged()) {
           NotifyStateChange(aspect, true);
@@ -684,8 +692,12 @@ namespace Breeze.NetClient {
       //    if (this.validationOptions.validateOnAttach) {
       //        attachedEntity.entityAspect.validateEntity();
       //    }
+      if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnQuery) > 0) {
+        aspect.Validate();
+      }
 
-      aspect.OnEntityChanged(EntityAction.Attach);
+
+      aspect.OnEntityChanged(EntityAction.AttachOnQuery);
       return aspect;
 
     }

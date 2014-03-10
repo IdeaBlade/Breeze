@@ -16,7 +16,7 @@ namespace Breeze.NetClient {
   /// <remarks>
   /// The <b>ComplexAspect</b> provides verification and change tracking capaibilities to the ComplexObject.
   /// </remarks>
-  public class ComplexAspect : StructuralAspect, INotifyDataErrorInfo {
+  public class ComplexAspect : StructuralAspect, INotifyDataErrorInfo  {
 
     #region Ctors
 
@@ -169,9 +169,14 @@ namespace Breeze.NetClient {
       var entityAspect = this.EntityAspect;
       if (entityAspect != null) {
         if (ve == null) {
-          entityAspect.RemoveValidationError(ValidationError.GetKey(vr, vc.PropertyPath));
+          if (EntityAspect.RemoveValidationError(ValidationError.GetKey(vr, vc.PropertyPath))) {
+            // this is the local OnErrorsChanged which gets just the local property name
+            // not the entire path;
+            OnErrorsChanged(vc.Property.Name);
+          }
         } else {
-          entityAspect.AddValidationError(ve);
+          EntityAspect.AddValidationError(ve);
+          OnErrorsChanged(vc.Property.Name);
         }
       }
       return ve;
@@ -271,12 +276,9 @@ namespace Breeze.NetClient {
 
       if (this.IsAttached && !EntityManager.IsLoadingEntity) {
         if ((EntityManager.ValidationOptions.ValidationApplicability & ValidationApplicability.OnPropertyChange) > 0) {
-          EntityAspect.ValidateProperty(property, newValue);
+          ValidateProperty(property, newValue);
         }
-        //if (entityManager.validationOptions.validateOnPropertyChange) {
-        //    entityAspect._validateProperty(newValue,
-        //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
-        //}
+
       }
     }
 
@@ -306,11 +308,9 @@ namespace Breeze.NetClient {
           }
         }
 
-        // TODO: implement this.
-        //if (entityManager.validationOptions.validateOnPropertyChange) {
-        //    entityAspect._validateProperty(newValue,
-        //        { entity: entity, property: property, propertyName: propPath, oldValue: oldValue });
-        //}
+        if ((EntityManager.ValidationOptions.ValidationApplicability & ValidationApplicability.OnPropertyChange) > 0) {
+          ValidateProperty(property, newValue);
+        }
       }
 
     }
@@ -332,12 +332,20 @@ namespace Breeze.NetClient {
       return aspect.GetPropertyPath(this.ParentEntityProperty.Name) + "." + propName;
     }
 
-    // proto.getPropertyPath = function(propName) {
-    //    var parent = this.parent;
-    //    if (!parent) return null;
-    //    var aspect = parent.complexAspect || parent.entityAspect;
-    //    return aspect.getPropertyPath(this.parentProperty.name + "." + propName);
-    //}
+    internal String PropertyPathPrefix {
+      get {
+        if (_propertyPathPrefix == null) {
+          var name = this.ParentProperty.Name;
+          var parent = this.Parent as IComplexObject;
+          if (parent == null) {
+            _propertyPathPrefix = name + ".";
+          } else {
+            _propertyPathPrefix = parent.ComplexAspect.PropertyPathPrefix + name + ".";
+          }
+        }
+        return _propertyPathPrefix;
+      }
+    }
 
     //private DateTime ConvertToSqlDateTime(DateTime dt) {
     //  var ticks = ((long)1E5) * (dt.Ticks / (long)1E5);
@@ -354,9 +362,7 @@ namespace Breeze.NetClient {
     /// </summary>
     bool INotifyDataErrorInfo.HasErrors {
       get {
-        // TODO: implement this
-        return false;
-
+        return EntityAspect.ValidationErrors.Where(ve => ve.Context.ComplexObject == this.ComplexObject).Any();
       }
     }
 
@@ -373,22 +379,8 @@ namespace Breeze.NetClient {
     }
 
     IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName) {
-      return null;
-    }
-
-    internal String PropertyPathPrefix {
-      get {
-        if (_propertyPathPrefix == null) {
-          var name = this.ParentProperty.Name;
-          var parent = this.Parent as IComplexObject;
-          if (parent == null) {
-            _propertyPathPrefix = name + ".";
-          } else {
-            _propertyPathPrefix = parent.ComplexAspect.PropertyPathPrefix + name + ".";
-          }
-        }
-        return _propertyPathPrefix;
-      }
+      // parent EntityAspect has all of the errors.
+      return EntityAspect.GetValidationErrors(this.GetPropertyPath(propertyName));
     }
 
     /// <summary>

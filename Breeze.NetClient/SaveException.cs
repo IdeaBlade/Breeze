@@ -22,10 +22,19 @@ namespace Breeze.NetClient {
       _entityErrors = new SafeList<EntityError>(entityErrors);
     }
 
+    public SaveException(IEnumerable<ValidationError> validationErrors) : base("ValidationErrors encountered - see the ValidationErrors property") {
+      _validationErrors = validationErrors;
+    }
+
     public ReadOnlyCollection<EntityError> EntityErrors {
       get { return _entityErrors.ReadOnlyValues; }
     }
+
+    public IEnumerable<ValidationError> ValidationErrors {
+      get { return _validationErrors; }
+    }
     private SafeList<EntityError> _entityErrors;
+    private IEnumerable<ValidationError> _validationErrors;
   }
 
  

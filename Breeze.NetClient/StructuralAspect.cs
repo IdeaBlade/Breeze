@@ -130,7 +130,7 @@ namespace Breeze.NetClient {
     public IEnumerable<ValidationError> Validate() {
       var vc = new ValidationContext(this.StructuralObject);
       vc.IsMutable = true;
-      var properties = this.StructuralType.Properties;
+      
       // PERF: 
       // Not using LINQ here because we want to reuse the same
       // vc property for perf reasons and this
@@ -138,6 +138,7 @@ namespace Breeze.NetClient {
       // we kept resolving with toList.  This is actually simpler code.
       
       var errors = new List<ValidationError>();
+      var properties = this.StructuralType.Properties;
       foreach (var prop in properties) {
         vc.Property = prop;
         vc.PropertyValue = this.GetValue(prop);
@@ -197,8 +198,6 @@ namespace Breeze.NetClient {
 
     #region other misc
 
-
-
     protected void RejectChangesCore() {
       if (_originalValuesMap == null) return;
       _originalValuesMap.ForEach(kvp => {
@@ -217,7 +216,6 @@ namespace Breeze.NetClient {
           ((IEnumerable)cos).Cast<IComplexObject>().ForEach(co => action(co));
         }
       });
-
     }
 
     #endregion

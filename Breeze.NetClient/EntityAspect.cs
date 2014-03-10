@@ -276,9 +276,7 @@ namespace Breeze.NetClient {
       // this.OriginalValuesMap = null;
       // this.PreproposedValuesMap = null;
 
-      // TODO: add later
-      // this._validationErrors = {};
-
+      
 
       EntityManager.NotifyStateChange(this, false);
       if (this.EntityGroup.ChangeNotificationEnabled) {
@@ -448,6 +446,10 @@ namespace Breeze.NetClient {
 
     // much of the validation code is in StructuralAspect.
 
+    public ICollection<ValidationError> ValidationErrors {
+      get { return _validationErrors.ReadOnlyValues; }
+    }
+
     protected override ValidationError ValidateCore(Validator vr, ValidationContext vc) {
       var ve = vr.Validate(vc);
       if (ve == null) {
@@ -468,30 +470,34 @@ namespace Breeze.NetClient {
     }
 
     public void AddValidationError(ValidationError validationError) {
-      _validationErrors.Add(validationError);
+      _validationErrors[validationError.Key] = validationError;
       OnErrorsChanged(validationError);
     }
 
-    public void RemoveValidationError(ValidationError validationError) {
-      if (_validationErrors.Remove(validationError)) {
+    public bool RemoveValidationError(ValidationError validationError) {
+      var removed = _validationErrors.Remove(validationError);
+      if (removed) {
         OnErrorsChanged(validationError);
       }
+      return removed;
     }
 
-    public void RemoveValidationError(String validationErrorKey) {
+    public bool RemoveValidationError(String validationErrorKey) {
       var removedError =_validationErrors[validationErrorKey];
       if (removedError != null) {
+        _validationErrors.RemoveKey(validationErrorKey);
         OnErrorsChanged(removedError);
+        return true;
+      } else {
+        return false;
       }
     }
 
     public void ClearValidationErrors() {
       var oldErrors = _validationErrors.ToList();
       _validationErrors.Clear();
-      oldErrors.ForEach(ve => RemoveValidationError(ve));
+      oldErrors.ForEach(ve => OnErrorsChanged(ve));
     }
-
-  
 
     #endregion
 
@@ -1446,12 +1452,10 @@ namespace Breeze.NetClient {
     /// </summary>
     /// <param name="propertyName"></param>
     private void OnErrorsChanged(ValidationError validationError) {
-      var property = validationError.Context.Property;
-      var propertyName = property == null ? null : property.Name;
-      OnErrorsChanged(propertyName);
+      OnErrorsChanged(validationError.Context.PropertyPath);
     }
 
-    private void OnErrorsChanged(String propertyName) {
+    private void OnErrorsChanged(String propertyPath) {
       // a property name of null means an 'entity' level errors ( not ALL errors)
       // _inErrorsChanged is needed because some environments try to reinvoke validation every time in the ErrorsChanged event fires.
       if (_inErrorsChanged) return;
@@ -1460,7 +1464,7 @@ namespace Breeze.NetClient {
       try {
         var handler = _errorsChangedHandler;
         if (handler != null) {
-          handler(this, new DataErrorsChangedEventArgs(propertyName));
+          handler(this, new DataErrorsChangedEventArgs(propertyPath));
         }
       } finally {
         _inErrorsChanged = false;

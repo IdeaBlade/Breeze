@@ -35,7 +35,7 @@ namespace Breeze.NetClient {
     public String Key {
       get {
         if (_key == null) {
-          _key = GetKey(Validator, Context.Property.Name);
+          _key = GetKey(Validator, Context.PropertyPath);
         }
         return _key;
       }

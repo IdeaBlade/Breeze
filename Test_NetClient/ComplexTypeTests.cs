@@ -404,41 +404,34 @@ namespace Test_NetClient {
       var r2 = await _em1.ExecuteQuery(q1);
       Assert.IsTrue(r2.Count() == 0);
     }
-    //test("validationErrorsChanged event", function () {
-    //    var em = newEm();
-    //    var supplierType = em.metadataStore.getEntityType("Supplier");
-    //    var supplier1 = supplierType.createEntity();
-    //    em.addEntity(supplier1);
-    //    var lastNotification;
-    //    var notificationCount = 0;
-    //    supplier1.entityAspect.validationErrorsChanged.subscribe(function (args) {
-    //        lastNotification = args;
-    //        notificationCount++;
-    //    });
-    //    var s = "long value long value";
-    //    s = s + s + s + s + s + s + s + s + s + s + s + s;
-    //    supplier1.setProperty("companyName", s);
-    //    ok(lastNotification.added, "last notification should have been 'added'");
-    //    ok(lastNotification.added[0].property.name === "companyName");
-    //    ok(lastNotification.removed[0].property.name === "companyName");
-    //    ok(notificationCount === 1, "should have been 1 notification");
-        
-    //    var location = supplier1.getProperty("location");
-    //    location.setProperty("city", s);
-    //    ok(lastNotification.added, "last notification should have been 'added'");
-    //    ok(lastNotification.added[0].propertyName === "location.city", "should have added 'location.city");
-    //    ok(notificationCount === 2, "should have been 2 notifications");
-    //    var errs = supplier1.entityAspect.getValidationErrors();
-    //    ok(errs.length == 2, "should be 2 errors"); // on companyName and city;
 
-    //    location.setProperty("city", "much shorter");
-    //    ok(lastNotification.removed, "last notification should have been 'removed'");
-    //    ok(lastNotification.removed[0].propertyName === "location.city", "should have removed 'location.city'");
-    //    ok(notificationCount === 3, "should have been 2 notifications");
-    //    errs = supplier1.entityAspect.getValidationErrors();
-    //    ok(errs.length == 1, "should be 1 error"); // on companyName
+    [TestMethod]
+    public async Task ValidationErrorsChanged() {
+      await _emTask;
 
-    //});
+      var supplier = new Supplier();
+      _em1.AddEntity(supplier);
+      var valErrors = supplier.EntityAspect.ValidationErrors;
+      var errors = new List<DataErrorsChangedEventArgs>();
+      ((INotifyDataErrorInfo)supplier).ErrorsChanged += (se, e) => {
+        errors.Add(e);
+      };
+      var s = "very long involved value";
+      s = s + s + s + s + s + s + s + s + s + s + s + s + s;
+      supplier.CompanyName = s;
+      Assert.IsTrue(errors.Last().PropertyName == "CompanyName");
+      Assert.IsTrue(valErrors.Count == 1);
+      var location = supplier.Location;
+      location.City = s;
+      Assert.IsTrue(errors.Last().PropertyName == "Location.City", "location.city should have been the propertyName");
+      Assert.IsTrue(errors.Count == 2);
+      Assert.IsTrue((String) valErrors.Last().Context.PropertyValue == "Location.City");
+      location.City = "much shorter";
+      Assert.IsTrue(errors.Last().PropertyName == "Location.City", "location.city should have changed again");
+      Assert.IsTrue(errors.Count == 3);
+      Assert.IsTrue(valErrors.Count == 1);
+    }
+    
     
     //test("validate Entity", function () {
     //    var em = newEm();
