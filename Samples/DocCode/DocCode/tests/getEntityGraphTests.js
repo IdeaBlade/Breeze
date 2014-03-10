@@ -7,16 +7,17 @@
     * Breeze configuration and module setup 
     *********************************************************/
     var breeze = testFns.breeze;
-    var MetadataStore = breeze.MetadataStore;
     var EntityManager = breeze.EntityManager;
     var EntityQuery = breeze.EntityQuery;
     var EntityState = breeze.EntityState;
     var getEntityGraph = EntityManager.getEntityGraph;
+    var MetadataStore = breeze.MetadataStore;
+    var UNCHGD = breeze.EntityState.Unchanged;
 
     var customers, employees, manager, orders, orderDetails, products;
+    var handleFail = testFns.handleFail;
     var moduleMetadataStore = new MetadataStore();
     var northwindService = testFns.northwindServiceName;
-    var handleFail = testFns.handleFail;
 
     var defaultModelLibraryName = breeze.config.getAdapterInstance('modelLibrary').name;
     var testModelLibraryName = 'backingStore';
@@ -274,6 +275,18 @@
         equal(graph.length, 0, "should ignore the null root");
     });
 
+    test("returns root when no related entities in cache", 1, function () {
+        var em2 = manager.createEmptyCopy();
+
+        // move last order to the empty EntityManager
+        var order = orders.pop();
+        order.entityAspect.setDetached();
+        em2.attachEntity(order, UNCHGD);
+
+        var graph = getEntityGraph(order, 'OrderDetails.Product, Customer');
+        equal(graph[0], order, "should return only the root");
+    });
+
     test("should error if root is not an entity", 1, function () {
         throws(function () {
             var graph = getEntityGraph({}, 'OrderDetails');
@@ -337,8 +350,6 @@
     }
 
     function addTestEntities() {
-        var UNCHGD = breeze.EntityState.Unchanged;
-
         customers = [1,2].map(function (ix) {
             return manager.createEntity('Customer', {
                 CustomerID: testFns.newGuidComb(),
