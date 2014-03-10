@@ -136,6 +136,7 @@
   <ItemGroup>
     <Content Include="tests\apiDirectTests.js" />
     <Content Include="tests\basicTodoTests.js" />
+    <Content Include="tests\getEntityGraphTests.js" />
     <Content Include="tests\helpers\metadataOnClient.js" />
     <Content Include="tests\metadataOnClientTests.js" />
     <Content Include="tests\multiControllerTests.js" />
@@ -227,18 +228,20 @@
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
-    <PreBuildEvent>IF EXIST "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" GOTO breezeSourceExists
-echo Source breeze.debug.js was not found in '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' and was not copied
-GOTO :done
-:breezeSourceExists
-echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\
-COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
-COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
-COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
-COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Labs\breeze.ajaxrestinterceptor.js" "$(ProjectDir)Scripts" /Y
-COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Labs\breeze.metadata-helper.js" "$(ProjectDir)Scripts" /Y
-COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)Scripts" /Y
-:done</PreBuildEvent>
+    <PreBuildEvent>
+        IF EXIST "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" GOTO breezeSourceExists
+        echo Source breeze.debug.js was not found in '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' and was not copied
+        GOTO :done
+        :breezeSourceExists
+        echo Copying breeze.*.js from '$(ProjectDir)..\..\..\Breeze.Client\Scripts\' to Scripts\
+        COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.min.js" "$(ProjectDir)Scripts" /Y
+        COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.debug.js" "$(ProjectDir)Scripts" /Y
+        COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\breeze.intellisense.js" "$(ProjectDir)Scripts" /Y
+        COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Labs\breeze.ajaxrestinterceptor.js" "$(ProjectDir)Scripts" /Y
+        COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Labs\breeze.metadata-helper.js" "$(ProjectDir)Scripts" /Y
+        COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Labs\breeze.getEntityGraph.js" "$(ProjectDir)Scripts" /Y
+        COPY "$(ProjectDir)..\..\..\Breeze.Client\Scripts\Labs\breeze.savequeuing.js" "$(ProjectDir)Scripts" /Y
+        :done</PreBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
