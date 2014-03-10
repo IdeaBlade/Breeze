@@ -52,7 +52,7 @@ namespace Breeze.Core {
     }
 
     public void CopyTo(U[] array, int arrayIndex) {
-      throw new NotImplementedException();
+      _map.Values.CopyTo(array, arrayIndex);
     }
 
     public int Count {

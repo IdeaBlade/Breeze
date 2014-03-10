@@ -223,7 +223,7 @@ namespace Test_NetClient {
       Assert.IsTrue(s0.Location.City == "bar", "should have changed value");
       s0.EntityAspect.RejectChanges();
       Assert.IsTrue(s0.EntityAspect.EntityState.IsUnchanged(), "should be unchanged");
-      Assert.IsTrue(s0.Location.City != origCity, "should be back to original value");
+      Assert.IsTrue(s0.Location.City == origCity, "should be back to original value");
 
     }
 
@@ -444,72 +444,34 @@ namespace Test_NetClient {
       Assert.IsTrue(valErrors.Count == 0);
       Assert.IsTrue(((INotifyDataErrorInfo)supplier).HasErrors == false);
     }
-    
-    
-    //test("validate Entity", function () {
-    //    var em = newEm();
-    //    var supplierType = em.metadataStore.getEntityType("Supplier");
-    //    var supplier1 = supplierType.createEntity();
-    //    em.addEntity(supplier1);
-    //    var errs;
-    //    var s = "long value long value";
-    //    s = s + s + s + s + s + s + s + s + s + s + s + s;
-    //    supplier1.setProperty("companyName", s);
-    //    clearAndRevalidate(supplier1, 1); // companyName
-        
-    //    var location = supplier1.getProperty("location");
-    //    location.setProperty("city", s);
-    //    clearAndRevalidate(supplier1, 2); // companyName, city
 
-    //    location.setProperty("city", "much shorter");
-    //    clearAndRevalidate(supplier1, 1); // companyName
+    [TestMethod]
+    public async Task ValidationErrorsChanged2() {
+      await _emTask;
+      var supplier = new Supplier();
+      _em1.AddEntity(supplier);
+      var s = "very long involved value";
+      s = s + s + s + s + s + s + s + s + s + s + s + s + s;
+      supplier.CompanyName = s;
+      ClearAndRevalidate(supplier, 1);
+      supplier.Location.City = s;
+      ClearAndRevalidate(supplier, 2);
+      supplier.Location.City = "shorter";
+      ClearAndRevalidate(supplier, 1);
 
-    //});
+    }
+
     
-    //test("validate property", function () {
-    //    var em = newEm();
-    //    var supplierType = em.metadataStore.getEntityType("Supplier");
-    //    var supplier1 = supplierType.createEntity();
-    //    em.attachEntity(supplier1);
-    //    var errs;
-    //    var s = "long value long value";
-    //    s = s + s + s + s + s + s + s + s + s + s + s + s;
-    //    supplier1.setProperty("companyName", s);
-    //    supplier1.entityAspect.clearValidationErrors();
-    //    supplier1.entityAspect.validateProperty("companyName");
-    //    errs = supplier1.entityAspect.getValidationErrors();
-    //    ok(errs.length == 1, "should be 1 error");
-        
-    //    var location = supplier1.getProperty("location");
-    //    location.setProperty("city", s);
-    //    supplier1.entityAspect.clearValidationErrors();
-    //    supplier1.entityAspect.validateProperty("location.city");
-    //    errs = supplier1.entityAspect.getValidationErrors();
-    //    ok(errs.length == 1, "should be 1 error");
-        
-    //    supplier1.entityAspect.clearValidationErrors();
-    //    supplier1.entityAspect.validateProperty("location");
-    //    errs = supplier1.entityAspect.getValidationErrors();
-    //    ok(errs.length == 1, "should be 1 error");
+    private void ClearAndRevalidate(IEntity entity, int count) {
+      var valErrors = entity.EntityAspect.ValidationErrors;
+      Assert.IsTrue(valErrors.Count == count, "should be " + count + " validation errors");
+      entity.EntityAspect.ClearValidationErrors();
+      Assert.IsTrue(valErrors.Count == 0, "validationErrors should have been cleared");
+      var errs= entity.EntityAspect.Validate();
+      Assert.IsTrue(errs == valErrors);
+      Assert.IsTrue(valErrors.Count == count, "should be " + count + " validation errors - again");
 
-    //    location.setProperty("city", "much shorter");
-    //    supplier1.entityAspect.clearValidationErrors();
-    //    supplier1.entityAspect.validateProperty("location.city");
-    //    errs = supplier1.entityAspect.getValidationErrors();
-    //    ok(errs.length == 0, "should be no errors");
-
-    //});
-    
-    //function clearAndRevalidate(entity, count) {
-    //    var errs = entity.entityAspect.getValidationErrors();
-    //    ok(errs.length == count, "should be " + count + " errors"); 
-    //    entity.entityAspect.clearValidationErrors();
-    //    errs = entity.entityAspect.getValidationErrors();
-    //    ok(errs.length == 0, "should be no errors");
-    //    entity.entityAspect.validateEntity();
-    //    errs = entity.entityAspect.getValidationErrors();
-    //    ok(errs.length == count, "should be " + count + " errors");
-    //}
+    }
 
     //  create an entity (that has a complex type).
     //  Make a change to a string property of the complex type of the entity created. "test"
@@ -518,28 +480,26 @@ namespace Test_NetClient {
     //  make changes to the same string property of the complex type. "testED"
     //  Call manager.RevertChanges()..
 
-    //test("rejectChanges after save of new entity", function () {
-    //    var em = newEm();
-    //    var locationType = em.metadataStore.getEntityType("Location");
-    //    var supplier = em.createEntity("Supplier", { companyName: "Test1" });
-    //    var location = supplier.getProperty("location");
-    //    location.setProperty("city", "LA")
-    //    stop();
-    //    em.saveChanges().then(function (sr) {
-    //        var saved = sr.entities;
-    //        ok(saved.length === 1, "should have saved one record");
-    //        location = supplier.getProperty("location");
-    //        ok(location.getProperty("city") === "LA", "location.city should be 'LA'");
-    //        return em.fetchEntityByKey(supplier.entityAspect.getKey());
-    //    }).then(function (fr) {
-    //        supplier2 = fr.entity;
-    //        ok(supplier === supplier2, "should be the same supplier");
-    //        location = supplier.getProperty("location");
-    //        location.setProperty("city", "FOOO");
-    //        supplier.entityAspect.rejectChanges();
-    //        ok(location.getProperty("city") === "LA", "location.city should be 'LA'");
-    //    }).fail(testFns.handleFail).fin(start);
-    //});
+    [TestMethod]
+    public async Task RejectChangesAfterSave() {
+      await _emTask;
+      var supplier = new Supplier();
+      _em1.AddEntity(supplier);
+      supplier.CompanyName = "Test_" + TestFns.RandomSuffix(10);
+      supplier.Location.City = "LA";
+      var sr1 = await _em1.SaveChanges();
+      Assert.IsTrue(sr1.Entities.Count == 1);
+      Assert.IsTrue(supplier.Location.City == "LA");
+      var r1 = await supplier.EntityAspect.EntityKey.ToQuery<Supplier>().Execute(_em1);
+      Assert.IsTrue(r1.Count() == 1);
+      Assert.IsTrue(r1.First() == supplier);
+      supplier.Location.City = "Fooo";
+      Assert.IsTrue(supplier.EntityAspect.HasChanges());
+      supplier.EntityAspect.RejectChanges();
+      Assert.IsTrue(supplier.Location.City == "LA");
+      
+    }
+
 
   }
 }

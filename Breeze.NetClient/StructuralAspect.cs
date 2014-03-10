@@ -150,7 +150,6 @@ namespace Breeze.NetClient {
         vc.PropertyValue = this.GetValue(prop);
 
         var co = vc.PropertyValue as IComplexObject;
-        vc.ComplexObject = co;
         if (co != null) {
           co.ComplexAspect.ValidateInternal();
         }
@@ -239,10 +238,11 @@ namespace Breeze.NetClient {
     #region other misc
 
     protected void RejectChangesCore() {
-      if (_originalValuesMap == null) return;
-      _originalValuesMap.ForEach(kvp => {
-        SetValue(kvp.Key, kvp.Value);
-      });
+      if (_originalValuesMap != null) {
+        _originalValuesMap.ForEach(kvp => {
+          SetValue(kvp.Key, kvp.Value);
+        });
+      }
       this.ProcessComplexProperties(co => co.ComplexAspect.RejectChangesCore());
     }
 
@@ -303,56 +303,41 @@ namespace Breeze.NetClient {
     }
 
     protected internal virtual void ClearBackupVersion(EntityVersion version) {
-
-      if (version == EntityVersion.Original) {
-        if (_originalValuesMap != null) {
-          ClearComplexBackupVersions(version);
-          _originalValuesMap = null;
-        }
-      } else if (version == EntityVersion.Proposed) {
-        if (_preproposedValuesMap != null) {
-          ClearComplexBackupVersions(version);
-          _preproposedValuesMap = null;
-        }
-      }
+      // don't need return value;
+      GetBackupMap(version, true);
+      ProcessComplexProperties((co) => co.ComplexAspect.ClearBackupVersion(version));
     }
 
-    private void ClearComplexBackupVersions(EntityVersion version) {
-      this.StructuralType.DataProperties.Where(dp => dp.IsComplexProperty).ForEach(dp => {
-        var co = GetValue<IComplexObject>(dp);
-        co.ComplexAspect.ClearBackupVersion(version);
-      });
-    }
-
-    protected internal virtual void RestoreBackupVersion(EntityVersion version) {
-      if (version == EntityVersion.Original) {
-        if (_originalValuesMap != null) {
-          RestoreOriginalValues(_originalValuesMap, version);
-          _originalValuesMap = null;
-        }
-      } else if (version == EntityVersion.Proposed) {
-        if (_preproposedValuesMap != null) {
-          RestoreOriginalValues(_preproposedValuesMap, version);
-          _preproposedValuesMap = null;
-        }
-      }
-    }
-
-    internal virtual void RestoreOriginalValues(BackupValuesMap backupMap, EntityVersion version) {
-      backupMap.ForEach(kvp => {
-        var value = kvp.Value;
-        if (value is IComplexObject) {
-          ((IComplexObject)value).ComplexAspect.RestoreBackupVersion(version);
-        }
-        var dp = this.StructuralType.GetDataProperty(kvp.Key);
-
-        if (GetValue(dp) != value) {
+    
+    protected internal virtual void RestoreBackupVersion( EntityVersion version) {
+      var backupMap = GetBackupMap(version, true);
+      if (backupMap != null) {
+        backupMap.ForEach(kvp => {
+          var value = kvp.Value;
+          var dp = this.StructuralType.GetDataProperty(kvp.Key);
+          if (GetValue(dp) != value) {
             SetDpValue(dp, value);
             OnDataPropertyRestore(dp);
-        }
-      });
+          }
+        });
+      }
+      ProcessComplexProperties((co) => co.ComplexAspect.RestoreBackupVersion(version));
     }
-    
+
+    private BackupValuesMap GetBackupMap(EntityVersion version, bool shouldClear) {
+      BackupValuesMap result;
+      if (version == EntityVersion.Original) {
+        result = _originalValuesMap;
+        if (shouldClear) _originalValuesMap = null;
+      } else if (version == EntityVersion.Proposed) {
+        result = _preproposedValuesMap;
+        if (shouldClear) _preproposedValuesMap = null;
+      } else {
+        throw new Exception("GetBackupMap is not implemented for " + version.ToString());
+      }
+      return result;
+    }
+
     internal virtual void OnDataPropertyRestore(DataProperty dp) {
       // deliberate noop here;
     }
@@ -377,11 +362,6 @@ namespace Breeze.NetClient {
       }
       _preproposedValuesMap.Add(property.Name, oldValue);
     }
-
-    //private BackupValuesMap CreateIfNeeded(ref BackupValuesMap map) {
-    //  if (map == null) map = new BackupValuesMap();
-    //  return map;
-    //}
 
     public ReadOnlyDictionary<String, Object> OriginalValuesMap {
       get { return HandleNull(_originalValuesMap); }
