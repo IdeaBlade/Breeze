@@ -42,19 +42,7 @@ namespace Breeze.NetClient {
       internal protected set;
     }
 
-    public static Validator FindOrCreate(JNode jNode) {
-      lock (ValidatorJNodeCache) {
-        Validator vr;
-        
-        if (ValidatorJNodeCache.TryGetValue(jNode, out vr)) {
-          return vr;
-        }
-
-        vr = FromJNode(jNode);
-        ValidatorJNodeCache[jNode] = vr;
-        return vr;
-      }
-    }
+  
 
     public virtual ValidationError Validate(ValidationContext context) {
       return (ValidateCore(context)) ? null : new ValidationError(this, context);
@@ -65,36 +53,13 @@ namespace Breeze.NetClient {
 
     public abstract String GetErrorMessage(ValidationContext validationContext);
 
-    
 
-    internal static void RegisterValidator(Type validatorType) {
-      var ti = validatorType.GetTypeInfo();
-      if (ti.IsAbstract) return;
-      if (ti.GenericTypeParameters.Length != 0) return;
-      var key = TypeToValidatorName(validatorType);
-      lock (MetadataStore.Instance.ValidatorMap) {
-        MetadataStore.Instance.ValidatorMap[key] = validatorType;
-      }
+    public static Validator FindOrCreate(JNode jNode) {
+      return MetadataStore.Instance.FindOrCreateValidator(jNode);
     }
+  
 
-    internal static T Intern<T>(T validator) where T : Validator {
-      if (validator._isInterned) return validator;
-      var jNode = validator.ToJNode();
-      
-      lock (ValidatorJNodeCache) {
-        Validator cachedValidator;
-        if (ValidatorJNodeCache.TryGetValue(jNode, out cachedValidator)) {
-          cachedValidator._isInterned = true;
-          return (T)cachedValidator;
-        } else {
-          ValidatorJNodeCache[jNode] = validator;
-          validator._isInterned = true;
-          return validator;
-        }
-      }
-    }
-
-    private static String TypeToValidatorName(Type type) {
+    public static String TypeToValidatorName(Type type) {
       var typeName = type.Name;
       var name = (typeName.EndsWith("Validator")) ? typeName.Substring(0, typeName.Length - "Validator".Length) : typeName;
       name = ToCamelCase(name);
@@ -111,16 +76,7 @@ namespace Breeze.NetClient {
       }
     }
 
-    private static Validator FromJNode(JNode jNode) {
-      var vrName = jNode.Get<String>("name");
-      Type vrType;
-      if (!MetadataStore.Instance.ValidatorMap.TryGetValue(vrName, out vrType)) {
-        throw new Exception("Unable to create a validator for " + vrName);
-      }
-      // Deserialize the object
-      var vr = (Validator)jNode.ToObject(vrType, true);
-      return vr;
-    }
+    
 
     internal JNode ToJNode() {
       // This ONLY works because of the immutability convention for all Validators.
@@ -141,6 +97,11 @@ namespace Breeze.NetClient {
       return this.ToJNode().Equals(other.ToJNode());
     }
 
+    internal bool IsInterned {
+      get;
+      set;
+    }
+
     public override int GetHashCode() {
       // This ONLY works because of the immutability convention for all Validators.
       if (_hashCode == 0) {
@@ -151,14 +112,10 @@ namespace Breeze.NetClient {
 
     private JNode _jNode;
     private int _hashCode;
-    private bool _isInterned;
+    
 
     private static Object __lock = new Object();
 
-
-    private static Dictionary<JNode, Validator> ValidatorJNodeCache {
-      get { return MetadataStore.Instance.ValidatorJNodeCache; }
-    }
 
     private static readonly IEnumerable<ValidationError> EmptyErrors = Enumerable.Empty<ValidationError>();
 
@@ -231,7 +188,7 @@ namespace Breeze.NetClient {
     }
 
     public static T Intern<T>(this T validator) where T : Validator {
-      return Validator.Intern<T>(validator);
+      return MetadataStore.Instance.InternValidator<T>(validator);
     }
   }
 

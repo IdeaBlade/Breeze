@@ -19,7 +19,7 @@ namespace Breeze.NetClient {
       _clrTypeMap = new ClrTypeMap(this);
       RegisterTypeDiscoveryAction(typeof(IEntity), (t) => _clrTypeMap.GetStructuralType(t));
       RegisterTypeDiscoveryAction(typeof(IComplexObject), (t) => _clrTypeMap.GetStructuralType(t));
-      RegisterTypeDiscoveryAction(typeof(Validator), (t) => Validator.RegisterValidator(t));
+      RegisterTypeDiscoveryAction(typeof(Validator), (t) => RegisterValidator(t));
     }
 
      // Explicit static constructor to tell C# compiler
@@ -32,13 +32,7 @@ namespace Breeze.NetClient {
       }
     }
 
-
-    private static MetadataStore __instance = new MetadataStore();
-    private static readonly Object __lock = new Object();
-
     #endregion
-
-    
 
     #region Public properties
 
@@ -289,10 +283,63 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    public static String ANONTYPE_PREFIX = "_IB_";
+    #region Validator methods
 
-    #region Internal and Private 
+    public Validator FindOrCreateValidator(JNode jNode) {
+      lock (_validatorJNodeCache) {
+        Validator vr;
 
+        if (_validatorJNodeCache.TryGetValue(jNode, out vr)) {
+          return vr;
+        }
+
+        vr = ValidatorFromJNode(jNode);
+        _validatorJNodeCache[jNode] = vr;
+        return vr;
+      }
+    }
+
+    internal T InternValidator<T>(T validator) where T : Validator {
+      if (validator.IsInterned) return validator;
+      var jNode = validator.ToJNode();
+
+      lock (_validatorJNodeCache) {
+        Validator cachedValidator;
+        if (_validatorJNodeCache.TryGetValue(jNode, out cachedValidator)) {
+          cachedValidator.IsInterned = true;
+          return (T)cachedValidator;
+        } else {
+          _validatorJNodeCache[jNode] = validator;
+          validator.IsInterned = true;
+          return validator;
+        }
+      }
+    }
+
+    private void RegisterValidator(Type validatorType) {
+      var ti = validatorType.GetTypeInfo();
+      if (ti.IsAbstract) return;
+      if (ti.GenericTypeParameters.Length != 0) return;
+      var key = Validator.TypeToValidatorName(validatorType);
+      lock (_validatorMap) {
+        _validatorMap[key] = validatorType;
+      }
+    }
+
+    private Validator ValidatorFromJNode(JNode jNode) {
+      var vrName = jNode.Get<String>("name");
+      Type vrType;
+      if (!_validatorMap.TryGetValue(vrName, out vrType)) {
+        throw new Exception("Unable to create a validator for " + vrName);
+      }
+      // Deserialize the object
+      var vr = (Validator)jNode.ToObject(vrType, true);
+      return vr;
+    }
+
+    #endregion
+
+    #region Internal and Private
 
     internal Type GetClrTypeFor(StructuralType stType) {
       lock (_structuralTypes) {
@@ -550,13 +597,15 @@ namespace Breeze.NetClient {
 
     #region Internal vars;
 
-    internal Dictionary<JNode, Validator> ValidatorJNodeCache = new Dictionary<JNode, Validator>();
-    internal Dictionary<String, Type> ValidatorMap = new Dictionary<string, Type>();
+    internal static String ANONTYPE_PREFIX = "_IB_";
 
     #endregion
 
     #region Private vars
 
+    private static MetadataStore __instance = new MetadataStore();
+    private static readonly Object __lock = new Object();
+    
     private readonly AsyncSemaphore _asyncSemaphore = new AsyncSemaphore(1);
     private Object _lock = new Object();
 
@@ -576,6 +625,10 @@ namespace Breeze.NetClient {
     // locked using _resourceNameEntityTypeMap
     private Dictionary<EntityType, String> _defaultResourceNameMap = new Dictionary<EntityType, string>();
     private Dictionary<String, EntityType> _resourceNameEntityTypeMap = new Dictionary<string, EntityType>();
+
+    // validator related.
+    private Dictionary<JNode, Validator> _validatorJNodeCache = new Dictionary<JNode, Validator>();
+    private Dictionary<String, Type> _validatorMap = new Dictionary<string, Type>();
 
     #endregion
 
