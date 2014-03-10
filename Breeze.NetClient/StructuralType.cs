@@ -102,7 +102,7 @@ namespace Breeze.NetClient {
     }
 
     public ICollection<Validator> Validators {
-      get { return _validators.ReadOnlyValues; }
+      get { return _validators; }
     }
 
     internal void UpdateClientServerName(StructuralProperty property) {

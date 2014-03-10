@@ -134,6 +134,11 @@ namespace Breeze.NetClient {
       return this.GetValidationErrors(null);
     }
 
+    public IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop) {
+      var value = this.GetValue(prop);
+      return ValidateProperty(prop, value);
+    }
+
     protected internal void ValidateInternal() {
       var vc = new ValidationContext(this.StructuralObject);
       vc.IsMutable = true;
@@ -165,53 +170,6 @@ namespace Breeze.NetClient {
       }
 
       
-    }
-
-    //public IEnumerable<ValidationError> Validate() {
-    //  var vc = new ValidationContext(this.StructuralObject);
-    //  vc.IsMutable = true;
-      
-    //  // PERF: 
-    //  // Not using LINQ here because we want to reuse the same
-    //  // vc property for perf reasons and this
-    //  // would cause closure issues with a linq expression unless 
-    //  // we kept resolving with toList.  This is actually simpler code.
-      
-    //  var errors = new List<ValidationError>();
-    //  var properties = this.StructuralType.Properties;
-    //  foreach (var prop in properties) {
-    //    vc.Property = prop;
-    //    vc.PropertyValue = this.GetValue(prop);
-        
-    //    var co = vc.PropertyValue as IComplexObject;
-    //    vc.ComplexObject = co;
-    //    if (co != null) {
-    //      var coErrors = co.ComplexAspect.Validate();
-    //      errors.AddRange(coErrors);
-    //    }
-    //    foreach (var vr in prop.Validators) {
-    //      var ve = ValidateCore(vr, vc);
-    //      if (ve != null) {
-    //        errors.Add(ve);
-    //      }
-    //    }
-    //  }
-
-    //  vc.Property = null;
-    //  vc.PropertyValue = null;
-    //  foreach (var vr in this.StructuralType.Validators) {
-    //    var ve = ValidateCore(vr, vc);
-    //    if (ve != null) {
-    //      errors.Add(ve);
-    //    }
-    //  }
-
-    //  return errors;
-    //}
-
-    public IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop) {
-      var value = this.GetValue(prop);
-      return ValidateProperty(prop, value);
     }
 
     // called internally by property set logic

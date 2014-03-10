@@ -30,7 +30,7 @@ namespace Breeze.NetClient {
     public bool IsScalar { get; internal set; }
     public bool IsInherited { get; internal set; }
     public bool IsUnmapped { get; internal set; }
-    public IEnumerable<Validator> Validators {
+    public ICollection<Validator> Validators {
       get { return _validators; }
     }
 

@@ -18,7 +18,7 @@ namespace Breeze.NetClient {
   public abstract class Validator : IJsonSerializable {
 
     static Validator() {
-      RegisterValidators(typeof(Validator).GetTypeInfo().Assembly);
+      MetadataStore.Instance.ProbeAssemblies(typeof(Validator).GetTypeInfo().Assembly);
     }
 
     protected Validator() {
@@ -43,15 +43,15 @@ namespace Breeze.NetClient {
     }
 
     public static Validator FindOrCreate(JNode jNode) {
-      lock (__validatorJNodeCache) {
+      lock (ValidatorJNodeCache) {
         Validator vr;
         
-        if (__validatorJNodeCache.TryGetValue(jNode, out vr)) {
+        if (ValidatorJNodeCache.TryGetValue(jNode, out vr)) {
           return vr;
         }
 
         vr = FromJNode(jNode);
-        __validatorJNodeCache[jNode] = vr;
+        ValidatorJNodeCache[jNode] = vr;
         return vr;
       }
     }
@@ -65,33 +65,29 @@ namespace Breeze.NetClient {
 
     public abstract String GetErrorMessage(ValidationContext validationContext);
 
-    public static void RegisterValidators(Assembly assembly) {
-      lock (__lock) {
-        if (__assembliesProbed.Contains(assembly)) return;
-        var vrTypes = TypeFns.GetTypesImplementing(typeof(Validator), Enumerable.Repeat(assembly, 1))
-          .Where(t => {
-            var ti = t.GetTypeInfo();
-            return (!ti.IsAbstract) && ti.GenericTypeParameters.Length == 0;
-          });
-        vrTypes.ForEach(t => {
-          var key = TypeToValidatorName(t);
-          __validatorMap[key] = t;
-        });
-        __assembliesProbed.Add(assembly);
+    
+
+    internal static void RegisterValidator(Type validatorType) {
+      var ti = validatorType.GetTypeInfo();
+      if (ti.IsAbstract) return;
+      if (ti.GenericTypeParameters.Length != 0) return;
+      var key = TypeToValidatorName(validatorType);
+      lock (MetadataStore.Instance.ValidatorMap) {
+        MetadataStore.Instance.ValidatorMap[key] = validatorType;
       }
     }
 
     internal static T Intern<T>(T validator) where T : Validator {
       if (validator._isInterned) return validator;
       var jNode = validator.ToJNode();
-
-      lock (__validatorJNodeCache) {
+      
+      lock (ValidatorJNodeCache) {
         Validator cachedValidator;
-        if (__validatorJNodeCache.TryGetValue(jNode, out cachedValidator)) {
+        if (ValidatorJNodeCache.TryGetValue(jNode, out cachedValidator)) {
           cachedValidator._isInterned = true;
           return (T)cachedValidator;
         } else {
-          __validatorJNodeCache[jNode] = validator;
+          ValidatorJNodeCache[jNode] = validator;
           validator._isInterned = true;
           return validator;
         }
@@ -118,7 +114,7 @@ namespace Breeze.NetClient {
     private static Validator FromJNode(JNode jNode) {
       var vrName = jNode.Get<String>("name");
       Type vrType;
-      if (!__validatorMap.TryGetValue(vrName, out vrType)) {
+      if (!MetadataStore.Instance.ValidatorMap.TryGetValue(vrName, out vrType)) {
         throw new Exception("Unable to create a validator for " + vrName);
       }
       // Deserialize the object
@@ -158,9 +154,12 @@ namespace Breeze.NetClient {
     private bool _isInterned;
 
     private static Object __lock = new Object();
-    private static HashSet<Assembly> __assembliesProbed = new HashSet<Assembly>();
-    private static Dictionary<String, Type> __validatorMap = new Dictionary<string, Type>();
-    private static Dictionary<JNode, Validator> __validatorJNodeCache = new Dictionary<JNode, Validator>();
+
+
+    private static Dictionary<JNode, Validator> ValidatorJNodeCache {
+      get { return MetadataStore.Instance.ValidatorJNodeCache; }
+    }
+
     private static readonly IEnumerable<ValidationError> EmptyErrors = Enumerable.Empty<ValidationError>();
 
     #region Not currently used 
@@ -236,17 +235,25 @@ namespace Breeze.NetClient {
     }
   }
 
-  public class ValidatorCollection : MapCollection<Validator, Validator> {
+  public class ValidatorCollection : SetCollection<Validator> {
 
     public ValidatorCollection() : base() { }
     public ValidatorCollection(IEnumerable<Validator> validators) : base(validators) { }
-    protected override Validator GetKeyForItem(Validator item) {
-      return item.Intern();
+    
+
+    public override void Add(Validator item) {
+      item = item.Intern();
+      base.Add(item);
     }
 
-    public override void Add(Validator value) {
-      value = value.Intern();
-      base.Add(value);
+    public override bool Remove(Validator item) {
+      item = item.Intern();
+      return base.Remove(item);
+    }
+
+    public override bool Contains(Validator item) {
+      item = item.Intern();
+      return base.Contains(item);
     }
 
   }

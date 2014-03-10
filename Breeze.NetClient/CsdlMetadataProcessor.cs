@@ -362,29 +362,6 @@ namespace Breeze.NetClient {
       }
     }
 
-    // function addValidators(dataProperty) {
-    //    var typeValidator;
-    //    if (!dataProperty.isNullable) {
-    //        dataProperty.validators.push(Validator.required());
-    //    }
-
-    //    if (dataProperty.isComplexProperty) return;
-
-    //    if (dataProperty.dataType === DataType.String) {
-    //        if (dataProperty.maxLength) {
-    //            var validatorArgs = { maxLength: dataProperty.maxLength };
-    //            typeValidator = Validator.maxLength(validatorArgs);
-    //        } else {
-    //            typeValidator = Validator.string();
-    //        }
-    //    } else {
-    //        typeValidator = dataProperty.dataType.validatorCtor();
-    //    }
-
-    //    dataProperty.validators.push(typeValidator);
-
-    //}
-
     private bool IsEnumType(JObject csdlProperty) {
       var enumTypeVal = _schema["enumType"];
       if (enumTypeVal == null) return false;

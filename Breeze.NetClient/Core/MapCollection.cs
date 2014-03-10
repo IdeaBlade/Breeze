@@ -25,7 +25,7 @@ namespace Breeze.Core {
       get { return _map.Values; }
     }
 
-    public U this[T key] {
+    public virtual U this[T key] {
       get {
         U value;
         if (_map.TryGetValue(key, out value)) {

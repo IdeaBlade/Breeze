@@ -15,7 +15,13 @@ namespace Breeze.NetClient {
 
     #region Ctor related 
 
-    internal MetadataStore() { }
+    private MetadataStore() {
+      _clrTypeMap = new ClrTypeMap(this);
+      RegisterTypeDiscoveryAction(typeof(IEntity), (t) => _clrTypeMap.GetStructuralType(t));
+      RegisterTypeDiscoveryAction(typeof(IComplexObject), (t) => _clrTypeMap.GetStructuralType(t));
+      RegisterTypeDiscoveryAction(typeof(Validator), (t) => Validator.RegisterValidator(t));
+    }
+
      // Explicit static constructor to tell C# compiler
     // not to mark type as beforefieldinit
     static MetadataStore() {     }
@@ -67,10 +73,25 @@ namespace Breeze.NetClient {
       } 
     }
 
-    public void ProbeAssemblies(IEnumerable<Assembly> assembliesToProbe) {
+    public bool ProbeAssemblies(params Assembly[] assembliesToProbe) {
       lock (_structuralTypes) {
-        _clrTypeMap.ProbeAssemblies(assembliesToProbe);
+        var assemblies = assembliesToProbe.Except(_probedAssemblies).ToList();
+        if (assemblies.Any()) {
+          assemblies.ForEach(a => _probedAssemblies.Add(a));
+          _typeDiscoveryActions.ForEach(tpl => {
+            var type = tpl.Item1;
+            var action = tpl.Item2;
+            TypeFns.GetTypesImplementing(type, assemblies).ForEach(t => action(t));
+          });
+          return true;
+        } else {
+          return false;
+        }
       }
+    }
+
+    public void RegisterTypeDiscoveryAction(Type type, Action<Type> action) {
+      _typeDiscoveryActions.Add(Tuple.Create(type, action));
     }
 
     #endregion
@@ -79,7 +100,9 @@ namespace Breeze.NetClient {
 
     public static void __Reset() {
       lock (__lock) {
+        var x = __instance._probedAssemblies;
         __instance = new MetadataStore();
+        __instance.ProbeAssemblies(x.ToArray());
       }
     }
 
@@ -134,10 +157,10 @@ namespace Breeze.NetClient {
           if (stType != null) return stType;
 
           // Not sure if this is needed.
-          //if (ProbeAssemblies(new Assembly[] { clrType.GetTypeInfo().Assembly })) {
-          //  stType = _clrTypeMap.GetStructuralType(clrType);
-          //  if (stType != null) return stType;
-          //}
+          if (ProbeAssemblies(new Assembly[] { clrType.GetTypeInfo().Assembly })) {
+            stType = _clrTypeMap.GetStructuralType(clrType);
+            if (stType != null) return stType;
+          }
         }
 
         if (okIfNotFound) return null;
@@ -268,7 +291,8 @@ namespace Breeze.NetClient {
 
     public static String ANONTYPE_PREFIX = "_IB_";
 
-    #region Internal and Private methods
+    #region Internal and Private 
+
 
     internal Type GetClrTypeFor(StructuralType stType) {
       lock (_structuralTypes) {
@@ -479,8 +503,8 @@ namespace Breeze.NetClient {
 
     // inner class
     internal class ClrTypeMap {
-      public ClrTypeMap() {
-        
+      public ClrTypeMap(MetadataStore metadataStore) {
+        _metadataStore = metadataStore;
       }
 
       public StructuralType GetStructuralType(Type clrType) {
@@ -490,7 +514,7 @@ namespace Breeze.NetClient {
           var stType = tp.StructuralType;
           if (tp.ClrType == null) {
             tp.ClrType = clrType;
-            ProbeAssemblies(new Assembly[] { clrType.GetTypeInfo().Assembly });
+            _metadataStore.ProbeAssemblies(new Assembly[] { clrType.GetTypeInfo().Assembly });
           }
           return stType;
         } else {
@@ -513,21 +537,9 @@ namespace Breeze.NetClient {
         }
       }
 
-      public bool ProbeAssemblies(IEnumerable<Assembly> assembliesToProbe) {
-        // ToList is important on next line
-        var assemblies = assembliesToProbe.Except(_probedAssemblies).ToList();
-        if (assemblies.Any()) {
-          assemblies.ForEach(a => _probedAssemblies.Add(a));
-          TypeFns.GetTypesImplementing(typeof(IEntity), assemblies).ForEach(t => GetStructuralType(t));
-          TypeFns.GetTypesImplementing(typeof(IComplexObject), assemblies).ForEach(t => GetStructuralType(t));
-          return true;
-        } else {
-          return false;
-        }
-      }
-
+      private MetadataStore _metadataStore;
       private Dictionary<String, TypePair> _map = new Dictionary<String, TypePair>();
-      private HashSet<Assembly> _probedAssemblies = new HashSet<Assembly>();
+
       private class TypePair {
         public Type ClrType;
         public StructuralType StructuralType;
@@ -536,7 +548,14 @@ namespace Breeze.NetClient {
 
     #endregion
 
-    #region Private vars 
+    #region Internal vars;
+
+    internal Dictionary<JNode, Validator> ValidatorJNodeCache = new Dictionary<JNode, Validator>();
+    internal Dictionary<String, Type> ValidatorMap = new Dictionary<string, Type>();
+
+    #endregion
+
+    #region Private vars
 
     private readonly AsyncSemaphore _asyncSemaphore = new AsyncSemaphore(1);
     private Object _lock = new Object();
@@ -545,20 +564,20 @@ namespace Breeze.NetClient {
     private Dictionary<String, DataService> _dataServiceMap = new Dictionary<String, DataService>();
     private NamingConvention _namingConvention = NamingConvention.Default;
     // locked using _structuralTypes
-    private ClrTypeMap _clrTypeMap = new ClrTypeMap();
+    private ClrTypeMap _clrTypeMap;
+    private HashSet<Assembly> _probedAssemblies = new HashSet<Assembly>();
+    private List<Tuple<Type, Action<Type>>> _typeDiscoveryActions = new List<Tuple<Type, Action<Type>>>();
     private StructuralTypeCollection _structuralTypes = new StructuralTypeCollection();
     private Dictionary<String, String> _shortNameMap = new Dictionary<string, string>();
     private Dictionary<String, List<NavigationProperty>> _incompleteTypeMap = new Dictionary<String, List<NavigationProperty>>(); // key is typeName
     private Dictionary<String, List<DataProperty>> _incompleteComplexTypeMap = new Dictionary<String, List<DataProperty>>();   // key is typeName
+    
 
     // locked using _resourceNameEntityTypeMap
     private Dictionary<EntityType, String> _defaultResourceNameMap = new Dictionary<EntityType, string>();
     private Dictionary<String, EntityType> _resourceNameEntityTypeMap = new Dictionary<string, EntityType>();
 
     #endregion
-
-
-
 
   }
 

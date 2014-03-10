@@ -36,6 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BaseComplexObject.cs" />
+    <Compile Include="Core\SetCollection.cs" />
     <Compile Include="Core\UtilFns.cs" />
     <Compile Include="CacheQueryExpressionVisitor.cs" />
     <Compile Include="CacheQueryOptions.cs" />
