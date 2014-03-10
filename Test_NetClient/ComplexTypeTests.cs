@@ -410,26 +410,39 @@ namespace Test_NetClient {
       await _emTask;
 
       var supplier = new Supplier();
-      _em1.AddEntity(supplier);
       var valErrors = supplier.EntityAspect.ValidationErrors;
       var errors = new List<DataErrorsChangedEventArgs>();
       ((INotifyDataErrorInfo)supplier).ErrorsChanged += (se, e) => {
         errors.Add(e);
       };
+      _em1.AddEntity(supplier);
+      Assert.IsTrue(errors.Count == 1);
+      Assert.IsTrue(valErrors.Count == 1);
+      
+      
       var s = "very long involved value";
       s = s + s + s + s + s + s + s + s + s + s + s + s + s;
       supplier.CompanyName = s;
+      Assert.IsTrue(errors.Count == 3);  // setting the companyName will remove the requiredError but add the maxLenght error
       Assert.IsTrue(errors.Last().PropertyName == "CompanyName");
       Assert.IsTrue(valErrors.Count == 1);
+      Assert.IsTrue(((INotifyDataErrorInfo)supplier).HasErrors);
       var location = supplier.Location;
       location.City = s;
       Assert.IsTrue(errors.Last().PropertyName == "Location.City", "location.city should have been the propertyName");
-      Assert.IsTrue(errors.Count == 2);
-      Assert.IsTrue((String) valErrors.Last().Context.PropertyValue == "Location.City");
+      Assert.IsTrue(errors.Count == 4);  
+      Assert.IsTrue((String) valErrors.Last().Context.PropertyPath == "Location.City");
+      Assert.IsTrue(valErrors.Count == 2); // companyName_required and location.city_maxLength
+      Assert.IsTrue(((INotifyDataErrorInfo)supplier).HasErrors);
       location.City = "much shorter";
       Assert.IsTrue(errors.Last().PropertyName == "Location.City", "location.city should have changed again");
-      Assert.IsTrue(errors.Count == 3);
+      Assert.IsTrue(errors.Count == 5);
       Assert.IsTrue(valErrors.Count == 1);
+      Assert.IsTrue(((INotifyDataErrorInfo)supplier).HasErrors);
+      supplier.CompanyName = "shortName";
+      Assert.IsTrue(errors.Count == 6);
+      Assert.IsTrue(valErrors.Count == 0);
+      Assert.IsTrue(((INotifyDataErrorInfo)supplier).HasErrors == false);
     }
     
     

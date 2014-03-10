@@ -25,6 +25,8 @@ namespace Breeze.NetClient {
     public abstract EntityState EntityState { get; set; }
 
     public abstract EntityVersion EntityVersion { get; internal set;  }
+
+    public abstract IEnumerable<ValidationError> GetValidationErrors(String propertyPath);
      
     public abstract StructuralType StructuralType { get; }
 
@@ -128,32 +130,32 @@ namespace Breeze.NetClient {
     #region Validation
 
     public IEnumerable<ValidationError> Validate() {
+      ValidateInternal();
+      return this.GetValidationErrors(null);
+    }
+
+    protected internal void ValidateInternal() {
       var vc = new ValidationContext(this.StructuralObject);
       vc.IsMutable = true;
-      
+
       // PERF: 
       // Not using LINQ here because we want to reuse the same
       // vc property for perf reasons and this
       // would cause closure issues with a linq expression unless 
       // we kept resolving with toList.  This is actually simpler code.
-      
-      var errors = new List<ValidationError>();
+
       var properties = this.StructuralType.Properties;
       foreach (var prop in properties) {
         vc.Property = prop;
         vc.PropertyValue = this.GetValue(prop);
-        
+
         var co = vc.PropertyValue as IComplexObject;
         vc.ComplexObject = co;
         if (co != null) {
-          var coErrors = co.ComplexAspect.Validate();
-          errors.AddRange(coErrors);
+          co.ComplexAspect.ValidateInternal();
         }
         foreach (var vr in prop.Validators) {
           var ve = ValidateCore(vr, vc);
-          if (ve != null) {
-            errors.Add(ve);
-          }
         }
       }
 
@@ -161,17 +163,56 @@ namespace Breeze.NetClient {
       vc.PropertyValue = null;
       foreach (var vr in this.StructuralType.Validators) {
         var ve = ValidateCore(vr, vc);
-        if (ve != null) {
-          errors.Add(ve);
-        }
       }
 
-      return errors;
+      
     }
+
+    //public IEnumerable<ValidationError> Validate() {
+    //  var vc = new ValidationContext(this.StructuralObject);
+    //  vc.IsMutable = true;
+      
+    //  // PERF: 
+    //  // Not using LINQ here because we want to reuse the same
+    //  // vc property for perf reasons and this
+    //  // would cause closure issues with a linq expression unless 
+    //  // we kept resolving with toList.  This is actually simpler code.
+      
+    //  var errors = new List<ValidationError>();
+    //  var properties = this.StructuralType.Properties;
+    //  foreach (var prop in properties) {
+    //    vc.Property = prop;
+    //    vc.PropertyValue = this.GetValue(prop);
+        
+    //    var co = vc.PropertyValue as IComplexObject;
+    //    vc.ComplexObject = co;
+    //    if (co != null) {
+    //      var coErrors = co.ComplexAspect.Validate();
+    //      errors.AddRange(coErrors);
+    //    }
+    //    foreach (var vr in prop.Validators) {
+    //      var ve = ValidateCore(vr, vc);
+    //      if (ve != null) {
+    //        errors.Add(ve);
+    //      }
+    //    }
+    //  }
+
+    //  vc.Property = null;
+    //  vc.PropertyValue = null;
+    //  foreach (var vr in this.StructuralType.Validators) {
+    //    var ve = ValidateCore(vr, vc);
+    //    if (ve != null) {
+    //      errors.Add(ve);
+    //    }
+    //  }
+
+    //  return errors;
+    //}
 
     public IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop) {
       var value = this.GetValue(prop);
-      return ValidateProperty(prop, value).ToList();
+      return ValidateProperty(prop, value);
     }
 
     // called internally by property set logic
@@ -183,8 +224,7 @@ namespace Breeze.NetClient {
       }
       var vc = new ValidationContext(this.StructuralObject, prop, value);
       var itemErrors = prop.Validators.Select(vr => ValidateCore(vr, vc)).Where(ve => ve != null);
-      return errors == null ? itemErrors : errors.Concat(itemErrors);
-
+      return errors == null ? itemErrors.ToList() : errors.Concat(itemErrors).ToList();
     }
 
     // insures that validation events get fired and _validators collection is updated.

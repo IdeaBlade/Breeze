@@ -460,7 +460,7 @@ namespace Breeze.NetClient {
       return ve;
     }
 
-    public IEnumerable<ValidationError> GetValidationErrors(String propertyPath = null) {
+    public override IEnumerable<ValidationError> GetValidationErrors(String propertyPath = null) {
       if (propertyPath == null) {
         return _validationErrors.ReadOnlyValues;
       } else {

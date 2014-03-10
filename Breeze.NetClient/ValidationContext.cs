@@ -9,7 +9,7 @@ namespace Breeze.NetClient {
 
     public ValidationContext(IStructuralObject so) {
       Entity = so as IEntity;
-      if (so == null) {
+      if (Entity == null) {
         ComplexObject = (IComplexObject)so;
         Entity = ComplexObject.ComplexAspect.ParentEntity;
       }
@@ -35,7 +35,7 @@ namespace Breeze.NetClient {
     public StructuralProperty Property { get; set; }
     public IComplexObject ComplexObject { get; set; }
 
-    internal String PropertyPath {
+    public String PropertyPath {
       get {
         if (Property == null) return null;
         if (ComplexObject == null) return Property.Name;

@@ -665,7 +665,7 @@ namespace Breeze.NetClient {
         });
 
         if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnAttach) > 0) {
-          aspect.Validate();
+          aspect.ValidateInternal();
         }
 
 
@@ -693,7 +693,7 @@ namespace Breeze.NetClient {
       //        attachedEntity.entityAspect.validateEntity();
       //    }
       if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnQuery) > 0) {
-        aspect.Validate();
+        aspect.ValidateInternal();
       }
 
 

@@ -154,11 +154,21 @@ namespace Breeze.NetClient {
       }
     }
 
+  
+
     #endregion
 
     #region Public methods
 
-    
+    // property path here is the propertyPath from this ComplexObject down.
+    public override IEnumerable<ValidationError> GetValidationErrors(String propertyPath = null) {
+      if (EntityAspect == null) return Enumerable.Empty<ValidationError>();
+      if (String.IsNullOrEmpty(propertyPath)) {
+        return EntityAspect.ValidationErrors.Where(ve => ve.Context.PropertyPath.StartsWith(PropertyPathPrefix));
+      } else {
+        return EntityAspect.ValidationErrors.Where(ve => ve.Context.PropertyPath == PropertyPathPrefix + propertyPath);
+      }
+    }
 
     #endregion
 
@@ -271,15 +281,7 @@ namespace Breeze.NetClient {
     private void SetDpValueSimple(DataProperty property, object newValue, object oldValue) {
       // Actually set the value;
       SetRawValue(property.Name, newValue);
-
       UpdateBackupVersion(property, oldValue);
-
-      if (this.IsAttached && !EntityManager.IsLoadingEntity) {
-        if ((EntityManager.ValidationOptions.ValidationApplicability & ValidationApplicability.OnPropertyChange) > 0) {
-          ValidateProperty(property, newValue);
-        }
-
-      }
     }
 
     private void SetDpValueComplex(DataProperty property, object newValue, object oldValue) {
@@ -328,8 +330,7 @@ namespace Breeze.NetClient {
 
     internal override String GetPropertyPath(String propName) {
       if (Parent == null) return null;
-      var aspect = Parent.GetStructuralAspect();
-      return aspect.GetPropertyPath(this.ParentEntityProperty.Name) + "." + propName;
+      return PropertyPathPrefix + propName;
     }
 
     internal String PropertyPathPrefix {
@@ -362,7 +363,7 @@ namespace Breeze.NetClient {
     /// </summary>
     bool INotifyDataErrorInfo.HasErrors {
       get {
-        return EntityAspect.ValidationErrors.Where(ve => ve.Context.ComplexObject == this.ComplexObject).Any();
+        return EntityAspect.ValidationErrors.Where(ve => ve.Context.PropertyPath.StartsWith(this.PropertyPathPrefix)).Any();
       }
     }
 
