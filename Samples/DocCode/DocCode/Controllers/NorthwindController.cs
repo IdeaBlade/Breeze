@@ -84,6 +84,11 @@ namespace DocCode.Controllers
         }
 
         [HttpGet]
+        public IQueryable<InternationalOrder> InternationalOrders()
+        {
+            return _repository.InternationalOrders;
+        }
+        [HttpGet]
         public IQueryable<Order> Orders() {
             return _repository.Orders;
         }

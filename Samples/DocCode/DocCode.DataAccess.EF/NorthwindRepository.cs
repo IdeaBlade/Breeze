@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Linq;
-
+using System.Text;
 using Breeze.ContextProvider;
 using Breeze.ContextProvider.EF6;
 using Newtonsoft.Json.Linq;
@@ -71,6 +71,11 @@ namespace DocCode.DataAccess
         public IQueryable<Order> Orders
         {
             get { return ForCurrentUser(Context.Orders); }
+        }
+
+        public IQueryable<InternationalOrder> InternationalOrders
+        {
+            get { return ForCurrentUser(Context.InternationalOrders); }
         }
 
         public IQueryable<Order> OrdersAndCustomers
@@ -158,26 +163,40 @@ namespace DocCode.DataAccess
 
         public string Reset(string options)
         {
+
             // If full reset, delete all additions to the database
             // else delete additions made during this user's session
             var where = options.Contains("fullreset")
                 ? "IS NOT NULL"
                 : ("= '" + UserSessionId + "'");
 
-            string deleteSql;         
-            deleteSql = "DELETE FROM [CUSTOMER] WHERE [USERSESSIONID] " + where;
-            Context.Database.ExecuteSqlCommand(deleteSql);
+            var deleted = new StringBuilder("reset deleted: ");
+
+            var deleteSql = "DELETE FROM [CUSTOMER] WHERE [USERSESSIONID] " + where;
+            var count = Context.Database.ExecuteSqlCommand(deleteSql);
+            deleted.Append(count + " Customers; ");
+
             deleteSql = "DELETE FROM [EMPLOYEE] WHERE [USERSESSIONID] " + where;
-            Context.Database.ExecuteSqlCommand(deleteSql);
+            count = Context.Database.ExecuteSqlCommand(deleteSql);
+            deleted.Append(count + " Employees; ");
+
             deleteSql = "DELETE FROM [ORDERDETAIL] WHERE [USERSESSIONID] " + where;
-            Context.Database.ExecuteSqlCommand(deleteSql);
+            count = Context.Database.ExecuteSqlCommand(deleteSql);
+            deleted.Append(count + " OrderDetails; ");
+
             deleteSql = "DELETE FROM [INTERNATIONALORDER] WHERE [USERSESSIONID] " + where;
-            Context.Database.ExecuteSqlCommand(deleteSql);
+            count = Context.Database.ExecuteSqlCommand(deleteSql);
+            deleted.Append(count + " InternationalOrders; ");
+
             deleteSql = "DELETE FROM [ORDER] WHERE [USERSESSIONID] " + where;
-            Context.Database.ExecuteSqlCommand(deleteSql);
+            count = Context.Database.ExecuteSqlCommand(deleteSql);
+            deleted.Append(count + " Orders; ");
+
             deleteSql = "DELETE FROM [USER] WHERE [USERSESSIONID] " + where;
-            Context.Database.ExecuteSqlCommand(deleteSql);
-            return "reset";
+            count = Context.Database.ExecuteSqlCommand(deleteSql);
+            deleted.Append(count + " Users");
+
+            return deleted.ToString();
         }
 
         private NorthwindContext Context { get { return _contextProvider.Context; } }

@@ -237,6 +237,38 @@ namespace Northwind.Models
 
   #endregion Location
 
+  #region InternationalOrder class
+  // A TPT inheritance relationship with Order as the base class
+  // See http://msdn.microsoft.com/en-us/data/jj591617.aspx#2.5
+  // Could have kept separate in 1-1 with Order in which case
+  // would uncomment the commented properties
+  // See http://stackoverflow.com/questions/5980260/entity-framework-0-1-to-0-relation
+  public class InternationalOrder : Order
+  {
+
+      [MaxLength(100)]
+      public string CustomsDescription { get; set; }
+
+      public decimal ExciseTax { get; set; }
+
+      /*
+      [Key]
+      [ForeignKey("Order")]
+      [DatabaseGenerated(DatabaseGeneratedOption.None)]
+      public int OrderID { get; set; }
+
+      public int RowVersion { get; set; }
+
+      public Order Order { get; set; }
+
+      [JsonIgnore]
+      public Guid? UserSessionId { get; set; }   
+      public string CanAdd() { return null; }
+      */
+  }
+
+  #endregion InternationalOrder class
+
   #region Order class
 
   public class Order  : ISaveable {
@@ -289,8 +321,9 @@ namespace Northwind.Models
     [InverseProperty("Order")]
     public ICollection<OrderDetail> OrderDetails {get; set;}
     
-    [InverseProperty("Order")]
-    public InternationalOrder InternationalOrder {get;set;}
+    // Removed when made InternationalOrder a subclass of Order
+    //[InverseProperty("Order")]
+    //public InternationalOrder InternationalOrder {get;set;}
 
     [JsonIgnore]
     public Guid? UserSessionId { get; set; }
@@ -606,29 +639,4 @@ namespace Northwind.Models
 
   }
   #endregion UserRole class
-
-  #region InternationalOrder class
-  // 1-1 with Order. For Code First configuration background see
-  // http://stackoverflow.com/questions/5980260/entity-framework-0-1-to-0-relation
-  public class InternationalOrder : ISaveable {
-
-    [Key]
-    [ForeignKey("Order")]
-    [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public int OrderID { get; set; }
-
-    [MaxLength(100)]
-    public string CustomsDescription { get; set; }
-
-    public decimal ExciseTax { get; set; }
-
-    public int RowVersion { get; set; }
-
-    public Order Order { get; set; }
-
-    [JsonIgnore]
-    public Guid? UserSessionId { get; set; }   
-    public string CanAdd() { return null; }
-  }
-  #endregion InternationalOrder class
 }
