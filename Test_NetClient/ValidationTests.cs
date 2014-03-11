@@ -243,58 +243,6 @@ namespace Test_NetClient {
       }
     }
 
-    //test("custom property validation", function () {
-    //    var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
-    //    var em = newEm(ms);
-    //    var custType = ms.getEntityType("Customer");
-    //    var prop = custType.getProperty("country");
-
-    //    var valFn = function (v) {
-    //        if (v == null) return true;
-    //        return (core.stringStartsWith(v, "US"));
-    //    };
-    //    var countryValidator = new Validator("countryIsUS", valFn, { displayName: "Country", messageTemplate: "'%displayName%' must start with 'US'" });
-    //    prop.validators.push(countryValidator);
-    //    var cust1 = custType.createEntity();
-    //    cust1.setProperty("country", "GER");
-    //    em.attachEntity(cust1);
-    //    ok(cust1.entityAspect.hasValidationErrors, "should have val errors");
-    //    var valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 2, "length should be 2");
-    //    cust1.setProperty("country", "US");
-    //    valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 1, "length should be 1");
-    //    cust1.setProperty("country", null);
-    //    valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 1, "length should be 1");
-    //    cust1.entityAspect.validateProperty("country");
-    //    ok(valErrors.length === 1, "length should be 1");
-    //});
-
-    //test("custom entity validation", function () {
-    //    var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
-    //    var em = newEm(ms);
-    //    var custType = ms.getEntityType("Customer");
-
-    //    var zipCodeValidator = createZipCodeValidatorFactory()();
-    //    custType.validators.push(zipCodeValidator);
-
-    //    var cust1 = custType.createEntity();
-    //    cust1.setProperty("companyName", "Test1Co");
-    //    cust1.setProperty("country", "GER");
-    //    em.attachEntity(cust1);
-    //    var valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 0, "length should be 0");
-    //    cust1.setProperty("country", "USA");
-    //    ok(!cust1.entityAspect.hasValidationErrors, "should NOT have val errors");
-    //    valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 0, "length should be 0");
-    //    var isOk = cust1.entityAspect.validateEntity();
-    //    ok(!isOk, "validateEntity should have returned false");
-    //    valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 1, "length should be 1");
-    //    ok(cust1.entityAspect.hasValidationErrors, "should have val errors");
-    //});
     
     //test("custom entity validation - register validator", function () {
     //    var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());

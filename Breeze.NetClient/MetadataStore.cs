@@ -308,9 +308,8 @@ namespace Breeze.NetClient {
       var jNode = validator.ToJNode();
 
       lock (_validatorMap) {
-        var key = Validator.TypeToValidatorName(validator.GetType());
-        if (!_validatorMap.ContainsKey(key)) {
-          _validatorMap[key] = validator.GetType();
+        if (!_validatorMap.ContainsKey(validator.Name)) {
+          _validatorMap[validator.Name] = validator.GetType();
         }
         Validator cachedValidator;
         if (_validatorJNodeCache.TryGetValue(jNode, out cachedValidator)) {

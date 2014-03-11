@@ -87,6 +87,8 @@ namespace Breeze.NetClient {
 
     #region Public methods
 
+   
+
     public IEntity CreateEntity() {
       var entity = (IEntity)Activator.CreateInstance(this.ClrType);
       entity.EntityAspect.EntityType = this;

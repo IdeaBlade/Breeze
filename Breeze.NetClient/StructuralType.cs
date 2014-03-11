@@ -20,6 +20,22 @@ namespace Breeze.NetClient {
       MetadataStore = MetadataStore.Instance;
     }
 
+    public static String ClrTypeNameToStructuralTypeName(String clrTypeName) {
+      if (String.IsNullOrEmpty(clrTypeName)) return null;
+
+      var entityTypeNameNoAssembly = clrTypeName.Split(',')[0];
+      var nameParts = entityTypeNameNoAssembly.Split('.');
+      String ns;
+      var shortName = nameParts[nameParts.Length - 1];
+      if (nameParts.Length > 1) {
+        ns = String.Join(".", nameParts.Take(nameParts.Length - 1));
+      } else {
+        ns = "";
+      }
+      var typeName = StructuralType.QualifyTypeName(shortName, ns);
+      return typeName;
+    }
+
     public static string ClrTypeToStructuralTypeName(Type clrType) {
       return QualifyTypeName(clrType.Name, clrType.Namespace);
     }

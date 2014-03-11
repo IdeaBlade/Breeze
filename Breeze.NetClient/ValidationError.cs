@@ -1,11 +1,54 @@
 ﻿using Breeze.Core;
 using System;
+using System.Linq;
 
 namespace Breeze.NetClient {
 
   public class ValidationErrorCollection : MapCollection<String, ValidationError> {
+    public ValidationErrorCollection(EntityAspect entityAspect) {
+      EntityAspect = entityAspect;
+    }
+
     protected override String GetKeyForItem(ValidationError item) {
       return item.Key;
+    }
+
+    public override void Add(ValidationError item) {
+      if (!this.Contains(item)) {
+        base.Add(item);
+        EntityAspect.OnErrorsChanged(item);
+      } 
+    }
+
+    public override bool Remove(ValidationError item) {
+      if (base.Remove(item)) {
+        EntityAspect.OnErrorsChanged(item);
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    public override bool RemoveKey(string key) {
+      var removedError = this[key];
+      if (removedError != null) {
+        base.RemoveKey(key);
+        EntityAspect.OnErrorsChanged(removedError);
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    public override void Clear() {
+      var oldErrors = this.ToList();
+      base.Clear();
+      oldErrors.ForEach(ve => EntityAspect.OnErrorsChanged(ve));
+    }
+
+    public EntityAspect EntityAspect {
+      get;
+      set;
     }
   }
 
@@ -19,7 +62,7 @@ namespace Breeze.NetClient {
       // clone it if mutated.
       Context = context.IsMutable ? new ValidationContext(context) : context;
       _message = message;
-      key = key ?? validator.Name;
+      _key = key;
     }
 
     public Validator Validator { get; private set; }
@@ -43,6 +86,7 @@ namespace Breeze.NetClient {
         _key = value;
       }
     }
+    public bool IsServerError { get; internal set; }
 
     // To obtain a key that can be used to remove an item from a validationErrorsCollection
     public static String GetKey(Validator validator, String propertyPath = null) {

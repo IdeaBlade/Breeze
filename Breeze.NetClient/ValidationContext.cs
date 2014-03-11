@@ -34,6 +34,7 @@ namespace Breeze.NetClient {
     // May be null
     public StructuralProperty Property { get; set; }
     public IComplexObject ComplexObject { get; set; }
+    
 
     public String PropertyPath {
       get {

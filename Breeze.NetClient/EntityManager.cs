@@ -135,12 +135,24 @@ namespace Breeze.NetClient {
       }
 
       if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnSave) > 0) {
-        entitiesToSave.ForEach(e => {
-          var errors = e.EntityAspect.Validate();
+        var errs = entitiesToSave.SelectMany(ent => {
+          var errors = ent.EntityAspect.ValidationErrors;
+          // updates errors
+          ent.EntityAspect.Validate();
           if (errors.Any()) {
-            throw new SaveException(errors);
-          };
+            return errors.ToList().Where(err => {
+              if (err.IsServerError) {
+                errors.Remove(err);
+              }
+              return !err.IsServerError;
+            });
+          } else {
+            return errors;
+          }
         });
+       if (errs.Any()) {
+         throw new SaveException(errs);
+       };
       }
       saveOptions = new SaveOptions(saveOptions ?? this.DefaultSaveOptions ?? SaveOptions.Default);
       if (saveOptions.ResourceName == null) saveOptions.ResourceName = "SaveChanges";

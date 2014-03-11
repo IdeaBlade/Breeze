@@ -25,7 +25,7 @@ namespace Breeze.Core {
       get { return _map.Values; }
     }
 
-    public virtual U this[T key] {
+    public U this[T key] {
       get {
         U value;
         if (_map.TryGetValue(key, out value)) {
@@ -39,7 +39,7 @@ namespace Breeze.Core {
       }
     }
 
-    public void Clear() {
+    public virtual void Clear() {
       _map.Clear();
     }
 
@@ -63,11 +63,11 @@ namespace Breeze.Core {
       get { return false; }
     }
 
-    public bool Remove(U item) {
+    public virtual bool Remove(U item) {
       return _map.Remove(GetKeyForItem(item));
     }
 
-    public bool RemoveKey(T key) {
+    public virtual bool RemoveKey(T key) {
       return _map.Remove(key);
     }
 

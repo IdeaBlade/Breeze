@@ -50,6 +50,29 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
+    public async Task HasChangesChangedAfterSave() {
+      await _emTask;
+
+      var eventArgsList = new List<EntityManagerHasChangesChangedEventArgs>();
+      _em1.HasChangesChanged += (s, e) => {
+        eventArgsList.Add(e);
+      };
+      var emp = _em1.CreateEntity<Employee>();
+      emp.FirstName = "Test Fn";
+      emp.LastName = "Test Ln";
+      Assert.IsTrue(eventArgsList.Count == 1);
+      Assert.IsTrue(eventArgsList.Last().HasChanges);
+      Assert.IsTrue(_em1.HasChanges());
+      var sr1 = await _em1.SaveChanges();
+      Assert.IsTrue(sr1.Entities.Count == 1);
+      Assert.IsTrue(eventArgsList.Count == 2);
+      Assert.IsTrue(!eventArgsList.Last().HasChanges);
+      Assert.IsTrue(!_em1.HasChanges());
+    }
+
+    
+
+    [TestMethod]
     public async Task SaveCustomersAndNewOrder() {
       await _emTask;
 
@@ -194,6 +217,29 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
+    public async Task UpdateProductActive() {
+      await _emTask;
+      await UpdateProduct(4);
+    }
+
+    [TestMethod]
+    public async Task UpdateProductDiscontinued() {
+      await _emTask;
+      await UpdateProduct(4);
+    }
+
+    private async Task UpdateProduct(int productID) {
+      //  ok(true, "TODO for Mongo - needs to be written specifically for Mongo - should succeed in Mongo");
+      var q0 = new EntityQuery<Product>().Where(p => p.ProductID == productID);
+      var r0 = await _em1.ExecuteQuery(q0);
+      Assert.IsTrue(r0.Count() == 1, "should be 1 result");
+      var prod = r0.First();
+      prod.UnitsInStock = (short)(prod.UnitsInStock.HasValue ? prod.UnitsInStock.Value + 1 : 1);
+      var sr0 = await _em1.SaveChanges();
+      Assert.IsTrue(sr0.Entities.Count == 1);
+    }
+
+    [TestMethod]
     public async Task ExceptionThrownOnServer() {
       await _emTask;
 
@@ -294,32 +340,6 @@ namespace Test_NetClient {
 
     }
 
-    private Order CreateOrder(EntityManager em) {
-      var order = new Order();
-      em.AddEntity(order);
-      order.ShipName = "Test.NET_" + TestFns.RandomSuffix(7);
-      return order;
-    }
-
-    private Product CreateProduct(EntityManager em) {
-      var product = new Product();
-      em.AddEntity(product);
-      product.ProductName = "Test.NET_" + TestFns.RandomSuffix(7);
-      return product;
-    }
-
-    private OrderDetail CreateOrderDetail(EntityManager em, Order order, Product product) {
-      var od = new OrderDetail();
-      var orderID = order.OrderID;
-      var productID = product.ProductID;
-      od.ProductID = productID;
-      od.OrderID = orderID;
-      od.Quantity = 1;
-      od.UnitPrice = 3.14m;
-      em.AddEntity(od);
-      return od;
-    }
-
 
     [TestMethod]
     public async Task InsertEntityWithMultipartKey() {
@@ -375,6 +395,165 @@ namespace Test_NetClient {
 
       Assert.IsTrue(sr2.Entities.Count == 1, "should have saved 1 entity");
     }
+
+    [TestMethod]
+    public async Task SaveWithServerExit() {
+      await _emTask;
+      //  ok(true, "Skipped test - OData does not support server interception or alt resources");
+      CreateParentAndChildren(_em1);
+      var so = new SaveOptions("SaveWithExit", tag: "exit");
+      var sr0 = await _em1.SaveChanges(so);
+      Assert.IsTrue(sr0.Entities.Count == 0);
+    }
+
+    [TestMethod]
+    public async Task SaveWithEntityErrorsException() {
+      await _emTask;
+      //        ok(true, "Skipped test - OData does not support server interception or alt resources");
+      //        ok(true, "Skipped test - Mongo does not YET support server side validation");
+      var twoCusts = CreateParentAndChildren(_em1);
+      var so = new SaveOptions("SaveWithEntityErrorsException", tag: "entityErrorsException");
+      try {
+        var sr0 = await _em1.SaveChanges(so);
+        Assert.Fail("should not get here");
+      } catch (SaveException e) {
+        Assert.IsTrue(e.EntityErrors.Count == 2, "should have two errors");
+        var order1 = twoCusts.Cust1.Orders[0];
+        Assert.IsTrue(order1.EntityAspect.ValidationErrors.Count == 1);
+        var order2 = twoCusts.Cust1.Orders[1];
+        Assert.IsTrue(order2.EntityAspect.ValidationErrors.Count == 1);
+        Assert.IsTrue(order2.EntityAspect.ValidationErrors.First().Context.PropertyPath == "OrderID");
+      } catch (Exception e) {
+        Assert.Fail("should not get here - wrong exception");
+      }
+      // now save it properly
+      var sr1 = await _em1.SaveChanges();
+      Assert.IsTrue(sr1.Entities.Count == 4);
+    }
+
+
+
+    //test("save/mods with EntityErrorsException", function () {
+    //    if (testFns.DEBUG_ODATA) {
+    //        ok(true, "Skipped test - OData does not support server interception or alt resources");
+    //        return;
+    //    };
+
+    //    if (testFns.DEBUG_MONGO) {
+    //        ok(true, "Skipped test - Mongo does not YET support server side validation");
+    //        return;
+    //    };
+
+
+    //    var em = newEm();
+    //    var zzz = createParentAndChildren(em);
+    //    var cust1 = zzz.cust1;
+        
+    //    stop();
+    //    em.saveChanges().then(function (sr) {
+    //        zzz.cust1.setProperty("contactName", "foo");
+    //        zzz.cust2.setProperty("contactName", "foo");
+    //        zzz.order1.setProperty("freight", 888.11);
+    //        zzz.order2.setProperty("freight", 888.11);
+    //        ok(zzz.cust1.entityAspect.entityState.isModified(), "cust1 should be modified");
+    //        ok(zzz.order1.entityAspect.entityState.isModified(), "order1 should be modified");
+    //        var so = new SaveOptions({ resourceName: "SaveWithEntityErrorsException", tag: "entityErrorsException" });
+    //        return em.saveChanges(null, so);
+    //    }).then(function(sr2) {
+    //        ok(false, "should not get here");
+    //    }).fail(function (e) {
+    //        ok(e.entityErrors, "should have server errors");
+    //        ok(e.entityErrors.length === 2, "2 order entities should have failed");
+    //        ok(zzz.order1.entityAspect.getValidationErrors().length === 1);
+    //        var order2Errs = zzz.order2.entityAspect.getValidationErrors();
+    //        ok(order2Errs.length === 1, "should be 1 error for order2");
+    //        ok(order2Errs[0].propertyName === "orderID", "errant property should have been 'orderID'");
+    //        // now save it properly
+    //        return em.saveChanges();
+    //    }).then(function (sr) {
+    //        ok(sr.entities.length === 4, "should have saved ok");
+    //    }).fail(testFns.handleFail).fin(start);
+
+    //});
+
+    //test("save with client side validation error", function () {
+
+    //    var em = newEm();
+    //    var zzz = createParentAndChildren(em);
+    //    var cust1 = zzz.cust1;
+    //    cust1.setProperty("companyName", null);
+    //    stop();
+    //    em.saveChanges().then(function (sr) {
+    //        ok(false, "should not get here");
+    //    }).fail(function (e) {
+    //        ok(e.entityErrors, "should be a  entityError");
+    //        ok(e.entityErrors.length === 1, "should be only one error");
+    //        ok(!e.entityErrors[0].isServerError, "should NOT be a server error");
+    //        var errors = cust1.entityAspect.getValidationErrors();
+    //        ok(errors[0].errorMessage === errors[0].errorMessage, "error message should appear on the cust");
+
+    //    }).fin(start);
+    //});
+
+    //test("save with server side entity level validation error", function () {
+    //    if (testFns.DEBUG_ODATA) {
+    //        ok(true, "Skipped test - OData does not support server interception or alt resources");
+    //        return;
+    //    };
+
+    //    if (testFns.DEBUG_MONGO) {
+    //        ok(true, "Skipped test - Mongo does not YET support server side validation");
+    //        return;
+    //    };
+
+    //    var em = newEm();
+    //    var zzz = createParentAndChildren(em);
+    //    var cust1 = zzz.cust1;
+    //    cust1.setProperty("companyName", "error");
+    //    stop();
+    //    em.saveChanges().then(function(sr) {
+    //        ok(false, "should not get here");
+    //    }).fail(function (e) {
+    //        ok(e.entityErrors, "should be a server error");
+    //        ok(e.entityErrors.length === 1, "should be only one server error");
+    //        var errors = cust1.entityAspect.getValidationErrors();
+    //        ok(errors[0].errorMessage === e.entityErrors[0].errorMessage, "error message should appear on the cust");
+    //    }).fin(start);
+    //});
+
+    //test("save with server side entity level validation error + repeat", function () {
+    //    if (testFns.DEBUG_ODATA) {
+    //        ok(true, "Skipped test - OData does not support server interception or alt resources");
+    //        return;
+    //    };
+
+    //    if (testFns.DEBUG_MONGO) {
+    //        ok(true, "Skipped test - Mongo does not YET support server side validation");
+    //        return;
+    //    };
+
+    //    var em = newEm();
+    //    var zzz = createParentAndChildren(em);
+    //    var cust1 = zzz.cust1;
+    //    cust1.setProperty("companyName", "error");
+    //    stop();
+    //    em.saveChanges().then(function (sr) {
+    //        ok(false, "should not get here");
+    //    }).fail(function (e) {
+    //        ok(e.entityErrors, "should be a server error");
+    //        ok(e.entityErrors.length === 1, "should be only one server error");
+    //        var errors = cust1.entityAspect.getValidationErrors();
+    //        ok(errors.length === 1, "should only be 1 error");
+    //        ok(errors[0].errorMessage === e.entityErrors[0].errorMessage, "error message should appear on the cust");
+    //        return em.saveChanges();
+    //    }).fail(function(e2) {
+    //        ok(e2.entityErrors, "should be a server error");
+    //        ok(e2.entityErrors.length === 1, "should be only one server error");
+    //       var errors = cust1.entityAspect.getValidationErrors();
+    //       ok(errors.length === 1, "should only be 1 error");
+    //       ok(errors[0].errorMessage === e2.entityErrors[0].errorMessage, "error message should appear on the cust");
+    //    }).fin(start);
+    //});
  
     //test("add UserRole", function () {
     //    if (testFns.DEBUG_MONGO) {
@@ -420,9 +599,59 @@ namespace Test_NetClient {
 
     //});
 
+    private Order CreateOrder(EntityManager em) {
+      var order = new Order();
+      em.AddEntity(order);
+      order.ShipName = "Test.NET_" + TestFns.RandomSuffix(7);
+      return order;
+    }
 
-   
-    
-    
+    private Product CreateProduct(EntityManager em) {
+      var product = new Product();
+      em.AddEntity(product);
+      product.ProductName = "Test.NET_" + TestFns.RandomSuffix(7);
+      return product;
+    }
+
+    private OrderDetail CreateOrderDetail(EntityManager em, Order order, Product product) {
+      var od = new OrderDetail();
+      var orderID = order.OrderID;
+      var productID = product.ProductID;
+      od.ProductID = productID;
+      od.OrderID = orderID;
+      od.Quantity = 1;
+      od.UnitPrice = 3.14m;
+      em.AddEntity(od);
+      return od;
+    }
+
+    private TwoCusts CreateParentAndChildren(EntityManager em) {
+      var cust1 = new Customer();
+      cust1.CompanyName = "Test1_" + TestFns.RandomSuffix(8);
+      cust1.City = "Oakland";
+      cust1.RowVersion = 13;
+      cust1.Fax = "510 999-9999";
+      em.AddEntity(cust1);
+      var cust2 = em.CreateEntity<Customer>();
+      cust2.CompanyName = "Test2_" + TestFns.RandomSuffix(8);
+      cust2.City = "Emeryville";
+      cust2.RowVersion = 1;
+      cust2.Fax = "510 888-8888";
+      var order1 = new Order();
+      order1.OrderDate = DateTime.Today;
+      var order2 = em.CreateEntity<Order>();
+      order1.OrderDate = DateTime.Today;
+      cust1.Orders.Add(order1);
+      cust1.Orders.Add(order2);
+      Assert.IsTrue(cust1.Orders.Count == 2);
+      Assert.IsTrue(cust2.Orders.Count == 0);
+      return new TwoCusts() { Cust1 = cust1, Cust2 = cust2 };
+    }
+
+    public class TwoCusts {
+      public Customer Cust1;
+      public Customer Cust2;
+    }
+
   }
 }
