@@ -107,6 +107,7 @@
         }
 
         function getRootInfo() {
+            var compatTypes;
             roots.forEach(function (root, ix) {
                 var aspect;
                 var getRootErr = function (msg) {
@@ -119,13 +120,6 @@
                 if (aspect.entityState === breeze.EntityState.Detached) {
                     throw getRootErr('is a detached entity');
                 }
-                if (rootType) {
-                    if (rootType !== root.entityType) {
-                        throw getRootErr("has a different 'EntityType' than other roots");
-                    }
-                } else {
-                    rootType = root.entityType;
-                }
 
                 var em = aspect.entityManager;
                 if (entityGroupMap) {
@@ -135,6 +129,41 @@
                 } else {
                     entityGroupMap = em._entityGroupMap;
                 }
+                // Type compatibility check
+                var thisType = root.entityType;
+                if (rootType) {
+                    if (rootType !== thisType) {
+                        // Look for closest common base type
+                        var baseType = rootType;
+                        do { // does thisType derive from current rootType?
+                            compatTypes = compatTypes || baseType.getSelfAndSubtypes();
+                            if (compatTypes.indexOf(thisType) > -1) {
+                                rootType = baseType;
+                                break;
+                            } 
+                            baseType = baseType.baseEntityType;
+                            compatTypes = null;
+                        } while (baseType);
+
+                        if (!baseType) { // does current rootType derives from thisType?
+                            baseType = thisType;
+                            do {
+                                compatTypes = baseType.getSelfAndSubtypes();
+                                if (compatTypes.indexOf(rootType) > -1) {
+                                    rootType = baseType;
+                                    break;
+                                } 
+                                baseType = baseType.baseEntityType;
+                            } while (baseType)
+                        }
+                        if (!baseType) {
+                            throw getRootErr("is not EntityType-compatible with other roots");
+                        }
+                    }
+                } else {
+                    rootType = thisType;
+                }
+
             });
         }
 

@@ -186,7 +186,7 @@
     test("second customer returns its mix of orders (regular and international), \
          with expand='" + custExpand + "'", 6, function () {
             customerExpandTest(customers[0]);
-        });
+         });
 
     function customerExpandTest (cust) {
         // setup
@@ -214,6 +214,15 @@
         assertAllInNoDups(graph, custDetails, " order details");
         assertAllInNoDups(graph, custProducts, " distinct order products");
     }
+
+    // Inheritance test
+    test("InternationalOrder's OrderDetail returns its parent InternationalOrder", 3, function () {
+        var detail = internationalOrder.getProperty('OrderDetails')[0];
+        var graph = getEntityGraph(detail, 'Order');
+        assertCount(graph, 2);
+        assertAllInNoDups(graph, detail, "detail");
+        assertAllInNoDups(graph, internationalOrder, "InternationalOrder parent");
+    });
 
     // works for self-referential type
     test("first employee should have 2 layers of direct reports", 3, function () {
@@ -396,6 +405,10 @@
             ShipName: 'ShipName ' + 118,
             CustomsDescription: "Look at me; I'm global!"
         }, UNCHGD);
+        // make internationalOrder the 2nd order; 
+        // 1st and last should be plain Orders
+        orders.splice(1, 0, internationalOrder); 
+        ordIds.push(118);
 
         // Create as many products as orders (actually need one fewer)
         products = ordIds.map(function (id) {
