@@ -645,7 +645,28 @@
     });
 
     /*********************************************************
-     * detaching parent entity has no effect on in-cache children
+     * detach parent does not change EntityState or FK of dependent entity
+     *********************************************************/
+    test("detach parent does not change EntityState or FK of dependent entity", 3, function () {
+        var em = newEm();
+        var cust = getFakeExistingCustomer(em);
+        var emp = getFakeExistingEmployee(em);
+        var order = em.createEntity('Order', {
+            OrderID: 1,
+            Customer: cust,
+            Employee: emp
+        }, UNCHGD);
+
+        // detach the order's parent Customer
+        cust.entityAspect.setDetached();
+
+        equal(order.getProperty('CustomerID'), cust.getProperty('CustomerID'), "dependent order retains its CustomerID");
+        equal(order.getProperty('Customer'), null, "dependent order no longer has a Customer");
+        equal(order.entityAspect.entityState.name, UNCHGD.name, "dependent order remains in 'Unchanged' state");
+    });
+
+    /*********************************************************
+     * detaching parent entity has no effect on in-cache children (variation on previous test)
      *********************************************************/
     test("detaching parent entity has no effect on in-cache children", 5,
         function () {
@@ -702,8 +723,8 @@
                 em.detachEntity(item);
             });
 
-            var orderState = order.entityAspect.entityState
-            var detailState = details[0].entityAspect.entityState
+            var orderState = order.entityAspect.entityState;
+            var detailState = details[0].entityAspect.entityState;
             ok(orderState.isDetached(),  "parent 'order' should be detached");
             ok(detailState.isDetached(), "first child 'detail' should be detached");
             ok(!em.hasChanges(),
