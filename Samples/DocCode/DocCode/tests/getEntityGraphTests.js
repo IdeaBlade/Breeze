@@ -180,14 +180,6 @@
             customerExpandTest(customers[0]);
         });
 
-    // Inheritance test
-    // 2nd customer's orders are mix of Order and its InternationalOrder subtype
-    custExpand = 'Orders.OrderDetails.Product, Orders.Employee';
-    test("second customer returns its mix of orders (regular and international), \
-         with expand='" + custExpand + "'", 6, function () {
-            customerExpandTest(customers[0]);
-         });
-
     function customerExpandTest (cust) {
         // setup
         var custEmps = [];
@@ -215,21 +207,12 @@
         assertAllInNoDups(graph, custProducts, " distinct order products");
     }
 
-    // Inheritance test
-    test("InternationalOrder's OrderDetail returns its parent InternationalOrder", 3, function () {
-        var detail = internationalOrder.getProperty('OrderDetails')[0];
-        var graph = getEntityGraph(detail, 'Order');
-        assertCount(graph, 2);
-        assertAllInNoDups(graph, detail, "detail");
-        assertAllInNoDups(graph, internationalOrder, "InternationalOrder parent");
-    });
-
     // works for self-referential type
     test("first employee should have 2 layers of direct reports", 3, function () {
         var first = employees[0];
         var seconds = first.getProperty('DirectReports');
         var thirds = [];
-        seconds.forEach(function(emp) {
+        seconds.forEach(function (emp) {
             thirds = thirds.concat(emp.getProperty('DirectReports'));
         });
 
@@ -272,10 +255,35 @@
 
         var expectedCount = 1 + custOrders.length + custDetails.length;
         assertCount(graph, expectedCount);
-        assertAllInNoDups(graph, cust, "customer = "+cust.getProperty('CompanyName'));
+        assertAllInNoDups(graph, cust, "customer = " + cust.getProperty('CompanyName'));
         assertAllInNoDups(graph, custOrders, "customer orders");
         assertAllInNoDups(graph, custDetails, "customer order details");
     }
+
+    /*** Inheritance tests ***/
+
+    // 2nd customer's orders are mix of Order and its InternationalOrder subtype
+    custExpand = 'Orders.OrderDetails.Product, Orders.Employee';
+    test("second customer returns its mix of orders (regular and international), \
+         with expand='" + custExpand + "'", 6, function () {
+            customerExpandTest(customers[0]);
+         });
+
+    test("InternationalOrder's OrderDetail returns its parent InternationalOrder", 3, function () {
+        var detail = internationalOrder.getProperty('OrderDetails')[0];
+        var graph = getEntityGraph(detail, 'Order');
+        assertCount(graph, 2);
+        assertAllInNoDups(graph, detail, "detail");
+        assertAllInNoDups(graph, internationalOrder, "InternationalOrder parent");
+    });
+
+    test("can graph mixed-type roots with common base class", 2, function () {
+        var graph = getEntityGraph([orders[0], internationalOrder]);
+        assertCount(graph, 2, "when Order precedes InternationalOrder, ");
+
+        graph = getEntityGraph([internationalOrder, orders[0]]);
+        assertCount(graph, 2, "when InternationalOrder precedes Order, ");
+    });
 
     /*********************************************************
      * Edge and Error cases
