@@ -104,6 +104,18 @@ namespace Breeze.NetClient {
       _typeDiscoveryActions.Add(Tuple.Create(type, action));
     }
 
+    public void RegisterTypeInitializer(Type type, Action<Object> action) {
+      lock (_typeInitializerMap) {
+        if (action!=null) {
+          _typeInitializerMap[type] = action;
+        } else {
+          if (_typeInitializerMap.ContainsKey(type)) {
+            _typeInitializerMap.Remove(type);
+          }
+        }
+      }
+    }
+
     public async Task<DataService> FetchMetadata(DataService dataService) {
       String serviceName;
       
@@ -130,6 +142,16 @@ namespace Breeze.NetClient {
         _asyncSemaphore.Release();
       }
 
+    }
+
+    public DataService GetDataService(String serviceName) {
+      lock (_dataServiceMap) {
+        if (_dataServiceMap.ContainsKey(serviceName)) {
+          return _dataServiceMap[serviceName];
+        } else {
+          return null;
+        }
+      }
     }
 
     public EntityType GetEntityType(Type clrEntityType, bool okIfNotFound = false) {
@@ -221,6 +243,10 @@ namespace Breeze.NetClient {
       return typeof(IStructuralObject).IsAssignableFrom(clrType);
     }
 
+    #endregion
+
+    #region Import/Export metadata
+
     public String ExportMetadata() {
       return ((IJsonSerializable)this).ToJNode(null).Serialize();
     }
@@ -283,13 +309,12 @@ namespace Breeze.NetClient {
         AddResourceName(kvp.Key, et);
       });
     }
-       
 
     #endregion
 
     #region Validator methods
 
-    public Validator FindOrCreateValidator(JNode jNode) {
+    internal Validator FindOrCreateValidator(JNode jNode) {
       lock (_validatorMap) {
         Validator vr;
 
@@ -386,16 +411,6 @@ namespace Breeze.NetClient {
           return (T)null;
         } else {
           throw new Exception("Unable to locate Type: " + typeName);
-        }
-      }
-    }
-
-    private DataService GetDataService(String serviceName) {
-      lock (_dataServiceMap) {
-        if (_dataServiceMap.ContainsKey(serviceName)) {
-          return _dataServiceMap[serviceName];
-        } else {
-          return null;
         }
       }
     }
@@ -625,6 +640,7 @@ namespace Breeze.NetClient {
     private ClrTypeMap _clrTypeMap;
     private HashSet<Assembly> _probedAssemblies = new HashSet<Assembly>();
     private List<Tuple<Type, Action<Type>>> _typeDiscoveryActions = new List<Tuple<Type, Action<Type>>>();
+    private Dictionary<Type, Action<Object>> _typeInitializerMap = new Dictionary<Type, Action<object>>();
     private StructuralTypeCollection _structuralTypes = new StructuralTypeCollection();
     private Dictionary<String, String> _shortNameMap = new Dictionary<string, string>();
     private Dictionary<String, List<NavigationProperty>> _incompleteTypeMap = new Dictionary<String, List<NavigationProperty>>(); // key is typeName

@@ -102,10 +102,12 @@ namespace Breeze.NetClient {
       if (aspect.EntityManager == null) {
         // new to this entityManager
         ParseObject(jsonContext, aspect);
+        aspect.Entity.Initialize();
         _entityManager.AttachQueriedEntity(entity, (EntityType) jsonContext.StructuralType);
       } else if (_mergeStrategy == MergeStrategy.OverwriteChanges || aspect.EntityState == EntityState.Unchanged) {
         // overwrite existing entityManager
         ParseObject(jsonContext, aspect);
+        aspect.OnEntityChanged(EntityAction.MergeOnQuery);
       } else {
         // preserveChanges handling - we still want to handle expands.
         ParseObject(jsonContext, null );

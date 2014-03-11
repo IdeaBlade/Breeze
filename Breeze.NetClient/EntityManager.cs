@@ -314,22 +314,22 @@ namespace Breeze.NetClient {
           var targetAspect = targetEntity.EntityAspect;
           if (mergeStrategy == MergeStrategy.Disallowed) continue;
           if (mergeStrategy == MergeStrategy.PreserveChanges && targetAspect.EntityState != EntityState.Unchanged) continue;
-          PopulateEntity(targetEntity, entityNode);
+          PopulateImportedEntity(targetEntity, entityNode);
           UpdateTempFks(targetEntity, entityAspectNode, tempKeyMap);
           if (targetAspect.EntityState != entityState) {
             targetAspect.EntityState = entityState;
           }
-          
+          OnEntityChanged(targetEntity, EntityAction.MergeOnImport);
         } else {
           targetEntity = (IEntity)Activator.CreateInstance(entityType.ClrType);
-          PopulateEntity(targetEntity, entityNode);
+          PopulateImportedEntity(targetEntity, entityNode);
           if (hasCollision) {
             var origEk = targetEntity.EntityAspect.EntityKey;
             var newEk = tempKeyMap[origEk];
             targetEntity.EntityAspect.SetDpValue(entityType.KeyProperties[0], newEk.Values[0]);
           }
           UpdateTempFks(targetEntity, entityAspectNode, tempKeyMap);
-          AttachEntity(targetEntity, entityState);
+          AttachImportedEntity(targetEntity, entityState);
         }       
 
         importedEntities.Add(targetEntity);
@@ -345,7 +345,7 @@ namespace Breeze.NetClient {
       return entityKey;
     }
 
-    private void PopulateEntity(IEntity targetEntity, JNode jn) {
+    private void PopulateImportedEntity(IEntity targetEntity, JNode jn) {
       var targetAspect = targetEntity.EntityAspect;
       var backingStore = targetAspect.BackingStore;
 
@@ -700,19 +700,21 @@ namespace Breeze.NetClient {
 
       AttachEntityAspect(aspect, EntityState.Unchanged); 
 
-      // TODO: impl validate on attach
-      //    if (this.validationOptions.validateOnAttach) {
-      //        attachedEntity.entityAspect.validateEntity();
-      //    }
       if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnQuery) > 0) {
         aspect.ValidateInternal();
       }
 
-
       aspect.OnEntityChanged(EntityAction.AttachOnQuery);
       return aspect;
-
     }
+
+    internal EntityAspect AttachImportedEntity(IEntity entity, EntityState entityState) {
+      var aspect = entity.EntityAspect;
+      AttachEntityAspect(aspect, entityState);
+      aspect.OnEntityChanged(EntityAction.AttachOnImport);
+      return aspect;
+    }
+
 
     private EntityAspect PrepareForAttach(IEntity entity) {
       var aspect = entity.EntityAspect;
