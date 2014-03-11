@@ -290,7 +290,7 @@ namespace Breeze.NetClient {
     #region Validator methods
 
     public Validator FindOrCreateValidator(JNode jNode) {
-      lock (_validatorJNodeCache) {
+      lock (_validatorMap) {
         Validator vr;
 
         if (_validatorJNodeCache.TryGetValue(jNode, out vr)) {
@@ -307,7 +307,11 @@ namespace Breeze.NetClient {
       if (validator.IsInterned) return validator;
       var jNode = validator.ToJNode();
 
-      lock (_validatorJNodeCache) {
+      lock (_validatorMap) {
+        var key = Validator.TypeToValidatorName(validator.GetType());
+        if (!_validatorMap.ContainsKey(key)) {
+          _validatorMap[key] = validator.GetType();
+        }
         Validator cachedValidator;
         if (_validatorJNodeCache.TryGetValue(jNode, out cachedValidator)) {
           cachedValidator.IsInterned = true;
@@ -632,9 +636,10 @@ namespace Breeze.NetClient {
     private Dictionary<EntityType, String> _defaultResourceNameMap = new Dictionary<EntityType, string>();
     private Dictionary<String, EntityType> _resourceNameEntityTypeMap = new Dictionary<string, EntityType>();
 
-    // validator related.
-    private Dictionary<JNode, Validator> _validatorJNodeCache = new Dictionary<JNode, Validator>();
+    // validator related. - both locked using _validatorMap
     private Dictionary<String, Type> _validatorMap = new Dictionary<string, Type>();
+    private Dictionary<JNode, Validator> _validatorJNodeCache = new Dictionary<JNode, Validator>();
+    
 
     private List<Exception> _errors = new List<Exception>();
 

@@ -216,9 +216,11 @@ namespace Test_NetClient {
         var cust = new Customer();
         var valErrors = cust.EntityAspect.ValidationErrors;
         Assert.IsTrue(valErrors.Count == 0);
+        cust.CompanyName = "Test";
         cust.Country = "Germany";
         _em1.AttachEntity(cust);
-        // MetadataStore.Instance.
+        Assert.IsTrue(valErrors.Count == 1);
+        Assert.IsTrue(valErrors.First().Message.Contains("must start with"));
       } finally {
         countryProp.Validators.Remove(new CountryIsUsValidator());
       }
@@ -227,7 +229,7 @@ namespace Test_NetClient {
     public class CountryIsUsValidator : Validator {
       public CountryIsUsValidator()
         : base() {
-        LocalizedMessage = new LocalizedMessage("{0} must start with the 'US'");
+        LocalizedMessage = new LocalizedMessage("{0} must start with the 'US', '{1}' is not valid ");
       }
 
       protected override bool ValidateCore(ValidationContext context) {
@@ -237,7 +239,7 @@ namespace Test_NetClient {
       }
 
       public override string GetErrorMessage(ValidationContext validationContext) {
-        return LocalizedMessage.Format(validationContext.Property.DisplayName);
+        return LocalizedMessage.Format(validationContext.Property.DisplayName, validationContext.PropertyValue);
       }
     }
 

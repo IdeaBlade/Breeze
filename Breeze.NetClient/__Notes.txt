@@ -8,10 +8,11 @@
 	This is not cleared when an entity is detached.  This assumption removes a lot of special purpose logic
 	- MetadataStore.Instance is a singleton - This is different than breeze.net because 
 	1)  We want to allow entities and complexObjects be created and manipulated before they are attached to an EntityManager. Once 
-	we allow this we need somewhere for these new objects to get the metadata they need. For example, a detached 
-	entity needs a definition for EntityKey that depends on a metadataStore.
+	we allow this we need somewhere for these new objects to get the metadata they need. For example, simply getting or setting a property
+	on an entity makes up of the properties DataProperty.
 	2)  Each clrType can only have a single representation per the .NET runtime.  We need to associate each 
-	clrType with a single EntityType or ComplexType. If we allowed a different version of the EntityType/Complex
+	clrType with a single EntityType or ComplexType. Do we really want two instances of the a clrType 
+	to have different EntityTypes.  If we allowed a different version of the EntityType/Complex
 	type per EntityManager then we wouldn't have any easy way of working with detached entities
 	- Only the MetadataStore and immutable types are ThreadSafe.  Any property returned by the MetadataStore 
 	must therefore also be either immutable or thread safe itself. (all StructuralTypes are effectively immutable)
