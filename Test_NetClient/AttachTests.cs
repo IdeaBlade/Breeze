@@ -58,6 +58,45 @@ namespace Test_NetClient {
     }
 
     [TestMethod]
+    public async Task RejectChangesFkFixup() {
+      await _emTask;
+
+      var emp1 = new Employee();
+      _em1.AttachEntity(emp1);
+      var emp2 = _em1.CreateEntity<Employee>();
+      
+      var order1 = new Order();
+      emp1.Orders.Add(order1);
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsAdded());
+      Assert.IsTrue(order1.Employee == emp1);
+      order1.EntityAspect.AcceptChanges();
+      // move the order;
+      emp2.Orders.Add(order1);
+      Assert.IsTrue(emp1.Orders.Count == 0);
+      Assert.IsTrue(emp2.Orders.Count == 1);
+      Assert.IsTrue(order1.Employee == emp2);
+      Assert.IsTrue(order1.EntityAspect.EntityState.IsModified());
+      order1.EntityAspect.RejectChanges();
+      Assert.IsTrue(order1.Employee == emp1);
+      Assert.IsTrue(emp1.Orders.Count == 1);
+      Assert.IsTrue(emp2.Orders.Count == 0);
+    }
+
+    [TestMethod]
+    public async Task RejectChangesValidationFixup() {
+      await _emTask;
+
+      var cust1 = new Customer();
+      _em1.AttachEntity(cust1);
+      Assert.IsTrue(cust1.EntityAspect.ValidationErrors.Count == 1);
+      cust1.CompanyName = "valid name";
+      Assert.IsTrue(cust1.EntityAspect.ValidationErrors.Count == 0);
+      cust1.EntityAspect.RejectChanges();
+      Assert.IsTrue(cust1.EntityAspect.ValidationErrors.Count == 1);
+    }
+
+
+    [TestMethod]
     public async Task NullForeignKey() {
       await _emTask;
       var prod1 = new Product();

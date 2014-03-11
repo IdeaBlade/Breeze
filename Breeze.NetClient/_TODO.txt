@@ -1,5 +1,5 @@
-﻿- Revisit EntityErrors 
+﻿
 - implement JsonResultsAdapter
-- review wheter ComplexAspect.PropertyPathPrefix is useful
-- How to handle originalValuesMap after detach and reattach?
+
+
 - Test fk hookup after a RejectChanges on a entity with changed fk.
