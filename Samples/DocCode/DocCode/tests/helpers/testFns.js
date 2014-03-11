@@ -546,7 +546,7 @@ docCode.testFns = (function () {
 
     function northwindReset(fullReset) {
         var deferred = Q.defer();
-        var queryString = fullReset ? "/options=fullreset" : "";
+        var queryString = fullReset ? "/?options=fullreset" : "";
         $.ajax({
             type: "POST",
             url: testFns.northwindServiceName + "/reset"+ queryString,

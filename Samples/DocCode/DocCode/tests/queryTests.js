@@ -140,11 +140,12 @@
             .then(success).fail(handleFail).fin(start);
 
         function success(data) {
+            var address=null, hasAddress = false;
             var supplier = data.results[0];
             ok(supplier != null, "should have a supplier");
             try {
-                var address = supplier && supplier.Location().Address();
-                var hasAddress = address && address.length;
+                address = supplier && supplier.Location().Address();
+                hasAddress = address && address.length;
             } catch (e) { /*will catch error in failed test*/ }
             ok(hasAddress, "should have supplier.location.address which is " + address);
         }
@@ -635,6 +636,38 @@
             ok(true, "Got " + ords.join(", "));
         }
     });
+
+    /*********************************************************
+    * EntityManager.getEntities is not polymorphic
+    * Alfreds orders include regular and 'InternationalOrders'
+    * Have to look for both types in cache to get them all
+    *********************************************************/
+    asyncTest("EntityManager.getEntities is not polymorphic", 3, function () {
+
+        var em = newEm();
+        var query = EntityQuery.from("Orders")
+            // known to have a mix of Order types
+            .where('Customer.CompanyName', 'eq', 'Around the Horn')
+            .expand("Customer");
+
+        em.executeQuery(query)
+            .then(getOrdersFromCache).catch(handleFail).fin(start);
+
+        function getOrdersFromCache(data) {
+            var cust = em.getEntities('Customer')[0];
+            var custOrders = cust.getProperty('Orders');
+            var custOrderCount = custOrders.length;
+            var qOrders = em.getEntities('Order');
+            var qOrderCount = qOrders.length;
+            var qInternationalOrders = em.getEntities('InternationalOrder');
+            var qInternationalOrderCount = qInternationalOrders.length;
+
+            ok(qOrderCount, "should have some Orders; count = " + qOrderCount);
+            ok(qInternationalOrderCount, "should have some InternationalOrders; count = " + qInternationalOrderCount);
+            equal(qOrderCount + qInternationalOrderCount, custOrderCount,
+                "sum of regular & international orders should = total cust orders, " + custOrderCount);
+        }
+    });
     /*********************************************************
     * Products in a Category whose name begins with 'S'
     * Category is the related parent of Product
@@ -935,7 +968,7 @@
     function showProductResults(data) {
         var limit = 15;
         var count = data.results.length;
-        var results = (limit) ? data.results.slice(0, limit) : data.results;
+        var results = limit < count ? data.results.slice(0, limit) : data.results;
         var out = results.map(function (p) {
             return "({0}) '{1}' at ${2} in '{3}'".format(
                 p.ProductID(), p.ProductName(), p.UnitPrice(),
@@ -1435,7 +1468,7 @@
         var em = newEm();
         
         // create an 'Alice' employee
-        var alice = em.createEntity('Employee', { FirstName: 'Alice' });
+        em.createEntity('Employee', { FirstName: 'Alice' });
 
         // query for Employees with names that begin with 'A'
         var query = EntityQuery.from('Employees')

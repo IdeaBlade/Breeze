@@ -20,8 +20,9 @@ namespace Northwind.Models
             // Ignore UserSessionId in metadata (but not in base DbContext)
             modelBuilder.Entity<Customer>().Ignore(t => t.UserSessionId);
             modelBuilder.Entity<Employee>().Ignore(t => t.UserSessionId);
-            modelBuilder.Entity<InternationalOrder>().Ignore(t => t.UserSessionId);
             modelBuilder.Entity<Order>().Ignore(t => t.UserSessionId);
+            // Cannot specify ignore on InternationalOrder when it inherits from Order
+            //modelBuilder.Entity<InternationalOrder>().Ignore(t => t.UserSessionId);
             modelBuilder.Entity<OrderDetail>().Ignore(t => t.UserSessionId);
             modelBuilder.Entity<User>().Ignore(t => t.UserSessionId);
         }

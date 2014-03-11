@@ -5,7 +5,7 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 0.9.0
+ * Version: 0.9.1
  * --------------------------------------------------------------------------------
  * Adds getEntityGraph method to Breeze EntityManager and EntityManager prototype
  * Source:
@@ -100,10 +100,10 @@
         expandFns.forEach(function (fn) { fn(roots); });
         return results;
 
-        function addToResults(entities){
-            entities.forEach(function(entity){
+        function addToResults(entities) {
+            entities.forEach(function(entity) {
                 if (entity && results.indexOf(entity) < 0) { results.push(entity); }
-            })
+            });
         }
 
         function getRootInfo() {
@@ -180,6 +180,7 @@
                     entities.forEach(function (entity) {
                         related = related.concat(f(entity));
                     });
+                    if (related.length === 0) {return;} // bail out now
                     addToResults(related);
                     if (fi < flen - 1) { // only if more fns
                         entities = [];
@@ -198,22 +199,33 @@
             try {
                 baseTypeName = baseType.name;
                 var nav = baseType.getNavigationProperty(path);
+                var fkName = nav.foreignKeyNames[0];
                 if (!nav) {
                     throw new Error(path + " is not a navigation property of " + baseTypeName);
                 }
                 navType = nav.entityType;
-                var navTypeName = navType.name;
-                var fkName = nav.foreignKeyNames[0];
-                if (fkName) {
+                // add derived types 
+                var navTypes = navType.getSelfAndSubtypes();
+                var grps = []; // non-empty groups for these types
+                navTypes.forEach(function (t) {
+                    var grp = entityGroupMap[t.name];
+                    if (grp && grp._entities.length > 0) {
+                        grps.push(grp);
+                    }
+                });
+                var grpCount = grps.length;
+                if (grpCount === 0) {
+                    // no related entities in cache
+                    fn = function () { return []; };
+                } else if (fkName) {
                     fn = function (entity) {
-                        var val = [];
+                        var val = null;
                         try {
                             var keyValue = entity.getProperty(fkName);
-                            var grp = entityGroupMap[navTypeName];
-                            if (grp) {
-                                val = grp._entities[grp._indexMap[keyValue]];
-                                val = val ? [val] : [];
-                            } 
+                            for (var i = 0; i < grpCount; i += 1) {
+                                val = grps[i]._entities[grps[i]._indexMap[keyValue]];
+                                if (val) { break; }
+                            }                          
                         } catch (e) { rethrow(e); }
                         return val;
                     };
@@ -221,28 +233,27 @@
                     fkName = nav.inverse ?
                        nav.inverse.foreignKeyNames[0] :
                        nav.inverseForeignKeyNames[0];
-                    if (!fkName) { throw ''; }
+                    if (!fkName) { throw new Error("No inverse keys"); }
                     fn = function (entity) {
-                        var val = [];
+                        var vals = [];
                         try {
                             var keyValue = entity.entityAspect.getKey().values[0];
-                            var grp = entityGroupMap[navTypeName];
-                            val = grp ?
-                                grp._entities.filter(function (en) {
+                            grps.forEach(function(grp) {
+                                vals = vals.concat(grp._entities.filter(function(en) {
                                     return en.getProperty(fkName) === keyValue;
-                                }) : [];
+                                }));
+                            });
                         } catch (e) { rethrow(e); }
-                        return val;
+                        return vals;
                     };
                 }
                 fn.navType = navType;
                 fn.path = path;
 
-
             } catch (err) { rethrow(err); }
             return fn;
 
-            function rethrow(e){
+            function rethrow(e) {
                 var typeName = baseTypeName || baseType;
                 var error = new Error("'getEntityGraph' can't expand '" + path + "' for " + typeName);
                 error.innerError = e;
