@@ -127,7 +127,7 @@ namespace Breeze.NetClient {
         if (prop == null) return null;
         var entityNodes = (JArray)prop.Value;
         var serializer = new JsonSerializer();
-        var jsonConverter = new JsonEntityConverter(entityManager, MergeStrategy.OverwriteChanges, StructuralType.ClrTypeNameToStructuralTypeName);
+        var jsonConverter = new JsonEntityConverter(entityManager, MergeStrategy.OverwriteChanges, LoadingOperation.Save, StructuralType.ClrTypeNameToStructuralTypeName);
         serializer.Converters.Add(jsonConverter);
         // Don't use the result of the Deserialize call to get the list of entities 
         // because it won't include entities added on the server.

@@ -108,7 +108,7 @@ namespace Breeze.NetClient {
       var mergeStrategy = query.QueryOptions.MergeStrategy ?? this.DefaultQueryOptions.MergeStrategy ?? QueryOptions.Default.MergeStrategy;
       
       // cannot reuse a jsonConverter - internal refMap is one instance/query
-      var jsonConverter = new JsonEntityConverter(this, mergeStrategy.Value);
+      var jsonConverter = new JsonEntityConverter(this, mergeStrategy.Value, LoadingOperation.Query);
       Type rType;
       if (resourcePath.Contains("inlinecount")) {
         rType = typeof(QueryResult<>).MakeGenericType(query.ElementType);
@@ -533,6 +533,7 @@ namespace Breeze.NetClient {
       EntityGroups.ForEach(eg => eg.Clear());
       SetHasChanges(false);
       Initialize();
+      OnEntityChanged(null, EntityAction.Clear);
     }
 
     /// <summary>
