@@ -736,6 +736,10 @@ namespace Breeze.NetClient {
     private EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState) {
       var group = GetEntityGroup(entityAspect.EntityType.ClrType);
       group.AttachEntityAspect(entityAspect, entityState);
+      if (entityState != EntityState.Modified) {
+        // don't clear this if modified because it came from an earlier incarnation.
+        entityAspect._originalValuesMap = null;
+      }
       entityAspect.LinkRelatedEntities();
       return entityAspect;
     }

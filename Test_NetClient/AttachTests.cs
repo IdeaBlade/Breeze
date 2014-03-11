@@ -353,6 +353,67 @@ namespace Test_NetClient {
       _em1.AttachEntity(order);
       Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsUnchanged());
     }
+
+    // attach, detach and reattach
+    [TestMethod]
+    public async Task AttachDetachReattachNavProps() {
+      await _emTask;
+
+      var cust1 = new Customer() {  CustomerID = Guid.NewGuid() };
+      _em1.AttachEntity(cust1);
+      var cust2 = new Customer() {  CustomerID =  Guid.NewGuid() };
+      _em1.AttachEntity(cust2); 
+      var order = _em1.CreateEntity<Order>(EntityState.Unchanged);
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsUnchanged());
+      cust1.Orders.Add(order);
+      Assert.IsTrue(order.Customer == cust1);
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsModified());
+      _em1.DetachEntity(order);
+      Assert.IsTrue(order.EntityAspect.IsDetached);
+      Assert.IsTrue(order.Customer == null);
+      _em1.AttachEntity(order);
+      Assert.IsTrue(order.Customer == cust1);
+      Assert.IsTrue(order.EntityAspect.IsAttached && order.EntityAspect.EntityState.IsUnchanged());
+
+    }
+
+    // attach, detach and reattach
+    [TestMethod]
+    public async Task AttachDetachOriginalValues() {
+      await _emTask;
+
+      var cust1 = new Customer() { CustomerID = Guid.NewGuid() };
+      _em1.AttachEntity(cust1);
+      cust1.ContactName = "original contact name";
+      cust1.EntityAspect.AcceptChanges();
+      Assert.IsTrue(cust1.EntityAspect.IsAttached && cust1.EntityAspect.EntityState.IsUnchanged());
+
+      cust1.ContactName = "new contact name";
+      Assert.IsTrue(cust1.EntityAspect.IsAttached && cust1.EntityAspect.EntityState.IsModified());
+      _em1.DetachEntity(cust1);
+      Assert.IsTrue(cust1.EntityAspect.IsDetached);
+      Assert.IsTrue(cust1.ContactName == "new contact name");
+      _em1.AttachEntity(cust1, EntityState.Modified);
+      Assert.IsTrue(cust1.ContactName == "new contact name");
+      Assert.IsTrue(cust1.EntityAspect.IsAttached && cust1.EntityAspect.EntityState.IsModified());
+      cust1.EntityAspect.RejectChanges();
+      Assert.IsTrue(cust1.EntityAspect.IsAttached && cust1.EntityAspect.EntityState.IsUnchanged());
+      Assert.IsTrue(cust1.ContactName == "original contact name");
+
+      cust1.ContactName = "new foo";
+      Assert.IsTrue(cust1.EntityAspect.IsAttached && cust1.EntityAspect.EntityState.IsModified());
+      _em1.DetachEntity(cust1);
+      Assert.IsTrue(cust1.EntityAspect.IsDetached);
+      Assert.IsTrue(cust1.ContactName == "new foo");
+      
+      _em1.AttachEntity(cust1);
+      Assert.IsTrue(cust1.ContactName == "new foo");
+      Assert.IsTrue(cust1.EntityAspect.IsAttached && cust1.EntityAspect.EntityState.IsUnchanged());
+      Assert.IsTrue(cust1.EntityAspect.OriginalValuesMap.Count == 0);
+      cust1.EntityAspect.RejectChanges();
+      Assert.IsTrue(cust1.ContactName == "new foo");
+      Assert.IsTrue(cust1.EntityAspect.IsAttached && cust1.EntityAspect.EntityState.IsUnchanged());
+    }
     
     // exception if set nav to entity with different manager
     [TestMethod]
