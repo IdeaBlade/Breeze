@@ -67,6 +67,22 @@ namespace Breeze.NetClient {
       } 
     }
 
+    public IEnumerable<Exception> Errors {
+      get { return _errors.ToList(); }
+    }
+
+    #endregion
+
+    #region Public methods
+
+    public static void __Reset() {
+      lock (__lock) {
+        var x = __instance._probedAssemblies;
+        __instance = new MetadataStore();
+        __instance.ProbeAssemblies(x.ToArray());
+      }
+    }
+
     public bool ProbeAssemblies(params Assembly[] assembliesToProbe) {
       lock (_structuralTypes) {
         var assemblies = assembliesToProbe.Except(_probedAssemblies).ToList();
@@ -86,18 +102,6 @@ namespace Breeze.NetClient {
 
     public void RegisterTypeDiscoveryAction(Type type, Action<Type> action) {
       _typeDiscoveryActions.Add(Tuple.Create(type, action));
-    }
-
-    #endregion
-
-    #region Public methods
-
-    public static void __Reset() {
-      lock (__lock) {
-        var x = __instance._probedAssemblies;
-        __instance = new MetadataStore();
-        __instance.ProbeAssemblies(x.ToArray());
-      }
     }
 
     public async Task<DataService> FetchMetadata(DataService dataService) {
@@ -330,7 +334,9 @@ namespace Breeze.NetClient {
       var vrName = jNode.Get<String>("name");
       Type vrType;
       if (!_validatorMap.TryGetValue(vrName, out vrType)) {
-        throw new Exception("Unable to create a validator for " + vrName);
+        var e = new Exception("Unable to create a validator for " + vrName);
+        _errors.Add(e);
+        return null;
       }
       // Deserialize the object
       var vr = (Validator)jNode.ToObject(vrType, true);
@@ -629,6 +635,8 @@ namespace Breeze.NetClient {
     // validator related.
     private Dictionary<JNode, Validator> _validatorJNodeCache = new Dictionary<JNode, Validator>();
     private Dictionary<String, Type> _validatorMap = new Dictionary<string, Type>();
+
+    private List<Exception> _errors = new List<Exception>();
 
     #endregion
 

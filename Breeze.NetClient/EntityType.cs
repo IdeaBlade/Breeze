@@ -23,7 +23,7 @@ namespace Breeze.NetClient {
       }
       jNode.GetJNodeArray("dataProperties").Select(jn => new DataProperty(jn)).ForEach(dp => AddDataProperty(dp));
       jNode.GetJNodeArray("navigationProperties").Select(jn => new NavigationProperty(jn)).ForEach(np => AddNavigationProperty(np));
-      jNode.GetJNodeArray("validators").Select(jn => Validator.FindOrCreate(jn)).ToList();
+      _validators = new ValidatorCollection(jNode.GetJNodeArray("validators"));
       // custom
     }
 

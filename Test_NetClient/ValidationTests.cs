@@ -205,20 +205,24 @@ namespace Test_NetClient {
       Assert.IsTrue(ve.Key != null);
     }
 
-    //[TestMethod]
-    //public async Task CustomPropertyValidator() {
-    //  await _emTask;
+    [TestMethod]
+    public async Task CustomPropertyValidator() {
+      await _emTask;
 
-    //  var custType = MetadataStore.Instance.GetEntityType(typeof(Customer));
-    //  var countryProp = custType.GetDataProperty("Country");
-    //  countryProp.Validators.Add(new CountryIsUsValidator());
-    //  var cust = new Customer();
-    //  var valErrors = cust.EntityAspect.ValidationErrors;
-    //  Assert.IsTrue(valErrors.Count == 0);
-    //  cust.Country = "Germany";
-    //  _em1.AttachEntity(cust);
-    //  // MetadataStore.Instance.
-    //}
+      var custType = MetadataStore.Instance.GetEntityType(typeof(Customer));
+      var countryProp = custType.GetDataProperty("Country");
+      try {
+        countryProp.Validators.Add(new CountryIsUsValidator());
+        var cust = new Customer();
+        var valErrors = cust.EntityAspect.ValidationErrors;
+        Assert.IsTrue(valErrors.Count == 0);
+        cust.Country = "Germany";
+        _em1.AttachEntity(cust);
+        // MetadataStore.Instance.
+      } finally {
+        countryProp.Validators.Remove(new CountryIsUsValidator());
+      }
+    }
 
     public class CountryIsUsValidator : Validator {
       public CountryIsUsValidator()

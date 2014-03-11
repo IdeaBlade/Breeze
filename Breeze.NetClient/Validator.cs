@@ -196,7 +196,11 @@ namespace Breeze.NetClient {
 
     public ValidatorCollection() : base() { }
     public ValidatorCollection(IEnumerable<Validator> validators) : base(validators) { }
-    
+    public ValidatorCollection(IEnumerable<JNode> jNodes) {
+      jNodes.Select(jn => Validator.FindOrCreate(jn))
+        .Where(v => v != null)
+        .ForEach(v => this.Add(v));
+    }
 
     public override void Add(Validator item) {
       item = item.Intern();
