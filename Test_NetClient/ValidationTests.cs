@@ -43,6 +43,55 @@ namespace Test_NetClient {
       
     }
 
+
+
+    [TestMethod]
+    public async Task INotifyDataErrorInfo() {
+      await _emTask;
+      var emp = new Employee();
+      var inde = (INotifyDataErrorInfo)emp;
+      Assert.IsTrue(!inde.HasErrors);
+      var eventArgsList = new List<DataErrorsChangedEventArgs>();
+      inde.ErrorsChanged += (s, e) => {
+        eventArgsList.Add(e);
+      };
+      
+      _em1.AttachEntity(emp);
+      Assert.IsTrue(eventArgsList.Count == 2); // firstName, lastName
+      // magicString
+      var fnErrors = inde.GetErrors(EntityAspect.AllErrors).Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 2);
+      Assert.IsTrue(fnErrors.All(err => err.Context.PropertyPath == "LastName" || err.Context.PropertyPath == "FirstName"));
+      fnErrors = inde.GetErrors("FirstName").Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 1);
+      Assert.IsTrue(inde.HasErrors);
+      
+      emp.FirstName = "test";
+      Assert.IsTrue(eventArgsList.Count == 3); 
+      fnErrors = inde.GetErrors(EntityAspect.AllErrors).Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 1);
+      fnErrors = inde.GetErrors("FirstName").Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 0);
+      Assert.IsTrue(inde.HasErrors);
+
+      emp.FirstName = "a very long name that exceeds the valid length of the field" + ".".PadRight(40);
+      Assert.IsTrue(eventArgsList.Count == 4);
+      fnErrors = inde.GetErrors(EntityAspect.AllErrors).Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 2);
+      fnErrors = inde.GetErrors("FirstName").Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 1);
+      Assert.IsTrue(inde.HasErrors);
+      
+      emp.FirstName = "xxx";
+      emp.LastName = "yyy";
+      Assert.IsTrue(eventArgsList.Count == 6);
+      fnErrors = inde.GetErrors(EntityAspect.AllErrors).Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 0);
+      fnErrors = inde.GetErrors("FirstName").Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 0);
+      Assert.IsTrue(!inde.HasErrors);
+    }
+
     [TestMethod]
     public async Task FindOrCreateFromJson() {
       await _emTask;
