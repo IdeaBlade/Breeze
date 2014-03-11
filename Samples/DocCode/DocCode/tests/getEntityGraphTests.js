@@ -14,7 +14,7 @@
     var MetadataStore = breeze.MetadataStore;
     var UNCHGD = breeze.EntityState.Unchanged;
 
-    var customers, employees, manager, orders, orderDetails, products;
+    var customers, employees, internationalOrder, manager, orders, orderDetails, products;
     var handleFail = testFns.handleFail;
     var moduleMetadataStore = new MetadataStore();
     var northwindService = testFns.northwindServiceName;
@@ -170,19 +170,26 @@
     var custExpand = 'Orders.OrderDetails.Product, Orders.Employee';
     test("first customer returns its orders, their employees, their details, and their products " +
         "with compact expand='" + custExpand + "'", 6, function () {
-        customerExpandTest();
+            customerExpandTest(customers[0]);
     });
 
     // Verbose expand
     custExpand = 'Orders, Orders.OrderDetails, Orders.OrderDetails.Product, Orders.Employee';
     test("first customer returns its orders, their employees, their details, and their products " +
         "with verbose expand='" + custExpand + "'", 6, function () {
-            customerExpandTest();
+            customerExpandTest(customers[0]);
         });
 
-    function customerExpandTest () {
+    // Inheritance test
+    // 2nd customer's orders are mix of Order and its InternationalOrder subtype
+    custExpand = 'Orders.OrderDetails.Product, Orders.Employee';
+    test("second customer returns its mix of orders (regular and international), \
+         with expand='" + custExpand + "'", 6, function () {
+            customerExpandTest(customers[0]);
+        });
+
+    function customerExpandTest (cust) {
         // setup
-        var cust = customers[0];
         var custEmps = [];
         var custDetails = [];
         var custProducts = [];
@@ -381,6 +388,15 @@
             }, UNCHGD);
         });
 
+        // add InternationalOrder (subclass of Order) to second customer
+        internationalOrder = manager.createEntity('InternationalOrder', {
+            OrderID: 118,
+            Customer: customers[1],
+            Employee: employees[0],
+            ShipName: 'ShipName ' + 118,
+            CustomsDescription: "Look at me; I'm global!"
+        }, UNCHGD);
+
         // Create as many products as orders (actually need one fewer)
         products = ordIds.map(function (id) {
             return manager.createEntity('Product', {
@@ -406,14 +422,14 @@
         var bad = []; // for debugging
         src.forEach(function (s) {
             if (s == null) {
-                srcCount -= 1;
+                srcCount -= 1; // ignore null or undefined (how did they get there anyway?)
             } else {
-                var miss = dest.filter(function (d) { return d === s; });
-                if (miss.length !== 1) { bad = bad.push(s); }
+                var found = dest.filter(function (d) { return d === s; });
+                if (found.length !== 1) { bad.push(s); } // should find exactly one instance
             }
         });
         var message = 'should have ' + srcCount + ' ' + srcDescription + '.';
-        equal(bad.length, 0, message);
+        equal(srcCount - bad.length, srcCount, message);
     }
 
     function assertCount(array, expectedCount, description) {
