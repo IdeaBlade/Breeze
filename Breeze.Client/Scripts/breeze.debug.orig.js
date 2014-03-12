@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.  
  * Use, reproduction, distribution, and modification of this code is subject to the terms and 
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
@@ -4780,14 +4780,14 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         } else {
             // angular keystroke hack
             // test if string ends with "." or ".0" or ".00" - or ".030" or ".0300" etc.
-            if (dataType.isFloat && (typeof newValue == "string") && /[.](\d*0|)$/.test(newValue)) {
-                rawAccessorFn(newValue);
-                setTimeout(function () {
-                    newValue = dataType.parse(newValue, typeof newValue);
-                    defaultPropertyInterceptor(property, newValue, rawAccessorFn);
-                }, 0);
-                return;
-            }
+//            if (dataType.isFloat && (typeof newValue == "string") && /[.](\d*0|)$/.test(newValue)) {
+//                rawAccessorFn(newValue);
+//                setTimeout(function () {
+//                    newValue = dataType.parse(newValue, typeof newValue);
+//                    defaultPropertyInterceptor(property, newValue, rawAccessorFn);
+//                }, 0);
+//                return;
+//            }
             newValue = dataType.parse(newValue, typeof newValue);
         }
     }
