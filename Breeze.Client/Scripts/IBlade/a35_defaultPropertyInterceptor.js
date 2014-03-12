@@ -11,6 +11,16 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         if (Array.isArray(newValue) && !property.isScalar) {
             newValue = newValue.map(function(nv) { return dataType.parse(nv, typeof nv); });
         } else {
+            // angular keystroke hack
+            // test if string ends with "." or ".0" or ".00" - or ".030" or ".0300" etc.
+            if (dataType.isFloat && (typeof newValue == "string") && /[.](\d*0|)$/.test(newValue)) {
+                rawAccessorFn(newValue);
+                setTimeout(function () {
+                    newValue = dataType.parse(newValue, typeof newValue);
+                    defaultPropertyInterceptor(property, newValue, rawAccessorFn);
+                }, 0);
+                return;
+            }
             newValue = dataType.parse(newValue, typeof newValue);
         }
     }

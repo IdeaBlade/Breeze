@@ -25,7 +25,22 @@
         }
     });
 
-  
+    test("angular keystroke hack", function () {
+        var em = newEm();
+        var productType = em.metadataStore.getEntityType("Product");
+        var product = productType.createEntity();
+        em.attachEntity(product);
+        product.unitPrice = "3.1";
+        ok(product.unitPrice == 3.1);
+        product.unitPrice = "3.";
+        ok(product.unitPrice == '3.');
+        stop();
+        setTimeout(function () {
+            ok(product.unitPrice == 3);
+            start();
+        })
+
+    });
 
     test("new instead of createEntity with entityAspect", function () {
         var em = newEm(MetadataStore.importMetadata(testFns.metadataStore.exportMetadata()));
