@@ -145,24 +145,27 @@
                 }
                 // Types differs. Look for closest common base type
                 // does thisType derive from current rootType?
+                var baseType = rootType;
                 do { 
-                    compatTypes = compatTypes || rootType.getSelfAndSubtypes();
+                    compatTypes = compatTypes || baseType.getSelfAndSubtypes();
                     if (compatTypes.indexOf(thisType) > -1) {
+                        rootType = baseType;
                         return;
                     }
-                    rootType = rootType.baseEntityType;
+                    baseType = baseType.baseEntityType;
                     compatTypes = null;
-                } while (rootType);
+                } while (baseType);
 
                 // does current rootType derives from thisType?
+                baseType = thisType;
                 do {
-                    compatTypes = thisType.getSelfAndSubtypes();
+                    compatTypes = baseType.getSelfAndSubtypes();
                     if (compatTypes.indexOf(rootType) > -1) {
-                        rootType = thisType;
+                        rootType = baseType;
                         return;
                     }
-                    thisType = thisType.baseEntityType;
-                } while (thisType)
+                    baseType = baseType.baseEntityType;
+                } while (baseType)
 
                 throw getRootErr(ix,"is not EntityType-compatible with other roots");
             }
