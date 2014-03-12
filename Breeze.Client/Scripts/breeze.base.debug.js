@@ -2454,7 +2454,7 @@ var Validator = (function () {
         var valFn = function (v, ctx) {
             if (v == null) return true;
             if (typeof v === "string" && ctx && ctx.allowString) {
-                v = parseInt(v, 10);
+                v = parseFloat(v, 10);
             }
             return (typeof v === "number" && !isNaN(v));
         };
@@ -4778,6 +4778,16 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         if (Array.isArray(newValue) && !property.isScalar) {
             newValue = newValue.map(function(nv) { return dataType.parse(nv, typeof nv); });
         } else {
+            // angular keystroke hack
+            // test if string ends with "." or ".0" or ".00" - or ".030" or ".0300" etc.
+            if (dataType.isFloat && (typeof newValue == "string") && /[.](\d*0|)$/.test(newValue)) {
+                rawAccessorFn(newValue);
+                setTimeout(function () {
+                    newValue = dataType.parse(newValue, typeof newValue);
+                    defaultPropertyInterceptor(property, newValue, rawAccessorFn);
+                }, 0);
+                return;
+            }
             newValue = dataType.parse(newValue, typeof newValue);
         }
     }
@@ -5405,7 +5415,7 @@ var DataType = (function () {
     @static
     **/
     DataType.Decimal = DataType.addSymbol({
-        defaultValue: 0, isNumeric: true, quoteJsonOData: true,
+        defaultValue: 0, isNumeric: true, quoteJsonOData: true, isFloat: true,
         parse: coerceToFloat,
         fmtOData: makeFloatFmt("m"),
         getNext: getNextNumber
@@ -5416,7 +5426,7 @@ var DataType = (function () {
     @static
     **/
     DataType.Double = DataType.addSymbol({
-        defaultValue: 0, isNumeric: true,
+        defaultValue: 0, isNumeric: true, isFloat: true,
         parse: coerceToFloat,
         fmtOData: makeFloatFmt("d"),
         getNext: getNextNumber
@@ -5427,7 +5437,7 @@ var DataType = (function () {
     @static
     **/
     DataType.Single = DataType.addSymbol({
-        defaultValue: 0, isNumeric: true,
+        defaultValue: 0, isNumeric: true, isFloat: true,
         parse: coerceToFloat,
         fmtOData: makeFloatFmt("f"),
         getNext: getNextNumber
