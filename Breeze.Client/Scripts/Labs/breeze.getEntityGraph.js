@@ -5,7 +5,7 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 0.9.1
+ * Version: 0.9.2
  * --------------------------------------------------------------------------------
  * Adds getEntityGraph method to Breeze EntityManager and EntityManager prototype
  * Source:
@@ -42,12 +42,12 @@
         /**
         Get related entities of root entity (or root entities) as specified by expand. 
         @example
-            var results = breeze.EntityManager.getEntityGraph(customer, 'Orders.OrderDetails');
-            // results will be the customer, all of its orders and their details even if deleted.
+            var graph = breeze.EntityManager.getEntityGraph(customer, 'Orders.OrderDetails');
+            // graph will be the customer, all of its orders and their details even if deleted.
         @method getEntityGraph
         @param roots {Entity|Array of Entity} The root entity or root entities.
         @param expand {String|Array of String|Object} an expand string, a query expand clause, or array of string paths
-        @return {Array of Entity} root entities and their related entities, including deleted entities. Duplicates are removed and the order of results is indeterminate.
+        @return {Array of Entity} root entities and their related entities, including deleted entities. Duplicates are removed and entity order is indeterminate.
         **/
         EntityManager.getEntityGraph = getEntityGraphCore;
     }
@@ -59,23 +59,23 @@
             var query = breeze.EntityQuery.from('Customers')
                         .where('CompanyName', 'startsWith', 'Alfred')
                         .expand('Orders.OrderDetails');
-            var results = manager.getEntityGraph(query);
-            // results will be the 'Alfred' customers, their orders and their details even if deleted.
+            var graph = manager.getEntityGraph(query);
+            // graph will be the 'Alfred' customers, their orders and their details even if deleted.
         @method getEntityGraph
         @param query {EntityQuery} A query to be executed against the manager's local cache.
         @param [expand] {String|Array of String|Object} an expand string, a query expand clause, or array of string paths
-        @return {Array of Entity} local queried root entities and their related entities, including deleted entities. Duplicates are removed and the order of results is indeterminate.
+        @return {Array of Entity} local queried root entities and their related entities, including deleted entities. Duplicates are removed and entity order is indeterminate.
         **/
 
         /**
         Get related entities of root entity (or root entities) as specified by expand. 
         @example
-            var results = manager.getEntityGraph(customer, 'Orders.OrderDetails');
-            // results will be the customer, all of its orders and their details even if deleted.
+            var graph = manager.getEntityGraph(customer, 'Orders.OrderDetails');
+            // graph will be the customer, all of its orders and their details even if deleted.
         @method getEntityGraph
         @param roots {Entity|Array of Entity} The root entity or root entities.
         @param expand {String|Array of String|Object} an expand string, a query expand clause, or array of string paths
-        @return {Array of Entity} root entities and their related entities, including deleted entities. Duplicates are removed and the order of results is indeterminate.
+        @return {Array of Entity} root entities and their related entities, including deleted entities. Duplicates are removed and entity order is indeterminate.
         **/
         proto.getEntityGraph = getEntityGraph;
     }
@@ -90,87 +90,91 @@
     }
 
     function getEntityGraphCore(roots, expand) {
-        var entityGroupMap, results = [], rootType;
+        var entityGroupMap, graph = [], rootType;
         roots = Array.isArray(roots) ? roots : [roots];
-        addToResults(roots); // removes dups & nulls
-        roots = results.slice(); 
-        if (!roots.length) { return results; }
-        getRootInfo();
-        var expandFns = getExpandFns();
-        expandFns.forEach(function (fn) { fn(roots); });
-        return results;
+        addToGraph(roots);     // removes dups & nulls
+        roots = graph.slice(); // copy of de-duped roots
+        if (roots.length) {
+            getRootInfo();
+            getExpand();
+            buildGraph();
+        }
+        return graph;
 
-        function addToResults(entities) {
+        function addToGraph(entities) {
             entities.forEach(function(entity) {
-                if (entity && results.indexOf(entity) < 0) { results.push(entity); }
+                if (entity && graph.indexOf(entity) < 0) { graph.push(entity); }
             });
         }
 
         function getRootInfo() {
             var compatTypes;
+ 
             roots.forEach(function (root, ix) {
                 var aspect;
-                var getRootErr = function (msg) {
-                    return new Error("'getEntityGraph' root[" + ix + "] " + msg);
-                };
-
                 if (!root || !(aspect = root.entityAspect)) {
-                    throw getRootErr('is not an entity');
+                    throw getRootErr(ix, 'is not an entity');
                 }
                 if (aspect.entityState === breeze.EntityState.Detached) {
-                    throw getRootErr('is a detached entity');
+                    throw getRootErr(ix, 'is a detached entity');
                 }
 
                 var em = aspect.entityManager;
                 if (entityGroupMap) {
                     if (entityGroupMap !== em._entityGroupMap) {
-                        throw getRootErr("has a different 'EntityManager' than other roots");
+                        throw getRootErr(ix, "has a different 'EntityManager' than other roots");
                     }
                 } else {
                     entityGroupMap = em._entityGroupMap;
                 }
-                // Type compatibility check
-                var thisType = root.entityType;
-                if (rootType) {
-                    if (rootType !== thisType) {
-                        // Look for closest common base type
-                        var baseType = rootType;
-                        do { // does thisType derive from current rootType?
-                            compatTypes = compatTypes || baseType.getSelfAndSubtypes();
-                            if (compatTypes.indexOf(thisType) > -1) {
-                                rootType = baseType;
-                                break;
-                            } 
-                            baseType = baseType.baseEntityType;
-                            compatTypes = null;
-                        } while (baseType);
-
-                        if (!baseType) { // does current rootType derives from thisType?
-                            baseType = thisType;
-                            do {
-                                compatTypes = baseType.getSelfAndSubtypes();
-                                if (compatTypes.indexOf(rootType) > -1) {
-                                    rootType = baseType;
-                                    break;
-                                } 
-                                baseType = baseType.baseEntityType;
-                            } while (baseType)
-                        }
-                        if (!baseType) {
-                            throw getRootErr("is not EntityType-compatible with other roots");
-                        }
-                    }
-                } else {
-                    rootType = thisType;
-                }
+                getRootType(root, ix);
 
             });
+
+            function getRootErr(ix, msg) {
+                return new Error("'getEntityGraph' root[" + ix + "] " + msg);
+            };
+
+            function getRootType(root, ix) {
+                var thisType = root.entityType;
+                if (!rootType) {
+                    rootType = thisType;
+                    return;
+                } else if (rootType === thisType) {
+                    return;
+                }
+                // Types differs. Look for closest common base type
+                // does thisType derive from current rootType?
+                var baseType = rootType;
+                do { 
+                    compatTypes = compatTypes || baseType.getSelfAndSubtypes();
+                    if (compatTypes.indexOf(thisType) > -1) {
+                        rootType = baseType;
+                        return;
+                    }
+                    baseType = baseType.baseEntityType;
+                    compatTypes = null;
+                } while (baseType);
+
+                // does current rootType derives from thisType?
+                baseType = thisType;
+                do {
+                    compatTypes = baseType.getSelfAndSubtypes();
+                    if (compatTypes.indexOf(rootType) > -1) {
+                        rootType = baseType;
+                        return;
+                    }
+                    baseType = baseType.baseEntityType;
+                } while (baseType)
+
+                throw getRootErr(ix,"is not EntityType-compatible with other roots");
+            }
         }
 
-        function getExpandFns() {
+        function getExpand() {
             try {
                 if (!expand) {
-                    return [];
+                    expand = [];
                 } else if (typeof expand === 'string') {
                     // tricky because Breeze expandClause not exposed publically
                     expand = new breeze.EntityQuery().expand(expand).expandClause;
@@ -178,39 +182,48 @@
                 if (expand.propertyPaths) { // expand clause
                     expand = expand.propertyPaths;
                 } else if (Array.isArray(expand)) {
-                    if (!expand.every(function (elem) { return typeof elem === 'string'; })) {
+                    if (!expand.every(function(elem) { return typeof elem === 'string'; })) {
                         throw '';
                     }
-                } else { throw ''; }
+                } else {
+                    throw '';
+                }
             } catch (_) {
                 throw new Error(
                     "expand must be an expand string, array of string paths, or a query expand clause");
             }
-
-            var fns = expand.map(makePathFns);
-            return fns;
         }
 
-        function makePathFns(path) {
+        function buildGraph() {
+            if (expand && expand.length) {
+                var fns = expand.map(makePathFn);
+                fns.forEach(function (fn) { fn(roots); });            
+            }
+        }
+
+        // Make function to get entities along a single expand path
+        // such as 'Orders.OrderDetails.Product'
+        function makePathFn(path) {
             var fns = [],
                 segments = path.split('.'),
                 type = rootType;
 
-            for (var i = 0, len = segments.length; i < len; i++) {
-                var f = makePathFn(type, segments[i]);
+            var flen = segments.length;
+            for (var i = 0; i < flen; i++) {
+                var f = makePathSegmentFn(type, segments[i]);
                 type = f.navType;
                 fns.push(f);
             }
 
             return function (entities) {
-                for (var fi = 0, flen = fns.length; fi < len; fi++) {
+                for (var fi = 0; fi < flen; fi++) {
                     var related = [];
                     f = fns[fi];
                     entities.forEach(function (entity) {
                         related = related.concat(f(entity));
                     });
                     if (related.length === 0) {return;} // bail out now
-                    addToResults(related);
+                    addToGraph(related);
                     if (fi < flen - 1) { // only if more fns
                         entities = [];
                         related.forEach(function (entity) {
@@ -223,14 +236,16 @@
             };
         }
 
-        function makePathFn(baseType, path) {
+        // Make function to get entities along a single expand path segment
+        // such as the 'OrderDetails' in the 'Orders.OrderDetails.Product' path
+        function makePathSegmentFn(baseType, segment) {
             var baseTypeName, fn = undefined, navType;
             try {
                 baseTypeName = baseType.name;
-                var nav = baseType.getNavigationProperty(path);
+                var nav = baseType.getNavigationProperty(segment);
                 var fkName = nav.foreignKeyNames[0];
                 if (!nav) {
-                    throw new Error(path + " is not a navigation property of " + baseTypeName);
+                    throw new Error(segment + " is not a navigation property of " + baseTypeName);
                 }
                 navType = nav.entityType;
                 // add derived types 
@@ -277,14 +292,14 @@
                     };
                 }
                 fn.navType = navType;
-                fn.path = path;
+                fn.path = segment;
 
             } catch (err) { rethrow(err); }
             return fn;
 
             function rethrow(e) {
                 var typeName = baseTypeName || baseType;
-                var error = new Error("'getEntityGraph' can't expand '" + path + "' for " + typeName);
+                var error = new Error("'getEntityGraph' can't expand '" + segment + "' for " + typeName);
                 error.innerError = e;
                 throw error;
             }
