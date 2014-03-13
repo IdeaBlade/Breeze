@@ -21,7 +21,7 @@
 
 })(function () {  
     var breeze = {
-        version: "1.4.9",
+        version: "1.4.11",
         metadataVersion: "1.0.5"
     };
 
@@ -4985,6 +4985,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 // propogate pk change to all related entities;
 
                 var propertyIx = this.entityType.keyProperties.indexOf(property);
+                // this part handles order.orderId => orderDetail.orderId
+                // but won't handle product.productId => orderDetail.productId because product
+                // doesn't have an orderDetails property.
                 this.entityType.navigationProperties.forEach(function (np) {
                     var inverseNp = np.inverse;
                     var fkNames = inverseNp ? inverseNp.foreignKeyNames : np.invForeignKeyNames;
@@ -5001,6 +5004,17 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         });
                     }
                 });
+                // this handles unidirectional problems not covered above.
+                if (entityManager) {
+                    this.entityType.inverseForeignKeyProperties.forEach(function (invFkProp) {
+                        if (invFkProp.relatedNavigationProperty.inverse == null) {
+                            // this next step may be slow - it iterates over all of the entities in a group;
+                            // hopefully it doesn't happen often.
+                            entityManager._updateFkVal(invFkProp, oldValue, newValue);
+                        };
+                    });
+                }
+                
                 // insure that cached key is updated.
                 entityAspect.getKey(true);
             }
@@ -7098,6 +7112,7 @@ var EntityType = (function () {
         this.complexProperties = [];
         this.keyProperties = [];
         this.foreignKeyProperties = [];
+        this.inverseForeignKeyProperties = [];
         this.concurrencyProperties = [];
         this.unmappedProperties = []; // will be updated later.
         this.validators = [];
@@ -7915,6 +7930,8 @@ var EntityType = (function () {
         fkProps.forEach(function (dp) {
             addUniqueItem(fkPropCollection, dp);
             dp.relatedNavigationProperty = np;
+            // now update the inverse
+            np.entityType.inverseForeignKeyProperties.push(dp);
             if (np.relatedDataProperties) {
                 np.relatedDataProperties.push(dp);
             } else {
@@ -11755,6 +11772,17 @@ var EntityGroup = (function () {
         this._emptyIndexes = null;
     };
 
+    proto._updateFkVal = function (fkProp, oldValue, newValue) {
+        var fkPropName = fkProp.name;
+        this._entities.forEach(function (entity) {
+            if (entity != null) {
+                if (entity.getProperty(fkPropName) == oldValue) {
+                    entity.setProperty(fkPropName, newValue);
+                }
+            }
+        });
+    }
+
     proto._fixupKey = function (tempValue, realValue) {
         // single part keys appear directly in map
         var ix = this._indexMap[tempValue];
@@ -12791,9 +12819,11 @@ var EntityManager = (function () {
             var keyMappings = saveResult.keyMappings;
             var em = saveContext.entityManager;
 
-            __using(em, "isLoading", true, function () {
-                fixupKeys(em, keyMappings);
+            // must occur outside of isLoading block
+            fixupKeys(em, keyMappings);
 
+            __using(em, "isLoading", true, function () {
+                
                 var mappingContext = new MappingContext({
                     query: null, // tells visitAndMerge this is a save instead of a query
                     entityManager: em,
@@ -12907,7 +12937,7 @@ var EntityManager = (function () {
         var employee = em1.getEntityByKey("Employee", 1);
         // employee will either be an entity or null.
     @method getEntityByKey
-    @param typeName {String} The entityType name for this key.
+    @param typeName {EntityType | String} The EntityType or EntityType name for this key.
     @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
     @return {Entity} An Entity or null;
     **/
@@ -12956,7 +12986,7 @@ var EntityManager = (function () {
         });
     @method fetchEntityByKey
     @async
-    @param typeName {String} The entityType name for this key.
+    @param typeName {EntityType | String} The EntityType or EntityType name for this key.
     @param keyValues {Object|Array of Object} The values for this key - will usually just be a single value; an array is only needed for multipart keys.
     @param checkLocalCacheFirst {Boolean=false} Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.
     @return {Promise} 
@@ -12989,7 +13019,7 @@ var EntityManager = (function () {
         promiseData.fromCache {Boolean} Whether this entity was fetched from the server or was found in the local cache.
     **/
     proto.fetchEntityByKey = function () {
-        dataService = DataService.resolve([this.dataService]);
+        var dataService = DataService.resolve([this.dataService]);
         if ((!dataService.hasServerMetadata) || this.metadataStore.hasMetadataFor(dataService.serviceName)) {
             return fetchEntityByKeyCore(this, arguments);
         } else {
@@ -13451,15 +13481,16 @@ var EntityManager = (function () {
     }
         
     function createEntityKey(em, args) {
-        if (args[0] instanceof EntityKey) {
-            return { entityKey: args[0], remainingArgs: __arraySlice(args, 1) };
-        } else if (typeof args[0] === 'string' && args.length >= 2) {
-            var entityType = em.metadataStore._getEntityType(args[0], false);
-            return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: __arraySlice(args, 2) };
-        } else {
-            throw new Error("This method requires as its initial parameters either an EntityKey or an entityType name followed by a value or an array of values.");
-        }
-    }       
+        try {
+            if (args[0] instanceof EntityKey) {
+                return { entityKey: args[0], remainingArgs: __arraySlice(args, 1) };
+            } else if (args.length >= 2) {
+                var entityType = (typeof args[0] === 'string') ? em.metadataStore._getEntityType(args[0], false) : args[0];
+                return { entityKey: new EntityKey(entityType, args[1]), remainingArgs: __arraySlice(args, 2) };
+            }
+        } catch (e) {/* throw below */}
+        throw new Error("Must supply an EntityKey OR an EntityType name or EntityType followed by a key value or an array of key values.");
+    }      
         
     function markIsBeingSaved(entities, flag) {
         entities.forEach(function(entity) {
@@ -13748,6 +13779,12 @@ var EntityManager = (function () {
         var attachedEntity = group.attachEntity(entity, entityState, mergeStrategy);
         this._linkRelatedEntities(attachedEntity);
         return attachedEntity;
+    }
+
+    proto._updateFkVal = function (fkProp, oldValue, newValue) {
+        var group = this._entityGroupMap[fkProp.parentType.name];
+        if (!group) return;
+        group._updateFkVal(fkProp, oldValue, newValue)
     }
 
     function attachRelatedEntities(em, entity, entityState, mergeStrategy) {

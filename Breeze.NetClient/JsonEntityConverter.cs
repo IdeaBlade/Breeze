@@ -14,10 +14,12 @@ namespace Breeze.NetClient {
 
   public class JsonEntityConverter : JsonConverter {
   
-    public JsonEntityConverter(EntityManager entityManager, MergeStrategy mergeStrategy, Func<String, String> normalizeTypeNameFn = null) {
+    // currently the normalizeTypeNmFn is only needed during saves, not during queries. 
+    public JsonEntityConverter(EntityManager entityManager, MergeStrategy mergeStrategy, LoadingOperation loadingOperation, Func<String, String> normalizeTypeNameFn = null) {
       _entityManager = entityManager;
       _metadataStore = entityManager.MetadataStore;
       _mergeStrategy = mergeStrategy;
+      _loadingOperation = loadingOperation;
       _normalizeTypeNameFn = normalizeTypeNameFn;
       _allEntities = new List<IEntity>();
     }
@@ -102,10 +104,14 @@ namespace Breeze.NetClient {
       if (aspect.EntityManager == null) {
         // new to this entityManager
         ParseObject(jsonContext, aspect);
+        aspect.Entity.Initialize();
+        // TODO: This is a nit.  Wierd case where a save adds a new entity will show up with
+        // a AttachOnQuery operation instead of AttachOnSave
         _entityManager.AttachQueriedEntity(entity, (EntityType) jsonContext.StructuralType);
       } else if (_mergeStrategy == MergeStrategy.OverwriteChanges || aspect.EntityState == EntityState.Unchanged) {
         // overwrite existing entityManager
         ParseObject(jsonContext, aspect);
+        aspect.OnEntityChanged(_loadingOperation == LoadingOperation.Query ? EntityAction.MergeOnQuery : EntityAction.MergeOnSave);
       } else {
         // preserveChanges handling - we still want to handle expands.
         ParseObject(jsonContext, null );
@@ -194,9 +200,17 @@ namespace Breeze.NetClient {
     private EntityManager _entityManager;
     private MetadataStore _metadataStore;
     private MergeStrategy _mergeStrategy;
+    private LoadingOperation _loadingOperation;
     private Func<String, String> _normalizeTypeNameFn;
     private List<IEntity> _allEntities;
     private Dictionary<String, Object> _refMap = new Dictionary<string, object>();
+  }
+
+  public enum LoadingOperation {
+    Query,
+    Save
+    // Import - not yet needed
+    // Attach - not yet needed
   }
 
   //public static class JsonFns {

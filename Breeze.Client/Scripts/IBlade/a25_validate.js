@@ -489,7 +489,7 @@ var Validator = (function () {
         var valFn = function (v, ctx) {
             if (v == null) return true;
             if (typeof v === "string" && ctx && ctx.allowString) {
-                v = parseInt(v, 10);
+                v = parseFloat(v, 10);
             }
             return (typeof v === "number" && !isNaN(v));
         };

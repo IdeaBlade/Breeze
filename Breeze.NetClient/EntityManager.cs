@@ -20,7 +20,8 @@ namespace Breeze.NetClient {
     public EntityManager(String serviceName) {
       DefaultDataService = new DataService(serviceName);
       DefaultQueryOptions = QueryOptions.Default;
-      DefaultCacheQueryOptions = CacheQueryOptions.Default;
+      CacheQueryOptions = CacheQueryOptions.Default;
+      ValidationOptions = ValidationOptions.Default;
       MetadataStore = MetadataStore.Instance;
       KeyGenerator = new DefaultKeyGenerator();
       Initialize();
@@ -29,7 +30,8 @@ namespace Breeze.NetClient {
     public EntityManager(EntityManager em) {
       DefaultDataService = em.DefaultDataService;
       DefaultQueryOptions = em.DefaultQueryOptions;
-      DefaultCacheQueryOptions = em.DefaultCacheQueryOptions;
+      CacheQueryOptions = em.CacheQueryOptions;
+      ValidationOptions = em.ValidationOptions;
       MetadataStore = em.MetadataStore;
       KeyGenerator = em.KeyGenerator; // TODO: review whether we should clone instead.
       Initialize();
@@ -58,9 +60,9 @@ namespace Breeze.NetClient {
 
     public SaveOptions DefaultSaveOptions { get; set; }
 
-    public CacheQueryOptions DefaultCacheQueryOptions { get; set; }
+    public CacheQueryOptions CacheQueryOptions { get; set; }
 
-    public ValidationOptions DefaultValidationOptions { get; set; }
+    public ValidationOptions ValidationOptions { get; set; }
 
     public IKeyGenerator KeyGenerator { get; set; }
 
@@ -106,7 +108,7 @@ namespace Breeze.NetClient {
       var mergeStrategy = query.QueryOptions.MergeStrategy ?? this.DefaultQueryOptions.MergeStrategy ?? QueryOptions.Default.MergeStrategy;
       
       // cannot reuse a jsonConverter - internal refMap is one instance/query
-      var jsonConverter = new JsonEntityConverter(this, mergeStrategy.Value);
+      var jsonConverter = new JsonEntityConverter(this, mergeStrategy.Value, LoadingOperation.Query);
       Type rType;
       if (resourcePath.Contains("inlinecount")) {
         rType = typeof(QueryResult<>).MakeGenericType(query.ElementType);
@@ -130,6 +132,27 @@ namespace Breeze.NetClient {
         entitiesToSave = this.GetChanges();
       } else {
         entitiesToSave = entities.Where(e => !e.EntityAspect.IsDetached && e.EntityAspect.EntityManager == this);
+      }
+
+      if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnSave) > 0) {
+        var errs = entitiesToSave.SelectMany(ent => {
+          var errors = ent.EntityAspect.ValidationErrors;
+          // updates errors
+          ent.EntityAspect.Validate();
+          if (errors.Any()) {
+            return errors.ToList().Where(err => {
+              if (err.IsServerError) {
+                errors.Remove(err);
+              }
+              return !err.IsServerError;
+            });
+          } else {
+            return errors;
+          }
+        });
+       if (errs.Any()) {
+         throw new SaveException(errs);
+       };
       }
       saveOptions = new SaveOptions(saveOptions ?? this.DefaultSaveOptions ?? SaveOptions.Default);
       if (saveOptions.ResourceName == null) saveOptions.ResourceName = "SaveChanges";
@@ -291,22 +314,22 @@ namespace Breeze.NetClient {
           var targetAspect = targetEntity.EntityAspect;
           if (mergeStrategy == MergeStrategy.Disallowed) continue;
           if (mergeStrategy == MergeStrategy.PreserveChanges && targetAspect.EntityState != EntityState.Unchanged) continue;
-          PopulateEntity(targetEntity, entityNode);
+          PopulateImportedEntity(targetEntity, entityNode);
           UpdateTempFks(targetEntity, entityAspectNode, tempKeyMap);
           if (targetAspect.EntityState != entityState) {
             targetAspect.EntityState = entityState;
           }
-          
+          OnEntityChanged(targetEntity, EntityAction.MergeOnImport);
         } else {
           targetEntity = (IEntity)Activator.CreateInstance(entityType.ClrType);
-          PopulateEntity(targetEntity, entityNode);
+          PopulateImportedEntity(targetEntity, entityNode);
           if (hasCollision) {
             var origEk = targetEntity.EntityAspect.EntityKey;
             var newEk = tempKeyMap[origEk];
             targetEntity.EntityAspect.SetDpValue(entityType.KeyProperties[0], newEk.Values[0]);
           }
           UpdateTempFks(targetEntity, entityAspectNode, tempKeyMap);
-          AttachEntity(targetEntity, entityState);
+          AttachImportedEntity(targetEntity, entityState);
         }       
 
         importedEntities.Add(targetEntity);
@@ -322,7 +345,7 @@ namespace Breeze.NetClient {
       return entityKey;
     }
 
-    private void PopulateEntity(IEntity targetEntity, JNode jn) {
+    private void PopulateImportedEntity(IEntity targetEntity, JNode jn) {
       var targetAspect = targetEntity.EntityAspect;
       var backingStore = targetAspect.BackingStore;
 
@@ -510,6 +533,7 @@ namespace Breeze.NetClient {
       EntityGroups.ForEach(eg => eg.Clear());
       SetHasChanges(false);
       Initialize();
+      OnEntityChanged(null, EntityAction.Clear);
     }
 
     /// <summary>
@@ -637,7 +661,7 @@ namespace Breeze.NetClient {
 
     public IEntity AttachEntity(IEntity entity, EntityState entityState = EntityState.Unchanged, MergeStrategy mergeStrategy = MergeStrategy.Disallowed) {
       var aspect = PrepareForAttach(entity);
-      if (aspect.IsAttached && aspect.EntityState == entityState) return entity;
+      if (aspect.IsAttached) return entity;
       using (NewIsLoadingBlock()) {
         // don't fire EntityChanging because there is no entity to recieve the event until it is attached.
 
@@ -652,12 +676,11 @@ namespace Breeze.NetClient {
         aspect.EntityType.NavigationProperties.ForEach(np => {
           aspect.ProcessNpValue(np, e => AttachEntity(e, entityState, mergeStrategy));
         });
-        
 
-        // TODO: impl validate on attach
-        //    if (this.validationOptions.validateOnAttach) {
-        //        attachedEntity.entityAspect.validateEntity();
-        //    }
+        if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnAttach) > 0) {
+          aspect.ValidateInternal();
+        }
+
 
         if (!entityState.IsUnchanged()) {
           NotifyStateChange(aspect, true);
@@ -678,15 +701,21 @@ namespace Breeze.NetClient {
 
       AttachEntityAspect(aspect, EntityState.Unchanged); 
 
-      // TODO: impl validate on attach
-      //    if (this.validationOptions.validateOnAttach) {
-      //        attachedEntity.entityAspect.validateEntity();
-      //    }
+      if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnQuery) > 0) {
+        aspect.ValidateInternal();
+      }
 
-      aspect.OnEntityChanged(EntityAction.Attach);
+      aspect.OnEntityChanged(EntityAction.AttachOnQuery);
       return aspect;
-
     }
+
+    internal EntityAspect AttachImportedEntity(IEntity entity, EntityState entityState) {
+      var aspect = entity.EntityAspect;
+      AttachEntityAspect(aspect, entityState);
+      aspect.OnEntityChanged(EntityAction.AttachOnImport);
+      return aspect;
+    }
+
 
     private EntityAspect PrepareForAttach(IEntity entity) {
       var aspect = entity.EntityAspect;
@@ -708,6 +737,10 @@ namespace Breeze.NetClient {
     private EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState) {
       var group = GetEntityGroup(entityAspect.EntityType.ClrType);
       group.AttachEntityAspect(entityAspect, entityState);
+      if (entityState != EntityState.Modified) {
+        // don't clear this if modified because it came from an earlier incarnation.
+        entityAspect._originalValuesMap = null;
+      }
       entityAspect.LinkRelatedEntities();
       return entityAspect;
     }
@@ -967,6 +1000,13 @@ namespace Breeze.NetClient {
     #endregion
 
     #region Other internal 
+
+    internal void UpdateFkVal(DataProperty fkProp, Object oldValue, Object newValue) {
+      var eg = this.EntityGroups[fkProp.ParentType.ClrType];
+      if (eg == null) return;
+        
+      eg.UpdateFkVal(fkProp, oldValue, newValue);
+    }
 
     internal static void CheckEntityType(Type clrEntityType) {
       var etInfo = clrEntityType.GetTypeInfo();

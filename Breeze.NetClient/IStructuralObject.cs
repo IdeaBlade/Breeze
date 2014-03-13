@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -21,7 +21,18 @@ namespace Breeze.NetClient {
   /// Interface implemented by entities and complex types.  Internal use only.
   /// </summary>
   public interface IStructuralObject {
+    void Initialize();
+  }
 
+  public static class IStructuralObjectExtns {
+    public static StructuralAspect GetStructuralAspect(this IStructuralObject so) {
+      var entity = so as IEntity;
+      if (entity != null) {
+        return entity.EntityAspect;
+      } else {
+        return ((IComplexObject)so).ComplexAspect;
+      }
+    }
   }
 
 }

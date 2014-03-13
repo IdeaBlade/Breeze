@@ -20,6 +20,22 @@ namespace Breeze.NetClient {
       MetadataStore = MetadataStore.Instance;
     }
 
+    public static String ClrTypeNameToStructuralTypeName(String clrTypeName) {
+      if (String.IsNullOrEmpty(clrTypeName)) return null;
+
+      var entityTypeNameNoAssembly = clrTypeName.Split(',')[0];
+      var nameParts = entityTypeNameNoAssembly.Split('.');
+      String ns;
+      var shortName = nameParts[nameParts.Length - 1];
+      if (nameParts.Length > 1) {
+        ns = String.Join(".", nameParts.Take(nameParts.Length - 1));
+      } else {
+        ns = "";
+      }
+      var typeName = StructuralType.QualifyTypeName(shortName, ns);
+      return typeName;
+    }
+
     public static string ClrTypeToStructuralTypeName(Type clrType) {
       return QualifyTypeName(clrType.Name, clrType.Namespace);
     }
@@ -92,7 +108,6 @@ namespace Breeze.NetClient {
       return dp;
     } 
 
-  
 
     public ReadOnlyCollection<DataProperty> ComplexProperties {
       get { return _complexProperties.ReadOnlyValues; }
@@ -100,6 +115,10 @@ namespace Breeze.NetClient {
 
     public ReadOnlyCollection<DataProperty> UnmappedProperties {
       get { return _unmappedProperties.ReadOnlyValues;  }
+    }
+
+    public ICollection<Validator> Validators {
+      get { return _validators; }
     }
 
     internal void UpdateClientServerName(StructuralProperty property) {
@@ -133,6 +152,7 @@ namespace Breeze.NetClient {
     protected DataPropertyCollection _dataProperties = new DataPropertyCollection();
     protected SafeList<DataProperty> _complexProperties = new SafeList<DataProperty>();
     protected SafeList<DataProperty> _unmappedProperties = new SafeList<DataProperty>();
+    protected ValidatorCollection _validators = new ValidatorCollection();
 
   }
 

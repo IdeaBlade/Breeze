@@ -238,7 +238,7 @@ var DataType = (function () {
     @static
     **/
     DataType.Decimal = DataType.addSymbol({
-        defaultValue: 0, isNumeric: true, quoteJsonOData: true,
+        defaultValue: 0, isNumeric: true, quoteJsonOData: true, isFloat: true,
         parse: coerceToFloat,
         fmtOData: makeFloatFmt("m"),
         getNext: getNextNumber
@@ -249,7 +249,7 @@ var DataType = (function () {
     @static
     **/
     DataType.Double = DataType.addSymbol({
-        defaultValue: 0, isNumeric: true,
+        defaultValue: 0, isNumeric: true, isFloat: true,
         parse: coerceToFloat,
         fmtOData: makeFloatFmt("d"),
         getNext: getNextNumber
@@ -260,7 +260,7 @@ var DataType = (function () {
     @static
     **/
     DataType.Single = DataType.addSymbol({
-        defaultValue: 0, isNumeric: true,
+        defaultValue: 0, isNumeric: true, isFloat: true,
         parse: coerceToFloat,
         fmtOData: makeFloatFmt("f"),
         getNext: getNextNumber

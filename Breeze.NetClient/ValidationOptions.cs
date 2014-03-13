@@ -1,17 +1,16 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
+
 
 namespace Breeze.NetClient {
   // TODO: make immutable later
   public class ValidationOptions {
     public ValidationOptions() {
-      ValidationContextFunc = (o) => new ValidationContext(o, null, null);
       ValidationApplicability = ValidationApplicability.Default;
       // ValidationNotificationMode = NetClient.ValidationNotificationMode.Notify;
     }
     public ValidationApplicability ValidationApplicability { get; set; }
-    // public ValidationNotificationMode ValidationNotificationMode { get; set; }
-    public Func<Object, ValidationContext> ValidationContextFunc { get; set; }
+
+    public static ValidationOptions Default = new ValidationOptions();
 
   }
 

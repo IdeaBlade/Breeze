@@ -11,6 +11,10 @@ namespace Breeze.NetClient {
       ComplexAspect = new ComplexAspect(this, null);
     }
 
+    public virtual void Initialize() {
+      // nnop;
+    }
+
     #region syntactic sugar helper methods 
 
     protected T GetValue<T>([CallerMemberName] string propertyName = "") {

@@ -57,6 +57,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="ValidationTests.cs" />
     <Compile Include="EntityManagerTests.cs" />
     <Compile Include="LocalQueryTests.cs" />
     <Compile Include="SaveTests.cs" />

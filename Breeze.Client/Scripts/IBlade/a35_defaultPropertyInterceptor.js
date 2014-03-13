@@ -11,6 +11,16 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
         if (Array.isArray(newValue) && !property.isScalar) {
             newValue = newValue.map(function(nv) { return dataType.parse(nv, typeof nv); });
         } else {
+            // angular keystroke hack
+            // test if string ends with "." or ".0" or ".00" - or ".030" or ".0300" etc.
+            if (dataType.isFloat && (typeof newValue == "string") && /[.](\d*0|)$/.test(newValue)) {
+                rawAccessorFn(newValue);
+                setTimeout(function () {
+                    newValue = dataType.parse(newValue, typeof newValue);
+                    defaultPropertyInterceptor(property, newValue, rawAccessorFn);
+                }, 0);
+                return;
+            }
             newValue = dataType.parse(newValue, typeof newValue);
         }
     }
@@ -218,6 +228,9 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                 // propogate pk change to all related entities;
 
                 var propertyIx = this.entityType.keyProperties.indexOf(property);
+                // this part handles order.orderId => orderDetail.orderId
+                // but won't handle product.productId => orderDetail.productId because product
+                // doesn't have an orderDetails property.
                 this.entityType.navigationProperties.forEach(function (np) {
                     var inverseNp = np.inverse;
                     var fkNames = inverseNp ? inverseNp.foreignKeyNames : np.invForeignKeyNames;
@@ -234,6 +247,17 @@ function defaultPropertyInterceptor(property, newValue, rawAccessorFn) {
                         });
                     }
                 });
+                // this handles unidirectional problems not covered above.
+                if (entityManager) {
+                    this.entityType.inverseForeignKeyProperties.forEach(function (invFkProp) {
+                        if (invFkProp.relatedNavigationProperty.inverse == null) {
+                            // this next step may be slow - it iterates over all of the entities in a group;
+                            // hopefully it doesn't happen often.
+                            entityManager._updateFkVal(invFkProp, oldValue, newValue);
+                        };
+                    });
+                }
+                
                 // insure that cached key is updated.
                 entityAspect.getKey(true);
             }

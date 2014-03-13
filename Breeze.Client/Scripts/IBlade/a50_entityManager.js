@@ -985,9 +985,11 @@ var EntityManager = (function () {
             var keyMappings = saveResult.keyMappings;
             var em = saveContext.entityManager;
 
-            __using(em, "isLoading", true, function () {
-                fixupKeys(em, keyMappings);
+            // must occur outside of isLoading block
+            fixupKeys(em, keyMappings);
 
+            __using(em, "isLoading", true, function () {
+                
                 var mappingContext = new MappingContext({
                     query: null, // tells visitAndMerge this is a save instead of a query
                     entityManager: em,
@@ -1943,6 +1945,12 @@ var EntityManager = (function () {
         var attachedEntity = group.attachEntity(entity, entityState, mergeStrategy);
         this._linkRelatedEntities(attachedEntity);
         return attachedEntity;
+    }
+
+    proto._updateFkVal = function (fkProp, oldValue, newValue) {
+        var group = this._entityGroupMap[fkProp.parentType.name];
+        if (!group) return;
+        group._updateFkVal(fkProp, oldValue, newValue)
     }
 
     function attachRelatedEntities(em, entity, entityState, mergeStrategy) {

@@ -11,6 +11,8 @@
     // convenience variables
     var EntityState = breeze.EntityState;
     var dummyCustID = testFns.newGuidComb();
+    var dummyEmpID = 42;
+    var UNCHGD = EntityState.Unchanged;
     
     module("entityTests", testFns.getModuleOptions(newEm));
 
@@ -52,13 +54,11 @@
     *********************************************************/
     test("create a Customer in the unchanged state as if it had been queried", 1, function () {
         var em = newEm();
-        var cust = em.createEntity('Customer',
-              {
+        var cust = em.createEntity('Customer', {
                   CustomerID: dummyCustID,
                   CompanyName: 'Foo Co',
                   ContactName: 'Ima Kiddin'
-              },
-            EntityState.Unchanged);  // creates the entity in the Unchanged state
+              },UNCHGD);  // creates the entity in the Unchanged state
         ok(cust.entityAspect.entityState.isUnchanged(), "cust should be 'Unchanged'");
     });
 
@@ -69,13 +69,11 @@
     *********************************************************/
     test("create a Customer in the modified state as if it had been queried", 8, function () {
         var em = newEm();
-        var cust = em.createEntity('Customer',
-            {
+        var cust = em.createEntity('Customer',{
                 CustomerID: dummyCustID,
                 CompanyName: 'Foo Co',
                 ContactName: 'Ima Kiddin'
-            },
-            EntityState.Unchanged);  // creates the entity in the Unchanged state first
+            }, UNCHGD);  // creates the entity in the Unchanged state first
         
         // now modify it to suit your needs
         cust.CompanyName("Bar Co");
@@ -155,9 +153,9 @@
         var newDetail = null;
         // pretend parent entities were queried
         var parentOrder = em.createEntity("Order",
-            { OrderID: 1   }, EntityState.Unchanged);
+            { OrderID: 1 }, UNCHGD);
         var parentProduct = em.createEntity("Product",
-            { ProductID: 1 }, EntityState.Unchanged);
+            { ProductID: 1 }, UNCHGD);
         try {
             // Can't initialize with related entity. Feature request to make this possible         
             newDetail = em.createEntity("OrderDetail", { Order: parentOrder, Product: parentProduct });
@@ -221,7 +219,7 @@
     test("find deleted entity in cache with getEntities()", 1, function() {
 
         var em = newEm();
-        var customer = getFakeDeletedcustomer(em);
+        var customer = getFakeDeletedCustomer(em);
 
         // get the first (and only) entity in cache
         var customerInCache = em.getEntities()[0];
@@ -238,7 +236,7 @@
     test("find deleted entity in cache by key", 1, function() {
 
         var em = newEm();
-        var customer = getFakeDeletedcustomer(em);
+        var customer = getFakeDeletedCustomer(em);
 
         var customerType = em.metadataStore.getEntityType("Customer");
         var key = new breeze.EntityKey(customerType, customer.CustomerID());
@@ -256,7 +254,7 @@
     test("does not return deleted entity in cache when queryLocally", 1, function() {
 
         var em = newEm();
-        var customer = getFakeDeletedcustomer(em);
+        var customer = getFakeDeletedCustomer(em);
 
         var customerQuery = breeze.EntityQuery.fromEntities(customer);
         var queryResults = em.executeQueryLocally(customerQuery);
@@ -322,10 +320,7 @@
 
             var em = newEm(); // new empty EntityManager
 
-            var employee = em.createEntity('Employee', {
-                EmployeeID: 1,
-                LastName: "Jones"
-            }, EntityState.Unchanged); // attach as Unchanged. 
+            var employee = getFakeExistingEmployee(em,'Jones'); 
 
             // After next change, should be tracking original value, 'Jones'
             employee.LastName("Black");
@@ -351,12 +346,7 @@
     test("Setting an entity property value to itself doesn't trigger entityState change", 1,
         function() {
             var em = newEm();
-
-            var employee = em.createEntity('Employee', {
-                EmployeeID: 1,
-                FirstName: "Bob"
-            }, EntityState.Unchanged); // attach as Unchanged.
-
+            var employee = getFakeExistingEmployee(em);
             employee.FirstName(employee.FirstName());
 
             var entityState = employee.entityAspect.entityState;
@@ -371,23 +361,16 @@
     test("manager.rejectChanges undoes a bi-directional navigation property change", 4,
         function() {
             var em = newEm();
+            var employee1 = getFakeExistingEmployee(em, 'Bob', 'Jones', 1);
+            var employee2 = getFakeExistingEmployee(em, 'Sally', 'Smith', 2);
 
-            var employee1 = em.createEntity('Employee', {
-                EmployeeID: 1,
-                FirstName: "Bob"
-            }, EntityState.Unchanged); // attach as Unchanged.
-
-            var employee2 = em.createEntity('Employee', {
-                EmployeeID: 2,
-                FirstName: "Sally"
-            }, EntityState.Unchanged); // attach as Unchanged.
-
+            // creating this tedious way to prove that ...
             var orderType = em.metadataStore.getEntityType("Order");
             var order = orderType.createEntity();
             order.EmployeeID(42);
+            // ... setting navigation property pulls the order into Employee's manager
             order.Employee(employee1);
 
-            // Setting navigation property pulled the order into Employee's manager
             order.entityAspect.setUnchanged();
 
             order.Employee(employee2);
@@ -507,12 +490,7 @@
     test("setUnchanged() does not restore property values", 4, function() {
 
         var em = newEm(); // new empty EntityManager
-        var empType = em.metadataStore.getEntityType("Employee");
-
-        var employee = em.createEntity('Employee', {
-            EmployeeID: 1,
-            LastName: "Jones"
-        }, EntityState.Unchanged); // attach as Unchanged.
+        var employee = getFakeExistingEmployee(em, 'Jones');
 
         var changedName = "Black";
         employee.LastName(changedName);
@@ -601,6 +579,7 @@
                     origValuePropNames.toString());
 
         });
+
     /*********************************************************
     * entityState is Detached after calling acceptChanges on deleted entity
     * Beware of acceptChanges; it makes an entity look like it was saved
@@ -621,23 +600,86 @@
 
             ok(employee.entityAspect.entityState.isDetached(),
                 'employee should be "Detached" after calling acceptChanges');
-        });
+    });
+
     /*********************************************************
-     * detaching parent entity has no effect on in-cache children
+     * detached entity retains its foreign keys but not its related entities
+     *********************************************************/
+    test("detached entity retains its foreign keys", 9, function() {
+        var em = newEm();
+        var cust = getFakeExistingCustomer(em);
+        var emp = getFakeExistingEmployee(em);
+        var order = em.createEntity('Order', {
+            OrderID: 1,
+            Customer: cust,
+            Employee: emp
+        }, UNCHGD);
+
+        // Pre-detach asserts
+        equal(order.getProperty('CustomerID'), cust.getProperty('CustomerID'), "pre-detached order has CustomerID");
+        equal(order.getProperty('EmployeeID'), emp.getProperty('EmployeeID'), "pre-detached order has EmployeeID");
+        equal(order.getProperty('Customer'), cust, "pre-detached order has a Customer");
+        equal(order.getProperty('Employee'), emp, "pre-detached order has an Employee");
+
+        order.entityAspect.setDetached();
+
+        // Post-detach asserts
+        equal(order.getProperty('CustomerID'), cust.getProperty('CustomerID'), "post-detached order has CustomerID");
+        equal(order.getProperty('EmployeeID'), emp.getProperty('EmployeeID'), "post-detached order has EmployeeID");
+        equal(order.getProperty('Customer'), null, "post-detached order no longer has a Customer");
+        equal(order.getProperty('Employee'), null, "post-detached order no longer has an Employee");
+        deepEqual(order.entityAspect.originalValues, {}, "detaching does not add to 'originalValues'");
+    });
+
+    /*********************************************************
+     * detached entity losses its original values
+     *********************************************************/
+    test("detached entity losses its original values", 2, function () {
+        var em = newEm();
+        var order = em.createEntity('Order', { OrderID: 1 }, UNCHGD);
+        order.setProperty('OrderDate',new Date(1960, 19, 4));
+        var aspect = order.entityAspect;
+        equal(Object.keys(aspect.originalValues).length, 1, "setting date added to originalValues");
+        aspect.setDetached();
+        equal(Object.keys(aspect.originalValues).length, 0, "detaching cleared originalValues");
+    });
+
+    /*********************************************************
+     * detach parent does not change EntityState or FK of dependent entity
+     *********************************************************/
+    test("detach parent does not change EntityState or FK of dependent entity", 3, function () {
+        var em = newEm();
+        var cust = getFakeExistingCustomer(em);
+        var emp = getFakeExistingEmployee(em);
+        var order = em.createEntity('Order', {
+            OrderID: 1,
+            Customer: cust,
+            Employee: emp
+        }, UNCHGD);
+
+        // detach the order's parent Customer
+        cust.entityAspect.setDetached();
+
+        equal(order.getProperty('CustomerID'), cust.getProperty('CustomerID'), "dependent order retains its CustomerID");
+        equal(order.getProperty('Customer'), null, "dependent order no longer has a Customer");
+        equal(order.entityAspect.entityState.name, UNCHGD.name, "dependent order remains in 'Unchanged' state");
+    });
+
+    /*********************************************************
+     * detaching parent entity has no effect on in-cache children (variation on previous test)
      *********************************************************/
     test("detaching parent entity has no effect on in-cache children", 5,
         function () {
-            var unchanged = EntityState.Unchanged;
             var em = newEm(); // new empty EntityManager
             var order = em.createEntity('Order', {
                  OrderID: 1
-            }, unchanged);
+            }, UNCHGD);
             var detail = em.createEntity('OrderDetail', {
                 OrderID: 1,
                 ProductID: 1,
                 Quantity: 1,
                 UnitPrice: 1
-            }, unchanged);
+            }, UNCHGD);
             
             equal(detail.Order(), order,
                 "'detail' should have expected parent 'order'");
@@ -648,7 +690,7 @@
             equal(orderStateName, EntityState.Detached.name,
                  "parent 'order' should be detached");
             var detailStateName = detail.entityAspect.entityState.name;
-            equal(detailStateName, unchanged.name,
+            equal(detailStateName, UNCHGD.name,
                 "child 'detail' should be unchanged by detach of parent 'order'");
             equal(detail.OrderID(), order.OrderID(),
                 "'detail.OrderID' (FK) should equal 'order.OrderID' (Parent ID)");
@@ -660,23 +702,20 @@
     * Can detach parent and children in one step
     *********************************************************/
     test("Can detach parent and children in one step", 3,
-        function () {
-            var unchanged = EntityState.Unchanged;
-            var detached = EntityState.Detached;
-            
+        function () {           
             var em = newEm(); // new empty EntityManager
             var order = em.createEntity('Order', {
                 OrderID: 1
-            }, unchanged);
+            }, UNCHGD);
             
             // Add two details to the order (re)
             var details = [
                 em.createEntity('OrderDetail', {
                     OrderID: 1, ProductID: 1, Quantity: 1, UnitPrice: 1
-                }, unchanged),
+                }, UNCHGD),
                 em.createEntity('OrderDetail', {
                     OrderID: 1, ProductID: 2, Quantity: 1, UnitPrice: 1
-                }, unchanged)
+                }, UNCHGD)
             ];
 
             // THE MOMENT OF TRUTH
@@ -684,8 +723,8 @@
                 em.detachEntity(item);
             });
 
-            var orderState = order.entityAspect.entityState
-            var detailState = details[0].entityAspect.entityState
+            var orderState = order.entityAspect.entityState;
+            var detailState = details[0].entityAspect.entityState;
             ok(orderState.isDetached(),  "parent 'order' should be detached");
             ok(detailState.isDetached(), "first child 'detail' should be detached");
             ok(!em.hasChanges(),
@@ -780,7 +819,7 @@
     test("can get and set property values with Breeze property accessors", 2, function () {
 
         var em = newEm();
-        var customer = getFakeExistingcustomer(em);
+        var customer = getFakeExistingCustomer(em);
 
         var name = "Ima Something Corp";
         customer.setProperty("CompanyName", name);
@@ -875,12 +914,10 @@
     test("Changing a part of a date doesn't trigger property changed", 3, function() {
        
         var em = newEm();
-        var order = em.createEntity('Order',
-            {
+        var order = em.createEntity('Order', {
                 OrderID: 42,
                 OrderDate: new Date(2013, 1, 1)
-            },
-            EntityState.Unchanged);
+            }, UNCHGD);
         
         var orderDate = order.getProperty("OrderDate");
         var originalDate = new Date(orderDate); // clone it
@@ -906,12 +943,10 @@
     test("Changing the whole date does trigger property changed", 1, function () {
 
         var em = newEm();
-        var order = em.createEntity('Order',
-            {
+        var order = em.createEntity('Order', {
                 OrderID: 42,
                 OrderDate: new Date(2013, 1, 1)
-            },
-            EntityState.Unchanged);
+            }, UNCHGD);
 
         var newOrderDate = getDifferentDate(order.getProperty("OrderDate"));
         order.setProperty("OrderDate", newOrderDate);
@@ -931,7 +966,7 @@
     test("Store-managed int ID is a negative temp id after addEntity", 2, function() {
 
         var em = newEm();
-        em.createEntity('Employee')
+
         var employeeType = em.metadataStore.getEntityType("Employee");
         var emp = employeeType.createEntity();
         equal(emp.EmployeeID(), 0, "id should be zero at creation");
@@ -965,20 +1000,27 @@
     /*********************************************************
     * TEST HELPERS
     *********************************************************/
-    function getFakeExistingcustomer(em, name) {
-        return em.createEntity('Customer',
-        {
+    function getFakeExistingCustomer(em, name) {
+        return em.createEntity('Customer', {
             CustomerID: dummyCustID,
             CompanyName: name || "Just Kidding"
-        }, EntityState.Unchanged);
+        }, UNCHGD);
     }
-    
-    function getFakeDeletedcustomer(em, name) {
-        var customer = getFakeExistingcustomer(em, name);
+
+    function getFakeDeletedCustomer(em, name) {
+        var customer = getFakeExistingCustomer(em, name);
         customer.entityAspect.setDeleted();
         return customer;
     }
-    
+
+    function getFakeExistingEmployee(em, lastName, firstName, empID) {
+       return em.createEntity('Employee', {
+           EmployeeID: empID || dummyEmpID,
+           FirstName: firstName || "Dem",
+           LastName: lastName|| "Bones"
+        }, UNCHGD);
+    }
+   
     // get the names of properties whose original values are in the originalValues hash map
     function getOriginalValuesPropertyNames(entity) {
         var names = [];

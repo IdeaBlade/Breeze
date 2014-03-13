@@ -37,6 +37,7 @@ namespace Breeze.NetClient {
       InitializeDefaultValues();
       IndexInEntityGroup = -1;
       _entityState = EntityState.Detached;
+      _validationErrors = new ValidationErrorCollection(this);
     }
 
     #region Public properties
@@ -276,9 +277,7 @@ namespace Breeze.NetClient {
       // this.OriginalValuesMap = null;
       // this.PreproposedValuesMap = null;
 
-      // TODO: add later
-      // this._validationErrors = {};
-
+      
 
       EntityManager.NotifyStateChange(this, false);
       if (this.EntityGroup.ChangeNotificationEnabled) {
@@ -446,29 +445,29 @@ namespace Breeze.NetClient {
 
     #region Validation
 
-    public IEnumerable<ValidationError> Validate() {
-      var vc = new ValidationContext(this.Entity);
-      var et = this.EntityType;
+    // much of the validation code is in StructuralAspect.
 
-      var propertyErrors = et.Properties.SelectMany(prop => {
-        vc.Property = prop;
-        vc.PropertyValue = this.GetValue(prop);
-        return prop.ValidationRules.SelectMany(vr => vr.Validate(vc));
-      });
-      vc.Property = null;
-      vc.PropertyValue = null;
-      var entityErrors = et.ValidationRules.SelectMany(vr => vr.Validate(vc));
-      return propertyErrors.Concat(entityErrors);
+    public ValidationErrorCollection ValidationErrors {
+      get { return _validationErrors; }
     }
 
-    public IEnumerable<ValidationError> ValidateProperty(StructuralProperty prop) {
-      var value = this.GetValue(prop);
-      return ValidateProperty(value, prop);
+    protected override ValidationError ValidateCore(Validator vr, ValidationContext vc) {
+      var ve = vr.Validate(vc);
+      if (ve == null) {
+        ValidationErrors.RemoveKey(ValidationError.GetKey(vr, vc.PropertyPath));
+      } else {
+        ValidationErrors.Add(ve);
+      }
+      return ve;
     }
 
-    internal IEnumerable<ValidationError> ValidateProperty(Object value, StructuralProperty prop) {
-      var vc = new ValidationContext(this.Entity, value, prop);
-      return prop.ValidationRules.SelectMany(vr => vr.Validate(vc));
+    public override IEnumerable<ValidationError> GetValidationErrors(String propertyPath = null) {
+      if (propertyPath == null) {
+        return ValidationErrors.ReadOnlyValues;
+      } else {
+        // TODO: determine if we need to perform a ToList here.
+        return ValidationErrors.Where(ve => ve.Context.PropertyPath == propertyPath);
+      }
     }
 
     #endregion
@@ -547,10 +546,9 @@ namespace Breeze.NetClient {
           }
         }
 
-
-        //if ((EntityManager.DefaultValidationOptions.ValidationApplicability & ValidationApplicability.OnPropertyChange) > 0) {
-        //  // ValidateProperty(newValue, property, oldValue);
-        //}
+        if ((EntityManager.ValidationOptions.ValidationApplicability & ValidationApplicability.OnPropertyChange) > 0) {
+          ValidateProperty(property, newValue);
+        }
       }
 
     }
@@ -588,6 +586,10 @@ namespace Breeze.NetClient {
       UpdateRelated(property, newValue, oldValue);
 
       // propogate pk change to all related entities;
+
+      // this part handles order.orderId => orderDetail.orderId
+      // but won't handle product.productId => orderDetail.productId because product
+      // doesn't have an orderDetails property.
       var propertyIx = EntityType.KeyProperties.IndexOf(property);
       EntityType.NavigationProperties.ForEach(np => {
         var inverseNp = np.Inverse;
@@ -596,6 +598,17 @@ namespace Breeze.NetClient {
         var fkProp = fkProps[propertyIx];
         ProcessNpValue(np, e => e.EntityAspect.SetDpValue(fkProp, newValue));
       });
+
+      if (this.IsAttached) {
+        this.EntityType.InverseForeignKeyProperties.ForEach(invFkProp => {
+          if (invFkProp.RelatedNavigationProperty.Inverse == null) {
+            // this next step may be slow - it iterates over all of the entities in a group;
+            // hopefully it doesn't happen often.
+            EntityManager.UpdateFkVal(invFkProp, oldValue, newValue);
+          };
+        });
+      }
+      
     }
 
     private void SetDpValueComplex(DataProperty property, object newValue, object oldValue) {
@@ -769,6 +782,12 @@ namespace Breeze.NetClient {
     //    this.EntityManager.TempIds.Remove(oldUniqueId);
     //  }
     //}
+
+    #endregion
+
+    #region Validation error handling
+
+    
 
     #endregion
 
@@ -1371,7 +1390,7 @@ namespace Breeze.NetClient {
     /// </summary>
     bool INotifyDataErrorInfo.HasErrors {
       get {
-        return false;
+        return ValidationErrors.Count > 0;
       }
     }
 
@@ -1388,26 +1407,42 @@ namespace Breeze.NetClient {
     }
 
     IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName) {
-      return null;
+      // a propertyName of null means 'entity' level errors but not 'property level' errors.
+      // So we need an AllErrors magic string
+      if (propertyName == AllErrors) {
+        return GetValidationErrors(null);
+      } else if (String.IsNullOrEmpty(propertyName)) {
+        return ValidationErrors.Where(vr => vr.Context.Property == null).ToList();
+      } else {
+        return GetValidationErrors(propertyName);
+      }
     }
 
     /// <summary>
     /// Raises the ErrorsChanged event.
     /// </summary>
     /// <param name="propertyName"></param>
-    private void OnErrorsChanged(String propertyName) {
-      // _inErrorsChanged is needed because SL tries to reinvoke validation every time in the ErrorsChanged event fires.
+    internal void OnErrorsChanged(ValidationError validationError) {
+      OnErrorsChanged(validationError.Context.PropertyPath);
+    }
+
+    private void OnErrorsChanged(String propertyPath) {
+      // a property name of null means an 'entity' level errors ( not ALL errors)
+      // _inErrorsChanged is needed because some environments try to reinvoke validation every time in the ErrorsChanged event fires.
       if (_inErrorsChanged) return;
       _inErrorsChanged = true;
+      
       try {
         var handler = _errorsChangedHandler;
         if (handler != null) {
-          handler(this, new DataErrorsChangedEventArgs(propertyName));
+          handler(this, new DataErrorsChangedEventArgs(propertyPath));
         }
       } finally {
         _inErrorsChanged = false;
       }
     }
+
+    
 
     private bool _inErrorsChanged = false;
 
@@ -1473,7 +1508,7 @@ namespace Breeze.NetClient {
     private EntityType _entityType;
     private EntityGroup _entityGroup;
     private EntityState _entityState = EntityState.Detached;
-
+    private ValidationErrorCollection _validationErrors; 
     // should only ever be set to either current or proposed ( never original)
     private EntityVersion _entityVersion = EntityVersion.Current;
 

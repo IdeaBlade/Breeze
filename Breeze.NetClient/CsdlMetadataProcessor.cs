@@ -354,33 +354,13 @@ namespace Breeze.NetClient {
 
     private void AddValidators(DataProperty dp) {
       if (!dp.IsNullable) {
-        // dp._validators.Add(Validator.Required);
+        dp._validators.Add(new RequiredValidator().Intern());
       }
-
+      if (dp.MaxLength.HasValue) {
+        var vr = new MaxLengthValidator( (Int32) dp.MaxLength.Value).Intern();
+        dp._validators.Add(vr);
+      }
     }
-
-    // function addValidators(dataProperty) {
-    //    var typeValidator;
-    //    if (!dataProperty.isNullable) {
-    //        dataProperty.validators.push(Validator.required());
-    //    }
-
-    //    if (dataProperty.isComplexProperty) return;
-
-    //    if (dataProperty.dataType === DataType.String) {
-    //        if (dataProperty.maxLength) {
-    //            var validatorArgs = { maxLength: dataProperty.maxLength };
-    //            typeValidator = Validator.maxLength(validatorArgs);
-    //        } else {
-    //            typeValidator = Validator.string();
-    //        }
-    //    } else {
-    //        typeValidator = dataProperty.dataType.validatorCtor();
-    //    }
-
-    //    dataProperty.validators.push(typeValidator);
-
-    //}
 
     private bool IsEnumType(JObject csdlProperty) {
       var enumTypeVal = _schema["enumType"];

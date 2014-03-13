@@ -1,0 +1,60 @@
+﻿Already supported
+-----------------
+All Server queries including
+   Where/Skip/Take/OrderBy
+   Expand/Select
+   InlineCount
+   Client side anon projections
+   Server side anon projections
+   NamedQueries
+LocalQuery 
+	CacheQueryOptions 
+Saves - including Named Saves
+Change tracking/Accept-RejectChanges/OriginalValuesMap
+IEntity Interfaces and events implemented for INotifyPropertyChanged, IEditableObject, IChangeTracking, IRevertibleChangeTracking
+ComplexTypes
+Automatic Entity graph attachment - 
+TempKey generation and fk fixup on Saves and Imports
+Emport/Import to stream/string
+EntityManager events - EntityChanging/EntityChanged/HasChangesChanged 
+Live navigation collections with INotifyCollectionChanged
+Full Metadata 
+MergeStrategy / FetchStrategy
+LoadNavigationProperty
+ChangeNotificationEnabled flag at both EntityManager & EntityType levels
+Validation and INotifyDataErrorInfo - EntityAspect.ValidationErrors is a live list that can be mutated by the dev.
+EntityInitializers ( partly done)
+
+ToDo
+---------------------------
+Inheritance
+UnmappedProperties - ( still in design) 
+Native OData and Mongo DB adapters.
+Raw OData queries
+NoTracking queries
+IsNavigationPropertyLoaded
+CodeGeneration - 
+Metadata by hand 
+CustomMetadata
+More tests - 
+   Concurrency tests
+
+Extensions for later ( that we can charge for)
+--------------------------------------------
+Property interception
+PostSharp (or other static IL weaver support) 
+Query filters (like devforce - registered on the EntityManager and applied to queries before execution)
+GetEntityGraph
+EntityQueryPager
+Logging/Tracing ( client / server)
+Dynamic linq
+DesignTime functionality ???
+Silverlight 5 ( ??? )
+Enhanced validation
+Enhanced offline
+Linq verbs not natively supported by OData (hard)
+MEF???
+
+
+
+

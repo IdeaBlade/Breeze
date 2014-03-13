@@ -20,7 +20,7 @@ namespace Breeze.NetClient {
     public DataService(JNode jNode) {
       ServiceName = jNode.Get<String>("serviceName");
       HasServerMetadata = jNode.Get<bool>("hasServerMetadata");
-      // TODO: implement JsonResultsAdapter
+      
       UseJsonP = jNode.Get<bool>("useJsonp");
       Adapter = GetAdapter(jNode.Get<String>("adapterName"));
       InitializeHttpClient();

@@ -16,7 +16,7 @@ namespace Breeze.Core {
 
     protected abstract T GetKeyForItem(U value);
 
-    public void Add(U value) {
+    public virtual void Add(U value) {
       var key = GetKeyForItem(value);
       _map.Add(key, value);
     }
@@ -39,7 +39,7 @@ namespace Breeze.Core {
       }
     }
 
-    public void Clear() {
+    public virtual void Clear() {
       _map.Clear();
     }
 
@@ -52,7 +52,7 @@ namespace Breeze.Core {
     }
 
     public void CopyTo(U[] array, int arrayIndex) {
-      throw new NotImplementedException();
+      _map.Values.CopyTo(array, arrayIndex);
     }
 
     public int Count {
@@ -63,11 +63,11 @@ namespace Breeze.Core {
       get { return false; }
     }
 
-    public bool Remove(U item) {
+    public virtual bool Remove(U item) {
       return _map.Remove(GetKeyForItem(item));
     }
 
-    public bool RemoveKey(T key) {
+    public virtual bool RemoveKey(T key) {
       return _map.Remove(key);
     }
 

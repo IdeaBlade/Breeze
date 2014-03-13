@@ -8,6 +8,7 @@
     var EntityManager = breeze.EntityManager;
     var EntityQuery = breeze.EntityQuery;
     var EntityType = breeze.EntityType;
+    var NamingConvention = breeze.NamingConvention;
 
     var newEm = testFns.newEm;
 
@@ -21,6 +22,19 @@
     });
 
     var toJSONSafe = core.toJSONSafe;
+
+   
+
+    function testNcRoundTrip(nc, name, isClientName) {
+        if (isClientName) {
+            var sName = nc.clientPropertyNameToServer(name, parent);
+            var testName = nc.serverPropertyNameToClient(sName, parent);
+        } else {
+            var cName = nc.serverPropertyNameToClient(name, parent);
+            var testName = nc.clientPropertyNameToServer(name, parent);
+        }
+        Assert.IsTrue(testName == name, "unable to roundtrip from " + (isClientName ? 'client' : 'server') + " name: " + name);
+    }
 
     test("toJSONSafe", function () {
         var o = {

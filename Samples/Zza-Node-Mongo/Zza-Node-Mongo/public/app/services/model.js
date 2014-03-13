@@ -7,7 +7,7 @@
     function model(util) {
 
         var orderItemType, orderItemOptionType;
-        var getEntityByIdFromObj = util.getEntityByIdFromObj
+        var getEntityByIdFromObj = util.getEntityByIdFromObj;
 
         var _model = {
             configureMetadataStore: configureMetadataStore

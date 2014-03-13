@@ -117,12 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Val_MaxLength" xml:space="preserve">
-    <value>'{0}' must be {1} character(s) or less.</value>
-    <comment>{0}= DisplayName {1}=MaxLength</comment>
+  <data name="Val_int32Range" xml:space="preserve">
+    <value>'{0}' must be {1} {2} and {3} {4}.   &lt;CUSTOM 2&gt;</value>
+    <comment>0=DisplayName, 1='&gt;' or '&gt;=', 2=Min, 3='&lt;' or '&lt;=', 4=Max</comment>
   </data>
-  <data name="Val_Required" xml:space="preserve">
-    <value>'{0}' is a required field</value>
-    <comment>{0} = DisplayName</comment>
+  <data name="Val_maxLength" xml:space="preserve">
+    <value>'{0}' must be {1} character(s) or less.  &lt;CUSTOM 2&gt;</value>
+    <comment>0=DisplayName, 1=MaxLength</comment>
+  </data>
+  <data name="Val_required" xml:space="preserve">
+    <value>'{0}' is a required field.   &lt;CUSTOM 2&gt;</value>
+    <comment>0=DisplayName</comment>
+  </data>
+  <data name="Val_stringLength" xml:space="preserve">
+    <value>'{0}' must be betwee {1} and {2} character(s).  &lt;CUSTOM 2&gt;</value>
+    <comment>0 = DisplayName, 1=MinLength, 2=MaxLength</comment>
   </data>
 </root>

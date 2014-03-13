@@ -8,9 +8,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Breeze.NetClient {
+namespace Model_Northwind_NetClient {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -23,24 +22,24 @@ namespace Breeze.NetClient {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Breeze_NetClient {
+    public class CustomMessages1 {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Breeze_NetClient() {
+        internal CustomMessages1() {
         }
         
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Breeze.NetClient.Breeze.NetClient", typeof(Breeze_NetClient).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Model_Northwind_NetClient.CustomMessages1", typeof(CustomMessages1).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -52,7 +51,7 @@ namespace Breeze.NetClient {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -62,20 +61,11 @@ namespace Breeze.NetClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; must be {1} character(s) or less..
+        ///   Looks up a localized string similar to {0} is required &lt; CUSTOM 1 &gt;.
         /// </summary>
-        internal static string Val_MaxLength {
+        public static string Val_required {
             get {
-                return ResourceManager.GetString("Val_MaxLength", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is a required field.
-        /// </summary>
-        internal static string Val_Required {
-            get {
-                return ResourceManager.GetString("Val_Required", resourceCulture);
+                return ResourceManager.GetString("Val_required", resourceCulture);
             }
         }
     }

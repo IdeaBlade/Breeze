@@ -1,4 +1,4 @@
-﻿// Generated on: Fri Feb 28 2014 23:30:07 GMT-0800 (Pacific Standard Time)
+﻿// Generated on: Tue Mar 11 2014 18:40:27 GMT-0700 (Pacific Daylight Time)
 
 intellisense.annotate(breeze.core, {
 
@@ -903,7 +903,7 @@ intellisense.annotate(breeze.breeze.EntityAction, {
   /// <field name="AttachOnImport" type="breeze.breeze.EntityAction" >AttachOnImport - Entity was attached as a result of an import.</field>
   'AttachOnImport': null,
   
-  /// <field name="Detach" type="breeze.breeze.EntityAction" >AttachOnQuery - Entity was detached.</field>
+  /// <field name="Detach" type="breeze.breeze.EntityAction" >Detach - Entity was detached.</field>
   'Detach': null,
   
   /// <field name="MergeOnQuery" type="breeze.breeze.EntityAction" >MergeOnQuery - Properties on the entity were merged as a result of a query.</field>
@@ -912,8 +912,8 @@ intellisense.annotate(breeze.breeze.EntityAction, {
   /// <field name="MergeOnImport" type="breeze.breeze.EntityAction" >MergeOnImport - Properties on the entity were merged as a result of an import.</field>
   'MergeOnImport': null,
   
-  /// <field name="MergeOnImport" type="breeze.breeze.EntityAction" >MergeOnImport - Properties on the entity were merged as a result of a save</field>
-  'MergeOnImport': null,
+  /// <field name="MergeOnSave" type="breeze.breeze.EntityAction" >MergeOnSave - Properties on the entity were merged as a result of a save</field>
+  'MergeOnSave': null,
   
   /// <field name="PropertyChange" type="breeze.breeze.EntityAction" >PropertyChange - A property on the entity was changed.</field>
   'PropertyChange': null,
@@ -2595,7 +2595,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   <summary>
     ///   Attempts to locate an entity within this EntityManager by its key. }
     ///   </summary>
-    ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
+    ///   <param name="typeName" type="EntityType | String" optional="true">The EntityType or EntityType name for this key.</param>
     ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
     ///   <returns type="Entity" >An Entity or null;</returns>
     /// </signature>
@@ -2616,7 +2616,7 @@ intellisense.annotate(breeze.breeze.EntityManager.prototype, {
     ///   an option to check the local cache first. Note the this EntityManager's queryOptions.mergeStrategy  }
     ///   will be used to merge any server side entity returned by this method. }
     ///   </summary>
-    ///   <param name="typeName" type="String" optional="true">The entityType name for this key.</param>
+    ///   <param name="typeName" type="EntityType | String" optional="true">The EntityType or EntityType name for this key.</param>
     ///   <param name="keyValues" type="Object|Array of Object" optional="true">The values for this key - will usually just be a single value; an array is only needed for multipart keys.</param>
     ///   <param name="checkLocalCacheFirst" type="Boolean=false" optional="true">Whether to check this EntityManager first before going to the server. By default, the query will NOT do this.</param>
     ///   <returns type="breeze.breeze.Promise" ></returns>
