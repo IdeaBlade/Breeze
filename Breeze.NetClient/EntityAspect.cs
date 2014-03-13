@@ -37,6 +37,7 @@ namespace Breeze.NetClient {
       InitializeDefaultValues();
       IndexInEntityGroup = -1;
       _entityState = EntityState.Detached;
+      _validationErrors = new ValidationErrorCollection(this);
     }
 
     #region Public properties
@@ -446,57 +447,27 @@ namespace Breeze.NetClient {
 
     // much of the validation code is in StructuralAspect.
 
-    public ICollection<ValidationError> ValidationErrors {
-      get { return _validationErrors.ReadOnlyValues; }
+    public ValidationErrorCollection ValidationErrors {
+      get { return _validationErrors; }
     }
 
     protected override ValidationError ValidateCore(Validator vr, ValidationContext vc) {
       var ve = vr.Validate(vc);
       if (ve == null) {
-        RemoveValidationError(ValidationError.GetKey(vr, vc.PropertyPath));
+        ValidationErrors.RemoveKey(ValidationError.GetKey(vr, vc.PropertyPath));
       } else {
-        AddValidationError(ve);
+        ValidationErrors.Add(ve);
       }
       return ve;
     }
 
     public override IEnumerable<ValidationError> GetValidationErrors(String propertyPath = null) {
       if (propertyPath == null) {
-        return _validationErrors.ReadOnlyValues;
+        return ValidationErrors.ReadOnlyValues;
       } else {
         // TODO: determine if we need to perform a ToList here.
-        return _validationErrors.Where(ve => ve.Context.PropertyPath == propertyPath);
+        return ValidationErrors.Where(ve => ve.Context.PropertyPath == propertyPath);
       }
-    }
-
-    public void AddValidationError(ValidationError validationError) {
-      _validationErrors[validationError.Key] = validationError;
-      OnErrorsChanged(validationError);
-    }
-
-    public bool RemoveValidationError(ValidationError validationError) {
-      var removed = _validationErrors.Remove(validationError);
-      if (removed) {
-        OnErrorsChanged(validationError);
-      }
-      return removed;
-    }
-
-    public bool RemoveValidationError(String validationErrorKey) {
-      var removedError =_validationErrors[validationErrorKey];
-      if (removedError != null) {
-        _validationErrors.RemoveKey(validationErrorKey);
-        OnErrorsChanged(removedError);
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    public void ClearValidationErrors() {
-      var oldErrors = _validationErrors.ToList();
-      _validationErrors.Clear();
-      oldErrors.ForEach(ve => OnErrorsChanged(ve));
     }
 
     #endregion
@@ -1419,7 +1390,7 @@ namespace Breeze.NetClient {
     /// </summary>
     bool INotifyDataErrorInfo.HasErrors {
       get {
-        return _validationErrors.Count > 0;
+        return ValidationErrors.Count > 0;
       }
     }
 
@@ -1441,7 +1412,7 @@ namespace Breeze.NetClient {
       if (propertyName == AllErrors) {
         return GetValidationErrors(null);
       } else if (String.IsNullOrEmpty(propertyName)) {
-        return _validationErrors.Where(vr => vr.Context.Property == null).ToList();
+        return ValidationErrors.Where(vr => vr.Context.Property == null).ToList();
       } else {
         return GetValidationErrors(propertyName);
       }
@@ -1451,7 +1422,7 @@ namespace Breeze.NetClient {
     /// Raises the ErrorsChanged event.
     /// </summary>
     /// <param name="propertyName"></param>
-    private void OnErrorsChanged(ValidationError validationError) {
+    internal void OnErrorsChanged(ValidationError validationError) {
       OnErrorsChanged(validationError.Context.PropertyPath);
     }
 
@@ -1537,7 +1508,7 @@ namespace Breeze.NetClient {
     private EntityType _entityType;
     private EntityGroup _entityGroup;
     private EntityState _entityState = EntityState.Detached;
-    private ValidationErrorCollection _validationErrors = new ValidationErrorCollection();
+    private ValidationErrorCollection _validationErrors; 
     // should only ever be set to either current or proposed ( never original)
     private EntityVersion _entityVersion = EntityVersion.Current;
 

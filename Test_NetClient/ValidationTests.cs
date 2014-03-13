@@ -43,6 +43,55 @@ namespace Test_NetClient {
       
     }
 
+
+
+    [TestMethod]
+    public async Task INotifyDataErrorInfo() {
+      await _emTask;
+      var emp = new Employee();
+      var inde = (INotifyDataErrorInfo)emp;
+      Assert.IsTrue(!inde.HasErrors);
+      var eventArgsList = new List<DataErrorsChangedEventArgs>();
+      inde.ErrorsChanged += (s, e) => {
+        eventArgsList.Add(e);
+      };
+      
+      _em1.AttachEntity(emp);
+      Assert.IsTrue(eventArgsList.Count == 2); // firstName, lastName
+      // magicString
+      var fnErrors = inde.GetErrors(EntityAspect.AllErrors).Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 2);
+      Assert.IsTrue(fnErrors.All(err => err.Context.PropertyPath == "LastName" || err.Context.PropertyPath == "FirstName"));
+      fnErrors = inde.GetErrors("FirstName").Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 1);
+      Assert.IsTrue(inde.HasErrors);
+      
+      emp.FirstName = "test";
+      Assert.IsTrue(eventArgsList.Count == 3); 
+      fnErrors = inde.GetErrors(EntityAspect.AllErrors).Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 1);
+      fnErrors = inde.GetErrors("FirstName").Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 0);
+      Assert.IsTrue(inde.HasErrors);
+
+      emp.FirstName = "a very long name that exceeds the valid length of the field" + ".".PadRight(40);
+      Assert.IsTrue(eventArgsList.Count == 4);
+      fnErrors = inde.GetErrors(EntityAspect.AllErrors).Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 2);
+      fnErrors = inde.GetErrors("FirstName").Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 1);
+      Assert.IsTrue(inde.HasErrors);
+      
+      emp.FirstName = "xxx";
+      emp.LastName = "yyy";
+      Assert.IsTrue(eventArgsList.Count == 6);
+      fnErrors = inde.GetErrors(EntityAspect.AllErrors).Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 0);
+      fnErrors = inde.GetErrors("FirstName").Cast<ValidationError>();
+      Assert.IsTrue(fnErrors.Count() == 0);
+      Assert.IsTrue(!inde.HasErrors);
+    }
+
     [TestMethod]
     public async Task FindOrCreateFromJson() {
       await _emTask;
@@ -205,25 +254,31 @@ namespace Test_NetClient {
       Assert.IsTrue(ve.Key != null);
     }
 
-    //[TestMethod]
-    //public async Task CustomPropertyValidator() {
-    //  await _emTask;
+    [TestMethod]
+    public async Task CustomPropertyValidator() {
+      await _emTask;
 
-    //  var custType = MetadataStore.Instance.GetEntityType(typeof(Customer));
-    //  var countryProp = custType.GetDataProperty("Country");
-    //  countryProp.Validators.Add(new CountryIsUsValidator());
-    //  var cust = new Customer();
-    //  var valErrors = cust.EntityAspect.ValidationErrors;
-    //  Assert.IsTrue(valErrors.Count == 0);
-    //  cust.Country = "Germany";
-    //  _em1.AttachEntity(cust);
-    //  // MetadataStore.Instance.
-    //}
+      var custType = MetadataStore.Instance.GetEntityType(typeof(Customer));
+      var countryProp = custType.GetDataProperty("Country");
+      try {
+        countryProp.Validators.Add(new CountryIsUsValidator());
+        var cust = new Customer();
+        var valErrors = cust.EntityAspect.ValidationErrors;
+        Assert.IsTrue(valErrors.Count == 0);
+        cust.CompanyName = "Test";
+        cust.Country = "Germany";
+        _em1.AttachEntity(cust);
+        Assert.IsTrue(valErrors.Count == 1);
+        Assert.IsTrue(valErrors.First().Message.Contains("must start with"));
+      } finally {
+        countryProp.Validators.Remove(new CountryIsUsValidator());
+      }
+    }
 
     public class CountryIsUsValidator : Validator {
       public CountryIsUsValidator()
         : base() {
-        LocalizedMessage = new LocalizedMessage("{0} must start with the 'US'");
+        LocalizedMessage = new LocalizedMessage("{0} must start with the 'US', '{1}' is not valid ");
       }
 
       protected override bool ValidateCore(ValidationContext context) {
@@ -233,62 +288,10 @@ namespace Test_NetClient {
       }
 
       public override string GetErrorMessage(ValidationContext validationContext) {
-        return LocalizedMessage.Format(validationContext.Property.DisplayName);
+        return LocalizedMessage.Format(validationContext.Property.DisplayName, validationContext.PropertyValue);
       }
     }
 
-    //test("custom property validation", function () {
-    //    var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
-    //    var em = newEm(ms);
-    //    var custType = ms.getEntityType("Customer");
-    //    var prop = custType.getProperty("country");
-
-    //    var valFn = function (v) {
-    //        if (v == null) return true;
-    //        return (core.stringStartsWith(v, "US"));
-    //    };
-    //    var countryValidator = new Validator("countryIsUS", valFn, { displayName: "Country", messageTemplate: "'%displayName%' must start with 'US'" });
-    //    prop.validators.push(countryValidator);
-    //    var cust1 = custType.createEntity();
-    //    cust1.setProperty("country", "GER");
-    //    em.attachEntity(cust1);
-    //    ok(cust1.entityAspect.hasValidationErrors, "should have val errors");
-    //    var valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 2, "length should be 2");
-    //    cust1.setProperty("country", "US");
-    //    valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 1, "length should be 1");
-    //    cust1.setProperty("country", null);
-    //    valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 1, "length should be 1");
-    //    cust1.entityAspect.validateProperty("country");
-    //    ok(valErrors.length === 1, "length should be 1");
-    //});
-
-    //test("custom entity validation", function () {
-    //    var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
-    //    var em = newEm(ms);
-    //    var custType = ms.getEntityType("Customer");
-
-    //    var zipCodeValidator = createZipCodeValidatorFactory()();
-    //    custType.validators.push(zipCodeValidator);
-
-    //    var cust1 = custType.createEntity();
-    //    cust1.setProperty("companyName", "Test1Co");
-    //    cust1.setProperty("country", "GER");
-    //    em.attachEntity(cust1);
-    //    var valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 0, "length should be 0");
-    //    cust1.setProperty("country", "USA");
-    //    ok(!cust1.entityAspect.hasValidationErrors, "should NOT have val errors");
-    //    valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 0, "length should be 0");
-    //    var isOk = cust1.entityAspect.validateEntity();
-    //    ok(!isOk, "validateEntity should have returned false");
-    //    valErrors = cust1.entityAspect.getValidationErrors();
-    //    ok(valErrors.length === 1, "length should be 1");
-    //    ok(cust1.entityAspect.hasValidationErrors, "should have val errors");
-    //});
     
     //test("custom entity validation - register validator", function () {
     //    var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());

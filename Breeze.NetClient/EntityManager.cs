@@ -108,7 +108,7 @@ namespace Breeze.NetClient {
       var mergeStrategy = query.QueryOptions.MergeStrategy ?? this.DefaultQueryOptions.MergeStrategy ?? QueryOptions.Default.MergeStrategy;
       
       // cannot reuse a jsonConverter - internal refMap is one instance/query
-      var jsonConverter = new JsonEntityConverter(this, mergeStrategy.Value);
+      var jsonConverter = new JsonEntityConverter(this, mergeStrategy.Value, LoadingOperation.Query);
       Type rType;
       if (resourcePath.Contains("inlinecount")) {
         rType = typeof(QueryResult<>).MakeGenericType(query.ElementType);
@@ -135,12 +135,24 @@ namespace Breeze.NetClient {
       }
 
       if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnSave) > 0) {
-        entitiesToSave.ForEach(e => {
-          var errors = e.EntityAspect.Validate();
+        var errs = entitiesToSave.SelectMany(ent => {
+          var errors = ent.EntityAspect.ValidationErrors;
+          // updates errors
+          ent.EntityAspect.Validate();
           if (errors.Any()) {
-            throw new SaveException(errors);
-          };
+            return errors.ToList().Where(err => {
+              if (err.IsServerError) {
+                errors.Remove(err);
+              }
+              return !err.IsServerError;
+            });
+          } else {
+            return errors;
+          }
         });
+       if (errs.Any()) {
+         throw new SaveException(errs);
+       };
       }
       saveOptions = new SaveOptions(saveOptions ?? this.DefaultSaveOptions ?? SaveOptions.Default);
       if (saveOptions.ResourceName == null) saveOptions.ResourceName = "SaveChanges";
@@ -302,22 +314,22 @@ namespace Breeze.NetClient {
           var targetAspect = targetEntity.EntityAspect;
           if (mergeStrategy == MergeStrategy.Disallowed) continue;
           if (mergeStrategy == MergeStrategy.PreserveChanges && targetAspect.EntityState != EntityState.Unchanged) continue;
-          PopulateEntity(targetEntity, entityNode);
+          PopulateImportedEntity(targetEntity, entityNode);
           UpdateTempFks(targetEntity, entityAspectNode, tempKeyMap);
           if (targetAspect.EntityState != entityState) {
             targetAspect.EntityState = entityState;
           }
-          
+          OnEntityChanged(targetEntity, EntityAction.MergeOnImport);
         } else {
           targetEntity = (IEntity)Activator.CreateInstance(entityType.ClrType);
-          PopulateEntity(targetEntity, entityNode);
+          PopulateImportedEntity(targetEntity, entityNode);
           if (hasCollision) {
             var origEk = targetEntity.EntityAspect.EntityKey;
             var newEk = tempKeyMap[origEk];
             targetEntity.EntityAspect.SetDpValue(entityType.KeyProperties[0], newEk.Values[0]);
           }
           UpdateTempFks(targetEntity, entityAspectNode, tempKeyMap);
-          AttachEntity(targetEntity, entityState);
+          AttachImportedEntity(targetEntity, entityState);
         }       
 
         importedEntities.Add(targetEntity);
@@ -333,7 +345,7 @@ namespace Breeze.NetClient {
       return entityKey;
     }
 
-    private void PopulateEntity(IEntity targetEntity, JNode jn) {
+    private void PopulateImportedEntity(IEntity targetEntity, JNode jn) {
       var targetAspect = targetEntity.EntityAspect;
       var backingStore = targetAspect.BackingStore;
 
@@ -521,6 +533,7 @@ namespace Breeze.NetClient {
       EntityGroups.ForEach(eg => eg.Clear());
       SetHasChanges(false);
       Initialize();
+      OnEntityChanged(null, EntityAction.Clear);
     }
 
     /// <summary>
@@ -688,19 +701,21 @@ namespace Breeze.NetClient {
 
       AttachEntityAspect(aspect, EntityState.Unchanged); 
 
-      // TODO: impl validate on attach
-      //    if (this.validationOptions.validateOnAttach) {
-      //        attachedEntity.entityAspect.validateEntity();
-      //    }
       if ((this.ValidationOptions.ValidationApplicability & ValidationApplicability.OnQuery) > 0) {
         aspect.ValidateInternal();
       }
 
-
       aspect.OnEntityChanged(EntityAction.AttachOnQuery);
       return aspect;
-
     }
+
+    internal EntityAspect AttachImportedEntity(IEntity entity, EntityState entityState) {
+      var aspect = entity.EntityAspect;
+      AttachEntityAspect(aspect, entityState);
+      aspect.OnEntityChanged(EntityAction.AttachOnImport);
+      return aspect;
+    }
+
 
     private EntityAspect PrepareForAttach(IEntity entity) {
       var aspect = entity.EntityAspect;
@@ -722,6 +737,10 @@ namespace Breeze.NetClient {
     private EntityAspect AttachEntityAspect(EntityAspect entityAspect, EntityState entityState) {
       var group = GetEntityGroup(entityAspect.EntityType.ClrType);
       group.AttachEntityAspect(entityAspect, entityState);
+      if (entityState != EntityState.Modified) {
+        // don't clear this if modified because it came from an earlier incarnation.
+        entityAspect._originalValuesMap = null;
+      }
       entityAspect.LinkRelatedEntities();
       return entityAspect;
     }

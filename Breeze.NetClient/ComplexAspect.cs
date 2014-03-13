@@ -179,13 +179,13 @@ namespace Breeze.NetClient {
       var entityAspect = this.EntityAspect;
       if (entityAspect != null) {
         if (ve == null) {
-          if (EntityAspect.RemoveValidationError(ValidationError.GetKey(vr, vc.PropertyPath))) {
+          if (EntityAspect.ValidationErrors.RemoveKey(ValidationError.GetKey(vr, vc.PropertyPath))) {
             // this is the local OnErrorsChanged which gets just the local property name
             // not the entire path;
             OnErrorsChanged(vc.Property.Name);
           }
         } else {
-          EntityAspect.AddValidationError(ve);
+          EntityAspect.ValidationErrors.Add(ve);
           OnErrorsChanged(vc.Property.Name);
         }
       }

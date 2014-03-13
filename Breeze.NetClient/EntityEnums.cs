@@ -199,8 +199,10 @@ namespace Breeze.NetClient {
     /// </summary>
     Detach = 8, // isDetach
 
+    /// <summary>
+    /// Delete - Entity was marked for deletion
+    /// </summary>
     Delete = 16, 
-        
     
     // MergeOnQuery - Properties on the entity were merged as a result of a query.
     /// <summary>

@@ -103,6 +103,10 @@
 
     });
 
+    /*
+     * This test removed when we made InternationalOrder a subclass of Order
+     * Restore it if/when decide to demo IO as a separate entity related in 1..(0,1)
+     * 
     asyncTest("can save a new Northwind Order & InternationalOrder [1..(0,1) relationship]", 2, function () {
         // Create and initialize entity to save
         var em = newNorthwindEm();
@@ -114,9 +118,7 @@
         });
 
         var internationalOrder = em.createEntity('InternationalOrder', {
-            // I thought Jay fixed this?
             Order: order, // sets OrderID and pulls it into the order's manager
-            //OrderID: order.OrderID(),
             CustomsDescription: "rare, exotic birds"
         });
 
@@ -133,6 +135,7 @@
         }
 
     });
+     */
 
     asyncTest("delete of Product clears its related Category before save", 4, function () {
         var em = newNorthwindEm();

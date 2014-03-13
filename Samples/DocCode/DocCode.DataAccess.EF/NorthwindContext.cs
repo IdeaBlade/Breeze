@@ -24,6 +24,7 @@ namespace Northwind.Models
 
             modelBuilder.Configurations.Add(new CustomerConfiguration());
             modelBuilder.Configurations.Add(new EmployeeConfiguration());
+            modelBuilder.Configurations.Add(new InternationalOrderConfiguration());
             modelBuilder.Configurations.Add(new OrderConfiguration());
             modelBuilder.Configurations.Add(new OrderDetailConfiguration());
             modelBuilder.Configurations.Add(new PreviousEmployeeConfiguration());
@@ -36,6 +37,7 @@ namespace Northwind.Models
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<EmployeeTerritory> EmployeeTerritories { get; set; }
+        public DbSet<InternationalOrder> InternationalOrders { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<PreviousEmployee> PreviousEmployees { get; set; }
@@ -46,7 +48,7 @@ namespace Northwind.Models
         public DbSet<Territory> Territories { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
-        public DbSet<InternationalOrder> InternationalOrders { get; set; }
+
 
         #endregion EntityQueries
     }
@@ -84,6 +86,15 @@ namespace Northwind.Models
         }
     }
 
+    // InternationalOrder TPT inherits from Order
+    public class InternationalOrderConfiguration : EntityTypeConfiguration<InternationalOrder>
+    {
+        public InternationalOrderConfiguration()
+        {
+            ToTable("InternationalOrder");
+        }
+    }
+
     public class OrderConfiguration : EntityTypeConfiguration<Order>
     {
         public OrderConfiguration()
@@ -96,6 +107,7 @@ namespace Northwind.Models
             Property(o => o.ShipTo.Country).HasColumnName("ShipCountry");
         }
     }
+
     public class OrderDetailConfiguration : EntityTypeConfiguration<OrderDetail>
     {
         public OrderDetailConfiguration()

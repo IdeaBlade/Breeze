@@ -465,10 +465,10 @@ namespace Test_NetClient {
     private void ClearAndRevalidate(IEntity entity, int count) {
       var valErrors = entity.EntityAspect.ValidationErrors;
       Assert.IsTrue(valErrors.Count == count, "should be " + count + " validation errors");
-      entity.EntityAspect.ClearValidationErrors();
+      entity.EntityAspect.ValidationErrors.Clear();
       Assert.IsTrue(valErrors.Count == 0, "validationErrors should have been cleared");
       var errs= entity.EntityAspect.Validate();
-      Assert.IsTrue(errs == valErrors);
+      Assert.IsTrue(errs.SequenceEqual(valErrors));
       Assert.IsTrue(valErrors.Count == count, "should be " + count + " validation errors - again");
 
     }

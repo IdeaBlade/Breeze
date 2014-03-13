@@ -23,7 +23,7 @@ namespace Breeze.NetClient {
         var saveResultJson = await saveOptions.DataService.PostAsync(saveOptions.ResourceName, saveBundleNode.Serialize());
         return ProcessSaveResult(entityManager, saveResultJson);
       } catch (HttpRequestException e) {
-        throw SaveException.Parse(e.Message);
+        throw SaveException.Parse(entityManager, e.Message);
       }
     }
 
@@ -127,7 +127,7 @@ namespace Breeze.NetClient {
         if (prop == null) return null;
         var entityNodes = (JArray)prop.Value;
         var serializer = new JsonSerializer();
-        var jsonConverter = new JsonEntityConverter(entityManager, MergeStrategy.OverwriteChanges, NormalizeEntityTypeName);
+        var jsonConverter = new JsonEntityConverter(entityManager, MergeStrategy.OverwriteChanges, LoadingOperation.Save, StructuralType.ClrTypeNameToStructuralTypeName);
         serializer.Converters.Add(jsonConverter);
         // Don't use the result of the Deserialize call to get the list of entities 
         // because it won't include entities added on the server.
@@ -140,28 +140,14 @@ namespace Breeze.NetClient {
     }
 
     private Tuple<EntityKey, EntityKey> ToEntityKeys(KeyMapping keyMapping) {
-      var entityTypeName = NormalizeEntityTypeName(keyMapping.EntityTypeName);
+      var entityTypeName = StructuralType.ClrTypeNameToStructuralTypeName(keyMapping.EntityTypeName);
       var et = MetadataStore.Instance.GetEntityType(entityTypeName);
       var oldKey = new EntityKey(et, keyMapping.TempValue);
       var newKey = new EntityKey(et, keyMapping.RealValue);
       return Tuple.Create(oldKey, newKey);
     }
 
-    private String NormalizeEntityTypeName(String clrTypeName) {
-      if (String.IsNullOrEmpty(clrTypeName)) return null;
-
-      var entityTypeNameNoAssembly = clrTypeName.Split(',')[0];
-      var nameParts = entityTypeNameNoAssembly.Split('.');
-      String ns;
-      var shortName = nameParts[nameParts.Length - 1];
-      if (nameParts.Length > 1) {
-        ns = String.Join(".", nameParts.Take(nameParts.Length - 1));
-      } else {
-        ns = "";
-      }
-      var typeName = StructuralType.QualifyTypeName(shortName, ns);
-      return typeName;
-    }
+    
 
     #endregion
   }
@@ -173,14 +159,6 @@ namespace Breeze.NetClient {
     public Object RealValue;
   }
 
-  public class EntityError {
 
-    public String ErrorName;
-    public String EntityTypeName;
-    public Object[] KeyValues;
-    public String PropertyName;
-    public string ErrorMessage;
-
-  }
  
 }
