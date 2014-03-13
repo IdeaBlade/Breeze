@@ -95,6 +95,7 @@
     <Compile Include="NHEagerFetch.cs" />
     <Compile Include="NHExpander.cs" />
     <Compile Include="NHInitializer.cs" />
+    <Compile Include="NHMetadataBuilder.cs" />
     <Compile Include="NhQueryableInclude.cs" />
     <Compile Include="NHQueryHelper.cs" />
     <Compile Include="NHRelationshipFixer.cs" />

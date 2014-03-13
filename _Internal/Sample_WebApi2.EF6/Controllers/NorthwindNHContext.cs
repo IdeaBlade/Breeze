@@ -9,7 +9,7 @@ namespace Sample_WebApi2.Controllers
 {
     public class NorthwindNHContext : NHContext
     {
-        public NorthwindNHContext() : base(NorthwindNHConfig.OpenSession(), NorthwindNHConfig.Configuration) { }
+        public NorthwindNHContext() : base(NorthwindNHConfig.OpenSession()) { }
 
         public NorthwindNHContext(NHContext sourceContext) : base(sourceContext) { }
 

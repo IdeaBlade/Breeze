@@ -5,7 +5,7 @@ namespace Sample_WebApi2.Controllers {
 
   public class ProduceNHContext : NHContext {
 
-        public ProduceNHContext() : base(ProduceNHConfig.OpenSession(), ProduceNHConfig.Configuration) { }
+        public ProduceNHContext() : base(ProduceNHConfig.OpenSession()) { }
 
         public ProduceNHContext(NHContext sourceContext) : base(sourceContext) { }
 
