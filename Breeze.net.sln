@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample_WPF.EF6", "Sample_WP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_Northwind_NetClient", "_Internal\Model_Northwind_NetClient\Model_Northwind_NetClient.csproj", "{AFBEDE2C-1937-4A3A-88A1-046973D969E5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model_Inheritance_NetClient", "_Internal\Model_Inheritance_NetClient\Model_Inheritance_NetClient.csproj", "{5B809BB6-85EF-4384-BA2B-54889617F76F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +98,21 @@ Global
 		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{AFBEDE2C-1937-4A3A-88A1-046973D969E5}.Release|x86.ActiveCfg = Release|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Debug-ODATA|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Debug-ODATA|Any CPU.Build.0 = Debug|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Debug-ODATA|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Debug-ODATA|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Debug-ODATA|x86.ActiveCfg = Debug|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5B809BB6-85EF-4384-BA2B-54889617F76F}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

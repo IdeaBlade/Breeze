@@ -2,4 +2,3 @@
 - implement JsonResultsAdapter
 
 
-- Test fk hookup after a RejectChanges on a entity with changed fk.
