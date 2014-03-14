@@ -39,23 +39,28 @@ namespace Breeze.NetClient {
     }
 
     private void Initialize() {
-      // AuthorizedThreadId = Thread..Current.GetCurrentThreadId();
+      
       var x = AuthorizedThreadId;
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
       TempIds = new HashSet<UniqueId>();
     }
 
+  
+    #endregion
+
+    #region Thread checking
+
     public Int32 CurrentThreadId {
-      get { 
-        
+      get {
+
         if (__threadLocalId == null) {
           __threadLocalId = new ThreadLocal<int>();
         }
         if (__threadLocalId.Value == 0) {
           __threadLocalId.Value = __nextThreadId++;
         }
-        
+
         return __threadLocalId.Value;
       }
     }
@@ -96,18 +101,34 @@ namespace Breeze.NetClient {
       private set;
     }
 
-    // TODO: insure that none of these can be set to null;
-    public DataService DefaultDataService { get; set; }
+    public DataService DefaultDataService {
+      get { return _defaultDataService; }
+      set { _defaultDataService = InsureNotNull(value, "DefaultDataService"); }
+    }
 
-    public QueryOptions DefaultQueryOptions { get; set; }
+    public QueryOptions DefaultQueryOptions {
+      get { return _defaultQueryOptions; }
+      set { _defaultQueryOptions = InsureNotNull(value, "DefaultQueryOptions"); }
+    }
 
-    public SaveOptions DefaultSaveOptions { get; set; }
+    public SaveOptions DefaultSaveOptions {
+      get { return _defaultSaveOptions; }
+      set { _defaultSaveOptions = InsureNotNull(value, "DefaultSaveOptions"); }
+    }
+    public CacheQueryOptions CacheQueryOptions {
+      get { return _cacheQueryOptions; }
+      set { _cacheQueryOptions = InsureNotNull(value, "CacheQueryOptions"); }
+    }
 
-    public CacheQueryOptions CacheQueryOptions { get; set; }
+    public ValidationOptions ValidationOptions {
+      get { return _validationOptions; }
+      set { _validationOptions = InsureNotNull(value, "ValidationOptions"); }
+    }
 
-    public ValidationOptions ValidationOptions { get; set; }
-
-    public IKeyGenerator KeyGenerator { get; set; }
+    public IKeyGenerator KeyGenerator {
+      get { return _keyGenerator; }
+      set { _keyGenerator = InsureNotNull(value, "KeyGenerator"); }
+    }
 
     public bool ChangeNotificationEnabled {
       get { return _changeNotificationEnabled; }
@@ -265,7 +286,6 @@ namespace Breeze.NetClient {
       }
     }
 
-    // TODO: not currently called.
     internal void FireQueuedEvents() {
       // IsLoadingEntity will still be true when this occurs.
       if (! _queuedEvents.Any()) return;
@@ -1097,9 +1117,22 @@ namespace Breeze.NetClient {
 
     #region other private 
 
+    private T InsureNotNull<T>(T val, String argumentName) {
+      if (val == null) {
+        throw new ArgumentNullException(argumentName);
+      }
+      return val;
+    }
+
     private EntityGroupCollection EntityGroups { get; set; }
     private List<Action> _queuedEvents = new List<Action>();
     private bool _changeNotificationEnabled = true;
+    private DataService _defaultDataService;
+    private QueryOptions _defaultQueryOptions;
+    private SaveOptions _defaultSaveOptions;
+    private CacheQueryOptions _cacheQueryOptions;
+    private ValidationOptions _validationOptions;
+    private IKeyGenerator _keyGenerator;
     private bool _hasChanges;
     #endregion
   }

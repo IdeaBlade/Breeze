@@ -21,8 +21,6 @@ namespace Test_NetClient {
   [TestClass]
   public class NamedQueryTests {
 
-    // TODO: need Exp/Imp tests with Complex type changes.
-
     private Task<EntityManager> _emTask = null;
     private EntityManager _em1;
 

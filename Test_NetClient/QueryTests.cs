@@ -52,8 +52,8 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SimpleQuery() {
-      
       await _emTask;
+
       var q = new EntityQuery<Customer>();
 
       var results = await _em1.ExecuteQuery(q);
@@ -151,7 +151,7 @@ namespace Test_NetClient {
     [TestMethod]
     public async Task WhereAnyOrderBy() {
       await _emTask;
-      var q = new EntityQuery<Foo.Customer>("Customers");
+      var q = new EntityQuery<Foo.Customer>();
       var q2 = q.Where(c => c.CompanyName.StartsWith("C") && c.Orders.Any(o => o.Freight > 10));
       var q3 = q2.OrderBy(c => c.CompanyName).Skip(2);
 

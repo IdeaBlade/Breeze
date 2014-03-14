@@ -647,8 +647,8 @@ namespace Test_NetClient {
       orders.Remove(order1);
       Assert.IsTrue(collectionChangedList.Last().Action == NotifyCollectionChangedAction.Remove);
       Assert.IsTrue(collectionChangedList.Last().OldItems.Contains(order1), "change event should contain order1");
-      // TODO: this is not yet happening but it should
-      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
+      
+      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
       Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
 
       Assert.IsTrue(!orders.Contains(order1), "order1 should have been removed");
@@ -662,7 +662,7 @@ namespace Test_NetClient {
       order1.Customer = cust1;
       Assert.IsTrue(collectionChangedList.Last().Action == NotifyCollectionChangedAction.Add);
       Assert.IsTrue(collectionChangedList.Last().NewItems.Contains(order1), "change event should contain order1");
-      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
+      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
       Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
 
       Assert.IsTrue(orders.Contains(order1), "order1 should be back");
@@ -763,8 +763,8 @@ namespace Test_NetClient {
 
       Assert.IsTrue(cust2CollChangedList.Last().Action == NotifyCollectionChangedAction.Add);
       Assert.IsTrue(cust2CollChangedList.Last().NewItems.Contains(order1), "change event should contain order1");
-      // TODO: this is not yet happening but it should
-      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
+      
+      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
       Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
 
       Assert.IsTrue(!cust1.Orders.Contains(order1), "order1 should have been removed");
@@ -780,7 +780,7 @@ namespace Test_NetClient {
       order1.Customer = cust1;
       Assert.IsTrue(cust1CollChangedList.Last().Action == NotifyCollectionChangedAction.Add);
       Assert.IsTrue(cust1CollChangedList.Last().NewItems.Contains(order1), "change event should contain order1");
-      // Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
+      Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "Customer"), "propChange should mention Customer");
       Assert.IsTrue(propChangedList.Any(args => args.PropertyName == "CustomerID"), "propChange should mention CustomerID");
       
       Assert.IsTrue(cust1.Orders.Count == 2, "count should be 2");

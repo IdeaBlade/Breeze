@@ -2,10 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace Test_NetClient {
   public static class TestFns {
+
+    public static void RunInWpfSyncContext(Func<Task> function) {
+      if (function == null) throw new ArgumentNullException("function");
+      var prevCtx = SynchronizationContext.Current;
+      try {
+        var syncCtx = new DispatcherSynchronizationContext();
+        SynchronizationContext.SetSynchronizationContext(syncCtx);
+
+        var task = function();
+        if (task == null) throw new InvalidOperationException();
+
+        var frame = new DispatcherFrame();
+        var t2 = task.ContinueWith(x => { frame.Continue = false; }, TaskScheduler.Default);
+        Dispatcher.PushFrame(frame);   // execute all tasks until frame.Continue == false
+
+        task.GetAwaiter().GetResult(); // rethrow exception when task has failed 
+      } finally {
+        SynchronizationContext.SetSynchronizationContext(prevCtx);
+      }
+    }
+
     public static bool DEBUG_MONGO = false;
     public static bool DEBUG_ODATA = false;
     public static string EmployeeKeyName = "EmployeeID";
