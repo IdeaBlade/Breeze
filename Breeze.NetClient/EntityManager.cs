@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Breeze.NetClient {
   public class EntityManager  {
@@ -38,11 +39,53 @@ namespace Breeze.NetClient {
     }
 
     private void Initialize() {
-      
+      // AuthorizedThreadId = Thread..Current.GetCurrentThreadId();
+      var x = AuthorizedThreadId;
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
       TempIds = new HashSet<UniqueId>();
     }
+
+    public Int32 CurrentThreadId {
+      get { 
+        
+        if (__threadLocalId == null) {
+          __threadLocalId = new ThreadLocal<int>();
+        }
+        if (__threadLocalId.Value == 0) {
+          __threadLocalId.Value = __nextThreadId++;
+        }
+        
+        return __threadLocalId.Value;
+      }
+    }
+
+    public Int32 AuthorizedThreadId {
+      get {
+        if (_authorizedThreadId == 0) {
+          _authorizedThreadId = CurrentThreadId;
+        }
+        return _authorizedThreadId;
+      }
+    }
+
+    public void CheckAuthorizedThreadId() {
+      return;
+
+      //if (CurrentThreadId != AuthorizedThreadId) {
+      //  String msg = "An EntityManager can only execute on a single thread. This EntityManager is authorized to execute on the thread with id=’{0}’; ";
+      //  msg += "the requested operation came from the thread with Id=‘{1}’.\n\n";
+      //  msg += "You may have to disable this cross-thread checking for specific reasons such as automated testing. ";
+      //  msg += "Please review our documentation on multi-threading issues and the EntityManager.AuthorizedThreadId property.";
+      //  msg = String.Format(msg, AuthorizedThreadId, CurrentThreadId);
+      //  throw new Exception(msg);
+      //}
+    }
+
+    [ThreadStatic]
+    private static ThreadLocal<Int32> __threadLocalId;
+    private static Int32 __nextThreadId = 34;
+    private Int32 _authorizedThreadId;
 
     #endregion
 
@@ -101,10 +144,12 @@ namespace Breeze.NetClient {
       }
       var dataService = query.DataService != null ? query.DataService : this.DefaultDataService;
       await FetchMetadata(dataService);
+      CheckAuthorizedThreadId();
       var resourcePath = query.GetResourcePath();
       // HACK
       resourcePath = resourcePath.Replace("/*", "");
       var result = await dataService.GetAsync(resourcePath);
+      CheckAuthorizedThreadId();
       var mergeStrategy = query.QueryOptions.MergeStrategy ?? this.DefaultQueryOptions.MergeStrategy ?? QueryOptions.Default.MergeStrategy;
       
       // cannot reuse a jsonConverter - internal refMap is one instance/query

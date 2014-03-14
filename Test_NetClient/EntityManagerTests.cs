@@ -93,23 +93,25 @@ namespace Test_NetClient {
     [TestMethod]
     public async Task LoadNavigationPropertyNonscalar() {
       await _emTask;
-
-      var q0 = new EntityQuery<Customer>().Where(c => c.Orders.Any()).Take(3);
-      var r0 = await q0.Execute(_em1);
-      Task.WaitAll(r0.Select(c => c.EntityAspect.LoadNavigationProperty("Orders")).ToArray());
-      // await Task.WhenAll(r0.Select(c => c.EntityAspect.LoadNavigationProperty("Orders")));
-      Assert.IsTrue(r0.All(c => c.Orders.Count() > 0));
+      TestFns.RunInWpfSyncContext( async () =>  {
+        var q0 = new EntityQuery<Customer>().Where(c => c.Orders.Any()).Take(3);
+        var r0 = await q0.Execute(_em1);
+        // Task.WaitAll(r0.Select(c => c.EntityAspect.LoadNavigationProperty("Orders")).ToArray());
+        await Task.WhenAll(r0.Select(c => c.EntityAspect.LoadNavigationProperty("Orders")));
+        Assert.IsTrue(r0.All(c => c.Orders.Count() > 0));
+      });
     }
 
     [TestMethod]
     public async Task LoadNavigationPropertyScalar() {
       await _emTask;
-
-      var q0 = new EntityQuery<Order>().Where(o => o.Customer != null).Take(3);
-      var r0 = await q0.Execute(_em1);
-      Task.WaitAll(r0.Select(o => o.EntityAspect.LoadNavigationProperty("Customer")).ToArray());
-      // await Task.WhenAll(r0.Select(o => o.EntityAspect.LoadNavigationProperty("Customer")));
-      Assert.IsTrue(r0.All(o => o.Customer != null));
+      TestFns.RunInWpfSyncContext(async () => {
+        var q0 = new EntityQuery<Order>().Where(o => o.Customer != null).Take(3);
+        var r0 = await q0.Execute(_em1);
+        // Task.WaitAll(r0.Select(o => o.EntityAspect.LoadNavigationProperty("Customer")).ToArray());
+        await Task.WhenAll(r0.Select(o => o.EntityAspect.LoadNavigationProperty("Customer")));
+        Assert.IsTrue(r0.All(o => o.Customer != null));
+      });
     }
     
 

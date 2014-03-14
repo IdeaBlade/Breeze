@@ -147,7 +147,6 @@ namespace Breeze.NetClient {
       return Tuple.Create(oldKey, newKey);
     }
 
-    
 
     #endregion
   }

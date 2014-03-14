@@ -6,6 +6,8 @@ using Breeze.Core;
 using Breeze.NetClient;
 using System.Collections.Generic;
 using Foo;
+using System.Threading;
+using System.Windows.Threading;
 
 namespace Test_NetClient {
 
@@ -14,19 +16,28 @@ namespace Test_NetClient {
 
     private Task<EntityManager> _emTask = null;
     private EntityManager _em1;
-    
 
     [TestInitialize]
     public void TestInitializeMethod() {
       _emTask = SetUpAsync();
+
+    }
+
+    // [TestSetup]
+    public void Foo() {
+
     }
 
     public async Task<EntityManager> SetUpAsync() {
+
       var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
       
       if (MetadataStore.Instance.EntityTypes.Count == 0) {
         _em1 = new EntityManager(serviceName);
+        var x = _em1.AuthorizedThreadId;
         await _em1.FetchMetadata();
+        var y = _em1.AuthorizedThreadId;
+        var ok = x == y;
       } else {
         _em1 = new EntityManager(serviceName);
       }
@@ -41,13 +52,14 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SimpleQuery() {
+      
       await _emTask;
       var q = new EntityQuery<Customer>();
 
       var results = await _em1.ExecuteQuery(q);
 
       Assert.IsTrue(results.Cast<Object>().Count() > 0);
-
+      
     }
 
     [TestMethod]
