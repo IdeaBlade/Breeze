@@ -71,8 +71,22 @@ namespace Breeze.NetClient {
         return _refMap[refToken.Value<String>()];
       }
 
-      var objectType = jsonContext.ObjectType;
-      var entityType =  _metadataStore.GetEntityType(objectType);
+      EntityType entityType;
+      Type objectType;
+      JToken typeToken = null;
+      if (jObject.TryGetValue("$type", out typeToken)) {
+        var clrTypeName = typeToken.Value<String>();
+        var entityTypeName = StructuralType.ClrTypeNameToStructuralTypeName(clrTypeName);
+        entityType = _metadataStore.GetEntityType(entityTypeName);
+        objectType = entityType.ClrType;
+        if (!jsonContext.ObjectType.IsAssignableFrom(objectType)) {
+          throw new Exception("Unable to convert returned type: " + objectType.Name + " into type: " + jsonContext.ObjectType.Name);
+        }
+        jsonContext.ObjectType = objectType;
+      } else {
+        objectType = jsonContext.ObjectType;
+        entityType =  _metadataStore.GetEntityType(objectType);
+      }
 
       // an entity type
       jsonContext.StructuralType = entityType;

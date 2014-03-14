@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Breeze.NetClient {
 
+  [DebuggerDisplay("{EntityAspect.EntityKey} - {EntityAspect.EntityState}")]
   public abstract class BaseEntity : IEntity {
 
     protected BaseEntity() {

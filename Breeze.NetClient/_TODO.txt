@@ -1,4 +1,8 @@
 ﻿
+- Add good message for AuthorizedThreadId check and how to turn it off for unit tests
+- Add good message for structuralType not found messages and how to call ProbeAssemblies
+- ProbeAssemblies should default to not searching Breeze.NEtClient.
+
 - implement JsonResultsAdapter
 
 

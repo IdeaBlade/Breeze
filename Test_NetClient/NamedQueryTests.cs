@@ -31,7 +31,7 @@ namespace Test_NetClient {
 
     public async Task<EntityManager> SetUpAsync() {
       var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-      MetadataStore.Instance.ProbeAssemblies(new Assembly[] { typeof(Order).Assembly });
+      MetadataStore.Instance.ProbeAssemblies(typeof(Order).Assembly );
       if (MetadataStore.Instance.EntityTypes.Count == 0) {
         _em1 = new EntityManager(serviceName);
         await _em1.FetchMetadata();

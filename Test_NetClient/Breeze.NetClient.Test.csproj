@@ -80,6 +80,10 @@
       <Project>{54b1ce10-2847-4565-839a-26da3a51af38}</Project>
       <Name>Breeze.NetClient</Name>
     </ProjectReference>
+    <ProjectReference Include="..\_Internal\Model_Inheritance_NetClient\Model_Inheritance_NetClient.csproj">
+      <Project>{5b809bb6-85ef-4384-ba2b-54889617f76f}</Project>
+      <Name>Model_Inheritance_NetClient</Name>
+    </ProjectReference>
     <ProjectReference Include="..\_Internal\Model_Northwind_NetClient\Model_Northwind_NetClient.csproj">
       <Project>{afbede2c-1937-4a3a-88a1-046973d969e5}</Project>
       <Name>Model_Northwind_NetClient</Name>

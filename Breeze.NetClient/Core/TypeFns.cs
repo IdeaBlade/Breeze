@@ -148,22 +148,6 @@ namespace Breeze.Core {
       return types;
     }
 
-    /// <summary>
-    /// Returns a list of all of the types in one or more assemblies that implement a specific
-    /// interface or extend a specific class.
-    /// </summary>
-    /// <param name="type">Interface or base type</param>
-    /// <param name="assemblies"></param>
-    /// <returns></returns>
-    public static Type[] GetTypesImplementing(Type type, IEnumerable<Assembly> assemblies) {
-      if (assemblies == null) {
-        return new Type[0];
-      }
-      var validAssemblies = GetValidAssemblies(assemblies);
-      var result = validAssemblies.SelectMany(a => GetTypesImplementing(type, a)).ToArray();
-      return result;
-    }
-
     internal static IEnumerable<Type> GetTypes(Assembly assembly) {
       lock (__invalidAssemblies) {
         if (__invalidAssemblies.Contains(assembly)) {

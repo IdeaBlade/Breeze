@@ -17,9 +17,13 @@ namespace Breeze.NetClient {
 
     private MetadataStore() {
       _clrTypeMap = new ClrTypeMap(this);
-      RegisterTypeDiscoveryAction(typeof(IEntity), (t) => _clrTypeMap.GetStructuralType(t));
-      RegisterTypeDiscoveryAction(typeof(IComplexObject), (t) => _clrTypeMap.GetStructuralType(t));
-      RegisterTypeDiscoveryAction(typeof(Validator), (t) => RegisterValidator(t));
+      RegisterTypeDiscoveryActionCore(typeof(IEntity), (t) => _clrTypeMap.GetStructuralType(t), false);
+      RegisterTypeDiscoveryActionCore(typeof(IComplexObject), (t) => _clrTypeMap.GetStructuralType(t), false);
+      RegisterTypeDiscoveryActionCore(typeof(Validator), (t) => RegisterValidator(t), true);
+    }
+
+    private bool NotThisAssembly(Assembly assembly) {
+      return (assembly != this.GetType().GetTypeInfo().Assembly);
     }
 
      // Explicit static constructor to tell C# compiler
@@ -87,11 +91,14 @@ namespace Breeze.NetClient {
       lock (_structuralTypes) {
         var assemblies = assembliesToProbe.Except(_probedAssemblies).ToList();
         if (assemblies.Any()) {
-          assemblies.ForEach(a => _probedAssemblies.Add(a));
-          _typeDiscoveryActions.ForEach(tpl => {
-            var type = tpl.Item1;
-            var action = tpl.Item2;
-            TypeFns.GetTypesImplementing(type, assemblies).ForEach(t => action(t));
+          assemblies.ForEach(asm => {
+            _probedAssemblies.Add(asm);
+            _typeDiscoveryActions.Where(tpl => tpl.Item3 == null || tpl.Item3(asm))
+              .ForEach(tpl => {
+                var type = tpl.Item1;
+                var action = tpl.Item2;
+                TypeFns.GetTypesImplementing(type, asm).ForEach(t => action(t));
+              });
           });
           return true;
         } else {
@@ -101,7 +108,14 @@ namespace Breeze.NetClient {
     }
 
     public void RegisterTypeDiscoveryAction(Type type, Action<Type> action) {
-      _typeDiscoveryActions.Add(Tuple.Create(type, action));
+      RegisterTypeDiscoveryActionCore(type, action, false);
+    }
+
+    private void RegisterTypeDiscoveryActionCore(Type type, Action<Type> action, bool includeThisAssembly) {
+      Func<Assembly, bool> shouldProcessAssembly = (a) => {
+        return includeThisAssembly ? true : a != this.GetType().GetTypeInfo().Assembly;
+      };
+      _typeDiscoveryActions.Add(Tuple.Create(type, action, shouldProcessAssembly));
     }
 
     public void RegisterTypeInitializer(Type type, Action<Object> action) {
@@ -639,7 +653,7 @@ namespace Breeze.NetClient {
     // locked using _structuralTypes
     private ClrTypeMap _clrTypeMap;
     private HashSet<Assembly> _probedAssemblies = new HashSet<Assembly>();
-    private List<Tuple<Type, Action<Type>>> _typeDiscoveryActions = new List<Tuple<Type, Action<Type>>>();
+    private List<Tuple<Type, Action<Type>, Func<Assembly, bool>>> _typeDiscoveryActions = new List<Tuple<Type, Action<Type>, Func<Assembly, bool>>>();
     private Dictionary<Type, Action<Object>> _typeInitializerMap = new Dictionary<Type, Action<object>>();
     private StructuralTypeCollection _structuralTypes = new StructuralTypeCollection();
     private Dictionary<String, String> _shortNameMap = new Dictionary<string, string>();
