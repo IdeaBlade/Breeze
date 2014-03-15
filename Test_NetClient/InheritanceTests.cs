@@ -17,6 +17,7 @@ namespace Test_NetClient {
 
     [TestInitialize]
     public void TestInitializeMethod() {
+      MetadataStore.Instance.ProbeAssemblies(typeof(BillingDetailTPC).Assembly);
       _serviceName = "http://localhost:7150/breeze/Inheritance/";
     }
 
