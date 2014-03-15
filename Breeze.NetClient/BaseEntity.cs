@@ -14,8 +14,10 @@ namespace Breeze.NetClient {
     }
 
     public virtual void Initialize() {
-      // nnop;
+      // noop;
     }
+
+    
 
     #region syntactic sugar helper methods 
 

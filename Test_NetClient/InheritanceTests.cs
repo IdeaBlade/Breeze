@@ -13,28 +13,11 @@ namespace Test_NetClient {
   [TestClass]
   public class InheritanceTests {
 
-    private Task<EntityManager> _emTask = null;
-    private EntityManager _em1;
-    
+    private String _serviceName;
 
     [TestInitialize]
     public void TestInitializeMethod() {
-      _emTask = SetUpAsync();
-    }
-
-    public async Task<EntityManager> SetUpAsync() {
-      MetadataStore.Instance.ProbeAssemblies(typeof(CreditCardTPC).Assembly);
-
-      var serviceName = "http://localhost:7150/breeze/Inheritance/";
-      
-      if (MetadataStore.Instance.EntityTypes.Count == 0) {
-        _em1 = new EntityManager(serviceName);
-        await _em1.FetchMetadata();
-      } else {
-        _em1 = new EntityManager(serviceName);
-      }
-      return _em1;
-      
+      _serviceName = "http://localhost:7150/breeze/Inheritance/";
     }
 
     [TestCleanup]
@@ -44,25 +27,25 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SimpleTPH() {
-      await _emTask;
-      var r = await QueryBillingBase<BillingDetailTPH>("BillingDetailTPH");
+      var em1 = await TestFns.NewEm(_serviceName);
+      var r = await QueryBillingBase<BillingDetailTPH>(em1, "BillingDetailTPH");
     }
 
     [TestMethod]
     public async Task SimpleTPT() {
-      await _emTask;
-      var r = await QueryBillingBase<BillingDetailTPT>("BillingDetailTPT");
+      var em1 = await TestFns.NewEm(_serviceName);
+      var r = await QueryBillingBase<BillingDetailTPT>(em1, "BillingDetailTPT");
     }
 
     [TestMethod]
     public async Task SimpleTPC() {
-      await _emTask;
-      var r = await QueryBillingBase<BillingDetailTPC>("BillingDetailTPC");
+      var em1 = await TestFns.NewEm(_serviceName);
+      var r = await QueryBillingBase<BillingDetailTPC>(em1, "BillingDetailTPC");
     }
 
 
-    private async Task<IEnumerable<T>> QueryBillingBase<T>(String typeName) {
-      var q0 = new EntityQuery<T>(typeName + "s").With(_em1);
+    private async Task<IEnumerable<T>> QueryBillingBase<T>(EntityManager em, String typeName) {
+      var q0 = new EntityQuery<T>(typeName + "s").With(em);
       var r0 = await q0.Execute();
       Assert.IsTrue(r0.Count() > 0);
       Assert.IsTrue(r0.All(r => typeof(T).IsAssignableFrom(r.GetType())));

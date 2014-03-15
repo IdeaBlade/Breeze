@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Breeze.NetClient;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,6 +27,16 @@ namespace Test_NetClient {
         task.GetAwaiter().GetResult(); // rethrow exception when task has failed 
       } finally {
         SynchronizationContext.SetSynchronizationContext(prevCtx);
+      }
+    }
+
+    public static async Task<EntityManager> NewEm(string serviceName) {
+      if (MetadataStore.Instance.GetDataService(serviceName) == null) {
+        var em = new EntityManager(serviceName);
+        await em.FetchMetadata();
+        return em;
+      } else {
+        return new EntityManager(serviceName);
       }
     }
 

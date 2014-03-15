@@ -34,16 +34,16 @@ namespace Breeze.NetClient {
         // Load JObject from stream
         var jObject = JObject.Load(reader);
 
-        if (objectType == typeof(IEntity)) {
-          JToken typeNameToken;
-          if (jObject.TryGetValue("$type", out typeNameToken)) {
-            if (_normalizeTypeNameFn == null) {
-              throw new Exception("NormalizeTypeNameFn not defined");
-            }
-            var entityTypeName = _normalizeTypeNameFn(typeNameToken.Value<String>());
-            objectType = MetadataStore.Instance.GetEntityType(entityTypeName).ClrType;
-          }
-        }
+        //if (objectType == typeof(IEntity)) {
+        //  JToken typeNameToken;
+        //  if (jObject.TryGetValue("$type", out typeNameToken)) {
+        //    if (_normalizeTypeNameFn == null) {
+        //      throw new Exception("NormalizeTypeNameFn not defined");
+        //    }
+        //    var entityTypeName = _normalizeTypeNameFn(typeNameToken.Value<String>());
+        //    objectType = MetadataStore.Instance.GetEntityType(entityTypeName).ClrType;
+        //  }
+        //}
 
         var jsonContext = new JsonContext { JObject = jObject, ObjectType = objectType, Serializer = serializer };
         // Create target object based on JObject

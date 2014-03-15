@@ -16,26 +16,11 @@ namespace Test_NetClient {
   [TestClass]
   public class IEditableObjectTests {
 
-    private Task<EntityManager> _emTask = null;
-    private EntityManager _em1;
-    
+    private String _serviceName;
 
     [TestInitialize]
     public void TestInitializeMethod() {
-      _emTask = SetUpAsync();
-    }
-
-    public async Task<EntityManager> SetUpAsync() {
-      var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-      
-      if ( MetadataStore.Instance.EntityTypes.Count == 0) {
-        _em1 = new EntityManager(serviceName);
-        await _em1.FetchMetadata();
-      } else {
-        _em1 = new EntityManager(serviceName);
-      }
-      return _em1;
-      
+      _serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
     }
 
     [TestCleanup]
@@ -45,7 +30,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task IEditableObjectNeverAttached() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var customer = new Customer();
       
@@ -69,10 +54,10 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task IEditableObjectAttachedUnchanged() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var customer = new Customer();
-      _em1.AttachEntity(customer);
+      em1.AttachEntity(customer);
 
       Assert.IsTrue(customer.EntityAspect.EntityState.IsUnchanged());
       ((IEditableObject)customer).BeginEdit();
@@ -99,10 +84,10 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task IEditableObjectAttachedModified() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var customer = new Customer();
-      _em1.AttachEntity(customer);
+      em1.AttachEntity(customer);
 
       Assert.IsTrue(customer.EntityAspect.EntityState.IsUnchanged());
       ((IEditableObject)customer).BeginEdit();
@@ -125,9 +110,9 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task IEditableObjectOnDetached() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
-      var customer = _em1.CreateEntity<Customer>(EntityState.Unchanged);
+      var customer = em1.CreateEntity<Customer>(EntityState.Unchanged);
       customer.EntityAspect.Detach();
       Assert.IsTrue(customer.EntityAspect.EntityState.IsDetached());
       ((IEditableObject)customer).BeginEdit();
@@ -149,9 +134,9 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task IEditableObjectOnDeleted() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
-      var customer = _em1.CreateEntity<Customer>(EntityState.Unchanged);
+      var customer = em1.CreateEntity<Customer>(EntityState.Unchanged);
       // customer.EntityAspect.SetModified();  // otherwise delete will detach it.
       customer.EntityAspect.Delete();
       Assert.IsTrue(customer.EntityAspect.EntityState.IsDeleted());
