@@ -1,14 +1,11 @@
 ﻿/*
- * Breeze directives for validation
+ * Breeze Labs: Breeze Directives for Angular Apps
  *
- *  v.1.3.4
+ *  v.1.3.5
  *
  *  Usage:
  *     Make this module a dependency of your app module:
  *       var app = angular.module('app', ['breeze.directives']);
- *
- *     Include breeze.directives.css for default styling
- *       <link href="content/breeze.directives.css" rel="stylesheet" />
  *
  * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.
  * Licensed under the MIT License
@@ -19,12 +16,61 @@
 (function () {
     'use strict';
 
-    var module = angular.module('breeze.directives', []);
+    var module = angular.module('breeze.directives', [])
+        .directive('zFloat', [zFloat])
+        .directive('zValidate', ['zDirectivesConfig', 'zValidateInfo', zValidate])
+        .service('zValidateInfo', zValidateInfo)
+        .provider('zDirectivesConfig', zDirectivesConfig);
+
+    /*** IMPLEMENTATION ***/
+
+    /* Breeze Float Equivalence directive
+    *
+    *  Adds a formatter to the ngModel controller.
+    *  This formatter returns the view value rather than the model property value
+    *  if the two values are deemed equivalent.
+    *
+    *  For explanation and more info, see 
+    *  http://www.breezejs.com/breeze-labs/breezedirectivesfloat
+    *
+    *  Install
+    * --------------------------------------------------
+    *
+    *   Make this module a dependency of your app module:
+    *       var app = angular.module('app', ['breeze.directives']);
+    *
+    *   Add the directive to an input tag bound to a floating point property
+    *     <input data-ng-model='vm.product.unitPrice' data-z-float />
+    */
+    function zFloat() {
+        return {
+            restrict: 'A',
+            require: 'ngModel',
+
+            link: function(scope, elm, attr, ngModelCtrl) {
+                if (attr.type === 'radio' || attr.type === 'checkbox') return;
+                ngModelCtrl.$formatters.push(equivalenceFormatter);
+                
+                function equivalenceFormatter(value){
+                   var viewValue = ngModelCtrl.$viewValue // could have used 'elm.val()'
+                   return (value === +viewValue) ? viewValue : value;
+                }
+            }
+        };
+    }
 
     /* Breeze Validation directive
     *
     *  Displays the model validation errors for an entity property
     *  and adds required indicator if the bound property is required
+    *
+    *  Install
+    * --------------------------------------------------
+    *     Include breeze.directives.css for default styling
+    *       <link href="content/breeze.directives.css" rel="stylesheet" />
+    *
+    *     Make this module a dependency of your app module:
+    *       var app = angular.module('app', ['breeze.directives']);
     *
     *  Usage for input elements (input|select|textarea):
     *  ---------------------------------------------------
@@ -46,8 +92,6 @@
     *
     * Learn more at http://www.breezejs.com/breeze-labs/breezedirectivesvalidationjs
     */
-    module.directive('zValidate', ['zDirectivesConfig', 'zValidateInfo', zValidate]);
-
     function zValidate(config, validateInfo) {
         var directive = {
             link: link,
@@ -122,8 +166,6 @@
             }
         }
     }
-
-    module.service('zValidateInfo', zValidateInfo);
 
     // Service to extract validation information from a zValidate data binding
     // Although built for Angular, it is designed to be used 
@@ -335,9 +377,9 @@
         }
     }
 
-    /* Configure app to use zValidate
+    /* Configure app to use breeze.directives
     *
-    *  Configure breeze directive templates
+    *  Configure breeze directive templates for zValidate
     *
     *  zValidateTemplate: template for display of validation errors
     *  zRequiredTemplate: template for display of required property indicator
@@ -357,7 +399,7 @@
     *              'So sad!!! %error%</span>';
     *      }]);
     */
-    module.provider('zDirectivesConfig', function () {
+    function zDirectivesConfig() {
         // The default zValidate template for display of validation errors
         this.zValidateTemplate =
             '<span class="invalid">%error%</span>';
@@ -373,6 +415,6 @@
                 zRequiredTemplate: this.zRequiredTemplate
             };
         };
-    });
+    };
 
 })();

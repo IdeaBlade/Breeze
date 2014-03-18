@@ -14,35 +14,11 @@ namespace Test_NetClient {
   [TestClass]
   public class QueryTests {
 
-    private Task<EntityManager> _emTask = null;
-    private EntityManager _em1;
+    private String _serviceName;
 
     [TestInitialize]
     public void TestInitializeMethod() {
-      _emTask = SetUpAsync();
-
-    }
-
-    // [TestSetup]
-    public void Foo() {
-
-    }
-
-    public async Task<EntityManager> SetUpAsync() {
-
-      var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-      
-      if (MetadataStore.Instance.EntityTypes.Count == 0) {
-        _em1 = new EntityManager(serviceName);
-        var x = _em1.AuthorizedThreadId;
-        await _em1.FetchMetadata();
-        var y = _em1.AuthorizedThreadId;
-        var ok = x == y;
-      } else {
-        _em1 = new EntityManager(serviceName);
-      }
-      return _em1;
-      
+      _serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
     }
 
     [TestCleanup]
@@ -52,11 +28,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SimpleQuery() {
-      
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
+
       var q = new EntityQuery<Customer>();
 
-      var results = await _em1.ExecuteQuery(q);
+      var results = await em1.ExecuteQuery(q);
 
       Assert.IsTrue(results.Cast<Object>().Count() > 0);
       
@@ -65,10 +41,10 @@ namespace Test_NetClient {
     [TestMethod]
     public async Task SimpleEntitySelect() {
       Assert.Inconclusive("Known issue with OData - use an anon projection instead");
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       
       var q1 = new EntityQuery<Order>().Where(o => true).Select(o => o.Customer).Take(5);
-      var r1 = await q1.Execute(_em1);
+      var r1 = await q1.Execute(em1);
       Assert.IsTrue(r1.Count() == 5);
       var ok = r1.All(r => r.GetType() == typeof(Customer));
       Assert.IsTrue(ok);
@@ -78,10 +54,10 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SimpleAnonEntitySelect() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q1 = new EntityQuery<Order>().Select(o => new { o.Customer }).Take(5);
-      var r1 = await q1.Execute(_em1);
+      var r1 = await q1.Execute(em1);
       Assert.IsTrue(r1.Count() == 5);
       var ok = r1.All(r => r.Customer.GetType() == typeof(Customer));
       Assert.IsTrue(ok);
@@ -91,10 +67,10 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SimpleAnonEntityCollectionSelect() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q1 = new EntityQuery<Customer>().Where(c => c.CompanyName.StartsWith("C")).Select(c => new { c.Orders });
-      var r1 = await q1.Execute(_em1);
+      var r1 = await q1.Execute(em1);
       Assert.IsTrue(r1.Count() > 0);
       var ok = r1.All(r => r.Orders.Count() > 0);
       Assert.IsTrue(ok);
@@ -105,12 +81,12 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task NonGenericQuery() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")).Take(3);
       var q3 = (EntityQuery)q2;
 
-      var results = await _em1.ExecuteQuery(q3);
+      var results = await em1.ExecuteQuery(q3);
 
       Assert.IsTrue(results.Cast<Object>().Count() == 3);
       
@@ -118,12 +94,12 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task InlineCount() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")) ;
       var q3 = q2.InlineCount();
 
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       var count = ((IHasInlineCount) results).InlineCount;
       
@@ -134,12 +110,12 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task InlineCount2() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")).Take(2);
       var q3 = q2.InlineCount();
 
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       var count = ((IHasInlineCount)results).InlineCount;
 
@@ -150,12 +126,12 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task WhereAnyOrderBy() {
-      await _emTask;
-      var q = new EntityQuery<Foo.Customer>("Customers");
+      var em1 = await TestFns.NewEm(_serviceName);
+      var q = new EntityQuery<Foo.Customer>();
       var q2 = q.Where(c => c.CompanyName.StartsWith("C") && c.Orders.Any(o => o.Freight > 10));
       var q3 = q2.OrderBy(c => c.CompanyName).Skip(2);
 
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       Assert.IsTrue(results.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
@@ -167,18 +143,18 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task WithOverwriteChanges() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C")) ;
       var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       Assert.IsTrue(results.Count() == 2);
       results.ForEach(r => {
         r.City = "xxx";
         r.CompanyName = "xxx";
       });
-      var results2 = await q3.With(MergeStrategy.OverwriteChanges).Execute(_em1);
+      var results2 = await q3.With(MergeStrategy.OverwriteChanges).Execute(em1);
       // contents of results2 should be exactly the same as results
       Assert.IsTrue(results.Count() == 2);
 
@@ -186,11 +162,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task WithEntityManager() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
-      var results = await q3.With(_em1).Execute();
+      var results = await q3.With(em1).Execute();
 
       Assert.IsTrue(results.Count() == 2);
       
@@ -198,11 +174,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task WhereOrderByTake() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.OrderBy(c => c.CompanyName).Take(2);
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       Assert.IsTrue(results.Count() == 2);
       Assert.IsTrue(results.All(r1 => r1.GetType() == typeof(Foo.Customer)), "should all get customers");
@@ -210,11 +186,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SelectAnonWithEntityCollection() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Select(c => new { Orders = c.Orders });
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var ok = results.All(r1 => ( r1.Orders.Count() > 0 ) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
@@ -223,11 +199,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SelectAnonWithScalarAndEntityCollection() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Select(c => new { c.CompanyName, c.Orders});
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var ok = results.All(r1 => (r1.Orders.Count() > 0) && r1.Orders.All(o => o.GetType() == typeof(Foo.Order)));
@@ -239,11 +215,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SelectAnonWithScalarEntity() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Order>("Orders");
       var q2 = q.Where(c => c.Freight > 500);
       var q3 = q2.Select(c => new { c.Customer, c.Freight });
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var ok = results.All(r1 => r1.Freight > 500);
@@ -258,11 +234,11 @@ namespace Test_NetClient {
       return;
 
       // Pretty sure this is an issue with OData not supporting this syntax.
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Select(c => new { c.CompanyName, c });
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var ok = results.All(r1 => r1.CompanyName.Length > 0);
@@ -273,11 +249,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpandNonScalar() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Expand(c => c.Orders);
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var ok = results.All(r1 => 
@@ -292,11 +268,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpandScalar() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Order>("Orders");
       var q2 = q.Where(o => o.Freight > 500);
       var q3 = q2.Expand(o => o.Customer);
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var ok = results.All(r1 =>
@@ -309,11 +285,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task SelectIntoCustom() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Foo.Customer>("Customers");
       var q2 = q.Where(c => c.CompanyName.StartsWith("C"));
       var q3 = q2.Select(c => new Dummy() { CompanyName = c.CompanyName, Orders = c.Orders}  );
-      var results = await q3.Execute(_em1);
+      var results = await q3.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var ok = results.All(r1 =>
@@ -332,56 +308,56 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task GuidQuery() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Customer>().Where(c => c.CustomerID.Equals(Guid.NewGuid())); // && true);
       var rp = q.GetResourcePath();
-      var r = await _em1.ExecuteQuery(q);
+      var r = await em1.ExecuteQuery(q);
       Assert.IsTrue(r.Count() == 0, "should be no results");
 
     }
     
     [TestMethod]
     public async Task GuidQuery2() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Order>().Where(o => o.CustomerID == Guid.NewGuid()); // && true);
       var rp = q.GetResourcePath();
-      var r = await _em1.ExecuteQuery(q);
+      var r = await em1.ExecuteQuery(q);
       Assert.IsTrue(r.Count() == 0, "should be no results");
 
     }
 
     [TestMethod]
     public async Task EntityKeyQuery() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       var q = new EntityQuery<Customer>().Take(1);
 
-      var r = await _em1.ExecuteQuery(q);
+      var r = await em1.ExecuteQuery(q);
       var customer = r.First();
       var q1 = new EntityQuery<Customer>().Where(c => c.CustomerID == customer.CustomerID);
-      var r1 = await _em1.ExecuteQuery(q1);
+      var r1 = await em1.ExecuteQuery(q1);
       Assert.IsTrue(r1.First() == customer);
       var ek = customer.EntityAspect.EntityKey;
       var q2 = ek.ToQuery();
-      var r2 = await _em1.ExecuteQuery(q2);
+      var r2 = await em1.ExecuteQuery(q2);
       Assert.IsTrue(r2.Cast<Customer>().First() == customer);
     }
 
     [TestMethod]
     public async Task QuerySameFieldTwice() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q0 = EntityQuery.From<Order>().Where(o => o.Freight > 100 && o.Freight < 200);
-      var r0 = await q0.Execute(_em1);
+      var r0 = await q0.Execute(em1);
       Assert.IsTrue(r0.Count() > 0);
       Assert.IsTrue(r0.All(r => r.Freight > 100 && r.Freight < 200), "should match query criteria");
     }
 
     [TestMethod]
     public async Task OneToOne() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q0 = new EntityQuery<Order>().Where(o => o.InternationalOrder != null).Take(3).Expand("InternationalOrder");
-      var r0 = await q0.Execute(_em1);
+      var r0 = await q0.Execute(em1);
       Assert.IsTrue(r0.Count() == 3);
       Assert.IsTrue(r0.All(r => r.InternationalOrder != null));
       
@@ -389,47 +365,47 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task QueryWithYearFn() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q0 = new EntityQuery<Employee>().Where(e => e.HireDate.Value.Year > 1993);
-      var r0 = await q0.Execute(_em1);
+      var r0 = await q0.Execute(em1);
       Assert.IsTrue(r0.Count() > 0);
       Assert.IsTrue(r0.All(r => r.HireDate.Value.Year > 1993));
-      var r1 = q0.ExecuteLocally(_em1);
+      var r1 = q0.ExecuteLocally(em1);
       Assert.IsTrue(r1.Count() == r0.Count());
     }
 
     [TestMethod]
     public async Task QueryWithMonthFn() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q0 = new EntityQuery<Employee>().Where(e => e.HireDate.Value.Month > 6 && e.HireDate.Value.Month < 11);
-      var r0 = await q0.Execute(_em1);
+      var r0 = await q0.Execute(em1);
       Assert.IsTrue(r0.Count() > 0);
       Assert.IsTrue(r0.All(e => e.HireDate.Value.Month > 6 && e.HireDate.Value.Month < 11));
-      var r1 = q0.ExecuteLocally(_em1);
+      var r1 = q0.ExecuteLocally(em1);
       Assert.IsTrue(r1.Count() == r0.Count());
     }
 
     [TestMethod]
     public async Task QueryWithAddFn() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q0 = new EntityQuery<Employee>().Where(e => e.EmployeeID + e.ReportsToEmployeeID.Value > 3);
-      var r0 = await q0.Execute(_em1);
+      var r0 = await q0.Execute(em1);
       Assert.IsTrue(r0.Count() > 0);
       Assert.IsTrue(r0.All(e => e.EmployeeID + e.ReportsToEmployeeID > 3));
-      var r1 = q0.ExecuteLocally(_em1);
+      var r1 = q0.ExecuteLocally(em1);
       Assert.IsTrue(r1.Count() == r0.Count());
     }
 
     [TestMethod]
     public async Task QueryWithBadResourceName() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q0 = new EntityQuery<Customer>("Error").Where(c => c.CompanyName.StartsWith("P"));
       try {
-        var r0 = await q0.Execute(_em1);
+        var r0 = await q0.Execute(em1);
         Assert.Fail("shouldn't get here");
       } catch (Exception e) {
         Assert.IsTrue(e.Message.Contains("found"), "should be the right message");
@@ -439,22 +415,22 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task Take0() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q0 = new EntityQuery<Customer>().Take(0);
       
-      var r0 = await q0.Execute(_em1);
+      var r0 = await q0.Execute(em1);
       Assert.IsTrue(r0.Count() == 0);
 
     }
 
     [TestMethod]
     public async Task Take0WithInlineCount() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q0 = new EntityQuery<Customer>().Take(0).InlineCount();
 
-      var r0 = await q0.Execute(_em1);
+      var r0 = await q0.Execute(em1);
       Assert.IsTrue(r0.Count() == 0);
       var count = ((IHasInlineCount) r0).InlineCount;
       Assert.IsTrue(count > 0);
@@ -462,11 +438,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task NestedExpand() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q0 = new EntityQuery<OrderDetail>().Take(5).Expand(od => od.Order.Customer);
 
-      var r0 = await q0.Execute(_em1);
+      var r0 = await q0.Execute(em1);
       Assert.IsTrue(r0.Count() > 0, "should have returned some orderDetails");
       Assert.IsTrue(r0.All(od => od.Order != null && od.Order.Customer != null));
       
@@ -474,11 +450,11 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task NestedExpand3Levels() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q0 = new EntityQuery<Order>().Take(5).Expand("OrderDetails.Product.Category");
 
-      var r0 = await q0.Execute(_em1);
+      var r0 = await q0.Execute(em1);
       Assert.IsTrue(r0.Count() > 0, "should have returned some orders");
       Assert.IsTrue(r0.All(o => o.OrderDetails.Any(od => od.Product.Category != null)));
 

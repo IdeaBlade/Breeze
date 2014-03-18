@@ -1,10 +1,12 @@
 ﻿using Breeze.Core;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Breeze.NetClient {
 
+  [DebuggerDisplay("{Name}")]
   public class ComplexType: StructuralType, IJsonSerializable {
 
     public ComplexType() :base() {

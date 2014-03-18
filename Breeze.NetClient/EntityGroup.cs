@@ -40,17 +40,6 @@ namespace Breeze.NetClient {
       ClrType = clrEntityType;
     }
 
-    ///// <summary>
-    ///// For internal use only.
-    ///// </summary>
-    ///// <param name="clrEntityType"></param>
-    //protected EntityGroup(Type clrEntityType, EntityType entityType) {
-    //  ClrType = clrEntityType;
-    //  EntityType = entityType;
-    //  Initialize();
-    //}
-
-
     /// <summary>
     /// Creates an instance of an EntityGroup for a specific entity type.
     /// </summary>
@@ -67,12 +56,10 @@ namespace Breeze.NetClient {
     private void Initialize(EntityManager em) {
       _entityAspects = new EntityCollection();
       _entityKeyMap = new Dictionary<EntityKey, EntityAspect>();
-      // _pendingEvents = new List<Action>();
       EntityManager = em;
       EntityType = em.MetadataStore.GetEntityType(ClrType);
       // insure that any added table can watch for change events
       ChangeNotificationEnabled = em.ChangeNotificationEnabled;      
-      
     }
 
 
@@ -303,7 +290,6 @@ namespace Breeze.NetClient {
     private EntityCollection _entityAspects;
     private Dictionary<EntityKey, EntityAspect> _entityKeyMap;
     private SafeList<EntityGroup> _selfAndSubtypeGroups;
-    // private List<Action> _pendingEvents;
 
 
     #endregion

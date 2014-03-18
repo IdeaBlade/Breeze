@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Breeze.NetClient {
 
+  [DebuggerDisplay("{Name}")]
   public class EntityType : StructuralType, IJsonSerializable {
 
     public EntityType() {

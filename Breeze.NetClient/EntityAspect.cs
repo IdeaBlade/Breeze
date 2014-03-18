@@ -1114,12 +1114,12 @@ namespace Breeze.NetClient {
       }
     }
 
-    // TODO: check if ever used
-    internal bool IsCurrent(EntityAspect targetAspect, EntityAspect sourceAspect) {
-      var targetVersion = (targetAspect.EntityState == EntityState.Deleted) ? EntityVersion.Original : EntityVersion.Current;
-      bool isCurrent = EntityType.ConcurrencyProperties.All(c => (Object.Equals(targetAspect.GetValue(c, targetVersion), sourceAspect.GetValue(c, EntityVersion.Current))));
-      return isCurrent;
-    }
+    //// TODO: check if ever used
+    //internal bool IsCurrent(EntityAspect targetAspect, EntityAspect sourceAspect) {
+    //  var targetVersion = (targetAspect.EntityState == EntityState.Deleted) ? EntityVersion.Original : EntityVersion.Current;
+    //  bool isCurrent = EntityType.ConcurrencyProperties.All(c => (Object.Equals(targetAspect.GetValue(c, targetVersion), sourceAspect.GetValue(c, EntityVersion.Current))));
+    //  return isCurrent;
+    //}
 
     internal EntityKey GetParentKey(NavigationProperty np) {
       // returns null for np's that do not have a parentKey
