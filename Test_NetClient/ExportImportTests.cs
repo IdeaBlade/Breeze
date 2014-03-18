@@ -20,25 +20,11 @@ namespace Test_NetClient {
 
     // TODO: need Exp/Imp tests with Complex type changes.
 
-    private Task<EntityManager> _emTask = null;
-    private EntityManager _em1;
+    private String _serviceName;
 
     [TestInitialize]
     public void TestInitializeMethod() {
-      _emTask = SetUpAsync();
-    }
-
-    public async Task<EntityManager> SetUpAsync() {
-      var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-      MetadataStore.Instance.ProbeAssemblies(new Assembly[] { typeof(Order).Assembly });
-      if (MetadataStore.Instance.EntityTypes.Count == 0) {
-        _em1 = new EntityManager(serviceName);
-        await _em1.FetchMetadata();
-      } else {
-        _em1 = new EntityManager(serviceName);
-      }
-      return _em1;
-
+      _serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
     }
 
     [TestCleanup]
@@ -49,7 +35,7 @@ namespace Test_NetClient {
     // create entity with complexType property
     [TestMethod]
     public async Task ExpMetadata() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var metadata = MetadataStore.Instance.ExportMetadata();
       File.WriteAllText("c:/temp/metadata.txt", metadata);
@@ -68,14 +54,14 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpEntities() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
 
-      var results = await q.Execute(_em1);
+      var results = await q.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
-      var exportedEntities = _em1.ExportEntities();
+      var exportedEntities = em1.ExportEntities();
 
       File.WriteAllText("c:/temp/emExport.txt", exportedEntities);
 
@@ -83,18 +69,18 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpEntitiesWithChanges() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
 
-      var results = await q.Execute(_em1);
+      var results = await q.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var custs = results.Take(2);
       custs.ForEach(c => c.City = "Paris");
-      var emp1 = _em1.CreateEntity<Employee>();
+      var emp1 = em1.CreateEntity<Employee>();
 
-      var exportedEntities = _em1.ExportEntities();
+      var exportedEntities = em1.ExportEntities();
 
       File.WriteAllText("c:/temp/emExportWithChanges.txt", exportedEntities);
 
@@ -102,18 +88,18 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpSelectedEntitiesWithChanges() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
 
-      var results = await q.Execute(_em1);
+      var results = await q.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var custs = results.Take(2).ToList();
       custs.ForEach(c => c.City = "Paris");
-      var emp1 = _em1.CreateEntity<Employee>();
+      var emp1 = em1.CreateEntity<Employee>();
 
-      var exportedEntities = _em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1 }, false);
+      var exportedEntities = em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1 }, false);
 
       File.WriteAllText("c:/temp/emExportWithChanges.txt", exportedEntities);
 
@@ -121,21 +107,21 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpImpSelectedEntitiesWithChanges() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
 
-      var results = await q.Execute(_em1);
+      var results = await q.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var custs = results.Take(2).ToList();
       custs.ForEach(c => c.City = "Paris");
-      var emp1 = _em1.CreateEntity<Employee>();
-      var emp2 = _em1.CreateEntity<Employee>();
+      var emp1 = em1.CreateEntity<Employee>();
+      var emp2 = em1.CreateEntity<Employee>();
 
-      var exportedEntities = _em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1, emp2 }, false);
+      var exportedEntities = em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1, emp2 }, false);
 
-      var em2 = new EntityManager(_em1);
+      var em2 = new EntityManager(em1);
       var impResult = em2.ImportEntities(exportedEntities);
       var allEntities = em2.GetEntities();
 
@@ -150,26 +136,26 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpImpTempKeyCollision() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
 
-      var results = await q.Execute(_em1);
+      var results = await q.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var custs = results.Take(2).ToList();
       custs.ForEach(c => c.City = "Paris");
-      var emp1 = _em1.CreateEntity<Employee>();
-      var emp2 = _em1.CreateEntity<Employee>();
+      var emp1 = em1.CreateEntity<Employee>();
+      var emp2 = em1.CreateEntity<Employee>();
 
-      var exportedEntities = _em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1, emp2 }, false);
+      var exportedEntities = em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1, emp2 }, false);
 
       custs.ForEach(c => c.City = "London");
       // custs1 and 2 shouldn't be imported because of default preserveChanges
       // emps1 and 2 should cause the creation of NEW emps with new temp ids;
       // tempKeys should cause creation of new entities;
-      var impResult = _em1.ImportEntities(exportedEntities);
-      var allEntities = _em1.GetEntities();
+      var impResult = em1.ImportEntities(exportedEntities);
+      var allEntities = em1.GetEntities();
 
       Assert.IsTrue(allEntities.Count() == 9, "should have 9 entities in the cache");
       Assert.IsTrue(allEntities.OfType<Customer>().Count() == 5, "should only be the original 5 custs");
@@ -185,27 +171,27 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpImpTempKeyCollisionOverwrite() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q = new EntityQuery<Foo.Customer>("Customers").Take(5);
 
-      var results = await q.Execute(_em1);
+      var results = await q.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var custs = results.Take(2).ToList();
       custs.ForEach(c => c.City = "Paris");
-      var emp1 = _em1.CreateEntity<Employee>();
-      var emp2 = _em1.CreateEntity<Employee>();
+      var emp1 = em1.CreateEntity<Employee>();
+      var emp2 = em1.CreateEntity<Employee>();
 
-      var exportedEntities = _em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1, emp2 }, false);
+      var exportedEntities = em1.ExportEntities(new IEntity[] { custs[0], custs[1], emp1, emp2 }, false);
 
       custs.ForEach(c => c.City = "London");
 
       // custs1 and 2 shouldn't be imported because of default preserveChanges
       // emps1 and 2 should cause the creation of NEW emps with new temp ids;
       // tempKeys should cause creation of new entities;
-      var impResult = _em1.ImportEntities(exportedEntities, new ImportOptions(MergeStrategy.OverwriteChanges));
-      var allEntities = _em1.GetEntities();
+      var impResult = em1.ImportEntities(exportedEntities, new ImportOptions(MergeStrategy.OverwriteChanges));
+      var allEntities = em1.GetEntities();
 
       Assert.IsTrue(allEntities.Count() == 9, "should have 9 entities in the cache");
 
@@ -221,27 +207,27 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpImpTempKeyFixup1() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q = new EntityQuery<Foo.Employee>("Employees").Take(3);
 
-      var results = await q.Execute(_em1);
+      var results = await q.Execute(em1);
 
       Assert.IsTrue(results.Count() > 0);
       var emp1 = new Employee();
       var order1 = new Order();
       var order2 = new Order();
-      _em1.AddEntity(emp1);
+      em1.AddEntity(emp1);
       emp1.Orders.Add(order1);
       emp1.Orders.Add(order2);
 
-      var exportedEntities = _em1.ExportEntities(null, false);
+      var exportedEntities = em1.ExportEntities(null, false);
 
       // custs1 and 2 shouldn't be imported because of default preserveChanges
       // emps1 and 2 should cause the creation of NEW emps with new temp ids;
       // tempKeys should cause creation of new entities;
-      var impResult = _em1.ImportEntities(exportedEntities);
-      var allEntities = _em1.GetEntities();
+      var impResult = em1.ImportEntities(exportedEntities);
+      var allEntities = em1.GetEntities();
 
       Assert.IsTrue(allEntities.Count() == 9, "should have 9 (3 orig, 3 added, 3 imported (new) entities in the cache");
 
@@ -263,26 +249,26 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpImpTempKeyFixup2() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q = new EntityQuery<Foo.Supplier>("Suppliers").Where(s => s.CompanyName.StartsWith("P"));
 
-      var suppliers = await q.Execute(_em1);
+      var suppliers = await q.Execute(em1);
 
       Assert.IsTrue(suppliers.Count() > 0, "should be some suppliers");
       var orderIdProp = MetadataStore.Instance.GetEntityType("Order").KeyProperties[0];
-      _em1.KeyGenerator.GetNextTempId(orderIdProp);
+      em1.KeyGenerator.GetNextTempId(orderIdProp);
 
       var order1 = new Order();
       var emp1 = new Employee();
-      _em1.AddEntity(order1); _em1.AddEntity(emp1);
+      em1.AddEntity(order1); em1.AddEntity(emp1);
       emp1.LastName = "bar";
       var cust1 = new Customer() { CompanyName = "Foo" };
       order1.Employee = emp1;
       order1.Customer = cust1;
-      var exportedEm = _em1.ExportEntities(null, false);
+      var exportedEm = em1.ExportEntities(null, false);
 
-      var em2 = new EntityManager(_em1);
+      var em2 = new EntityManager(em1);
       em2.ImportEntities(exportedEm);
 
       var suppliers2 = em2.GetEntities<Supplier>().ToList();
@@ -299,15 +285,15 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpImpComplexType() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var q = new EntityQuery<Foo.Supplier>("Suppliers").Where(s => s.CompanyName.StartsWith("P"));
 
-      var suppliers = await q.Execute(_em1);
+      var suppliers = await q.Execute(em1);
       suppliers.ForEach((s, i) => s.Location.Address = "Foo:" + i.ToString());
       Assert.IsTrue(suppliers.All(s => s.EntityAspect.EntityState.IsModified()));
-      var exportedEm = _em1.ExportEntities();
-      var em2 = new EntityManager(_em1);
+      var exportedEm = em1.ExportEntities();
+      var em2 = new EntityManager(em1);
       var impResult = em2.ImportEntities(exportedEm);
       Assert.IsTrue(impResult.ImportedEntities.Count == suppliers.Count());
       impResult.ImportedEntities.Cast<Supplier>().ForEach(s => {
@@ -322,17 +308,17 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ExpImpWithNulls() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var queryOptions = new QueryOptions(FetchStrategy.FromServer, MergeStrategy.OverwriteChanges);
       var q0 = new EntityQuery<Customer>().Where(c => c.CompanyName != null && c.City != null)
          .With(MergeStrategy.OverwriteChanges);
-      var r0 = (await _em1.ExecuteQuery(q0)).ToList();
+      var r0 = (await em1.ExecuteQuery(q0)).ToList();
       Assert.IsTrue(r0.Count > 2);
       r0[0].CompanyName = null;
       r0[1].City = null;
-      var exportedEntities = _em1.ExportEntities(null, false);
-      var em2 = new EntityManager(_em1);
+      var exportedEntities = em1.ExportEntities(null, false);
+      var em2 = new EntityManager(em1);
       em2.ImportEntities(exportedEntities);
       var ek0 = r0[0].EntityAspect.EntityKey;
       var ek1 = r0[1].EntityAspect.EntityKey;
@@ -344,25 +330,25 @@ namespace Test_NetClient {
       Assert.IsTrue(e1.EntityAspect.EntityState.IsModified());
       em2.AcceptChanges();
       var exportedEntities2 = em2.ExportEntities(null, false);
-      _em1.ImportEntities(exportedEntities2, new ImportOptions(MergeStrategy.OverwriteChanges));
-      Assert.IsTrue(_em1.GetChanges().Count() == 0);
+      em1.ImportEntities(exportedEntities2, new ImportOptions(MergeStrategy.OverwriteChanges));
+      Assert.IsTrue(em1.GetChanges().Count() == 0);
 
     }
 
     [TestMethod]
     public async Task ExpImpDeleted() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var c1 = new Customer() { CompanyName = "Test_1", City = "Oakland", RowVersion = 13, Fax = "510 999-9999" };
       var c2 = new Customer() { CompanyName = "Test_2", City = "Oakland", RowVersion = 13, Fax = "510 999-9999" };
-      _em1.AddEntity(c1);
-      _em1.AddEntity(c2);
-      var sr = await _em1.SaveChanges();
+      em1.AddEntity(c1);
+      em1.AddEntity(c2);
+      var sr = await em1.SaveChanges();
       Assert.IsTrue(sr.Entities.Count == 2);
       c1.EntityAspect.Delete();
       c2.CompanyName = TestFns.MorphString(c2.CompanyName);
-      var exportedEntities = _em1.ExportEntities(null, false);
-      var em2 = new EntityManager(_em1);
+      var exportedEntities = em1.ExportEntities(null, false);
+      var em2 = new EntityManager(em1);
       em2.ImportEntities(exportedEntities);
       var c1x = em2.FindEntityByKey<Customer>(c1.EntityAspect.EntityKey);
       Assert.IsTrue(c1x.EntityAspect.EntityState.IsDeleted(), "should be deleted");

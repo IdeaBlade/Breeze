@@ -1,6 +1,8 @@
 package com.breezejs.hib;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,6 +24,9 @@ import org.hibernate.persister.collection.AbstractCollectionPersister;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
+import org.hibernate.service.internal.SessionFactoryServiceRegistryImpl;
+import org.hibernate.service.spi.ServiceRegistryImplementor;
+import org.hibernate.tuple.entity.EntityMetamodel;
 import org.hibernate.type.*;
 
 /**
@@ -44,6 +49,43 @@ public class MetadataBuilder {
     {
         _sessionFactory = sessionFactory;
         _configuration = configuration;
+    }
+
+    public MetadataBuilder(SessionFactory sessionFactory)
+    {
+        _sessionFactory = sessionFactory;
+        _configuration = getConfigurationFromRegistry(sessionFactory);
+    }
+    
+    /**
+     * Extract the Configuration from the ServiceRegistry exposed by SessionFactoryImpl.
+     * Works in Hibernate 4.3, but will probably break in a future version as they keep
+     * trying to make the configuration harder to access (for some reason).  Hopefully
+     * they will provide a interface to get the full mapping data again.
+     * @param sessionFactory
+     */
+    Configuration getConfigurationFromRegistry(SessionFactory sessionFactory)
+    {
+        ServiceRegistryImplementor serviceRegistry = ((SessionFactoryImplementor) _sessionFactory).getServiceRegistry();
+        
+        SessionFactoryServiceRegistryImpl impl = (SessionFactoryServiceRegistryImpl) serviceRegistry;
+        Configuration cfg = null;
+        
+        try {
+        	Field configurationField = SessionFactoryServiceRegistryImpl.class.getDeclaredField("configuration");
+			configurationField.setAccessible(true);
+			Object configurationObject = configurationField.get(impl);
+			cfg = (Configuration) configurationObject;
+			
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+        if (cfg == null)
+        {
+    		throw new RuntimeException("Unable to get the Configuration from the service registry.  Please the Configuration in the constructor.");
+        }
+        
+        return cfg;
     }
     
     /**
@@ -97,15 +139,17 @@ public class MetadataBuilder {
         cmap.put("shortName", type.getSimpleName());
         cmap.put("namespace", type.getPackage().getName());
 
-        PersistentClass persistentClass = _configuration.getClassMapping(type.getName());
-        PersistentClass superClass = persistentClass.getSuperclass();
-        if (superClass != null) 
+        EntityMetamodel metaModel = ((EntityPersister) meta).getEntityMetamodel();
+        String superTypeName = metaModel.getSuperclass();
+        if (superTypeName != null)
         {
-            Class superType = superClass.getMappedClass();
-            String baseTypeName = getEntityTypeName(superType); 
-            cmap.put("baseTypeName", baseTypeName);
+        	ClassMetadata superMeta = _sessionFactory.getClassMetadata(superTypeName);
+        	if (superMeta != null) {
+        		Class superClass = superMeta.getMappedClass();
+                cmap.put("baseTypeName", getEntityTypeName(superClass));
+        	}
         }
-
+        
         if (meta instanceof EntityPersister) {
             EntityPersister entityPersister = (EntityPersister) meta;
             IdentifierGenerator generator = entityPersister != null ? entityPersister.getIdentifierGenerator() : null;
@@ -129,7 +173,7 @@ public class MetadataBuilder {
         ArrayList<HashMap<String, Object>> navArrayList = new ArrayList<HashMap<String, Object>>();
         cmap.put("navigationProperties", navArrayList);
 
-        addClassProperties(meta, persistentClass, dataArrayList, navArrayList);
+        addClassProperties(meta, dataArrayList, navArrayList);
     }
 
     /**
@@ -139,27 +183,30 @@ public class MetadataBuilder {
      * @param dataArrayList - will be populated with the data properties of the entity
      * @param navArrayList - will be populated with the navigation properties of the entity
      */
-    void addClassProperties(ClassMetadata meta, PersistentClass pClass, ArrayList<HashMap<String, Object>> dataArrayList, ArrayList<HashMap<String, Object>> navArrayList)
+    void addClassProperties(ClassMetadata meta, ArrayList<HashMap<String, Object>> dataArrayList, ArrayList<HashMap<String, Object>> navArrayList)
     {
         // maps column names to their related data properties.  Used in MakeAssociationProperty to convert FK column names to entity property names.
         HashMap<String, HashMap<String, Object>> relatedDataPropertyMap = new HashMap<String, HashMap<String, Object>>();
 
         AbstractEntityPersister persister = (AbstractEntityPersister) meta;
-        Class type = pClass.getMappedClass();
+        Class type = meta.getMappedClass();
+        HashSet<String> inheritedProperties = getSuperProperties(persister);
 
         String[] propNames = meta.getPropertyNames();
         Type[] propTypes = meta.getPropertyTypes();
+        
+        PersistentClass persistentClass = _configuration.getClassMapping(type.getName());
+        
         boolean[] propNull = meta.getPropertyNullability();
         for (int i = 0; i < propNames.length; i++)
         {
             String propName = propNames[i];
-            Property pClassProp = pClass.getProperty(propName);
-            if (!hasOwnProperty(pClass, pClassProp)) continue;  // skip property defined on superclass
+            if (inheritedProperties.contains(propName)) continue;   // skip property defined on superclass
 
             Type propType = propTypes[i];
             if (!propType.isAssociationType())    // skip association types until we handle all the data types, so the relatedDataPropertyMap will be populated.
             {
-                ArrayList<Selectable> propColumns = getColumns(pClassProp);
+            	ArrayList<Selectable> propColumns = getColumns(persistentClass.getProperty(propName));
                 if (propType.isComponentType())
                 {
                     // complex type
@@ -174,11 +221,11 @@ public class MetadataBuilder {
                 else
                 {
                     // data property
-                    Column col = propColumns.size() == 1 ? (Column) propColumns.get(0) : null;
                     boolean isKey = meta.hasNaturalIdentifier() && contains(meta.getNaturalIdentifierProperties(), i);
                     boolean isVersion = meta.isVersioned() && i == meta.getVersionProperty();
 
-                    HashMap<String, Object> dmap = makeDataProperty(propName, propType.getName(), propNull[i], col, isKey, isVersion);
+                    Column col = (Column) propColumns.get(0);
+                    HashMap<String, Object> dmap = makeDataProperty(propName, propType, col, propNull[i], isKey, isVersion);
                     dataArrayList.add(dmap);
 
                     String columnNameString = getPropertyColumnNames(persister, propName); 
@@ -189,37 +236,48 @@ public class MetadataBuilder {
 
 
         // Hibernate identifiers are excluded from the list of data properties, so we have to add them separately
-        if (meta.hasIdentifierProperty() && hasOwnProperty(pClass, meta.getIdentifierPropertyName()))
+        if (meta.hasIdentifierProperty() && !inheritedProperties.contains(meta.getIdentifierPropertyName()))
         {
-            HashMap<String, Object> dmap = makeDataProperty(meta.getIdentifierPropertyName(), meta.getIdentifierType().getName(), false, null, true, false);
+            Property property = persistentClass.getProperty(meta.getIdentifierPropertyName());
+            ArrayList<Selectable> propColumns = getColumns(property);
+            Column col = (Column) propColumns.get(0);
+            
+            HashMap<String, Object> dmap = makeDataProperty(meta.getIdentifierPropertyName(), meta.getIdentifierType(), col, false, true, false);
             dataArrayList.add(0, dmap);
 
             String columnNameString = getPropertyColumnNames(persister, meta.getIdentifierPropertyName());
             relatedDataPropertyMap.put(columnNameString, dmap);
         }
-        else if (meta.getIdentifierType() != null && meta.getIdentifierType().isComponentType() 
-            && pClass.getIdentifier() instanceof Component && ((Component)pClass.getIdentifier()).getOwner() == pClass)
+        else if (meta.getIdentifierType() != null && meta.getIdentifierType().isComponentType())
         {
             // composite key is a ComponentType
             ComponentType compType = (ComponentType)meta.getIdentifierType();
-            String[] compNames = compType.getPropertyNames();
-            for (int i = 0; i < compNames.length; i++)
+
+            // check that the component belongs to this class, not a superclass
+            if (compType.getReturnedClass() == type || meta.getIdentifierPropertyName() == null || !inheritedProperties.contains(meta.getIdentifierPropertyName()))
             {
-                String compName = compNames[i];
-
-                Type propType = compType.getSubtypes()[i];
-                if (!propType.isAssociationType())
-                {
-                    HashMap<String, Object> dmap = makeDataProperty(compName, propType.getName(), compType.getPropertyNullability()[i], null, true, false);
-                    dataArrayList.add(0, dmap);
-                }
-                else
-                {
-                    String propColumnNames = getPropertyColumnNames(persister, compName);
-
-                    HashMap<String, Object> assProp = makeAssociationProperty(type, (AssociationType)propType, compName, propColumnNames, pClass, relatedDataPropertyMap, true);
-                    navArrayList.add(assProp);
-                }
+	            String[] compNames = compType.getPropertyNames();
+	            for (int i = 0; i < compNames.length; i++)
+	            {
+	                String compName = compNames[i];
+	
+	                Type propType = compType.getSubtypes()[i];
+	                if (!propType.isAssociationType())
+	                {
+	                    Property property = persistentClass.getProperty(compName);
+	                    ArrayList<Selectable> propColumns = getColumns(property);
+	                    Column col = (Column) propColumns.get(0);
+	                    HashMap<String, Object> dmap = makeDataProperty(compName, propType, col, compType.getPropertyNullability()[i], true, false);
+	                    dataArrayList.add(0, dmap);
+	                }
+	                else
+	                {
+	                    String propColumnNames = getPropertyColumnNames(persister, compName);
+	
+	                    HashMap<String, Object> assProp = makeAssociationProperty(type, (AssociationType)propType, compName, propColumnNames, relatedDataPropertyMap, true);
+	                    navArrayList.add(assProp);
+	                }
+	            }
             }
         }
 
@@ -227,28 +285,41 @@ public class MetadataBuilder {
         for (int i = 0; i < propNames.length; i++)
         {
             String propName = propNames[i];
-            if (!hasOwnProperty(pClass, propName)) continue;  // skip property defined on superclass 
+            if (inheritedProperties.contains(propName)) continue;  // skip property defined on superclass 
 
             Type propType = propTypes[i];
             if (propType.isAssociationType())
             {
                 // navigation property
                 String propColumnNames = getPropertyColumnNames(persister, propName);
-                HashMap<String, Object> assProp = makeAssociationProperty(type, (AssociationType)propType, propName, propColumnNames, pClass, relatedDataPropertyMap, false);
+                HashMap<String, Object> assProp = makeAssociationProperty(type, (AssociationType)propType, propName, propColumnNames, relatedDataPropertyMap, false);
                 navArrayList.add(assProp);
             }
         }
     }
-
-    boolean hasOwnProperty(PersistentClass pClass, String propName) 
+    
+    /**
+     * Return names of all properties that are defined in the mapped ancestors of the 
+     * given persister.  Note that unmapped superclasses are deliberately ignored, because
+     * they shouldn't affect the metadata.
+     * @param persister
+     * @return set of property names.  Empty if the persister doesn't have a superclass.
+     */
+    HashSet<String> getSuperProperties(AbstractEntityPersister persister)
     {
-        return pClass.getProperty(propName).getPersistentClass() == pClass;
+    	HashSet<String> set = new HashSet<String>();
+    	String superClassName = persister.getMappedSuperclass();
+    	if (superClassName == null) return set;
+    	
+    	ClassMetadata superMeta = _sessionFactory.getClassMetadata(superClassName);
+    	if (superMeta == null) return set;
+    	    	
+		String[] superProps = superMeta.getPropertyNames();
+		set.addAll(Arrays.asList(superProps));
+		set.add(superMeta.getIdentifierPropertyName());
+    	return set;
     }
-
-    boolean hasOwnProperty(PersistentClass pClass, Property prop)
-    {
-        return prop.getPersistentClass() == pClass;
-    }
+    
     
     ArrayList<Selectable> getColumns(Property pClassProp)
     {
@@ -268,11 +339,20 @@ public class MetadataBuilder {
     	return false;
     }
 
+    boolean contains(String[] array, String x)
+    {
+    	for (int j = 0; j < array.length; j++)
+    	{
+    		if (array[j].equals(x)) return true;
+    	}
+    	return false;
+    }
+    
     /**
      * Adds a complex type definition
      * @param compType - The complex type
-     * @param propColumns - The columns which the complex type spans.  These are used to get the length and defaultValues
-     * @return The class name and namespace
+     * @param propColumns - The columns which the complex type spans.  These are used to get length and defaultValues.
+     * @return The class name and namespace of the component.
      */
     String addComponent(ComponentType compType, List<Selectable> propColumns)
     {
@@ -323,8 +403,8 @@ public class MetadataBuilder {
             else
             {
                 // data property
-                Column col = (Column) propColumns.get(colIndex);
-                HashMap<String, Object> dmap = makeDataProperty(propName, propType.getName(), propNull[i], col, false, false);
+            	Column col = (Column) propColumns.get(colIndex);
+                HashMap<String, Object> dmap = makeDataProperty(propName, propType, col, propNull[i], false, false);
                 dataArrayList.add(dmap);
                 colIndex++;
             }
@@ -335,23 +415,24 @@ public class MetadataBuilder {
     /**
      * Make data property metadata for the entity
      * @param propName - name of the property on the server
-     * @param typeName - data type of the property, e.g. Int32
+     * @param type - data type of the property, e.g. Int32
+     * @param col - the Column for this property; used for length and default value
      * @param isNullable - whether the property is nullable in the database
-     * @param col - Column Object, used for maxLength and defaultValue
      * @param isKey - true if this property is part of the key for the entity
      * @param isVersion - true if this property contains the version of the entity (for a concurrency strategy)
      * @return data property definition
      */
-    private HashMap<String, Object> makeDataProperty(String propName, String typeName, boolean isNullable, Column col, boolean isKey, boolean isVersion)
+    private HashMap<String, Object> makeDataProperty(String propName, Type type, Column col, boolean isNullable, boolean isKey, boolean isVersion)
     {
-        String newType = BreezeTypeMap.get(typeName.toLowerCase());
-        typeName = newType != null ? newType : typeName;
+        String newType = BreezeTypeMap.get(type.getName().toLowerCase());
+        String typeName = newType != null ? newType : type.getName();
 
         HashMap<String, Object> dmap = new LinkedHashMap<String, Object>();
         dmap.put("nameOnServer", propName);
         dmap.put("dataType", typeName);
         dmap.put("isNullable", isNullable);
 
+        
         if (col != null && col.getDefaultValue() != null)
         {
             dmap.put("defaultValue", col.getDefaultValue());
@@ -421,7 +502,7 @@ public class MetadataBuilder {
      * @param isKey
      * @return association property definition
      */
-    private HashMap<String, Object> makeAssociationProperty(Class containingType, AssociationType propType, String propName, String columnNames, PersistentClass pClass, HashMap<String, HashMap<String, Object>> relatedDataPropertyMap, boolean isKey)
+    private HashMap<String, Object> makeAssociationProperty(Class containingType, AssociationType propType, String propName, String columnNames, HashMap<String, HashMap<String, Object>> relatedDataPropertyMap, boolean isKey)
     {
         HashMap<String, Object> nmap = new LinkedHashMap<String, Object>();
         nmap.put("nameOnServer", propName);
@@ -432,7 +513,7 @@ public class MetadataBuilder {
 
         // the associationName must be the same at both ends of the association.
         nmap.put("associationName", getAssociationName(containingType.getSimpleName(), relatedEntityType.getSimpleName(), (propType instanceof OneToOneType)));
-
+        
         // look up the related foreign key using the column name
         String fkName = null;
         Map<String, Object> relatedDataProperty = relatedDataPropertyMap.get(columnNames);
@@ -453,7 +534,7 @@ public class MetadataBuilder {
         // The foreign key columns usually applies for many-to-one and one-to-one associations
         if (!propType.isCollectionType())
         {
-            String entityRelationship = pClass.getEntityName() + '.' + propName;
+            String entityRelationship = containingType.getName() + '.' + propName;
             if (relatedDataProperty != null)
             {
                 _fkMap.put(entityRelationship, fkName);

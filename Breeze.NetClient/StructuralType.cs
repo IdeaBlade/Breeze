@@ -49,9 +49,11 @@ namespace Breeze.NetClient {
     }
 
     public MetadataStore MetadataStore { get; internal set; }
+
     public String Name { 
       get { return QualifyTypeName(ShortName, Namespace); }
     }
+
     public Type ClrType {
       get {
         if (_clrType == null) {

@@ -60,7 +60,7 @@ namespace Breeze.NetClient {
         var baseTypeName = baseTypeInfo.TypeName;
         entityType.BaseTypeName = baseTypeName;
         var baseEntityType = _metadataStore.GetEntityType(baseTypeName, true);
-        if (baseEntityType == null) {
+        if (baseEntityType != null) {
           CompleteParseCsdlEntityType(entityType, csdlEntityType, baseEntityType);
         } else {
           List<DeferredTypeInfo> deferrals;

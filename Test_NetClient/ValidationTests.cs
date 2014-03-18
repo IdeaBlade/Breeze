@@ -16,26 +16,12 @@ namespace Test_NetClient {
   [TestClass]
   public class ValidationTests {
 
-    private Task<EntityManager> _emTask = null;
-    private EntityManager _em1;
-    
+    private string _serviceName;
+   
 
     [TestInitialize]
     public void TestInitializeMethod() {
-      _emTask = SetUpAsync();
-    }
-
-    public async Task<EntityManager> SetUpAsync() {
-      var serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
-      
-      if ( MetadataStore.Instance.EntityTypes.Count == 0) {
-        _em1 = new EntityManager(serviceName);
-        await _em1.FetchMetadata();
-      } else {
-        _em1 = new EntityManager(serviceName);
-      }
-      return _em1;
-      
+      _serviceName = "http://localhost:7150/breeze/NorthwindIBModel/";
     }
 
     [TestCleanup]
@@ -44,10 +30,10 @@ namespace Test_NetClient {
     }
 
 
-
     [TestMethod]
     public async Task INotifyDataErrorInfo() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
+
       var emp = new Employee();
       var inde = (INotifyDataErrorInfo)emp;
       Assert.IsTrue(!inde.HasErrors);
@@ -56,7 +42,7 @@ namespace Test_NetClient {
         eventArgsList.Add(e);
       };
       
-      _em1.AttachEntity(emp);
+      em1.AttachEntity(emp);
       Assert.IsTrue(eventArgsList.Count == 2); // firstName, lastName
       // magicString
       var fnErrors = inde.GetErrors(EntityAspect.AllErrors).Cast<ValidationError>();
@@ -94,7 +80,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task FindOrCreateFromJson() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var vr = new RequiredValidator();
       var vrNode = ((IJsonSerializable) vr).ToJNode(null);
@@ -112,7 +98,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task InternValidators() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var vr2 = new RequiredValidator().Intern();
       var vr3 = new RequiredValidator().Intern();
@@ -133,7 +119,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task LocalizedValidationMessage() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var vr = new RequiredValidator();
       var mt = vr.LocalizedMessage.Message;
@@ -143,7 +129,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task RequiredProperty() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
       
       var emp = new Employee();
       var vr = new RequiredValidator();
@@ -159,7 +145,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task RequiredProperty2() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var emp = new Employee();
       var dp = emp.EntityAspect.EntityType.GetDataProperty("LastName");
@@ -175,7 +161,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task EntireEntity() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var emp = new Employee();
 
@@ -191,12 +177,12 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task OnAttach() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var emp = new Employee();
 
       Assert.IsTrue(!emp.EntityAspect.GetValidationErrors().Any(), "should not be any validation errors");
-      _em1.AddEntity(emp);
+      em1.AddEntity(emp);
       var ves = emp.EntityAspect.GetValidationErrors();
       Assert.IsTrue(ves.Any(), "should be some now");
 
@@ -208,7 +194,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ChangeMessageString() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var emp = new Employee();
       var vr = new RequiredValidator().WithMessage("{0} is bad");
@@ -224,7 +210,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ChangeMessageResourceType() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var emp = new Employee();
       var vr = new RequiredValidator().WithMessage(typeof(Model_Northwind_NetClient.CustomMessages1));
@@ -240,7 +226,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task ChangeMessageBaseAndAssembly() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var emp = new Employee();
       var vr = new RequiredValidator().WithMessage("Model_Northwind_NetClient.CustomMessages2", typeof(Employee).Assembly);
@@ -256,7 +242,7 @@ namespace Test_NetClient {
 
     [TestMethod]
     public async Task CustomPropertyValidator() {
-      await _emTask;
+      var em1 = await TestFns.NewEm(_serviceName);
 
       var custType = MetadataStore.Instance.GetEntityType(typeof(Customer));
       var countryProp = custType.GetDataProperty("Country");
@@ -267,7 +253,7 @@ namespace Test_NetClient {
         Assert.IsTrue(valErrors.Count == 0);
         cust.CompanyName = "Test";
         cust.Country = "Germany";
-        _em1.AttachEntity(cust);
+        em1.AttachEntity(cust);
         Assert.IsTrue(valErrors.Count == 1);
         Assert.IsTrue(valErrors.First().Message.Contains("must start with"));
       } finally {
@@ -295,7 +281,7 @@ namespace Test_NetClient {
     
     //test("custom entity validation - register validator", function () {
     //    var ms = MetadataStore.importMetadata(testFns.metadataStore.exportMetadata());
-    //    var em = newEm(ms);
+    //    var em = TestFns.NewEm(ms);
     //    var custType = ms.getEntityType("Customer");
 
     //    var zipCodeValidatorFactory = createZipCodeValidatorFactory();
@@ -306,7 +292,7 @@ namespace Test_NetClient {
 
     //    Validator.register(zipCodeValidator);
     //    var newMetadata = MetadataStore.importMetadata(msSerialized);
-    //    var em2 = newEm(newMetadata);
+    //    var em2 = TestFns.NewEm(newMetadata);
     //    var custType2 = newMetadata.getEntityType("Customer");
     //    var cust1 = custType2.createEntity();
     //    cust1.setProperty("companyName", "Test1Co");

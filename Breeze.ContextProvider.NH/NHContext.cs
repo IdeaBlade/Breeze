@@ -14,8 +14,8 @@ using System.Linq;
 namespace Breeze.ContextProvider.NH {
   public class NHContext : Breeze.ContextProvider.ContextProvider, IDisposable {
     private ISession session;
-    protected Configuration configuration;
-    private static Dictionary<Configuration, IDictionary<string, object>> _configurationMetadata = new Dictionary<Configuration, IDictionary<string, object>>();
+    //protected Configuration configuration;
+    private static Dictionary<ISessionFactory, IDictionary<string, object>> _factoryMetadata = new Dictionary<ISessionFactory, IDictionary<string, object>>();
     private static object _metadataLock = new object();
 
     /// <summary>
@@ -24,9 +24,16 @@ namespace Breeze.ContextProvider.NH {
     /// </summary>
     /// <param name="session">Used for queries and updates</param>
     /// <param name="configuration">Used for metadata generation</param>
-    public NHContext(ISession session, Configuration configuration) {
+    public NHContext(ISession session) {
       this.session = session;
-      this.configuration = configuration;
+      //this.configuration = configuration;
+    }
+
+    [Obsolete("Configuration parameter is no longer used by NHContext")]
+    public NHContext(ISession session, Configuration configuration)
+    {
+        this.session = session;
+        //this.configuration = configuration;
     }
 
     /// <summary>
@@ -118,10 +125,11 @@ namespace Breeze.ContextProvider.NH {
     protected IDictionary<string, object> GetMetadata() {
       if (_metadata == null) {
           lock (_metadataLock) {
-              if (!_configurationMetadata.TryGetValue(this.configuration, out _metadata)) {
-                  var builder = new NHBreezeMetadata(session.SessionFactory, configuration);
+              if (!_factoryMetadata.TryGetValue(session.SessionFactory, out _metadata)) {
+                  //var builder = new NHBreezeMetadata(session.SessionFactory, configuration);
+                  var builder = new NHMetadataBuilder(session.SessionFactory);
                   _metadata = builder.BuildMetadata();
-                  //_configurationMetadata.Add(this.configuration, _metadata);
+                  _factoryMetadata.Add(session.SessionFactory, _metadata);
               }
           }
       }
@@ -192,7 +200,7 @@ namespace Breeze.ContextProvider.NH {
     /// <returns></returns>
     protected NHRelationshipFixer GetRelationshipFixer(Dictionary<Type, List<EntityInfo>> saveMap) {
         // Get the map of foreign key relationships from the metadata
-        var fkMap = (IDictionary<string, string>)GetMetadata()[NHBreezeMetadata.FK_MAP];
+        var fkMap = (IDictionary<string, string>)GetMetadata()[NHMetadataBuilder.FK_MAP];
         return new NHRelationshipFixer(saveMap, fkMap, session);
     }
 

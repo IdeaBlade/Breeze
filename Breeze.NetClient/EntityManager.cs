@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Breeze.NetClient {
   public class EntityManager  {
@@ -39,10 +40,57 @@ namespace Breeze.NetClient {
 
     private void Initialize() {
       
+      var x = AuthorizedThreadId;
       EntityGroups = new EntityGroupCollection();
       UnattachedChildrenMap = new UnattachedChildrenMap();
       TempIds = new HashSet<UniqueId>();
     }
+
+  
+    #endregion
+
+    #region Thread checking
+
+    public Int32 CurrentThreadId {
+      get {
+
+        if (__threadLocalId == null) {
+          __threadLocalId = new ThreadLocal<int>();
+        }
+        if (__threadLocalId.Value == 0) {
+          __threadLocalId.Value = __nextThreadId++;
+        }
+
+        return __threadLocalId.Value;
+      }
+    }
+
+    public Int32 AuthorizedThreadId {
+      get {
+        if (_authorizedThreadId == 0) {
+          _authorizedThreadId = CurrentThreadId;
+        }
+        return _authorizedThreadId;
+      }
+    }
+
+    public void CheckAuthorizedThreadId() {
+      return;
+
+      //if (CurrentThreadId != AuthorizedThreadId) {
+      //  String msg = "An EntityManager can only execute on a single thread. This EntityManager is authorized to execute on the thread with id=’{0}’; ";
+      //  msg += "the requested operation came from the thread with Id=‘{1}’.\n\n";
+      //  msg += "You may have to disable this cross-thread checking for specific reasons such as automated testing. ";
+      //  msg += "Please review our documentation on multi-threading issues and the EntityManager.AuthorizedThreadId property.";
+      //  msg = String.Format(msg, AuthorizedThreadId, CurrentThreadId);
+      //  throw new Exception(msg);
+      //}
+    }
+
+    [ThreadStatic]
+    private static ThreadLocal<Int32> __threadLocalId;
+    private static Int32 __nextThreadId = 34;
+    private Int32 _authorizedThreadId;
 
     #endregion
 
@@ -53,18 +101,34 @@ namespace Breeze.NetClient {
       private set;
     }
 
-    // TODO: insure that none of these can be set to null;
-    public DataService DefaultDataService { get; set; }
+    public DataService DefaultDataService {
+      get { return _defaultDataService; }
+      set { _defaultDataService = InsureNotNull(value, "DefaultDataService"); }
+    }
 
-    public QueryOptions DefaultQueryOptions { get; set; }
+    public QueryOptions DefaultQueryOptions {
+      get { return _defaultQueryOptions; }
+      set { _defaultQueryOptions = InsureNotNull(value, "DefaultQueryOptions"); }
+    }
 
-    public SaveOptions DefaultSaveOptions { get; set; }
+    public SaveOptions DefaultSaveOptions {
+      get { return _defaultSaveOptions; }
+      set { _defaultSaveOptions = InsureNotNull(value, "DefaultSaveOptions"); }
+    }
+    public CacheQueryOptions CacheQueryOptions {
+      get { return _cacheQueryOptions; }
+      set { _cacheQueryOptions = InsureNotNull(value, "CacheQueryOptions"); }
+    }
 
-    public CacheQueryOptions CacheQueryOptions { get; set; }
+    public ValidationOptions ValidationOptions {
+      get { return _validationOptions; }
+      set { _validationOptions = InsureNotNull(value, "ValidationOptions"); }
+    }
 
-    public ValidationOptions ValidationOptions { get; set; }
-
-    public IKeyGenerator KeyGenerator { get; set; }
+    public IKeyGenerator KeyGenerator {
+      get { return _keyGenerator; }
+      set { _keyGenerator = InsureNotNull(value, "KeyGenerator"); }
+    }
 
     public bool ChangeNotificationEnabled {
       get { return _changeNotificationEnabled; }
@@ -101,10 +165,12 @@ namespace Breeze.NetClient {
       }
       var dataService = query.DataService != null ? query.DataService : this.DefaultDataService;
       await FetchMetadata(dataService);
+      CheckAuthorizedThreadId();
       var resourcePath = query.GetResourcePath();
       // HACK
       resourcePath = resourcePath.Replace("/*", "");
       var result = await dataService.GetAsync(resourcePath);
+      CheckAuthorizedThreadId();
       var mergeStrategy = query.QueryOptions.MergeStrategy ?? this.DefaultQueryOptions.MergeStrategy ?? QueryOptions.Default.MergeStrategy;
       
       // cannot reuse a jsonConverter - internal refMap is one instance/query
@@ -220,7 +286,6 @@ namespace Breeze.NetClient {
       }
     }
 
-    // TODO: not currently called.
     internal void FireQueuedEvents() {
       // IsLoadingEntity will still be true when this occurs.
       if (! _queuedEvents.Any()) return;
@@ -1052,9 +1117,22 @@ namespace Breeze.NetClient {
 
     #region other private 
 
+    private T InsureNotNull<T>(T val, String argumentName) {
+      if (val == null) {
+        throw new ArgumentNullException(argumentName);
+      }
+      return val;
+    }
+
     private EntityGroupCollection EntityGroups { get; set; }
     private List<Action> _queuedEvents = new List<Action>();
     private bool _changeNotificationEnabled = true;
+    private DataService _defaultDataService;
+    private QueryOptions _defaultQueryOptions;
+    private SaveOptions _defaultSaveOptions;
+    private CacheQueryOptions _cacheQueryOptions;
+    private ValidationOptions _validationOptions;
+    private IKeyGenerator _keyGenerator;
     private bool _hasChanges;
     #endregion
   }
