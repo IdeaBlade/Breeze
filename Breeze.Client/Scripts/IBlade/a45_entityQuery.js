@@ -1035,7 +1035,7 @@ var QueryFuncs = (function() {
     
 var FnNode = (function() {
     // valid property name identifier
-    var RX_IDENTIFIER = /^[a-z_][\w.$]*$/i ;
+    var RX_IDENTIFIER = /^[a-z_](?:\/?[\w.$])*$/i ;
     // comma delimited expressions ignoring commas inside of quotes.
     var RX_COMMA_DELIM1 = /('[^']*'|[^,]+)/g ;
     var RX_COMMA_DELIM2 = /("[^"]*"|[^,]+)/g ;
