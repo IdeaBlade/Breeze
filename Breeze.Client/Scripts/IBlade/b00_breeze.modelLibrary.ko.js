@@ -209,8 +209,8 @@
                 entity[propName] = koObj;
             }
         
-			koObj.parentEntity = entity;
-			koObj.propertyDescriptor = prop;
+			entity[propName].parentEntity = entity;
+			entity[propName].propertyDescriptor = prop;
         });
         
     };
