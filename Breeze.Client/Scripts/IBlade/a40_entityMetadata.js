@@ -1696,6 +1696,9 @@ var EntityType = (function () {
         var orderDetailType = em1.metadataStore.getEntityType("OrderDetail");
         var companyNameProp2 = orderDetailType.getProperty("Order.Customer.CompanyName");
         // companyNameProp === companyNameProp2 
+    This method can also walk a property path to return a property in a subtype
+    @example
+        var exciseTaxProp = orderDetailType.getProperty("Order/InternationalOrder.ExciseTax");
     @method getProperty
     @param propertyPath {String}
     @param [throwIfNotFound=false] {Boolean} Whether to throw an exception if not found.
@@ -1705,6 +1708,12 @@ var EntityType = (function () {
         throwIfNotFound = throwIfNotFound || false;
         var propertyNames = (Array.isArray(propertyPath)) ? propertyPath : propertyPath.trim().split('.');
         var propertyName = propertyNames[0];
+		
+        // split for casting entity property to subtype
+        var nameParts = propertyName.split("/");
+	    propertyName = nameParts[0];
+	    var subType = nameParts[1];
+		
         var prop = __arrayFirst(this.getProperties(), __propEq("name", propertyName));
         if (propertyNames.length === 1) {
             if (prop) {
@@ -1717,8 +1726,18 @@ var EntityType = (function () {
         } else {
             if (prop) {
                 propertyNames.shift();
-                // dataType is line below will be a complexType
+                // dataType in line below will be a complexType
                 var nextParentType = prop.isNavigationProperty ? prop.entityType : prop.dataType;
+				
+                // if subtype is specified, use that next
+                if (subType) {
+                	nextParentType = __arrayFirst(nextParentType.subtypes, __propEq("shortName", subType));
+		            if (!nextParentType) {
+		            	throw new Error(__formatString("The entityType '%1' is not a subtype of entityType '%2'",
+                        subType, prop.entityType.name));
+		            }
+	            }
+
                 if (nextParentType) {
                     return nextParentType.getProperty(propertyNames, throwIfNotFound);
                 } else {
@@ -1831,7 +1850,22 @@ var EntityType = (function () {
         var fn = this.metadataStore.namingConvention.clientPropertyNameToServer;
         var that = this;
         var serverPropPath = propertyPath.split(".").map(function (propName) {
+		
+        	// split for casting entity property to subtype
+        	var nameParts = propName.split("/");
+        	propName = nameParts[0];
+        	var subType = nameParts[1];
+
             var prop = that.getProperty(propName);
+			
+        	if (subType) {
+				// change that to subtype
+				that = that.metadataStore.getEntityType(subType);
+				
+				// append subtype to propName
+				propName = __formatString("%1/%2.%3", propName, that.namespace, that.shortName);
+			}
+
             return fn(propName, prop);
         }).join("/");
         return serverPropPath;
