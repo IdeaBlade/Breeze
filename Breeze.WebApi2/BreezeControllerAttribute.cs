@@ -23,6 +23,11 @@ namespace Breeze.WebApi2 {
   [AttributeUsage(AttributeTargets.Class)]
   public class BreezeControllerAttribute : Attribute, IControllerConfiguration {
 
+    public BreezeControllerAttribute()
+    {
+      this._queryableFilter = new BreezeQueryableAttribute() { AllowedQueryOptions = AllowedQueryOptions.All };
+    }
+
     /// <summary>
     /// Initialize the Breeze controller with a single <see cref="MediaTypeFormatter"/> for JSON
     /// and a single <see cref="IFilterProvider"/> for Breeze OData support
@@ -45,6 +50,12 @@ namespace Breeze.WebApi2 {
 
 
       }
+    }
+
+    public int MaxExpansionDepth
+    {
+        get { return _queryableFilter.MaxExpansionDepth; }
+        set { _queryableFilter.MaxExpansionDepth = value; }
     }
 
     /// <summary>
@@ -173,7 +184,7 @@ namespace Breeze.WebApi2 {
         return new EntityErrorsFilterProvider(entityErrorsFilter);
     }
 
-    private BreezeQueryableAttribute _queryableFilter = new BreezeQueryableAttribute() { AllowedQueryOptions = AllowedQueryOptions.All };
+    protected BreezeQueryableAttribute _queryableFilter;
     private MetadataToHttpResponseAttribute _metadataFilter = new MetadataToHttpResponseAttribute();
     private EntityErrorsFilterAttribute  _entityErrorsFilter = new EntityErrorsFilterAttribute();
     private static object __lock = new object();
