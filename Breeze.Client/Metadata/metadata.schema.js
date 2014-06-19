@@ -131,6 +131,10 @@ var x = {
                     "description": "The server side side name of this property. Either name or nameOnServer must be specified and either is sufficient.",
                     "type": "string"
                 },
+                "displayName": {
+                    "description": "The property display name. It is used for example in validation, replacing the %displayName% macro definition.",
+                    "type": "string"
+                },
                 "dataType": {
                     "description": "If present, the complexType name should be omitted.",
                     "enum": [
@@ -206,6 +210,10 @@ var x = {
                 },
                 "nameOnServer": {
                     "description": "The server side side name of this property. Either name or nameOnServer must be specified and either is sufficient.",
+                    "type": "string"
+                },
+                "displayName": {
+                    "description": "The property display name. It is used for example in validation, replacing the %displayName% macro definition.",
                     "type": "string"
                 },
                 "entityTypeName": {
