@@ -898,6 +898,9 @@ var CsdlMetadataParser = (function () {
             }
         }
         if (dp) {
+			if (csdlProperty.displayName != undefined) {
+				dp.displayName = csdlProperty.displayName;
+			}
             parentType.addProperty(dp);
             addValidators(dp);
         }

@@ -531,6 +531,7 @@ namespace Breeze.ContextProvider.EF6 {
       // This is needed because the raw edmx has a different namespace than the CLR types that it references.
       xDoc = UpdateCSpaceOSpaceMapping(xDoc, assembly, resourcePrefix);
 
+      AddUpdateDisplayNames(xDoc, assembly);
       return XDocToJson(xDoc);
     }
 
@@ -570,10 +571,47 @@ namespace Breeze.ContextProvider.EF6 {
       var objectContext = ((IObjectContextAdapter)dbContext).ObjectContext;
       // This is needed because the raw edmx has a different namespace than the CLR types that it references.
       xDoc = UpdateCSpaceOSpaceMapping(xDoc, objectContext);
+      AddUpdateDisplayNames(xDoc, dbContext.GetType().Assembly);
       return XDocToJson(xDoc);
     }
 
-    private static String GetMetadataFromObjectContext(Object context) {
+      private static void AddUpdateDisplayNames(XDocument xDoc, Assembly assembly)
+      {
+          XNamespace ns = "http://schemas.microsoft.com/ado/2009/11/edm";
+
+          XNamespace annotationNs = xDoc.Root.Attribute(XNamespace.Xmlns + "customannotation").Value;
+          foreach (var entityType in xDoc.Root.Elements(ns + "EntityType"))
+          {
+              //string className = entityType.Attribute("Name").Value;
+              //string typeName = string.Format("{0}.{1}, {2}", nameSpace, className, dbContext.GetType().Assembly.FullName);
+              //string typeName = string.Format("{0}.{1}", nameSpace, className);
+
+              //var ass = dbContext.GetType().Assembly;
+              //Type type = Type.GetType(nameSpace + "." + className, assemblyName => dbContext.GetType().Assembly, (assembly, tn, _) => ass.GetType(typeName));
+              var typeName = entityType.Attribute(annotationNs + "ClrType").Value;
+              typeName = typeName.Substring(0, typeName.IndexOf(','));
+              Type type = assembly.GetType(typeName);
+              foreach (var property in entityType.Elements(ns + "Property"))
+              {
+                  var typeProperty = type.GetProperty(property.Attribute("Name").Value);
+                  var displayAttribute = (DisplayAttribute)Attribute.GetCustomAttribute(typeProperty, typeof(DisplayAttribute));
+                  if (displayAttribute != null && displayAttribute.Name != null)
+                  {
+                      property.SetAttributeValue("DisplayName", displayAttribute.Name);
+                  }
+                  else
+                  {
+                      var displayNameAttribute = (DisplayNameAttribute)Attribute.GetCustomAttribute(typeProperty, typeof(DisplayNameAttribute));
+                      if (displayNameAttribute != null && displayNameAttribute.DisplayName != null)
+                      {
+                          property.SetAttributeValue("DisplayName", displayNameAttribute.DisplayName);
+                      }
+                  }
+              }
+          }
+      }
+
+      private static String GetMetadataFromObjectContext(Object context) {
 
       var ocAssembly = context.GetType().Assembly;
       var ocNamespace = context.GetType().Namespace;
@@ -584,6 +622,8 @@ namespace Breeze.ContextProvider.EF6 {
 
       // This is needed because the raw edmx has a different namespace than the CLR types that it references.
       xDoc = UpdateCSpaceOSpaceMapping(xDoc, objectContext);
+
+      AddUpdateDisplayNames(xDoc, context.GetType().Assembly);
       return XDocToJson(xDoc);
     }
 
